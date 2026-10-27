@@ -128,7 +128,7 @@
         Bệnh viện
       </button>
       <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
-        Hồ sơ Bác sĩ
+        Tóm tắt trước khám
       </button>
       <button onclick="switchTab('admin-tab')" id="nav-admin-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
         Hạ tầng Cloud
@@ -331,77 +331,58 @@
             </div>
 
             <!-- Chat Stream Area (flex-1: fills vertical space, scrolls internally, pr-2) -->
-            <div id="chat-messages" class="flex-1 overflow-y-auto py-3 space-y-3 px-1 sm:px-2 pr-2">
-              
-              <!-- Message 1: Initial Bot Greeting -->
-              <div class="flex justify-start">
-                <div class="bg-[#F1F5F9] text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm font-normal max-w-[85%] leading-relaxed shadow-2xs">
-                  Xin chào! Hôm nay bạn cảm thấy thế nào?
-                </div>
-              </div>
-
-              <!-- Message 2: User Bubble (Medical Ocean Blue) -->
-              <div class="flex justify-end">
-                <div class="bg-[#0284C7] text-white px-5 py-3 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium max-w-[80%]">
-                  Tôi bị đau họng và hơi sốt.
-                </div>
-              </div>
-
-              <!-- Message 3: Structured Follow-up Bot Response with WCAG text-slate-500 font-medium -->
-              <div class="flex justify-start">
-                <div class="bg-[#F1F5F9] border border-slate-200/60 text-slate-700 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm font-normal max-w-[95%] sm:max-w-[90%] leading-relaxed shadow-xs space-y-2.5">
-                  <p class="font-medium text-slate-800">
-                    Mình hiểu rồi. Với triệu chứng đau họng và sốt nhẹ, dưới đây là các biện pháp chăm sóc ban đầu:
-                  </p>
-                  <ul class="space-y-1.5 text-slate-600 pl-1 text-xs sm:text-[13px]">
-                    <li class="flex items-start space-x-2">
-                      <span class="text-[#0284C7] font-bold mt-0.5">•</span>
-                      <span>Súc họng nước muối ấm (0.9%) từ 3 - 4 lần/ngày giúp kháng viêm và dịu niêm mạc.</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                      <span class="text-[#0284C7] font-bold mt-0.5">•</span>
-                      <span>Uống nhiều nước ấm, nghỉ ngơi tại phòng thoáng khí và kiểm tra thân nhiệt định kỳ.</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                      <span class="text-[#0284C7] font-bold mt-0.5">•</span>
-                      <span>Nếu sốt trên 38.5°C hoặc đau rát tăng mạnh, hãy dùng Paracetamol theo liều và tư vấn y tế.</span>
-                    </li>
-                  </ul>
-                  <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
-                    <div class="flex items-center space-x-1.5 font-semibold text-slate-700">
-                      <svg class="w-3.5 h-3.5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                      </svg>
-                      <span>Nguồn: MedlinePlus</span>
-                    </div>
-                    <!-- WCAG Contrast Enhanced: text-slate-500 font-medium -->
-                    <span class="text-[11px] text-slate-500 font-medium">Khuyến cáo lâm sàng</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            <div id="chat-messages" class="flex-1 overflow-y-auto py-3 space-y-3 px-1 sm:px-2 pr-2"></div>
 
             <!-- Bottom Area: Quick Reply Pills + Contrast Input Field with gap-3 -->
             <div class="pt-3 space-y-2.5 shrink-0">
               <!-- Interactive Quick Reply Pill Buttons (Fit evenly across container without touching borders) -->
-              <div class="grid grid-cols-3 gap-2 py-0.5 w-full">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 py-0.5 w-full">
+                <button type="button" onclick="document.getElementById('chat-image-input').click()" class="w-full text-center py-1.5 px-2 rounded-full bg-sky-50 hover:bg-[#E0F2FE] hover:text-[#0284C7] text-[#0284C7] border border-sky-200 text-[11px] font-bold transition-all shadow-2xs truncate" title="Chụp / Tải ảnh tổn thương da">
+                  📷 Nhận diện ảnh da
+                </button>
+                <button type="button" onclick="insertPrompt('Tôi bị nổi mụn nước ngứa ngáy một bên sườn')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Mụn nước 1 bên sườn?">
+                  🔍 Mụn nước một bên?
+                </button>
                 <button type="button" onclick="insertPrompt('Thuốc hạ sốt nào an toàn?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Thuốc hạ sốt an toàn?">
                   🌡️ Thuốc hạ sốt an toàn?
-                </button>
-                <button type="button" onclick="insertPrompt('Khi nào tôi nên đi khám bệnh viện?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Khi nào nên đi khám?">
-                  🏥 Khi nào nên đi khám?
                 </button>
                 <button type="button" onclick="insertPrompt('Có cần uống kháng sinh không?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Có cần dùng kháng sinh?">
                   💊 Có cần dùng kháng sinh?
                 </button>
               </div>
 
-              <!-- High Contrast Chat Input Field (bg-slate-50 border border-slate-200) with gap-3 between buttons -->
-              <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-full p-2 pl-5 focus-within:border-[#0284C7] focus-within:ring-2 focus-within:ring-[#0284C7]/15 transition-all shadow-xs">
-                <input id="user-input" type="text" placeholder="Nhập tin nhắn của bạn..." class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal">
+              <!-- Image Preview Container (Khi người dùng chọn ảnh chụp tổn thương) -->
+              <div id="chat-image-preview-container" class="hidden mb-2 p-2 bg-sky-50/90 border border-sky-200 rounded-2xl flex items-center justify-between transition-all">
+                <div class="flex items-center space-x-2.5 overflow-hidden">
+                  <img id="chat-image-preview-thumb" src="" alt="Ảnh tổn thương" class="w-10 h-10 rounded-xl object-cover border border-sky-300 shadow-2xs shrink-0">
+                  <div class="truncate">
+                    <div class="text-[11px] font-bold text-slate-800 truncate" id="chat-image-preview-name">anh_ton_thuong.jpg</div>
+                    <div class="text-[10px] text-[#0284C7] font-semibold">🔍 Sẵn sàng để Gemini Vision phân tích & đối chiếu</div>
+                  </div>
+                </div>
+                <button type="button" onclick="clearChatImagePreview()" class="p-1.5 text-slate-400 hover:text-red-500 rounded-full hover:bg-white transition-colors shrink-0" title="Hủy ảnh này">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- High Contrast Chat Input Field (bg-slate-50 border border-slate-200) with Image Attachment -->
+              <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-full p-2 pl-3 focus-within:border-[#0284C7] focus-within:ring-2 focus-within:ring-[#0284C7]/15 transition-all shadow-xs">
+                <!-- Hidden File Input for Clinical Image -->
+                <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleChatImageSelected(this)">
                 
-                <div class="flex items-center gap-3 shrink-0 pr-1">
+                <!-- Camera / Image Upload Button -->
+                <button type="button" onclick="document.getElementById('chat-image-input').click()" title="Chụp hoặc tải ảnh tổn thương da (Gemini Vision AI)" class="p-2 text-slate-400 hover:text-[#0284C7] hover:bg-sky-50 rounded-full transition-colors shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </button>
+
+                <input id="user-input" type="text" placeholder="Nhập triệu chứng hoặc tải ảnh tổn thương da..." class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal" onkeydown="if(event.key==='Enter') sendChatMessage()">
+                
+                <div class="flex items-center gap-2 shrink-0 pr-1">
                   <!-- Paperclip Attachment Button -->
                   <button type="button" onclick="switchTab('ocr-tab')" title="Tải ảnh đơn thuốc hoặc kết quả xét nghiệm" class="p-2 text-slate-400 hover:text-[#0284C7] rounded-full transition-colors shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -684,7 +665,7 @@
           </div>
           <div class="mt-4 space-y-2.5">
             <button onclick="switchTab('doctor-tab')" class="w-full py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center justify-center space-x-1.5">
-              <span>Đưa vào Hồ sơ Bác sĩ</span>
+              <span>Xem Tóm tắt Trước Khám</span>
               <span>→</span>
             </button>
             <button onclick="switchTab('booking-tab')" class="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-all flex items-center justify-center space-x-1">
@@ -1057,6 +1038,27 @@
           Tôi đã hiểu và đồng ý
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Phóng to Ảnh Đối chiếu Lâm sàng (Image Lightbox Modal) -->
+  <div id="image-lightbox-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md transition-opacity" onclick="closeImageModal()">
+    <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl border border-slate-100 relative space-y-3 animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div>
+          <h3 id="lightbox-title" class="font-bold text-slate-900 text-sm sm:text-base">Ảnh tham khảo đối chiếu y khoa</h3>
+          <p id="lightbox-stage" class="text-xs text-[#0284C7] font-semibold"></p>
+        </div>
+        <button onclick="closeImageModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[60vh]">
+        <img id="lightbox-img" src="" alt="Ảnh đối chiếu" class="w-full h-auto max-h-[60vh] object-contain">
+      </div>
+      <p id="lightbox-caption" class="text-xs text-slate-600 text-center px-3 py-2 leading-relaxed bg-slate-50 rounded-xl border border-slate-100"></p>
     </div>
   </div>
 
