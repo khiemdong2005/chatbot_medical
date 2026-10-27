@@ -18,6 +18,10 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default="patient")  # 'patient' hoặc 'doctor'
     license_code = db.Column(db.String(50), nullable=True)  # Chứng chỉ hành nghề (Bác sĩ)
     phone_number = db.Column(db.String(20), nullable=True)
+    dob = db.Column(db.String(50), nullable=True)  # Ngày sinh (VD: 15/08/1995)
+    gender = db.Column(db.String(20), nullable=True)  # Giới tính (Nam / Nữ / Khác)
+    address = db.Column(db.String(255), nullable=True)  # Địa chỉ / Tỉnh thành
+    bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_password(self, password: str) -> None:
@@ -29,24 +33,67 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self) -> dict:
-        """Xuất thông tin an toàn (loại bỏ trường password_hash)."""
+        """Xuất thông tin an toàn và đồng bộ thông tin cá nhân bên dưới họ tên."""
+        is_phone = self.email.endswith("@phone.medimind")
+        display_account = self.phone_number if (is_phone and self.phone_number) else self.email
+
+        info_parts = []
+        if self.gender:
+            info_parts.append(self.gender)
+        if self.dob:
+            info_parts.append(self.dob)
+        if self.phone_number:
+            info_parts.append(self.phone_number)
+        elif not is_phone and self.email:
+            info_parts.append(self.email)
+
+        personal_info = " • ".join(info_parts) if info_parts else "Thành viên"
+
         return {
             "id": self.id,
-            "email": self.email,
+            "email": display_account,
             "name": self.full_name,
-            "role": "Bác sĩ lâm sàng" if self.role == "doctor" else "Bệnh nhân",
-            "roleType": self.role,
-            "badge": "BS" if self.role == "doctor" else "BN",
-            "license_code": self.license_code or "",
-            "phone_number": self.phone_number or ""
+            "role": personal_info,
+            "personal_info": personal_info,
+            "roleType": "patient",
+            "badge": "BN",
+            "phone_number": self.phone_number or "",
+            "dob": self.dob or "",
+            "gender": self.gender or "",
+            "address": self.address or "",
+            "bhyt": self.bhyt or ""
         }
 
 
 def init_db(app):
-    """Khởi tạo cơ sở dữ liệu và nạp dữ liệu hạt giống (Seed Data) mẫu."""
+    """Khởi tạo cơ sở dữ liệu và tự động nâng cấp cấu trúc bảng nếu cần."""
     db.init_app(app)
     with app.app_context():
         db.create_all()
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text("ALTER TABLE users ADD COLUMN dob VARCHAR(50)"))
+                conn.commit()
+        except Exception:
+            pass
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text("ALTER TABLE users ADD COLUMN gender VARCHAR(20)"))
+                conn.commit()
+        except Exception:
+            pass
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text("ALTER TABLE users ADD COLUMN address VARCHAR(255)"))
+                conn.commit()
+        except Exception:
+            pass
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text("ALTER TABLE users ADD COLUMN bhyt VARCHAR(50)"))
+                conn.commit()
+        except Exception:
+            pass
         _seed_demo_accounts()
 
 
@@ -72,9 +119,17 @@ def _seed_demo_accounts():
             email="benhnhan.an@gmail.com",
             full_name="Nguyễn Văn An",
             role="patient",
-            phone_number="0987654321"
+            phone_number="0987654321",
+            dob="15/08/1995",
+            gender="Nam"
         )
         patient.set_password("MatKhau123@")
+        db.session.add(patient)
+    else:
+        if not patient.dob:
+            patient.dob = "15/08/1995"
+        if not patient.gender:
+            patient.gender = "Nam"
         db.session.add(patient)
 
     try:

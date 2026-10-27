@@ -13,6 +13,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 load_dotenv()
 
 from flask import Flask, render_template, request, jsonify, session
+from werkzeug.utils import secure_filename
 from core.models import db, User, init_db
 from core.triage import analyze_symptoms, assess_emergency_risk
 from core.gemini_service import GeminiMedicalService
@@ -40,18 +41,20 @@ def index():
 
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
-    """Đăng nhập hệ thống: Xác thực Email/Mã số và Mật khẩu băm trong CSDL."""
+    """Đăng nhập hệ thống: Xác thực Email/Số điện thoại và Mật khẩu băm trong CSDL."""
     data = request.get_json(silent=True) or {}
     identifier = data.get("identifier", "").strip().lower()
     password = data.get("password", "")
-    role = data.get("role", "patient")
 
     if not identifier or not password:
         return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ tài khoản và mật khẩu."}), 400
 
-    # Tìm kiếm theo Email hoặc Mã chứng chỉ hành nghề của bác sĩ
+    # Tìm kiếm theo Email, Số điện thoại hoặc Phone Alias
     user = User.query.filter(
-        (User.email == identifier) | (User.license_code == identifier)
+        (User.email == identifier) | 
+        (User.phone_number == identifier) | 
+        (User.email == f"{identifier}@phone.medimind") |
+        (User.license_code == identifier)
     ).first()
 
     if not user or not user.check_password(password):
@@ -69,29 +72,58 @@ def auth_login():
 
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
-    """Đăng ký tài khoản người dùng hoặc bác sĩ mới."""
+    """Đăng ký tài khoản người dùng bằng Email hoặc Số điện thoại."""
     data = request.get_json(silent=True) or {}
-    email = data.get("email", "").strip().lower()
+    raw_identifier = (data.get("identifier") or data.get("email") or "").strip().lower()
     password = data.get("password", "")
     full_name = data.get("name", "").strip()
-    role = data.get("role", "patient")
-    license_code = data.get("license_code", "").strip() if role == "doctor" else None
 
-    if not email or not password or not full_name:
-        return jsonify({"success": False, "error": "Vui lòng điền đầy đủ các trường thông tin."}), 400
+    if not full_name:
+        last_name = data.get("last_name", "").strip()
+        first_name = data.get("first_name", "").strip()
+        if last_name and first_name:
+            full_name = f"{last_name} {first_name}"
+        elif first_name:
+            full_name = first_name
+        elif last_name:
+            full_name = last_name
+
+    dob = data.get("dob", "").strip()
+    gender = data.get("gender", "").strip()
+
+    if not raw_identifier or not password or not full_name:
+        return jsonify({"success": False, "error": "Vui lòng điền đầy đủ họ tên, Email hoặc Số điện thoại và mật khẩu."}), 400
 
     if len(password) < 6:
         return jsonify({"success": False, "error": "Mật khẩu phải có ít nhất 6 ký tự."}), 400
 
-    existing_user = User.query.filter_by(email=email).first()
+    # Phân loại Email hoặc Số điện thoại
+    if "@" in raw_identifier:
+        email = raw_identifier
+        phone_number = None
+    else:
+        clean_phone = "".join(filter(str.isdigit, raw_identifier))
+        if len(clean_phone) < 9 or len(clean_phone) > 11:
+            return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
+        phone_number = clean_phone
+        email = f"{clean_phone}@phone.medimind"
+
+    # Kiểm tra trùng lặp Email hoặc Số điện thoại
+    existing_user = User.query.filter(
+        (User.email == email) | 
+        ((User.phone_number == phone_number) & (User.phone_number.isnot(None)))
+    ).first()
     if existing_user:
-        return jsonify({"success": False, "error": "Email này đã được sử dụng."}), 409
+        return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
 
     new_user = User(
         email=email,
         full_name=full_name,
-        role=role,
-        license_code=license_code
+        role="patient",
+        phone_number=phone_number,
+        dob=dob,
+        gender=gender,
+        license_code=None
     )
     new_user.set_password(password)
     db.session.add(new_user)
@@ -120,6 +152,57 @@ def auth_me():
         return jsonify({"authenticated": False, "user": None})
 
     return jsonify({"authenticated": True, "user": user.to_dict()})
+
+@app.route("/api/auth/profile", methods=["POST", "PUT"])
+def auth_update_profile():
+    """Cập nhật thông tin cá nhân của người dùng."""
+    user_id = session.get("user_id")
+    data = request.get_json(silent=True) or {}
+
+    if not user_id:
+        req_id = data.get("id")
+        if req_id:
+            user_id = req_id
+
+    if not user_id:
+        return jsonify({"success": False, "error": "Vui lòng đăng nhập để cập nhật thông tin."}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "error": "Không tìm thấy thông tin tài khoản."}), 404
+
+    full_name = data.get("name", "").strip()
+    gender = data.get("gender", "").strip()
+    dob = data.get("dob", "").strip()
+    phone_number = data.get("phone_number", "").strip()
+    address = data.get("address", "").strip()
+    bhyt = data.get("bhyt", "").strip()
+    email = data.get("email", "").strip()
+
+    if full_name:
+        user.full_name = full_name
+    if gender:
+        user.gender = gender
+    if dob:
+        user.dob = dob
+    if phone_number:
+        clean_phone = "".join(filter(str.isdigit, phone_number))
+        if clean_phone:
+            user.phone_number = clean_phone
+    if address:
+        user.address = address
+    if bhyt:
+        user.bhyt = bhyt
+    if email and "@" in email and not user.email.endswith("@phone.medimind"):
+        user.email = email
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": "Cập nhật thông tin cá nhân thành công!",
+        "user": user.to_dict()
+    })
 
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
@@ -183,45 +266,84 @@ def chat():
         ])
     })
 
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "doc"}
+
+def format_size(bytes_size):
+    if bytes_size < 1024:
+        return f"{bytes_size} B"
+    elif bytes_size < 1024 * 1024:
+        return f"{bytes_size / 1024:.1f} KB"
+    else:
+        return f"{bytes_size / (1024 * 1024):.1f} MB"
+
 @app.route("/api/upload-lab", methods=["POST"])
 def upload_lab():
-    # Tiếp nhận và phân tích kết quả xét nghiệm / đơn thuốc
+    # Tiếp nhận tệp ảnh / PDF / Word phục vụ huấn luyện model scan
+    if "file" not in request.files:
+        return jsonify({"status": "error", "message": "Không tìm thấy tệp đính kèm."}), 400
+    
+    file = request.files["file"]
+    if not file or file.filename == "":
+        return jsonify({"status": "error", "message": "Chưa chọn tệp hợp lệ."}), 400
+    
+    filename = secure_filename(file.filename)
+    if not filename:
+        import time
+        filename = f"upload_{int(time.time())}.png"
+    
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "bin"
+    if ext not in ALLOWED_EXTENSIONS:
+        return jsonify({"status": "error", "message": "Định dạng không được hỗ trợ. Vui lòng chọn JPG, PNG, PDF hoặc Word (.docx)."}), 400
+    
+    save_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(save_path)
+    
+    file_size_bytes = os.path.getsize(save_path)
+    file_size_str = format_size(file_size_bytes)
+    
+    from datetime import datetime
+    upload_time = datetime.now().strftime("%H:%M %d/%m/%Y")
+
     return jsonify({
         "status": "success",
-        "file_name": "xet_nghiem_sinh_hoa.jpg",
-        "s3_url": "https://medimind-records-storage.s3.amazonaws.com/uploads/xet_nghiem_sinh_hoa.jpg",
-        "extracted_metrics": [
-            {
-                "name": "Glucose (Đường huyết đói)",
-                "value": "7.8 mmol/L",
-                "reference": "3.9 - 6.4 mmol/L",
-                "status": "High",
-                "warning": "Nguy cơ tiền tiểu đường, cần theo dõi chế độ tinh bột."
-            },
-            {
-                "name": "Cholesterol toàn phần",
-                "value": "5.9 mmol/L",
-                "reference": "< 5.2 mmol/L",
-                "status": "High",
-                "warning": "Chỉ số mỡ máu hơi cao."
-            },
-            {
-                "name": "SGOT (AST - Men gan)",
-                "value": "28 U/L",
-                "reference": "< 40 U/L",
-                "status": "Normal",
-                "warning": "Chức năng tế bào gan bình thường."
-            },
-            {
-                "name": "Creatinine (Chức năng thận)",
-                "value": "72 µmol/L",
-                "reference": "53 - 106 µmol/L",
-                "status": "Normal",
-                "warning": "Độ lọc cầu thận tốt."
-            }
-        ],
-        "ai_summary": "Phát hiện 2 chỉ số vượt ngưỡng tham chiếu: Đường huyết (7.8) và Cholesterol (5.9). Khuyến nghị khám chuyên khoa Nội tiết - Dinh dưỡng."
+        "file_name": file.filename,
+        "saved_as": filename,
+        "file_size": file_size_str,
+        "file_type": ext.upper(),
+        "uploaded_at": upload_time,
+        "saved_path": f"uploads/{filename}",
+        "message": "Đã lưu tệp vào thư mục huấn luyện model thành công."
     })
+
+@app.route("/api/scan-files", methods=["GET"])
+def get_scan_files():
+    # Danh sách các tệp trong thư mục dataset huấn luyện scan
+    files = []
+    if os.path.exists(UPLOAD_FOLDER):
+        from datetime import datetime
+        for fname in os.listdir(UPLOAD_FOLDER):
+            fpath = os.path.join(UPLOAD_FOLDER, fname)
+            if os.path.isfile(fpath):
+                stat = os.stat(fpath)
+                ext = fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
+                files.append({
+                    "name": fname,
+                    "size": format_size(stat.st_size),
+                    "type": ext.upper(),
+                    "uploaded_at": datetime.fromtimestamp(stat.st_mtime).strftime("%H:%M %d/%m/%Y")
+                })
+    return jsonify({"status": "success", "files": files})
+
+@app.route("/api/scan-files/<filename>", methods=["DELETE"])
+def delete_scan_file(filename):
+    safe_name = secure_filename(filename)
+    fpath = os.path.join(UPLOAD_FOLDER, safe_name)
+    if os.path.exists(fpath):
+        os.remove(fpath)
+        return jsonify({"status": "success", "message": f"Đã xóa {safe_name}"})
+    return jsonify({"status": "error", "message": "Tệp không tồn tại."}), 404
 
 @app.route("/api/clinical-summary", methods=["GET"])
 def clinical_summary():
@@ -232,10 +354,10 @@ def clinical_summary():
     current_role = session.get("user_role")
     
     # Cho phép xem nếu là Bác sĩ đã đăng nhập trong session, hoặc tạm thời bỏ qua nếu đang test
-    if current_role and current_role != "doctor":
+    if not session.get("user_id"):
         return jsonify({
-            "error": "Từ chối truy cập. Chỉ Bác sĩ chuyên khoa có chứng chỉ hành nghề mới được quyền xem tóm tắt bệnh án này."
-        }), 403
+            "error": "Vui lòng đăng nhập để xem bản tóm tắt hồ sơ sức khỏe này."
+        }), 401
 
     return jsonify({
         "patient_name": "Nguyễn Văn An",

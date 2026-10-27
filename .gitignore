@@ -30,3 +30,7 @@ dist/
 .DS_Store
 Thumbs.db
 *.db
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
