@@ -112,37 +112,59 @@
           <span class="font-extrabold text-lg sm:text-xl tracking-tight text-[#0F172A] whitespace-nowrap">MediMind Clinical AI</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E0F2FE] text-[#0284C7] font-bold border border-[#BAE6FD] whitespace-nowrap">v2.5</span>
         </div>
-        <div class="text-[11px] text-slate-500 font-medium whitespace-nowrap">HIPAA Compliant • Phác đồ MedlinePlus</div>
+        <div class="text-[11px] text-slate-500 font-medium whitespace-nowrap" data-i18n="brand_subtitle">HIPAA Compliant • Phác đồ MedlinePlus</div>
       </div>
     </div>
 
     <!-- Center Floating Pill Navbar (Modern Ocean Blue Aesthetic & Even Spacing) -->
     <nav class="hidden lg:flex items-center bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 shadow-2xs gap-1 shrink-0">
-      <button onclick="switchTab('chat-tab')" id="nav-chat-tab" class="nav-btn px-4 py-2 rounded-full text-xs bg-[#E0F2FE] text-[#0284C7] font-bold whitespace-nowrap transition-all">
+      <button onclick="switchTab('chat-tab')" id="nav-chat-tab" class="nav-btn px-4 py-2 rounded-full text-xs bg-[#E0F2FE] text-[#0284C7] font-bold whitespace-nowrap transition-all" data-i18n="nav_chat">
         Trang chủ
       </button>
-      <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
+      <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_ocr">
         Đọc đơn thuốc
       </button>
-      <button onclick="switchTab('booking-tab')" id="nav-booking-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
+      <button onclick="switchTab('booking-tab')" id="nav-booking-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_booking">
         Bệnh viện
       </button>
-      <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
+      <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_doctor">
         Tóm tắt trước khám
       </button>
-      <button onclick="switchTab('admin-tab')" id="nav-admin-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
+      <button onclick="switchTab('admin-tab')" id="nav-admin-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_admin">
         Hạ tầng Cloud
       </button>
     </nav>
 
     <!-- Right Controls (Unified rounded-full border border-slate-200 bg-white shadow-sm px-4 py-2) -->
     <div class="flex items-center space-x-2 shrink-0 whitespace-nowrap">
-      <!-- Language Picker (Unified height & padding px-4 py-2) -->
-      <div class="hidden sm:flex items-center space-x-1.5 text-xs bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm font-semibold text-slate-700 whitespace-nowrap shrink-0">
-        <span>VI</span>
-        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
+      <!-- Language Picker Dropdown (VI / EN) -->
+      <div class="relative hidden sm:block" id="lang-picker-container">
+        <button id="lang-btn" onclick="toggleLanguageDropdown(event)" type="button" class="flex items-center space-x-1.5 text-xs bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm font-semibold text-slate-700 hover:border-[#0284C7] hover:text-[#0284C7] transition-all whitespace-nowrap shrink-0 cursor-pointer">
+          <span id="current-lang-code">VI</span>
+          <svg id="lang-dropdown-arrow" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div id="lang-dropdown-menu" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-2xl border border-slate-200 shadow-xl py-1.5 z-50 text-xs">
+          <button onclick="setLanguage('vi')" type="button" class="w-full text-left px-3.5 py-2.5 hover:bg-sky-50 flex items-center justify-between text-slate-700 font-medium transition-colors">
+            <span class="flex items-center space-x-2">
+              <span class="text-sm">🇻🇳</span>
+              <span class="font-semibold">Tiếng Việt</span>
+              <span class="text-[10px] text-slate-400 font-normal">(VI)</span>
+            </span>
+            <span id="check-vi" class="text-[#0284C7] font-bold">✓</span>
+          </button>
+          <button onclick="setLanguage('en')" type="button" class="w-full text-left px-3.5 py-2.5 hover:bg-sky-50 flex items-center justify-between text-slate-700 font-medium transition-colors">
+            <span class="flex items-center space-x-2">
+              <span class="text-sm">🇬🇧</span>
+              <span class="font-semibold">English</span>
+              <span class="text-[10px] text-slate-400 font-normal">(EN)</span>
+            </span>
+            <span id="check-en" class="text-[#0284C7] font-bold hidden">✓</span>
+          </button>
+        </div>
       </div>
 
       <!-- Auth State 1: Unlogged (Shows "Đăng nhập" with clean User Icon) -->
@@ -151,7 +173,7 @@
           <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
-          <span class="whitespace-nowrap">Đăng nhập</span>
+          <span class="whitespace-nowrap" data-i18n="nav_login">Đăng nhập</span>
         </button>
       </div>
 
@@ -175,7 +197,7 @@
 
       <!-- Action Button -->
       <button onclick="switchTab('chat-tab'); document.getElementById('user-input')?.focus();" class="px-5 py-2 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-md shadow-blue-700/20 flex items-center space-x-1.5 whitespace-nowrap shrink-0">
-        <span class="whitespace-nowrap">Bắt đầu ngay</span>
+        <span class="whitespace-nowrap" data-i18n="nav_start">Bắt đầu ngay</span>
         <span>→</span>
       </button>
     </div>
@@ -194,17 +216,17 @@
         <!-- Community AI Badge in Ice Blue (w-fit self-start prevents flex-col stretching) -->
         <div class="w-fit self-start inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#E0F2FE] text-[#0284C7] text-xs font-bold border border-[#BAE6FD] shadow-2xs">
           <span class="w-2 h-2 rounded-full bg-[#0284C7] animate-pulse"></span>
-          <span>Dự án AI vì sức khỏe cộng đồng 2026</span>
+          <span data-i18n="hero_badge">Dự án AI vì sức khỏe cộng đồng 2026</span>
         </div>
 
         <!-- Big, Clean Hero Title with !leading-[1.35] and inline line-height to guarantee diacritics spacing -->
         <h1 class="text-4xl sm:text-5xl lg:text-[54px] xl:text-[58px] font-extrabold text-[#0F172A] tracking-tight !leading-[1.35]" style="line-height: 1.35;">
-          <span class="whitespace-nowrap">Trợ lý sức khỏe</span> <br>
-          <span class="text-[#0284C7] whitespace-nowrap">thông minh</span>
+          <span class="whitespace-nowrap" data-i18n="hero_title_1">Trợ lý sức khỏe</span> <br>
+          <span class="text-[#0284C7] whitespace-nowrap" data-i18n="hero_title_2">thông minh</span>
         </h1>
 
         <!-- Subtitle -->
-        <p class="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl font-normal">
+        <p class="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl font-normal" data-i18n="hero_desc">
           Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.
         </p>
 
@@ -215,7 +237,7 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
             </svg>
-            <span class="whitespace-nowrap">Kiểm tra triệu chứng</span>
+            <span class="whitespace-nowrap" data-i18n="hero_btn_check">Kiểm tra triệu chứng</span>
             <span>→</span>
           </button>
 
@@ -224,7 +246,7 @@
             <svg class="w-5 h-5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
-            <span class="whitespace-nowrap">Đọc đơn thuốc</span>
+            <span class="whitespace-nowrap" data-i18n="hero_btn_scan">Đọc đơn thuốc</span>
           </button>
         </div>
 
@@ -234,14 +256,14 @@
             <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
             </svg>
-            <span>Bảo mật thông tin</span>
+            <span data-i18n="trust_security">Bảo mật thông tin</span>
           </div>
           <div class="h-4 w-px bg-slate-300"></div>
           <div class="flex items-center space-x-2 whitespace-nowrap">
             <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <span>Hỗ trợ 24/7</span>
+            <span data-i18n="trust_support">Hỗ trợ 24/7</span>
           </div>
         </div>
 
@@ -249,7 +271,7 @@
         <div class="pt-1">
           <div class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/80 border border-slate-200/80 shadow-2xs text-[11px] sm:text-xs text-slate-600">
             <span class="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
-            <span>Đã hỗ trợ hơn <strong class="text-slate-800 font-bold">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus</span>
+            <span data-i18n="trust_banner">Đã hỗ trợ hơn <strong class="text-slate-800 font-bold">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus</span>
           </div>
         </div>
       </div>
@@ -267,7 +289,7 @@
                 </svg>
               </div>
               <div>
-                <span class="text-[10px] text-slate-400 block font-medium leading-none">Nhịp tim</span>
+                <span class="text-[10px] text-slate-400 block font-medium leading-none" data-i18n="chip_hr">Nhịp tim</span>
                 <span class="text-xs font-bold text-slate-800 leading-tight">72 bpm</span>
               </div>
             </div>
@@ -287,9 +309,9 @@
               </svg>
             </div>
             <div>
-              <span class="text-xs font-bold text-slate-800 block whitespace-nowrap">Thông tin y khoa</span>
+              <span class="text-xs font-bold text-slate-800 block whitespace-nowrap" data-i18n="chip_info">Thông tin y khoa</span>
               <div class="text-[10px] text-[#0284C7] flex items-center space-x-1 font-semibold whitespace-nowrap">
-                <span>Từ nguồn uy tín</span>
+                <span data-i18n="chip_source">Từ nguồn uy tín</span>
                 <span>→</span>
               </div>
             </div>
@@ -307,10 +329,10 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-base font-bold text-slate-800">Trợ lý MediMind AI</h3>
+                  <h3 class="text-base font-bold text-slate-800" data-i18n="chat_assistant_title">Trợ lý MediMind AI</h3>
                   <div class="flex items-center space-x-1.5 text-xs text-slate-400 font-medium">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>Đang hoạt động</span>
+                    <span data-i18n="chat_status">Đang hoạt động</span>
                   </div>
                 </div>
               </div>
@@ -338,16 +360,16 @@
               <!-- Interactive Quick Reply Pill Buttons (Fit evenly across container without touching borders) -->
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 py-0.5 w-full">
                 <button type="button" onclick="document.getElementById('chat-image-input').click()" class="w-full text-center py-1.5 px-2 rounded-full bg-sky-50 hover:bg-[#E0F2FE] hover:text-[#0284C7] text-[#0284C7] border border-sky-200 text-[11px] font-bold transition-all shadow-2xs truncate" title="Chụp / Tải ảnh tổn thương da">
-                  📷 Nhận diện ảnh da
+                  <span data-i18n="quick_1">📷 Nhận diện ảnh da</span>
                 </button>
-                <button type="button" onclick="insertPrompt('Tôi bị nổi mụn nước ngứa ngáy một bên sườn')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Mụn nước 1 bên sườn?">
-                  🔍 Mụn nước một bên?
+                <button type="button" onclick="insertQuickPrompt(2)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Mụn nước 1 bên sườn?">
+                  <span data-i18n="quick_2">🔍 Mụn nước một bên?</span>
                 </button>
-                <button type="button" onclick="insertPrompt('Thuốc hạ sốt nào an toàn?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Thuốc hạ sốt an toàn?">
-                  🌡️ Thuốc hạ sốt an toàn?
+                <button type="button" onclick="insertQuickPrompt(3)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Thuốc hạ sốt an toàn?">
+                  <span data-i18n="quick_3">🌡️ Thuốc hạ sốt an toàn?</span>
                 </button>
-                <button type="button" onclick="insertPrompt('Có cần uống kháng sinh không?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Có cần dùng kháng sinh?">
-                  💊 Có cần dùng kháng sinh?
+                <button type="button" onclick="insertQuickPrompt(4)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Có cần dùng kháng sinh?">
+                  <span data-i18n="quick_4">💊 Có cần dùng kháng sinh?</span>
                 </button>
               </div>
 
@@ -380,7 +402,7 @@
                   </svg>
                 </button>
 
-                <input id="user-input" type="text" placeholder="Nhập triệu chứng hoặc tải ảnh tổn thương da..." class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal" onkeydown="if(event.key==='Enter') sendChatMessage()">
+                <input id="user-input" type="text" placeholder="Nhập triệu chứng hoặc tải ảnh tổn thương da..." data-i18n-placeholder="chat_input_placeholder" class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal" onkeydown="if(event.key==='Enter') sendChatMessage()">
                 
                 <div class="flex items-center gap-2 shrink-0 pr-1">
                   <!-- Paperclip Attachment Button -->
@@ -401,8 +423,8 @@
 
               <!-- Medical Disclaimer Micro-notice (Phục vụ giáo dục & nghiên cứu tương lai) -->
               <div class="text-[10px] text-slate-400 text-center font-normal leading-tight pt-1">
-                <span>⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • </span>
-                <button type="button" onclick="openDisclaimerModal()" class="text-[#0284C7] underline hover:text-[#0369A1] font-medium">Miễn trừ trách nhiệm</button>
+                <span data-i18n="disclaimer_footer_text">⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • </span>
+                <button type="button" onclick="openDisclaimerModal()" class="text-[#0284C7] underline hover:text-[#0369A1] font-medium" data-i18n="disclaimer_footer_btn">Miễn trừ trách nhiệm</button>
               </div>
             </div>
 

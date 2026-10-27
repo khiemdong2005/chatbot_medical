@@ -41,7 +41,8 @@ class GeminiMedicalService:
         history: List[Dict[str, Any]],
         rag_docs: Optional[List[Dict[str, Any]]] = None,
         image_bytes: Optional[bytes] = None,
-        image_mime_type: str = "image/jpeg"
+        image_mime_type: str = "image/jpeg",
+        lang: str = "vi"
     ) -> Optional[Dict[str, Any]]:
         """
         Gọi Google Gemini API để phân tích triệu chứng y tế và trả về kết quả có cấu trúc JSON.
@@ -87,44 +88,55 @@ class GeminiMedicalService:
             )
 
         # Định hình System Instruction tăng cường định dạng JSON phản hồi & Thái độ ân cần
+        is_en = (lang == "en")
+        lang_directive = (
+            "LANGUAGE REQUIREMENT:\n"
+            "- YOU MUST RESPOND COMPLETELY IN ENGLISH.\n"
+            "- All values in the JSON (answer, visual_findings, differential_diagnosis, specialist, home_care_tips) MUST BE IN ENGLISH.\n\n"
+            if is_en else ""
+        )
+        answer_desc = (
+            "Medical consultation response for patient (in fluent English, warm, empathetic tone, beginning with supportive acknowledgment, bulleted evidence-based non-pharmacological home care guidance, monitoring instructions, and well wishes at the end)"
+            if is_en else
+            "Nội dung phản hồi tư vấn y tế cho người bệnh (bằng Tiếng Việt, giọng điệu ân cần, đồng cảm, có mở đầu hỏi thăm thấu cảm, các gạch đầu dòng hướng dẫn chăm sóc tại nhà an toàn không dùng thuốc, lưu ý theo dõi và lời chúc mau khỏe ở cuối)"
+        )
+
         instruction_prompt = (
             f"{VIETNAMESE_MEDICAL_SYSTEM_PROMPT}\n"
             f"{rag_context_block}\n\n"
-            "BẠN PHẢI TRẢ VỀ DUY NHẤT MỘT JSON OBJECT theo đúng schema sau:\n"
+            f"{lang_directive}"
+            "NGUYÊN TẮC Y ĐỨC BẮT BUỘC / MEDICAL ETHICS:\n"
+            "- DO NOT PRESCRIBE MEDICATIONS or specific dosages. Recommend safe non-pharmacological care (hydration, rest, cooling compresses, hygiene).\n"
+            "- Advise patient to consult a licensed physician or pharmacist if symptoms persist.\n\n"
+            "RETURN ONLY A SINGLE JSON OBJECT strictly matching this schema:\n"
             "{\n"
-            '  "answer": "Nội dung phản hồi tư vấn y tế cho người bệnh (bằng Tiếng Việt, giọng điệu ân cần, đồng cảm, có mở đầu hỏi thăm thấu cảm, các gạch đầu dòng hướng dẫn tại nhà rõ ràng, lưu ý theo dõi và lời chúc mau khỏe ở cuối)",\n'
-            '  "visual_findings": ["Đặc điểm thị giác 1 (ví dụ: Dát đỏ ranh giới rõ)", "Đặc điểm 2 (Mụn nước li ti)"],\n'
-            '  "differential_diagnosis": ["Tên bệnh lý nghi ngờ 1 (ví dụ: Zona thần kinh)", "Bệnh lý 2 (Viêm da tiếp xúc)"],\n'
-            '  "risk_level": "Thấp (Tự chăm sóc & Theo dõi) | Trung bình (Cần thăm khám) | Cao (Cần đi viện)",\n'
+            f'  "answer": "{answer_desc}",\n'
+            '  "visual_findings": ["Visual observation 1", "Visual observation 2"],\n'
+            '  "differential_diagnosis": ["Suspected condition 1", "Condition 2"],\n'
+            '  "risk_level": "Low (Self-care & Monitor) | Medium (Doctor visit recommended) | High (Hospital visit)",\n'
             '  "risk_score": 35,\n'
-            '  "symptoms": ["Triệu chứng 1", "Triệu chứng 2"],\n'
-            '  "specialist": "Tên chuyên khoa đề xuất (ví dụ: Da liễu, Tai Mũi Họng, Nội tiêu hóa, Nội tổng quát)",\n'
-            '  "medications": [\n'
-            "    {\n"
-            '      "name": "Tên thuốc hoạt chất (ví dụ: Paracetamol)",\n'
-            '      "strength": "Hàm lượng (ví dụ: 500mg)",\n'
-            '      "category": "Nhóm dược lý",\n'
-            '      "type": "OTC (Không kê đơn)",\n'
-            '      "instructions": "Hướng dẫn liều dùng an toàn và liều tối đa trong 24h",\n'
-            '      "type_badge": "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"\n'
-            "    }\n"
-            "  ],\n"
+            '  "symptoms": ["Symptom 1", "Symptom 2"],\n'
+            '  "specialist": "Recommended clinical specialty (e.g. Dermatology, ENT, Internal Medicine)",\n'
+            '  "home_care_tips": ["Safe home care tip 1", "Tip 2"],\n'
             '  "sources": [\n'
             '    {"title": "MedlinePlus Medical Encyclopedia", "source": "NIH National Library of Medicine", "url": "https://medlineplus.gov"}\n'
-            "  ]\n"
+            '  ]\n'
             "}\n"
-            "TUYỆT ĐỐI KHÔNG DÙNG MARKDOWN CODE BLOCK (```json). CHỈ TRẢ VỀ DUY NHẤT CHUỖI JSON."
+            "DO NOT WRAP IN MARKDOWN CODE BLOCKS. RETURN RAW JSON ONLY."
         )
 
         # Chuẩn bị nội dung hội thoại
         dialogue_text = ""
+        p_label = "Patient" if is_en else "Bệnh nhân"
+        a_label = "MediMind Assistant" if is_en else "Trợ lý MediMind"
         for msg in history[-4:]:
-            role_label = "Bệnh nhân" if msg.get("role") == "user" else "Trợ lý MediMind"
+            role_label = p_label if msg.get("role") == "user" else a_label
             dialogue_text += f"{role_label}: {msg.get('content', '')}\n"
 
         if has_image:
-            image_note = "[BỆNH NHÂN GỬI KÈM 1 BỨC ẢNH VÙNG TỔN THƯƠNG / TRIỆU CHỨNG LÂM SÀNG]"
-            prompt_content = f"{dialogue_text}Bệnh nhân: {image_note} {user_message}\nTrợ lý MediMind (Quan sát kỹ ảnh, phân tích hình thái học, chẩn đoán phân biệt và trả về JSON có lời hỏi thăm ân cần):"
+            image_note = "[PATIENT ATTACHED 1 CLINICAL LESION IMAGE]" if is_en else "[BỆNH NHÂN GỬI KÈM 1 BỨC ẢNH VÙNG TỔN THƯƠNG / TRIỆU CHỨNG LÂM SÀNG]"
+            prompt_suffix = "Carefully examine lesion, morphological features, differential diagnosis and return JSON in English with empathetic tone" if is_en else "Quan sát kỹ ảnh, phân tích hình thái học, chẩn đoán phân biệt và trả về JSON có lời hỏi thăm ân cần"
+            prompt_content = f"{dialogue_text}{p_label}: {image_note} {user_message}\n{a_label} ({prompt_suffix}):"
             try:
                 image_part = types.Part.from_bytes(data=image_bytes, mime_type=image_mime_type)
                 req_contents = [image_part, prompt_content]
@@ -132,7 +144,8 @@ class GeminiMedicalService:
                 print(f"⚠️ Lỗi tạo image part: {e_part}. Chuyển sang text.")
                 req_contents = prompt_content
         else:
-            prompt_content = f"{dialogue_text}Bệnh nhân: {user_message}\nTrợ lý MediMind (Trả về JSON có lời hỏi thăm ân cần):"
+            prompt_suffix = "Return JSON in English with empathetic guidance" if is_en else "Trả về JSON có lời hỏi thăm ân cần"
+            prompt_content = f"{dialogue_text}{p_label}: {user_message}\n{a_label} ({prompt_suffix}):"
             req_contents = prompt_content
 
         try:

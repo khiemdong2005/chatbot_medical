@@ -18,7 +18,6 @@ from core.models import db, User, init_db
 from core.triage import analyze_symptoms, assess_emergency_risk, apply_safety_guardrails
 from core.rag_service import medical_rag_service
 from core.gemini_service import GeminiMedicalService
-from core.clinical_atlas import match_clinical_atlas
 
 app = Flask(__name__)
 
@@ -138,12 +137,12 @@ def chat():
       2. Truy vấn tri thức y khoa RAG từ ChromaDB
       3. Gọi AI Gemini Flash suy luận (kèm hỗ trợ Multimodal đọc ảnh Vision & Fallback offline)
       4. Hậu kiểm màng lọc chặn kê đơn kháng sinh bừa bãi
-      5. Tra cứu Thư viện Đối chiếu Y khoa (Clinical Atlas) tìm 3 ảnh mẫu tham khảo
     """
     data = request.get_json(silent=True) or {}
     user_message = data.get("message", "").strip()
     history = data.get("history", [])
     image_str = data.get("image")
+    lang = data.get("lang", "vi")
 
     if not user_message and not image_str:
         return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
@@ -169,7 +168,7 @@ def chat():
     # BƯỚC 1: TIỀN KIỂM AN TOÀN (Pre-check Guardrail)
     # Phát hiện sớm cờ đỏ nguy kịch, có xử lý bẫy phủ định ("không khó thở")
     # -------------------------------------------------------------
-    emergency = assess_emergency_risk(user_message)
+    emergency = assess_emergency_risk(user_message, lang=lang)
     if emergency["is_emergency"]:
         return jsonify({
             "answer": emergency["message"],
@@ -185,7 +184,6 @@ def chat():
                     "url": "https://kcb.vn"
                 }
             ],
-            "clinical_atlas": None
         })
 
     # -------------------------------------------------------------
@@ -201,13 +199,14 @@ def chat():
         history,
         rag_docs=rag_docs,
         image_bytes=image_bytes,
-        image_mime_type=image_mime_type
+        image_mime_type=image_mime_type,
+        lang=lang
     )
     if gemini_result and "answer" in gemini_result:
         triage_result = gemini_result
     else:
         # Tự động kích hoạt bộ máy phác đồ nội bộ khi chưa có API key hoặc mất mạng
-        triage_result = analyze_symptoms(user_message, history)
+        triage_result = analyze_symptoms(user_message, history, lang=lang)
         if rag_docs:
             triage_result["sources"] = [
                 {
@@ -222,15 +221,9 @@ def chat():
     # BƯỚC 4: HẬU KIỂM AN TOÀN (Post-check Guardrail)
     # Rà soát câu trả lời, chặn đứng việc tự ý kê đơn thuốc kháng sinh
     # -------------------------------------------------------------
-    cleaned_answer = apply_safety_guardrails(triage_result.get("answer", ""))
+    cleaned_answer = apply_safety_guardrails(triage_result.get("answer", ""), lang=lang)
 
-    # -------------------------------------------------------------
-    # BƯỚC 5: TRA CỨU THƯ VIỆN ĐỐI CHIẾU LÂM SÀNG (3 ẢNH MẪU)
-    # -------------------------------------------------------------
     diff_diag = triage_result.get("differential_diagnosis", [])
-    symps = triage_result.get("symptoms", [])
-    search_context = f"{user_message} {cleaned_answer} {' '.join(symps)} {' '.join(diff_diag)}"
-    atlas_data = match_clinical_atlas(search_context)
 
     return jsonify({
         "answer": cleaned_answer,
@@ -238,7 +231,6 @@ def chat():
         "risk_score": triage_result.get("risk_score", 30),
         "symptoms": triage_result.get("symptoms", []),
         "specialist": triage_result.get("specialist", "Nội tổng quát"),
-        "medications": triage_result.get("medications", []),
         "visual_findings": triage_result.get("visual_findings", []),
         "differential_diagnosis": diff_diag,
         "is_emergency": False,
@@ -248,8 +240,7 @@ def chat():
                 "source": "NIH National Library of Medicine",
                 "url": "https://medlineplus.gov"
             }
-        ]),
-        "clinical_atlas": atlas_data
+        ])
     })
 
 # ==============================================================

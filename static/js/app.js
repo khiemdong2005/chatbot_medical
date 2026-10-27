@@ -6,6 +6,172 @@
 
 const chatHistory = [];
 
+// ==========================================
+// Multilingual i18n Support (Tiếng Việt & English)
+// ==========================================
+let currentLang = localStorage.getItem('medimind_lang') || 'vi';
+
+const translations = {
+  vi: {
+    brand_subtitle: "HIPAA Compliant • Phác đồ MedlinePlus",
+    nav_chat: "Trang chủ",
+    nav_ocr: "Đọc đơn thuốc",
+    nav_booking: "Bệnh viện",
+    nav_doctor: "Tóm tắt trước khám",
+    nav_admin: "Hạ tầng Cloud",
+    nav_login: "Đăng nhập",
+    nav_start: "Bắt đầu ngay",
+    user_role: "Bác sĩ lâm sàng",
+    hero_badge: "Dự án AI vì sức khỏe cộng đồng 2026",
+    hero_title_1: "Trợ lý sức khỏe",
+    hero_title_2: "thông minh",
+    hero_desc: "Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.",
+    hero_btn_check: "Kiểm tra triệu chứng",
+    hero_btn_scan: "Đọc đơn thuốc",
+    trust_security: "Bảo mật thông tin",
+    trust_support: "Hỗ trợ 24/7",
+    trust_banner: "Đã hỗ trợ hơn <strong class=\"text-slate-800 font-bold\">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus",
+    chip_hr: "Nhịp tim",
+    chip_info: "Thông tin y khoa",
+    chip_source: "Từ nguồn uy tín",
+    chat_assistant_title: "Trợ lý MediMind AI",
+    chat_status: "Đang hoạt động",
+    quick_1: "📷 Nhận diện ảnh da",
+    quick_2: "🔍 Mụn nước một bên?",
+    quick_3: "🌡️ Thuốc hạ sốt an toàn?",
+    quick_4: "💊 Có cần dùng kháng sinh?",
+    quick_prompt_text_2: "Tôi bị nổi mụn nước ngứa ngáy một bên sườn",
+    quick_prompt_text_3: "Thuốc hạ sốt nào an toàn?",
+    quick_prompt_text_4: "Có cần uống kháng sinh không?",
+    chat_input_placeholder: "Nhập triệu chứng hoặc tải ảnh tổn thương da...",
+    disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
+    disclaimer_footer_btn: "Miễn trừ trách nhiệm",
+    typing_vision: "Gemini Vision đang phân tích hình thái học...",
+    typing_guideline: "Đang đối soát phác đồ y khoa...",
+    patient_label: "Vừa xong • Bệnh nhân",
+    server_error: "Không thể kết nối đến máy chủ.",
+    risk_safe: "An toàn",
+    risk_moderate: "Theo dõi",
+    risk_emergency: "Cần Cấp cứu",
+    default_image_prompt: "Xin bác sĩ quan sát bức ảnh và phân tích giúp tôi dấu hiệu tổn thương trên da."
+  },
+  en: {
+    brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
+    nav_chat: "Home",
+    nav_ocr: "Prescriptions",
+    nav_booking: "Hospitals",
+    nav_doctor: "Pre-Consultation Summary",
+    nav_admin: "Cloud Infrastructure",
+    nav_login: "Sign In",
+    nav_start: "Get Started",
+    user_role: "Clinical Physician",
+    hero_badge: "Community Health AI Initiative 2026",
+    hero_title_1: "Smart Healthcare",
+    hero_title_2: "Assistant",
+    hero_desc: "AI-powered clinical triage, prescription analysis, and evidence-grounded health assistance referenced from trusted medical guidelines.",
+    hero_btn_check: "Check Symptoms",
+    hero_btn_scan: "Scan Prescription",
+    trust_security: "Data Security",
+    trust_support: "24/7 Support",
+    trust_banner: "Assisted over <strong class=\"text-slate-800 font-bold\">15,200+</strong> clinical screenings based on MedlinePlus protocols",
+    chip_hr: "Heart Rate",
+    chip_info: "Medical Info",
+    chip_source: "From trusted sources",
+    chat_assistant_title: "MediMind AI Assistant",
+    chat_status: "Online",
+    quick_1: "📷 Skin Image AI",
+    quick_2: "🔍 Unilateral Blisters?",
+    quick_3: "🌡️ Safe Antipyretic?",
+    quick_4: "💊 Need Antibiotics?",
+    quick_prompt_text_2: "I have itchy blisters clustered on one side of my torso",
+    quick_prompt_text_3: "What is a safe fever reducer medication?",
+    quick_prompt_text_4: "Do I need to take antibiotics for a cold or sore throat?",
+    chat_input_placeholder: "Describe symptoms or upload a skin lesion photo...",
+    disclaimer_footer_text: "⚠️ Educational Health AI Prototype • ",
+    disclaimer_footer_btn: "Medical Disclaimer",
+    typing_vision: "Gemini Vision is analyzing morphology...",
+    typing_guideline: "Cross-referencing medical guidelines...",
+    patient_label: "Just now • Patient",
+    server_error: "Unable to connect to server.",
+    risk_safe: "Safe",
+    risk_moderate: "Monitor",
+    risk_emergency: "Emergency",
+    default_image_prompt: "Please analyze this clinical image and assess the lesion characteristics on the skin."
+  }
+};
+
+function toggleLanguageDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('lang-dropdown-menu');
+  const arrow = document.getElementById('lang-dropdown-arrow');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  if (isHidden) {
+    menu.classList.remove('hidden');
+    if (arrow) arrow.classList.add('rotate-180');
+  } else {
+    menu.classList.add('hidden');
+    if (arrow) arrow.classList.remove('rotate-180');
+  }
+}
+
+function closeLanguageDropdown() {
+  const menu = document.getElementById('lang-dropdown-menu');
+  const arrow = document.getElementById('lang-dropdown-arrow');
+  if (menu) menu.classList.add('hidden');
+  if (arrow) arrow.classList.remove('rotate-180');
+}
+
+function setLanguage(lang) {
+  if (!translations[lang]) lang = 'vi';
+  currentLang = lang;
+  localStorage.setItem('medimind_lang', lang);
+  applyLanguage(lang);
+  closeLanguageDropdown();
+}
+
+function applyLanguage(lang) {
+  document.documentElement.lang = lang;
+  const codeEl = document.getElementById('current-lang-code');
+  if (codeEl) codeEl.innerText = lang.toUpperCase();
+
+  const checkVi = document.getElementById('check-vi');
+  const checkEn = document.getElementById('check-en');
+  if (checkVi && checkEn) {
+    if (lang === 'vi') {
+      checkVi.classList.remove('hidden');
+      checkEn.classList.add('hidden');
+    } else {
+      checkVi.classList.add('hidden');
+      checkEn.classList.remove('hidden');
+    }
+  }
+
+  const dict = translations[lang] || translations.vi;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key]) {
+      el.placeholder = dict[key];
+    }
+  });
+}
+
+function insertQuickPrompt(id) {
+  const dict = translations[currentLang] || translations.vi;
+  const text = dict[`quick_prompt_text_${id}`] || '';
+  if (text) {
+    insertPrompt(text);
+  }
+}
+
+
 
 
 function hideFloatingDecorations() {
@@ -156,8 +322,9 @@ async function sendChatMessage() {
   const currentImage = selectedChatImageBase64;
 
   if (!text && !currentImage) return;
+  const dict = translations[currentLang] || translations.vi;
   if (!text && currentImage) {
-    text = "Xin bác sĩ quan sát bức ảnh và phân tích giúp tôi dấu hiệu tổn thương trên da.";
+    text = dict.default_image_prompt;
   }
 
   hideFloatingDecorations();
@@ -179,7 +346,7 @@ async function sendChatMessage() {
         ${userImgHtml}
         <div>${escapeHtml(text)}</div>
       </div>
-      <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">Vừa xong • Bệnh nhân</div>
+      <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">${dict.patient_label}</div>
     </div>
   `;
 
@@ -196,7 +363,7 @@ async function sendChatMessage() {
         <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce"></span>
         <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.15s"></span>
         <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.3s"></span>
-        <span class="pl-1.5 text-xs font-medium text-slate-500">${currentImage ? 'Gemini Vision đang phân tích hình thái học...' : 'Đang đối soát phác đồ y khoa...'}</span>
+        <span class="pl-1.5 text-xs font-medium text-slate-500">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
       </div>
     </div>
   `;
@@ -208,7 +375,7 @@ async function sendChatMessage() {
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: chatHistory, image: currentImage })
+      body: JSON.stringify({ message: text, history: chatHistory, image: currentImage, lang: currentLang })
     });
 
     const data = await response.json();
@@ -246,82 +413,6 @@ async function sendChatMessage() {
       `;
     }
 
-    // Thư viện đối chiếu lâm sàng 3 ảnh mẫu (Clinical Atlas)
-    let clinicalAtlasHtml = '';
-    if (data.clinical_atlas && data.clinical_atlas.reference_images && data.clinical_atlas.reference_images.length > 0) {
-      const atlas = data.clinical_atlas;
-      clinicalAtlasHtml = `
-        <div class="pt-3 border-t border-slate-200/80 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-1.5">
-              <span class="text-xs">🔍</span>
-              <span class="text-[11px] font-extrabold text-slate-800 uppercase tracking-wide">
-                Hình ảnh đối chiếu y khoa: ${escapeHtml(atlas.disease_name)}
-              </span>
-            </div>
-            <span class="text-[10px] text-[#0284C7] font-semibold bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-              3 ảnh mẫu tham khảo
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-600 leading-relaxed bg-white p-2.5 rounded-xl border border-slate-200">
-            ${escapeHtml(atlas.description)}
-          </p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            ${atlas.reference_images.map((img, idx) => `
-              <div class="bg-white border border-slate-200 hover:border-[#0284C7] rounded-xl overflow-hidden shadow-2xs transition-all cursor-pointer group flex flex-col" onclick="openImageModal('${img.url}', '${escapeHtml(atlas.disease_name)}', '${escapeHtml(img.stage)}', '${escapeHtml(img.caption)}')">
-                <div class="relative h-24 bg-slate-100 overflow-hidden">
-                  <img src="${img.url}" alt="${escapeHtml(img.caption)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                  <span class="absolute top-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white backdrop-blur-xs">
-                    Ảnh ${idx + 1}
-                  </span>
-                </div>
-                <div class="p-2 flex-1 flex flex-col justify-between">
-                  <div class="text-[10px] font-bold text-slate-800 leading-tight group-hover:text-[#0284C7] line-clamp-2">
-                    ${escapeHtml(img.caption)}
-                  </div>
-                  <div class="text-[9px] text-[#0284C7] font-semibold mt-1">
-                    ${escapeHtml(img.stage)}
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          <div class="text-[9px] text-slate-400 italic text-center pt-0.5">
-            * Nhấn vào từng ảnh để phóng to đối chiếu. Hình ảnh từ Thư viện MediMind Clinical Atlas.
-          </div>
-        </div>
-      `;
-    }
-
-    // Thẻ Dược phẩm tham khảo
-    let medicationsHtml = '';
-    if (data.medications && data.medications.length > 0) {
-      medicationsHtml = `
-        <div class="pt-2.5 border-t border-slate-200/80 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Dược phẩm tham khảo:</span>
-            <span class="text-[10px] text-[#0284C7] font-semibold">Chuẩn Dược thư Quốc gia</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            ${data.medications.slice(0, 2).map(med => `
-              <div class="bg-white border border-slate-200 hover:border-[#0284C7] p-2.5 rounded-xl space-y-1 transition-all shadow-xs">
-                <div class="flex justify-between items-center">
-                  <span class="text-xs font-bold text-slate-900">${escapeHtml(med.name)}</span>
-                  <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${med.type_badge}">
-                    ${escapeHtml(med.type.split(' ')[0])}
-                  </span>
-                </div>
-                <div class="text-[10px] text-[#0284C7] font-semibold">${escapeHtml(med.strength)} • ${escapeHtml(med.category)}</div>
-                <div class="text-[10px] text-slate-600 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-                  ${escapeHtml(med.instructions)}
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    }
-
     // Cảnh báo cờ đỏ cấp cứu
     let emergencyBadge = '';
     if (data.is_emergency) {
@@ -341,15 +432,6 @@ async function sendChatMessage() {
           ${emergencyBadge}
           ${visualFindingsHtml}
           <div class="text-slate-800 font-normal">${formattedAnswer}</div>
-          ${clinicalAtlasHtml}
-          ${medicationsHtml}
-          ${(data.medications && data.medications.length > 0) || data.is_emergency ? `
-          <div class="pt-1 flex items-center space-x-2">
-            <button onclick="switchTab('booking-tab')" class="text-xs font-bold text-[#0284C7] hover:text-[#0369A1] flex items-center space-x-1">
-              <span>Tìm bệnh viện gần nhất</span>
-              <span>→</span>
-            </button>
-          </div>` : ''}
         </div>
       </div>
     `;
@@ -362,7 +444,7 @@ async function sendChatMessage() {
 
   } catch (err) {
     document.getElementById(typingId)?.remove();
-    appendErrorMessage("Không thể kết nối đến máy chủ.");
+    appendErrorMessage(dict.server_error);
   }
 }
 

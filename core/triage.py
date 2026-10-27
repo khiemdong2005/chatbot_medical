@@ -62,7 +62,14 @@ NEGATION_WORDS = ["không", "khong", "chưa", "chua", "chẳng", "chang", "khôn
 # 2. BƯỚC TIỀN KIỂM: PHÁT HIỆN CỜ ĐỎ CẤP CỨU & XỬ LÝ PHỦ ĐỊNH
 # ------------------------------------------------------------------------------
 
-def assess_emergency_risk(message: str) -> Dict[str, Any]:
+# English emergency keywords
+EMERGENCY_SIGNS_EN = [
+    "chest pain", "severe chest pain", "shortness of breath", "difficulty breathing",
+    "cannot breathe", "choking", "facial drooping", "slurred speech", "paralysis",
+    "seizure", "unconscious", "passed out", "coughing blood", "vomiting blood", "anaphylaxis"
+]
+
+def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
     """
     Tiền kiểm an toàn: Quét xem tin nhắn người dân có dấu hiệu nguy kịch hay không.
     Có cơ chế phân tích cụm phủ định để không báo nhầm (ví dụ: 'sốt nhưng không khó thở').
@@ -93,11 +100,25 @@ def assess_emergency_risk(message: str) -> Dict[str, Any]:
             if not is_negated:
                 matched_flags.append(vi_kw.capitalize())
 
+    # Also check English emergency signs if lang == 'en'
+    if lang == "en":
+        for en_sign in EMERGENCY_SIGNS_EN:
+            if en_sign in text_lower:
+                matched_flags.append(en_sign.title())
+
     if matched_flags:
-        return {
-            "is_emergency": True,
-            "symptoms": matched_flags,
-            "message": (
+        if lang == "en":
+            emergency_text = (
+                "⚠️ **CLINICAL EMERGENCY RED FLAG ALERT:**\n\n"
+                f"The system detected emergency symptom(s): **{', '.join(matched_flags)}**.\n\n"
+                "These signs may indicate acute cardiovascular, respiratory, or neurological emergencies. "
+                "To ensure immediate safety:\n"
+                "1. **Cease all physical exertion** and sit or rest in a well-ventilated space.\n"
+                "2. **Seek assistance from family or bystanders** and immediately call Emergency Services (**911 / 115**) or proceed to the nearest emergency room.\n"
+                "3. Do not take self-prescribed sedatives or strong analgesics before medical evaluation."
+            )
+        else:
+            emergency_text = (
                 "⚠️ **CẢNH BÁO LÂM SÀNG CẦN CHÚ Ý ĐẶC BIỆT:**\n\n"
                 f"Hệ thống nhận thấy bạn có đề cập đến dấu hiệu: **{', '.join(matched_flags)}**.\n\n"
                 "Đây là nhóm triệu chứng có thể liên quan đến các vấn đề tim mạch, hô hấp hoặc tuần hoàn cấp tính. "
@@ -106,6 +127,10 @@ def assess_emergency_risk(message: str) -> Dict[str, Any]:
                 "2. **Cần người thân bên cạnh hỗ trợ** và liên hệ ngay cơ sở y tế gần nhất hoặc gọi tổng đài cấp cứu **115** để được bác sĩ kiểm tra kịp thời.\n"
                 "3. Tuyệt đối không tự ý dùng các loại thuốc giảm đau hay an thần liều cao khi chưa rõ nguyên nhân."
             )
+        return {
+            "is_emergency": True,
+            "symptoms": matched_flags,
+            "message": emergency_text
         }
 
     return {"is_emergency": False, "symptoms": []}
@@ -122,7 +147,7 @@ ANTIBIOTIC_BLACKLIST = [
     "erythromycin", "penicillin", "gentamicin", "ceftriaxone"
 ]
 
-def apply_safety_guardrails(answer: str) -> str:
+def apply_safety_guardrails(answer: str, lang: str = "vi") -> str:
     """
     Hậu kiểm an toàn (Post-generation Guardrail):
     Rà soát câu trả lời của AI trước khi gửi cho người dân.
@@ -132,12 +157,20 @@ def apply_safety_guardrails(answer: str) -> str:
     found_antibiotics = [ab for ab in ANTIBIOTIC_BLACKLIST if ab in answer_lower]
 
     if found_antibiotics:
-        warning_note = (
-            "\n\n> [!CAUTION]\n"
-            f"> ⚠️ **CẢNH BÁO AN TOÀN DƯỢC PHẨM:**\n"
-            f"> Thuốc được đề cập ({', '.join(found_antibiotics).capitalize()}) thuộc nhóm **KHÁNG SINH KÊ ĐƠN BẮT BUỘC**.\n"
-            "> Theo quy định của Bộ Y Tế, AI tuyệt đối không chỉ định liều dùng. Bạn **không được tự ý mua uống** để tránh nguy cơ sốc phản vệ và vi khuẩn kháng thuốc. Hãy thăm khám bác sĩ chuyên khoa để có đơn thuốc chính xác."
-        )
+        if lang == "en":
+            warning_note = (
+                "\n\n> [!CAUTION]\n"
+                f"> ⚠️ **MEDICATION SAFETY WARNING:**\n"
+                f"> The medication mentioned ({', '.join(found_antibiotics).capitalize()}) belongs to **PRESCRIPTION-ONLY ANTIBIOTICS**.\n"
+                "> Under medical safety guidelines, AI is strictly prohibited from prescribing dosages. You **must not self-medicate** to avoid severe anaphylaxis and antimicrobial resistance. Please consult a qualified physician."
+            )
+        else:
+            warning_note = (
+                "\n\n> [!CAUTION]\n"
+                f"> ⚠️ **CẢNH BÁO AN TOÀN DƯỢC PHẨM:**\n"
+                f"> Thuốc được đề cập ({', '.join(found_antibiotics).capitalize()}) thuộc nhóm **KHÁNG SINH KÊ ĐƠN BẮT BUỘC**.\n"
+                "> Theo quy định của Bộ Y Tế, AI tuyệt đối không chỉ định liều dùng. Bạn **không được tự ý mua uống** để tránh nguy cơ sốc phản vệ và vi khuẩn kháng thuốc. Hãy thăm khám bác sĩ chuyên khoa để có đơn thuốc chính xác."
+            )
         return answer + warning_note
 
     return answer
@@ -147,7 +180,7 @@ def apply_safety_guardrails(answer: str) -> str:
 # 4. BỘ MÁY TƯ VẤN DỰ PHÒNG NỘI BỘ (FALLBACK ENGINE - CHẠY 100% OFFLINE)
 # ------------------------------------------------------------------------------
 
-def analyze_symptoms(message: str, history: List[Dict[str, Any]]) -> Dict[str, Any]:
+def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'vi') -> Dict[str, Any]:
     """
     Bộ máy phân loại lâm sàng nội bộ: Hoạt động khi chưa có API Key hoặc mất mạng.
     Đưa ra lời khuyên chăm sóc ban đầu tại nhà chuẩn MedlinePlus và Bộ Y Tế.

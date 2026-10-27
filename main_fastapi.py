@@ -36,7 +36,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.triage import analyze_symptoms, assess_emergency_risk, apply_safety_guardrails
 from core.rag_service import medical_rag_service
 from core.gemini_service import GeminiMedicalService
-from core.clinical_atlas import match_clinical_atlas
 
 # Đường dẫn thư mục
 BASE_DIR = Path(__file__).resolve().parent
@@ -146,7 +145,7 @@ async def get_index(request: Request):
 # 2. HỆ THỐNG TƯ VẤN Y TẾ & CHATBOT LÂM SÀNG (CORE AI & RAG APIS)
 # ==============================================================================
 
-@app.post("/api/chat", summary="Tư vấn Triệu chứng Y tế (RAG + Gemini Vision + Double Guardrails + Clinical Atlas)", tags=["1. Tư vấn Lâm sàng (Chatbot)"])
+@app.post("/api/chat", summary="Tư vấn Triệu chứng Y tế (RAG + Gemini Vision + Double Guardrails)", tags=["1. Tư vấn Lâm sàng (Chatbot)"])
 async def chat_endpoint(req: ChatMessageRequest):
     """
     Quy trình tiếp nhận và phân tích triệu chứng lâm sàng:
@@ -180,7 +179,7 @@ async def chat_endpoint(req: ChatMessageRequest):
             print(f"⚠️ Lỗi giải mã Base64 image: {e}")
 
     # BƯỚC 1: Tiền kiểm cờ đỏ cấp cứu
-    emergency = assess_emergency_risk(user_message)
+    emergency = assess_emergency_risk(user_message, lang=req.lang or 'vi')
     if emergency["is_emergency"]:
         return JSONResponse(content={
             "answer": emergency["message"],
@@ -196,7 +195,6 @@ async def chat_endpoint(req: ChatMessageRequest):
                     "url": "https://kcb.vn"
                 }
             ],
-            "clinical_atlas": None
         })
 
     # BƯỚC 2: Truy vấn tri thức RAG từ ChromaDB
@@ -208,12 +206,13 @@ async def chat_endpoint(req: ChatMessageRequest):
         req.history,
         rag_docs=rag_docs,
         image_bytes=image_bytes,
-        image_mime_type=image_mime_type
+        image_mime_type=image_mime_type,
+        lang=req.lang or 'vi'
     )
     if gemini_result and "answer" in gemini_result:
         triage_result = gemini_result
     else:
-        triage_result = analyze_symptoms(user_message, req.history)
+        triage_result = analyze_symptoms(user_message, req.history, lang=req.lang or 'vi')
         if rag_docs:
             triage_result["sources"] = [
                 {
@@ -225,13 +224,9 @@ async def chat_endpoint(req: ChatMessageRequest):
             ]
 
     # BƯỚC 4: Hậu kiểm màng lọc chặn kháng sinh
-    cleaned_answer = apply_safety_guardrails(triage_result.get("answer", ""))
+    cleaned_answer = apply_safety_guardrails(triage_result.get("answer", ""), lang=req.lang or 'vi')
 
-    # BƯỚC 5: Tra cứu Thư viện Đối chiếu Y khoa (Clinical Atlas) tìm 3 ảnh mẫu tham khảo
     diff_diag = triage_result.get("differential_diagnosis", [])
-    symps = triage_result.get("symptoms", [])
-    search_context = f"{user_message} {cleaned_answer} {' '.join(symps)} {' '.join(diff_diag)}"
-    atlas_data = match_clinical_atlas(search_context)
 
     return JSONResponse(content={
         "answer": cleaned_answer,
@@ -239,7 +234,6 @@ async def chat_endpoint(req: ChatMessageRequest):
         "risk_score": triage_result.get("risk_score", 30),
         "symptoms": triage_result.get("symptoms", []),
         "specialist": triage_result.get("specialist", "Nội tổng quát"),
-        "medications": triage_result.get("medications", []),
         "visual_findings": triage_result.get("visual_findings", []),
         "differential_diagnosis": diff_diag,
         "is_emergency": False,
@@ -249,8 +243,7 @@ async def chat_endpoint(req: ChatMessageRequest):
                 "source": "NIH National Library of Medicine",
                 "url": "https://medlineplus.gov"
             }
-        ]),
-        "clinical_atlas": atlas_data
+        ])
     })
 
 
