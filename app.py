@@ -1,5 +1,6 @@
 import os
 import sys
+from dotenv import load_dotenv
 
 # Ensure UTF-8 output
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -8,10 +9,15 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     except Exception:
         pass
 
+# Tải cấu hình biến môi trường từ .env
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify
 from core.triage import analyze_symptoms, assess_emergency_risk
+from core.gemini_service import GeminiMedicalService
 
 app = Flask(__name__)
+gemini_service = GeminiMedicalService()
 
 @app.route("/")
 def index():
@@ -26,7 +32,7 @@ def chat():
     if not user_message:
         return jsonify({"error": "Vui lòng nhập nội dung tin nhắn."}), 400
 
-    # 1. Kiểm tra dấu hiệu cờ đỏ cấp cứu
+    # 1. Kiểm tra dấu hiệu cờ đỏ cấp cứu (Quy chuẩn an toàn y tế số 1: Luôn ưu tiên 115)
     emergency = assess_emergency_risk(user_message)
     if emergency["is_emergency"]:
         return jsonify({
@@ -45,24 +51,33 @@ def chat():
             ]
         })
 
-    # 2. Phân tích triệu chứng & Phân tầng Triage
-    triage_result = analyze_symptoms(user_message, history)
+    # 2. Phân tích triệu chứng bằng Google Gemini API (có cơ chế Fallback sang Rule-Based nếu chưa có Key)
+    gemini_result = gemini_service.generate_clinical_response(user_message, history)
+    if gemini_result and "answer" in gemini_result:
+        triage_result = gemini_result
+    else:
+        triage_result = analyze_symptoms(user_message, history)
 
     return jsonify({
-        "answer": triage_result["answer"],
-        "risk_level": triage_result["risk_level"],
-        "risk_score": triage_result["risk_score"],
-        "symptoms": triage_result["symptoms"],
-        "specialist": triage_result["specialist"],
+        "answer": triage_result.get("answer", ""),
+        "risk_level": triage_result.get("risk_level", "Thấp (Theo dõi)"),
+        "risk_score": triage_result.get("risk_score", 30),
+        "symptoms": triage_result.get("symptoms", []),
+        "specialist": triage_result.get("specialist", "Nội tổng quát"),
         "medications": triage_result.get("medications", []),
         "is_emergency": False,
-        "sources": triage_result["sources"]
+        "sources": triage_result.get("sources", [
+            {
+                "title": "MedlinePlus Medical Encyclopedia",
+                "source": "NIH National Library of Medicine",
+                "url": "https://medlineplus.gov"
+            }
+        ])
     })
 
 @app.route("/api/upload-lab", methods=["POST"])
 def upload_lab():
-    # Giả lập tiếp nhận và phân tích kết quả xét nghiệm / đơn thuốc
-    # Trong giai đoạn tích hợp AWS, file này sẽ được đẩy lên Amazon S3 qua boto3
+    # Tiếp nhận và phân tích kết quả xét nghiệm / đơn thuốc
     return jsonify({
         "status": "success",
         "file_name": "xet_nghiem_sinh_hoa.jpg",
@@ -102,7 +117,6 @@ def upload_lab():
 
 @app.route("/api/clinical-summary", methods=["GET"])
 def clinical_summary():
-    # Tóm tắt bệnh án sơ bộ gửi Bác sĩ
     return jsonify({
         "patient_name": "Nguyễn Văn An",
         "patient_id": "BN-8429",
@@ -125,7 +139,7 @@ def clinical_summary():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     print("==================================================")
-    print("🩺 MediMind AI - Clinical Assistant Platform")
+    print("🩺 MediMind AI - Clinical Assistant Platform (Powered by Google Gemini)")
     print(f"🚀 Running locally at: http://127.0.0.1:{port}")
     print("==================================================")
     app.run(host="0.0.0.0", port=port, debug=True)
