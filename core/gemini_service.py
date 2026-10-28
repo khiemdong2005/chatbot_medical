@@ -155,24 +155,30 @@ class GeminiMedicalService:
                 response_mime_type="application/json"
             )
 
-            # Thử gọi model chính, nếu 503 tự động chuyển sang model lite
-            try:
-                res = self.client.models.generate_content(
-                    model=self.model,
-                    contents=req_contents,
-                    config=config
-                )
-            except Exception as e_first:
-                err_str = str(e_first)
-                if "503" in err_str or "UNAVAILABLE" in err_str:
-                    print(f"[🔄 GEMINI RETRY] {self.model} tạm thời bận, tự động chuyển sang gemini-3.5-flash-lite...")
+            # Thử gọi model chính; nếu gặp 429 (hết quota), 503 hoặc 404 thì tự động chuyển sang model dự phòng
+            candidate_models = [self.model, "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.7-flash"]
+            models_to_try = []
+            for m in candidate_models:
+                if m and m not in models_to_try:
+                    models_to_try.append(m)
+
+            res = None
+            last_err = None
+            for model_name in models_to_try:
+                try:
                     res = self.client.models.generate_content(
-                        model="gemini-3.5-flash-lite",
+                        model=model_name,
                         contents=req_contents,
                         config=config
                     )
-                else:
-                    raise e_first
+                    if res and res.text:
+                        break
+                except Exception as m_err:
+                    last_err = m_err
+                    print(f"[🔄 GEMINI FALLBACK] Model {model_name} không khả dụng ({type(m_err).__name__}). Đang thử model tiếp theo...")
+
+            if not res or not res.text:
+                raise last_err or RuntimeError("Không thể nhận phản hồi từ bất kỳ mô hình Gemini nào.")
 
             latency = time.time() - start_time
             raw_text = res.text or ""

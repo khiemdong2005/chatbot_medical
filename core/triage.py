@@ -203,8 +203,15 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
     is_headache = any(w in text for w in ["đau đầu", "dau dau", "nhức đầu", "nhuc dau"])
     is_stomach = any(w in text for w in ["đau bụng", "dau bung", "tiêu chảy", "tieu chay", "buồn nôn", "da day", "dạ dày"])
     is_respiratory = any(w in text for w in ["nghẹt mũi", "nghet mui", "sổ mũi", "so mui", "chảy nước mũi"])
+    is_skin = any(w in text for w in [
+        "tổn thương", "ton thuong", "bệnh da", "benh da", "da liễu", "da lieu",
+        "mẩn ngứa", "man ngua", "ngứa", "ngua", "mụn nước", "mun nuoc", "phát ban", "phat ban",
+        "mề đay", "me day", "nổi mề đay", "dị ứng", "di ung", "zona", "chàm", "cham", "eczema",
+        "nấm da", "nam da", "mụn trứng cá", "mun trung ca", "bức ảnh", "buc anh", "ảnh", "anh",
+        "bệnh của tôi là bệnh gì", "benh cua toi la benh gi"
+    ])
 
-    has_symptoms = any([is_fever, is_cough_throat, is_headache, is_stomach, is_respiratory])
+    has_symptoms = any([is_fever, is_cough_throat, is_headache, is_stomach, is_respiratory, is_skin])
 
     # Nếu chỉ chào hỏi
     if not has_symptoms and is_greeting:
@@ -261,6 +268,17 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
             "**Súc họng nước muối sinh lý:** Thực hiện đều đặn mỗi ngày giúp giảm cảm giác ngứa rát và tan đờm.",
             "**Dùng siro ho thảo dược:** Có thể ngậm mật ong chanh đào hoặc siro ho thảo dược an toàn để làm dịu cơn ho khan."
         ]
+    elif is_skin:
+        symptoms_detected = ["Tổn thương da / Mẩn ngứa / Dị ứng da"]
+        specialist = "Da liễu (Dermatology)"
+        risk_score = 35
+        advice_bullets = [
+            "**Vệ sinh vùng da sạch sẽ:** Rửa nhẹ nhàng bằng nước sạch hoặc nước muối sinh lý 0.9%, lau khô bằng khăn bông mềm, tuyệt đối không chà xát hoặc cào gãi làm trầy xước.",
+            "**Chườm mát làm dịu:** Dùng khăn sạch thấm nước mát đắp lên vùng da ngứa rát trong 10 - 15 phút để giảm cảm giác châm chích và làm dịu phản ứng sung huyết.",
+            "**Tránh tác nhân kích ứng:** Tạm ngưng sử dụng các loại xà phòng, sữa tắm có chất tẩy rửa mạnh hoặc hóa chất; mặc trang phục rộng rãi, thoáng mát bằng chất liệu cotton tự nhiên.",
+            "**Dấu hiệu cần đi khám ngay:** Nếu tổn thương lan rộng nhanh, có bọng nước vỡ loét, kèm theo sốt cao hoặc sưng nề vùng mắt/môi, bạn cần đến chuyên khoa Da liễu để bác sĩ thăm khám trực tiếp."
+        ]
+        diff_diag = ["Mề đay cấp tính (Urticaria)", "Viêm da tiếp xúc dị ứng", "Zona thần kinh (Herpes Zoster)"]
     elif is_stomach:
         symptoms_detected = ["Đau bụng / Rối loạn tiêu hóa"]
         risk_score = 40
@@ -293,6 +311,8 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
         "risk_score": risk_score,
         "symptoms": symptoms_detected,
         "specialist": specialist,
+        "differential_diagnosis": diff_diag if 'diff_diag' in locals() else [],
+        "visual_findings": ["Tổn thương dạng mẩn đỏ / mụn nước ngoài da"] if is_skin else [],
         "sources": [
             {
                 "title": "MedlinePlus Medical Encyclopedia - NIH",
