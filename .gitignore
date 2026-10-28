@@ -29,3 +29,8 @@ dist/
 # OS files
 .DS_Store
 Thumbs.db
+*.db
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
