@@ -165,11 +165,15 @@ function insertQuickPrompt(num) {
 // Multimodal Image Upload & Lightbox Modal
 // ==========================================
 function handleChatImageSelected(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
+  const inputEl = (e && e.target && e.target.files) ? e.target : ((e && e.files) ? e : document.getElementById('chat-image-input'));
+  const file = inputEl?.files?.[0];
+  if (!file) {
+    console.warn('Không có tệp nào được chọn.');
+    return;
+  }
 
   if (!file.type.startsWith('image/')) {
-    alert(currentLang === 'vi' ? 'Vui lòng chọn tệp hình ảnh (JPG, PNG, WebP).' : 'Please select an image file (JPG, PNG, WebP).');
+    alert(currentLang === 'vi' ? 'Vui lòng chọn tệp hình ảnh hợp lệ (JPG, PNG, WebP).' : 'Please select a valid image file (JPG, PNG, WebP).');
     return;
   }
 
@@ -184,6 +188,7 @@ function handleChatImageSelected(e) {
       if (nameEl) nameEl.innerText = file.name;
       container.classList.remove('hidden');
     }
+    document.getElementById('user-input')?.focus();
   };
   reader.readAsDataURL(file);
 }

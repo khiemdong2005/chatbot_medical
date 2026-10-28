@@ -401,7 +401,7 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 <!-- High Contrast Chat Input Field (bg-slate-50 border border-slate-200) with Image Attachment -->
 <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-full p-2 pl-3 focus-within:border-[#0284C7] focus-within:ring-2 focus-within:ring-[#0284C7]/15 transition-all shadow-xs">
 <!-- Hidden File Input for Clinical Image -->
-<input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleChatImageSelected(this)">
+<input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleChatImageSelected(event)">
 <!-- Camera / Image Upload Button -->
 <button type="button" onclick="document.getElementById('chat-image-input').click()" title="Chụp hoặc tải ảnh tổn thương da (Gemini Vision AI)" class="p-2 text-slate-400 hover:text-[#0284C7] hover:bg-sky-50 rounded-full transition-colors shrink-0">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -412,7 +412,7 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 <input id="user-input" type="text" placeholder="Nhập triệu chứng hoặc tải ảnh tổn thương da..." data-i18n-placeholder="chat_input_placeholder" class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal" onkeydown="if(event.key==='Enter') sendChatMessage()">
 <div class="flex items-center gap-2 shrink-0 pr-1">
 <!-- Paperclip Attachment Button -->
-<button type="button" onclick="switchTab('ocr-tab')" title="Tải ảnh đơn thuốc hoặc kết quả xét nghiệm" class="p-2 text-slate-400 hover:text-[#0284C7] rounded-full transition-colors shrink-0">
+<button type="button" onclick="document.getElementById('chat-image-input').click()" title="Đính kèm ảnh chụp tổn thương da hoặc xét nghiệm" class="p-2 text-slate-400 hover:text-[#0284C7] rounded-full transition-colors shrink-0">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
 </svg>
