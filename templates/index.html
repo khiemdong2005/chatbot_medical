@@ -297,6 +297,8 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 <!-- Right Column: Chatbot Container (lg:col-span-7, w-full max-w-[580px] min-h-[620px]) -->
 <div class="lg:col-span-7 relative w-full flex justify-center lg:justify-end">
 <div class="relative w-full max-w-[580px]">
+<!-- Ambient Glow Backdrop for Depth -->
+<div class="absolute -inset-2 sm:-inset-4 bg-gradient-to-tr from-sky-400/20 via-indigo-400/15 to-teal-400/15 rounded-[40px] blur-2xl pointer-events-none -z-10"></div>
 <!-- Floating Stat Chip 1: Heart Rate + ECG Wave (-top-5 -right-6 z-20 clean outer float, header icons 100% unobstructed) -->
 <div class="absolute -top-5 -right-6 z-20 floating-chip p-3 px-3.5 rounded-2xl flex flex-col pointer-events-none bg-white border border-slate-100 shadow-lg shadow-teal-900/8">
 <div class="flex items-center space-x-2.5">
@@ -369,18 +371,19 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 <!-- Bottom Area: Quick Reply Pills + Contrast Input Field with gap-3 -->
 <div class="pt-3 space-y-2.5 shrink-0">
 <!-- Interactive Quick Reply Pill Buttons (Fit evenly across container without touching borders) -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 py-0.5 w-full">
-<button type="button" onclick="document.getElementById('chat-image-input').click()" class="w-full text-center py-1.5 px-2 rounded-full bg-sky-50 hover:bg-[#E0F2FE] hover:text-[#0284C7] text-[#0284C7] border border-sky-200 text-[11px] font-bold transition-all shadow-2xs truncate" title="Chụp / Tải ảnh tổn thương da">
-<span data-i18n="quick_1">📷 Nhận diện ảnh da</span>
+<div class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-0.5 w-full pb-1">
+<button type="button" onclick="document.getElementById('chat-image-input').click()" class="shrink-0 py-1.5 px-3 rounded-full bg-sky-50 hover:bg-[#E0F2FE] text-[#0284C7] border border-sky-200 text-xs font-bold transition-all shadow-2xs flex items-center space-x-1.5" title="Chụp / Tải ảnh tổn thương da">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+<span>Nhận diện ảnh da</span>
 </button>
-<button type="button" onclick="insertQuickPrompt(2)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Mụn nước 1 bên sườn?">
-<span data-i18n="quick_2">🔍 Mụn nước một bên?</span>
+<button type="button" onclick="insertQuickPrompt(2)" class="shrink-0 py-1.5 px-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-2xs flex items-center space-x-1.5" title="Mụn nước 1 bên sườn?">
+<span>Mụn nước một bên sườn?</span>
 </button>
-<button type="button" onclick="insertQuickPrompt(3)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Thuốc hạ sốt an toàn?">
-<span data-i18n="quick_3">🌡️ Thuốc hạ sốt an toàn?</span>
+<button type="button" onclick="insertQuickPrompt(3)" class="shrink-0 py-1.5 px-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-2xs flex items-center space-x-1.5" title="Thuốc hạ sốt an toàn?">
+<span>Thuốc hạ sốt an toàn?</span>
 </button>
-<button type="button" onclick="insertQuickPrompt(4)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Có cần dùng kháng sinh?">
-<span data-i18n="quick_4">💊 Có cần dùng kháng sinh?</span>
+<button type="button" onclick="insertQuickPrompt(4)" class="shrink-0 py-1.5 px-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-2xs flex items-center space-x-1.5" title="Có cần dùng kháng sinh?">
+<span>Có cần dùng kháng sinh?</span>
 </button>
 </div>
 <!-- Image Preview Container (Khi người dùng chọn ảnh chụp tổn thương) -->
@@ -389,7 +392,7 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 <img id="chat-image-preview-thumb" src="" alt="Ảnh tổn thương" class="w-10 h-10 rounded-xl object-cover border border-sky-300 shadow-2xs shrink-0">
 <div class="truncate">
 <div class="text-[11px] font-bold text-slate-800 truncate" id="chat-image-preview-name">anh_ton_thuong.jpg</div>
-<div class="text-[10px] text-[#0284C7] font-semibold">🔍 Sẵn sàng để Gemini Vision phân tích & đối chiếu</div>
+<div class="text-[10px] text-[#0284C7] font-semibold">Sẵn sàng để Gemini Vision phân tích & đối chiếu</div>
 </div>
 </div>
 <button type="button" onclick="clearChatImagePreview()" class="p-1.5 text-slate-400 hover:text-red-500 rounded-full hover:bg-white transition-colors shrink-0" title="Hủy ảnh này">
@@ -427,7 +430,7 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 </div>
 <!-- Medical Disclaimer Micro-notice (Phục vụ giáo dục & nghiên cứu tương lai) -->
 <div class="text-[10px] text-slate-400 text-center font-normal leading-tight pt-1">
-<span data-i18n="disclaimer_footer_text">⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • </span>
+<span data-i18n="disclaimer_footer_text">Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • </span>
 <button type="button" onclick="openDisclaimerModal()" class="text-[#0284C7] underline hover:text-[#0369A1] font-medium" data-i18n="disclaimer_footer_btn">Miễn trừ trách nhiệm</button>
 </div>
 </div>
@@ -439,14 +442,26 @@ Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thô
 <!-- TAB 2: HOSPITALS & GOOGLE MAPS -->
 <!-- ============================================================== -->
 <div id="booking-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-<div class="flex justify-between items-center pb-2 border-b border-slate-200">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-slate-200 gap-2">
 <div>
-<h2 class="text-lg font-bold text-slate-800">Bệnh viện & Cơ sở Y tế gần nhất</h2>
-<p class="text-xs text-slate-500">Định vị qua Google Maps • Sắp xếp theo khoảng cách và đánh giá thực tế từ bệnh nhân</p>
+<div class="flex items-center space-x-2">
+<h2 class="text-lg font-black text-slate-900 tracking-tight">Bệnh Viện &amp; Cơ Sở Y Tế Tuyến Đầu</h2>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">Định Vị GPS</span>
 </div>
-<button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
-← Quay lại Trang chủ
+<p class="text-xs text-slate-500 mt-0.5">Định vị Google Maps trực tiếp • Đánh giá thực nghiệm &amp; đường dây nóng cấp cứu</p>
+</div>
+<button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-700 hover:text-[#0284C7] px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex items-center space-x-1.5">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+<span>Trang chủ</span>
 </button>
+</div>
+
+<!-- Quick Hospital Category Filter Pills -->
+<div class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-0.5">
+  <button type="button" class="px-3.5 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold shadow-2xs whitespace-nowrap">Tất cả cơ sở (3)</button>
+  <button type="button" class="px-3.5 py-1.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-3xs whitespace-nowrap">Tuyến Trung Ương</button>
+  <button type="button" class="px-3.5 py-1.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-3xs whitespace-nowrap">Đa khoa Hạng 1</button>
+  <button type="button" class="px-3.5 py-1.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-3xs whitespace-nowrap">Cấp cứu 24/7</button>
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-[460px]">
 <!-- Map Embed -->
@@ -483,7 +498,16 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">1.4 km</span>
 </div>
 <div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-<span>4.6 ★★★★★</span>
+<div class="flex items-center space-x-1.5">
+<div class="flex text-amber-400">
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+</div>
+<span class="font-extrabold text-slate-900">4.6</span>
+</div>
 <span class="text-slate-400 text-[10px] font-normal">(1.840 đánh giá Google)</span>
 </div>
 <div class="flex items-center space-x-2 pt-1">
@@ -509,7 +533,16 @@ Chỉ đường Google Maps
 <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">2.8 km</span>
 </div>
 <div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-<span>4.7 ★★★★★</span>
+<div class="flex items-center space-x-1.5">
+<div class="flex text-amber-400">
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+</div>
+<span class="font-extrabold text-slate-900">4.7</span>
+</div>
 <span class="text-slate-400 text-[10px] font-normal">(4.250 đánh giá Google)</span>
 </div>
 <div class="flex items-center space-x-2 pt-1">
@@ -535,7 +568,16 @@ Chỉ đường Google Maps
 <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">3.5 km</span>
 </div>
 <div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-<span>4.5 ★★★★★</span>
+<div class="flex items-center space-x-1.5">
+<div class="flex text-amber-400">
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+</div>
+<span class="font-extrabold text-slate-900">4.5</span>
+</div>
 <span class="text-slate-400 text-[10px] font-normal">(5.820 đánh giá Google)</span>
 </div>
 <div class="flex items-center space-x-2 pt-1">
@@ -556,104 +598,180 @@ Chỉ đường Google Maps
 <!-- ============================================================== -->
 <!-- TAB 3: LAB OCR (Amazon S3) -->
 <!-- ============================================================== -->
-<div id="ocr-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-5">
-<div class="flex justify-between items-center pb-2 border-b border-slate-200">
-<div>
-<h2 class="text-lg font-bold text-slate-800">Đọc & Phân tích Đơn thuốc / Kết quả Xét nghiệm</h2>
-<p class="text-xs text-slate-500">Nạp tập dữ liệu ảnh, PDF, Word phục vụ huấn luyện và trích xuất model scan y tế</p>
-</div>
-<button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
-← Quay lại Trang chủ
-</button>
-</div>
-<!-- Top Row: Upload Card & Training Dataset Table -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
-<div class="h-full border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white shadow-2xs">
-<div class="w-12 h-12 rounded-2xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-3">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-</svg>
-</div>
-<h3 class="text-xs font-bold text-slate-800">Tải lên tệp tài liệu để Train Model Scan</h3>
-<p class="text-[10px] text-slate-500 mt-1">Định dạng hỗ trợ: JPG, PNG, PDF, Word (.docx)</p>
-<input type="file" id="lab-file-input" accept=".jpg, .jpeg, .png, .pdf, .docx, .doc" class="hidden" onchange="handleFileSelected(event)">
-<button type="button" onclick="triggerFileUpload()" class="mt-4 px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center justify-center space-x-1.5 cursor-pointer mx-auto">
-<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-</svg>
-<span>Chọn tệp từ máy tính</span>
-</button>
-<p class="text-[10px] text-slate-400 mt-3 italic">Tệp nạp sẽ được lưu trữ cục bộ tại <code class="bg-slate-100 text-slate-600 px-1 py-0.5 rounded font-mono">uploads/</code> để làm bộ dữ liệu huấn luyện model.</p>
-</div>
-<!-- Empty State khi chưa có tệp -->
-<div id="ocr-table-empty" class="lg:col-span-2 h-full bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 shadow-2xs">
-<div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-</svg>
-</div>
-<div>
-<h4 class="text-xs font-bold text-slate-700">Chưa có tài liệu nào trong tập huấn luyện</h4>
-<p class="text-[11px] text-slate-400 max-w-sm mt-1">Hãy bấm "Chọn tệp từ máy tính" ở khung bên trái để nạp ảnh chụp đơn thuốc, phiếu xét nghiệm PDF hoặc tài liệu Word vào bộ dữ liệu huấn luyện model scan.</p>
-</div>
-</div>
-<!-- Filled State: Bảng danh sách tệp huấn luyện chuẩn xác, KHÔNG CÒN THÔNG TIN GIẢ -->
-<div id="ocr-table-filled" class="hidden lg:col-span-2 h-full bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between shadow-2xs space-y-4">
-<div>
-<div class="flex justify-between items-center pb-3 border-b border-slate-200">
-<div class="flex items-center space-x-2">
-<span class="text-xs font-bold text-slate-800">Bộ dữ liệu huấn luyện Model Scan (Training Dataset)</span>
-<span id="scan-files-count" class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">0 tệp</span>
-</div>
-<button onclick="triggerFileUpload()" class="text-xs font-semibold text-[#0284C7] hover:underline flex items-center space-x-1 cursor-pointer">
-<span>+ Nạp thêm tệp</span>
-</button>
-</div>
-<div class="overflow-x-auto mt-2">
-<table class="w-full text-left text-xs border-collapse">
-<thead>
-<tr class="border-b border-slate-200 text-slate-500 font-bold text-[11px] bg-slate-50">
-<th class="py-2.5 px-3">Tên tài liệu</th>
-<th class="py-2.5 px-3">Định dạng</th>
-<th class="py-2.5 px-3">Dung lượng</th>
-<th class="py-2.5 px-3">Thời gian nạp</th>
-<th class="py-2.5 px-3 text-right">Thao tác</th>
-</tr>
-</thead>
-<tbody id="scan-files-tbody" class="divide-y divide-slate-100 text-slate-700 text-[11px]">
-<!-- Rendered dynamically by JavaScript -->
-</tbody>
-</table>
-</div>
-</div>
-<div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-800">
-<div class="flex items-center space-x-2">
-<span class="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
-<span>Dữ liệu đã sẵn sàng cho pipeline huấn luyện model OCR / Donut / LayoutLM.</span>
-</div>
-<span class="text-[11px] text-emerald-600 font-mono font-semibold">Thư mục: uploads/</span>
-</div>
-</div>
-</div>
-</div>
-<!-- ============================================================== -->
-<!-- TAB 4: DOCTOR SUMMARY -->
-<!-- ============================================================== -->
+<div id="ocr-tab" class="tab-content w-full flex-1 flex-col py-3 space-y-5">
+    <!-- Clinical Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-slate-200 gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0">
+          <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Số hóa &amp; Chuẩn hóa Đơn thuốc Lâm sàng</h2>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase bg-slate-100 text-slate-600 border border-slate-200">Chuẩn HL7 / FHIR</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Trích xuất danh mục dược phẩm, lập thời gian biểu dùng thuốc và đối soát an toàn dược học</p>
+        </div>
+      </div>
+      <button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span>Trang chủ</span>
+      </button>
+    </div>
+
+    <!-- INPUT AREA (Upload Zone + Reference Presets) -->
+    <div id="prescription-input-section" class="space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        
+        <!-- Upload Box (5 cols) -->
+        <div class="lg:col-span-5 bg-gradient-to-b from-sky-50/30 via-white to-white border-2 border-dashed border-sky-300/80 hover:border-sky-500 rounded-3xl p-6 flex flex-col items-center justify-center text-center shadow-xs transition-all group">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center mb-3 shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+          </div>
+          <h3 class="text-base font-extrabold text-slate-900">Tải Tệp Đơn Thuốc Hoặc Phiếu Xét Nghiệm</h3>
+          <p class="text-xs text-slate-500 mt-1 max-w-xs leading-relaxed font-normal">Hỗ trợ ảnh chụp camera di động, bản scan đơn thuốc viết tay hoặc tệp PDF kết quả xét nghiệm (JPG, PNG, PDF)</p>
+          
+          <input type="file" id="prescription-file-input" accept=".jpg, .jpeg, .png, .pdf" class="hidden" onchange="handlePrescriptionFileSelected(event)">
+          
+          <div id="file-chosen-preview" class="hidden my-3 px-3.5 py-2 bg-sky-50 rounded-xl border border-sky-200 text-xs font-semibold text-sky-900 max-w-xs truncate shadow-2xs flex items-center space-x-2">
+            <svg class="w-4 h-4 text-sky-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span id="file-chosen-name" class="truncate font-mono"></span>
+          </div>
+
+          <button type="button" onclick="document.getElementById('prescription-file-input').click()" class="mt-4 px-6 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/25 transition-all flex items-center space-x-2 cursor-pointer hover:shadow-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Chọn tài liệu từ máy tính</span>
+          </button>
+          <span class="text-[11px] text-slate-400 font-medium mt-2.5">Độ phân giải khuyến nghị: ≥ 300 DPI</span>
+        </div>
+
+        <!-- Reference Datasets (7 cols) -->
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between shadow-2xs space-y-3">
+          <div>
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+              <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                <span class="text-xs font-bold text-slate-800">Dữ liệu đối soát lâm sàng mẫu (Reference Profiles):</span>
+              </div>
+              <span class="text-[11px] text-slate-400">Chọn để kiểm tra ngay</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+              <!-- Preset 1 -->
+              <button type="button" onclick="loadPrescriptionPreset('binh_dan')" class="p-4 rounded-2xl border-2 border-sky-100 hover:border-sky-400 bg-gradient-to-br from-sky-50/70 via-white to-sky-50/20 text-left transition-all group flex flex-col justify-between space-y-2 cursor-pointer shadow-3xs hover:shadow-xs">
+                <div>
+                  <div class="flex items-center space-x-2 text-sky-950 font-extrabold text-xs">
+                    <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                      </svg>
+                    </div>
+                    <span class="truncate">BV Bình Dân (Tiêu hóa)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 mt-1.5 line-clamp-2 leading-relaxed font-medium">Trần Trung: Yesom 40, Sucrate Gel, Arthur, Papaze, Biocid</p>
+                </div>
+                <div class="pt-2 flex items-center justify-between text-[11px] text-sky-700 font-extrabold border-t border-sky-100">
+                  <span>Mở hồ sơ mẫu</span>
+                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </button>
+
+              <!-- Preset 2 -->
+              <button type="button" onclick="loadPrescriptionPreset('throat')" class="p-4 rounded-2xl border-2 border-teal-100 hover:border-teal-400 bg-gradient-to-br from-teal-50/70 via-white to-teal-50/20 text-left transition-all group flex flex-col justify-between space-y-2 cursor-pointer shadow-3xs hover:shadow-xs">
+                <div>
+                  <div class="flex items-center space-x-2 text-teal-950 font-extrabold text-xs">
+                    <div class="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                    <span class="truncate">Tai Mũi Họng (Hô hấp)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 mt-1.5 line-clamp-2 leading-relaxed font-medium">Viêm amidan cấp: Klamentin 1g, Panadol Extra, Alpha Choay</p>
+                </div>
+                <div class="pt-2 flex items-center justify-between text-[11px] text-teal-700 font-extrabold border-t border-teal-100">
+                  <span>Mở hồ sơ mẫu</span>
+                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </button>
+
+              <!-- Preset 3 -->
+              <button type="button" onclick="loadPrescriptionPreset('lab_blood')" class="p-4 rounded-2xl border-2 border-purple-100 hover:border-purple-400 bg-gradient-to-br from-purple-50/70 via-white to-purple-50/20 text-left transition-all group flex flex-col justify-between space-y-2 cursor-pointer shadow-3xs hover:shadow-xs">
+                <div>
+                  <div class="flex items-center space-x-2 text-purple-950 font-extrabold text-xs">
+                    <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                      </svg>
+                    </div>
+                    <span class="truncate">Sinh hóa Máu (Labo)</span>
+                  </div>
+                  <p class="text-[11px] text-slate-600 mt-1.5 line-clamp-2 leading-relaxed font-medium">Glucose, HbA1c, Mỡ máu Cholesterol, Men gan AST/ALT, Thận</p>
+                </div>
+                <div class="pt-2 flex items-center justify-between text-[11px] text-purple-700 font-extrabold border-t border-purple-100">
+                  <span>Mở hồ sơ mẫu</span>
+                  <span class="group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70 flex items-center space-x-2.5 text-xs text-slate-600">
+            <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-[11px] leading-relaxed">Hệ thống phân tích đồng thời <b>văn bản in ấn và chú thích viết tay của bác sĩ điều trị</b> theo danh mục Dược thư Quốc gia.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLINICAL PROCESSING INDICATOR -->
+    <div id="prescription-loading-section" class="hidden bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-3 shadow-2xs">
+      <div class="w-10 h-10 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin mx-auto"></div>
+      <div>
+        <h3 class="text-xs font-bold text-slate-800 tracking-tight" id="scan-step-text">Đang phân tích và bóc tách tài liệu y tế...</h3>
+        <p class="text-[11px] text-slate-500 mt-1 font-mono" id="scan-substep-text">Nhận diện hoạt chất, quy đổi lịch dùng thuốc và rà soát cảnh báo chống chỉ định</p>
+      </div>
+    </div>
+
+    <!-- RESULT DISPLAY CONTAINER (Rendered dynamically) -->
+    <div id="prescription-result-section" class="hidden space-y-5">
+      <!-- Populated dynamically by JavaScript -->
+    </div>
+  </div>
+  
 <div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-<div class="flex justify-between items-center pb-2 border-b border-slate-200">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-slate-200 gap-2">
 <div>
-<h2 class="text-lg font-bold text-slate-800" id="ehr-title">Hồ sơ Sức khỏe & Bệnh án của tôi</h2>
-<p class="text-xs text-slate-500" id="ehr-subtitle">Tự động đồng bộ và lưu trữ từ các lần sàng lọc y tế</p>
+<div class="flex items-center space-x-2">
+<h2 class="text-lg font-black text-slate-900 tracking-tight" id="ehr-title">Hồ Sơ Sức Khỏe &amp; Bệnh Án Điện Tử (EMR)</h2>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-sky-100 text-sky-800 border border-sky-200">Chuẩn HL7 / FHIR</span>
 </div>
-<div class="flex items-center space-x-3">
-<button onclick="alert('Đang kết xuất và tải tệp Bệnh án điện tử PDF chuẩn HL7/FHIR...'); window.print();" class="text-xs font-semibold px-4 py-2 bg-white rounded-full text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs flex items-center space-x-1.5 transition-colors">
+<p class="text-xs text-slate-500 mt-0.5" id="ehr-subtitle">Tự động đồng bộ và lưu trữ từ các lần sàng lọc y tế • Tương thích dữ liệu bệnh viện</p>
+</div>
+<div class="flex items-center space-x-2.5">
+<button onclick="alert('Đang kết xuất và tải tệp Bệnh án điện tử PDF chuẩn HL7/FHIR...'); window.print();" class="text-xs font-bold px-3.5 py-2 bg-white rounded-xl text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-3xs flex items-center space-x-1.5 transition-all">
 <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
 </svg>
-<span>Xuất PDF</span>
+<span>Xuất Bệnh án PDF</span>
 </button>
-<button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
-← Quay lại
+<button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-700 hover:text-[#0284C7] px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex items-center space-x-1.5">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+<span>Trang chủ</span>
 </button>
 </div>
 </div>
@@ -704,24 +822,51 @@ Triage: Trung bình (35/100)
 <span class="text-xs text-slate-400">26/10/2026</span>
 </div>
 </div>
-<!-- Vitals 4-Grid -->
+<!-- Vitals 4-Grid with Clinical Telemetry Styling -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-<span class="text-[10px] text-slate-400 block font-medium">Huyết áp</span>
-<span class="text-xs font-bold text-slate-800">120/80 mmHg</span>
-</div>
-<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-<span class="text-[10px] text-slate-400 block font-medium">Nhịp tim</span>
-<span class="text-xs font-bold text-slate-800">72 bpm</span>
-</div>
-<div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80">
-<span class="text-[10px] text-amber-700 block font-medium">Nhiệt độ</span>
-<span class="text-xs font-bold text-amber-700">38.2°C (Sốt nhẹ)</span>
-</div>
-<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-<span class="text-[10px] text-slate-400 block font-medium">SpO2</span>
-<span class="text-xs font-bold text-emerald-600">98% (Đạt chuẩn)</span>
-</div>
+  <!-- BP -->
+  <div class="p-3 rounded-2xl bg-gradient-to-br from-sky-50/70 via-white to-white border border-sky-100/90 shadow-3xs flex items-center space-x-2.5">
+    <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+    </div>
+    <div>
+      <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Huyết áp</span>
+      <span class="text-xs font-black text-slate-900 font-mono">120/80 <span class="text-[9px] font-normal text-slate-500">mmHg</span></span>
+    </div>
+  </div>
+
+  <!-- HR -->
+  <div class="p-3 rounded-2xl bg-gradient-to-br from-rose-50/70 via-white to-white border border-rose-100/90 shadow-3xs flex items-center space-x-2.5">
+    <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+    </div>
+    <div>
+      <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Nhịp tim</span>
+      <span class="text-xs font-black text-slate-900 font-mono">72 <span class="text-[9px] font-normal text-slate-500">bpm</span></span>
+    </div>
+  </div>
+
+  <!-- Temp -->
+  <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/20 border border-amber-200/90 shadow-3xs flex items-center space-x-2.5">
+    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+    </div>
+    <div>
+      <span class="text-[10px] text-amber-800 block font-bold uppercase tracking-wider">Thân nhiệt</span>
+      <span class="text-xs font-black text-amber-900 font-mono">38.2°C <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1 rounded">Sốt nhẹ</span></span>
+    </div>
+  </div>
+
+  <!-- SpO2 -->
+  <div class="p-3 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-white to-white border border-emerald-100/90 shadow-3xs flex items-center space-x-2.5">
+    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    </div>
+    <div>
+      <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">SpO2</span>
+      <span class="text-xs font-black text-emerald-700 font-mono">98% <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1 rounded">Đạt chuẩn</span></span>
+    </div>
+  </div>
 </div>
 </div>
 <!-- Card 2: Clinical Narrative & Evolution -->
@@ -941,9 +1086,17 @@ Quay lại trang chủ
 </div>
 </div>
 <!-- Detailed Educational PoC Disclaimer Notice -->
-<p class="text-[11px] text-slate-400 leading-relaxed text-center sm:text-left border-t border-slate-100 pt-2.5">
-⚖️ <strong>Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer):</strong> Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, vui lòng gọi cấp cứu <strong>115</strong>.
-</p>
+<div class="border-t border-slate-200/80 pt-3 mt-4 text-[11px] text-slate-500 leading-relaxed">
+  <div class="flex items-center space-x-2 text-slate-900 font-bold mb-1.5">
+    <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+    </div>
+    <span class="text-xs font-bold text-slate-800">Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)</span>
+  </div>
+  <p class="text-[11px] text-slate-500 leading-relaxed">
+    Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, vui lòng gọi cấp cứu <strong>115</strong>.
+  </p>
+</div>
 </footer>
 <!-- Modal Đăng nhập (Clean Hospital Pop-up with backdrop-blur-sm & Role Switcher) -->
 <div id="login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
@@ -997,7 +1150,10 @@ Tạo tài khoản mới
 <!-- Subtle quick demo login for testing -->
 <div class="pt-0.5">
 <button type="button" onclick="quickLogin('patient')" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold text-center transition-colors">
-👤 Đăng nhập tài khoản mẫu thử nghiệm
+<div class="flex items-center justify-center space-x-1.5">
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+<span>Đăng nhập tài khoản mẫu thử nghiệm</span>
+</div>
 </button>
 </div>
 </form>
@@ -1013,7 +1169,7 @@ Tạo tài khoản mới
 <div>
 <div class="flex items-center space-x-1 mb-1">
 <label class="text-xs font-bold text-slate-700">Ngày sinh</label>
-<span class="text-slate-400 text-xs cursor-pointer" title="Cung cấp ngày sinh giúp hệ thống cá nhân hóa hồ sơ và sàng lọc chuẩn xác">🛈</span>
+<svg class="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-sky-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="Cung cấp ngày sinh giúp hệ thống cá nhân hóa hồ sơ và sàng lọc chuẩn xác"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
 </div>
 <div class="grid grid-cols-3 gap-2">
 <select id="register-dob-day" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
@@ -1030,7 +1186,7 @@ Tạo tài khoản mới
 <div>
 <div class="flex items-center space-x-1 mb-1">
 <label class="text-xs font-bold text-slate-700">Giới tính</label>
-<span class="text-slate-400 text-xs cursor-pointer" title="Giới tính sinh học giúp phân tích kết quả xét nghiệm chính xác">🛈</span>
+<svg class="w-3.5 h-3.5 text-slate-400 cursor-pointer hover:text-sky-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" title="Giới tính sinh học giúp phân tích kết quả xét nghiệm chính xác"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
 </div>
 <select id="register-gender" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
 <option value="" disabled selected>Chọn giới tính</option>
@@ -1060,7 +1216,10 @@ Bạn có thể nhận được thông báo của chúng tôi. <span class="text
 </form>
 <!-- Trust Footer -->
 <div class="pt-2 text-center border-t border-slate-100 text-[11px] text-slate-500 font-medium">
-🔒 Bảo mật chuẩn HIPAA Compliant &amp; AWS Cloud
+<div class="flex items-center justify-center space-x-1.5">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+<span>Bảo mật chuẩn HIPAA Compliant &amp; AWS Cloud</span>
+</div>
 </div>
 </div>
 </div>

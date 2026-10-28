@@ -1,3 +1,15 @@
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 # ==============================================================
 # MEDIMIND CLINICAL AI - CỔNG DỊCH VỤ Y TẾ LÂM SÀNG
 # Thiết kế theo tiêu chuẩn Bộ Y Tế & MedlinePlus (NIH Hoa Kỳ)
@@ -57,7 +69,7 @@ def format_size(bytes_size):
 def auth_login():
     """Đăng nhập hệ thống: Xác thực Email/Số điện thoại và Mật khẩu băm trong CSDL."""
     data = request.get_json(silent=True) or {}
-    raw_identifier = data.get("email", "").strip()
+    raw_identifier = (data.get("identifier") or data.get("email") or "").strip()
     password = data.get("password", "").strip()
     role = data.get("role")
 
@@ -101,7 +113,7 @@ def auth_login():
 def auth_register():
     """Đăng ký tài khoản người dùng bằng Email hoặc Số điện thoại."""
     data = request.get_json(silent=True) or {}
-    raw_identifier = data.get("email", "").strip()
+    raw_identifier = (data.get("identifier") or data.get("email") or "").strip()
     password = data.get("password", "").strip()
     full_name = data.get("full_name", "").strip() or data.get("name", "").strip()
     phone_number = data.get("phone_number", "").strip()
@@ -418,6 +430,40 @@ def delete_scan_file(filename):
         os.remove(fpath)
         return jsonify({"status": "success", "message": f"Đã xóa {safe_name}"})
     return jsonify({"status": "error", "message": "Tệp không tồn tại."}), 404
+
+# ==============================================================
+# QUÉT & PHÂN TÍCH ĐƠN THUỐC / KẾT QUẢ XÉT NGHIỆM AI (OCR + CLINICAL PARSER)
+# ==============================================================
+
+from core.prescription_service import get_preset_data, analyze_uploaded_document
+
+@app.route("/api/prescription/scan", methods=["POST"])
+def scan_prescription():
+    """
+    Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm:
+    Hỗ trợ cả tải tệp ảnh/PDF thật hoặc chọn kịch bản mẫu thử nghiệm (Presets).
+    """
+    preset = request.args.get("preset") or request.form.get("preset")
+    if not preset and request.is_json:
+        data = request.get_json(silent=True) or {}
+        preset = data.get("preset")
+
+    # Nếu có tệp tải lên
+    if "file" in request.files:
+        file = request.files["file"]
+        if file and file.filename != "":
+            filename = secure_filename(file.filename)
+            save_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(save_path)
+            
+            res = analyze_uploaded_document(save_path, file.filename)
+            return jsonify(res)
+
+    if preset:
+        return jsonify(get_preset_data(preset))
+
+    return jsonify(get_preset_data("binh_dan"))
+
 
 # ==============================================================
 # PHIẾU CHUẨN BỊ TRƯỚC KHÁM CHO NGƯỜI DÂN (PRE-VISIT SUMMARY)

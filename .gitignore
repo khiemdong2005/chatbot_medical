@@ -34,3 +34,7 @@ Thumbs.db
 # Uploads
 uploads/*
 !uploads/.gitkeep
+
+# AI Agent config
+.gemini/
+

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSDL MediMind - Danh sách Người dùng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 p-6 sm:p-10">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-200 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <span>📊</span> Cơ sở dữ liệu MediMind (medimind.db)
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">Bảng: <span class="font-mono bg-slate-200 px-2 py-0.5 rounded text-slate-700">users</span> &bull; Tổng cộng: <span class="font-bold text-blue-600">2</span> tài khoản</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <input id="searchInput" onkeyup="filterTable()" type="text" placeholder="Tìm kiếm nhanh họ tên, email, sđt..." 
+                       class="px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm w-72">
+            </div>
+        </div>
+
+        <div class="mt-6 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm" id="userTable">
+                    <thead class="bg-slate-100/75 text-slate-700 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="py-3.5 px-4">ID</th>
+                            <th class="py-3.5 px-4">Họ và Tên</th>
+                            <th class="py-3.5 px-4">Email / Tài khoản</th>
+                            <th class="py-3.5 px-4">Vai trò</th>
+                            <th class="py-3.5 px-4">Số điện thoại</th>
+                            <th class="py-3.5 px-4">Ngày sinh</th>
+                            <th class="py-3.5 px-4">Giới tính</th>
+                            <th class="py-3.5 px-4">Mã BHYT</th>
+                            <th class="py-3.5 px-4">Ngày tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-500">#1</td>
+                            <td class="py-3.5 px-4 font-semibold text-slate-900">BS. CKI Nguyễn Văn An</td>
+                            <td class="py-3.5 px-4 font-mono text-xs text-blue-600">bacsi.an@medimind.vn</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Bác sĩ</span></td>
+                            <td class="py-3.5 px-4">0912345678</td>
+                            <td class="py-3.5 px-4"><span class="text-slate-400">---</span></td>
+                            <td class="py-3.5 px-4"><span class="text-slate-400">---</span></td>
+                            <td class="py-3.5 px-4 font-mono text-xs"><span class="text-slate-400">---</span></td>
+                            <td class="py-3.5 px-4 text-xs text-slate-500">2026-10-27 04:14:19.370276</td>
+                        </tr>
+    
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-500">#2</td>
+                            <td class="py-3.5 px-4 font-semibold text-slate-900">Nguyễn Văn An</td>
+                            <td class="py-3.5 px-4 font-mono text-xs text-blue-600">benhnhan.an@gmail.com</td>
+                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Bệnh nhân</span></td>
+                            <td class="py-3.5 px-4">0987654321</td>
+                            <td class="py-3.5 px-4">15/08/1995</td>
+                            <td class="py-3.5 px-4">Nam</td>
+                            <td class="py-3.5 px-4 font-mono text-xs"><span class="text-slate-400">---</span></td>
+                            <td class="py-3.5 px-4 text-xs text-slate-500">2026-10-27 04:14:19.449659</td>
+                        </tr>
+    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('userTable');
+            const tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                const text = tr[i].textContent || tr[i].innerText;
+                tr[i].style.display = text.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

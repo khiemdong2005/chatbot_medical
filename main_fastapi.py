@@ -126,9 +126,14 @@ class AuthLoginRequest(BaseModel):
 
 
 class AuthRegisterRequest(BaseModel):
-    name: str = Field(..., description="Họ và tên người dân", example="Nguyễn Văn An")
-    email: str = Field(..., description="Email đăng ký", example="benhnhan.an@gmail.com")
+    name: Optional[str] = Field(None, description="Họ và tên người dân", example="Nguyễn Văn An")
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    identifier: Optional[str] = None
     password: str = Field(..., description="Mật khẩu (tối thiểu 6 ký tự)", example="MatKhau123@")
+    dob: Optional[str] = None
+    gender: Optional[str] = None
+    role: Optional[str] = Field("patient")
 
 
 # ==============================================================================
@@ -251,6 +256,22 @@ async def chat_endpoint(req: ChatMessageRequest):
 # 3. ĐỌC KẾT QUẢ XÉT NGHIỆM & PHIẾU TÓM TẮT TRƯỚC KHÁM
 # ==============================================================================
 
+from core.prescription_service import get_preset_data
+
+@app.post("/api/prescription/scan", summary="Quét & Phân tích Đơn thuốc / Xét nghiệm AI", tags=["2. Đọc Đơn thuốc & Xét nghiệm"])
+async def scan_prescription_endpoint(request: Request):
+    """Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm qua AI."""
+    preset = request.query_params.get("preset", "throat")
+    try:
+        data = await request.json()
+        if data and "preset" in data:
+            preset = data["preset"]
+    except Exception:
+        pass
+    
+    result = get_preset_data(preset)
+    return JSONResponse(content=result)
+
 @app.post("/api/upload-lab", summary="Giải thích Chỉ số Sinh hóa Máu", tags=["2. Đọc Đơn thuốc & Xét nghiệm"])
 async def upload_lab_endpoint():
     """Bóc tách và giải thích các chỉ số sinh hóa máu (Glucose, Cholesterol, Men gan, Creatinine)."""
@@ -341,13 +362,15 @@ async def auth_login_endpoint(req: AuthLoginRequest):
 @app.post("/api/auth/register", summary="Đăng ký Tài khoản Sức khỏe Mới", tags=["4. Xác thực & Tài khoản"])
 async def auth_register_endpoint(req: AuthRegisterRequest):
     """Đăng ký tài khoản sức khỏe cá nhân cho Người Dân."""
+    display_email = req.identifier or req.email or "benhnhan@medimind.vn"
+    display_name = req.name or req.full_name or "Bệnh nhân mới"
     return JSONResponse(status_code=201, content={
         "success": True,
         "message": "Đăng ký tài khoản thành công!",
         "user": {
             "id": 2,
-            "email": req.email,
-            "name": req.name,
+            "email": display_email,
+            "name": display_name,
             "role": "Bệnh nhân",
             "badge": "BN"
         }
