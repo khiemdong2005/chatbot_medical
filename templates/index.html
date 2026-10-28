@@ -1,4540 +1,1224 @@
 <!DOCTYPE html>
-
-
-
 <html lang="vi">
-
-
-
 <head>
-
-
-
-  <meta charset="UTF-8">
-
-
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-  <title>MediMind Clinical AI - Trợ lý Sức khỏe Thông minh (Ocean Blue & Navy)</title>
-
-
-
-  <!-- Tailwind CSS CDN -->
-
-
-
-  <script src="https://cdn.tailwindcss.com"></script>
-
-
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-
-
-  <style>
-
-
-
-    /* Strict Tab display rule preventing Tailwind .flex override */
-
-
-
-    .tab-content {
-
-
-
-      display: none !important;
-
-
-
-    }
-
-
-
-    .tab-content.active {
-
-
-
-      display: flex !important;
-
-
-
-    }
-
-
-
-    /* Elegant smooth scrollbar for chat messages */
-
-
-
-    #chat-messages::-webkit-scrollbar {
-
-
-
-      width: 4px;
-
-
-
-    }
-
-
-
-    #chat-messages::-webkit-scrollbar-track {
-
-
-
-      background: transparent;
-
-
-
-    }
-
-
-
-    #chat-messages::-webkit-scrollbar-thumb {
-
-
-
-      background: #CBD5E1;
-
-
-
-      border-radius: 9999px;
-
-
-
-    }
-
-
-
-    #chat-messages::-webkit-scrollbar-thumb:hover {
-
-
-
-      background: #94A3B8;
-
-
-
-    }
-
-
-
-  </style>
-
-
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediMind Clinical AI - Trợ lý Sức khỏe Thông minh (Ocean Blue & Navy)</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+/* Strict Tab display rule preventing Tailwind .flex override */
+.tab-content {
+display: none !important;
+}
+.tab-content.active {
+display: flex !important;
+}
+/* Elegant smooth scrollbar for chat messages */
+#chat-messages::-webkit-scrollbar {
+width: 4px;
+}
+#chat-messages::-webkit-scrollbar-track {
+background: transparent;
+}
+#chat-messages::-webkit-scrollbar-thumb {
+background: #CBD5E1;
+border-radius: 9999px;
+}
+#chat-messages::-webkit-scrollbar-thumb:hover {
+background: #94A3B8;
+}
+</style>
 </head>
-
-
-
 <body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative">
-
-
-
-  <!-- Ambient Ocean Blue & Navy watercolor background glows -->
-
-
-
-  <div class="ambient-glow-blue -top-20 -left-20 w-96 h-96 bg-[#0284C7]/12 rounded-full"></div>
-
-
-
-  <div class="ambient-glow-blue top-1/3 -right-20 w-[450px] h-[450px] bg-[#0284C7]/10 rounded-full"></div>
-
-
-
-  <div class="ambient-glow-blue -bottom-20 left-1/4 w-[500px] h-[500px] bg-sky-400/10 rounded-full"></div>
-
-
-
-  <!-- Top-right Soft Ambient Medical Cross (Exact match to Reference Design) -->
-
-
-
-  <div class="absolute top-12 right-6 lg:right-20 w-44 h-44 lg:w-56 lg:h-56 pointer-events-none select-none z-0 opacity-40">
-
-
-
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-[#BAE6FD]">
-
-
-
-      <rect x="38" y="10" width="24" height="80" rx="12" fill="currentColor"/>
-
-
-
-      <rect x="10" y="38" width="80" height="24" rx="12" fill="currentColor"/>
-
-
-
-    </svg>
-
-
-
-  </div>
-
-
-
-  <!-- Bottom-left Organic Watercolor Leaves (from Reference Image) -->
-
-
-
-  <div class="absolute -bottom-6 -left-6 w-80 sm:w-[420px] lg:w-[480px] h-80 sm:h-[420px] lg:h-[480px] pointer-events-none select-none z-0 overflow-hidden">
-
-
-
-    <svg viewBox="0 0 350 350" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full opacity-85">
-
-
-
-      <defs>
-
-
-
-        <linearGradient id="leafGrad1" x1="0%" y1="100%" x2="100%" y2="0%">
-
-
-
-          <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45" />
-
-
-
-          <stop offset="70%" stop-color="#0284C7" stop-opacity="0.25" />
-
-
-
-          <stop offset="100%" stop-color="#E0F2FE" stop-opacity="0.05" />
-
-
-
-        </linearGradient>
-
-
-
-        <linearGradient id="leafGrad2" x1="0%" y1="100%" x2="100%" y2="20%">
-
-
-
-          <stop offset="0%" stop-color="#0284C7" stop-opacity="0.40" />
-
-
-
-          <stop offset="60%" stop-color="#0EA5E9" stop-opacity="0.22" />
-
-
-
-          <stop offset="100%" stop-color="#BAE6FD" stop-opacity="0.05" />
-
-
-
-        </linearGradient>
-
-
-
-        <linearGradient id="leafGrad3" x1="20%" y1="100%" x2="50%" y2="0%">
-
-
-
-          <stop offset="0%" stop-color="#0284C7" stop-opacity="0.32" />
-
-
-
-          <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.08" />
-
-
-
-        </linearGradient>
-
-
-
-      </defs>
-
-
-
-      <!-- Leaf 1: Fanning upwards -->
-
-
-
-      <path d="M-10 360 C-5 220, 35 130, 95 90 C70 150, 40 250, -10 360 Z" fill="url(#leafGrad1)"/>
-
-
-
-      <!-- Leaf 2: Fanning diagonally -->
-
-
-
-      <path d="M-10 360 C40 270, 120 180, 210 150 C160 220, 80 300, -10 360 Z" fill="url(#leafGrad2)"/>
-
-
-
-      <!-- Leaf 3: Lower petal -->
-
-
-
-      <path d="M-10 360 C70 320, 170 270, 260 270 C190 330, 90 350, -10 360 Z" fill="url(#leafGrad3)"/>
-
-
-
-      <!-- Leaf 4: Back soft petal -->
-
-
-
-      <path d="M-10 360 C-20 190, 15 100, 60 55 C40 120, 15 240, -10 360 Z" fill="url(#leafGrad1)" opacity="0.6"/>
-
-
-
-    </svg>
-
-
-
-  </div>
-
-
-
-  <!-- Bottom-right Soft Ambient Hill / Wave Curve (from Reference Image) -->
-
-
-
-  <div class="absolute bottom-0 right-0 w-[450px] h-[300px] pointer-events-none select-none z-0 overflow-hidden">
-
-
-
-    <svg viewBox="0 0 450 300" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full opacity-65">
-
-
-
-      <defs>
-
-
-
-        <linearGradient id="waveGrad" x1="100%" y1="100%" x2="0%" y2="0%">
-
-
-
-          <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.32" />
-
-
-
-          <stop offset="60%" stop-color="#BAE6FD" stop-opacity="0.18" />
-
-
-
-          <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.0" />
-
-
-
-        </linearGradient>
-
-
-
-      </defs>
-
-
-
-      <path d="M450 300 L90 300 C190 240, 280 180, 450 100 Z" fill="url(#waveGrad)"/>
-
-
-
-    </svg>
-
-
-
-  </div>
-
-
-
-  <!-- Top Educational & Research Disclaimer Notification Strip -->
-
-
-
-  <aside aria-label="Tuyên bố miễn trừ trách nhiệm y tế" class="w-full bg-[#E0F2FE]/75 border-b border-[#BAE6FD]/80 text-[11px] sm:text-xs text-[#0369A1] py-1.5 px-4 text-center font-medium z-40 relative flex items-center justify-center space-x-2">
-
-
-
-    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0284C7] text-white shrink-0">Lưu ý nghiên cứu</span>
-
-
-
-    <span class="truncate sm:overflow-visible">Hệ thống thử nghiệm ý tưởng Trợ lý Y tế AI tương lai phục vụ giáo dục &amp; nghiên cứu • Không thay thế tư vấn bác sĩ.</span>
-
-
-
-    <button type="button" onclick="openDisclaimerModal()" class="font-bold underline hover:text-[#0c4a6e] shrink-0 ml-1">Xem điều khoản</button>
-
-
-
-  </aside>
-
-
-
-  <!-- Top Navigation Bar (Floating Pill Header with Even Spacing) -->
-
-
-
-  <header class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between z-30 shrink-0 relative gap-4">
-
-
-
-    <!-- Brand Logo & Exact Name in Ocean Blue & Navy -->
-
-
-
-    <div class="flex items-center space-x-3 cursor-pointer shrink-0" onclick="switchTab('chat-tab')">
-
-
-
-      <!-- Ocean Blue Circle with Heart Outline -->
-
-
-
-      <div class="w-10 h-10 rounded-full bg-[#0284C7] flex items-center justify-center text-white shadow-md shadow-blue-700/20 shrink-0">
-
-
-
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-
-
-
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-
-
-
-        </svg>
-
-
-
-      </div>
-
-
-
-      <div class="whitespace-nowrap">
-
-
-
-        <div class="flex items-center space-x-2">
-
-
-
-          <span class="font-extrabold text-lg sm:text-xl tracking-tight text-[#0F172A] whitespace-nowrap">MediMind Clinical AI</span>
-
-
-
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E0F2FE] text-[#0284C7] font-bold border border-[#BAE6FD] whitespace-nowrap">v2.5</span>
-
-
-
-        </div>
-
-
-
-        <div class="text-[11px] text-slate-500 font-medium whitespace-nowrap">HIPAA Compliant • Phác đồ MedlinePlus</div>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-    <!-- Center Floating Pill Navbar (Modern Ocean Blue Aesthetic & Even Spacing) -->
-
-
-
-    <nav class="hidden lg:flex items-center bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 shadow-2xs gap-1 shrink-0">
-
-
-
-      <button onclick="switchTab('chat-tab')" id="nav-chat-tab" class="nav-btn px-4 py-2 rounded-full text-xs bg-[#E0F2FE] text-[#0284C7] font-bold whitespace-nowrap transition-all">
-
-
-
-        Trang chủ
-
-
-
-      </button>
-
-
-
-      <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
-
-
-
-        Đọc đơn thuốc
-
-
-
-      </button>
-
-
-
-      <button onclick="switchTab('booking-tab')" id="nav-booking-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
-
-
-
-        Bệnh viện
-
-
-
-      </button>
-
-
-
-      <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all">
-
-
-
-        Hồ sơ Bác sĩ
-
-
-
-      </button>
-
-
-
-      
-
-
-
-    </nav>
-
-
-
-    <!-- Right Controls (Unified rounded-full border border-slate-200 bg-white shadow-sm px-4 py-2) -->
-
-
-
-    <div class="flex items-center space-x-2 shrink-0 whitespace-nowrap">
-
-
-
-      <!-- Language Picker (Unified height & padding px-4 py-2) -->
-
-
-
-      <div class="hidden sm:flex items-center space-x-1.5 text-xs bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm font-semibold text-slate-700 whitespace-nowrap shrink-0">
-
-
-
-        <span>VI</span>
-
-
-
-        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-
-
-
-        </svg>
-
-
-
-      </div>
-
-
-
-      <!-- Auth State 1: Unlogged (Shows "Đăng nhập" with clean User Icon) -->
-
-
-
-      <div id="auth-unlogged" class="flex items-center shrink-0">
-
-
-
-        <button onclick="openLoginModal()" class="rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm px-4 py-2 transition-all flex items-center space-x-2 whitespace-nowrap">
-
-
-
-          <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-
-
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-
-
-
-          </svg>
-
-
-
-          <span class="whitespace-nowrap">Đăng nhập</span>
-
-
-
-        </button>
-
-
-
-      </div>
-
-
-
-      <!-- Auth State 2: Logged In với Dropdown Hộp Thoại (Ảnh 2 & 3) -->
-
-
-
-      <div id="auth-logged" class="hidden relative flex items-center space-x-2 shrink-0">
-
-
-
-        <div id="user-chip-button" class="flex items-center space-x-2 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200/90 shadow-2xs cursor-pointer whitespace-nowrap transition-all" onclick="toggleUserDropdown(event)">
-
-
-
-          <div id="user-avatar-badge" class="w-6 h-6 rounded-full bg-[#E0F2FE] text-[#0284C7] font-bold text-[11px] flex items-center justify-center shrink-0">
-
-
-
-            BN
-
-
-
-          </div>
-
-
-
-          <div class="text-left hidden lg:block whitespace-nowrap">
-
-
-
-            <span id="user-display-name" class="text-xs font-bold text-slate-800 block leading-tight whitespace-nowrap">Nguyễn Văn An</span>
-
-
-
-            <span id="user-role-badge" class="text-[9px] text-[#0284C7] font-semibold block leading-none whitespace-nowrap">Thành viên</span>
-
-
-
-          </div>
-
-
-
-          <svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-
-
-
-          </svg>
-
-
-
-        </div>
-
-
-
-        <!-- Hộp thoại Dropdown Menu người dùng (Mẫu Ảnh 3) -->
-
-
-
-        <div id="user-dropdown-menu" class="hidden absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-
-
-
-          <!-- Header hộp thoại -->
-
-
-
-          <div class="px-4 py-3 border-b border-slate-100 flex items-center space-x-3">
-
-
-
-            <div id="dropdown-user-avatar" class="w-9 h-9 rounded-xl bg-[#E0F2FE] text-[#0284C7] font-bold text-xs flex items-center justify-center shrink-0">
-
-
-
-              BN
-
-
-
-            </div>
-
-
-
-            <div class="min-w-0 flex-1">
-
-
-
-              <div id="dropdown-user-name" class="text-xs font-bold text-slate-800 truncate">Nguyễn Văn An</div>
-
-
-
-              <div id="dropdown-user-info" class="text-[10px] text-[#0284C7] font-medium truncate">Thành viên</div>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Các mục menu theo yêu cầu -->
-
-
-
-          <div class="py-1 text-xs text-slate-700 font-medium">
-
-
-
-            <button type="button" onclick="switchTab('chat-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
-
-
-
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-
-
-
-              </svg>
-
-
-
-              <span>Trang chủ</span>
-
-
-
-            </button>
-
-
-
-            <button type="button" onclick="switchTab('profile-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
-
-
-
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-
-
-
-              </svg>
-
-
-
-              <span>Thông tin cá nhân</span>
-
-
-
-            </button>
-
-
-
-            <button type="button" onclick="switchTab('ocr-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
-
-
-
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-
-
-
-              </svg>
-
-
-
-              <span>Đọc đơn thuốc</span>
-
-
-
-            </button>
-
-
-
-            <button type="button" onclick="switchTab('doctor-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
-
-
-
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-
-
-
-              </svg>
-
-
-
-              <span>Bệnh án của tôi</span>
-
-
-
-            </button>
-
-
-
-          </div>
-
-
-
-          <div class="border-t border-slate-100 my-1"></div>
-
-
-
-          <div class="py-1 text-xs font-medium">
-
-
-
-            <button type="button" onclick="handleLogout(); closeUserDropdown();" class="w-full text-left px-4 py-2 text-rose-600 hover:bg-rose-50 flex items-center space-x-2.5 transition-colors">
-
-
-
-              <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-
-
-
-              </svg>
-
-
-
-              <span>Đăng xuất</span>
-
-
-
-            </button>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- Action Button -->
-
-
-
-      <button onclick="switchTab('chat-tab'); document.getElementById('user-input')?.focus();" class="px-5 py-2 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-md shadow-blue-700/20 flex items-center space-x-1.5 whitespace-nowrap shrink-0">
-
-
-
-        <span class="whitespace-nowrap">Bắt đầu ngay</span>
-
-
-
-        <span>→</span>
-
-
-
-      </button>
-
-
-
-    </div>
-
-
-
-  </header>
-
-
-
-  <!-- Main Body Workspace (Perfect Screen Fit & Balanced Proportions matching Header px-4 sm:px-8) -->
-
-
-
-  <main class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-6 flex-1 flex flex-col justify-start relative z-10 min-h-[calc(100vh-130px)]">
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <!-- TAB 1: HERO VIEW & LIVE CHAT (12-Column Grid: 5 cols text, 7 cols chat) -->
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <div id="chat-tab" class="tab-content active flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-6 sm:pt-8">
-
-
-
-      <!-- Left Column: Hero Content (lg:col-span-5 with Leading-[1.32] Typography & Horizontal CTAs) -->
-
-
-
-      <div class="lg:col-span-5 flex flex-col justify-center space-y-7 py-2">
-
-
-
-        <!-- Community AI Badge in Ice Blue (w-fit self-start prevents flex-col stretching) -->
-
-
-
-        <div class="w-fit self-start inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#E0F2FE] text-[#0284C7] text-xs font-bold border border-[#BAE6FD] shadow-2xs">
-
-
-
-          <span class="w-2 h-2 rounded-full bg-[#0284C7] animate-pulse"></span>
-
-
-
-          <span>Dự án AI vì sức khỏe cộng đồng 2026</span>
-
-
-
-        </div>
-
-
-
-        <!-- Big, Clean Hero Title with !leading-[1.35] and inline line-height to guarantee diacritics spacing -->
-
-
-
-        <h1 class="text-4xl sm:text-5xl lg:text-[54px] xl:text-[58px] font-extrabold text-[#0F172A] tracking-tight !leading-[1.35]" style="line-height: 1.35;">
-
-
-
-          <span class="whitespace-nowrap">Trợ lý sức khỏe</span> <br>
-
-
-
-          <span class="text-[#0284C7] whitespace-nowrap">thông minh</span>
-
-
-
-        </h1>
-
-
-
-        <!-- Subtitle -->
-
-
-
-        <p class="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl font-normal">
-
-
-
-          Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.
-
-
-
-        </p>
-
-
-
-        <!-- CTA Buttons side-by-side horizontally (flex items-center gap-4) -->
-
-
-
-        <div class="flex items-center gap-4 pt-1 flex-wrap sm:flex-nowrap">
-
-
-
-          <!-- Button 1: Kiểm tra triệu chứng (Ocean Blue Pill) -->
-
-
-
-          <button onclick="document.getElementById('user-input')?.focus();" class="px-7 py-3.5 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white text-sm sm:text-base font-bold shadow-lg shadow-blue-700/25 transition-all flex items-center space-x-2.5 whitespace-nowrap">
-
-
-
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-
-
-
-            </svg>
-
-
-
-            <span class="whitespace-nowrap">Kiểm tra triệu chứng</span>
-
-
-
-            <span>→</span>
-
-
-
-          </button>
-
-
-
-          <!-- Button 2: Đọc đơn thuốc (White Pill with crisp border-slate-200/90 shadow-sm hover:border-sky-300) -->
-
-
-
-          <button onclick="switchTab('ocr-tab')" class="px-7 py-3.5 rounded-full bg-white hover:bg-slate-50 text-slate-800 text-sm sm:text-base font-semibold border border-slate-200/90 shadow-sm hover:border-sky-300 transition-all flex items-center space-x-2 whitespace-nowrap">
-
-
-
-            <svg class="w-5 h-5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-
-
-
-            </svg>
-
-
-
-            <span class="whitespace-nowrap">Đọc đơn thuốc</span>
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-        <!-- Trust Badges -->
-
-
-
-        <div class="flex items-center space-x-6 pt-4 text-xs sm:text-sm text-slate-600 font-medium">
-
-
-
-          <div class="flex items-center space-x-2 whitespace-nowrap">
-
-
-
-            <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-
-
-
-            </svg>
-
-
-
-            <span>Bảo mật thông tin</span>
-
-
-
-          </div>
-
-
-
-          <div class="h-4 w-px bg-slate-300"></div>
-
-
-
-          <div class="flex items-center space-x-2 whitespace-nowrap">
-
-
-
-            <svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-
-
-
-            </svg>
-
-
-
-            <span>Hỗ trợ 24/7</span>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <!-- Trust Metric Banner (Cân đối chiều cao hoàn hảo với khung chat 620px) -->
-
-
-
-        <div class="pt-1">
-
-
-
-          <div class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/80 border border-slate-200/80 shadow-2xs text-[11px] sm:text-xs text-slate-600">
-
-
-
-            <span class="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
-
-
-
-            <span>Đã hỗ trợ hơn <strong class="text-slate-800 font-bold">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus</span>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- Right Column: Chatbot Container (lg:col-span-7, w-full max-w-[580px] min-h-[620px]) -->
-
-
-
-      <div class="lg:col-span-7 relative w-full flex justify-center lg:justify-end">
-
-
-
-        <div class="relative w-full max-w-[580px]">
-
-
-
-          <!-- Floating Stat Chip 1: Heart Rate + ECG Wave (-top-5 -right-6 z-20 clean outer float, header icons 100% unobstructed) -->
-
-
-
-          <div class="absolute -top-5 -right-6 z-20 floating-chip p-3 px-3.5 rounded-2xl flex flex-col pointer-events-none bg-white border border-slate-100 shadow-lg shadow-teal-900/8">
-
-
-
-            <div class="flex items-center space-x-2.5">
-
-
-
-              <div class="w-8 h-8 rounded-full bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
-
-
-
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-
-
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-
-
-
-                </svg>
-
-
-
-              </div>
-
-
-
-              <div>
-
-
-
-                <span class="text-[10px] text-slate-400 block font-medium leading-none">Nhịp tim</span>
-
-
-
-                <span class="text-xs font-bold text-slate-800 leading-tight">72 bpm</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <!-- ECG Pulse Wave Line -->
-
-
-
-            <div class="pt-1">
-
-
-
-              <svg class="w-24 h-4 text-[#0284C7]" fill="none" viewBox="0 0 100 20">
-
-
-
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M0 10h25l4-7 6 14 6-10 4 3h55" class="ecg-line"></path>
-
-
-
-              </svg>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Floating Stat Chip 2: Thông tin y khoa (-left-20 sm:-left-24 lg:-left-28, transition-all duration-300, tự động ẩn khi chat thật) -->
-
-
-
-          <div id="floating-medical-info" class="hidden sm:flex absolute top-[25%] -left-20 sm:-left-24 lg:-left-28 -translate-y-1/2 z-20 floating-chip p-3 px-3.5 rounded-2xl items-center space-x-2.5 pointer-events-none bg-white border border-slate-100 shadow-lg shadow-teal-900/8 max-w-[170px] transition-all duration-300">
-
-
-
-            <div class="w-8 h-8 rounded-xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
-
-
-
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-
-
-
-              </svg>
-
-
-
-            </div>
-
-
-
-            <div>
-
-
-
-              <span class="text-xs font-bold text-slate-800 block whitespace-nowrap">Thông tin y khoa</span>
-
-
-
-              <div class="text-[10px] text-[#0284C7] flex items-center space-x-1 font-semibold whitespace-nowrap">
-
-
-
-                <span>Từ nguồn uy tín</span>
-
-
-
-                <span>→</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Main Assistant Chat Container: w-full max-w-[580px] h-[620px] max-h-[620px] flex flex-col justify-between -->
-
-
-
-          <div class="floating-medical-card rounded-[32px] p-6 sm:p-7 flex flex-col justify-between w-full h-[620px] max-h-[620px] relative z-10 shadow-xl shadow-blue-950/5 bg-white border border-slate-100">
-
-
-
-            <!-- Card Header: Cleaned up with subtle action icons (100% unobstructed) -->
-
-
-
-            <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 shrink-0">
-
-
-
-              <div class="flex items-center space-x-3">
-
-
-
-                <div class="w-10 h-10 rounded-2xl bg-[#0284C7] text-white flex items-center justify-center shadow-md shadow-blue-600/20 shrink-0">
-
-
-
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-
-
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-
-
-
-                  </svg>
-
-
-
-                </div>
-
-
-
-                <div>
-
-
-
-                  <h3 class="text-base font-bold text-slate-800">Trợ lý MediMind AI</h3>
-
-
-
-                  <div class="flex items-center space-x-1.5 text-xs text-slate-400 font-medium">
-
-
-
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-
-
-
-                    <span>Đang hoạt động</span>
-
-
-
-                  </div>
-
-
-
-                </div>
-
-
-
-              </div>
-
-
-
-              <!-- Subtle Action Icons (Refresh / More Options) -->
-
-
-
-              <div class="flex items-center space-x-1 text-slate-400 relative z-30">
-
-
-
-                <button type="button" onclick="resetChat()" title="Làm mới cuộc trò chuyện" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors">
-
-
-
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-
-
-
-                  </svg>
-
-
-
-                </button>
-
-
-
-                <button type="button" title="Tùy chọn trợ lý" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors">
-
-
-
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-
-
-
-                  </svg>
-
-
-
-                </button>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <!-- Chat Stream Area (flex-1: fills vertical space, scrolls internally, pr-2) -->
-
-
-
-            <div id="chat-messages" class="flex-1 overflow-y-auto py-3 space-y-3 px-1 sm:px-2 pr-2">
-
-
-
-              <!-- Message 1: Initial Bot Greeting -->
-
-
-
-              <div class="flex justify-start">
-
-
-
-                <div class="bg-[#F1F5F9] text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm font-normal max-w-[85%] leading-relaxed shadow-2xs">
-
-
-
-                  Xin chào! Hôm nay bạn cảm thấy thế nào?
-
-
-
-                </div>
-
-
-
-              </div>
-
-
-
-              <!-- Message 2: User Bubble (Medical Ocean Blue) -->
-
-
-
-              <div class="flex justify-end">
-
-
-
-                <div class="bg-[#0284C7] text-white px-5 py-3 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium max-w-[80%]">
-
-
-
-                  Tôi bị đau họng và hơi sốt.
-
-
-
-                </div>
-
-
-
-              </div>
-
-
-
-              <!-- Message 3: Structured Follow-up Bot Response with WCAG text-slate-500 font-medium -->
-
-
-
-              <div class="flex justify-start">
-
-
-
-                <div class="bg-[#F1F5F9] border border-slate-200/60 text-slate-700 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm font-normal max-w-[95%] sm:max-w-[90%] leading-relaxed shadow-xs space-y-2.5">
-
-
-
-                  <p class="font-medium text-slate-800">
-
-
-
-                    Mình hiểu rồi. Với triệu chứng đau họng và sốt nhẹ, dưới đây là các biện pháp chăm sóc ban đầu:
-
-
-
-                  </p>
-
-
-
-                  <ul class="space-y-1.5 text-slate-600 pl-1 text-xs sm:text-[13px]">
-
-
-
-                    <li class="flex items-start space-x-2">
-
-
-
-                      <span class="text-[#0284C7] font-bold mt-0.5">•</span>
-
-
-
-                      <span>Súc họng nước muối ấm (0.9%) từ 3 - 4 lần/ngày giúp kháng viêm và dịu niêm mạc.</span>
-
-
-
-                    </li>
-
-
-
-                    <li class="flex items-start space-x-2">
-
-
-
-                      <span class="text-[#0284C7] font-bold mt-0.5">•</span>
-
-
-
-                      <span>Uống nhiều nước ấm, nghỉ ngơi tại phòng thoáng khí và kiểm tra thân nhiệt định kỳ.</span>
-
-
-
-                    </li>
-
-
-
-                    <li class="flex items-start space-x-2">
-
-
-
-                      <span class="text-[#0284C7] font-bold mt-0.5">•</span>
-
-
-
-                      <span>Nếu sốt trên 38.5°C hoặc đau rát tăng mạnh, hãy dùng Paracetamol theo liều và tư vấn y tế.</span>
-
-
-
-                    </li>
-
-
-
-                  </ul>
-
-
-
-                  <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
-
-
-
-                    <div class="flex items-center space-x-1.5 font-semibold text-slate-700">
-
-
-
-                      <svg class="w-3.5 h-3.5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-
-
-
-                      </svg>
-
-
-
-                      <span>Nguồn: MedlinePlus</span>
-
-
-
-                    </div>
-
-
-
-                    <!-- WCAG Contrast Enhanced: text-slate-500 font-medium -->
-
-
-
-                    <span class="text-[11px] text-slate-500 font-medium">Khuyến cáo lâm sàng</span>
-
-
-
-                  </div>
-
-
-
-                </div>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <!-- Bottom Area: Quick Reply Pills + Contrast Input Field with gap-3 -->
-
-
-
-            <div class="pt-3 space-y-2.5 shrink-0">
-
-
-
-              <!-- Interactive Quick Reply Pill Buttons (Fit evenly across container without touching borders) -->
-
-
-
-              <div class="grid grid-cols-3 gap-2 py-0.5 w-full">
-
-
-
-                <button type="button" onclick="insertPrompt('Thuốc hạ sốt nào an toàn?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Thuốc hạ sốt an toàn?">
-
-
-
-                  🌡️ Thuốc hạ sốt an toàn?
-
-
-
-                </button>
-
-
-
-                <button type="button" onclick="insertPrompt('Khi nào tôi nên đi khám bệnh viện?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Khi nào nên đi khám?">
-
-
-
-                  🏥 Khi nào nên đi khám?
-
-
-
-                </button>
-
-
-
-                <button type="button" onclick="insertPrompt('Có cần uống kháng sinh không?')" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Có cần dùng kháng sinh?">
-
-
-
-                  💊 Có cần dùng kháng sinh?
-
-
-
-                </button>
-
-
-
-              </div>
-
-
-
-              <!-- High Contrast Chat Input Field (bg-slate-50 border border-slate-200) with gap-3 between buttons -->
-
-
-
-              <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-full p-2 pl-5 focus-within:border-[#0284C7] focus-within:ring-2 focus-within:ring-[#0284C7]/15 transition-all shadow-xs">
-
-
-
-                <input id="user-input" type="text" placeholder="Nhập tin nhắn của bạn..." class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal">
-
-
-
-                <div class="flex items-center gap-3 shrink-0 pr-1">
-
-
-
-                  <!-- Paperclip Attachment Button -->
-
-
-
-                  <button type="button" onclick="switchTab('ocr-tab')" title="Tải ảnh đơn thuốc hoặc kết quả xét nghiệm" class="p-2 text-slate-400 hover:text-[#0284C7] rounded-full transition-colors shrink-0">
-
-
-
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-
-
-
-                    </svg>
-
-
-
-                  </button>
-
-
-
-                  <!-- Circular Ocean Blue Send Button -->
-
-
-
-                  <button type="button" onclick="sendChatMessage()" class="w-9 h-9 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white flex items-center justify-center shadow-md shadow-blue-700/20 transition-all shrink-0">
-
-
-
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-
-
-
-                    </svg>
-
-
-
-                  </button>
-
-
-
-                </div>
-
-
-
-              </div>
-
-
-
-              <!-- Medical Disclaimer Micro-notice (Phục vụ giáo dục & nghiên cứu tương lai) -->
-
-
-
-              <div class="text-[10px] text-slate-400 text-center font-normal leading-tight pt-1">
-
-
-
-                <span>⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • </span>
-
-
-
-                <button type="button" onclick="openDisclaimerModal()" class="text-[#0284C7] underline hover:text-[#0369A1] font-medium">Miễn trừ trách nhiệm</button>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <!-- TAB 2: HOSPITALS & GOOGLE MAPS -->
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <div id="booking-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-
-
-
-      <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-
-
-
-        <div>
-
-
-
-          <h2 class="text-lg font-bold text-slate-800">Bệnh viện & Cơ sở Y tế gần nhất</h2>
-
-
-
-          <p class="text-xs text-slate-500">Định vị qua Google Maps • Sắp xếp theo khoảng cách và đánh giá thực tế từ bệnh nhân</p>
-
-
-
-        </div>
-
-
-
-        <button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
-
-
-
-          ← Quay lại Trang chủ
-
-
-
-        </button>
-
-
-
-      </div>
-
-
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-[460px]">
-
-
-
-        <!-- Map Embed -->
-
-
-
-        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm">
-
-
-
-          <div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs">
-
-
-
-            <span class="font-bold text-slate-700">Bản đồ trực tiếp (Google Maps)</span>
-
-
-
-            <a href="https://www.google.com/maps/search/bệnh+viện+gần+nhất" target="_blank" class="text-[#0284C7] font-semibold hover:underline">
-
-
-
-              Mở toàn màn hình
-
-
-
-            </a>
-
-
-
-          </div>
-
-
-
-          <div class="flex-1 w-full min-h-[380px]">
-
-
-
-            <iframe
-
-
-
-              title="Bản đồ Bệnh viện gần nhất"
-
-
-
-              width="100%"
-
-
-
-              height="100%"
-
-
-
-              style="border:0; min-height: 380px;"
-
-
-
-              loading="lazy"
-
-
-
-              allowfullscreen
-
-
-
-              referrerpolicy="no-referrer-when-downgrade"
-
-
-
-              src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=embed">
-
-
-
-            </iframe>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <!-- Hospital Cards (3 Cards flush with Google Maps height) -->
-
-
-
-        <div class="lg:col-span-5 space-y-3 overflow-y-auto">
-
-
-
-          <!-- BV 1: BV Tai Mũi Họng TP.HCM -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
-
-
-
-            <div class="flex justify-between items-start">
-
-
-
-              <div>
-
-
-
-                <span class="text-[9px] font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-0.5 rounded-full">Tuyến Trung Ương</span>
-
-
-
-                <h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Tai Mũi Họng TP.HCM</h3>
-
-
-
-                <p class="text-[11px] text-slate-500">410 Lê Văn Sỹ, Phường 14, Quận 3</p>
-
-
-
-              </div>
-
-
-
-              <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">1.4 km</span>
-
-
-
-            </div>
-
-
-
-            <div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-
-
-
-              <span>4.6 ★★★★★</span>
-
-
-
-              <span class="text-slate-400 text-[10px] font-normal">(1.840 đánh giá Google)</span>
-
-
-
-            </div>
-
-
-
-            <div class="flex items-center space-x-2 pt-1">
-
-
-
-              <a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Tai+Mũi+Họng+TPHCM" target="_blank" class="flex-1 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
-
-
-
-                Chỉ đường Google Maps
-
-
-
-              </a>
-
-
-
-              <a href="tel:02839317381" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 shrink-0">
-
-
-
-                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-
-
-
-                </svg>
-
-
-
-                <span>Gọi cấp cứu</span>
-
-
-
-              </a>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- BV 2: BV Đại học Y Dược TP.HCM -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
-
-
-
-            <div class="flex justify-between items-start">
-
-
-
-              <div>
-
-
-
-                <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Đa khoa Hạng 1</span>
-
-
-
-                <h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Đại học Y Dược</h3>
-
-
-
-                <p class="text-[11px] text-slate-500">215 Hồng Bàng, Phường 11, Quận 5</p>
-
-
-
-              </div>
-
-
-
-              <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">2.8 km</span>
-
-
-
-            </div>
-
-
-
-            <div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-
-
-
-              <span>4.7 ★★★★★</span>
-
-
-
-              <span class="text-slate-400 text-[10px] font-normal">(4.250 đánh giá Google)</span>
-
-
-
-            </div>
-
-
-
-            <div class="flex items-center space-x-2 pt-1">
-
-
-
-              <a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Đại+học+Y+Dược+TPHCM" target="_blank" class="flex-1 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
-
-
-
-                Chỉ đường Google Maps
-
-
-
-              </a>
-
-
-
-              <a href="tel:02838554269" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 shrink-0">
-
-
-
-                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-
-
-
-                </svg>
-
-
-
-                <span>Gọi cấp cứu</span>
-
-
-
-              </a>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- BV 3: BV Chợ Rẫy (Lấp đầy chiều cao khít đáy bản đồ Google Maps) -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
-
-
-
-            <div class="flex justify-between items-start">
-
-
-
-              <div>
-
-
-
-                <span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Tuyến Đặc Biệt</span>
-
-
-
-                <h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Chợ Rẫy</h3>
-
-
-
-                <p class="text-[11px] text-slate-500">201B Nguyễn Chí Thanh, Phường 12, Quận 5</p>
-
-
-
-              </div>
-
-
-
-              <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">3.5 km</span>
-
-
-
-            </div>
-
-
-
-            <div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-
-
-
-              <span>4.5 ★★★★★</span>
-
-
-
-              <span class="text-slate-400 text-[10px] font-normal">(5.820 đánh giá Google)</span>
-
-
-
-            </div>
-
-
-
-            <div class="flex items-center space-x-2 pt-1">
-
-
-
-              <a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Chợ+Rẫy" target="_blank" class="flex-1 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
-
-
-
-                Chỉ đường Google Maps
-
-
-
-              </a>
-
-
-
-              <a href="tel:02838554137" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 shrink-0">
-
-
-
-                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-
-
-
-                </svg>
-
-
-
-                <span>Gọi cấp cứu</span>
-
-
-
-              </a>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <!-- TAB 3: LAB OCR (Amazon S3) -->
-
-
-
-    <!-- ============================================================== -->
-
-
-
-        <div id="ocr-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-5">
-
-      <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-        <div>
-          <h2 class="text-lg font-bold text-slate-800">Đọc & Phân tích Đơn thuốc / Kết quả Xét nghiệm</h2>
-          <p class="text-xs text-slate-500">Nạp tập dữ liệu ảnh, PDF, Word phục vụ huấn luyện và trích xuất model scan y tế</p>
-        </div>
-        <button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
-          ← Quay lại Trang chủ
-        </button>
-      </div>
-
-      <!-- Top Row: Upload Card & Training Dataset Table -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
-        <div class="h-full border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white shadow-2xs">
-          <div class="w-12 h-12 rounded-2xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-3">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-          </div>
-          <h3 class="text-xs font-bold text-slate-800">Tải lên tệp tài liệu để Train Model Scan</h3>
-          <p class="text-[10px] text-slate-500 mt-1">Định dạng hỗ trợ: JPG, PNG, PDF, Word (.docx)</p>
-          <input type="file" id="lab-file-input" accept=".jpg, .jpeg, .png, .pdf, .docx, .doc" class="hidden" onchange="handleFileSelected(event)">
-          <button type="button" onclick="triggerFileUpload()" class="mt-4 px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center justify-center space-x-1.5 cursor-pointer mx-auto">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-            </svg>
-            <span>Chọn tệp từ máy tính</span>
-          </button>
-          <p class="text-[10px] text-slate-400 mt-3 italic">Tệp nạp sẽ được lưu trữ cục bộ tại <code class="bg-slate-100 text-slate-600 px-1 py-0.5 rounded font-mono">uploads/</code> để làm bộ dữ liệu huấn luyện model.</p>
-        </div>
-
-        <!-- Empty State khi chưa có tệp -->
-        <div id="ocr-table-empty" class="lg:col-span-2 h-full bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 shadow-2xs">
-          <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="text-xs font-bold text-slate-700">Chưa có tài liệu nào trong tập huấn luyện</h4>
-            <p class="text-[11px] text-slate-400 max-w-sm mt-1">Hãy bấm "Chọn tệp từ máy tính" ở khung bên trái để nạp ảnh chụp đơn thuốc, phiếu xét nghiệm PDF hoặc tài liệu Word vào bộ dữ liệu huấn luyện model scan.</p>
-          </div>
-        </div>
-
-        <!-- Filled State: Bảng danh sách tệp huấn luyện chuẩn xác, KHÔNG CÒN THÔNG TIN GIẢ -->
-        <div id="ocr-table-filled" class="hidden lg:col-span-2 h-full bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between shadow-2xs space-y-4">
-          <div>
-            <div class="flex justify-between items-center pb-3 border-b border-slate-200">
-              <div class="flex items-center space-x-2">
-                <span class="text-xs font-bold text-slate-800">Bộ dữ liệu huấn luyện Model Scan (Training Dataset)</span>
-                <span id="scan-files-count" class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">0 tệp</span>
-              </div>
-              <button onclick="triggerFileUpload()" class="text-xs font-semibold text-[#0284C7] hover:underline flex items-center space-x-1 cursor-pointer">
-                <span>+ Nạp thêm tệp</span>
-              </button>
-            </div>
-
-            <div class="overflow-x-auto mt-2">
-              <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="border-b border-slate-200 text-slate-500 font-bold text-[11px] bg-slate-50">
-                    <th class="py-2.5 px-3">Tên tài liệu</th>
-                    <th class="py-2.5 px-3">Định dạng</th>
-                    <th class="py-2.5 px-3">Dung lượng</th>
-                    <th class="py-2.5 px-3">Thời gian nạp</th>
-                    <th class="py-2.5 px-3 text-right">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody id="scan-files-tbody" class="divide-y divide-slate-100 text-slate-700 text-[11px]">
-                  <!-- Rendered dynamically by JavaScript -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-800">
-            <div class="flex items-center space-x-2">
-              <span class="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
-              <span>Dữ liệu đã sẵn sàng cho pipeline huấn luyện model OCR / Donut / LayoutLM.</span>
-            </div>
-            <span class="text-[11px] text-emerald-600 font-mono font-semibold">Thư mục: uploads/</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ============================================================== -->
-
-    <!-- TAB 4: DOCTOR SUMMARY -->
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-
-
-
-      <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-
-
-
-        <div>
-
-
-
-          <h2 class="text-lg font-bold text-slate-800" id="ehr-title">Hồ sơ Sức khỏe & Bệnh án của tôi</h2>
-
-
-
-          <p class="text-xs text-slate-500" id="ehr-subtitle">Tự động đồng bộ và lưu trữ từ các lần sàng lọc y tế</p>
-
-
-
-        </div>
-
-
-
-        <div class="flex items-center space-x-3">
-
-
-
-          <button onclick="alert('Đang kết xuất và tải tệp Bệnh án điện tử PDF chuẩn HL7/FHIR...'); window.print();" class="text-xs font-semibold px-4 py-2 bg-white rounded-full text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs flex items-center space-x-1.5 transition-colors">
-
-
-
-            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-
-
-
-            </svg>
-
-
-
-            <span>Xuất PDF</span>
-
-
-
-          </button>
-
-
-
-          <button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
-
-
-
-            ← Quay lại
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- Empty State for New Users -->
-
-      <div id="ehr-content-empty" class="w-full bg-white border border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center text-center space-y-4 shadow-sm my-4">
-
-        <div class="w-16 h-16 rounded-3xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-1">
-
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-
-          </svg>
-
-        </div>
-
-        <div class="space-y-1.5">
-
-          <h3 class="text-base font-bold text-slate-800">Chưa có dữ liệu bệnh án lâm sàng</h3>
-
-          <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-
-            Tài khoản mới chưa thực hiện lượt sàng lọc triệu chứng nào với Trợ lý MediMind AI hoặc chưa tải lên phiếu xét nghiệm.
-
-          </p>
-
-        </div>
-
-        <div class="pt-2 flex items-center space-x-3">
-
-          <button onclick="switchTab('chat-tab')" class="px-6 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-semibold rounded-full shadow-sm transition-all flex items-center space-x-2">
-
-            <span>Bắt đầu sàng lọc triệu chứng ngay</span>
-
-            <span>→</span>
-
-          </button>
-
-          <button onclick="switchTab('ocr-tab')" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-full transition-all">
-
-            Tải kết quả xét nghiệm
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- Filled State: 12-Column Doctor EHR Grid -->
-
-      <div id="ehr-content-filled" class="w-full flex-1 flex-col space-y-4">
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
-
-
-
-        <!-- Left Column: Patient Demographics, Vitals & Medical History (lg:col-span-7) -->
-
-
-
-        <div class="lg:col-span-7 space-y-4">
-
-
-
-          <!-- Card 1: Patient Administrative Info & Vitals Grid -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-2xs">
-
-
-
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-
-
-
-              <div class="flex items-center space-x-3">
-
-
-
-                <div id="ehr-avatar-badge" class="w-10 h-10 rounded-xl bg-[#E0F2FE] text-[#0284C7] font-bold flex items-center justify-center text-sm">
-
-
-
-                  BN
-
-
-
-                </div>
-
-
-
-                <div>
-
-
-
-                  <h3 id="ehr-patient-name" class="text-sm font-bold text-slate-800">Nguyễn Văn An</h3>
-
-
-
-                  <span id="ehr-patient-id" class="text-[11px] text-slate-400">Mã BN: #BN-2026-8429 • BHYT Tuyến TW</span>
-
-
-
-                </div>
-
-
-
-              </div>
-
-
-
-              <div class="flex items-center space-x-2">
-
-
-
-                <span class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-
-
-
-                  Triage: Trung bình (35/100)
-
-
-
-                </span>
-
-
-
-                <span class="text-xs text-slate-400">26/10/2026</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-            <!-- Vitals 4-Grid -->
-
-
-
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-
-
-
-              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-                <span class="text-[10px] text-slate-400 block font-medium">Huyết áp</span>
-
-
-
-                <span class="text-xs font-bold text-slate-800">120/80 mmHg</span>
-
-
-
-              </div>
-
-
-
-              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-                <span class="text-[10px] text-slate-400 block font-medium">Nhịp tim</span>
-
-
-
-                <span class="text-xs font-bold text-slate-800">72 bpm</span>
-
-
-
-              </div>
-
-
-
-              <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80">
-
-
-
-                <span class="text-[10px] text-amber-700 block font-medium">Nhiệt độ</span>
-
-
-
-                <span class="text-xs font-bold text-amber-700">38.2°C (Sốt nhẹ)</span>
-
-
-
-              </div>
-
-
-
-              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-                <span class="text-[10px] text-slate-400 block font-medium">SpO2</span>
-
-
-
-                <span class="text-xs font-bold text-emerald-600">98% (Đạt chuẩn)</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Card 2: Clinical Narrative & Evolution -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
-
-
-
-            <h4 class="text-xs font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center justify-between">
-
-
-
-              <span>Diễn tiến Bệnh cảnh & Lý do vào viện</span>
-
-
-
-              <span class="text-[10px] text-slate-400 font-normal">Trích xuất tự động qua Chatbot AI</span>
-
-
-
-            </h4>
-
-
-
-            <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
-
-
-
-              <p>• <strong>Lý do khám:</strong> Đau rát họng, nuốt đau, nghẹt sổ mũi và có sốt nhẹ kéo dài 24 giờ.</p>
-
-
-
-              <p>• <strong>Quá trình bệnh lý:</strong> Khởi phát đột ngột sau khi tiếp xúc không khí lạnh. Chưa xuất hiện khó thở dữ dội, không đau tức ngực, không nôn ói. Đã tự súc họng nước muối sinh lý tại nhà.</p>
-
-
-
-              <p>• <strong>Thói quen sinh hoạt:</strong> Không hút thuốc lá, tiếp xúc thường xuyên với máy lạnh văn phòng.</p>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Card 3: Allergy Alert & Contraindications (Red Highlight) -->
-
-
-
-          <div class="bg-red-50/60 border border-red-200 rounded-2xl p-4.5 space-y-2 shadow-2xs">
-
-
-
-            <div class="flex items-center space-x-2 text-red-700 font-bold text-xs">
-
-
-
-              <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-
-
-
-              </svg>
-
-
-
-              <span>CẢNH BÁO TIỀN SỬ DỊ ỨNG & CHỐNG CHỈ ĐỊNH LÂM SÀNG</span>
-
-
-
-            </div>
-
-
-
-            <p class="text-xs text-red-900 leading-relaxed pl-6">
-
-
-
-              Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="text-red-700">Penicillin, Amoxicillin</strong> (từng nổi mề đay cấp tính).
-
-
-
-              <strong class="block mt-1 text-red-800">Chống chỉ định: Tuyệt đối không chỉ định kháng sinh nhóm Beta-lactam.</strong>
-
-
-
-            </p>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <!-- Right Column: AI Diagnosis, Clinical Orders & Physician Actions (lg:col-span-5) -->
-
-
-
-        <div class="lg:col-span-5 space-y-4">
-
-
-
-          <!-- Card 4: AI Diagnostic Impression (ICD-10) -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
-
-
-
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-
-
-
-              <h4 class="text-xs font-bold text-slate-800">Định hướng Chẩn đoán sơ bộ (AI)</h4>
-
-
-
-              <span class="text-[10px] text-slate-400">ICD-10 Mapping</span>
-
-
-
-            </div>
-
-
-
-            <div class="space-y-2">
-
-
-
-              <div class="p-3 rounded-xl bg-[#E0F2FE]/50 border border-[#BAE6FD] flex items-center justify-between">
-
-
-
-                <div>
-
-
-
-                  <span class="text-xs font-bold text-slate-900 block">Viêm đường hô hấp trên cấp (J06.9)</span>
-
-
-
-                  <span class="text-[10px] text-slate-500">Phù hợp triệu chứng sốt, đau họng, sổ mũi</span>
-
-
-
-                </div>
-
-
-
-                <span class="text-xs font-bold text-[#0284C7] bg-white px-2.5 py-1 rounded-lg border border-[#BAE6FD]">88%</span>
-
-
-
-              </div>
-
-
-
-              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-
-
-
-                <div>
-
-
-
-                  <span class="text-xs font-bold text-slate-800 block">Viêm mũi xoang cấp tính (J01)</span>
-
-
-
-                  <span class="text-[10px] text-slate-500">Chẩn đoán phân biệt theo dõi</span>
-
-
-
-                </div>
-
-
-
-                <span class="text-xs font-semibold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">62%</span>
-
-
-
-              </div>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Card 5: Recommended Diagnostic Orders -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
-
-
-
-            <h4 class="text-xs font-bold text-slate-800 pb-2 border-b border-slate-100">
-
-
-
-              Đề xuất Chỉ định Cận lâm sàng (Clinical Orders)
-
-
-
-            </h4>
-
-
-
-            <div class="space-y-2 text-xs">
-
-
-
-              <label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer">
-
-
-
-                <input type="checkbox" checked class="w-4 h-4 text-[#0284C7] rounded border-slate-300 focus:ring-[#0284C7]">
-
-
-
-                <span class="font-medium text-slate-700">Tổng phân tích tế bào máu ngoại vi (CBC)</span>
-
-
-
-              </label>
-
-
-
-              <label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer">
-
-
-
-                <input type="checkbox" checked class="w-4 h-4 text-[#0284C7] rounded border-slate-300 focus:ring-[#0284C7]">
-
-
-
-                <span class="font-medium text-slate-700">Nội soi Tai Mũi Họng đánh giá niêm mạc</span>
-
-
-
-              </label>
-
-
-
-              <label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer">
-
-
-
-                <input type="checkbox" class="w-4 h-4 text-[#0284C7] rounded border-slate-300 focus:ring-[#0284C7]">
-
-
-
-                <span class="text-slate-500">Test nhanh Cúm A/B (theo dõi nếu sốt > 38.5°C kéo dài)</span>
-
-
-
-              </label>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Card 6: Physician Action Controls -->
-
-
-
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
-
-
-
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-
-
-
-              <span class="text-xs font-bold text-slate-800">Thao tác Bệnh án</span>
-
-
-
-              <span class="text-[10px] text-emerald-600 font-bold flex items-center space-x-1">
-
-
-
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-
-
-
-                <span>Hồ sơ sẵn sàng</span>
-
-
-
-              </span>
-
-
-
-            </div>
-
-
-
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-
-
-
-              <button onclick="window.print()" class="py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all flex items-center justify-center space-x-1.5">
-
-
-
-                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-
-
-
-                </svg>
-
-
-
-                <span>In Bệnh án A4</span>
-
-
-
-              </button>
-
-
-
-              <button onclick="alert('Đã đồng bộ hồ sơ bệnh sử vào hệ thống EMR bệnh viện qua chuẩn HL7/FHIR!')" class="py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center justify-center space-x-1.5">
-
-
-
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-
-
-
-                </svg>
-
-
-
-                <span>Lưu vào EMR</span>
-
-
-
-              </button>
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    </div>
-
-    </div>
-
-
-
-    <!-- TAB 5: CLOUD MLOPS -->
-
-
-
-        <!-- ============================================================== -->
-
-
-
-    <!-- TAB: HỒ SƠ THÔNG TIN CÁ NHÂN (Thiết kế chuẩn Portal theo Mẫu Ảnh 2) -->
-
-
-
-    <!-- ============================================================== -->
-
-
-
-    <div id="profile-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-
-
-
-      <!-- Breadcrumb navigation (Ảnh 2) -->
-
-
-
-      <div class="flex items-center space-x-2 text-xs text-slate-500 pb-1">
-
-
-
-        <span class="cursor-pointer hover:text-[#0284C7] flex items-center space-x-1" onclick="switchTab('chat-tab')">
-
-
-
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-
-
-
-          </svg>
-
-
-
-          <span>Trang chủ</span>
-
-
-
-        </span>
-
-
-
-        <span>/</span>
-
-
-
-        <span class="text-slate-800 font-bold">Cập nhật hồ sơ cá nhân</span>
-
-
-
-      </div>
-
-
-
-      <!-- Main Profile Card Container -->
-
-
-
-      <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-
-
-
-        <div class="pb-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-
-
-
-          <div>
-
-
-
-            <h2 class="text-lg font-bold text-slate-800">Thông tin cá nhân</h2>
-
-
-
-            <p class="text-xs text-slate-500">Quản lý và cập nhật thông tin cá nhân dùng trong việc sàng lọc y tế và bệnh án</p>
-
-
-
-          </div>
-
-
-
-          <button type="button" onclick="switchTab('doctor-tab')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center space-x-1.5">
-
-
-
-            <span>Xem Bệnh án của tôi</span>
-
-
-
-            <span>→</span>
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-        <!-- Light Blue Header Banner (Mẫu Ảnh 2: MSSV / Mã BN | Họ tên) -->
-
-
-
-        <div class="bg-[#E0F2FE] border border-[#BAE6FD] text-[#0369A1] rounded-2xl px-5 py-3 text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2 shadow-2xs">
-
-
-
-          <div class="flex items-center space-x-3">
-
-
-
-            <span id="tab-profile-banner-id">Mã BN: #BN-2026-0004</span>
-
-
-
-            <span class="text-sky-300">|</span>
-
-
-
-            <span id="tab-profile-banner-name">Họ tên: Nguyen Van A</span>
-
-
-
-          </div>
-
-
-
-          <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white text-[#0284C7] shadow-2xs">
-
-
-
-            Hồ sơ y tế hoạt động
-
-
-
-          </span>
-
-
-
-        </div>
-
-
-
-        <!-- Form fields layout (Tương tự ảnh 2, các trường tinh gọn phục vụ y tế) -->
-
-
-
-        <form id="tab-profile-form" onsubmit="handleTabSaveProfile(event)" class="space-y-5">
-
-
-
-          <!-- Hàng 1: Ngày sinh | Giới tính | Điện thoại -->
-
-
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Ngày sinh</label>
-
-
-
-              <input type="text" id="tab-profile-dob" placeholder="04/10/2005 hoặc DD/MM/YYYY" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Giới tính</label>
-
-
-
-              <select id="tab-profile-gender" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-                <option value="Nam">Nam</option>
-
-
-
-                <option value="Nữ">Nữ</option>
-
-
-
-                <option value="Khác">Khác</option>
-
-
-
-              </select>
-
-
-
-            </div>
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Điện thoại</label>
-
-
-
-              <input type="text" id="tab-profile-phone" placeholder="0347047101" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Hàng 2: Họ và tên | Email | Mã thẻ BHYT -->
-
-
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Họ và tên</label>
-
-
-
-              <input type="text" id="tab-profile-name" required placeholder="Họ và tên đầy đủ" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Địa chỉ Email</label>
-
-
-
-              <input type="email" id="tab-profile-email" placeholder="tenban@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Mã thẻ BHYT (nếu có)</label>
-
-
-
-              <input type="text" id="tab-profile-bhyt" placeholder="VD: DN4012345678901" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Hàng 3: Tỉnh/Thành phố & Địa chỉ -->
-
-
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Tỉnh / Thành phố</label>
-
-
-
-              <input type="text" id="tab-profile-city" placeholder="VD: TP. Hồ Chí Minh, Hà Nội, Đắk Lắk..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-            <div>
-
-
-
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Địa chỉ nơi cư trú</label>
-
-
-
-              <input type="text" id="tab-profile-address" placeholder="VD: 335 Giải Phóng, Phường..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            </div>
-
-
-
-          </div>
-
-
-
-          <!-- Bottom Action Buttons (Chuẩn giao diện Ảnh 2) -->
-
-
-
-          <div class="pt-4 border-t border-slate-100 flex items-center space-x-3">
-
-
-
-            <button type="submit" class="px-6 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center space-x-1.5">
-
-
-
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-
-
-
-              </svg>
-
-
-
-              <span>Lưu thông tin</span>
-
-
-
-            </button>
-
-
-
-            <button type="button" onclick="switchTab('chat-tab')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all">
-
-
-
-              Quay lại trang chủ
-
-
-
-            </button>
-
-
-
-          </div>
-
-
-
-        </form>
-
-
-
-      </div>
-
-
-
-    </div>
-
+<!-- Ambient Ocean Blue & Navy watercolor background glows -->
+<div class="ambient-glow-blue -top-20 -left-20 w-96 h-96 bg-[#0284C7]/12 rounded-full"></div>
+<div class="ambient-glow-blue top-1/3 -right-20 w-[450px] h-[450px] bg-[#0284C7]/10 rounded-full"></div>
+<div class="ambient-glow-blue -bottom-20 left-1/4 w-[500px] h-[500px] bg-sky-400/10 rounded-full"></div>
+<!-- Top-right Soft Ambient Medical Cross (Exact match to Reference Design) -->
+<div class="absolute top-12 right-6 lg:right-20 w-44 h-44 lg:w-56 lg:h-56 pointer-events-none select-none z-0 opacity-40">
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full text-[#BAE6FD]">
+<rect x="38" y="10" width="24" height="80" rx="12" fill="currentColor"/>
+<rect x="10" y="38" width="80" height="24" rx="12" fill="currentColor"/>
+</svg>
+</div>
+<!-- Bottom-left Organic Watercolor Leaves (from Reference Image) -->
+<div class="absolute -bottom-6 -left-6 w-80 sm:w-[420px] lg:w-[480px] h-80 sm:h-[420px] lg:h-[480px] pointer-events-none select-none z-0 overflow-hidden">
+<svg viewBox="0 0 350 350" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full opacity-85">
+<defs>
+<linearGradient id="leafGrad1" x1="0%" y1="100%" x2="100%" y2="0%">
+<stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45" />
+<stop offset="70%" stop-color="#0284C7" stop-opacity="0.25" />
+<stop offset="100%" stop-color="#E0F2FE" stop-opacity="0.05" />
+</linearGradient>
+<linearGradient id="leafGrad2" x1="0%" y1="100%" x2="100%" y2="20%">
+<stop offset="0%" stop-color="#0284C7" stop-opacity="0.40" />
+<stop offset="60%" stop-color="#0EA5E9" stop-opacity="0.22" />
+<stop offset="100%" stop-color="#BAE6FD" stop-opacity="0.05" />
+</linearGradient>
+<linearGradient id="leafGrad3" x1="20%" y1="100%" x2="50%" y2="0%">
+<stop offset="0%" stop-color="#0284C7" stop-opacity="0.32" />
+<stop offset="100%" stop-color="#38BDF8" stop-opacity="0.08" />
+</linearGradient>
+</defs>
+<!-- Leaf 1: Fanning upwards -->
+<path d="M-10 360 C-5 220, 35 130, 95 90 C70 150, 40 250, -10 360 Z" fill="url(#leafGrad1)"/>
+<!-- Leaf 2: Fanning diagonally -->
+<path d="M-10 360 C40 270, 120 180, 210 150 C160 220, 80 300, -10 360 Z" fill="url(#leafGrad2)"/>
+<!-- Leaf 3: Lower petal -->
+<path d="M-10 360 C70 320, 170 270, 260 270 C190 330, 90 350, -10 360 Z" fill="url(#leafGrad3)"/>
+<!-- Leaf 4: Back soft petal -->
+<path d="M-10 360 C-20 190, 15 100, 60 55 C40 120, 15 240, -10 360 Z" fill="url(#leafGrad1)" opacity="0.6"/>
+</svg>
+</div>
+<!-- Bottom-right Soft Ambient Hill / Wave Curve (from Reference Image) -->
+<div class="absolute bottom-0 right-0 w-[450px] h-[300px] pointer-events-none select-none z-0 overflow-hidden">
+<svg viewBox="0 0 450 300" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full opacity-65">
+<defs>
+<linearGradient id="waveGrad" x1="100%" y1="100%" x2="0%" y2="0%">
+<stop offset="0%" stop-color="#38BDF8" stop-opacity="0.32" />
+<stop offset="60%" stop-color="#BAE6FD" stop-opacity="0.18" />
+<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.0" />
+</linearGradient>
+</defs>
+<path d="M450 300 L90 300 C190 240, 280 180, 450 100 Z" fill="url(#waveGrad)"/>
+</svg>
+</div>
+<!-- Top Educational & Research Disclaimer Notification Strip -->
+<aside aria-label="Tuyên bố miễn trừ trách nhiệm y tế" class="w-full bg-[#E0F2FE]/75 border-b border-[#BAE6FD]/80 text-[11px] sm:text-xs text-[#0369A1] py-1.5 px-4 text-center font-medium z-40 relative flex items-center justify-center space-x-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0284C7] text-white shrink-0">Lưu ý nghiên cứu</span>
+<span class="truncate sm:overflow-visible">Hệ thống thử nghiệm ý tưởng Trợ lý Y tế AI tương lai phục vụ giáo dục &amp; nghiên cứu • Không thay thế tư vấn bác sĩ.</span>
+<button type="button" onclick="openDisclaimerModal()" class="font-bold underline hover:text-[#0c4a6e] shrink-0 ml-1">Xem điều khoản</button>
+</aside>
+<!-- Top Navigation Bar (Floating Pill Header with Even Spacing) -->
+<header class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between z-30 shrink-0 relative gap-4">
+<!-- Brand Logo & Exact Name in Ocean Blue & Navy -->
+<div class="flex items-center space-x-3 cursor-pointer shrink-0" onclick="switchTab('chat-tab')">
+<!-- Ocean Blue Circle with Heart Outline -->
+<div class="w-10 h-10 rounded-full bg-[#0284C7] flex items-center justify-center text-white shadow-md shadow-blue-700/20 shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+</svg>
+</div>
+<div class="whitespace-nowrap">
+<div class="flex items-center space-x-2">
+<span class="font-extrabold text-lg sm:text-xl tracking-tight text-[#0F172A] whitespace-nowrap">MediMind Clinical AI</span>
+<span class="text-[10px] px-2 py-0.5 rounded-full bg-[#E0F2FE] text-[#0284C7] font-bold border border-[#BAE6FD] whitespace-nowrap">v2.5</span>
+</div>
+<div class="text-[11px] text-slate-500 font-medium whitespace-nowrap" data-i18n="brand_subtitle">HIPAA Compliant • Phác đồ MedlinePlus</div>
+</div>
+</div>
+<!-- Center Floating Pill Navbar (Modern Ocean Blue Aesthetic & Even Spacing) -->
+<nav class="hidden lg:flex items-center bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 shadow-2xs gap-1 shrink-0">
+<button onclick="switchTab('chat-tab')" id="nav-chat-tab" class="nav-btn px-4 py-2 rounded-full text-xs bg-[#E0F2FE] text-[#0284C7] font-bold whitespace-nowrap transition-all" data-i18n="nav_chat">
+Trang chủ
+</button>
+<button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_ocr">
+Đọc đơn thuốc
+</button>
+<button onclick="switchTab('booking-tab')" id="nav-booking-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_booking">
+Bệnh viện
+</button>
+<button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" class="nav-btn px-4 py-2 rounded-full text-xs font-medium text-slate-600 hover:text-[#0284C7] whitespace-nowrap transition-all" data-i18n="nav_doctor">
+Hồ sơ Bác sĩ
+</button>
+</nav>
+<!-- Right Controls (Unified rounded-full border border-slate-200 bg-white shadow-sm px-4 py-2) -->
+<div class="flex items-center space-x-2 shrink-0 whitespace-nowrap">
+<!-- Language Picker Dropdown (VI / EN) -->
+<div class="relative hidden sm:block" id="lang-picker-container">
+<button id="lang-btn" onclick="toggleLanguageDropdown(event)" type="button" class="flex items-center space-x-1.5 text-xs bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm font-semibold text-slate-700 hover:border-[#0284C7] hover:text-[#0284C7] transition-all whitespace-nowrap shrink-0 cursor-pointer">
+<span id="current-lang-code">VI</span>
+<svg id="lang-dropdown-arrow" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+</svg>
+</button>
+<!-- Dropdown Menu -->
+<div id="lang-dropdown-menu" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-2xl border border-slate-200 shadow-xl py-1.5 z-50 text-xs">
+<button onclick="setLanguage('vi')" type="button" class="w-full text-left px-3.5 py-2.5 hover:bg-sky-50 flex items-center justify-between text-slate-700 font-medium transition-colors">
+<span class="flex items-center space-x-2">
+<span class="text-sm">🇻🇳</span>
+<span class="font-semibold">Tiếng Việt</span>
+<span class="text-[10px] text-slate-400 font-normal">(VI)</span>
+</span>
+<span id="check-vi" class="text-[#0284C7] font-bold">✓</span>
+</button>
+<button onclick="setLanguage('en')" type="button" class="w-full text-left px-3.5 py-2.5 hover:bg-sky-50 flex items-center justify-between text-slate-700 font-medium transition-colors">
+<span class="flex items-center space-x-2">
+<span class="text-sm">🇬🇧</span>
+<span class="font-semibold">English</span>
+<span class="text-[10px] text-slate-400 font-normal">(EN)</span>
+</span>
+<span id="check-en" class="text-[#0284C7] font-bold hidden">✓</span>
+</button>
+</div>
+</div>
+<!-- Auth State 1: Unlogged (Shows "Đăng nhập" with clean User Icon) -->
+<div id="auth-unlogged" class="flex items-center shrink-0">
+<button onclick="openLoginModal()" class="rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm px-4 py-2 transition-all flex items-center space-x-2 whitespace-nowrap">
+<svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+</svg>
+<span class="whitespace-nowrap">Đăng nhập</span>
+</button>
+</div>
+<!-- Auth State 2: Logged In với Dropdown Hộp Thoại (Ảnh 2 & 3) -->
+<div id="auth-logged" class="hidden relative flex items-center space-x-2 shrink-0">
+<div id="user-chip-button" class="flex items-center space-x-2 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200/90 shadow-2xs cursor-pointer whitespace-nowrap transition-all" onclick="toggleUserDropdown(event)">
+<div id="user-avatar-badge" class="w-6 h-6 rounded-full bg-[#E0F2FE] text-[#0284C7] font-bold text-[11px] flex items-center justify-center shrink-0">
+BN
+</div>
+<div class="text-left hidden lg:block whitespace-nowrap">
+<span id="user-display-name" class="text-xs font-bold text-slate-800 block leading-tight whitespace-nowrap">Nguyễn Văn An</span>
+<span id="user-role-badge" class="text-[9px] text-[#0284C7] font-semibold block leading-none whitespace-nowrap">Thành viên</span>
+</div>
+<svg class="w-3.5 h-3.5 text-slate-400 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+</svg>
+</div>
+<!-- Hộp thoại Dropdown Menu người dùng (Mẫu Ảnh 3) -->
+<div id="user-dropdown-menu" class="hidden absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+<!-- Header hộp thoại -->
+<div class="px-4 py-3 border-b border-slate-100 flex items-center space-x-3">
+<div id="dropdown-user-avatar" class="w-9 h-9 rounded-xl bg-[#E0F2FE] text-[#0284C7] font-bold text-xs flex items-center justify-center shrink-0">
+BN
+</div>
+<div class="min-w-0 flex-1">
+<div id="dropdown-user-name" class="text-xs font-bold text-slate-800 truncate">Nguyễn Văn An</div>
+<div id="dropdown-user-info" class="text-[10px] text-[#0284C7] font-medium truncate">Thành viên</div>
+</div>
+</div>
+<!-- Các mục menu theo yêu cầu -->
+<div class="py-1 text-xs text-slate-700 font-medium">
+<button type="button" onclick="switchTab('chat-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+</svg>
+<span>Trang chủ</span>
+</button>
+<button type="button" onclick="switchTab('profile-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+</svg>
+<span>Thông tin cá nhân</span>
+</button>
+<button type="button" onclick="switchTab('ocr-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+</svg>
+<span>Đọc đơn thuốc</span>
+</button>
+<button type="button" onclick="switchTab('doctor-tab'); closeUserDropdown();" class="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-center space-x-2.5 transition-colors">
+<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+</svg>
+<span>Bệnh án của tôi</span>
+</button>
+</div>
+<div class="border-t border-slate-100 my-1"></div>
+<div class="py-1 text-xs font-medium">
+<button type="button" onclick="handleLogout(); closeUserDropdown();" class="w-full text-left px-4 py-2 text-rose-600 hover:bg-rose-50 flex items-center space-x-2.5 transition-colors">
+<svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+</svg>
+<span>Đăng xuất</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button onclick="switchTab('chat-tab'); document.getElementById('user-input')?.focus();" class="px-5 py-2 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-md shadow-blue-700/20 flex items-center space-x-1.5 whitespace-nowrap shrink-0">
+<span class="whitespace-nowrap" data-i18n="nav_start">Bắt đầu ngay</span>
+<span>→</span>
+</button>
+</div>
+</header>
+<main class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-6 flex-1 flex flex-col justify-start relative z-10 min-h-[calc(100vh-130px)]">
+<div id="chat-tab" class="tab-content active flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-6 sm:pt-8">
+<!-- Left Column: Hero Content (lg:col-span-5 with Leading-[1.32] Typography & Horizontal CTAs) -->
+<div class="lg:col-span-5 flex flex-col justify-center space-y-7 py-2">
+<!-- Community AI Badge in Ice Blue (w-fit self-start prevents flex-col stretching) -->
+<div class="w-fit self-start inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#E0F2FE] text-[#0284C7] text-xs font-bold border border-[#BAE6FD] shadow-2xs">
+<span class="w-2 h-2 rounded-full bg-[#0284C7] animate-pulse"></span>
+<span data-i18n="hero_badge">Dự án AI vì sức khỏe cộng đồng 2026</span>
+</div>
+<!-- Big, Clean Hero Title with !leading-[1.35] and inline line-height to guarantee diacritics spacing -->
+<h1 class="text-4xl sm:text-5xl lg:text-[54px] xl:text-[58px] font-extrabold text-[#0F172A] tracking-tight !leading-[1.35]" style="line-height: 1.35;">
+<span class="whitespace-nowrap" data-i18n="hero_title_1">Trợ lý sức khỏe</span> <br>
+<span class="text-[#0284C7] whitespace-nowrap" data-i18n="hero_title_2">thông minh</span>
+</h1>
+<!-- Subtitle -->
+<p class="text-slate-600 text-sm sm:text-base lg:text-lg leading-relaxed max-w-xl font-normal" data-i18n="hero_desc">
+Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.
+</p>
+<!-- CTA Buttons side-by-side horizontally (flex items-center gap-4) -->
+<div class="flex items-center gap-4 pt-1 flex-wrap sm:flex-nowrap">
+<!-- Button 1: Kiểm tra triệu chứng (Ocean Blue Pill) -->
+<button onclick="document.getElementById('user-input')?.focus();" class="px-7 py-3.5 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white text-sm sm:text-base font-bold shadow-lg shadow-blue-700/25 transition-all flex items-center space-x-2.5 whitespace-nowrap">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+</svg>
+<span class="whitespace-nowrap" data-i18n="hero_btn_check">Kiểm tra triệu chứng</span>
+<span>→</span>
+</button>
+<!-- Button 2: Đọc đơn thuốc (White Pill with crisp border-slate-200/90 shadow-sm hover:border-sky-300) -->
+<button onclick="switchTab('ocr-tab')" class="px-7 py-3.5 rounded-full bg-white hover:bg-slate-50 text-slate-800 text-sm sm:text-base font-semibold border border-slate-200/90 shadow-sm hover:border-sky-300 transition-all flex items-center space-x-2 whitespace-nowrap">
+<svg class="w-5 h-5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+</svg>
+<span class="whitespace-nowrap" data-i18n="hero_btn_scan">Đọc đơn thuốc</span>
+</button>
+</div>
+<!-- Trust Badges -->
+<div class="flex items-center space-x-6 pt-4 text-xs sm:text-sm text-slate-600 font-medium">
+<div class="flex items-center space-x-2 whitespace-nowrap">
+<svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+</svg>
+<span data-i18n="trust_security">Bảo mật thông tin</span>
+</div>
+<div class="h-4 w-px bg-slate-300"></div>
+<div class="flex items-center space-x-2 whitespace-nowrap">
+<svg class="w-4 h-4 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+</svg>
+<span data-i18n="trust_support">Hỗ trợ 24/7</span>
+</div>
+</div>
+<!-- Trust Metric Banner (Cân đối chiều cao hoàn hảo với khung chat 620px) -->
+<div class="pt-1">
+<div class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white/80 border border-slate-200/80 shadow-2xs text-[11px] sm:text-xs text-slate-600">
+<span class="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
+<span data-i18n="trust_banner">Đã hỗ trợ hơn <strong class="text-slate-800 font-bold">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Chatbot Container (lg:col-span-7, w-full max-w-[580px] min-h-[620px]) -->
+<div class="lg:col-span-7 relative w-full flex justify-center lg:justify-end">
+<div class="relative w-full max-w-[580px]">
+<!-- Floating Stat Chip 1: Heart Rate + ECG Wave (-top-5 -right-6 z-20 clean outer float, header icons 100% unobstructed) -->
+<div class="absolute -top-5 -right-6 z-20 floating-chip p-3 px-3.5 rounded-2xl flex flex-col pointer-events-none bg-white border border-slate-100 shadow-lg shadow-teal-900/8">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+</svg>
+</div>
+<div>
+<span class="text-[10px] text-slate-400 block font-medium leading-none" data-i18n="chip_hr">Nhịp tim</span>
+<span class="text-xs font-bold text-slate-800 leading-tight">72 bpm</span>
+</div>
+</div>
+<!-- ECG Pulse Wave Line -->
+<div class="pt-1">
+<svg class="w-24 h-4 text-[#0284C7]" fill="none" viewBox="0 0 100 20">
+<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M0 10h25l4-7 6 14 6-10 4 3h55" class="ecg-line"></path>
+</svg>
+</div>
+</div>
+<!-- Floating Stat Chip 2: Thông tin y khoa (-left-20 sm:-left-24 lg:-left-28, transition-all duration-300, tự động ẩn khi chat thật) -->
+<div id="floating-medical-info" class="hidden sm:flex absolute top-[25%] -left-20 sm:-left-24 lg:-left-28 -translate-y-1/2 z-20 floating-chip p-3 px-3.5 rounded-2xl items-center space-x-2.5 pointer-events-none bg-white border border-slate-100 shadow-lg shadow-teal-900/8 max-w-[170px] transition-all duration-300">
+<div class="w-8 h-8 rounded-xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+</svg>
+</div>
+<div>
+<span class="text-xs font-bold text-slate-800 block whitespace-nowrap" data-i18n="chip_info">Thông tin y khoa</span>
+<div class="text-[10px] text-[#0284C7] flex items-center space-x-1 font-semibold whitespace-nowrap">
+<span data-i18n="chip_source">Từ nguồn uy tín</span>
+<span>→</span>
+</div>
+</div>
+</div>
+<!-- Main Assistant Chat Container: w-full max-w-[580px] h-[620px] max-h-[620px] flex flex-col justify-between -->
+<div class="floating-medical-card rounded-[32px] p-6 sm:p-7 flex flex-col justify-between w-full h-[620px] max-h-[620px] relative z-10 shadow-xl shadow-blue-950/5 bg-white border border-slate-100">
+<!-- Card Header: Cleaned up with subtle action icons (100% unobstructed) -->
+<div class="flex items-center justify-between pb-3.5 border-b border-slate-100 shrink-0">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-2xl bg-[#0284C7] text-white flex items-center justify-center shadow-md shadow-blue-600/20 shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+</svg>
+</div>
+<div>
+<h3 class="text-base font-bold text-slate-800" data-i18n="chat_assistant_title">Trợ lý MediMind AI</h3>
+<div class="flex items-center space-x-1.5 text-xs text-slate-400 font-medium">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span data-i18n="chat_status">Đang hoạt động</span>
+</div>
+</div>
+</div>
+<!-- Subtle Action Icons (Refresh / More Options) -->
+<div class="flex items-center space-x-1 text-slate-400 relative z-30">
+<button type="button" onclick="resetChat()" title="Làm mới cuộc trò chuyện" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+</svg>
+</button>
+<button type="button" title="Tùy chọn trợ lý" class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Chat Stream Area (flex-1: fills vertical space, scrolls internally, pr-2) -->
+<div id="chat-messages" class="flex-1 overflow-y-auto py-3 space-y-3 px-1 sm:px-2 pr-2"></div>
+<!-- Bottom Area: Quick Reply Pills + Contrast Input Field with gap-3 -->
+<div class="pt-3 space-y-2.5 shrink-0">
+<!-- Interactive Quick Reply Pill Buttons (Fit evenly across container without touching borders) -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 py-0.5 w-full">
+<button type="button" onclick="document.getElementById('chat-image-input').click()" class="w-full text-center py-1.5 px-2 rounded-full bg-sky-50 hover:bg-[#E0F2FE] hover:text-[#0284C7] text-[#0284C7] border border-sky-200 text-[11px] font-bold transition-all shadow-2xs truncate" title="Chụp / Tải ảnh tổn thương da">
+<span data-i18n="quick_1">📷 Nhận diện ảnh da</span>
+</button>
+<button type="button" onclick="insertQuickPrompt(2)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Mụn nước 1 bên sườn?">
+<span data-i18n="quick_2">🔍 Mụn nước một bên?</span>
+</button>
+<button type="button" onclick="insertQuickPrompt(3)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Thuốc hạ sốt an toàn?">
+<span data-i18n="quick_3">🌡️ Thuốc hạ sốt an toàn?</span>
+</button>
+<button type="button" onclick="insertQuickPrompt(4)" class="w-full text-center py-1.5 px-2 rounded-full bg-white hover:bg-[#E0F2FE] hover:text-[#0284C7] text-slate-600 border border-slate-200 text-[11px] font-medium transition-all shadow-2xs truncate" title="Có cần dùng kháng sinh?">
+<span data-i18n="quick_4">💊 Có cần dùng kháng sinh?</span>
+</button>
+</div>
+<!-- Image Preview Container (Khi người dùng chọn ảnh chụp tổn thương) -->
+<div id="chat-image-preview-container" class="hidden mb-2 p-2 bg-sky-50/90 border border-sky-200 rounded-2xl flex items-center justify-between transition-all">
+<div class="flex items-center space-x-2.5 overflow-hidden">
+<img id="chat-image-preview-thumb" src="" alt="Ảnh tổn thương" class="w-10 h-10 rounded-xl object-cover border border-sky-300 shadow-2xs shrink-0">
+<div class="truncate">
+<div class="text-[11px] font-bold text-slate-800 truncate" id="chat-image-preview-name">anh_ton_thuong.jpg</div>
+<div class="text-[10px] text-[#0284C7] font-semibold">🔍 Sẵn sàng để Gemini Vision phân tích & đối chiếu</div>
+</div>
+</div>
+<button type="button" onclick="clearChatImagePreview()" class="p-1.5 text-slate-400 hover:text-red-500 rounded-full hover:bg-white transition-colors shrink-0" title="Hủy ảnh này">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+</svg>
+</button>
+</div>
+<!-- High Contrast Chat Input Field (bg-slate-50 border border-slate-200) with Image Attachment -->
+<div class="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-full p-2 pl-3 focus-within:border-[#0284C7] focus-within:ring-2 focus-within:ring-[#0284C7]/15 transition-all shadow-xs">
+<!-- Hidden File Input for Clinical Image -->
+<input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleChatImageSelected(this)">
+<!-- Camera / Image Upload Button -->
+<button type="button" onclick="document.getElementById('chat-image-input').click()" title="Chụp hoặc tải ảnh tổn thương da (Gemini Vision AI)" class="p-2 text-slate-400 hover:text-[#0284C7] hover:bg-sky-50 rounded-full transition-colors shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+<path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+</svg>
+</button>
+<input id="user-input" type="text" placeholder="Nhập triệu chứng hoặc tải ảnh tổn thương da..." data-i18n-placeholder="chat_input_placeholder" class="flex-1 bg-transparent text-xs sm:text-sm text-slate-800 placeholder-slate-400 border-0 focus:outline-none px-2 font-normal" onkeydown="if(event.key==='Enter') sendChatMessage()">
+<div class="flex items-center gap-2 shrink-0 pr-1">
+<!-- Paperclip Attachment Button -->
+<button type="button" onclick="switchTab('ocr-tab')" title="Tải ảnh đơn thuốc hoặc kết quả xét nghiệm" class="p-2 text-slate-400 hover:text-[#0284C7] rounded-full transition-colors shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+</svg>
+</button>
+<!-- Circular Ocean Blue Send Button -->
+<button type="button" onclick="sendChatMessage()" class="w-9 h-9 rounded-full bg-[#0284C7] hover:bg-[#0369A1] text-white flex items-center justify-center shadow-md shadow-blue-700/20 transition-all shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Medical Disclaimer Micro-notice (Phục vụ giáo dục & nghiên cứu tương lai) -->
+<div class="text-[10px] text-slate-400 text-center font-normal leading-tight pt-1">
+<span data-i18n="disclaimer_footer_text">⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • </span>
+<button type="button" onclick="openDisclaimerModal()" class="text-[#0284C7] underline hover:text-[#0369A1] font-medium" data-i18n="disclaimer_footer_btn">Miễn trừ trách nhiệm</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================== -->
+<!-- TAB 2: HOSPITALS & GOOGLE MAPS -->
+<!-- ============================================================== -->
+<div id="booking-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
+<div class="flex justify-between items-center pb-2 border-b border-slate-200">
+<div>
+<h2 class="text-lg font-bold text-slate-800">Bệnh viện & Cơ sở Y tế gần nhất</h2>
+<p class="text-xs text-slate-500">Định vị qua Google Maps • Sắp xếp theo khoảng cách và đánh giá thực tế từ bệnh nhân</p>
+</div>
+<button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
+← Quay lại Trang chủ
+</button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-[460px]">
+<!-- Map Embed -->
+<div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm">
+<div class="p-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center text-xs">
+<span class="font-bold text-slate-700">Bản đồ trực tiếp (Google Maps)</span>
+<a href="https://www.google.com/maps/search/bệnh+viện+gần+nhất" target="_blank" class="text-[#0284C7] font-semibold hover:underline">
+Mở toàn màn hình
+</a>
+</div>
+<div class="flex-1 w-full min-h-[380px]">
+<iframe
+title="Bản đồ Bệnh viện gần nhất"
+width="100%"
+height="100%"
+style="border:0; min-height: 380px;"
+loading="lazy"
+allowfullscreen
+referrerpolicy="no-referrer-when-downgrade"
+src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=embed">
+</iframe>
+</div>
+</div>
+<!-- Hospital Cards (3 Cards flush with Google Maps height) -->
+<div class="lg:col-span-5 space-y-3 overflow-y-auto">
+<!-- BV 1: BV Tai Mũi Họng TP.HCM -->
+<div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[9px] font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-0.5 rounded-full">Tuyến Trung Ương</span>
+<h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Tai Mũi Họng TP.HCM</h3>
+<p class="text-[11px] text-slate-500">410 Lê Văn Sỹ, Phường 14, Quận 3</p>
+</div>
+<span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">1.4 km</span>
+</div>
+<div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
+<span>4.6 ★★★★★</span>
+<span class="text-slate-400 text-[10px] font-normal">(1.840 đánh giá Google)</span>
+</div>
+<div class="flex items-center space-x-2 pt-1">
+<a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Tai+Mũi+Họng+TPHCM" target="_blank" class="flex-1 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
+Chỉ đường Google Maps
+</a>
+<a href="tel:02839317381" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 shrink-0">
+<svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+</svg>
+<span>Gọi cấp cứu</span>
+</a>
+</div>
+</div>
+<!-- BV 2: BV Đại học Y Dược TP.HCM -->
+<div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Đa khoa Hạng 1</span>
+<h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Đại học Y Dược</h3>
+<p class="text-[11px] text-slate-500">215 Hồng Bàng, Phường 11, Quận 5</p>
+</div>
+<span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">2.8 km</span>
+</div>
+<div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
+<span>4.7 ★★★★★</span>
+<span class="text-slate-400 text-[10px] font-normal">(4.250 đánh giá Google)</span>
+</div>
+<div class="flex items-center space-x-2 pt-1">
+<a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Đại+học+Y+Dược+TPHCM" target="_blank" class="flex-1 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
+Chỉ đường Google Maps
+</a>
+<a href="tel:02838554269" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 shrink-0">
+<svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+</svg>
+<span>Gọi cấp cứu</span>
+</a>
+</div>
+</div>
+<!-- BV 3: BV Chợ Rẫy (Lấp đầy chiều cao khít đáy bản đồ Google Maps) -->
+<div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Tuyến Đặc Biệt</span>
+<h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Chợ Rẫy</h3>
+<p class="text-[11px] text-slate-500">201B Nguyễn Chí Thanh, Phường 12, Quận 5</p>
+</div>
+<span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">3.5 km</span>
+</div>
+<div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
+<span>4.5 ★★★★★</span>
+<span class="text-slate-400 text-[10px] font-normal">(5.820 đánh giá Google)</span>
+</div>
+<div class="flex items-center space-x-2 pt-1">
+<a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Chợ+Rẫy" target="_blank" class="flex-1 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
+Chỉ đường Google Maps
+</a>
+<a href="tel:02838554137" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center space-x-1 shrink-0">
+<svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+</svg>
+<span>Gọi cấp cứu</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================== -->
+<!-- TAB 3: LAB OCR (Amazon S3) -->
+<!-- ============================================================== -->
+<div id="ocr-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-5">
+<div class="flex justify-between items-center pb-2 border-b border-slate-200">
+<div>
+<h2 class="text-lg font-bold text-slate-800">Đọc & Phân tích Đơn thuốc / Kết quả Xét nghiệm</h2>
+<p class="text-xs text-slate-500">Nạp tập dữ liệu ảnh, PDF, Word phục vụ huấn luyện và trích xuất model scan y tế</p>
+</div>
+<button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
+← Quay lại Trang chủ
+</button>
+</div>
+<!-- Top Row: Upload Card & Training Dataset Table -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+<div class="h-full border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center bg-white shadow-2xs">
+<div class="w-12 h-12 rounded-2xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-3">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+</svg>
+</div>
+<h3 class="text-xs font-bold text-slate-800">Tải lên tệp tài liệu để Train Model Scan</h3>
+<p class="text-[10px] text-slate-500 mt-1">Định dạng hỗ trợ: JPG, PNG, PDF, Word (.docx)</p>
+<input type="file" id="lab-file-input" accept=".jpg, .jpeg, .png, .pdf, .docx, .doc" class="hidden" onchange="handleFileSelected(event)">
+<button type="button" onclick="triggerFileUpload()" class="mt-4 px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center justify-center space-x-1.5 cursor-pointer mx-auto">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+</svg>
+<span>Chọn tệp từ máy tính</span>
+</button>
+<p class="text-[10px] text-slate-400 mt-3 italic">Tệp nạp sẽ được lưu trữ cục bộ tại <code class="bg-slate-100 text-slate-600 px-1 py-0.5 rounded font-mono">uploads/</code> để làm bộ dữ liệu huấn luyện model.</p>
+</div>
+<!-- Empty State khi chưa có tệp -->
+<div id="ocr-table-empty" class="lg:col-span-2 h-full bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 shadow-2xs">
+<div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+</svg>
+</div>
+<div>
+<h4 class="text-xs font-bold text-slate-700">Chưa có tài liệu nào trong tập huấn luyện</h4>
+<p class="text-[11px] text-slate-400 max-w-sm mt-1">Hãy bấm "Chọn tệp từ máy tính" ở khung bên trái để nạp ảnh chụp đơn thuốc, phiếu xét nghiệm PDF hoặc tài liệu Word vào bộ dữ liệu huấn luyện model scan.</p>
+</div>
+</div>
+<!-- Filled State: Bảng danh sách tệp huấn luyện chuẩn xác, KHÔNG CÒN THÔNG TIN GIẢ -->
+<div id="ocr-table-filled" class="hidden lg:col-span-2 h-full bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between shadow-2xs space-y-4">
+<div>
+<div class="flex justify-between items-center pb-3 border-b border-slate-200">
+<div class="flex items-center space-x-2">
+<span class="text-xs font-bold text-slate-800">Bộ dữ liệu huấn luyện Model Scan (Training Dataset)</span>
+<span id="scan-files-count" class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">0 tệp</span>
+</div>
+<button onclick="triggerFileUpload()" class="text-xs font-semibold text-[#0284C7] hover:underline flex items-center space-x-1 cursor-pointer">
+<span>+ Nạp thêm tệp</span>
+</button>
+</div>
+<div class="overflow-x-auto mt-2">
+<table class="w-full text-left text-xs border-collapse">
+<thead>
+<tr class="border-b border-slate-200 text-slate-500 font-bold text-[11px] bg-slate-50">
+<th class="py-2.5 px-3">Tên tài liệu</th>
+<th class="py-2.5 px-3">Định dạng</th>
+<th class="py-2.5 px-3">Dung lượng</th>
+<th class="py-2.5 px-3">Thời gian nạp</th>
+<th class="py-2.5 px-3 text-right">Thao tác</th>
+</tr>
+</thead>
+<tbody id="scan-files-tbody" class="divide-y divide-slate-100 text-slate-700 text-[11px]">
+<!-- Rendered dynamically by JavaScript -->
+</tbody>
+</table>
+</div>
+</div>
+<div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center justify-between text-xs text-emerald-800">
+<div class="flex items-center space-x-2">
+<span class="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
+<span>Dữ liệu đã sẵn sàng cho pipeline huấn luyện model OCR / Donut / LayoutLM.</span>
+</div>
+<span class="text-[11px] text-emerald-600 font-mono font-semibold">Thư mục: uploads/</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================== -->
+<!-- TAB 4: DOCTOR SUMMARY -->
+<!-- ============================================================== -->
+<div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
+<div class="flex justify-between items-center pb-2 border-b border-slate-200">
+<div>
+<h2 class="text-lg font-bold text-slate-800" id="ehr-title">Hồ sơ Sức khỏe & Bệnh án của tôi</h2>
+<p class="text-xs text-slate-500" id="ehr-subtitle">Tự động đồng bộ và lưu trữ từ các lần sàng lọc y tế</p>
+</div>
+<div class="flex items-center space-x-3">
+<button onclick="alert('Đang kết xuất và tải tệp Bệnh án điện tử PDF chuẩn HL7/FHIR...'); window.print();" class="text-xs font-semibold px-4 py-2 bg-white rounded-full text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs flex items-center space-x-1.5 transition-colors">
+<svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+</svg>
+<span>Xuất PDF</span>
+</button>
+<button onclick="switchTab('chat-tab')" class="text-xs font-semibold text-[#0284C7] hover:underline">
+← Quay lại
+</button>
+</div>
+</div>
+<!-- Empty State for New Users -->
+<div id="ehr-content-empty" class="w-full bg-white border border-slate-200 rounded-3xl p-10 flex flex-col items-center justify-center text-center space-y-4 shadow-sm my-4">
+<div class="w-16 h-16 rounded-3xl bg-[#E0F2FE] text-[#0284C7] flex items-center justify-center mb-1">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+</svg>
+</div>
+<div class="space-y-1.5">
+<h3 class="text-base font-bold text-slate-800">Chưa có dữ liệu bệnh án lâm sàng</h3>
+<p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+Tài khoản mới chưa thực hiện lượt sàng lọc triệu chứng nào với Trợ lý MediMind AI hoặc chưa tải lên phiếu xét nghiệm.
+</p>
+</div>
+<div class="pt-2 flex items-center space-x-3">
+<button onclick="switchTab('chat-tab')" class="px-6 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-semibold rounded-full shadow-sm transition-all flex items-center space-x-2">
+<span>Bắt đầu sàng lọc triệu chứng ngay</span>
+<span>→</span>
+</button>
+<button onclick="switchTab('ocr-tab')" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-full transition-all">
+Tải kết quả xét nghiệm
+</button>
+</div>
+</div>
+<!-- Filled State: 12-Column Doctor EHR Grid -->
+<div id="ehr-content-filled" class="w-full flex-1 flex-col space-y-4">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
+<!-- Left Column: Patient Demographics, Vitals & Medical History (lg:col-span-7) -->
+<div class="lg:col-span-7 space-y-4">
+<!-- Card 1: Patient Administrative Info & Vitals Grid -->
+<div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-2xs">
+<div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+<div class="flex items-center space-x-3">
+<div id="ehr-avatar-badge" class="w-10 h-10 rounded-xl bg-[#E0F2FE] text-[#0284C7] font-bold flex items-center justify-center text-sm">
+BN
+</div>
+<div>
+<h3 id="ehr-patient-name" class="text-sm font-bold text-slate-800">Nguyễn Văn An</h3>
+<span id="ehr-patient-id" class="text-[11px] text-slate-400">Mã BN: #BN-2026-8429 • BHYT Tuyến TW</span>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+Triage: Trung bình (35/100)
+</span>
+<span class="text-xs text-slate-400">26/10/2026</span>
+</div>
+</div>
+<!-- Vitals 4-Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-[10px] text-slate-400 block font-medium">Huyết áp</span>
+<span class="text-xs font-bold text-slate-800">120/80 mmHg</span>
+</div>
+<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-[10px] text-slate-400 block font-medium">Nhịp tim</span>
+<span class="text-xs font-bold text-slate-800">72 bpm</span>
+</div>
+<div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80">
+<span class="text-[10px] text-amber-700 block font-medium">Nhiệt độ</span>
+<span class="text-xs font-bold text-amber-700">38.2°C (Sốt nhẹ)</span>
+</div>
+<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-[10px] text-slate-400 block font-medium">SpO2</span>
+<span class="text-xs font-bold text-emerald-600">98% (Đạt chuẩn)</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Clinical Narrative & Evolution -->
+<div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
+<h4 class="text-xs font-bold text-slate-800 pb-2 border-b border-slate-100 flex items-center justify-between">
+<span>Diễn tiến Bệnh cảnh & Lý do vào viện</span>
+<span class="text-[10px] text-slate-400 font-normal">Trích xuất tự động qua Chatbot AI</span>
+</h4>
+<div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+<p>• <strong>Lý do khám:</strong> Đau rát họng, nuốt đau, nghẹt sổ mũi và có sốt nhẹ kéo dài 24 giờ.</p>
+<p>• <strong>Quá trình bệnh lý:</strong> Khởi phát đột ngột sau khi tiếp xúc không khí lạnh. Chưa xuất hiện khó thở dữ dội, không đau tức ngực, không nôn ói. Đã tự súc họng nước muối sinh lý tại nhà.</p>
+<p>• <strong>Thói quen sinh hoạt:</strong> Không hút thuốc lá, tiếp xúc thường xuyên với máy lạnh văn phòng.</p>
+</div>
+</div>
+<!-- Card 3: Allergy Alert & Contraindications (Red Highlight) -->
+<div class="bg-red-50/60 border border-red-200 rounded-2xl p-4.5 space-y-2 shadow-2xs">
+<div class="flex items-center space-x-2 text-red-700 font-bold text-xs">
+<svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+</svg>
+<span>CẢNH BÁO TIỀN SỬ DỊ ỨNG & CHỐNG CHỈ ĐỊNH LÂM SÀNG</span>
+</div>
+<p class="text-xs text-red-900 leading-relaxed pl-6">
+Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="text-red-700">Penicillin, Amoxicillin</strong> (từng nổi mề đay cấp tính).
+<strong class="block mt-1 text-red-800">Chống chỉ định: Tuyệt đối không chỉ định kháng sinh nhóm Beta-lactam.</strong>
+</p>
+</div>
+</div>
+<!-- Right Column: AI Diagnosis, Clinical Orders & Physician Actions (lg:col-span-5) -->
+<div class="lg:col-span-5 space-y-4">
+<!-- Card 4: AI Diagnostic Impression (ICD-10) -->
+<div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100">
+<h4 class="text-xs font-bold text-slate-800">Định hướng Chẩn đoán sơ bộ (AI)</h4>
+<span class="text-[10px] text-slate-400">ICD-10 Mapping</span>
+</div>
+<div class="space-y-2">
+<div class="p-3 rounded-xl bg-[#E0F2FE]/50 border border-[#BAE6FD] flex items-center justify-between">
+<div>
+<span class="text-xs font-bold text-slate-900 block">Viêm đường hô hấp trên cấp (J06.9)</span>
+<span class="text-[10px] text-slate-500">Phù hợp triệu chứng sốt, đau họng, sổ mũi</span>
+</div>
+<span class="text-xs font-bold text-[#0284C7] bg-white px-2.5 py-1 rounded-lg border border-[#BAE6FD]">88%</span>
+</div>
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-xs font-bold text-slate-800 block">Viêm mũi xoang cấp tính (J01)</span>
+<span class="text-[10px] text-slate-500">Chẩn đoán phân biệt theo dõi</span>
+</div>
+<span class="text-xs font-semibold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">62%</span>
+</div>
+</div>
+</div>
+<!-- Card 5: Recommended Diagnostic Orders -->
+<div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
+<h4 class="text-xs font-bold text-slate-800 pb-2 border-b border-slate-100">
+Đề xuất Chỉ định Cận lâm sàng (Clinical Orders)
+</h4>
+<div class="space-y-2 text-xs">
+<label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer">
+<input type="checkbox" checked class="w-4 h-4 text-[#0284C7] rounded border-slate-300 focus:ring-[#0284C7]">
+<span class="font-medium text-slate-700">Tổng phân tích tế bào máu ngoại vi (CBC)</span>
+</label>
+<label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer">
+<input type="checkbox" checked class="w-4 h-4 text-[#0284C7] rounded border-slate-300 focus:ring-[#0284C7]">
+<span class="font-medium text-slate-700">Nội soi Tai Mũi Họng đánh giá niêm mạc</span>
+</label>
+<label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer">
+<input type="checkbox" class="w-4 h-4 text-[#0284C7] rounded border-slate-300 focus:ring-[#0284C7]">
+<span class="text-slate-500">Test nhanh Cúm A/B (theo dõi nếu sốt > 38.5°C kéo dài)</span>
+</label>
+</div>
+</div>
+<!-- Card 6: Physician Action Controls -->
+<div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100">
+<span class="text-xs font-bold text-slate-800">Thao tác Bệnh án</span>
+<span class="text-[10px] text-emerald-600 font-bold flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span>Hồ sơ sẵn sàng</span>
+</span>
+</div>
+<div class="grid grid-cols-2 gap-2.5 pt-1">
+<button onclick="window.print()" class="py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all flex items-center justify-center space-x-1.5">
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+</svg>
+<span>In Bệnh án A4</span>
+</button>
+<button onclick="alert('Đã đồng bộ hồ sơ bệnh sử vào hệ thống EMR bệnh viện qua chuẩn HL7/FHIR!')" class="py-2.5 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center justify-center space-x-1.5">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+</svg>
+<span>Lưu vào EMR</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ============================================================== -->
+</div>
+<!-- TAB 5: CLOUD MLOPS -->
+<!-- ============================================================== -->
+<!-- TAB: HỒ SƠ THÔNG TIN CÁ NHÂN (Thiết kế chuẩn Portal theo Mẫu Ảnh 2) -->
+<!-- ============================================================== -->
+<div id="profile-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
+<!-- Breadcrumb navigation (Ảnh 2) -->
+<div class="flex items-center space-x-2 text-xs text-slate-500 pb-1">
+<span class="cursor-pointer hover:text-[#0284C7] flex items-center space-x-1" onclick="switchTab('chat-tab')">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+</svg>
+<span>Trang chủ</span>
+</span>
+<span>/</span>
+<span class="text-slate-800 font-bold">Cập nhật hồ sơ cá nhân</span>
+</div>
+<!-- Main Profile Card Container -->
+<div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+<div class="pb-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+<div>
+<h2 class="text-lg font-bold text-slate-800">Thông tin cá nhân</h2>
+<p class="text-xs text-slate-500">Quản lý và cập nhật thông tin cá nhân dùng trong việc sàng lọc y tế và bệnh án</p>
+</div>
+<button type="button" onclick="switchTab('doctor-tab')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center space-x-1.5">
+<span>Xem Bệnh án của tôi</span>
+<span>→</span>
+</button>
+</div>
+<!-- Light Blue Header Banner (Mẫu Ảnh 2: MSSV / Mã BN | Họ tên) -->
+<div class="bg-[#E0F2FE] border border-[#BAE6FD] text-[#0369A1] rounded-2xl px-5 py-3 text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+<div class="flex items-center space-x-3">
+<span id="tab-profile-banner-id">Mã BN: #BN-2026-0004</span>
+<span class="text-sky-300">|</span>
+<span id="tab-profile-banner-name">Họ tên: Nguyen Van A</span>
+</div>
+<span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white text-[#0284C7] shadow-2xs">
+Hồ sơ y tế hoạt động
+</span>
+</div>
+<!-- Form fields layout (Tương tự ảnh 2, các trường tinh gọn phục vụ y tế) -->
+<form id="tab-profile-form" onsubmit="handleTabSaveProfile(event)" class="space-y-5">
+<!-- Hàng 1: Ngày sinh | Giới tính | Điện thoại -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Ngày sinh</label>
+<input type="text" id="tab-profile-dob" placeholder="04/10/2005 hoặc DD/MM/YYYY" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Giới tính</label>
+<select id="tab-profile-gender" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+<option value="Nam">Nam</option>
+<option value="Nữ">Nữ</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Điện thoại</label>
+<input type="text" id="tab-profile-phone" placeholder="0347047101" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+</div>
+<!-- Hàng 2: Họ và tên | Email | Mã thẻ BHYT -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Họ và tên</label>
+<input type="text" id="tab-profile-name" required placeholder="Họ và tên đầy đủ" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Địa chỉ Email</label>
+<input type="email" id="tab-profile-email" placeholder="tenban@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Mã thẻ BHYT (nếu có)</label>
+<input type="text" id="tab-profile-bhyt" placeholder="VD: DN4012345678901" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+</div>
+<!-- Hàng 3: Tỉnh/Thành phố & Địa chỉ -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Tỉnh / Thành phố</label>
+<input type="text" id="tab-profile-city" placeholder="VD: TP. Hồ Chí Minh, Hà Nội, Đắk Lắk..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1.5">Địa chỉ nơi cư trú</label>
+<input type="text" id="tab-profile-address" placeholder="VD: 335 Giải Phóng, Phường..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+</div>
+<!-- Bottom Action Buttons (Chuẩn giao diện Ảnh 2) -->
+<div class="pt-4 border-t border-slate-100 flex items-center space-x-3">
+<button type="submit" class="px-6 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center space-x-1.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+</svg>
+<span>Lưu thông tin</span>
+</button>
+<button type="button" onclick="switchTab('chat-tab')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all">
+Quay lại trang chủ
+</button>
+</div>
+</form>
+</div>
+</div>
 </main>
-
-
-
-  <!-- Clean Minimalist Footer (Synchronized 1440px container & px-4 sm:px-8 with Disclaimer Notice) -->
-
-
-
-  <footer class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-5 border-t border-slate-200/90 flex flex-col space-y-3 text-xs text-slate-600 relative z-10 shrink-0 font-medium">
-
-
-
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-2">
-
-
-
-      <div class="flex items-center space-x-2">
-
-
-
-        <span class="font-bold text-slate-800">MediMind Clinical AI</span>
-
-
-
-        <span class="text-slate-400">•</span>
-
-
-
-        <span class="text-slate-600">Hỗ trợ phân tích triệu chứng & tham chiếu MedlinePlus</span>
-
-
-
-      </div>
-
-
-
-      <div class="flex items-center space-x-4 text-[11px] text-slate-500">
-
-
-
-        <button type="button" onclick="openDisclaimerModal()" class="hover:text-[#0284C7] underline font-semibold transition-colors">Tuyên bố Miễn trừ Trách nhiệm Y tế</button>
-
-
-
-        <span>•</span>
-
-
-
-        <span class="font-semibold text-slate-600">Phiên bản 2.5 • Chuẩn Y tế AWS Cloud</span>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-    <!-- Detailed Educational PoC Disclaimer Notice -->
-
-
-
-    <p class="text-[11px] text-slate-400 leading-relaxed text-center sm:text-left border-t border-slate-100 pt-2.5">
-
-
-
-      ⚖️ <strong>Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer):</strong> Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, vui lòng gọi cấp cứu <strong>115</strong>.
-
-
-
-    </p>
-
-
-
-  </footer>
-
-
-
-  <!-- Modal Đăng nhập (Clean Hospital Pop-up with backdrop-blur-sm & Role Switcher) -->
-
-
-
-  <div id="login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
-
-
-
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
-
-
-
-      <!-- Close Button -->
-
-
-
-      <button onclick="closeLoginModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
-
-
-
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-
-
-
-        </svg>
-
-
-
-      </button>
-
-
-
-      <!-- Header with Dynamic Title -->
-
-
-
-      <div class="text-center space-y-2">
-
-
-
-        <div class="w-12 h-12 rounded-2xl bg-[#0284C7] text-white flex items-center justify-center mx-auto shadow-md shadow-blue-700/20">
-
-
-
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-
-
-
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-
-
-
-          </svg>
-
-
-
-        </div>
-
-
-
-        <h3 class="text-xl font-extrabold text-[#0F172A]" id="auth-modal-title">Đăng nhập MediMind AI</h3>
-
-
-
-        <p class="text-xs text-slate-500 font-medium">Hệ thống Trợ lý Y tế &amp; Phân tầng Lâm sàng</p>
-
-
-
-      </div>
-
-
-
-      <!-- Mode Switcher: Đăng nhập vs Đăng ký -->
-
-
-
-      <div class="flex border-b border-slate-200 text-xs font-bold text-center">
-
-
-
-        <button type="button" id="tab-auth-login" onclick="toggleAuthMode('login')" class="flex-1 pb-2 border-b-2 border-[#0284C7] text-[#0284C7] transition-all">
-
-
-
-          Đăng nhập
-
-
-
-        </button>
-
-
-
-        <button type="button" id="tab-auth-register" onclick="toggleAuthMode('register')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition-all">
-
-
-
-          Tạo tài khoản mới
-
-
-
-        </button>
-
-
-
-      </div>
-
-
-
-      <!-- LOGIN FORM (Mẫu Image 1) -->
-
-
-
-      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
-
-
-
-        <div>
-
-
-
-          <input type="text" id="login-identifier" required placeholder="Email hoặc số di động" class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <input type="password" id="login-password" required placeholder="Mật khẩu" class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-        </div>
-
-
-
-        <button type="submit" class="w-full py-3 rounded-2xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-sm font-bold shadow-md shadow-blue-700/20 transition-all">
-
-
-
-          Đăng nhập
-
-
-
-        </button>
-
-
-
-        <div class="text-center pt-0.5">
-
-
-
-          <a href="#" onclick="alert('Tính năng khôi phục mật khẩu qua SMS OTP đang được kích hoạt.'); return false;" class="text-xs text-slate-700 hover:text-[#0284C7] font-semibold hover:underline">
-
-
-
-            Quên mật khẩu?
-
-
-
-          </a>
-
-
-
-        </div>
-
-
-
-        <div class="pt-1.5">
-
-
-
-          <button type="button" onclick="toggleAuthMode('register')" class="w-full py-3 rounded-2xl border-2 border-[#0284C7] hover:bg-sky-50 text-[#0284C7] text-xs sm:text-sm font-bold transition-all">
-
-
-
-            Tạo tài khoản mới
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-        <!-- Subtle quick demo login for testing -->
-
-
-
-        <div class="pt-0.5">
-
-
-
-          <button type="button" onclick="quickLogin('patient')" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold text-center transition-colors">
-
-
-
-            👤 Đăng nhập tài khoản mẫu thử nghiệm
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-      </form>
-
-
-
-      <!-- REGISTER FORM (Mẫu Image 2) -->
-
-
-
-      <form id="register-form" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
-
-
-
-        <div>
-
-
-
-          <label class="block text-xs font-bold text-slate-700 mb-1">Tên</label>
-
-
-
-          <div class="grid grid-cols-2 gap-2">
-
-
-
-            <input type="text" id="register-last-name" required placeholder="Họ" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-            <input type="text" id="register-first-name" required placeholder="Tên" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <div class="flex items-center space-x-1 mb-1">
-
-
-
-            <label class="text-xs font-bold text-slate-700">Ngày sinh</label>
-
-
-
-            <span class="text-slate-400 text-xs cursor-pointer" title="Cung cấp ngày sinh giúp hệ thống cá nhân hóa hồ sơ và sàng lọc chuẩn xác">🛈</span>
-
-
-
-          </div>
-
-
-
-          <div class="grid grid-cols-3 gap-2">
-
-
-
-            <select id="register-dob-day" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
-
-
-
-              <option value="" disabled selected>Ngày</option>
-
-
-
-            </select>
-
-
-
-            <select id="register-dob-month" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
-
-
-
-              <option value="" disabled selected>Tháng</option>
-
-
-
-            </select>
-
-
-
-            <select id="register-dob-year" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
-
-
-
-              <option value="" disabled selected>Năm</option>
-
-
-
-            </select>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <div class="flex items-center space-x-1 mb-1">
-
-
-
-            <label class="text-xs font-bold text-slate-700">Giới tính</label>
-
-
-
-            <span class="text-slate-400 text-xs cursor-pointer" title="Giới tính sinh học giúp phân tích kết quả xét nghiệm chính xác">🛈</span>
-
-
-
-          </div>
-
-
-
-          <select id="register-gender" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
-
-
-
-            <option value="" disabled selected>Chọn giới tính</option>
-
-
-
-            <option value="Nam">Nam</option>
-
-
-
-            <option value="Nữ">Nữ</option>
-
-
-
-            <option value="Khác">Khác</option>
-
-
-
-          </select>
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <label class="block text-xs font-bold text-slate-700 mb-1">Số di động hoặc email</label>
-
-
-
-          <input type="text" id="register-identifier" required placeholder="Số di động hoặc email" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-          <p class="text-[11px] text-slate-500 leading-tight mt-1">
-
-
-
-            Bạn có thể nhận được thông báo của chúng tôi. <span class="text-[#0284C7] font-medium cursor-pointer hover:underline">Tìm hiểu vì sao chúng tôi yêu cầu thông tin liên hệ của bạn</span>
-
-
-
-          </p>
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu</label>
-
-
-
-          <input type="password" id="register-password" required minlength="6" placeholder="Mật khẩu" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-        </div>
-
-
-
-        <button type="submit" class="w-full py-3 rounded-2xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-700/20 transition-all mt-2">
-
-
-
-          Đăng ký tài khoản mới
-
-
-
-        </button>
-
-
-
-        <p class="text-center text-xs text-slate-500 pt-1">
-
-
-
-          Đã có tài khoản? 
-
-
-
-          <a href="#" onclick="toggleAuthMode('login'); return false;" class="text-[#0284C7] font-bold hover:underline">Đăng nhập ngay</a>
-
-
-
-        </p>
-
-
-
-      </form>
-
-
-
-      <!-- Trust Footer -->
-
-
-
-      <div class="pt-2 text-center border-t border-slate-100 text-[11px] text-slate-500 font-medium">
-
-
-
-        🔒 Bảo mật chuẩn HIPAA Compliant &amp; AWS Cloud
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-  </div>
-
-
-
-  <!-- Modal Tuyên bố Miễn trừ Trách nhiệm Y tế & Giáo dục / Nghiên cứu Tương lai (Disclaimer Modal) -->
-
-
-
-  <div id="disclaimer-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
-
-
-
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
-
-
-
-      <!-- Close Button -->
-
-
-
-      <button onclick="closeDisclaimerModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
-
-
-
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-
-
-
-        </svg>
-
-
-
-      </button>
-
-
-
-      <!-- Header with Shield Icon -->
-
-
-
-      <div class="flex items-center space-x-3 pb-3 border-b border-slate-100">
-
-
-
-        <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
-
-
-
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-
-
-
-          </svg>
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <h3 class="text-base sm:text-lg font-bold text-slate-900">Tuyên bố Miễn trừ Trách nhiệm Y tế</h3>
-
-
-
-          <p class="text-xs text-slate-500 font-medium">Mục đích Giáo dục &amp; Thử nghiệm Ý tưởng Tương lai (PoC)</p>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- Content -->
-
-
-
-      <div class="space-y-3 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
-
-
-
-        <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-amber-900 space-y-1">
-
-
-
-          <span class="font-bold block">1. Mục đích Giáo dục &amp; Nghiên cứu Khoa học (Educational Only):</span>
-
-
-
-          <span>Dự án MediMind Clinical AI được nghiên cứu và thiết kế với tư cách là một nguyên mẫu công nghệ (Proof of Concept - PoC). Hệ thống mô phỏng cách ứng dụng Trí tuệ Nhân tạo để hỗ trợ phân loại sơ bộ và đối soát tài liệu y khoa tham khảo, hoàn toàn không hoạt động như một dịch vụ khám chữa bệnh thương mại.</span>
-
-
-
-        </div>
-
-
-
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-
-
-
-          <span class="font-bold text-slate-800 block">2. Không thay thế Lời khuyên &amp; Chẩn đoán Bác sĩ:</span>
-
-
-
-          <span>Mọi kết quả sàng lọc, phân tích chỉ số sinh hóa hay thông tin dược phẩm xuất hiện trên giao diện chỉ có giá trị tham khảo học thuật. Tuyệt đối không tự ý mua thuốc, dừng phác đồ điều trị hoặc tự chẩn đoán bệnh dựa trên câu trả lời của AI.</span>
-
-
-
-        </div>
-
-
-
-        <div class="p-3 rounded-xl bg-red-50/60 border border-red-200 text-red-900 space-y-1">
-
-
-
-          <span class="font-bold text-red-700 block">3. Giới hạn đối với Tình huống Khẩn cấp:</span>
-
-
-
-          <span>Hệ thống không thể xử lý các ca cấp cứu đe dọa tính mạng (đau ngực cấp, đột quỵ, khó thở dữ dội, sốc phản vệ...). Khi gặp dấu hiệu nguy cấp, vui lòng liên hệ ngay <strong>115</strong> hoặc đến khoa cấp cứu bệnh viện gần nhất.</span>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- Footer CTA -->
-
-
-
-      <div class="pt-2">
-
-
-
-        <button type="button" onclick="closeDisclaimerModal()" class="w-full py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-sm">
-
-
-
-          Tôi đã hiểu và đồng ý
-
-
-
-        </button>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-  </div>
-
-
-
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-
-
-
-  <!-- Modal Thông Tin Cá Nhân & Cập Nhật Hồ Sơ (Profile Modal) -->
-
-
-
-  <div id="profile-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
-
-
-
-    <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
-
-
-
-      <button onclick="closeProfileModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
-
-
-
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-
-
-
-        </svg>
-
-
-
-      </button>
-
-
-
-      <!-- Header: Avatar + Tên + Email -->
-
-
-
-      <div class="flex items-center space-x-3.5 pb-3 border-b border-slate-100">
-
-
-
-        <div id="profile-avatar" class="w-12 h-12 rounded-2xl bg-[#E0F2FE] text-[#0284C7] font-bold text-base flex items-center justify-center shadow-xs">
-
-
-
-          BN
-
-
-
-        </div>
-
-
-
-        <div class="min-w-0 flex-1">
-
-
-
-          <h3 id="profile-name" class="text-base font-extrabold text-slate-800 truncate">Nguyễn Văn An</h3>
-
-
-
-          <span id="profile-badge" class="text-xs text-[#0284C7] font-semibold truncate block">nguyenvana@gmail.com</span>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- CHẾ ĐỘ 1: XEM THÔNG TIN CÁ NHÂN (Mặc định) -->
-
-
-
-      <div id="profile-view-mode" class="space-y-3">
-
-
-
-        <div class="space-y-2 text-xs">
-
-
-
-          <div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-            <span class="text-slate-500 font-medium">Giới tính:</span>
-
-
-
-            <span id="profile-gender" class="font-bold text-slate-800">Chưa cập nhật</span>
-
-
-
-          </div>
-
-
-
-          <div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-            <span class="text-slate-500 font-medium">Ngày sinh:</span>
-
-
-
-            <span id="profile-dob" class="font-bold text-slate-800">Chưa cập nhật</span>
-
-
-
-          </div>
-
-
-
-          <div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-            <span class="text-slate-500 font-medium">Tài khoản / SĐT:</span>
-
-
-
-            <span id="profile-identifier" class="font-bold text-slate-800">nguyenvana@gmail.com</span>
-
-
-
-          </div>
-
-
-
-          <div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
-
-
-
-            <span class="text-slate-500 font-medium">Mã số hồ sơ y tế:</span>
-
-
-
-            <span id="profile-id" class="font-bold text-[#0284C7]">#BN-2026-0004</span>
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <div class="pt-1 flex flex-col sm:flex-row gap-2">
-
-
-
-          <button type="button" onclick="toggleProfileEdit(true)" class="flex-1 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center space-x-1.5">
-
-
-
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-
-
-
-            </svg>
-
-
-
-            <span>Cập nhật thông tin</span>
-
-
-
-          </button>
-
-
-
-          <button type="button" onclick="switchTab('doctor-tab'); closeProfileModal();" class="py-2.5 px-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all">
-
-
-
-            Xem Bệnh án →
-
-
-
-          </button>
-
-
-
-          <button type="button" onclick="closeProfileModal()" class="py-2.5 px-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold text-xs transition-all">
-
-
-
-            Đóng
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      <!-- CHẾ ĐỘ 2: BIỂU MẪU CẬP NHẬT THÔNG TIN (Chỉnh sửa) -->
-
-
-
-      <form id="profile-edit-mode" onsubmit="handleSaveProfile(event)" class="space-y-3 hidden">
-
-
-
-        <div>
-
-
-
-          <label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên</label>
-
-
-
-          <input type="text" id="edit-profile-name" required placeholder="Họ và tên" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-        </div>
-
-
-
-        <div class="grid grid-cols-2 gap-2.5">
-
-
-
-          <div>
-
-
-
-            <label class="block text-xs font-bold text-slate-700 mb-1">Giới tính</label>
-
-
-
-            <select id="edit-profile-gender" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
-
-
-
-              <option value="Nam">Nam</option>
-
-
-
-              <option value="Nữ">Nữ</option>
-
-
-
-              <option value="Khác">Khác</option>
-
-
-
-            </select>
-
-
-
-          </div>
-
-
-
-          <div>
-
-
-
-            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày sinh (DD/MM/YYYY)</label>
-
-
-
-            <input type="text" id="edit-profile-dob" placeholder="VD: 15/08/1995" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-          </div>
-
-
-
-        </div>
-
-
-
-        <div>
-
-
-
-          <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại liên hệ</label>
-
-
-
-          <input type="text" id="edit-profile-phone" placeholder="VD: 0912345678" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
-
-
-
-        </div>
-
-
-
-        <div class="pt-2 flex space-x-2">
-
-
-
-          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-all shadow-xs flex items-center justify-center space-x-1.5">
-
-
-
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-
-
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-
-
-
-            </svg>
-
-
-
-            <span>Lưu thông tin</span>
-
-
-
-          </button>
-
-
-
-          <button type="button" onclick="toggleProfileEdit(false)" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-all">
-
-
-
-            Hủy bỏ
-
-
-
-          </button>
-
-
-
-        </div>
-
-
-
-      </form>
-
-
-
-    </div>
-
-
-
-  </div>
-
+<!-- Clean Minimalist Footer (Synchronized 1440px container & px-4 sm:px-8 with Disclaimer Notice) -->
+<footer class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-5 border-t border-slate-200/90 flex flex-col space-y-3 text-xs text-slate-600 relative z-10 shrink-0 font-medium">
+<div class="flex flex-col sm:flex-row justify-between items-center gap-2">
+<div class="flex items-center space-x-2">
+<span class="font-bold text-slate-800">MediMind Clinical AI</span>
+<span class="text-slate-400">•</span>
+<span class="text-slate-600">Hỗ trợ phân tích triệu chứng & tham chiếu MedlinePlus</span>
+</div>
+<div class="flex items-center space-x-4 text-[11px] text-slate-500">
+<button type="button" onclick="openDisclaimerModal()" class="hover:text-[#0284C7] underline font-semibold transition-colors">Tuyên bố Miễn trừ Trách nhiệm Y tế</button>
+<span>•</span>
+<span class="font-semibold text-slate-600">Phiên bản 2.5 • Chuẩn Y tế AWS Cloud</span>
+</div>
+</div>
+<!-- Detailed Educational PoC Disclaimer Notice -->
+<p class="text-[11px] text-slate-400 leading-relaxed text-center sm:text-left border-t border-slate-100 pt-2.5">
+⚖️ <strong>Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer):</strong> Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, vui lòng gọi cấp cứu <strong>115</strong>.
+</p>
+</footer>
+<!-- Modal Đăng nhập (Clean Hospital Pop-up with backdrop-blur-sm & Role Switcher) -->
+<div id="login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+<div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
+<!-- Close Button -->
+<button onclick="closeLoginModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+</svg>
+</button>
+<!-- Header with Dynamic Title -->
+<div class="text-center space-y-2">
+<div class="w-12 h-12 rounded-2xl bg-[#0284C7] text-white flex items-center justify-center mx-auto shadow-md shadow-blue-700/20">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+</svg>
+</div>
+<h3 class="text-xl font-extrabold text-[#0F172A]" id="auth-modal-title">Đăng nhập MediMind AI</h3>
+<p class="text-xs text-slate-500 font-medium">Hệ thống Trợ lý Y tế &amp; Phân tầng Lâm sàng</p>
+</div>
+<!-- Mode Switcher: Đăng nhập vs Đăng ký -->
+<div class="flex border-b border-slate-200 text-xs font-bold text-center">
+<button type="button" id="tab-auth-login" onclick="toggleAuthMode('login')" class="flex-1 pb-2 border-b-2 border-[#0284C7] text-[#0284C7] transition-all">
+Đăng nhập
+</button>
+<button type="button" id="tab-auth-register" onclick="toggleAuthMode('register')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition-all">
+Tạo tài khoản mới
+</button>
+</div>
+<!-- LOGIN FORM (Mẫu Image 1) -->
+<form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+<div>
+<input type="text" id="login-identifier" required placeholder="Email hoặc số di động" class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div>
+<input type="password" id="login-password" required placeholder="Mật khẩu" class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<button type="submit" class="w-full py-3 rounded-2xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-sm font-bold shadow-md shadow-blue-700/20 transition-all">
+Đăng nhập
+</button>
+<div class="text-center pt-0.5">
+<a href="#" onclick="alert('Tính năng khôi phục mật khẩu qua SMS OTP đang được kích hoạt.'); return false;" class="text-xs text-slate-700 hover:text-[#0284C7] font-semibold hover:underline">
+Quên mật khẩu?
+</a>
+</div>
+<div class="pt-1.5">
+<button type="button" onclick="toggleAuthMode('register')" class="w-full py-3 rounded-2xl border-2 border-[#0284C7] hover:bg-sky-50 text-[#0284C7] text-xs sm:text-sm font-bold transition-all">
+Tạo tài khoản mới
+</button>
+</div>
+<!-- Subtle quick demo login for testing -->
+<div class="pt-0.5">
+<button type="button" onclick="quickLogin('patient')" class="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold text-center transition-colors">
+👤 Đăng nhập tài khoản mẫu thử nghiệm
+</button>
+</div>
+</form>
+<!-- REGISTER FORM (Mẫu Image 2) -->
+<form id="register-form" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Tên</label>
+<div class="grid grid-cols-2 gap-2">
+<input type="text" id="register-last-name" required placeholder="Họ" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+<input type="text" id="register-first-name" required placeholder="Tên" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+</div>
+<div>
+<div class="flex items-center space-x-1 mb-1">
+<label class="text-xs font-bold text-slate-700">Ngày sinh</label>
+<span class="text-slate-400 text-xs cursor-pointer" title="Cung cấp ngày sinh giúp hệ thống cá nhân hóa hồ sơ và sàng lọc chuẩn xác">🛈</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<select id="register-dob-day" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
+<option value="" disabled selected>Ngày</option>
+</select>
+<select id="register-dob-month" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
+<option value="" disabled selected>Tháng</option>
+</select>
+<select id="register-dob-year" class="w-full px-2.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
+<option value="" disabled selected>Năm</option>
+</select>
+</div>
+</div>
+<div>
+<div class="flex items-center space-x-1 mb-1">
+<label class="text-xs font-bold text-slate-700">Giới tính</label>
+<span class="text-slate-400 text-xs cursor-pointer" title="Giới tính sinh học giúp phân tích kết quả xét nghiệm chính xác">🛈</span>
+</div>
+<select id="register-gender" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
+<option value="" disabled selected>Chọn giới tính</option>
+<option value="Nam">Nam</option>
+<option value="Nữ">Nữ</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Số di động hoặc email</label>
+<input type="text" id="register-identifier" required placeholder="Số di động hoặc email" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+<p class="text-[11px] text-slate-500 leading-tight mt-1">
+Bạn có thể nhận được thông báo của chúng tôi. <span class="text-[#0284C7] font-medium cursor-pointer hover:underline">Tìm hiểu vì sao chúng tôi yêu cầu thông tin liên hệ của bạn</span>
+</p>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu</label>
+<input type="password" id="register-password" required minlength="6" placeholder="Mật khẩu" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<button type="submit" class="w-full py-3 rounded-2xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-700/20 transition-all mt-2">
+Đăng ký tài khoản mới
+</button>
+<p class="text-center text-xs text-slate-500 pt-1">
+Đã có tài khoản?
+<a href="#" onclick="toggleAuthMode('login'); return false;" class="text-[#0284C7] font-bold hover:underline">Đăng nhập ngay</a>
+</p>
+</form>
+<!-- Trust Footer -->
+<div class="pt-2 text-center border-t border-slate-100 text-[11px] text-slate-500 font-medium">
+🔒 Bảo mật chuẩn HIPAA Compliant &amp; AWS Cloud
+</div>
+</div>
+</div>
+<!-- Modal Tuyên bố Miễn trừ Trách nhiệm Y tế & Giáo dục / Nghiên cứu Tương lai (Disclaimer Modal) -->
+<div id="disclaimer-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+<div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
+<!-- Close Button -->
+<button onclick="closeDisclaimerModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+</svg>
+</button>
+<!-- Header with Shield Icon -->
+<div class="flex items-center space-x-3 pb-3 border-b border-slate-100">
+<div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+</svg>
+</div>
+<div>
+<h3 class="text-base sm:text-lg font-bold text-slate-900">Tuyên bố Miễn trừ Trách nhiệm Y tế</h3>
+<p class="text-xs text-slate-500 font-medium">Mục đích Giáo dục &amp; Thử nghiệm Ý tưởng Tương lai (PoC)</p>
+</div>
+</div>
+<!-- Content -->
+<div class="space-y-3 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+<div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-amber-900 space-y-1">
+<span class="font-bold block">1. Mục đích Giáo dục &amp; Nghiên cứu Khoa học (Educational Only):</span>
+<span>Dự án MediMind Clinical AI được nghiên cứu và thiết kế với tư cách là một nguyên mẫu công nghệ (Proof of Concept - PoC). Hệ thống mô phỏng cách ứng dụng Trí tuệ Nhân tạo để hỗ trợ phân loại sơ bộ và đối soát tài liệu y khoa tham khảo, hoàn toàn không hoạt động như một dịch vụ khám chữa bệnh thương mại.</span>
+</div>
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+<span class="font-bold text-slate-800 block">2. Không thay thế Lời khuyên &amp; Chẩn đoán Bác sĩ:</span>
+<span>Mọi kết quả sàng lọc, phân tích chỉ số sinh hóa hay thông tin dược phẩm xuất hiện trên giao diện chỉ có giá trị tham khảo học thuật. Tuyệt đối không tự ý mua thuốc, dừng phác đồ điều trị hoặc tự chẩn đoán bệnh dựa trên câu trả lời của AI.</span>
+</div>
+<div class="p-3 rounded-xl bg-red-50/60 border border-red-200 text-red-900 space-y-1">
+<span class="font-bold text-red-700 block">3. Giới hạn đối với Tình huống Khẩn cấp:</span>
+<span>Hệ thống không thể xử lý các ca cấp cứu đe dọa tính mạng (đau ngực cấp, đột quỵ, khó thở dữ dội, sốc phản vệ...). Khi gặp dấu hiệu nguy cấp, vui lòng liên hệ ngay <strong>115</strong> hoặc đến khoa cấp cứu bệnh viện gần nhất.</span>
+</div>
+</div>
+<!-- Footer CTA -->
+<div class="pt-2">
+<button type="button" onclick="closeDisclaimerModal()" class="w-full py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-bold transition-all shadow-sm">
+Tôi đã hiểu và đồng ý
+</button>
+</div>
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<!-- Modal Thông Tin Cá Nhân & Cập Nhật Hồ Sơ (Profile Modal) -->
+<div id="profile-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+<div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-100 relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
+<button onclick="closeProfileModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+</svg>
+</button>
+<!-- Header: Avatar + Tên + Email -->
+<div class="flex items-center space-x-3.5 pb-3 border-b border-slate-100">
+<div id="profile-avatar" class="w-12 h-12 rounded-2xl bg-[#E0F2FE] text-[#0284C7] font-bold text-base flex items-center justify-center shadow-xs">
+BN
+</div>
+<div class="min-w-0 flex-1">
+<h3 id="profile-name" class="text-base font-extrabold text-slate-800 truncate">Nguyễn Văn An</h3>
+<span id="profile-badge" class="text-xs text-[#0284C7] font-semibold truncate block">nguyenvana@gmail.com</span>
+</div>
+</div>
+<!-- CHẾ ĐỘ 1: XEM THÔNG TIN CÁ NHÂN (Mặc định) -->
+<div id="profile-view-mode" class="space-y-3">
+<div class="space-y-2 text-xs">
+<div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-slate-500 font-medium">Giới tính:</span>
+<span id="profile-gender" class="font-bold text-slate-800">Chưa cập nhật</span>
+</div>
+<div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-slate-500 font-medium">Ngày sinh:</span>
+<span id="profile-dob" class="font-bold text-slate-800">Chưa cập nhật</span>
+</div>
+<div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-slate-500 font-medium">Tài khoản / SĐT:</span>
+<span id="profile-identifier" class="font-bold text-slate-800">nguyenvana@gmail.com</span>
+</div>
+<div class="flex justify-between items-center py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-100">
+<span class="text-slate-500 font-medium">Mã số hồ sơ y tế:</span>
+<span id="profile-id" class="font-bold text-[#0284C7]">#BN-2026-0004</span>
+</div>
+</div>
+<div class="pt-1 flex flex-col sm:flex-row gap-2">
+<button type="button" onclick="toggleProfileEdit(true)" class="flex-1 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center space-x-1.5">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+</svg>
+<span>Cập nhật thông tin</span>
+</button>
+<button type="button" onclick="switchTab('doctor-tab'); closeProfileModal();" class="py-2.5 px-3 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all">
+Xem Bệnh án →
+</button>
+<button type="button" onclick="closeProfileModal()" class="py-2.5 px-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold text-xs transition-all">
+Đóng
+</button>
+</div>
+</div>
+<!-- CHẾ ĐỘ 2: BIỂU MẪU CẬP NHẬT THÔNG TIN (Chỉnh sửa) -->
+<form id="profile-edit-mode" onsubmit="handleSaveProfile(event)" class="space-y-3 hidden">
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên</label>
+<input type="text" id="edit-profile-name" required placeholder="Họ và tên" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Giới tính</label>
+<select id="edit-profile-gender" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15">
+<option value="Nam">Nam</option>
+<option value="Nữ">Nữ</option>
+<option value="Khác">Khác</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Ngày sinh (DD/MM/YYYY)</label>
+<input type="text" id="edit-profile-dob" placeholder="VD: 15/08/1995" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại liên hệ</label>
+<input type="text" id="edit-profile-phone" placeholder="VD: 0912345678" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/15 transition-all">
+</div>
+<div class="pt-2 flex space-x-2">
+<button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-all shadow-xs flex items-center justify-center space-x-1.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+</svg>
+<span>Lưu thông tin</span>
+</button>
+<button type="button" onclick="toggleProfileEdit(false)" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-all">
+Hủy bỏ
+</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Modal Phóng to Ảnh Đối chiếu Lâm sàng (Image Lightbox Modal) -->
+<div id="image-lightbox-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md transition-opacity" onclick="closeImageModal()">
+<div class="bg-white rounded-3xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl border border-slate-100 relative space-y-3 animate-in fade-in zoom-in-95 duration-200" onclick="event.stopPropagation()">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100">
+<div>
+<h3 id="lightbox-title" class="font-bold text-slate-900 text-sm sm:text-base">Ảnh tham khảo đối chiếu y khoa</h3>
+<p id="lightbox-stage" class="text-xs text-[#0284C7] font-semibold"></p>
+</div>
+<button onclick="closeImageModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+</svg>
+</button>
+</div>
+<div class="rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[60vh]">
+<img id="lightbox-img" src="" alt="Ảnh đối chiếu" class="w-full h-auto max-h-[60vh] object-contain">
+</div>
+<p id="lightbox-caption" class="text-xs text-slate-600 text-center px-3 py-2 leading-relaxed bg-slate-50 rounded-xl border border-slate-100"></p>
+</div>
+</div>
 </body>
-
-
-
 </html>
-
-
-

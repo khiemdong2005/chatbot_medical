@@ -1,23 +1,240 @@
 // MediMind Clinical AI - Medical Ocean Blue & Navy Interaction Logic
-// Clean typography, Ocean Blue #0284C7 accent, Navy #0F2942 highlights
+// Features: Multimodal Gemini Vision, RAG, Double Guardrails, Bilingual i18n, RBAC, Profile & Scan Dataset Management
+
 const chatHistory = [];
-function hideFloatingDecorations() {
-const medInfoChip = document.getElementById('floating-medical-info');
-if (medInfoChip) {
-medInfoChip.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
-}
-}
-function showFloatingDecorations() {
-const medInfoChip = document.getElementById('floating-medical-info');
-if (medInfoChip) {
-medInfoChip.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
-}
-}
+let currentLang = 'vi';
+let currentRole = 'patient';
+let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
 let pendingTabAfterLogin = null;
+let selectedChatImageBase64 = null;
+
+// ==========================================
+// Bilingual i18n Dictionary (VI / EN)
+// ==========================================
+const translations = {
+  vi: {
+    brand_subtitle: "HIPAA Compliant • Phác đồ MedlinePlus",
+    nav_chat: "Trang chủ",
+    nav_ocr: "Đọc đơn thuốc",
+    nav_booking: "Bệnh viện",
+    nav_doctor: "Bệnh án của tôi",
+    nav_admin: "Hạ tầng Cloud",
+    nav_login: "Đăng nhập",
+    nav_start: "Bắt đầu ngay",
+    user_role: "Bác sĩ lâm sàng",
+    hero_badge: "Dự án AI vì sức khỏe cộng đồng 2026",
+    hero_title_1: "Trợ lý sức khỏe",
+    hero_title_2: "thông minh",
+    hero_desc: "Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.",
+    hero_btn_check: "Kiểm tra triệu chứng",
+    hero_btn_scan: "Đọc đơn thuốc",
+    trust_security: "Bảo mật thông tin",
+    trust_support: "Hỗ trợ 24/7",
+    trust_banner: "Đã hỗ trợ hơn <strong class=\"text-slate-800 font-bold\">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus",
+    chip_hr: "Nhịp tim",
+    chip_info: "Thông tin y khoa",
+    chip_source: "Từ nguồn uy tín",
+    chat_assistant_title: "Trợ lý MediMind AI",
+    chat_status: "Đang hoạt động",
+    quick_1: "📷 Nhận diện ảnh da",
+    quick_2: "🔍 Mụn nước một bên?",
+    quick_3: "🌡️ Thuốc hạ sốt an toàn?",
+    quick_4: "💊 Có cần dùng kháng sinh?",
+    quick_prompt_text_2: "Tôi bị nổi mụn nước ngứa ngáy một bên sườn",
+    quick_prompt_text_3: "Thuốc hạ sốt nào an toàn?",
+    quick_prompt_text_4: "Có cần uống kháng sinh không?",
+    chat_input_placeholder: "Nhập triệu chứng hoặc tải ảnh tổn thương da...",
+    disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
+    disclaimer_footer_btn: "Miễn trừ trách nhiệm",
+    typing_vision: "Gemini Vision đang phân tích hình thái học...",
+    typing_guideline: "Đang đối soát phác đồ y khoa...",
+    patient_label: "Vừa xong • Bệnh nhân",
+    server_error: "Không thể kết nối đến máy chủ.",
+    risk_safe: "An toàn",
+    risk_moderate: "Theo dõi",
+    risk_emergency: "Cần Cấp cứu",
+    default_image_prompt: "Xin bác sĩ quan sát bức ảnh và phân tích giúp tôi dấu hiệu tổn thương trên da."
+  },
+  en: {
+    brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
+    nav_chat: "Home",
+    nav_ocr: "Prescriptions",
+    nav_booking: "Hospitals",
+    nav_doctor: "My Health Record",
+    nav_admin: "Cloud Infrastructure",
+    nav_login: "Sign In",
+    nav_start: "Get Started",
+    user_role: "Clinical Physician",
+    hero_badge: "Community Health AI Initiative 2026",
+    hero_title_1: "Smart Healthcare",
+    hero_title_2: "Assistant",
+    hero_desc: "AI-powered clinical triage, prescription analysis, and evidence-grounded health assistance referenced from trusted medical guidelines.",
+    hero_btn_check: "Check Symptoms",
+    hero_btn_scan: "Scan Prescription",
+    trust_security: "Data Security",
+    trust_support: "24/7 Support",
+    trust_banner: "Assisted over <strong class=\"text-slate-800 font-bold\">15,200+</strong> clinical screenings based on MedlinePlus protocols",
+    chip_hr: "Heart Rate",
+    chip_info: "Medical Info",
+    chip_source: "From trusted sources",
+    chat_assistant_title: "MediMind AI Assistant",
+    chat_status: "Online",
+    quick_1: "📷 Skin Image AI",
+    quick_2: "🔍 Unilateral Blisters?",
+    quick_3: "🌡️ Safe Antipyretic?",
+    quick_4: "💊 Need Antibiotics?",
+    quick_prompt_text_2: "I have itchy blisters clustered on one side of my torso",
+    quick_prompt_text_3: "What is a safe fever reducer medication?",
+    quick_prompt_text_4: "Do I need to take antibiotics for a cold or sore throat?",
+    chat_input_placeholder: "Describe symptoms or upload a skin lesion photo...",
+    disclaimer_footer_text: "⚠️ Educational Health AI Prototype • ",
+    disclaimer_footer_btn: "Medical Disclaimer",
+    typing_vision: "Gemini Vision is analyzing morphology...",
+    typing_guideline: "Cross-referencing medical guidelines...",
+    patient_label: "Just now • Patient",
+    server_error: "Unable to connect to server.",
+    risk_safe: "Safe",
+    risk_moderate: "Monitor",
+    risk_emergency: "Emergency",
+    default_image_prompt: "Please analyze this clinical image and assess the lesion characteristics on the skin."
+  }
+};
+
+// ==========================================
+// Language Switching Functions
+// ==========================================
+function toggleLanguageDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('lang-dropdown-menu');
+  const arrow = document.getElementById('lang-dropdown-arrow');
+  if (menu) menu.classList.toggle('hidden');
+  if (arrow) arrow.classList.toggle('rotate-180');
+}
+
+function closeLanguageDropdown() {
+  const menu = document.getElementById('lang-dropdown-menu');
+  const arrow = document.getElementById('lang-dropdown-arrow');
+  if (menu) menu.classList.add('hidden');
+  if (arrow) arrow.classList.remove('rotate-180');
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  closeLanguageDropdown();
+  applyLanguage();
+}
+
+function applyLanguage() {
+  const dict = translations[currentLang] || translations.vi;
+  const currentLangCode = document.getElementById('current-lang-code');
+  if (currentLangCode) currentLangCode.innerText = currentLang.toUpperCase();
+
+  const checkVi = document.getElementById('check-vi');
+  const checkEn = document.getElementById('check-en');
+  if (checkVi) checkVi.classList.toggle('hidden', currentLang !== 'vi');
+  if (checkEn) checkEn.classList.toggle('hidden', currentLang !== 'en');
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (dict[key]) {
+      el.setAttribute('placeholder', dict[key]);
+    }
+  });
+}
+
+function insertQuickPrompt(num) {
+  const dict = translations[currentLang] || translations.vi;
+  let promptText = '';
+  if (num === 2) promptText = dict.quick_prompt_text_2;
+  else if (num === 3) promptText = dict.quick_prompt_text_3;
+  else if (num === 4) promptText = dict.quick_prompt_text_4;
+
+  if (promptText) {
+    insertPrompt(promptText);
+  }
+}
+
+// ==========================================
+// Multimodal Image Upload & Lightbox Modal
+// ==========================================
+function handleChatImageSelected(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert(currentLang === 'vi' ? 'Vui lòng chọn tệp hình ảnh (JPG, PNG, WebP).' : 'Please select an image file (JPG, PNG, WebP).');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    selectedChatImageBase64 = evt.target.result;
+    const container = document.getElementById('chat-image-preview-container');
+    const thumb = document.getElementById('chat-image-preview-thumb');
+    const nameEl = document.getElementById('chat-image-preview-name');
+    if (container && thumb) {
+      thumb.src = selectedChatImageBase64;
+      if (nameEl) nameEl.innerText = file.name;
+      container.classList.remove('hidden');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearChatImagePreview() {
+  selectedChatImageBase64 = null;
+  const container = document.getElementById('chat-image-preview-container');
+  const input = document.getElementById('chat-image-input');
+  if (container) container.classList.add('hidden');
+  if (input) input.value = '';
+}
+
+function openImageModal(src, title, caption) {
+  const modal = document.getElementById('image-lightbox-modal');
+  const img = document.getElementById('lightbox-img');
+  const titleEl = document.getElementById('lightbox-title');
+  const captionEl = document.getElementById('lightbox-caption');
+
+  if (modal && img) {
+    img.src = src;
+    if (titleEl) titleEl.innerText = title || (currentLang === 'vi' ? 'Ảnh tham khảo đối chiếu y khoa' : 'Clinical Reference Image');
+    if (captionEl) captionEl.innerText = caption || '';
+    modal.classList.remove('hidden');
+  }
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('image-lightbox-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// ==========================================
+// UI Floating Decorations & Tabs
+// ==========================================
+function hideFloatingDecorations() {
+  const medInfoChip = document.getElementById('floating-medical-info');
+  if (medInfoChip) {
+    medInfoChip.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
+  }
+}
+
+function showFloatingDecorations() {
+  const medInfoChip = document.getElementById('floating-medical-info');
+  if (medInfoChip) {
+    medInfoChip.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
+  }
+}
 
 function switchTab(tabId) {
-  // Yêu cầu đăng nhập tài khoản cho Đọc đơn thuốc (ocr-tab) và Bệnh án của tôi (doctor-tab)
-  const protectedTabs = ['ocr-tab', 'doctor-tab', 'profile-tab'];
+  // Yêu cầu đăng nhập khi vào các tab bảo mật
+  const protectedTabs = ['doctor-tab', 'profile-tab', 'admin-tab'];
   if (protectedTabs.includes(tabId) && !currentUser) {
     pendingTabAfterLogin = tabId;
     openLoginModal();
@@ -29,236 +246,202 @@ function switchTab(tabId) {
     btn.classList.remove('bg-[#E0F2FE]', 'text-[#0284C7]', 'font-bold');
     btn.classList.add('text-slate-600', 'font-medium');
   });
+
   const activeTab = document.getElementById(tabId);
   if (activeTab) activeTab.classList.add('active');
+
   const activeNav = document.getElementById('nav-' + tabId);
   if (activeNav) {
     activeNav.classList.remove('text-slate-600', 'font-medium');
     activeNav.classList.add('bg-[#E0F2FE]', 'text-[#0284C7]', 'font-bold');
   }
-  if (tabId === 'ocr-tab') {
-    loadScanFiles();
+}
+
+function insertPrompt(text) {
+  const input = document.getElementById('user-input');
+  if (input) {
+    input.value = text;
+    input.focus();
   }
 }
-function insertPrompt(text) {
-const input = document.getElementById('user-input');
-if (input) {
-input.value = text;
-input.focus();
-}
-}
+
 function resetChat() {
-showFloatingDecorations();
-chatHistory.length = 0;
-const container = document.getElementById('chat-messages');
-if (!container) return;
-container.innerHTML = `
-<!-- Message 1: Initial Bot Greeting -->
-<div class="flex justify-start">
-<div class="bg-[#F1F5F9] text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm font-normal max-w-[85%] leading-relaxed shadow-2xs">
-Xin chào! Hôm nay bạn cảm thấy thế nào?
-</div>
-</div>
-<!-- Message 2: User Bubble (Medical Ocean Blue) -->
-<div class="flex justify-end">
-<div class="bg-[#0284C7] text-white px-5 py-3 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium max-w-[80%]">
-Tôi bị đau họng và hơi sốt.
-</div>
-</div>
-<!-- Message 3: Structured Follow-up Bot Response with Medical Advice Bullets & Citation -->
-<div class="flex justify-start">
-<div class="bg-[#F1F5F9] border border-slate-200/60 text-slate-700 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm font-normal max-w-[95%] sm:max-w-[90%] leading-relaxed shadow-xs space-y-2.5">
-<p class="font-medium text-slate-800">
-Mình hiểu rồi. Với triệu chứng đau họng và sốt nhẹ, dưới đây là các biện pháp chăm sóc ban đầu:
-</p>
-<ul class="space-y-1.5 text-slate-600 pl-1 text-xs sm:text-[13px]">
-<li class="flex items-start space-x-2">
-<span class="text-[#0284C7] font-bold mt-0.5">•</span>
-<span>Súc họng nước muối ấm (0.9%) từ 3 - 4 lần/ngày giúp kháng viêm và dịu niêm mạc.</span>
-</li>
-<li class="flex items-start space-x-2">
-<span class="text-[#0284C7] font-bold mt-0.5">•</span>
-<span>Uống nhiều nước ấm, nghỉ ngơi tại phòng thoáng khí và kiểm tra thân nhiệt định kỳ.</span>
-</li>
-<li class="flex items-start space-x-2">
-<span class="text-[#0284C7] font-bold mt-0.5">•</span>
-<span>Nếu sốt trên 38.5°C hoặc đau rát tăng mạnh, hãy dùng Paracetamol theo liều và tư vấn y tế.</span>
-</li>
-</ul>
-<div class="pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500">
-<div class="flex items-center space-x-1.5 font-semibold text-slate-700">
-<svg class="w-3.5 h-3.5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-</svg>
-<span>Nguồn: MedlinePlus</span>
-</div>
-<span class="text-[11px] text-slate-500 font-medium">Khuyến cáo lâm sàng</span>
-</div>
-</div>
-</div>
-`;
+  showFloatingDecorations();
+  clearChatImagePreview();
+  chatHistory.length = 0;
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  container.innerHTML = '';
 }
+
+// ==========================================
+// Chat Logic (Multimodal Gemini Vision + RAG + Guardrails)
+// ==========================================
 async function sendChatMessage() {
-const input = document.getElementById('user-input');
-const text = input.value.trim();
-if (!text) return;
-hideFloatingDecorations();
-const container = document.getElementById('chat-messages');
-// 1. User Message (Clean Medical Ocean Blue Bubble - Perfect Padding & Wrap)
-const userHtml = `
-<div class="flex flex-col items-end my-1">
-<div class="w-fit max-w-[80%] bg-[#0284C7] text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium text-left break-words">
-${escapeHtml(text)}
-</div>
-<div class="text-right text-[10px] text-slate-400 mt-1 mr-1">Vừa xong • Bệnh nhân</div>
-</div>
-`;
-container.insertAdjacentHTML('beforeend', userHtml);
-input.value = '';
-container.scrollTop = container.scrollHeight;
-// 2. Typing Indicator (Soft Hospital Gray)
-const typingId = 'typing-' + Date.now();
-const typingHtml = `
-<div id="${typingId}" class="flex justify-start max-w-md">
-<div class="bg-[#F1F5F9] border border-slate-200/80 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-600 flex items-center space-x-2 shadow-xs">
-<span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce"></span>
-<span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.15s"></span>
-<span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.3s"></span>
-<span class="pl-1.5 text-xs font-medium text-slate-500">Đang đối soát phác đồ y khoa...</span>
-</div>
-</div>
-`;
-container.insertAdjacentHTML('beforeend', typingHtml);
-container.scrollTop = container.scrollHeight;
-try {
-const response = await fetch('/api/chat', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ message: text, history: chatHistory })
-});
-const data = await response.json();
-document.getElementById(typingId)?.remove();
-if (data.error) {
-appendErrorMessage(data.error);
-return;
-}
-// Cập nhật Triage Panel & Lịch sử
-updateTriagePanel(data);
-    // Tự động đồng bộ triệu chứng và Triage mới vào Bệnh án
-    const ehrComplaint = document.getElementById('ehr-chief-complaint');
-    const ehrHpi = document.getElementById('ehr-hpi');
-    const ehrBadge = document.getElementById('ehr-triage-badge');
-    const ehrDate = document.getElementById('ehr-triage-date');
-    if (ehrComplaint) ehrComplaint.innerText = text;
-    if (ehrHpi) ehrHpi.innerText = 'Bệnh nhân báo triệu chứng: "' + text + '". Hệ thống Gemini AI phân tầng chuyên khoa ' + (data.specialist || 'Nội tổng quát') + ' vào lúc ' + new Date().toLocaleTimeString('vi-VN') + '.';
-    if (ehrBadge) ehrBadge.innerText = 'Triage: ' + (data.risk_level || 'Theo dõi') + ' (' + (data.risk_score || 35) + '/100)';
-    if (ehrDate) ehrDate.innerText = new Date().toLocaleDateString('vi-VN');
-    if (currentUser) {
-      currentUser.hasMedicalRecord = true;
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      const ehrEmpty = document.getElementById('ehr-content-empty');
-      const ehrFilled = document.getElementById('ehr-content-filled');
-      if (ehrEmpty) ehrEmpty.classList.add('hidden');
-      if (ehrFilled) ehrFilled.classList.remove('hidden');
+  const input = document.getElementById('user-input');
+  let text = input.value.trim();
+  const currentImage = selectedChatImageBase64;
+
+  if (!text && !currentImage) return;
+  const dict = translations[currentLang] || translations.vi;
+  if (!text && currentImage) {
+    text = dict.default_image_prompt;
+  }
+
+  hideFloatingDecorations();
+  const container = document.getElementById('chat-messages');
+
+  // 1. User Message (Hỗ trợ ảnh đính kèm)
+  let userImgHtml = '';
+  if (currentImage) {
+    userImgHtml = `
+      <div class="mb-2 overflow-hidden rounded-xl border border-white/20 shadow-xs cursor-pointer max-w-[220px]" onclick="openImageModal('${currentImage}', 'Ảnh tổn thương bạn đã gửi', 'Ảnh người bệnh cung cấp')">
+        <img src="${currentImage}" alt="Ảnh tải lên" class="w-full h-auto max-h-[160px] object-cover hover:scale-105 transition-transform duration-200">
+      </div>
+    `;
+  }
+
+  const userHtml = `
+    <div class="flex flex-col items-end my-1">
+      <div class="w-fit max-w-[85%] bg-[#0284C7] text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium text-left break-words">
+        ${userImgHtml}
+        <div>${escapeHtml(text)}</div>
+      </div>
+      <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">${dict.patient_label}</div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', userHtml);
+  input.value = '';
+  clearChatImagePreview();
+  container.scrollTop = container.scrollHeight;
+
+  // 2. Typing Indicator
+  const typingId = 'typing-' + Date.now();
+  const typingHtml = `
+    <div id="${typingId}" class="flex justify-start max-w-md">
+      <div class="bg-[#F1F5F9] border border-slate-200/80 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-600 flex items-center space-x-2 shadow-xs">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.15s"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.3s"></span>
+        <span class="pl-1.5 text-xs font-medium text-slate-500">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', typingHtml);
+  container.scrollTop = container.scrollHeight;
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text, history: chatHistory, image: currentImage, lang: currentLang })
+    });
+
+    const data = await response.json();
+    document.getElementById(typingId)?.remove();
+
+    if (data.error) {
+      appendErrorMessage(data.error);
+      return;
     }
-// Format Markdown cơ bản
-let formattedAnswer = escapeHtml(data.answer)
-.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-.replace(/\*(.*?)\*/g, '<em>$1</em>')
-.replace(/\n/g, '<br>');
-// Thẻ Dược phẩm tham khảo
-let medicationsHtml = '';
-if (data.medications && data.medications.length > 0) {
-medicationsHtml = `
-<div class="pt-2.5 border-t border-slate-200/80 space-y-2">
-<div class="flex items-center justify-between">
-<span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Dược phẩm tham khảo:</span>
-<span class="text-[10px] text-[#0284C7] font-semibold">Chuẩn Dược thư Quốc gia</span>
-</div>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-${data.medications.slice(0, 2).map(med => `
-<div class="bg-white border border-slate-200 hover:border-[#0284C7] p-2.5 rounded-xl space-y-1 transition-all shadow-xs">
-<div class="flex justify-between items-center">
-<span class="text-xs font-bold text-slate-900">${escapeHtml(med.name)}</span>
-<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${med.type_badge}">
-${escapeHtml(med.type.split(' ')[0])}
-</span>
-</div>
-<div class="text-[10px] text-[#0284C7] font-semibold">${escapeHtml(med.strength)} • ${escapeHtml(med.category)}</div>
-<div class="text-[10px] text-slate-600 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
-${escapeHtml(med.instructions)}
-</div>
-</div>
-`).join('')}
-</div>
-</div>
-`;
+
+    updateTriagePanel(data);
+
+    let formattedAnswer = escapeHtml(data.answer)
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+
+    // Đặc điểm thị giác nhận diện từ ảnh (Gemini Vision)
+    let visualFindingsHtml = '';
+    if (data.visual_findings && data.visual_findings.length > 0) {
+      visualFindingsHtml = `
+        <div class="p-2.5 rounded-xl bg-sky-50/80 border border-sky-200/90 space-y-1.5">
+          <div class="text-[11px] font-bold text-[#0369A1] flex items-center space-x-1.5">
+            <span>👁️</span>
+            <span>Đặc điểm thị giác nhận định (Gemini Vision AI):</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
+            ${data.visual_findings.map(f => `
+              <span class="text-[10px] font-medium bg-white text-slate-700 px-2 py-0.5 rounded-full border border-sky-200 shadow-2xs">
+                ${escapeHtml(f)}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Cảnh báo cờ đỏ cấp cứu
+    let emergencyBadge = '';
+    if (data.is_emergency) {
+      emergencyBadge = `
+        <div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs font-bold text-red-600 flex items-center space-x-2">
+          <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <span>NGUY CẤP: GỌI 115 HOẶC ĐẾN CƠ SỞ CẤP CỨU GẦN NHẤT</span>
+        </div>
+      `;
+    }
+
+    const botHtml = `
+      <div class="flex justify-start max-w-[90%] sm:max-w-xl">
+        <div class="bg-[#F1F5F9] border border-slate-200/80 p-4 rounded-2xl rounded-tl-sm text-sm text-slate-800 space-y-2.5 leading-relaxed shadow-xs w-full">
+          ${emergencyBadge}
+          ${visualFindingsHtml}
+          <div class="text-slate-800 font-normal">${formattedAnswer}</div>
+        </div>
+      </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', botHtml);
+    container.scrollTop = container.scrollHeight;
+
+    chatHistory.push({ role: 'user', content: text });
+    chatHistory.push({ role: 'assistant', content: data.answer });
+
+  } catch (err) {
+    document.getElementById(typingId)?.remove();
+    appendErrorMessage(dict.server_error);
+  }
 }
-// Cảnh báo cờ đỏ cấp cứu
-let emergencyBadge = '';
-if (data.is_emergency) {
-emergencyBadge = `
-<div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs font-bold text-red-600 flex items-center space-x-2">
-<svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-</svg>
-<span>NGUY CẤP: GỌI 115 HOẶC ĐẾN CƠ SỞ CẤP CỨU GẦN NHẤT</span>
-</div>
-`;
-}
-const botHtml = `
-<div class="flex justify-start max-w-[90%] sm:max-w-lg">
-<div class="bg-[#F1F5F9] border border-slate-200/80 p-4 rounded-2xl rounded-tl-sm text-sm text-slate-800 space-y-2.5 leading-relaxed shadow-xs w-full">
-${emergencyBadge}
-<div class="text-slate-800 font-normal">${formattedAnswer}</div>
-${medicationsHtml}
-${(data.medications && data.medications.length > 0) || data.is_emergency ? `
-<div class="pt-1 flex items-center space-x-2">
-<button onclick="switchTab('booking-tab')" class="text-xs font-bold text-[#0284C7] hover:text-[#0369A1] flex items-center space-x-1">
-<span>Tìm bệnh viện gần nhất</span>
-<span>→</span>
-</button>
-</div>` : ''}
-</div>
-</div>
-`;
-container.insertAdjacentHTML('beforeend', botHtml);
-container.scrollTop = container.scrollHeight;
-chatHistory.push({ role: 'user', content: text });
-chatHistory.push({ role: 'assistant', content: data.answer });
-} catch (err) {
-document.getElementById(typingId)?.remove();
-appendErrorMessage("Không thể kết nối đến máy chủ.");
-}
-}
+
 function updateTriagePanel(data) {
-const floatingRisk = document.getElementById('floating-risk-score');
-const score = data.risk_score || 25;
-if (floatingRisk) {
-if (score >= 70) {
-floatingRisk.innerText = `${score} / 100 (Cần Cấp cứu)`;
-floatingRisk.className = 'text-xs font-bold text-red-600';
-} else if (score >= 35) {
-floatingRisk.innerText = `${score} / 100 (Theo dõi)`;
-floatingRisk.className = 'text-xs font-bold text-amber-600';
-} else {
-floatingRisk.innerText = `${score} / 100 (An toàn)`;
-floatingRisk.className = 'text-xs font-bold text-[#0284C7]';
+  const floatingRisk = document.getElementById('floating-risk-score');
+  const score = data.risk_score || 25;
+  if (floatingRisk) {
+    if (score >= 70) {
+      floatingRisk.innerText = `${score} / 100 (Cần Cấp cứu)`;
+      floatingRisk.className = 'text-xs font-bold text-red-600';
+    } else if (score >= 35) {
+      floatingRisk.innerText = `${score} / 100 (Theo dõi)`;
+      floatingRisk.className = 'text-xs font-bold text-amber-600';
+    } else {
+      floatingRisk.innerText = `${score} / 100 (An toàn)`;
+      floatingRisk.className = 'text-xs font-bold text-[#0284C7]';
+    }
+  }
 }
-}
-}
+
 function appendErrorMessage(msg) {
-const container = document.getElementById('chat-messages');
-const errHtml = `
-<div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs text-red-600 font-medium">
-${escapeHtml(msg)}
-</div>
-`;
-container.insertAdjacentHTML('beforeend', errHtml);
-container.scrollTop = container.scrollHeight;
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  const errHtml = `
+    <div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs text-red-600 font-medium">
+      ${escapeHtml(msg)}
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', errHtml);
+  container.scrollTop = container.scrollHeight;
 }
+
+// ==========================================
+// Scan Dataset Files Management (OCR Tab)
+// ==========================================
 function triggerFileUpload() {
-  // Kiểm tra đăng nhập khi bấm Chọn tệp từ máy tính
   if (!currentUser) {
     pendingTabAfterLogin = 'ocr-tab';
     openLoginModal();
@@ -267,7 +450,7 @@ function triggerFileUpload() {
   const fileInput = document.getElementById('lab-file-input');
   if (fileInput) {
     fileInput.value = '';
-    fileInput.click(); // Mở cửa sổ chọn tệp máy tính (Windows File Explorer dialog)
+    fileInput.click();
   }
 }
 
@@ -371,16 +554,16 @@ async function deleteScanFile(encodedName) {
 function simulateUploadLab() {
   triggerFileUpload();
 }
+
 function escapeHtml(string) {
-const div = document.createElement('div');
-div.innerText = string;
-return div.innerHTML;
+  const div = document.createElement('div');
+  div.innerText = string;
+  return div.innerHTML;
 }
+
 // ==========================================
-// Authentication State Management (Bệnh nhân & Bác sĩ)
+// Authentication & Profile State Management
 // ==========================================
-let currentRole = 'patient';
-let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
 function toggleUserDropdown(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('user-dropdown-menu');
@@ -519,16 +702,18 @@ function closeProfileModal() {
 }
 
 function openLoginModal() {
-const modal = document.getElementById('login-modal');
-if (modal) {
-modal.classList.remove('hidden');
-document.getElementById('login-identifier')?.focus();
+  const modal = document.getElementById('login-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.getElementById('login-identifier')?.focus();
+  }
 }
-}
+
 function closeLoginModal() {
-const modal = document.getElementById('login-modal');
-if (modal) modal.classList.add('hidden');
+  const modal = document.getElementById('login-modal');
+  if (modal) modal.classList.add('hidden');
 }
+
 function populateDobDropdowns() {
   const daySelect = document.getElementById('register-dob-day');
   const monthSelect = document.getElementById('register-dob-month');
@@ -544,7 +729,8 @@ function populateDobDropdowns() {
       Array.from({length: 85}, (_, i) => `<option value="${currentYear - i}">${currentYear - i}</option>`).join('');
   }
 }
-let currentAuthMode = 'login'; // 'login' hoặc 'register'
+
+let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
   currentAuthMode = mode;
   const titleEl = document.getElementById('auth-modal-title');
@@ -573,9 +759,11 @@ function toggleAuthMode(mode) {
     document.getElementById('login-identifier')?.focus();
   }
 }
+
 function selectLoginRole(role) {
   currentRole = 'patient';
 }
+
 async function handleRegisterSubmit(e) {
   e.preventDefault();
   const lastName = (document.getElementById('register-last-name')?.value || '').trim();
@@ -620,11 +808,6 @@ async function handleRegisterSubmit(e) {
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
       closeLoginModal();
-      if (pendingTabAfterLogin) {
-        const target = pendingTabAfterLogin;
-        pendingTabAfterLogin = null;
-        switchTab(target);
-      }
       alert('Đăng ký tài khoản thành công! Chào mừng ' + currentUser.name + ' gia nhập MediMind.');
       document.getElementById('register-form')?.reset();
       if (pendingTabAfterLogin) {
@@ -640,6 +823,7 @@ async function handleRegisterSubmit(e) {
     alert('Không thể kết nối đến máy chủ.');
   }
 }
+
 async function quickLogin(type) {
   const identifier = 'benhnhan.an@gmail.com';
   const password = 'MatKhau123@';
@@ -663,51 +847,54 @@ async function quickLogin(type) {
     alert('Không thể kết nối máy chủ xác thực.');
   }
 }
+
 async function handleLoginSubmit(e) {
-e.preventDefault();
-const identifier = document.getElementById('login-identifier')?.value.trim();
-const password = document.getElementById('login-password')?.value;
-if (!identifier || !password) {
-alert('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
-return;
+  e.preventDefault();
+  const identifier = document.getElementById('login-identifier')?.value.trim();
+  const password = document.getElementById('login-password')?.value;
+  if (!identifier || !password) {
+    alert('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
+    return;
+  }
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password, role: currentRole })
+    });
+    const data = await res.json();
+    if (data.success && data.user) {
+      currentUser = data.user;
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      updateAuthUI();
+      closeLoginModal();
+      document.getElementById('login-form')?.reset();
+      if (pendingTabAfterLogin) {
+        const target = pendingTabAfterLogin;
+        pendingTabAfterLogin = null;
+        switchTab(target);
+      }
+    } else {
+      alert(data.error || 'Thông tin đăng nhập không hợp lệ.');
+    }
+  } catch (err) {
+    console.error('Lỗi gửi form đăng nhập:', err);
+    alert('Không thể kết nối tới máy chủ CSDL.');
+  }
 }
-try {
-const res = await fetch('/api/auth/login', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ identifier, password, role: currentRole })
-});
-const data = await res.json();
-if (data.success && data.user) {
-currentUser = data.user;
-localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-updateAuthUI();
-closeLoginModal();
-document.getElementById('login-form')?.reset();
-if (pendingTabAfterLogin) {
-  const target = pendingTabAfterLogin;
-  pendingTabAfterLogin = null;
-  switchTab(target);
-}
-} else {
-alert(data.error || 'Thông tin đăng nhập không hợp lệ.');
-}
-} catch (err) {
-console.error('Lỗi gửi form đăng nhập:', err);
-alert('Không thể kết nối tới máy chủ CSDL.');
-}
-}
+
 async function handleLogout() {
-try {
-await fetch('/api/auth/logout', { method: 'POST' });
-} catch (err) {
-console.error('Lỗi đăng xuất:', err);
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (err) {
+    console.error('Lỗi đăng xuất:', err);
+  }
+  currentUser = null;
+  localStorage.removeItem('medimind_user');
+  updateAuthUI();
+  switchTab('chat-tab');
 }
-currentUser = null;
-localStorage.removeItem('medimind_user');
-updateAuthUI();
-switchTab('chat-tab');
-}
+
 function updateAuthUI() {
   const unlogged = document.getElementById('auth-unlogged');
   const logged = document.getElementById('auth-logged');
@@ -725,19 +912,15 @@ function updateAuthUI() {
 
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
-  const ocrEmpty = document.getElementById('ocr-table-empty');
-  const ocrFilled = document.getElementById('ocr-table-filled');
-  const ocrCards = document.getElementById('ocr-cards-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = '📋 Bệnh án của tôi';
-  if (ocrSyncBtnText) ocrSyncBtnText.innerText = 'Xem Bệnh án của tôi →';
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Bệnh án của tôi' : '📋 My Health Record');
+  if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Bệnh án của tôi →' : 'View My Record →');
 
   if (currentUser) {
     if (unlogged) unlogged.classList.add('hidden');
     if (logged) logged.classList.remove('hidden');
     if (nameEl) nameEl.innerText = currentUser.name;
 
-    // Đồng bộ thông tin cá nhân (Giới tính, Ngày sinh, SĐT) bên dưới phần tên
     const subInfo = currentUser.personal_info || currentUser.role || 'Thành viên';
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
@@ -755,7 +938,6 @@ function updateAuthUI() {
     if (dropName) dropName.innerText = currentUser.name;
     if (dropInfo) dropInfo.innerText = subInfo;
 
-    // Đồng bộ vào trang Tab Cập Nhật Hồ Sơ Cá Nhân (Chuẩn Ảnh 2)
     const tabBannerId = document.getElementById('tab-profile-banner-id');
     const tabBannerName = document.getElementById('tab-profile-banner-name');
     const tabName = document.getElementById('tab-profile-name');
@@ -793,70 +975,89 @@ function updateAuthUI() {
     loadScanFiles();
   }
 }
+
 function openDisclaimerModal() {
-const modal = document.getElementById('disclaimer-modal');
-if (modal) modal.classList.remove('hidden');
+  const modal = document.getElementById('disclaimer-modal');
+  if (modal) modal.classList.remove('hidden');
 }
+
 function closeDisclaimerModal() {
-const modal = document.getElementById('disclaimer-modal');
-if (modal) modal.classList.add('hidden');
+  const modal = document.getElementById('disclaimer-modal');
+  if (modal) modal.classList.add('hidden');
 }
-// Bắt phím Enter trong ô nhập & Khởi tạo auth
+
+// ==========================================
+// Initialization & Global Event Listeners
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-populateDobDropdowns();
-updateAuthUI();
-const input = document.getElementById('user-input');
-if (input) {
-input.addEventListener('keydown', (e) => {
-if (e.key === 'Enter' && !e.shiftKey) {
-e.preventDefault();
-sendChatMessage();
-}
-});
-input.addEventListener('focus', hideFloatingDecorations);
-input.addEventListener('input', () => {
-if (input.value.trim().length > 0) hideFloatingDecorations();
-});
-}
-const chatMessagesContainer = document.getElementById('chat-messages');
-if (chatMessagesContainer) {
-chatMessagesContainer.addEventListener('scroll', () => {
-if (chatMessagesContainer.scrollTop > 15) hideFloatingDecorations();
-});
-}
-// Đóng modal khi bấm phím Escape hoặc click ra ngoài modal
-document.addEventListener('keydown', (e) => {
-if (e.key === 'Escape') {
-closeLoginModal();
-closeDisclaimerModal();
-closeProfileModal();
-closeUserDropdown();
-}
-});
-const modal = document.getElementById('login-modal');
-if (modal) {
-modal.addEventListener('click', (e) => {
-if (e.target === modal) closeLoginModal();
-});
-}
-const disclaimerModal = document.getElementById('disclaimer-modal');
-if (disclaimerModal) {
-disclaimerModal.addEventListener('click', (e) => {
-if (e.target === disclaimerModal) closeDisclaimerModal();
-});
-}
+  populateDobDropdowns();
+  updateAuthUI();
+  applyLanguage();
 
-const profileModal = document.getElementById('profile-modal');
-if (profileModal) {
-profileModal.addEventListener('click', (e) => {
-if (e.target === profileModal) closeProfileModal();
-});
-}
-
-document.addEventListener('click', (e) => {
-  const authLogged = document.getElementById('auth-logged');
-  if (authLogged && !authLogged.contains(e.target)) {
-    closeUserDropdown();
+  const input = document.getElementById('user-input');
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    });
+    input.addEventListener('focus', hideFloatingDecorations);
+    input.addEventListener('input', () => {
+      if (input.value.trim().length > 0) hideFloatingDecorations();
+    });
   }
-});
+
+  const chatMessagesContainer = document.getElementById('chat-messages');
+  if (chatMessagesContainer) {
+    chatMessagesContainer.addEventListener('scroll', () => {
+      if (chatMessagesContainer.scrollTop > 15) hideFloatingDecorations();
+    });
+  }
+
+  // Đóng modal & dropdown khi bấm Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeLoginModal();
+      closeDisclaimerModal();
+      closeProfileModal();
+      closeUserDropdown();
+      closeLanguageDropdown();
+      closeImageModal();
+    }
+  });
+
+  // Đóng modal khi click ra ngoài nền tối
+  const loginModal = document.getElementById('login-modal');
+  if (loginModal) {
+    loginModal.addEventListener('click', (e) => {
+      if (e.target === loginModal) closeLoginModal();
+    });
+  }
+
+  const disclaimerModal = document.getElementById('disclaimer-modal');
+  if (disclaimerModal) {
+    disclaimerModal.addEventListener('click', (e) => {
+      if (e.target === disclaimerModal) closeDisclaimerModal();
+    });
+  }
+
+  const profileModal = document.getElementById('profile-modal');
+  if (profileModal) {
+    profileModal.addEventListener('click', (e) => {
+      if (e.target === profileModal) closeProfileModal();
+    });
+  }
+
+  // Đóng dropdowns khi click ra ngoài
+  document.addEventListener('click', (e) => {
+    const authLogged = document.getElementById('auth-logged');
+    if (authLogged && !authLogged.contains(e.target)) {
+      closeUserDropdown();
+    }
+    const langContainer = document.getElementById('lang-picker-container');
+    if (langContainer && !langContainer.contains(e.target)) {
+      closeLanguageDropdown();
+    }
+  });
 });

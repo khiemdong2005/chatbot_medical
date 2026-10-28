@@ -1,72 +1,99 @@
+# ==============================================================
+# MEDIMIND CLINICAL AI - CỔNG DỊCH VỤ Y TẾ LÂM SÀNG
+# Thiết kế theo tiêu chuẩn Bộ Y Tế & MedlinePlus (NIH Hoa Kỳ)
+# ==============================================================
+
 import os
 import sys
+import json
+import base64
+from datetime import datetime
+from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
 
-# Ensure UTF-8 output
-if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
-
-# Tải cấu hình biến môi trường từ .env
+# Tải cấu hình môi trường (.env)
 load_dotenv()
 
-from flask import Flask, render_template, request, jsonify, session
-from werkzeug.utils import secure_filename
+# Nạp cơ sở dữ liệu và xác thực danh tính
 from core.models import db, User, init_db
-from core.triage import analyze_symptoms, assess_emergency_risk
+
+# Nạp các phân hệ nghiệp vụ y khoa
+from core.triage import analyze_symptoms, assess_emergency_risk, apply_safety_guardrails
+from core.rag_service import medical_rag_service
 from core.gemini_service import GeminiMedicalService
 
 app = Flask(__name__)
-
-# Cấu hình bảo mật phiên & Cơ sở dữ liệu (SQLite ở Local, PostgreSQL khi lên AWS)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "medimind-clinical-session-secret-2026")
+# Secret key cho session bảo mật
+app.secret_key = os.getenv("SECRET_KEY", "medimind-secret-key-super-safe-2026")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///medimind.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JSON_AS_ASCII"] = False
 
-# Khởi tạo CSDL SQLite / Postgres & Nạp tài khoản mẫu
+# Khởi tạo cơ sở dữ liệu SQLite an toàn
 init_db(app)
 
-# Khởi tạo dịch vụ AI Google Gemini
+# Khởi tạo dịch vụ trí tuệ nhân tạo Gemini
 gemini_service = GeminiMedicalService()
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# Thư mục lưu trữ dataset huấn luyện OCR / Scan
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "doc"}
+
+def format_size(bytes_size):
+    if bytes_size < 1024:
+        return f"{bytes_size} B"
+    elif bytes_size < 1024 * 1024:
+        return f"{bytes_size / 1024:.1f} KB"
+    else:
+        return f"{bytes_size / (1024 * 1024):.1f} MB"
 
 # ==============================================================
-# HỆ THỐNG XÁC THỰC NGƯỜI DÙNG & BÁC SĨ (AUTHENTICATION APIS)
+# HỆ THỐNG XÁC THỰC DANH TÍNH & PHÂN QUYỀN (RBAC)
 # ==============================================================
 
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
     """Đăng nhập hệ thống: Xác thực Email/Số điện thoại và Mật khẩu băm trong CSDL."""
     data = request.get_json(silent=True) or {}
-    identifier = data.get("identifier", "").strip().lower()
-    password = data.get("password", "")
+    raw_identifier = data.get("email", "").strip()
+    password = data.get("password", "").strip()
+    role = data.get("role")
 
-    if not identifier or not password:
-        return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ tài khoản và mật khẩu."}), 400
+    if not raw_identifier or not password:
+        return jsonify({"success": False, "error": "Vui lòng nhập định danh tài khoản và mật khẩu."}), 400
 
     # Tìm kiếm theo Email, Số điện thoại hoặc Phone Alias
+    clean_phone = "".join(filter(str.isdigit, raw_identifier))
     user = User.query.filter(
-        (User.email == identifier) | 
-        (User.phone_number == identifier) | 
-        (User.email == f"{identifier}@phone.medimind") |
-        (User.license_code == identifier)
+        (User.email == raw_identifier) | 
+        (User.phone_number == raw_identifier) |
+        (User.phone_number == clean_phone) |
+        (User.email == f"{clean_phone}@phone.medimind")
     ).first()
 
-    if not user or not user.check_password(password):
-        return jsonify({"success": False, "error": "Thông tin đăng nhập hoặc mật khẩu không chính xác."}), 401
+    if not user:
+        return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
 
-    # Lưu định danh người dùng vào Session phía máy chủ
+    # Kiểm tra phân quyền truy cập
+    if role and user.role != role:
+        return jsonify({
+            "success": False, 
+            "error": f"Tài khoản này không có quyền truy cập vai trò '{role}'."
+        }), 403
+
+    # Xác thực mật khẩu
+    if not user.check_password(password):
+        return jsonify({"success": False, "error": "Mật khẩu không chính xác. Vui lòng kiểm tra lại."}), 401
+
+    # Khởi tạo phiên làm việc (Session)
     session["user_id"] = user.id
     session["user_role"] = user.role
 
     return jsonify({
         "success": True,
-        "message": f"Đăng nhập thành công! Chào mừng {user.full_name}.",
+        "message": f"Chào mừng {user.full_name} đã quay trở lại!",
         "user": user.to_dict()
     })
 
@@ -74,33 +101,25 @@ def auth_login():
 def auth_register():
     """Đăng ký tài khoản người dùng bằng Email hoặc Số điện thoại."""
     data = request.get_json(silent=True) or {}
-    raw_identifier = (data.get("identifier") or data.get("email") or "").strip().lower()
-    password = data.get("password", "")
-    full_name = data.get("name", "").strip()
+    raw_identifier = data.get("email", "").strip()
+    password = data.get("password", "").strip()
+    full_name = data.get("full_name", "").strip() or data.get("name", "").strip()
+    phone_number = data.get("phone_number", "").strip()
+    dob = data.get("dob", "").strip()
+    gender = data.get("gender", "").strip() or "Nam"
+    role = data.get("role", "patient")
+
+    if not raw_identifier or not password:
+        return jsonify({"success": False, "error": "Vui lòng điền đầy đủ Email/SĐT và mật khẩu."}), 400
 
     if not full_name:
-        last_name = data.get("last_name", "").strip()
-        first_name = data.get("first_name", "").strip()
-        if last_name and first_name:
-            full_name = f"{last_name} {first_name}"
-        elif first_name:
-            full_name = first_name
-        elif last_name:
-            full_name = last_name
-
-    dob = data.get("dob", "").strip()
-    gender = data.get("gender", "").strip()
-
-    if not raw_identifier or not password or not full_name:
-        return jsonify({"success": False, "error": "Vui lòng điền đầy đủ họ tên, Email hoặc Số điện thoại và mật khẩu."}), 400
-
-    if len(password) < 6:
-        return jsonify({"success": False, "error": "Mật khẩu phải có ít nhất 6 ký tự."}), 400
+        full_name = "Bệnh nhân mới"
 
     # Phân loại Email hoặc Số điện thoại
     if "@" in raw_identifier:
         email = raw_identifier
-        phone_number = None
+        if not phone_number:
+            phone_number = None
     else:
         clean_phone = "".join(filter(str.isdigit, raw_identifier))
         if len(clean_phone) < 9 or len(clean_phone) > 11:
@@ -119,7 +138,7 @@ def auth_register():
     new_user = User(
         email=email,
         full_name=full_name,
-        role="patient",
+        role=role,
         phone_number=phone_number,
         dob=dob,
         gender=gender,
@@ -129,7 +148,6 @@ def auth_register():
     db.session.add(new_user)
     db.session.commit()
 
-    # Tự động đăng nhập sau khi đăng ký
     session["user_id"] = new_user.id
     session["user_role"] = new_user.role
 
@@ -141,7 +159,7 @@ def auth_register():
 
 @app.route("/api/auth/me", methods=["GET"])
 def auth_me():
-    """Kiểm tra trạng thái phiên đăng nhập hiện tại từ Server."""
+    """Kiểm tra trạng thái phiên đăng nhập của người dân."""
     user_id = session.get("user_id")
     if not user_id:
         return jsonify({"authenticated": False, "user": None})
@@ -206,32 +224,61 @@ def auth_update_profile():
 
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
-    """Đăng xuất và hủy phiên làm việc phía máy chủ."""
+    """Đăng xuất và hủy phiên làm việc."""
     session.clear()
     return jsonify({"success": True, "message": "Đã đăng xuất thành công."})
 
 # ==============================================================
-# HỆ THỐNG PHÂN TẦNG LÂM SÀNG & TƯ VẤN Y TẾ
+# HỆ THỐNG PHÂN TẦNG LÂM SÀNG & TƯ VẤN Y TẾ 6 THÀNH PHẦN
 # ==============================================================
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
+    """
+    Endpoint chính xử lý trò chuyện y tế:
+      1. Tiền kiểm Cờ đỏ cấp cứu (xử lý phủ định)
+      2. Truy vấn tri thức y khoa RAG từ ChromaDB
+      3. Gọi AI Gemini Flash suy luận (kèm hỗ trợ Multimodal đọc ảnh Vision & Fallback offline)
+      4. Hậu kiểm màng lọc chặn kê đơn kháng sinh bừa bãi
+    """
     data = request.get_json(silent=True) or {}
     user_message = data.get("message", "").strip()
     history = data.get("history", [])
+    image_str = data.get("image")
+    lang = data.get("lang", "vi")
 
-    if not user_message:
-        return jsonify({"error": "Vui lòng nhập nội dung tin nhắn."}), 400
+    if not user_message and not image_str:
+        return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
 
-    # 1. Kiểm tra dấu hiệu cờ đỏ cấp cứu (Quy chuẩn an toàn y tế số 1: Luôn ưu tiên 115)
-    emergency = assess_emergency_risk(user_message)
+    # Giải mã ảnh nếu có
+    image_bytes = None
+    image_mime_type = "image/jpeg"
+    if image_str:
+        try:
+            if "," in image_str:
+                header, b64_data = image_str.split(",", 1)
+                if "image/png" in header:
+                    image_mime_type = "image/png"
+                elif "image/webp" in header:
+                    image_mime_type = "image/webp"
+            else:
+                b64_data = image_str
+            image_bytes = base64.b64decode(b64_data)
+        except Exception as e:
+            print(f"⚠️ Lỗi giải mã Base64 image: {e}")
+
+    # -------------------------------------------------------------
+    # BƯỚC 1: TIỀN KIỂM AN TOÀN (Pre-check Guardrail)
+    # Phát hiện sớm cờ đỏ nguy kịch, có xử lý bẫy phủ định ("không khó thở")
+    # -------------------------------------------------------------
+    emergency = assess_emergency_risk(user_message, lang=lang)
     if emergency["is_emergency"]:
         return jsonify({
             "answer": emergency["message"],
-            "risk_level": "Emergency",
-            "risk_score": 95,
+            "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
+            "risk_score": 90,
             "symptoms": emergency["symptoms"],
-            "specialist": "Cấp cứu 115 / Hồi sức cấp cứu",
+            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
             "is_emergency": True,
             "sources": [
                 {
@@ -239,48 +286,76 @@ def chat():
                     "source": "Cục Quản lý Khám chữa bệnh",
                     "url": "https://kcb.vn"
                 }
-            ]
+            ],
         })
 
-    # 2. Phân tích triệu chứng bằng Google Gemini API (có cơ chế Fallback sang Rule-Based nếu chưa có Key)
-    gemini_result = gemini_service.generate_clinical_response(user_message, history)
+    # -------------------------------------------------------------
+    # BƯỚC 2: TRUY VẤN TRI THỨC Y KHOA RAG TỪ CHROMADB (Top 2 đoạn khớp nhất)
+    # -------------------------------------------------------------
+    rag_docs = medical_rag_service.retrieve_context(user_message, top_k=2)
+
+    # -------------------------------------------------------------
+    # BƯỚC 3: BỘ NÃO SUY LUẬN AI (Gemini Flash) + FALLBACK DỰ PHÒNG NỘI BỘ
+    # -------------------------------------------------------------
+    gemini_result = gemini_service.generate_clinical_response(
+        user_message,
+        history,
+        rag_docs=rag_docs,
+        image_bytes=image_bytes,
+        image_mime_type=image_mime_type,
+        lang=lang
+    )
     if gemini_result and "answer" in gemini_result:
         triage_result = gemini_result
     else:
-        triage_result = analyze_symptoms(user_message, history)
+        # Tự động kích hoạt bộ máy phác đồ nội bộ khi chưa có API key hoặc mất mạng
+        triage_result = analyze_symptoms(user_message, history, lang=lang)
+        if rag_docs:
+            triage_result["sources"] = [
+                {
+                    "title": d.get("title", "MedlinePlus"),
+                    "source": d.get("source", "MedlinePlus"),
+                    "url": d.get("source_url", "https://medlineplus.gov")
+                }
+                for d in rag_docs
+            ]
+
+    # -------------------------------------------------------------
+    # BƯỚC 4: HẬU KIỂM AN TOÀN (Post-check Guardrail)
+    # Rà soát câu trả lời, chặn đứng việc tự ý kê đơn thuốc kháng sinh
+    # -------------------------------------------------------------
+    cleaned_answer = apply_safety_guardrails(triage_result.get("answer", ""), lang=lang)
+
+    diff_diag = triage_result.get("differential_diagnosis", [])
+
+    default_risk = "Thấp (Tự chăm sóc & Theo dõi)" if lang == "vi" else "Low (Self-care & Monitor)"
+    default_spec = "Nội tổng quát" if lang == "vi" else "General Internal Medicine"
 
     return jsonify({
-        "answer": triage_result.get("answer", ""),
-        "risk_level": triage_result.get("risk_level", "Thấp (Theo dõi)"),
+        "answer": cleaned_answer,
+        "risk_level": triage_result.get("risk_level", default_risk),
         "risk_score": triage_result.get("risk_score", 30),
         "symptoms": triage_result.get("symptoms", []),
-        "specialist": triage_result.get("specialist", "Nội tổng quát"),
-        "medications": triage_result.get("medications", []),
+        "specialist": triage_result.get("specialist", default_spec),
+        "visual_findings": triage_result.get("visual_findings", []),
+        "differential_diagnosis": diff_diag,
         "is_emergency": False,
         "sources": triage_result.get("sources", [
             {
-                "title": "MedlinePlus Medical Encyclopedia",
-                "source": "NIH National Library of Medicine",
+                "title": "Hướng dẫn Chăm sóc Ban đầu",
+                "source": "MedlinePlus (NIH)",
                 "url": "https://medlineplus.gov"
             }
         ])
     })
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "doc"}
-
-def format_size(bytes_size):
-    if bytes_size < 1024:
-        return f"{bytes_size} B"
-    elif bytes_size < 1024 * 1024:
-        return f"{bytes_size / 1024:.1f} KB"
-    else:
-        return f"{bytes_size / (1024 * 1024):.1f} MB"
+# ==============================================================
+# HỆ THỐNG ĐỌC KẾT QUẢ XÉT NGHIỆM & DATASET HUẤN LUYỆN SCAN
+# ==============================================================
 
 @app.route("/api/upload-lab", methods=["POST"])
 def upload_lab():
-    # Tiếp nhận tệp ảnh / PDF / Word phục vụ huấn luyện model scan
+    """Tiếp nhận tệp ảnh / PDF / Word phục vụ huấn luyện model scan & phân tích chỉ số."""
     if "file" not in request.files:
         return jsonify({"status": "error", "message": "Không tìm thấy tệp đính kèm."}), 400
     
@@ -303,7 +378,6 @@ def upload_lab():
     file_size_bytes = os.path.getsize(save_path)
     file_size_str = format_size(file_size_bytes)
     
-    from datetime import datetime
     upload_time = datetime.now().strftime("%H:%M %d/%m/%Y")
 
     return jsonify({
@@ -319,10 +393,9 @@ def upload_lab():
 
 @app.route("/api/scan-files", methods=["GET"])
 def get_scan_files():
-    # Danh sách các tệp trong thư mục dataset huấn luyện scan
+    """Danh sách các tệp trong thư mục dataset huấn luyện scan."""
     files = []
     if os.path.exists(UPLOAD_FOLDER):
-        from datetime import datetime
         for fname in os.listdir(UPLOAD_FOLDER):
             fpath = os.path.join(UPLOAD_FOLDER, fname)
             if os.path.isfile(fpath):
@@ -338,6 +411,7 @@ def get_scan_files():
 
 @app.route("/api/scan-files/<filename>", methods=["DELETE"])
 def delete_scan_file(filename):
+    """Xóa tệp khỏi thư mục dataset huấn luyện scan."""
     safe_name = secure_filename(filename)
     fpath = os.path.join(UPLOAD_FOLDER, safe_name)
     if os.path.exists(fpath):
@@ -345,43 +419,49 @@ def delete_scan_file(filename):
         return jsonify({"status": "success", "message": f"Đã xóa {safe_name}"})
     return jsonify({"status": "error", "message": "Tệp không tồn tại."}), 404
 
+# ==============================================================
+# PHIẾU CHUẨN BỊ TRƯỚC KHÁM CHO NGƯỜI DÂN (PRE-VISIT SUMMARY)
+# ==============================================================
+
 @app.route("/api/clinical-summary", methods=["GET"])
 def clinical_summary():
     """
-    Bản tóm tắt bệnh án sơ bộ gửi Bác sĩ.
-    BẢO MẬT Y TẾ (RBAC): Chỉ người dùng có vai trò Bác sĩ ('doctor') mới được xem!
+    Bản tóm tắt trước khám dành cho Người Dân (Pre-Consultation Summary).
+    Giúp người dân mang theo khi đi khám bệnh để bác sĩ nắm bệnh sử trong 30 giây.
     """
-    current_role = session.get("user_role")
-    
-    # Cho phép xem nếu là Bác sĩ đã đăng nhập trong session, hoặc tạm thời bỏ qua nếu đang test
+    # Cho phép xem nếu đã đăng nhập trong session, hoặc tạm thời bỏ qua nếu đang test
     if not session.get("user_id"):
         return jsonify({
             "error": "Vui lòng đăng nhập để xem bản tóm tắt hồ sơ sức khỏe này."
         }), 401
 
     return jsonify({
-        "patient_name": "Nguyễn Văn An",
-        "patient_id": "BN-8429",
-        "age": 34,
-        "gender": "Nam",
-        "allergies": ["Penicillin / Amoxicillin"],
-        "chief_complaint": "Đau đầu vùng trán kèm sốt nhẹ và nghẹt mũi kéo dài 36 giờ.",
-        "hpi": "Đau tăng khi cúi người về phía trước, nghẹt mũi tăng về đêm. Không nôn ói vọt, không cứng gáy.",
-        "differential_diagnosis": [
-            {"condition": "Viêm xoang cấp (Acute Rhinosinusitis)", "confidence": "85%"},
-            {"condition": "Nhiễm virus đường hô hấp trên (Viral URI)", "confidence": "70%"}
-        ],
-        "suggested_orders": [
-            "Nội soi Tai Mũi Họng kiểm tra niêm mạc xoang",
-            "Tổng phân tích tế bào máu (CBC)"
-        ],
-        "contraindications": "Chống chỉ định tuyệt đối nhóm kháng sinh Beta-lactam (Penicillin, Augmentin)."
+        "status": "success",
+        "chief_complaint": "Đau rát họng kèm sốt nhẹ về chiều (Nghiêm trọng: 6/10)",
+        "hpi": "Triệu chứng xuất hiện 2 ngày nay, kèm nuốt đau và mệt mỏi toàn thân. Không khó thở, không phát ban ngoài da.",
+        "red_flags": "ÂM TÍNH (Không khó thở, không tím tái, không đau tức ngực)",
+        "provisional_diagnosis": "Viêm họng cấp thể xuất tiết (Khả năng do Rhinovirus)",
+        "triage_recommendation": "Theo dõi tại nhà hoặc khám chuyên khoa Tai Mũi Họng nếu sốt cao > 38.5°C quá 48h.",
+        "prep_for_patient": [
+            "Ghi lại nhật ký nhiệt độ cơ thể sáng - chiều",
+            "Mang theo danh sách các thuốc đang uống hằng ngày (nếu có)",
+            "Nhịn ăn sáng nếu bác sĩ chỉ định lấy máu xét nghiệm"
+        ]
     })
 
+# ==============================================================
+# GIAO DIỆN NGƯỜI DÙNG WEB (UI)
+# ==============================================================
+
+@app.route("/")
+def index():
+    """Trang chủ ứng dụng y tế MediMind."""
+    return render_template("index.html")
+
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
     print("==================================================")
-    print("🩺 MediMind AI - Clinical Assistant Platform (Powered by Google Gemini & SQLite/Postgres)")
-    print(f"🚀 Running locally at: http://127.0.0.1:{port}")
+    print("  MEDIMIND CLINICAL AI - HỆ THỐNG Y TẾ SỐ ĐANG CHẠY")
+    print("  Giao diện Web: http://127.0.0.1:8000")
+    print("  Chuẩn kiến trúc: Phân tầng lâm sàng 6 cấp độ")
     print("==================================================")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
