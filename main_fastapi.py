@@ -256,21 +256,57 @@ async def chat_endpoint(req: ChatMessageRequest):
 # 3. ĐỌC KẾT QUẢ XÉT NGHIỆM & PHIẾU TÓM TẮT TRƯỚC KHÁM
 # ==============================================================================
 
-from core.prescription_service import get_preset_data
+from core.prescription_service import get_preset_data, analyze_uploaded_document
+
+UPLOAD_FOLDER = BASE_DIR / "uploads"
+UPLOAD_FOLDER.mkdir(exist_ok=True)
 
 @app.post("/api/prescription/scan", summary="Quét & Phân tích Đơn thuốc / Xét nghiệm AI", tags=["2. Đọc Đơn thuốc & Xét nghiệm"])
 async def scan_prescription_endpoint(request: Request):
-    """Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm qua AI."""
-    preset = request.query_params.get("preset", "throat")
-    try:
-        data = await request.json()
-        if data and "preset" in data:
-            preset = data["preset"]
-    except Exception:
-        pass
-    
-    result = get_preset_data(preset)
-    return JSONResponse(content=result)
+    """Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm qua mô hình Hybrid AI."""
+    content_type = request.headers.get("content-type", "")
+    preset = request.query_params.get("preset")
+
+    # 1. Trường hợp người dùng tải ảnh / file lên (FormData)
+    if "multipart/form-data" in content_type:
+        try:
+            form = await request.form()
+            uploaded_file = form.get("file")
+            if uploaded_file and hasattr(uploaded_file, "filename") and uploaded_file.filename:
+                filename = uploaded_file.filename
+                save_path = UPLOAD_FOLDER / filename
+                file_bytes = await uploaded_file.read()
+                with open(save_path, "wb") as f:
+                    f.write(file_bytes)
+                
+                try:
+                    result = analyze_uploaded_document(str(save_path), filename)
+                    return JSONResponse(content=result)
+                except Exception as scan_err:
+                    print(f'❌ [FastAPI Scan] Lỗi phân tích: {scan_err}')
+                    fallback = get_preset_data('binh_dan')
+                    fallback['uploaded_filename'] = filename
+                    return JSONResponse(content=fallback)
+
+            form_preset = form.get("preset")
+            if form_preset:
+                preset = form_preset
+        except Exception as e:
+            print(f"⚠️ [FastAPI Scan] Lỗi đọc FormData: {e}")
+
+    # 2. Trường hợp gửi JSON Body (chọn kịch bản mẫu Preset)
+    elif "application/json" in content_type:
+        try:
+            data = await request.json()
+            if isinstance(data, dict) and "preset" in data:
+                preset = data["preset"]
+        except Exception:
+            pass
+
+    if preset:
+        return JSONResponse(content=get_preset_data(preset))
+
+    return JSONResponse(content=get_preset_data("binh_dan"))
 
 @app.post("/api/upload-lab", summary="Giải thích Chỉ số Sinh hóa Máu", tags=["2. Đọc Đơn thuốc & Xét nghiệm"])
 async def upload_lab_endpoint():

@@ -38,3 +38,5 @@ uploads/*
 # AI Agent config
 .gemini/
 
+# Temporary scratch
+scratch/
