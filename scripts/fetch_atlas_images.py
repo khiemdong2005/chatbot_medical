@@ -6,7 +6,7 @@ import urllib.parse
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-ATLAS_DIR = Path(r"D:\Ki_6\Vide code\chatbot_medical\static\images\clinical_atlas")
+ATLAS_DIR = Path(__file__).resolve().parent.parent / "static" / "images" / "clinical_atlas"
 ATLAS_DIR.mkdir(parents=True, exist_ok=True)
 
 COMMONS_FILES = {

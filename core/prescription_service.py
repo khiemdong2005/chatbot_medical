@@ -13,9 +13,15 @@ if hasattr(sys.stdout, 'reconfigure'):
     except Exception:
         pass
 
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv(r'D:\Ki_6\Vide code\chatbot_medical\.env')
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AQ.Ab8RN6I50oFXXInGYPH055A7xGt0KqaJAbi6PsZiFY87F9Nxmw').strip()
+
+# Tự động nạp file .env từ thư mục gốc của dự án (Dynamic Portable Path)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv()
+
+GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
 
 
 def scan_prescription_with_gemini(file_path: str, original_filename: str = "") -> Optional[Dict[str, Any]]:
