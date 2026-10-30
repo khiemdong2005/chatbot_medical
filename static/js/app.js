@@ -247,9 +247,17 @@ function switchTab(tabId) {
   }
 
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  
+  // Top Navbar buttons
   document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.remove('bg-[#E0F2FE]', 'text-[#0284C7]', 'font-bold');
-    btn.classList.add('text-slate-600', 'font-medium');
+    btn.classList.remove('glass-pill-cyan-active', 'bg-white/20', 'text-white', 'font-bold', 'border', 'border-white/25', 'shadow-[0_0_15px_rgba(255,255,255,0.2)]');
+    btn.classList.add('text-slate-300', 'font-semibold');
+  });
+
+  // Floating Capsule Dock buttons
+  document.querySelectorAll('.dock-btn').forEach(btn => {
+    btn.classList.remove('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
+    btn.classList.add('text-white/60');
   });
 
   const activeTab = document.getElementById(tabId);
@@ -257,8 +265,14 @@ function switchTab(tabId) {
 
   const activeNav = document.getElementById('nav-' + tabId);
   if (activeNav) {
-    activeNav.classList.remove('text-slate-600', 'font-medium');
-    activeNav.classList.add('bg-[#E0F2FE]', 'text-[#0284C7]', 'font-bold');
+    activeNav.classList.remove('text-slate-300', 'font-semibold');
+    activeNav.classList.add('glass-pill-cyan-active', 'text-white', 'font-bold');
+  }
+
+  const activeDock = document.getElementById('dock-' + tabId);
+  if (activeDock) {
+    activeDock.classList.remove('text-white/60');
+    activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
   }
 }
 
@@ -310,7 +324,7 @@ async function sendChatMessage() {
 
   const userHtml = `
     <div class="flex flex-col items-end my-1">
-      <div class="w-fit max-w-[85%] bg-[#0284C7] text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium text-left break-words">
+      <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-lg shadow-sky-500/20 backdrop-blur-md leading-relaxed font-medium text-left break-words border border-white/20">
         ${userImgHtml}
         <div>${escapeHtml(text)}</div>
       </div>
@@ -327,11 +341,9 @@ async function sendChatMessage() {
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
     <div id="${typingId}" class="flex justify-start max-w-md">
-      <div class="bg-[#F1F5F9] border border-slate-200/80 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-600 flex items-center space-x-2 shadow-xs">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.15s"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.3s"></span>
-        <span class="pl-1.5 text-xs font-medium text-slate-500">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
+      <div class="glass-card border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-300 flex items-center space-x-2 shadow-lg backdrop-blur-xl bg-slate-900/60">
+        <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+        <span class="pl-1.5 text-xs font-medium text-slate-300">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
       </div>
     </div>
   `;
@@ -365,14 +377,14 @@ async function sendChatMessage() {
     let visualFindingsHtml = '';
     if (data.visual_findings && data.visual_findings.length > 0) {
       visualFindingsHtml = `
-        <div class="p-2.5 rounded-xl bg-sky-50/80 border border-sky-200/90 space-y-1.5">
-          <div class="text-[11px] font-bold text-[#0369A1] flex items-center space-x-1.5">
+        <div class="p-2.5 rounded-xl bg-sky-500/15 border border-sky-400/30 space-y-1.5">
+          <div class="text-[11px] font-bold text-sky-300 flex items-center space-x-1.5">
             <span>👁️</span>
             <span>Đặc điểm thị giác nhận định (Gemini Vision AI):</span>
           </div>
           <div class="flex flex-wrap gap-1.5 pt-0.5">
             ${data.visual_findings.map(f => `
-              <span class="text-[10px] font-medium bg-white text-slate-700 px-2 py-0.5 rounded-full border border-sky-200 shadow-2xs">
+              <span class="text-[10px] font-medium bg-slate-900/80 text-sky-200 px-2 py-0.5 rounded-full border border-sky-400/30 shadow-2xs">
                 ${escapeHtml(f)}
               </span>
             `).join('')}
@@ -385,8 +397,8 @@ async function sendChatMessage() {
     let emergencyBadge = '';
     if (data.is_emergency) {
       emergencyBadge = `
-        <div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs font-bold text-red-600 flex items-center space-x-2">
-          <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-rose-500/20 border border-rose-400/40 p-2.5 rounded-xl text-xs font-bold text-rose-300 flex items-center space-x-2 shadow-[0_0_15px_rgba(244,63,94,0.25)]">
+          <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
           </svg>
           <span>NGUY CẤP: GỌI 115 HOẶC ĐẾN CƠ SỞ CẤP CỨU GẦN NHẤT</span>
@@ -395,11 +407,11 @@ async function sendChatMessage() {
     }
 
     const botHtml = `
-      <div class="flex justify-start max-w-[90%] sm:max-w-xl">
-        <div class="bg-[#F1F5F9] border border-slate-200/80 p-4 rounded-2xl rounded-tl-sm text-sm text-slate-800 space-y-2.5 leading-relaxed shadow-xs w-full">
+      <div class="flex justify-start max-w-[95%] sm:max-w-xl">
+        <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-slate-900/75">
           ${emergencyBadge}
           ${visualFindingsHtml}
-          <div class="text-slate-800 font-normal">${formattedAnswer}</div>
+          <div class="text-slate-200 font-normal leading-relaxed">${formattedAnswer}</div>
         </div>
       </div>
     `;
@@ -437,7 +449,7 @@ function appendErrorMessage(msg) {
   const container = document.getElementById('chat-messages');
   if (!container) return;
   const errHtml = `
-    <div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs text-red-600 font-medium">
+    <div class="glass-card bg-rose-500/20 border border-rose-400/40 p-3 rounded-2xl text-xs text-rose-300 font-medium">
       ${escapeHtml(msg)}
     </div>
   `;
@@ -1292,25 +1304,25 @@ function renderPrescriptionResult(data) {
 
   if (isLab) {
     let html = `
-      <div class="bg-white/95 backdrop-blur-xl rounded-3xl p-6 border border-slate-200/80 shadow-xl shadow-sky-950/5 space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-100 gap-3">
+      <div class="glass-panel p-6 border border-white/10 bg-slate-900/80 backdrop-blur-2xl space-y-4 shadow-2xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-white/10 gap-3">
           <div>
             <div class="flex items-center space-x-2">
-              <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-sky-100 text-sky-900 uppercase">KẾT QUẢ XÉT NGHIỆM</span>
-              <span class="text-xs text-slate-400 font-mono">Ngày lập: <strong class="text-slate-700">${dateStr}</strong></span>
+              <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 uppercase">KẾT QUẢ XÉT NGHIỆM</span>
+              <span class="text-xs text-slate-400 font-mono">Ngày lập: <strong class="text-white">${dateStr}</strong></span>
             </div>
-            <h3 class="text-xl font-black text-slate-900 mt-1">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
-            <p class="text-xs text-slate-500 font-semibold mt-0.5">${patient} • ${doctor}</p>
+            <h3 class="text-xl font-black text-white mt-1">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+            <p class="text-xs text-slate-300 font-semibold mt-0.5">${patient} • ${doctor}</p>
           </div>
           <div class="flex items-center space-x-2">
-            <button onclick="window.print()" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer">In kết quả</button>
-            <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer">Quét tệp khác</button>
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl glass-pill text-slate-200 hover:text-white text-xs font-bold transition-all cursor-pointer">In kết quả</button>
+            <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold transition-all cursor-pointer shadow-lg shadow-sky-500/25">Quét tệp khác</button>
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/40">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
+            <thead class="bg-white/5 border-b border-white/10 text-slate-300 font-bold uppercase text-[10px]">
               <tr>
                 <th class="py-3 px-4">Chỉ số xét nghiệm</th>
                 <th class="py-3 px-4">Kết quả</th>
@@ -1319,16 +1331,16 @@ function renderPrescriptionResult(data) {
                 <th class="py-3 px-4">Lời khuyên</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-white/5">
               ${(data.metrics || []).map(m => `
-                <tr class="hover:bg-slate-50/70 transition-colors">
-                  <td class="py-3 px-4 font-bold text-slate-900">${m.name}</td>
-                  <td class="py-3 px-4 font-mono font-extrabold ${m.status === 'High' ? 'text-rose-600' : m.status === 'Low' ? 'text-sky-600' : 'text-slate-800'}">${m.value} <span class="text-[10px] text-slate-400 font-normal">${m.unit}</span></td>
+                <tr class="hover:bg-white/5 transition-colors">
+                  <td class="py-3 px-4 font-bold text-white">${m.name}</td>
+                  <td class="py-3 px-4 font-mono font-extrabold ${m.status === 'High' ? 'text-rose-400' : m.status === 'Low' ? 'text-sky-400' : 'text-emerald-400'}">${m.value} <span class="text-[10px] text-slate-400 font-normal">${m.unit}</span></td>
                   <td class="py-3 px-4 font-mono text-slate-400 text-[11px]">${m.reference} ${m.unit}</td>
                   <td class="py-3 px-4">
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black ${m.status === 'High' ? 'bg-rose-100 text-rose-800' : m.status === 'Low' ? 'bg-sky-100 text-sky-800' : 'bg-emerald-100 text-emerald-800'}">${m.status_label || m.status}</span>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black ${m.status === 'High' ? 'bg-rose-500/20 text-rose-300 border border-rose-400/30' : m.status === 'Low' ? 'bg-sky-500/20 text-sky-300 border border-sky-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'}">${m.status_label || m.status}</span>
                   </td>
-                  <td class="py-3 px-4 text-slate-600 text-[11px]">${m.advice || '---'}</td>
+                  <td class="py-3 px-4 text-slate-300 text-[11px]">${m.advice || '---'}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1367,46 +1379,46 @@ function renderPrescriptionResult(data) {
     <div class="space-y-4 font-sans select-none">
 
       <!-- 1. PATIENT & DIAGNOSIS GLASSMORPHIC HERO BAR -->
-      <div class="bg-gradient-to-r from-white via-sky-50/40 to-white backdrop-blur-xl rounded-3xl p-5 border border-sky-200/80 shadow-lg shadow-sky-500/5 transition-all">
+      <div class="glass-card p-5 border border-white/15 bg-slate-900/65 backdrop-blur-xl shadow-2xl transition-all">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           
           <div class="flex items-start sm:items-center space-x-3.5">
-            <div class="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-sky-600/25 shrink-0">
+            <div class="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
               ${patientInitials}
             </div>
             <div class="space-y-1 min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-100 text-sky-800 border border-sky-200">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
                   ĐƠN NGOẠI TRÚ
                 </span>
-                <span class="text-xs text-slate-400 font-mono">Ngày khám: <strong class="text-slate-800 font-bold">${dateStr}</strong></span>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span class="text-xs text-slate-400 font-mono">Ngày khám: <strong class="text-white font-bold">${dateStr}</strong></span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   Đợt dùng: ${duration}
                 </span>
               </div>
               <div class="flex items-baseline gap-2 pt-0.5">
-                <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5 truncate">
-                  <span class="text-sky-600 font-bold">🩺 Chẩn đoán:</span> ${diag}
+                <h2 class="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-1.5 truncate">
+                  <span class="text-sky-400 font-bold">🩺 Chẩn đoán:</span> ${diag}
                 </h2>
               </div>
-              <p class="text-xs text-slate-600 font-medium">
-                Bệnh nhân: <strong class="text-slate-900 font-bold">${patient}</strong>
-                ${address ? ` • <span class="text-slate-500 font-normal">${address}</span>` : ''}
-                ${doctor ? ` • Kê đơn: <strong class="text-slate-700">${doctor}</strong>` : ''}
+              <p class="text-xs text-slate-300 font-medium">
+                Bệnh nhân: <strong class="text-white font-bold">${patient}</strong>
+                ${address ? ` • <span class="text-slate-400 font-normal">${address}</span>` : ''}
+                ${doctor ? ` • Kê đơn: <strong class="text-slate-300">${doctor}</strong>` : ''}
               </p>
             </div>
           </div>
 
-          <div class="flex items-center space-x-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
-            <button onclick="askBotAboutPrescription()" class="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-sky-600/20 transition-all flex items-center space-x-2 cursor-pointer hover:scale-102">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <div class="flex items-center space-x-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/10">
+            <button onclick="askBotAboutPrescription()" class="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-2xl shadow-lg shadow-sky-500/25 transition-all flex items-center space-x-2 cursor-pointer hover:scale-102">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
               <span>Hỏi Bác sĩ AI</span>
             </button>
-            <button onclick="window.print()" class="px-3.5 py-2.5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-3xs">
-              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <button onclick="window.print()" class="px-3.5 py-2.5 rounded-2xl glass-pill text-slate-200 hover:text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
               <span class="hidden sm:inline">In đơn</span>
             </button>
-            <button onclick="resetPrescriptionScan()" class="px-3.5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-md">
+            <button onclick="resetPrescriptionScan()" class="px-3.5 py-2.5 rounded-2xl glass-card bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-white/10">
               <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span>Quét đơn khác</span>
             </button>
@@ -1414,38 +1426,38 @@ function renderPrescriptionResult(data) {
         </div>
       </div>
 
-      <!-- 2. SMART DOCTOR'S SAFETY ALERTS (ELEGANT & COLLAPSIBLE) -->
+      <!-- 2. SMART DOCTOR'S SAFETY ALERTS -->
       ${warnings.length > 0 ? `
-        <div class="bg-gradient-to-r from-amber-50/90 via-orange-50/60 to-amber-50/80 border border-amber-200/90 rounded-3xl p-4 shadow-sm transition-all">
+        <div class="glass-card p-4 border border-amber-400/40 bg-amber-950/25 text-amber-200 backdrop-blur-xl shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all">
           <div class="flex items-center justify-between cursor-pointer" onclick="toggleWarningDetails()">
             <div class="flex items-center space-x-2.5">
-              <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-amber-500/25">
+              <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-amber-500/25 border border-white/20">
                 ⚠️
               </span>
               <div>
-                <h4 class="text-xs font-black text-amber-950 uppercase tracking-tight">CHỈ DẪN AN TOÀN &amp; LƯU Ý BÁC SĨ:</h4>
-                <p class="text-[11px] text-amber-900 font-medium line-clamp-1">${warnings[0]}</p>
+                <h4 class="text-xs font-black text-amber-300 uppercase tracking-tight">CHỈ DẪN AN TOÀN &amp; LƯU Ý BÁC SĨ:</h4>
+                <p class="text-[11px] text-amber-200/90 font-medium line-clamp-1">${warnings[0]}</p>
               </div>
             </div>
-            <button id="btn-toggle-warnings" class="text-xs font-bold text-amber-800 hover:text-amber-950 transition-colors flex items-center space-x-1 shrink-0 px-2 py-1 rounded-lg hover:bg-amber-100/60">
+            <button id="btn-toggle-warnings" class="text-xs font-bold text-amber-300 hover:text-white transition-colors flex items-center space-x-1 shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/30">
               <span id="label-toggle-warnings">Xem tất cả (${warnings.length})</span>
               <svg id="icon-toggle-warnings" class="w-3.5 h-3.5 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
             </button>
           </div>
-          <div id="expanded-warning-list" class="hidden mt-3 pt-3 border-t border-amber-200/70 space-y-2">
-            <ul class="text-xs text-amber-950 font-medium space-y-2 pl-4 list-disc leading-relaxed">
+          <div id="expanded-warning-list" class="hidden mt-3 pt-3 border-t border-amber-400/20 space-y-2">
+            <ul class="text-xs text-amber-200 font-medium space-y-2 pl-4 list-disc leading-relaxed">
               ${warnings.map(w => `<li>${w}</li>`).join('')}
             </ul>
           </div>
         </div>
       ` : ''}
 
-      <!-- 3. REAL-TIME SMART HERO: CỮ THUỐC ĐANG ĐẾN / HIỆN TẠI (ACTION-FIRST UI) -->
-      <div id="smart-hero-dose-card" class="bg-gradient-to-br from-white via-sky-50/30 to-indigo-50/20 rounded-3xl p-6 border-2 border-sky-300/80 shadow-xl shadow-sky-500/10 space-y-5 transition-all relative overflow-hidden">
+      <!-- 3. REAL-TIME SMART HERO: CỮ THUỐC ĐANG ĐẾN / HIỆN TẠI -->
+      <div id="smart-hero-dose-card" class="glass-panel-elevated p-6 border border-sky-400/35 bg-slate-900/80 backdrop-blur-2xl shadow-[0_0_35px_rgba(56,189,248,0.15)] space-y-5 transition-all relative overflow-hidden">
         
-        <div class="absolute -right-16 -top-16 w-60 h-60 bg-sky-400/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -right-16 -top-16 w-60 h-60 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-sky-100 gap-3 relative z-10">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-3 relative z-10">
           <div class="flex items-center space-x-3">
             <span class="text-3xl">${smartSlot ? smartSlot.icon : '🕒'}</span>
             <div>
@@ -1454,22 +1466,22 @@ function renderPrescriptionResult(data) {
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-md">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 rounded-md">
                   ĐANG TRONG KHUNG GIỜ DÙNG THUỐC
                 </span>
               </div>
-              <h3 id="current-hero-slot-title" class="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">
-                ${smartSlot ? smartSlot.label : 'LỊCH UỐNG THUỐC'} <span class="text-xs sm:text-sm font-mono text-slate-500 font-bold">(${smartSlot ? smartSlot.time : ''})</span>
+              <h3 id="current-hero-slot-title" class="text-xl sm:text-2xl font-black text-white mt-0.5">
+                ${smartSlot ? smartSlot.label : 'LỊCH UỐNG THUỐC'} <span class="text-xs sm:text-sm font-mono text-slate-400 font-bold">(${smartSlot ? smartSlot.time : ''})</span>
               </h3>
             </div>
           </div>
 
           <div class="text-left sm:text-right space-y-1">
-            <div class="text-[11px] font-bold text-slate-600">
-              Tiến độ hôm nay: <span id="adherence-progress-text" class="font-mono font-extrabold text-sky-800">0/${activeSlots.length} cữ (0%)</span>
+            <div class="text-[11px] font-bold text-slate-300">
+              Tiến độ hôm nay: <span id="adherence-progress-text" class="font-mono font-extrabold text-sky-400">0/${activeSlots.length} cữ (0%)</span>
             </div>
-            <div class="w-36 sm:w-44 h-2.5 bg-slate-200 rounded-full overflow-hidden">
-              <div id="adherence-progress-bar" class="h-full bg-gradient-to-r from-sky-500 to-emerald-500 rounded-full transition-all duration-500 w-0"></div>
+            <div class="w-36 sm:w-44 h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/10">
+              <div id="adherence-progress-bar" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full transition-all duration-500 w-0"></div>
             </div>
           </div>
         </div>
@@ -1479,7 +1491,7 @@ function renderPrescriptionResult(data) {
         </div>
 
         <div class="pt-2 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <button id="btn-hero-complete" onclick="toggleHeroSlotCompletion('${smartSlot ? smartSlot.id : ''}', this)" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center space-x-2.5 cursor-pointer hover:scale-102">
+          <button id="btn-hero-complete" onclick="toggleHeroSlotCompletion('${smartSlot ? smartSlot.id : ''}', this)" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center space-x-2.5 cursor-pointer hover:scale-102 border border-white/20">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
             <span id="btn-hero-complete-text">XÁC NHẬN ĐÃ UỐNG XONG CỮ NÀY</span>
           </button>
@@ -1491,21 +1503,21 @@ function renderPrescriptionResult(data) {
       </div>
 
       <!-- 4. INTERACTIVE TIMELINE SELECTOR & TỦ THUỐC -->
-      <div class="bg-white rounded-3xl p-5 border border-slate-200/90 shadow-sm space-y-4">
+      <div class="glass-panel p-5 border border-white/10 bg-slate-900/75 space-y-4">
         
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-3">
-          <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
-            <button id="tab-nav-schedule" onclick="switchPrescriptionMainTab('schedule')" class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-900 shadow-sm cursor-pointer">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-3">
+          <div class="flex flex-wrap items-center gap-1.5 p-1 glass-dock rounded-2xl">
+            <button id="tab-nav-schedule" onclick="switchPrescriptionMainTab('schedule')" class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer">
               🕒 Lộ trình trong ngày
             </button>
-            <button id="tab-nav-formulary" onclick="switchPrescriptionMainTab('formulary')" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-500 hover:text-slate-900 cursor-pointer">
+            <button id="tab-nav-formulary" onclick="switchPrescriptionMainTab('formulary')" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer">
               💊 Tủ thuốc &amp; Dược thư (${meds.length} loại)
             </button>
           </div>
 
           <div id="quick-slot-switcher" class="flex flex-wrap items-center gap-1.5">
             ${activeSlots.map(s => `
-              <button id="pill-slot-${s.id}" onclick="selectSpecificSlot('${s.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer ${s.id === currentSelectedSlotId ? 'bg-sky-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              <button id="pill-slot-${s.id}" onclick="selectSpecificSlot('${s.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer ${s.id === currentSelectedSlotId ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 border border-white/20' : 'glass-pill text-slate-300 hover:text-white'}">
                 <span>${s.icon}</span>
                 <span>${s.label.replace('BUỔI ', '')}</span>
                 <span class="font-mono text-[10px] opacity-80">(${s.items.length})</span>
@@ -1525,31 +1537,31 @@ function renderPrescriptionResult(data) {
         <div id="content-tab-formulary" class="hidden space-y-3">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${meds.map((m, idx) => `
-              <div class="bg-gradient-to-br from-slate-50/70 to-white rounded-2xl p-4 border border-slate-200/90 hover:border-sky-300 hover:shadow-md transition-all space-y-2.5">
+              <div class="glass-card rounded-2xl p-4 border border-white/10 hover:border-sky-400/50 bg-slate-900/60 transition-all space-y-2.5">
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex items-center space-x-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-mono font-black text-xs shrink-0">
+                    <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center font-mono font-black text-xs shrink-0 border border-sky-400/30">
                       ${idx + 1}
                     </div>
                     <div>
-                      <h4 class="text-sm font-black text-slate-900">${m.name}</h4>
-                      <p class="text-[11px] font-mono text-slate-500 font-semibold">${m.ingredient || ''}</p>
+                      <h4 class="text-sm font-black text-white">${m.name}</h4>
+                      <p class="text-[11px] font-mono text-slate-400 font-semibold">${m.ingredient || ''}</p>
                     </div>
                   </div>
-                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-800 border border-sky-200 shrink-0">
+                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 shrink-0">
                     ${m.category || 'Thuốc kê đơn'}
                   </span>
                 </div>
 
-                <div class="text-xs text-slate-700 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-slate-100">
-                  <span class="font-black text-slate-900">Mục đích điều trị:</span> ${m.purpose}
+                <div class="text-xs text-slate-300 leading-relaxed glass-card p-2.5 rounded-xl border border-white/5 bg-white/5">
+                  <span class="font-black text-white">Mục đích điều trị:</span> ${m.purpose}
                 </div>
 
-                <div class="text-xs text-teal-900 font-bold bg-teal-50 border border-teal-200 rounded-xl p-2.5 leading-relaxed flex items-center justify-between gap-2">
+                <div class="text-xs text-teal-200 font-bold bg-teal-500/15 border border-teal-400/30 rounded-xl p-2.5 leading-relaxed flex items-center justify-between gap-2">
                   <div>
                     <span class="font-extrabold">Cách dùng:</span> ${m.usage}
                   </div>
-                  <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-700 hover:text-sky-900 underline font-extrabold whitespace-nowrap cursor-pointer">
+                  <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-400 hover:text-sky-300 underline font-extrabold whitespace-nowrap cursor-pointer">
                     Hỏi AI →
                   </button>
                 </div>
@@ -1563,13 +1575,13 @@ function renderPrescriptionResult(data) {
       <!-- 5. BOTTOM UTILITIES -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
         <div class="flex items-center space-x-2">
-          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-3xs flex items-center space-x-2 cursor-pointer">
-            <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-2xl glass-pill hover:bg-white/15 text-slate-200 text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer border border-white/10">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             <span>Nhắc nhở uống thuốc định kỳ</span>
           </button>
         </div>
 
-        <button onclick="resetPrescriptionScan()" class="text-xs font-extrabold text-slate-500 hover:text-slate-900 transition-colors cursor-pointer">
+        <button onclick="resetPrescriptionScan()" class="text-xs font-extrabold text-slate-400 hover:text-white transition-colors cursor-pointer">
           ← Tải lên đơn thuốc khác
         </button>
       </div>
@@ -1584,7 +1596,7 @@ function renderPrescriptionResult(data) {
 // Render the checklist inside the Smart Hero card
 function renderSlotPillChecklist(slot) {
   if (!slot || !slot.items || slot.items.length === 0) {
-    return `<div class="p-4 rounded-2xl bg-slate-50 text-center text-xs text-slate-500 font-medium">Không có thuốc chỉ định ở cữ này</div>`;
+    return `<div class="p-4 rounded-2xl glass-card text-center text-xs text-slate-400 font-medium">Không có thuốc chỉ định ở cữ này</div>`;
   }
 
   const beforeMeal = slot.items.filter(it => (it.note || '').toLowerCase().includes('trước'));
@@ -1595,20 +1607,20 @@ function renderSlotPillChecklist(slot) {
     <!-- BEFORE MEAL -->
     ${beforeMeal.length > 0 ? `
       <div class="space-y-2">
-        <div class="text-[10px] font-black uppercase tracking-wider text-amber-950 bg-amber-100 border border-amber-300/80 px-2.5 py-0.5 rounded-lg inline-flex items-center">
-          <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5 animate-pulse"></span>UỐNG TRƯỚC KHI ĂN (30 PHÚT)
+        <div class="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 border border-amber-400/30 px-2.5 py-0.5 rounded-lg inline-flex items-center">
+          <span class="w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>UỐNG TRƯỚC KHI ĂN (30 PHÚT)
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           ${beforeMeal.map((m, idx) => `
-            <div class="flex items-center justify-between p-3 rounded-2xl bg-amber-50/70 border border-amber-200/90 text-xs shadow-3xs hover:bg-amber-100/50 transition-colors">
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-amber-400/30 bg-amber-950/20 text-xs hover:border-amber-400/60 transition-colors">
               <div class="flex items-center space-x-2.5 min-w-0">
-                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-amber-300 cursor-pointer">
+                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 border-amber-400/50 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-slate-900 leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-amber-800 font-bold">${m.tag || 'Trước ăn'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
+                  <span class="text-[10px] text-amber-300 font-bold">${m.tag || 'Trước ăn'}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-amber-950 bg-amber-200 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-amber-200 bg-amber-500/30 border border-amber-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
             </div>
           `).join('')}
         </div>
@@ -1618,20 +1630,20 @@ function renderSlotPillChecklist(slot) {
     <!-- AFTER MEAL -->
     ${afterMeal.length > 0 ? `
       <div class="space-y-2 mt-2">
-        <div class="text-[10px] font-black uppercase tracking-wider text-teal-950 bg-teal-100 border border-teal-300/80 px-2.5 py-0.5 rounded-lg inline-flex items-center">
-          <span class="w-2 h-2 rounded-full bg-teal-500 mr-1.5 animate-pulse"></span>UỐNG SAU KHI ĂN NO
+        <div class="text-[10px] font-black uppercase tracking-wider text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2.5 py-0.5 rounded-lg inline-flex items-center">
+          <span class="w-2 h-2 rounded-full bg-sky-400 mr-1.5 animate-pulse"></span>UỐNG SAU KHI ĂN NO
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           ${afterMeal.map((m, idx) => `
-            <div class="flex items-center justify-between p-3 rounded-2xl bg-white border border-slate-200/90 text-xs shadow-3xs hover:bg-slate-50 transition-colors">
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-white/10 bg-slate-900/50 text-xs hover:border-sky-400/50 transition-colors">
               <div class="flex items-center space-x-2.5 min-w-0">
-                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300 cursor-pointer">
+                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-sky-500 focus:ring-sky-400 border-white/20 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-slate-900 leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-slate-500 font-bold">${m.tag || 'Sau ăn'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
+                  <span class="text-[10px] text-slate-400 font-bold">${m.tag || 'Sau ăn'}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-teal-950 bg-teal-100 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-sky-200 bg-sky-500/30 border border-sky-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
             </div>
           `).join('')}
         </div>
@@ -1641,20 +1653,20 @@ function renderSlotPillChecklist(slot) {
     <!-- EXTERNAL APPLICATION (XOA BÓP NGOÀI DA) -->
     ${externalPills.length > 0 ? `
       <div class="space-y-2 mt-2">
-        <div class="text-[10px] font-black uppercase tracking-wider text-purple-950 bg-purple-100 border border-purple-300/80 px-2.5 py-0.5 rounded-lg inline-flex items-center">
-          <span class="w-2 h-2 rounded-full bg-purple-500 mr-1.5 animate-pulse"></span>CHẾ PHẨM DÙNG NGOÀI DA (TUYỆT ĐỐI KHÔNG UỐNG)
+        <div class="text-[10px] font-black uppercase tracking-wider text-purple-300 bg-purple-500/20 border border-purple-400/30 px-2.5 py-0.5 rounded-lg inline-flex items-center">
+          <span class="w-2 h-2 rounded-full bg-purple-400 mr-1.5 animate-pulse"></span>CHẾ PHẨM DÙNG NGOÀI DA (TUYỆT ĐỐI KHÔNG UỐNG)
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           ${externalPills.map((m, idx) => `
-            <div class="flex items-center justify-between p-3 rounded-2xl bg-purple-50/70 border border-purple-200 text-xs shadow-3xs">
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-purple-400/30 bg-purple-950/20 text-xs hover:border-purple-400/60 transition-colors">
               <div class="flex items-center space-x-2.5 min-w-0">
-                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-purple-300 cursor-pointer">
+                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-purple-500 focus:ring-purple-400 border-purple-400/50 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-slate-900 leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-purple-700 font-bold">${m.note || 'Xoa lưng đau'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
+                  <span class="text-[10px] text-purple-300 font-bold">${m.note || 'Xoa lưng đau'}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-purple-950 bg-purple-200 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-purple-200 bg-purple-500/30 border border-purple-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
             </div>
           `).join('')}
         </div>
@@ -1666,16 +1678,16 @@ function renderSlotPillChecklist(slot) {
 // Render full view when clicking a specific slot tab
 function renderSelectedSlotFullView(slot) {
   return `
-    <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-200/70">
+    <div class="p-4 sm:p-5 rounded-2xl border border-white/10 glass-card bg-slate-900/60 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
         <div class="flex items-center space-x-2.5">
           <span class="text-2xl">${slot.icon}</span>
           <div>
-            <h4 class="text-sm font-black text-slate-900">${slot.label}</h4>
-            <p class="text-xs text-slate-500 font-mono">${slot.time}</p>
+            <h4 class="text-sm font-black text-white">${slot.label}</h4>
+            <p class="text-xs text-slate-400 font-mono">${slot.time}</p>
           </div>
         </div>
-        <span class="text-xs font-mono font-black px-3 py-1 rounded-full bg-sky-100 text-sky-800">
+        <span class="text-xs font-mono font-black px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
           ${slot.items.length} loại thuốc
         </span>
       </div>
@@ -1708,14 +1720,14 @@ function toggleHeroSlotCompletion(slotId, btnEl) {
 
   const btnText = document.getElementById('btn-hero-complete-text');
   if (isDone) {
-    btnEl.className = 'w-full sm:w-auto px-8 py-3.5 bg-emerald-800 text-white text-sm font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2.5 cursor-pointer';
+    btnEl.className = 'w-full sm:w-auto px-8 py-3.5 bg-emerald-800 text-white text-sm font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2.5 cursor-pointer border border-emerald-500/30';
     if (btnText) {
       const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
       btnText.innerText = `✓ ĐÃ HOÀN THÀNH CỮ NÀY LÚC ${nowStr}`;
     }
     showMedicalToast(`Tuyệt vời! Bạn đã hoàn thành cữ thuốc.`, 'success');
   } else {
-    btnEl.className = 'w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center space-x-2.5 cursor-pointer';
+    btnEl.className = 'w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center space-x-2.5 cursor-pointer hover:scale-102 border border-white/20';
     if (btnText) btnText.innerText = 'XÁC NHẬN ĐÃ UỐNG XONG CỮ NÀY';
   }
 
@@ -1765,14 +1777,14 @@ function switchPrescriptionMainTab(tab) {
     if (schedTab) schedTab.classList.remove('hidden');
     if (formTab) formTab.classList.add('hidden');
     if (quickSwitcher) quickSwitcher.classList.remove('hidden');
-    if (navSched) navSched.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-900 shadow-sm cursor-pointer';
-    if (navForm) navForm.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-500 hover:text-slate-900 cursor-pointer';
+    if (navSched) navSched.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer';
+    if (navForm) navForm.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer';
   } else {
     if (schedTab) schedTab.classList.add('hidden');
     if (formTab) formTab.classList.remove('hidden');
     if (quickSwitcher) quickSwitcher.classList.add('hidden');
-    if (navSched) navSched.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-500 hover:text-slate-900 cursor-pointer';
-    if (navForm) navForm.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-900 shadow-sm cursor-pointer';
+    if (navSched) navSched.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer';
+    if (navForm) navForm.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer';
   }
 }
 
@@ -1793,9 +1805,9 @@ function selectSpecificSlot(slotId) {
     const pill = document.getElementById(`pill-slot-${s.id}`);
     if (pill) {
       if (s.id === slotId) {
-        pill.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer bg-sky-600 text-white shadow-xs';
+        pill.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer bg-sky-500 text-white shadow-lg shadow-sky-500/30 border border-white/20';
       } else {
-        pill.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200';
+        pill.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer glass-pill text-slate-300 hover:text-white';
       }
     }
   });

@@ -1,18 +1,29 @@
-/* MediMind Clinical AI - High-Trust Clinical SaaS Theme */
-/* Color Palette: Ocean Blue (#0284C7), Deep Navy (#0F2942), Slate (#0F172A), Emerald (#10B981) */
+/* ==============================================================================
+   MediMind Clinical AI - Spatial Glassmorphism & Liquid Dark Glass Design System
+   Inspired by: Glassy Dashboard V5 (Apple VisionOS & Next-Gen Cyber-Clinical UI)
+   ============================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-page: #F8FAFC;
-  --primary-blue: #0284C7;
-  --primary-blue-hover: #0369A1;
-  --primary-blue-light: #E0F2FE;
-  --primary-navy: #0F2942;
-  --navy-dark: #0A192F;
-  --text-dark: #0F172A;
+  --bg-deep: #07090e;
+  --bg-surface: rgba(15, 23, 42, 0.55);
+  --bg-surface-elevated: rgba(30, 41, 59, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-hover: rgba(56, 189, 248, 0.45);
+  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.22);
+  --glass-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.65), 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  
+  --neon-cyan: #38BDF8;
+  --neon-cyan-glow: 0 0 20px rgba(56, 189, 248, 0.4);
+  --neon-emerald: #10B981;
+  --neon-emerald-glow: 0 0 20px rgba(16, 185, 129, 0.4);
+  --neon-amber: #F59E0B;
+  --neon-amber-glow: 0 0 20px rgba(245, 158, 11, 0.4);
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --card-border: #E2E8F0;
 }
 
 * {
@@ -21,37 +32,132 @@
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg-page);
+  background-color: var(--bg-deep);
+  /* Cinematic Twilight Horizon & Luxury Penthouse Glass View */
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 15%, rgba(14, 165, 233, 0.07) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(15, 41, 66, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 15% 90%, rgba(2, 132, 199, 0.06) 0%, transparent 35%);
+    radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.16) 0%, transparent 40%),
+    radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.10) 0%, transparent 40%),
+    linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%);
   background-attachment: fixed;
-  color: var(--text-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-/* Custom Minimalist Clinical Scrollbar */
+/* ==============================================================================
+   SPATIAL GLASSMORPHISM & LIQUID GLASS COMPONENTS
+   ============================================================================== */
+
+.glass-panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular), var(--glass-shadow);
+  border-radius: 28px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.glass-panel-elevated {
+  background: rgba(18, 26, 46, 0.65);
+  backdrop-filter: blur(36px) saturate(200%);
+  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3), 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+  border-radius: 32px;
+}
+
+.glass-dock {
+  background: rgba(10, 15, 28, 0.65);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.2), 0 20px 45px rgba(0, 0, 0, 0.65);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 16px rgba(56, 189, 248, 0.25);
+  transform: translateY(-1px);
+}
+
+.glass-pill-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0F172A !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 800 !important;
+}
+
+.glass-pill-cyan-active {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(56, 189, 248, 0.8) !important;
+  box-shadow: 0 0 22px rgba(14, 165, 233, 0.45) !important;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Glass input fields */
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F8FAFC;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+}
+
+/* Minimalist Futuristic Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #0284C7;
+  background: rgba(56, 189, 248, 0.5);
 }
 
-/* Hide scrollbar for clean horizontal pill carousels */
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -64,54 +170,31 @@ body {
 .tab-content {
   display: none !important;
 }
-
 .tab-content.active {
   display: flex !important;
 }
 
-/* Modern Card Depth & Soft Elevating Shadows */
-.floating-medical-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 20px 45px -12px rgba(2, 132, 199, 0.12), 0 4px 16px -2px rgba(15, 23, 42, 0.04);
-}
-
-.floating-chip {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.10), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-}
-
-/* Heartbeat ECG line animation */
+/* Animated ECG Pulse Wave */
 @keyframes ecgPulse {
   0% { stroke-dashoffset: 80; }
   50% { stroke-dashoffset: 0; }
   100% { stroke-dashoffset: -80; }
 }
-
 .ecg-line {
   stroke-dasharray: 80;
   animation: ecgPulse 3.5s ease-in-out infinite;
 }
 
-/* Ambient glow accents */
-.ambient-glow-blue {
-  position: absolute;
-  pointer-events: none;
-  filter: blur(80px);
-  z-index: 0;
-  opacity: 0.6;
+/* Subtle Breathing Glow Animation */
+@keyframes breathingGlow {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.05); }
+}
+.ambient-breath {
+  animation: breathingGlow 8s ease-in-out infinite;
 }
 
-/* Button & Card Micro-Interactions */
+/* Button & Micro-Interactions */
 button:active:not(:disabled), .btn-interactive:active {
-  transform: scale(0.98);
-}
-
-.card-hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-}
-.card-hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.08);
+  transform: scale(0.97);
 }
