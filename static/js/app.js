@@ -341,7 +341,7 @@ async function sendChatMessage() {
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
     <div id="${typingId}" class="flex justify-start max-w-md">
-      <div class="glass-card border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-300 flex items-center space-x-2 shadow-lg backdrop-blur-xl bg-slate-900/60">
+      <div class="glass-card border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-300 flex items-center space-x-2 shadow-lg backdrop-blur-xl bg-white/[0.05]">
         <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
         <span class="pl-1.5 text-xs font-medium text-slate-300">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
       </div>
@@ -384,7 +384,7 @@ async function sendChatMessage() {
           </div>
           <div class="flex flex-wrap gap-1.5 pt-0.5">
             ${data.visual_findings.map(f => `
-              <span class="text-[10px] font-medium bg-slate-900/80 text-sky-200 px-2 py-0.5 rounded-full border border-sky-400/30 shadow-2xs">
+              <span class="text-[10px] font-medium bg-white/[0.06] text-sky-200 px-2 py-0.5 rounded-full border border-sky-400/30 shadow-2xs">
                 ${escapeHtml(f)}
               </span>
             `).join('')}
@@ -408,7 +408,7 @@ async function sendChatMessage() {
 
     const botHtml = `
       <div class="flex justify-start max-w-[95%] sm:max-w-xl">
-        <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-slate-900/75">
+        <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
           ${emergencyBadge}
           ${visualFindingsHtml}
           <div class="text-slate-200 font-normal leading-relaxed">${formattedAnswer}</div>
@@ -1304,7 +1304,7 @@ function renderPrescriptionResult(data) {
 
   if (isLab) {
     let html = `
-      <div class="glass-panel p-6 border border-white/10 bg-slate-900/80 backdrop-blur-2xl space-y-4 shadow-2xl">
+      <div class="glass-panel p-6 border border-white/10 bg-white/[0.06] backdrop-blur-2xl space-y-4 shadow-2xl">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-white/10 gap-3">
           <div>
             <div class="flex items-center space-x-2">
@@ -1320,7 +1320,7 @@ function renderPrescriptionResult(data) {
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/40">
+        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.03]">
           <table class="w-full text-left text-xs">
             <thead class="bg-white/5 border-b border-white/10 text-slate-300 font-bold uppercase text-[10px]">
               <tr>
@@ -1379,7 +1379,7 @@ function renderPrescriptionResult(data) {
     <div class="space-y-4 font-sans select-none">
 
       <!-- 1. PATIENT & DIAGNOSIS GLASSMORPHIC HERO BAR -->
-      <div class="glass-card p-5 border border-white/15 bg-slate-900/65 backdrop-blur-xl shadow-2xl transition-all">
+      <div class="glass-card p-5 border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-2xl transition-all">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           
           <div class="flex items-start sm:items-center space-x-3.5">
@@ -1453,7 +1453,7 @@ function renderPrescriptionResult(data) {
       ` : ''}
 
       <!-- 3. REAL-TIME SMART HERO: CỮ THUỐC ĐANG ĐẾN / HIỆN TẠI -->
-      <div id="smart-hero-dose-card" class="glass-panel-elevated p-6 border border-sky-400/35 bg-slate-900/80 backdrop-blur-2xl shadow-[0_0_35px_rgba(56,189,248,0.15)] space-y-5 transition-all relative overflow-hidden">
+      <div id="smart-hero-dose-card" class="glass-panel-elevated p-6 border border-sky-400/35 bg-white/[0.06] backdrop-blur-2xl shadow-[0_0_35px_rgba(56,189,248,0.15)] space-y-5 transition-all relative overflow-hidden">
         
         <div class="absolute -right-16 -top-16 w-60 h-60 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -1503,7 +1503,7 @@ function renderPrescriptionResult(data) {
       </div>
 
       <!-- 4. INTERACTIVE TIMELINE SELECTOR & TỦ THUỐC -->
-      <div class="glass-panel p-5 border border-white/10 bg-slate-900/75 space-y-4">
+      <div class="glass-panel p-5 border border-white/10 bg-white/[0.06] space-y-4">
         
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-3">
           <div class="flex flex-wrap items-center gap-1.5 p-1 glass-dock rounded-2xl">
@@ -1537,7 +1537,7 @@ function renderPrescriptionResult(data) {
         <div id="content-tab-formulary" class="hidden space-y-3">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${meds.map((m, idx) => `
-              <div class="glass-card rounded-2xl p-4 border border-white/10 hover:border-sky-400/50 bg-slate-900/60 transition-all space-y-2.5">
+              <div class="glass-card rounded-2xl p-4 border border-white/10 hover:border-sky-400/50 bg-white/[0.05] transition-all space-y-2.5">
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex items-center space-x-2.5">
                     <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center font-mono font-black text-xs shrink-0 border border-sky-400/30">
@@ -1635,7 +1635,7 @@ function renderSlotPillChecklist(slot) {
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           ${afterMeal.map((m, idx) => `
-            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-white/10 bg-slate-900/50 text-xs hover:border-sky-400/50 transition-colors">
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-white/10 bg-white/[0.04] text-xs hover:border-sky-400/50 transition-colors">
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-sky-500 focus:ring-sky-400 border-white/20 bg-slate-900 cursor-pointer">
                 <div class="truncate">
@@ -1678,7 +1678,7 @@ function renderSlotPillChecklist(slot) {
 // Render full view when clicking a specific slot tab
 function renderSelectedSlotFullView(slot) {
   return `
-    <div class="p-4 sm:p-5 rounded-2xl border border-white/10 glass-card bg-slate-900/60 space-y-4">
+    <div class="p-4 sm:p-5 rounded-2xl border border-white/10 glass-card bg-white/[0.05] space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-white/10">
         <div class="flex items-center space-x-2.5">
           <span class="text-2xl">${slot.icon}</span>
@@ -1844,13 +1844,13 @@ function askBotAboutSpecificMedicine(medName) {
 }
 
 // ==============================================================================
-// CLINICAL AMBIENT WALLPAPER CYCLER (High-Tech Medical Scenery)
+// CLINICAL AMBIENT WALLPAPER CYCLER (High-Tech Medical Scenery & VisionOS)
 // ==============================================================================
 const medicalWallpapers = [
-  { id: 'corridor', name: 'Hành lang Bệnh viện thông minh', url: '/static/images/bg_hospital_corridor.jpg' },
-  { id: 'surgery', name: 'Phòng Phẫu thuật Kỹ thuật cao', url: '/static/images/bg_operating_theater.jpg' },
-  { id: 'lab', name: 'Viện Nghiên cứu Y sinh & Dược học', url: '/static/images/bg_medical_lab.jpg' },
-  { id: 'atrium', name: 'Đại sảnh Y khoa Kính Hiện đại', url: '/static/images/bg_clinical_atrium.jpg' }
+  { id: 'bright_hospital', name: 'Bệnh viện Quốc tế Ánh sáng Tự nhiên (Daylight Atrium)', url: '/static/images/bg_bright_hospital.jpg' },
+  { id: 'bright_research', name: 'Viện Nghiên cứu Y học Ánh sáng Tự nhiên', url: '/static/images/bg_bright_research.jpg' },
+  { id: 'bright_clinic', name: 'Phòng khám Lâm sàng Hiện đại & Tiện nghi', url: '/static/images/bg_bright_clinic.jpg' },
+  { id: 'panoramic_lounge', name: 'Không gian Panoramic Glass V5 (Apple VisionOS)', url: '/static/images/bg_panoramic_lounge.jpg' }
 ];
 
 let currentWallpaperIndex = 0;
@@ -1858,12 +1858,28 @@ let currentWallpaperIndex = 0;
 function cycleMedicalWallpaper() {
   currentWallpaperIndex = (currentWallpaperIndex + 1) % medicalWallpapers.length;
   const wp = medicalWallpapers[currentWallpaperIndex];
-  document.body.style.backgroundImage = `
-    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%),
-    radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.14) 0%, transparent 50%),
-    linear-gradient(180deg, rgba(8, 14, 26, 0.65) 0%, rgba(6, 10, 20, 0.82) 100%),
-    url('${wp.url}')
-  `;
-  showMedicalToast(`Đã chuyển không gian Y tế: ${wp.name}`, 'info');
+  const isLight = document.body.classList.contains('light-glass');
+  
+  if (isLight) {
+    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(240, 249, 255, 0.55) 100%), url('" + wp.url + "')";
+  } else {
+    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(10, 16, 30, 0.30) 100%), url('" + wp.url + "')";
+  }
+  showMedicalToast("Đã chuyển không gian: " + wp.name, "info");
+  playMedicalChime();
+}
+
+function toggleGlassThemeMode() {
+  document.body.classList.toggle('light-glass');
+  const isLight = document.body.classList.contains('light-glass');
+  const wp = medicalWallpapers[currentWallpaperIndex];
+  
+  if (isLight) {
+    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(240, 249, 255, 0.55) 100%), url('" + wp.url + "')";
+    showMedicalToast("Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Luminous Medical Glass)", "success");
+  } else {
+    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(10, 16, 30, 0.30) 100%), url('" + wp.url + "')";
+    showMedicalToast("Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Smoky Daylight Glass)", "info");
+  }
   playMedicalChime();
 }

@@ -1,18 +1,18 @@
 /* ==============================================================================
-   MediMind Clinical AI - Spatial Glassmorphism & Liquid Dark Glass Design System
+   MediMind Clinical AI - Spatial Glassmorphism & Liquid Glass Design System
    Inspired by: Glassy Dashboard V5 (Apple VisionOS & Next-Gen Cyber-Clinical UI)
    ============================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-deep: #07090e;
-  --bg-surface: rgba(18, 24, 38, 0.45);
-  --bg-surface-elevated: rgba(24, 32, 50, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-border-hover: rgba(255, 255, 255, 0.28);
-  --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.20);
-  --glass-shadow: 0 24px 50px -10px rgba(0, 0, 0, 0.55), 0 8px 24px -4px rgba(0, 0, 0, 0.35);
+  --bg-deep: #0b1120;
+  --bg-surface: rgba(18, 26, 42, 0.40);
+  --bg-surface-elevated: rgba(22, 32, 52, 0.50);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-border-hover: rgba(255, 255, 255, 0.35);
+  --glass-specular: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28);
+  --glass-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.35), 0 8px 20px -4px rgba(0, 0, 0, 0.20);
   
   --neon-cyan: #38BDF8;
   --neon-cyan-glow: 0 0 20px rgba(56, 189, 248, 0.4);
@@ -32,17 +32,93 @@
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg-deep);
-  /* Atmospheric Penthouse Twilight Window Scene with Optical Vignette */
+  background-color: #0b1120;
+  /* Luminous Modern Smart Hospital & Daylight Clinical Glass Atrium */
   background: 
-    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%),
     radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-    linear-gradient(180deg, rgba(8, 12, 22, 0.60) 0%, rgba(6, 9, 18, 0.78) 100%),
-    url('/static/images/bg_hospital_corridor.jpg') center center / cover no-repeat fixed;
+    linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(10, 16, 30, 0.30) 100%),
+    url('/static/images/glass_dashboard_bg.jpg') center center / cover no-repeat fixed;
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* ==============================================================================
+   OPTIONAL LUMINOUS WHITE MEDICAL GLASS THEME (Image 2 + Image 4 Hybrid)
+   ============================================================================== */
+body.light-glass {
+  background: 
+    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(240, 249, 255, 0.55) 100%),
+    url('/static/images/glass_dashboard_bg.jpg') center center / cover no-repeat fixed;
+  --bg-surface: rgba(255, 255, 255, 0.78);
+  --bg-surface-elevated: rgba(255, 255, 255, 0.90);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-hover: rgba(14, 165, 233, 0.5);
+  --glass-specular: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 8px 20px -4px rgba(15, 23, 42, 0.05);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  color: #0F172A;
+}
+
+body.light-glass .text-white {
+  color: #0F172A !important;
+}
+
+body.light-glass .text-slate-200,
+body.light-glass .text-slate-300 {
+  color: #334155 !important;
+}
+
+body.light-glass .text-slate-400 {
+  color: #64748B !important;
+}
+
+body.light-glass .glass-dock {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+body.light-glass .dock-btn {
+  color: #475569;
+}
+
+body.light-glass .dock-btn:hover {
+  color: #0284C7;
+  background: rgba(2, 132, 199, 0.1);
+}
+
+body.light-glass .dock-btn.bg-white {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.4) !important;
+}
+
+body.light-glass .glass-pill {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #1E293B;
+}
+
+body.light-glass .glass-pill:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0284C7;
+}
+
+body.light-glass .glass-card {
+  background: rgba(255, 255, 255, 0.60);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+body.light-glass .glass-card:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(14, 165, 233, 0.4);
 }
 
 /* ==============================================================================
@@ -51,44 +127,44 @@ body {
 
 .glass-panel {
   background: var(--bg-surface);
-  backdrop-filter: blur(36px) saturate(190%);
-  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-specular), var(--glass-shadow);
-  border-radius: 28px;
+  border-radius: 26px;
   transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .glass-panel-elevated {
   background: var(--bg-surface-elevated);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), 0 32px 64px -12px rgba(0, 0, 0, 0.65);
-  border-radius: 32px;
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32), 0 24px 50px -10px rgba(0, 0, 0, 0.40);
+  border-radius: 28px;
 }
 
 .glass-dock {
-  background: rgba(14, 20, 32, 0.68);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), 0 20px 45px rgba(0, 0, 0, 0.6);
+  background: rgba(18, 24, 38, 0.50);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.25), 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
 .glass-pill {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-pill:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 15px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 15px rgba(0, 0, 0, 0.25);
   transform: translateY(-1px);
 }
 
@@ -96,7 +172,7 @@ body {
   background: rgba(255, 255, 255, 0.95) !important;
   color: #0F172A !important;
   border-color: #FFFFFF !important;
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25) !important;
   font-weight: 800 !important;
 }
 
@@ -109,18 +185,18 @@ body {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transform: translateY(-2px);
 }
 

@@ -70,6 +70,10 @@ background: #94A3B8;
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
     <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Đổi không gian Y tế</span>
   </button>
+  <button onclick="toggleGlassThemeMode()" id="dock-theme-toggle" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-amber-300 hover:bg-white/10 cursor-pointer" title="Đổi chế độ Kính Sáng / Kính Khói">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Kính Sáng / Kính Khói</span>
+  </button>
 
   <button onclick="resetChat()" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all text-white/50 hover:text-rose-400 hover:bg-white/10 cursor-pointer" title="Làm mới hội thoại">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -304,7 +308,7 @@ background: #94A3B8;
     <!-- Chat Stream Container -->
     <div id="chat-messages" class="flex-1 overflow-y-auto py-3 space-y-3 px-1 sm:px-2 pr-2 my-2 min-h-[380px] max-h-[460px]">
       <!-- Greeting Card Default -->
-      <div class="glass-card p-4 rounded-2xl space-y-2 border border-white/10 bg-slate-900/50 backdrop-blur-md">
+      <div class="glass-card p-4 rounded-2xl space-y-2 border border-white/10 bg-white/[0.06] backdrop-blur-md">
         <div class="flex items-center space-x-2 text-sky-400 font-bold text-xs">
           <span>🩺</span>
           <span>Chào bạn, tôi là Bác sĩ Trợ lý AI MediMind!</span>
@@ -497,11 +501,11 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 <!-- Hospital Cards (3 Cards flush with Google Maps height) -->
 <div class="lg:col-span-5 space-y-3 overflow-y-auto">
 <!-- BV 1: BV Tai Mũi Họng TP.HCM -->
-<div class="bg-white border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-[#0284C7] shadow-2xs transition-all">
+<div class="glass-card rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-sky-400/50 shadow-lg transition-all">
 <div class="flex justify-between items-start">
 <div>
-<span class="text-[9px] font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-0.5 rounded-full">Tuyến Trung Ương</span>
-<h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Tai Mũi Họng TP.HCM</h3>
+<span class="text-[9px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-full">Tuyến Trung Ương</span>
+<h3 class="text-sm font-bold text-white mt-1">Bệnh viện Tai Mũi Họng TP.HCM</h3>
 <p class="text-[11px] text-slate-500">410 Lê Văn Sỹ, Phường 14, Quận 3</p>
 </div>
 <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">1.4 km</span>
@@ -515,7 +519,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
 </div>
-<span class="font-extrabold text-slate-900">4.6</span>
+<span class="font-extrabold text-white">4.6</span>
 </div>
 <span class="text-slate-400 text-[10px] font-normal">(1.840 đánh giá Google)</span>
 </div>
@@ -550,7 +554,7 @@ Chỉ đường Google Maps
 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
 </div>
-<span class="font-extrabold text-slate-900">4.7</span>
+<span class="font-extrabold text-white">4.7</span>
 </div>
 <span class="text-slate-400 text-[10px] font-normal">(4.250 đánh giá Google)</span>
 </div>
@@ -571,7 +575,7 @@ Chỉ đường Google Maps
 <div class="flex justify-between items-start">
 <div>
 <span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">Tuyến Đặc Biệt</span>
-<h3 class="text-sm font-bold text-slate-800 mt-1">Bệnh viện Chợ Rẫy</h3>
+<h3 class="text-sm font-bold text-white mt-1">Bệnh viện Chợ Rẫy</h3>
 <p class="text-[11px] text-slate-500">201B Nguyễn Chí Thanh, Phường 12, Quận 5</p>
 </div>
 <span class="text-xs font-bold text-[#0284C7] bg-[#E0F2FE] px-2 py-1 rounded-lg shrink-0">3.5 km</span>
@@ -585,7 +589,7 @@ Chỉ đường Google Maps
 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
 <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
 </div>
-<span class="font-extrabold text-slate-900">4.5</span>
+<span class="font-extrabold text-white">4.5</span>
 </div>
 <span class="text-slate-400 text-[10px] font-normal">(5.820 đánh giá Google)</span>
 </div>
@@ -801,7 +805,7 @@ Tải kết quả xét nghiệm
 <!-- Left Column: Patient Demographics, Vitals & Medical History (lg:col-span-7) -->
 <div class="lg:col-span-7 space-y-4">
 <!-- Card 1: Patient Administrative Info & Vitals Grid -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl bg-slate-900/60 text-white">
+<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl bg-white/[0.04] text-white">
 <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
 <div class="flex items-center space-x-3">
 <div id="ehr-avatar-badge" class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-sm border border-sky-400/30">
@@ -822,7 +826,7 @@ Triage: Trung bình (35/100)
 <!-- Vitals 4-Grid with Clinical Telemetry Styling -->
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
   <!-- BP -->
-  <div class="p-3 rounded-2xl glass-card border border-sky-400/30 bg-slate-950/40 shadow-sm flex items-center space-x-2.5">
+  <div class="p-3 rounded-2xl glass-card border border-sky-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
     <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 border border-sky-400/30">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
     </div>
@@ -833,7 +837,7 @@ Triage: Trung bình (35/100)
   </div>
 
   <!-- HR -->
-  <div class="p-3 rounded-2xl glass-card border border-rose-400/30 bg-slate-950/40 shadow-sm flex items-center space-x-2.5">
+  <div class="p-3 rounded-2xl glass-card border border-rose-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
     <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 border border-rose-400/30">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
     </div>
@@ -844,7 +848,7 @@ Triage: Trung bình (35/100)
   </div>
 
   <!-- Temp -->
-  <div class="p-3 rounded-2xl glass-card border border-amber-400/30 bg-slate-950/40 shadow-sm flex items-center space-x-2.5">
+  <div class="p-3 rounded-2xl glass-card border border-amber-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
     <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-400/30">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
     </div>
@@ -855,7 +859,7 @@ Triage: Trung bình (35/100)
   </div>
 
   <!-- SpO2 -->
-  <div class="p-3 rounded-2xl glass-card border border-emerald-400/30 bg-slate-950/40 shadow-sm flex items-center space-x-2.5">
+  <div class="p-3 rounded-2xl glass-card border border-emerald-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
     <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-400/30">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
     </div>
@@ -867,7 +871,7 @@ Triage: Trung bình (35/100)
 </div>
 </div>
 <!-- Card 2: Clinical Narrative & Evolution -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-slate-900/60 text-white">
+<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
 <h4 class="text-xs font-bold text-white pb-2 border-b border-white/10 flex items-center justify-between">
 <span>Diễn tiến Bệnh cảnh & Lý do vào viện</span>
 <span class="text-[10px] text-sky-400 font-mono">Trích xuất tự động qua Chatbot AI</span>
@@ -895,7 +899,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 <!-- Right Column: AI Diagnosis, Clinical Orders & Physician Actions (lg:col-span-5) -->
 <div class="lg:col-span-5 space-y-4">
 <!-- Card 4: AI Diagnostic Impression (ICD-10) -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-slate-900/60 text-white">
+<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
 <div class="flex items-center justify-between pb-2 border-b border-white/10">
 <h4 class="text-xs font-bold text-white">Định hướng Chẩn đoán sơ bộ (AI)</h4>
 <span class="text-[10px] text-sky-400 font-mono">ICD-10 Mapping</span>
@@ -918,7 +922,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 </div>
 </div>
 <!-- Card 5: Recommended Diagnostic Orders -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-slate-900/60 text-white">
+<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
 <h4 class="text-xs font-bold text-white pb-2 border-b border-white/10">
 Đề xuất Chỉ định Cận lâm sàng (Clinical Orders)
 </h4>
@@ -938,7 +942,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 </div>
 </div>
 <!-- Card 6: Physician Action Controls -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-slate-900/60 text-white">
+<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
 <div class="flex items-center justify-between pb-2 border-b border-white/10">
 <span class="text-xs font-bold text-white">Thao tác Bệnh án</span>
 <span class="text-[10px] text-emerald-400 font-bold flex items-center space-x-1">
