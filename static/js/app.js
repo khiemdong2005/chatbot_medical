@@ -1842,3 +1842,28 @@ function askBotAboutSpecificMedicine(medName) {
     chatInput.focus();
   }
 }
+
+// ==============================================================================
+// CLINICAL AMBIENT WALLPAPER CYCLER (High-Tech Medical Scenery)
+// ==============================================================================
+const medicalWallpapers = [
+  { id: 'corridor', name: 'Hành lang Bệnh viện thông minh', url: '/static/images/bg_hospital_corridor.jpg' },
+  { id: 'surgery', name: 'Phòng Phẫu thuật Kỹ thuật cao', url: '/static/images/bg_operating_theater.jpg' },
+  { id: 'lab', name: 'Viện Nghiên cứu Y sinh & Dược học', url: '/static/images/bg_medical_lab.jpg' },
+  { id: 'atrium', name: 'Đại sảnh Y khoa Kính Hiện đại', url: '/static/images/bg_clinical_atrium.jpg' }
+];
+
+let currentWallpaperIndex = 0;
+
+function cycleMedicalWallpaper() {
+  currentWallpaperIndex = (currentWallpaperIndex + 1) % medicalWallpapers.length;
+  const wp = medicalWallpapers[currentWallpaperIndex];
+  document.body.style.backgroundImage = `
+    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.14) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(8, 14, 26, 0.65) 0%, rgba(6, 10, 20, 0.82) 100%),
+    url('${wp.url}')
+  `;
+  showMedicalToast(`Đã chuyển không gian Y tế: ${wp.name}`, 'info');
+  playMedicalChime();
+}

@@ -38,7 +38,7 @@ body {
     radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%),
     radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
     linear-gradient(180deg, rgba(8, 12, 22, 0.60) 0%, rgba(6, 9, 18, 0.78) 100%),
-    url('/static/images/glass_dashboard_bg.jpg') center center / cover no-repeat fixed;
+    url('/static/images/bg_hospital_corridor.jpg') center center / cover no-repeat fixed;
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
