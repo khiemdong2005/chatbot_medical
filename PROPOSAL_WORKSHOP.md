@@ -86,6 +86,10 @@ Dự án tập trung giải quyết 4 điểm nghẽn (Pain Points) nhức nhố
 
 #### 4.1. Sơ đồ Luồng Kiến trúc Tổng thể (High-Level AWS Architecture)
 
+![Kiến trúc AWS Chuẩn MediMind Clinical AI](static/images/aws_architecture_perfect.png)
+*(Bản vẽ Vector SVG độ phân giải cao phục vụ slide PowerPoint / phóng to không vỡ nét: [aws_architecture_perfect.svg](static/images/aws_architecture_perfect.svg))*
+
+
 ```mermaid
 flowchart TD
     subgraph Users ["🌐 Người Dùng & Bác Sĩ (Clients)"]
@@ -350,3 +354,4 @@ Bản đề xuất giải pháp **MediMind Clinical AI** đáp ứng toàn diệ
 1. **Kiến trúc Hệ thống (Architecture)**: Thiết kế hoàn toàn theo tiêu chuẩn **AWS Well-Architected Framework**, định danh chính xác 100% các dịch vụ AWS chính thức, tách bạch vùng mạng bảo mật và áp dụng cơ chế mã hóa dữ liệu y tế nghiêm ngặt.
 2. **Dự toán Ngân sách & Tối ưu Chi phí (Cost Estimation)**: Cung cấp đầy đủ bảng tính giá chi tiết từ **AWS Pricing Calculator**, phân tích rõ ràng 2 kịch bản (Thử nghiệm \$20.46/tháng và Mở rộng \$66.60/tháng cho 10.000 người bệnh), bảo đảm tuyệt đối không bị điểm liệt phần trình bày.
 3. **Minh chứng Sản phẩm Chạy Thực tế (Live Demo)**: Ứng dụng đã được lập trình hoàn chỉnh, vận hành ổn định trên nền tảng Web Container và sẵn sàng trình diễn toàn bộ các luồng nghiệp vụ lâm sàng trước hội đồng đánh giá.
+

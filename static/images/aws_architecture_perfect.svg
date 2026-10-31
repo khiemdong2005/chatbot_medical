@@ -1,0 +1,450 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="100%" height="100%" style="background:#070B14; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#A855F7" />
+      <stop offset="50%" stop-color="#EC4899" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    
+    <linearGradient id="vpcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0B132B" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="pubSubGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#064E3B" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#022C22" stop-opacity="0.4" />
+    </linearGradient>
+
+    <linearGradient id="privSubGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Card Backgrounds -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="orangeCard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C2D12" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#1E293B" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Drop Shadows & Glows -->
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#38BDF8" flood-opacity="0.4" />
+    </filter>
+    <filter id="glowPurple" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#A855F7" flood-opacity="0.4" />
+    </filter>
+    <filter id="glowOrange" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#F97316" flood-opacity="0.35" />
+    </filter>
+    <filter id="panelShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+
+    <!-- Markers -->
+    <marker id="arrowCyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#38BDF8" />
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#A855F7" />
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#FB923C" />
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34D399" />
+    </marker>
+    <marker id="arrowPink" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#F472B6" />
+    </marker>
+  </defs>
+
+  <!-- Background Tech Grid -->
+  <g opacity="0.08">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#94A3B8" stroke-width="1" />
+    </pattern>
+    <rect width="1920" height="1080" fill="url(#grid)" />
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- HEADER & TITLE                                                 -->
+  <!-- ============================================================== -->
+  <text x="60" y="65" font-size="34" font-weight="900" letter-spacing="1" fill="url(#titleGrad)">ARCHITECTURE — MEDIMIND CLINICAL AI</text>
+  <text x="60" y="95" font-size="14" font-weight="600" fill="#94A3B8" letter-spacing="0.5">Enterprise Cloud Architecture on AWS (ap-southeast-1 Singapore) • Compliant with AWS Well-Architected Framework &amp; HIPAA</text>
+
+  <!-- ============================================================== -->
+  <!-- COLUMN 1: USERS & CLIENT PORTALS (X: 50 - 230)                 -->
+  <!-- ============================================================== -->
+  <!-- Patient Box -->
+  <g transform="translate(60, 200)" filter="url(#panelShadow)">
+    <rect width="160" height="120" rx="16" fill="url(#cardGrad)" stroke="#38BDF8" stroke-width="1.5" stroke-opacity="0.5" />
+    <!-- User Icon -->
+    <circle cx="80" cy="40" r="18" fill="#0284C7" fill-opacity="0.2" stroke="#38BDF8" stroke-width="1.5" />
+    <path d="M 70 52 C 70 45, 90 45, 90 52 Z" fill="#38BDF8" />
+    <circle cx="80" cy="36" r="6" fill="#38BDF8" />
+    <text x="80" y="80" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle">Patient Web App</text>
+    <text x="80" y="98" font-size="11" font-weight="500" fill="#94A3B8" text-anchor="middle">VisionOS Glassy UI</text>
+  </g>
+
+  <!-- Doctor Box -->
+  <g transform="translate(60, 480)" filter="url(#panelShadow)">
+    <rect width="160" height="120" rx="16" fill="url(#cardGrad)" stroke="#A855F7" stroke-width="1.5" stroke-opacity="0.5" />
+    <!-- Doctor Icon -->
+    <circle cx="80" cy="40" r="18" fill="#7E22CE" fill-opacity="0.2" stroke="#A855F7" stroke-width="1.5" />
+    <path d="M 69 40 L 91 40 M 80 29 L 80 51" stroke="#A855F7" stroke-width="3" stroke-linecap="round" />
+    <text x="80" y="80" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle">Doctor Web Portal</text>
+    <text x="80" y="98" font-size="11" font-weight="500" fill="#94A3B8" text-anchor="middle">EMR Review &amp; Prescriptions</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- COLUMN 2: EDGE, NETWORK PERIMETER & AUTH (X: 280 - 450)        -->
+  <!-- ============================================================== -->
+  <rect x="270" y="140" width="180" height="720" rx="20" fill="#0B1329" fill-opacity="0.6" stroke="#475569" stroke-width="1.2" stroke-dasharray="6 6" />
+  <text x="285" y="165" font-size="12" font-weight="800" fill="#94A3B8" letter-spacing="1">EDGE &amp; PERIMETER</text>
+
+  <!-- Amazon Route 53 -->
+  <g transform="translate(290, 190)" filter="url(#panelShadow)">
+    <rect width="140" height="90" rx="14" fill="url(#cardGrad)" stroke="#A855F7" stroke-width="1.5" />
+    <rect x="52" y="15" width="36" height="30" rx="6" fill="#7E22CE" fill-opacity="0.3" stroke="#C084FC" stroke-width="1.5" />
+    <text x="70" y="34" font-size="12" font-weight="900" fill="#E9D5FF" text-anchor="middle">R53</text>
+    <text x="70" y="62" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Amazon Route 53</text>
+    <text x="70" y="76" font-size="10" fill="#A855F7" text-anchor="middle">DNS &amp; Latency Routing</text>
+  </g>
+
+  <!-- AWS WAF -->
+  <g transform="translate(290, 310)" filter="url(#panelShadow)">
+    <rect width="140" height="90" rx="14" fill="url(#cardGrad)" stroke="#EF4444" stroke-width="1.5" />
+    <circle cx="70" cy="30" r="15" fill="#B91C1C" fill-opacity="0.3" stroke="#F87171" stroke-width="1.5" />
+    <path d="M 64 30 L 76 30 M 70 24 L 70 36" stroke="#EF4444" stroke-width="2" />
+    <text x="70" y="62" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">AWS WAF</text>
+    <text x="70" y="76" font-size="10" fill="#F87171" text-anchor="middle">Layer 7 DDoS / Rate-Limit</text>
+  </g>
+
+  <!-- Amazon CloudFront -->
+  <g transform="translate(290, 430)" filter="url(#panelShadow)">
+    <rect width="140" height="90" rx="14" fill="url(#cardGrad)" stroke="#38BDF8" stroke-width="1.5" />
+    <circle cx="70" cy="30" r="15" fill="#0369A1" fill-opacity="0.3" stroke="#38BDF8" stroke-width="1.5" />
+    <circle cx="70" cy="30" r="7" stroke="#38BDF8" stroke-width="1.2" fill="none" />
+    <text x="70" y="62" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Amazon CloudFront</text>
+    <text x="70" y="76" font-size="10" fill="#38BDF8" text-anchor="middle">Global Edge CDN Cache</text>
+  </g>
+
+  <!-- AWS Cognito -->
+  <g transform="translate(290, 680)" filter="url(#panelShadow)">
+    <rect width="140" height="90" rx="14" fill="url(#cardGrad)" stroke="#F43F5E" stroke-width="1.5" />
+    <circle cx="70" cy="30" r="15" fill="#BE123C" fill-opacity="0.3" stroke="#FB7185" stroke-width="1.5" />
+    <path d="M 63 32 C 63 26, 77 26, 77 32 Z" fill="#FB7185" />
+    <circle cx="70" cy="24" r="4" fill="#FB7185" />
+    <text x="70" y="62" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">AWS Cognito</text>
+    <text x="70" y="76" font-size="10" fill="#FB7185" text-anchor="middle">OAuth 2.0 / User Pools</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- MAIN BOX: AWS REGION & VPC (X: 490 - 1500)                     -->
+  <!-- ============================================================== -->
+  <g filter="url(#panelShadow)">
+    <rect x="490" y="140" width="1030" height="720" rx="24" fill="url(#vpcGrad)" stroke="#334155" stroke-width="1.8" />
+  </g>
+  <!-- VPC Header Badge -->
+  <rect x="510" y="155" width="48" height="22" rx="6" fill="#FF9900" />
+  <text x="534" y="170" font-size="11" font-weight="900" fill="#000000" text-anchor="middle">aws</text>
+  <text x="570" y="171" font-size="14" font-weight="800" fill="#FFFFFF">AWS Cloud VPC (Singapore ap-southeast-1) — CIDR 10.0.0.0/16</text>
+
+  <!-- -------------------------------------------------------------- -->
+  <!-- SUBNET 1: PUBLIC SUBNET / DMZ (X: 520 - 1490, Y: 195 - 340)     -->
+  <!-- -------------------------------------------------------------- -->
+  <rect x="510" y="195" width="990" height="150" rx="18" fill="url(#pubSubGrad)" stroke="#059669" stroke-width="1.2" stroke-dasharray="5 5" />
+  <rect x="525" y="205" width="22" height="22" rx="4" fill="#10B981" />
+  <path d="M 531 217 L 535 221 L 542 212" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" />
+  <text x="555" y="221" font-size="12" font-weight="800" fill="#34D399">Public Subnet (DMZ) — 10.0.1.0/24 (Multi-AZ Inbound &amp; NAT Egress)</text>
+
+  <!-- Application Load Balancer (ALB) -->
+  <g transform="translate(680, 235)" filter="url(#panelShadow)">
+    <rect width="260" height="90" rx="14" fill="url(#cardGrad)" stroke="#38BDF8" stroke-width="1.5" />
+    <circle cx="45" cy="45" r="22" fill="#0284C7" fill-opacity="0.3" stroke="#38BDF8" stroke-width="1.5" />
+    <path d="M 38 45 L 52 45 M 48 39 L 54 45 L 48 51" stroke="#38BDF8" stroke-width="2" fill="none" stroke-linecap="round" />
+    <text x="85" y="40" font-size="13" font-weight="800" fill="#FFFFFF">Application Load Balancer</text>
+    <text x="85" y="58" font-size="11" font-weight="600" fill="#38BDF8">AWS ALB (HTTPS Port 443)</text>
+    <text x="85" y="74" font-size="10" fill="#94A3B8">Path-Based Smart Routing</text>
+  </g>
+
+  <!-- NAT Gateway -->
+  <g transform="translate(1080, 235)" filter="url(#panelShadow)">
+    <rect width="240" height="90" rx="14" fill="url(#cardGrad)" stroke="#A855F7" stroke-width="1.5" />
+    <circle cx="45" cy="45" r="22" fill="#7E22CE" fill-opacity="0.3" stroke="#C084FC" stroke-width="1.5" />
+    <path d="M 36 45 C 36 38, 54 38, 54 45 C 54 52, 36 52, 36 45" stroke="#C084FC" stroke-width="2" fill="none" />
+    <text x="85" y="40" font-size="13" font-weight="800" fill="#FFFFFF">NAT Gateway</text>
+    <text x="85" y="58" font-size="11" font-weight="600" fill="#C084FC">AWS Managed NAT Gateway</text>
+    <text x="85" y="74" font-size="10" fill="#94A3B8">Secure Outbound Egress Only</text>
+  </g>
+
+  <!-- -------------------------------------------------------------- -->
+  <!-- SUBNET 2: PRIVATE APPLICATION SUBNET (Y: 360 - 580)            -->
+  <!-- -------------------------------------------------------------- -->
+  <rect x="510" y="360" width="990" height="225" rx="18" fill="url(#privSubGrad)" stroke="#2563EB" stroke-width="1.2" stroke-dasharray="5 5" />
+  <rect x="525" y="370" width="22" height="22" rx="4" fill="#3B82F6" />
+  <path d="M 533 378 L 539 378 L 539 386 L 533 386 Z M 534 378 C 534 374, 538 374, 538 378" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+  <text x="555" y="386" font-size="12" font-weight="800" fill="#60A5FA">Private App Subnet — 10.0.2.0/24 (No Public IP • Isolated Container Workloads)</text>
+
+  <!-- Branch 1: Triage & Chat Engine -->
+  <g transform="translate(540, 410)" filter="url(#panelShadow)">
+    <rect width="280" height="155" rx="14" fill="url(#orangeCard)" stroke="#FB923C" stroke-width="1.5" />
+    <circle cx="35" cy="35" r="16" fill="#EA580C" fill-opacity="0.3" stroke="#FB923C" stroke-width="1.5" />
+    <path d="M 28 35 L 42 35 M 35 28 L 35 42" stroke="#FB923C" stroke-width="2" />
+    <text x="60" y="34" font-size="13" font-weight="800" fill="#FFFFFF">Branch 1: Triage &amp; Chat Engine</text>
+    <text x="60" y="50" font-size="11" font-weight="600" fill="#FB923C">AWS App Runner / ECS Fargate</text>
+    
+    <path d="M 20 65 L 260 65" stroke="#334155" stroke-width="1" />
+    <text x="25" y="85" font-size="10.5" fill="#E2E8F0">• Clinical Red Flag 115 Detection</text>
+    <text x="25" y="103" font-size="10.5" fill="#E2E8F0">• 3-Tier Risk Scoring (0 - 100)</text>
+    <text x="25" y="121" font-size="10.5" fill="#E2E8F0">• MedlinePlus Grounded Citations</text>
+    <text x="25" y="139" font-size="10" font-weight="700" fill="#38BDF8">Route: /api/chat</text>
+  </g>
+
+  <!-- Branch 2: OCR & Prescription Vision Engine -->
+  <g transform="translate(860, 410)" filter="url(#panelShadow)">
+    <rect width="290" height="155" rx="14" fill="url(#orangeCard)" stroke="#FB923C" stroke-width="1.5" />
+    <circle cx="35" cy="35" r="16" fill="#EA580C" fill-opacity="0.3" stroke="#FB923C" stroke-width="1.5" />
+    <rect x="27" y="27" width="16" height="16" rx="3" stroke="#FB923C" stroke-width="1.5" fill="none" />
+    <text x="60" y="34" font-size="13" font-weight="800" fill="#FFFFFF">Branch 2: OCR &amp; Vision Engine</text>
+    <text x="60" y="50" font-size="11" font-weight="600" fill="#FB923C">OpenCV + EasyOCR + Multimodal</text>
+    
+    <path d="M 20 65 L 270 65" stroke="#334155" stroke-width="1" />
+    <text x="25" y="85" font-size="10.5" fill="#E2E8F0">• Local OpenCV Deskew &amp; CLAHE</text>
+    <text x="25" y="103" font-size="10.5" fill="#E2E8F0">• EasyOCR Vi/En Text Extraction</text>
+    <text x="25" y="121" font-size="10.5" fill="#E2E8F0">• 4-Slot Dosage Medication Timeline</text>
+    <text x="25" y="139" font-size="10" font-weight="700" fill="#34D399">Route: /api/prescription/scan</text>
+  </g>
+
+  <!-- Doctor EMR Summarizer -->
+  <g transform="translate(1190, 410)" filter="url(#panelShadow)">
+    <rect width="280" height="155" rx="14" fill="url(#orangeCard)" stroke="#F59E0B" stroke-width="1.5" />
+    <circle cx="35" cy="35" r="16" fill="#D97706" fill-opacity="0.3" stroke="#FBBF24" stroke-width="1.5" />
+    <path d="M 31 35 L 39 35 M 35 31 L 35 39" stroke="#FBBF24" stroke-width="2" />
+    <text x="60" y="34" font-size="13" font-weight="800" fill="#FFFFFF">Doctor EMR Summarizer</text>
+    <text x="60" y="50" font-size="11" font-weight="600" fill="#FBBF24">AWS Lambda / Microservice</text>
+    
+    <path d="M 20 65 L 260 65" stroke="#334155" stroke-width="1" />
+    <text x="25" y="85" font-size="10.5" fill="#E2E8F0">• 30-Sec Pre-Consultation Summary</text>
+    <text x="25" y="103" font-size="10.5" fill="#E2E8F0">• HPI, Red Flags, Differential Diag</text>
+    <text x="25" y="121" font-size="10.5" fill="#E2E8F0">• Telemetry (Vitals &amp; ECG Wave)</text>
+    <text x="25" y="139" font-size="10" font-weight="700" fill="#A855F7">Route: /api/clinical-summary</text>
+  </g>
+
+  <!-- -------------------------------------------------------------- -->
+  <!-- SUBNET 3: ISOLATED DATA & ENDPOINT TIER (Y: 600 - 830)         -->
+  <!-- -------------------------------------------------------------- -->
+  <rect x="510" y="600" width="990" height="240" rx="18" fill="#0B1329" fill-opacity="0.7" stroke="#334155" stroke-width="1.2" />
+  <text x="525" y="625" font-size="12" font-weight="800" fill="#94A3B8">STORAGE, SECRETS &amp; PRIVATE VPC ENDPOINTS TIER</text>
+
+  <!-- S3 VPC Endpoint -->
+  <g transform="translate(530, 650)" filter="url(#panelShadow)">
+    <rect width="180" height="165" rx="14" fill="url(#cardGrad)" stroke="#A855F7" stroke-width="1.5" />
+    <circle cx="90" cy="40" r="18" fill="#7E22CE" fill-opacity="0.3" stroke="#C084FC" stroke-width="1.5" />
+    <path d="M 83 40 L 97 40 M 90 33 L 90 47" stroke="#C084FC" stroke-width="2" />
+    <text x="90" y="80" font-size="13" font-weight="800" fill="#FFFFFF" text-anchor="middle">VPC Endpoint</text>
+    <text x="90" y="98" font-size="11" font-weight="600" fill="#C084FC" text-anchor="middle">S3 Gateway Endpoint</text>
+    <text x="90" y="125" font-size="10" fill="#94A3B8" text-anchor="middle">Private Link to S3</text>
+    <text x="90" y="142" font-size="10" fill="#34D399" text-anchor="middle">No Internet Exposure</text>
+  </g>
+
+  <!-- Amazon S3 Medical Bucket -->
+  <g transform="translate(740, 650)" filter="url(#panelShadow)">
+    <rect width="240" height="165" rx="14" fill="url(#cardGrad)" stroke="#10B981" stroke-width="1.5" />
+    <circle cx="45" cy="40" r="18" fill="#047857" fill-opacity="0.3" stroke="#34D399" stroke-width="1.5" />
+    <path d="M 37 36 L 53 36 L 50 48 L 40 48 Z" stroke="#34D399" stroke-width="1.5" fill="none" />
+    <text x="75" y="36" font-size="13" font-weight="800" fill="#FFFFFF">Amazon S3</text>
+    <text x="75" y="52" font-size="11" font-weight="600" fill="#34D399">Medical Bucket (Private)</text>
+    <path d="M 20 70 L 220 70" stroke="#334155" stroke-width="1" />
+    <text x="25" y="90" font-size="10.5" fill="#E2E8F0">• Prescription &amp; Lab Scans</text>
+    <text x="25" y="108" font-size="10.5" fill="#E2E8F0">• Pre-signed URLs (15m expiry)</text>
+    <text x="25" y="126" font-size="10.5" fill="#E2E8F0">• S3 Lifecycle ➔ Glacier</text>
+    <text x="25" y="145" font-size="10" font-weight="700" fill="#F87171">🔒 SSE-KMS Encrypted</text>
+  </g>
+
+  <!-- AWS KMS -->
+  <g transform="translate(1010, 650)" filter="url(#panelShadow)">
+    <rect width="220" height="165" rx="14" fill="url(#cardGrad)" stroke="#F43F5E" stroke-width="1.5" />
+    <circle cx="45" cy="40" r="18" fill="#BE123C" fill-opacity="0.3" stroke="#FB7185" stroke-width="1.5" />
+    <circle cx="45" cy="37" r="5" stroke="#FB7185" stroke-width="1.5" fill="none" />
+    <path d="M 45 42 L 45 48 M 45 45 L 48 45" stroke="#FB7185" stroke-width="1.5" />
+    <text x="75" y="36" font-size="13" font-weight="800" fill="#FFFFFF">AWS KMS</text>
+    <text x="75" y="52" font-size="11" font-weight="600" fill="#FB7185">Key Management Service</text>
+    <path d="M 20 70 L 200 70" stroke="#334155" stroke-width="1" />
+    <text x="25" y="90" font-size="10.5" fill="#E2E8F0">• Customer Managed Key (CMK)</text>
+    <text x="25" y="108" font-size="10.5" fill="#E2E8F0">• Envelope Encryption (AES-256)</text>
+    <text x="25" y="126" font-size="10.5" fill="#E2E8F0">• HIPAA Compliant Cryptography</text>
+    <text x="25" y="145" font-size="10" fill="#94A3B8">Annual Key Rotation</text>
+  </g>
+
+  <!-- AWS Secrets Manager -->
+  <g transform="translate(1260, 650)" filter="url(#panelShadow)">
+    <rect width="220" height="165" rx="14" fill="url(#cardGrad)" stroke="#F43F5E" stroke-width="1.5" />
+    <circle cx="45" cy="40" r="18" fill="#BE123C" fill-opacity="0.3" stroke="#FB7185" stroke-width="1.5" />
+    <rect x="39" y="34" width="12" height="12" rx="2" stroke="#FB7185" stroke-width="1.5" fill="none" />
+    <text x="75" y="36" font-size="13" font-weight="800" fill="#FFFFFF">Secrets Manager</text>
+    <text x="75" y="52" font-size="11" font-weight="600" fill="#FB7185">AWS Credential Vault</text>
+    <path d="M 20 70 L 200 70" stroke="#334155" stroke-width="1" />
+    <text x="25" y="90" font-size="10.5" fill="#E2E8F0">• GEMINI_API_KEY Storage</text>
+    <text x="25" y="108" font-size="10.5" fill="#E2E8F0">• JWT Auth Secret Key</text>
+    <text x="25" y="126" font-size="10.5" fill="#E2E8F0">• Zero Hardcoded Secrets</text>
+    <text x="25" y="145" font-size="10" fill="#34D399">Injected at Container Runtime</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- COLUMN 4: EXTERNAL FOUNDATION MODELS & EVENTS (X: 1560 - 1860) -->
+  <!-- ============================================================== -->
+  <!-- Google Gemini -->
+  <g transform="translate(1570, 235)" filter="url(#panelShadow)">
+    <rect width="280" height="160" rx="18" fill="url(#cardGrad)" stroke="#38BDF8" stroke-width="2" />
+    <circle cx="45" cy="45" r="22" fill="#0284C7" fill-opacity="0.3" stroke="#38BDF8" stroke-width="1.5" />
+    <!-- AI Star Sparkle Icon -->
+    <path d="M 45 32 L 48 42 L 58 45 L 48 48 L 45 58 L 42 48 L 32 45 L 42 42 Z" fill="#38BDF8" />
+    <text x="78" y="38" font-size="14" font-weight="900" fill="#FFFFFF">Google Gemini 1.5</text>
+    <text x="78" y="56" font-size="12" font-weight="700" fill="#38BDF8">Multimodal Vision &amp; LLM</text>
+    <path d="M 20 75 L 260 75" stroke="#334155" stroke-width="1" />
+    <text x="25" y="96" font-size="10.5" fill="#E2E8F0">• Primary: gemini-flash-lite-latest</text>
+    <text x="25" y="115" font-size="10.5" fill="#E2E8F0">• Fallback: gemini-3.8-flash</text>
+    <text x="25" y="134" font-size="10.5" fill="#E2E8F0">• Cross-Validation with EasyOCR</text>
+    <text x="25" y="150" font-size="10" font-weight="700" fill="#FBBF24">REST API via google-genai SDK</text>
+  </g>
+
+  <!-- Amazon EventBridge -->
+  <g transform="translate(1570, 440)" filter="url(#panelShadow)">
+    <rect width="280" height="120" rx="18" fill="url(#cardGrad)" stroke="#F43F5E" stroke-width="1.5" />
+    <circle cx="45" cy="45" r="20" fill="#BE123C" fill-opacity="0.3" stroke="#FB7185" stroke-width="1.5" />
+    <path d="M 37 45 L 45 37 L 53 45 L 45 53 Z" stroke="#FB7185" stroke-width="2" fill="none" />
+    <text x="78" y="40" font-size="14" font-weight="800" fill="#FFFFFF">Amazon EventBridge</text>
+    <text x="78" y="58" font-size="11" font-weight="600" fill="#FB7185">Serverless Event Bus</text>
+    <text x="25" y="92" font-size="10.5" fill="#E2E8F0">• EMR Generation Audit Events</text>
+    <text x="25" y="108" font-size="10.5" fill="#E2E8F0">• Asynchronous Hospital Routing</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- BOTTOM ROW: OBSERVABILITY, AUDIT & BUDGETS (Y: 890 - 1030)     -->
+  <!-- ============================================================== -->
+  <rect x="490" y="885" width="1360" height="150" rx="20" fill="#0F172A" stroke="#334155" stroke-width="1.5" />
+  <text x="515" y="912" font-size="13" font-weight="900" fill="#F43F5E" letter-spacing="1">OBSERVABILITY, AUDIT &amp; FINANCIAL GOVERNANCE TIER</text>
+
+  <!-- CloudWatch Logs -->
+  <g transform="translate(520, 930)">
+    <rect width="290" height="85" rx="12" fill="#1E293B" stroke="#475569" stroke-width="1" />
+    <circle cx="35" cy="42" r="16" fill="#F43F5E" fill-opacity="0.2" stroke="#FB7185" stroke-width="1.2" />
+    <text x="65" y="38" font-size="12" font-weight="800" fill="#FFFFFF">Amazon CloudWatch Logs</text>
+    <text x="65" y="56" font-size="10.5" fill="#94A3B8">Centralized Application Logging</text>
+    <text x="65" y="72" font-size="10" fill="#38BDF8">Container Insights Telemetry</text>
+  </g>
+
+  <!-- CloudWatch Alarms -->
+  <g transform="translate(850, 930)">
+    <rect width="290" height="85" rx="12" fill="#1E293B" stroke="#475569" stroke-width="1" />
+    <circle cx="35" cy="42" r="16" fill="#F59E0B" fill-opacity="0.2" stroke="#FBBF24" stroke-width="1.2" />
+    <text x="65" y="38" font-size="12" font-weight="800" fill="#FFFFFF">CloudWatch Alarms &amp; SNS</text>
+    <text x="65" y="56" font-size="10.5" fill="#94A3B8">P95 Latency &gt; 3s &amp; Error 5xx Alerts</text>
+    <text x="65" y="72" font-size="10" fill="#FBBF24">Real-time Admin Notifications</text>
+  </g>
+
+  <!-- AWS Budgets -->
+  <g transform="translate(1180, 930)">
+    <rect width="290" height="85" rx="12" fill="#1E293B" stroke="#475569" stroke-width="1" />
+    <circle cx="35" cy="42" r="16" fill="#10B981" fill-opacity="0.2" stroke="#34D399" stroke-width="1.2" />
+    <text x="65" y="38" font-size="12" font-weight="800" fill="#FFFFFF">AWS Budgets</text>
+    <text x="65" y="56" font-size="10.5" fill="#94A3B8">Threshold: $25.00/month (Dev/PoC)</text>
+    <text x="65" y="72" font-size="10" fill="#34D399">Cost Anomaly Detection Alarm</text>
+  </g>
+
+  <!-- AWS CloudTrail -->
+  <g transform="translate(1510, 930)">
+    <rect width="310" height="85" rx="12" fill="#1E293B" stroke="#475569" stroke-width="1" />
+    <circle cx="35" cy="42" r="16" fill="#A855F7" fill-opacity="0.2" stroke="#C084FC" stroke-width="1.2" />
+    <text x="65" y="38" font-size="12" font-weight="800" fill="#FFFFFF">AWS CloudTrail</text>
+    <text x="65" y="56" font-size="10.5" fill="#94A3B8">Immutable API Activity Audit Trails</text>
+    <text x="65" y="72" font-size="10" fill="#C084FC">HIPAA Medical Audit Compliance</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- PERFECT ARROWS & CONNECTIVITY WIRING                           -->
+  <!-- ============================================================== -->
+
+  <!-- Flow 1: Client to Route 53 (DNS) -->
+  <path d="M 220 250 L 290 235" fill="none" stroke="#A855F7" stroke-width="1.8" marker-end="url(#arrowPurple)" />
+  <rect x="228" y="225" width="55" height="18" rx="4" fill="#0F172A" stroke="#A855F7" stroke-width="0.8" />
+  <text x="255" y="238" font-size="9" font-weight="700" fill="#C084FC" text-anchor="middle">DNS Query</text>
+
+  <!-- Flow 2: Client to CloudFront (HTTPS) -->
+  <path d="M 220 270 L 255 270 L 255 460 L 290 460" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrowCyan)" />
+  <path d="M 220 540 L 255 540 L 255 490 L 290 490" fill="none" stroke="#38BDF8" stroke-width="2" marker-end="url(#arrowCyan)" />
+  <rect x="226" y="370" width="60" height="18" rx="4" fill="#0F172A" stroke="#38BDF8" stroke-width="0.8" />
+  <text x="256" y="383" font-size="9" font-weight="800" fill="#38BDF8" text-anchor="middle">HTTPS 443</text>
+
+  <!-- Flow 3: Client with Cognito Auth (Bidirectional) -->
+  <path d="M 140 320 L 140 725 L 290 725" fill="none" stroke="#FB7185" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#arrowPink)" />
+  <path d="M 220 560 L 240 560 L 240 740 L 290 740" fill="none" stroke="#FB7185" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#arrowPink)" />
+  <rect x="155" y="715" width="85" height="20" rx="4" fill="#0F172A" stroke="#FB7185" stroke-width="0.8" />
+  <text x="197" y="729" font-size="9.5" font-weight="700" fill="#FB7185" text-anchor="middle">JWT Auth / Login</text>
+
+  <!-- Flow 4: CloudFront to WAF inspection -->
+  <path d="M 360 430 L 360 400" fill="none" stroke="#EF4444" stroke-width="2" marker-end="url(#arrowOrange)" />
+  <text x="375" y="418" font-size="9" font-weight="700" fill="#F87171">Inspect</text>
+
+  <!-- Flow 5: CloudFront Forward to ALB -->
+  <path d="M 430 475 L 460 475 L 460 280 L 680 280" fill="none" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrowCyan)" />
+  <rect x="495" y="270" width="130" height="20" rx="5" fill="#0F172A" stroke="#38BDF8" stroke-width="1" />
+  <text x="560" y="284" font-size="10" font-weight="800" fill="#38BDF8" text-anchor="middle">Forward Validated Traffic</text>
+
+  <!-- Flow 6: ALB Path Routing to Branch 1 & Branch 2 -->
+  <path d="M 750 325 L 750 380 L 680 380 L 680 410" fill="none" stroke="#FB923C" stroke-width="2" marker-end="url(#arrowOrange)" />
+  <rect x="635" y="370" width="90" height="18" rx="4" fill="#0F172A" stroke="#FB923C" stroke-width="0.8" />
+  <text x="680" y="383" font-size="9" font-weight="700" fill="#FB923C" text-anchor="middle">Path: /api/chat</text>
+
+  <path d="M 870 325 L 870 380 L 1005 380 L 1005 410" fill="none" stroke="#FB923C" stroke-width="2" marker-end="url(#arrowOrange)" />
+  <rect x="940" y="370" width="130" height="18" rx="4" fill="#0F172A" stroke="#FB923C" stroke-width="0.8" />
+  <text x="1005" y="383" font-size="9" font-weight="700" fill="#34D399" text-anchor="middle">Path: /api/prescription</text>
+
+  <!-- Flow 7: Branch 2 Uploads Image to S3 via VPC Endpoint -->
+  <path d="M 900 565 L 900 630 L 620 630 L 620 650" fill="none" stroke="#34D399" stroke-width="2" marker-end="url(#arrowGreen)" />
+  <rect x="710" y="620" width="150" height="20" rx="4" fill="#0F172A" stroke="#34D399" stroke-width="1" />
+  <text x="785" y="634" font-size="9.5" font-weight="800" fill="#34D399" text-anchor="middle">1. Store Scan via VPC Endpoint</text>
+
+  <path d="M 710 730 L 740 730" fill="none" stroke="#34D399" stroke-width="2" marker-end="url(#arrowGreen)" />
+  <text x="725" y="722" font-size="9" font-weight="700" fill="#34D399" text-anchor="middle">Private Link</text>
+
+  <!-- Flow 8: KMS Encrypts S3 -->
+  <path d="M 1010 730 L 980 730" fill="none" stroke="#FB7185" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrowPink)" />
+  <rect x="982" y="705" width="80" height="18" rx="4" fill="#0F172A" stroke="#FB7185" stroke-width="0.8" />
+  <text x="1022" y="718" font-size="9" font-weight="800" fill="#FB7185" text-anchor="middle">SSE-KMS (Key)</text>
+
+  <!-- Flow 9: Secrets Manager injects API Keys into Backend -->
+  <path d="M 1370 650 L 1370 610 L 800 610 L 800 565" fill="none" stroke="#FB7185" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#arrowPink)" />
+  <path d="M 1370 610 L 1080 610 L 1080 565" fill="none" stroke="#FB7185" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#arrowPink)" />
+  <rect x="1100" y="600" width="140" height="20" rx="4" fill="#0F172A" stroke="#FB7185" stroke-width="0.8" />
+  <text x="1170" y="614" font-size="9.5" font-weight="700" fill="#FB7185" text-anchor="middle">Inject GEMINI_API_KEY</text>
+
+  <!-- Flow 10: Private Subnet Egress to Internet via NAT Gateway -->
+  <path d="M 700 410 L 700 370 L 1150 370 L 1150 325" fill="none" stroke="#C084FC" stroke-width="2" marker-end="url(#arrowPurple)" />
+  <path d="M 1050 410 L 1050 370" fill="none" stroke="#C084FC" stroke-width="2" />
+  <rect x="880" y="360" width="160" height="20" rx="4" fill="#0F172A" stroke="#C084FC" stroke-width="1" />
+  <text x="960" y="374" font-size="9.5" font-weight="800" fill="#C084FC" text-anchor="middle">Outbound Egress Routing</text>
+
+  <!-- Flow 11: NAT Gateway to Google Gemini REST API -->
+  <path d="M 1320 280 L 1570 280" fill="none" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrowCyan)" />
+  <rect x="1360" y="265" width="180" height="22" rx="5" fill="#0F172A" stroke="#38BDF8" stroke-width="1.2" />
+  <text x="1450" y="280" font-size="10" font-weight="800" fill="#38BDF8" text-anchor="middle">HTTPS POST to Google Gemini API</text>
+
+  <!-- Flow 12: Doctor EMR to EventBridge -->
+  <path d="M 1470 500 L 1570 500" fill="none" stroke="#FB7185" stroke-width="2" marker-end="url(#arrowPink)" />
+  <rect x="1485" y="488" width="70" height="18" rx="4" fill="#0F172A" stroke="#FB7185" stroke-width="0.8" />
+  <text x="1520" y="501" font-size="9" font-weight="700" fill="#FB7185" text-anchor="middle">Publish Event</text>
+
+  <!-- Flow 13: Telemetry to CloudWatch -->
+  <path d="M 1000 840 L 1000 885" fill="none" stroke="#F43F5E" stroke-width="1.8" stroke-dasharray="4 4" marker-end="url(#arrowPink)" />
+  <text x="1010" y="865" font-size="9.5" font-weight="700" fill="#FB7185">Telemetry, Metrics &amp; Audit Logs</text>
+
+</svg>
