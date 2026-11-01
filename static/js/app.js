@@ -36,14 +36,15 @@ const translations = {
     chip_source: "Từ nguồn uy tín",
     chat_assistant_title: "Trợ lý MediMind AI",
     chat_status: "Đang hoạt động",
-    quick_1: "📷 Nhận diện ảnh da",
-    quick_2: "🔍 Mụn nước một bên?",
-    quick_3: "🌡️ Thuốc hạ sốt an toàn?",
-    quick_4: "💊 Có cần dùng kháng sinh?",
-    quick_prompt_text_2: "Tôi bị nổi mụn nước ngứa ngáy một bên sườn",
-    quick_prompt_text_3: "Thuốc hạ sốt nào an toàn?",
-    quick_prompt_text_4: "Có cần uống kháng sinh không?",
-    chat_input_placeholder: "Nhập triệu chứng hoặc tải ảnh tổn thương da...",
+    quick_1: "🩺 Sốt 38.5°C & đau rát họng",
+    quick_2: "⚠️ Đau thắt ngực, khó thở",
+    quick_3: "💊 Lịch uống đơn thuốc sau ăn?",
+    quick_4: "🏥 Gợi ý chuyên khoa khám",
+    quick_prompt_text_1: "Tôi bị sốt 38.5 độ và đau rát họng hai hôm nay, nuốt đau",
+    quick_prompt_text_2: "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái",
+    quick_prompt_text_3: "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?",
+    quick_prompt_text_4: "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?",
+    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau ngực, sốt cao, đau dạ dày) hoặc gửi ảnh đơn thuốc...",
     disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
     disclaimer_footer_btn: "Miễn trừ trách nhiệm",
     typing_vision: "Gemini Vision đang phân tích hình thái học...",
@@ -152,9 +153,10 @@ function applyLanguage() {
 function insertQuickPrompt(num) {
   const dict = translations[currentLang] || translations.vi;
   let promptText = '';
-  if (num === 2) promptText = dict.quick_prompt_text_2;
-  else if (num === 3) promptText = dict.quick_prompt_text_3;
-  else if (num === 4) promptText = dict.quick_prompt_text_4;
+  if (num === 1) promptText = dict.quick_prompt_text_1 || "Tôi bị sốt 38.5 độ và đau rát họng hai hôm nay, nuốt đau";
+  else if (num === 2) promptText = dict.quick_prompt_text_2 || "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái";
+  else if (num === 3) promptText = dict.quick_prompt_text_3 || "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?";
+  else if (num === 4) promptText = dict.quick_prompt_text_4 || "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?";
 
   if (promptText) {
     insertPrompt(promptText);
@@ -951,6 +953,11 @@ function updateAuthUI() {
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
     if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
     if (ehrAvatarBadge) ehrAvatarBadge.innerText = currentUser.badge || 'BN';
+
+    const rightPanelName = document.getElementById('right-panel-patient-name');
+    const rightPanelId = document.getElementById('right-panel-patient-id');
+    if (rightPanelName) rightPanelName.innerText = currentUser.name;
+    if (rightPanelId) rightPanelId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 4).padStart(4, '0') + ' • 60T';
 
     const dropAvatar = document.getElementById('dropdown-user-avatar');
     const dropName = document.getElementById('dropdown-user-name');
