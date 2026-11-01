@@ -40,3 +40,10 @@ uploads/*
 
 # Temporary scratch
 scratch/
+
+# AI Agent & Design Tools
+.agents/
+.claude/
+.artifact-server.json
+.artifact-server.log
+.sharing.json

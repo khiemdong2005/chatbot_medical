@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>MediMind - Tư vấn y tế & Sàng lọc lâm sàng</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea {
+      font-family: inherit;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</helmet>
+
+<div style="width: 100%; min-height: 900px; display: flex; flex-direction: column; background: #f8fafc; overflow: hidden;">
+  <!-- Top Navigation Bar -->
+  <header style="height: 70px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 30; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);">
+    <!-- Logo & Brand -->
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          <path d="M12 5v14"/>
+          <path d="M5 12h14"/>
+        </svg>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: #0f172a;">Medi<span style="color: #0d9488;">Mind</span></span>
+          <span style="font-size: 11px; font-weight: 700; background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 9999px;">LÂM SÀNG 2.0</span>
+        </div>
+        <p style="margin: 0; font-size: 11px; color: #64748b; font-weight: 500;">Hệ thống Trợ lý Y tế & Sàng lọc Triệu chứng AI</p>
+      </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <nav style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 12px;" aria-label="Điều hướng chính">
+      <button type="button" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; background: #ffffff; color: #0f766e; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+        Tư vấn triệu chứng
+      </button>
+
+      <a href="OCR_Scanner.dc.html" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #475569; background: transparent; transition: all 0.15s ease;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h6"/></svg>
+        Đọc đơn & Xét nghiệm
+      </a>
+
+      <button type="button" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #475569; background: transparent; border: none; cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/><path d="M14 12v.01"/><path d="M10 12v.01"/><path d="M10 16v.01"/><path d="M14 16v.01"/></svg>
+        Tra cứu cơ sở y tế
+      </button>
+
+      <a href="Mobile_Triage.dc.html" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; color: #6366f1; background: #eef2ff;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+        Bản Mobile
+      </a>
+    </nav>
+
+    <!-- Right Header Tools -->
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Emergency Hotline -->
+      <a href="tel:115" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; background: #fef2f2; border: 1px solid #fee2e2; color: #dc2626; font-size: 12px; font-weight: 700;">
+        <span style="width: 8px; height: 8px; border-radius: 9999px; background: #dc2626;"></span>
+        Cấp cứu: 115
+      </a>
+
+      <!-- User Session Indicator -->
+      <div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff;">
+        <div style="width: 32px; height: 32px; border-radius: 9999px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #64748b;">
+          👤
+        </div>
+        <div style="text-align: left;">
+          <div style="font-size: 12px; font-weight: 700; color: #1e293b;">Khách truy cập</div>
+          <div style="font-size: 11px; color: #94a3b8;">Chưa đăng nhập</div>
+        </div>
+        <button type="button" style="margin-left: 4px; padding: 5px 10px; background: #0f172a; color: #ffffff; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">
+          Đăng nhập
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Layout: 3 Columns -->
+  <main style="display: flex; flex: 1; height: calc(100vh - 70px); overflow: hidden;">
+    <!-- LEFT SIDEBAR: History & Presets -->
+    <aside style="width: 300px; background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden;" aria-label="Lịch sử và danh mục">
+      <!-- Action: New Consultation -->
+      <div style="padding: 18px 16px 12px;">
+        <button type="button" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: #0d9488; color: #ffffff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Bắt đầu phiên tư vấn mới
+        </button>
+      </div>
+
+      <!-- Quick Triage Presets -->
+      <div style="padding: 0 16px 12px;">
+        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">Gợi ý tình huống mẫu</span>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+          <button type="button" style="width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; border: 1px solid #f1f5f9; background: #f8fafc; font-size: 12px; font-weight: 600; color: #334155; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+            <span>🌡️ Sốt & Đau rát họng cấp</span>
+            <span style="font-size: 11px; color: #0d9488;">Thử ➔</span>
+          </button>
+          <button type="button" style="width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; border: 1px solid #f1f5f9; background: #f8fafc; font-size: 12px; font-weight: 600; color: #334155; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+            <span>💊 Kiểm tra tương tác thuốc</span>
+            <span style="font-size: 11px; color: #0d9488;">Thử ➔</span>
+          </button>
+          <button type="button" style="width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; border: 1px solid #f1f5f9; background: #f8fafc; font-size: 12px; font-weight: 600; color: #334155; cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+            <span>🫀 Huyết áp & Tim mạch</span>
+            <span style="font-size: 11px; color: #0d9488;">Thử ➔</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lịch sử tư vấn (Trạng thái trung thực cho phiên Khách) -->
+      <div style="flex: 1; padding: 12px 16px; display: flex; flex-direction: column; overflow-y: auto;" class="custom-scroll">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">Lịch sử trò chuyện</span>
+          <span style="font-size: 11px; color: #64748b;">(0)</span>
+        </div>
+
+        <!-- Khách chưa đăng nhập: Không bịa lịch sử giả -->
+        <div style="padding: 24px 16px; border-radius: 10px; border: 1px dashed #cbd5e1; background: #f8fafc; text-align: center; margin-top: 10px;">
+          <div style="font-size: 24px; margin-bottom: 6px;">📂</div>
+          <div style="font-size: 12px; font-weight: 700; color: #475569;">Chưa có lịch sử lưu</div>
+          <p style="margin: 4px 0 0; font-size: 11px; color: #94a3b8; line-height: 1.4;">
+            Đăng nhập để đồng bộ hồ sơ bệnh án và lịch sử trao đổi của bạn trên mọi thiết bị.
+          </p>
+        </div>
+      </div>
+
+      <!-- Left Sidebar Footer: Disclaimer -->
+      <div style="padding: 14px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <span style="font-size: 14px; color: #f59e0b;">⚠️</span>
+          <p style="margin: 0; font-size: 11px; color: #64748b; line-height: 1.4;">
+            <strong>Khuyến cáo:</strong> Trợ lý AI chỉ phục vụ mục đích hỗ trợ tra cứu thông tin y khoa và sàng lọc sơ bộ. Không thay thế bác sĩ chuyên khoa.
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER COLUMN: Conversational Clinical Stream -->
+    <section style="flex: 1; display: flex; flex-direction: column; background: #ffffff; position: relative;" aria-label="Khu vực trò chuyện">
+      <!-- Conversation Header -->
+      <div style="padding: 12px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; background: #ffffff;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);"></span>
+          <div>
+            <h1 style="margin: 0; font-size: 14px; font-weight: 700; color: #0f172a;">Phiên tư vấn lâm sàng trực tuyến</h1>
+            <span style="font-size: 11px; color: #64748b;">Mô hình: Gemini 2.5 Clinical RAG • Phản hồi theo thời gian thực</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" style="padding: 6px 12px; background: #f1f5f9; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer;">
+            Xóa hội thoại
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Stream -->
+      <div style="flex: 1; padding: 24px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;" class="custom-scroll">
+        <!-- AI Welcome Bubble -->
+        <div style="display: flex; gap: 14px; max-width: 820px; align-self: flex-start;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #0d9488; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-weight: 700;">
+            ⚕️
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 12px; font-weight: 700; color: #0d9488; margin-bottom: 4px;">Trợ lý sức khỏe AI MediMind</div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0 14px 14px 14px; padding: 16px 20px; color: #1e293b; font-size: 14px; line-height: 1.6;">
+              <p style="margin: 0 0 10px;">
+                Xin chào! Tôi là Trợ lý sức khỏe AI MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng, giải thích thông tin thuốc và hướng dẫn quy trình chăm sóc ban đầu.
+              </p>
+              <p style="margin: 0; font-weight: 600; color: #0f766e;">
+                Bạn đang cảm thấy khó chịu ở đâu, hoặc cần giải đáp vấn đề sức khỏe nào hôm nay?
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Message Bubble -->
+        <div style="display: flex; gap: 14px; max-width: 720px; align-self: flex-end; flex-direction: row-reverse;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #1e293b; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">
+            👤
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">Bạn (Khách)</div>
+            <div style="background: #0d9488; color: #ffffff; border-radius: 14px 0 14px 14px; padding: 14px 18px; font-size: 14px; line-height: 1.5; text-align: left;">
+              Tôi bị sốt 38.5 độ từ chiều qua, kèm theo nuốt đau ở cổ họng và hắt hơi nhiều. Tôi nên làm gì trước khi đi khám?
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Clinical Assessment Bubble with Structured Cards -->
+        <div style="display: flex; gap: 14px; max-width: 820px; align-self: flex-start;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #0d9488; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; font-weight: 700;">
+            ⚕️
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span style="font-size: 12px; font-weight: 700; color: #0d9488;">Trợ lý sức khỏe AI MediMind</span>
+              <span style="font-size: 11px; background: #fef3c7; color: #b45309; padding: 1px 7px; border-radius: 4px; font-weight: 700;">MỨC THEO DÕI</span>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0 14px 14px 14px; padding: 18px 20px; color: #1e293b; font-size: 14px; line-height: 1.6;">
+              <p style="margin: 0 0 12px;">
+                Dựa trên các triệu chứng bạn cung cấp (sốt 38.5°C, đau rát họng, hắt hơi kéo dài khoảng 24 giờ), đây là phản ứng thường gặp của <strong>Viêm đường hô hấp trên cấp tính</strong> (nghi ngờ do virus).
+              </p>
+
+              <!-- Clinical Recommendations Checklist -->
+              <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+                <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span>📋</span> Hướng xử trí tức thì tại nhà:
+                </div>
+                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155; display: flex; flex-direction: column; gap: 6px;">
+                  <li><strong>Hạ sốt:</strong> Uống Paracetamol 500mg (1 viên nếu cân nặng 40-60kg) khi sốt trên 38.5°C, cách nhau 4-6 giờ. Tuyệt đối không quá 4g/ngày.</li>
+                  <li><strong>Bù nước:</strong> Uống đủ 2-2.5 lít nước ấm/ngày hoặc dung dịch Oresol pha đúng tỉ lệ.</li>
+                  <li><strong>Vệ sinh họng:</strong> Súc họng bằng nước muối sinh lý 0.9% 3-4 lần/ngày.</li>
+                </ul>
+              </div>
+
+              <!-- Warning Signs -->
+              <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #9f1239; line-height: 1.5;">
+                <strong>🚨 Dấu hiệu cần đến cơ sở y tế ngay:</strong> Khó thở, sốt cao trên 39.5°C không hạ sau dùng thuốc, đau họng nặng không thể nuốt nước bọt, hoặc phát ban lan nhanh.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Chat Input Bar -->
+      <div style="padding: 16px 24px; background: #ffffff; border-top: 1px solid #e2e8f0;">
+        <div style="display: flex; gap: 10px; align-items: center; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 14px; padding: 8px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+          <button type="button" aria-label="Đính kèm tệp" style="background: transparent; border: none; color: #64748b; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+          
+          <input type="text" placeholder="Nhập triệu chứng, câu hỏi về đơn thuốc hoặc sức khỏe..." style="flex: 1; border: none; background: transparent; font-size: 14px; color: #0f172a; outline: none;" value="Tôi có tiền sử dị ứng Penicillin thì có dùng được thuốc kháng sinh nào không?">
+
+          <button type="button" style="background: #0d9488; color: #ffffff; border: none; border-radius: 10px; padding: 8px 16px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);">
+            <span>Gửi</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: Contextual Clinical Summary Drawer -->
+    <aside style="width: 340px; background: #f8fafc; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow-y: auto;" class="custom-scroll" aria-label="Tóm tắt bệnh án ngữ cảnh">
+      <!-- Section Header -->
+      <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; background: #ffffff;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <h2 style="margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569;">Tóm tắt lâm sàng phiên</h2>
+          <span style="font-size: 11px; color: #0d9488; font-weight: 600;">Thời gian thực</span>
+        </div>
+      </div>
+
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 18px;">
+        <!-- Triage Level Badge Card -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Phân loại Triage (Manchester)</div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px;">
+              3
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #92400e;">Mức Độ Vàng: Bán khẩn</div>
+              <div style="font-size: 11px; color: #78350f;">Nên thăm khám trong vòng 24 - 48 giờ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detected Symptoms -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Triệu chứng ghi nhận</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <span style="font-size: 12px; background: #f1f5f9; color: #334155; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Sốt 38.5°C</span>
+            <span style="font-size: 12px; background: #f1f5f9; color: #334155; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Đau rát họng</span>
+            <span style="font-size: 12px; background: #f1f5f9; color: #334155; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Hắt hơi</span>
+            <span style="font-size: 12px; background: #fef2f2; color: #b91c1c; padding: 4px 10px; border-radius: 6px; font-weight: 600;">Dị ứng: Penicillin</span>
+          </div>
+        </div>
+
+        <!-- Next Action Recommendations -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Hành động khuyến nghị</div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <a href="OCR_Scanner.dc.html" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; background: #f0fdfa; border: 1px solid #ccfbf1; color: #0f766e; font-size: 12px; font-weight: 700;">
+              <span>Quét đơn thuốc có sẵn ➔</span>
+            </a>
+            <button type="button" style="text-align: left; padding: 10px 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; font-size: 12px; font-weight: 600; cursor: pointer;">
+              Tìm phòng khám Tai Mũi Họng gần bạn ➔
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props='{"accentColor":{"editor":"color","default":"#0D9488"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accentColor: this.props.accentColor ?? '#0D9488'
+    };
+  }
+}
+</script>
+</body>
+</html>
+
