@@ -1,0 +1,10 @@
+# Cấu hình Gitleaks quét secrets
+[extend]
+useDefault = true
+
+[whitelist]
+description = "Bỏ qua các file mock test và documentation"
+paths = [
+    "tests/.*",
+    "scratch/.*"
+]

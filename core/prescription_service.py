@@ -2,9 +2,12 @@ import os
 import sys
 import json
 import re
+import time
 import hashlib
 from datetime import datetime
 from typing import Dict, Any, Optional
+from pathlib import Path
+from dotenv import load_dotenv
 
 # Ensure UTF-8 output on console
 if hasattr(sys.stdout, 'reconfigure'):
@@ -12,22 +15,160 @@ if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
     except Exception:
         pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
-from pathlib import Path
-from dotenv import load_dotenv
-
-# Tự động nạp file .env từ thư mục gốc của dự án (Dynamic Portable Path)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv()
 
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
 
+from core.ocr_extractor import extract_prescription_text
 
-def scan_prescription_with_gemini(file_path: str, original_filename: str = "") -> Optional[Dict[str, Any]]:
+
+def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filename: str = "", file_path: str = "") -> Optional[Dict[str, Any]]:
     """
-    Sử dụng Google Gemini Multimodal Vision API để quét và trích xuất BẤT KỲ đơn thuốc / phiếu xét nghiệm nào.
-    Đọc cả chữ in sẵn và chữ viết tay của bác sĩ, tự động phân tích liều dùng, hoạt chất và cảnh báo y khoa.
+    TẦNG 2 TRONG KIẾN TRÚC HYBRID:
+    Bộ não suy luận lâm sàng & chuẩn hóa thực thể y tế (Clinical NLP & NER) bằng Gemini:
+      - Nhận ảnh gốc + văn bản OCR thô trích xuất từ OpenCV + EasyOCR
+      - Đối chiếu đa phương thức (Multimodal Cross-validation) tránh sai sót nhận diện tên thuốc
+      - Khắc phục các lỗi chính tả quang học (OCR Typos) về tên thuốc, hoạt chất, nồng độ
+      - Bóc tách cấu trúc: Cơ sở khám bệnh, Bác sĩ, Bệnh nhân, Chẩn đoán, Ngày tháng
+      - Lập thời gian biểu uống thuốc chuẩn dược động học (Sáng - Trưa - Tối - Trước ngủ - Dùng ngoài)
+      - Phân tích tương tác thuốc đối kháng, tác dụng phụ và cảnh báo an toàn
+    """
+    raw_text = ocr_data.get("raw_text", "").strip()
+
+    try:
+        from google import genai
+        from google.genai import types
+
+        client = genai.Client(api_key=GEMINI_API_KEY)
+
+        prompt = f"""
+Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI hàng đầu tại Việt Nam.
+Dưới đây là tài liệu y tế (kèm ảnh chụp và văn bản quét được từ mô hình OCR cục bộ OpenCV + EasyOCR):
+
+--- VĂN BẢN QUÉT ĐƯỢC TỪ MÁY OCR CỤC BỘ ---
+{raw_text}
+--- KẾT THÚC VĂN BẢN QUÉT ---
+
+HƯỚNG DẪN ĐẶC BIỆT DÀNH CHO ĐƠN THUỐC LÂM SÀNG TẠI VIỆT NAM:
+1. Đọc kỹ ảnh chụp để ĐỐI CHIẾU VỚI VĂN BẢN OCR, ĐẢM BẢO BÓC TÁCH ĐỦ VÀ CHÍNH XÁC 100% CÁC MỤC THUỐC (KHÔNG BỎ SÓT THUỐC NÀO):
+   - Đơn thuốc tại Việt Nam thường kết hợp thuốc tân dược và thuốc Đông y / Y học cổ truyền.
+   - Tuyệt đối không nhầm lẫn tên hoạt chất và không tự bịa tên thuốc.
+2. THÔNG TIN BỆNH NHÂN & CHẨN ĐOÁN:
+   - Họ tên bệnh nhân (kèm tuổi, giới tính nếu có).
+   - Địa chỉ.
+   - Chẩn đoán xác định.
+   - Đợt dùng / Thời gian điều trị.
+3. PHÂN BỔ THỜI GIAN BIỂU UỐNG THUỐC:
+   - Sáng (06:30 - 08:00), Trưa (11:30 - 12:30), Tối (18:00 - 19:30), Trước ngủ (21:00 - 22:00).
+   - Ghi rõ note: "Trước ăn (30 phút)", "Sau khi ăn", hoặc "Dùng ngoài da".
+4. CẢNH BÁO LÂM SÀNG (warnings).
+
+BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆT ĐỐI KHÔNG DÙNG ```json, KHÔNG GIẢI THÍCH):
+{{
+  "status": "success",
+  "type": "prescription",
+  "doc_title": "Đơn thuốc Điều trị ...",
+  "facility": "Tên cơ sở y tế",
+  "department": "Khoa phòng",
+  "doctor": "Bác sĩ kê đơn",
+  "patient_name": "Họ và tên bệnh nhân (tuổi, giới tính)",
+  "address": "Địa chỉ",
+  "diagnosis": "Chẩn đoán y khoa chi tiết",
+  "date": "Ngày khám",
+  "duration": "Thời gian điều trị",
+  "timeline": {{
+    "morning": [],
+    "noon": [],
+    "evening": [],
+    "bedtime": [],
+    "external": []
+  }},
+  "medications": [],
+  "warnings": []
+}}
+"""
+
+        # Prepare multimodal content if file_path exists
+        contents_payload = []
+        if file_path and os.path.exists(file_path):
+            with open(file_path, "rb") as f:
+                img_bytes = f.read()
+            ext = os.path.splitext(file_path)[1].lower()
+            mime_type = "image/png" if ext == ".png" else "application/pdf" if ext == ".pdf" else "image/jpeg"
+            contents_payload.append(types.Part.from_bytes(data=img_bytes, mime_type=mime_type))
+
+        contents_payload.append(prompt)
+
+        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.1
+        )
+
+        raw_json_str = None
+        for model_name in candidate_models:
+            try:
+                res = client.models.generate_content(
+                    model=model_name,
+                    contents=contents_payload,
+                    config=config
+                )
+                if res and res.text:
+                    raw_json_str = res.text.strip()
+                    break
+            except Exception:
+                continue
+
+        if not raw_json_str:
+            return None
+
+        cleaned = raw_json_str
+        if cleaned.startswith("```"):
+            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+            cleaned = re.sub(r"\s*```$", "", cleaned)
+            cleaned = cleaned.strip()
+
+        match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
+        if match:
+            cleaned = match.group(1).strip()
+
+        data = json.loads(cleaned)
+        if isinstance(data, dict):
+            data.setdefault("status", "success")
+            data.setdefault("type", "prescription")
+            data["scanned_by"] = "Kiến trúc Hybrid AI: Tiền xử lý OpenCV ➔ EasyOCR Tiếng Việt Cục bộ ➔ Gemini Multimodal Clinical NLP"
+            data["pipeline_mode"] = "Hybrid Pipeline (Local Edge Computer Vision + Cloud Multimodal Verification)"
+            data["uploaded_filename"] = original_filename or "Tai_lieu_y_te.jpg"
+            data["ocr_stats"] = {
+                "engine": "EasyOCR (Tiếng Việt + Tiếng Anh Local Engine)",
+                "total_lines_detected": ocr_data.get("total_lines", 0),
+                "avg_confidence_score": ocr_data.get("avg_confidence", 0.0),
+                "ocr_duration_sec": ocr_data.get("ocr_duration_sec", 0.0),
+                "deskew_angle": ocr_data.get("prep_info", {}).get("skew_angle", 0.0),
+                "clahe_applied": ocr_data.get("prep_info", {}).get("clahe_applied", True)
+            }
+            data["raw_ocr_preview"] = [line["text"] for line in ocr_data.get("lines", [])[:15]]
+            return data
+
+    except Exception as e:
+        print(f"[HYBRID CLINICAL NLP ERROR] Lỗi phân tích văn bản OCR: {e}")
+        return None
+
+    return None
+
+
+def scan_prescription_with_gemini_vision(file_path: str, original_filename: str = "") -> Optional[Dict[str, Any]]:
+    """
+    DỰ PHÒNG CẤP 2 (Fallback Vision Multimodal):
+    Dùng trực tiếp Gemini Vision khi ảnh scan quá mờ, chữ viết tay khó hoặc file PDF nhiều trang.
     """
     try:
         from google import genai
@@ -47,60 +188,16 @@ def scan_prescription_with_gemini(file_path: str, original_filename: str = "") -
 
         prompt = """
         Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI.
-        Hãy quan sát thật kỹ tài liệu / ảnh chụp y tế này (đọc hết cả chữ in sẵn, con dấu, và đặc biệt là CHỮ VIẾT TAY của bác sĩ bên lề hoặc ghi chú liều dùng).
-
-        Nhiệm vụ:
-        1. Xác định đây là "Đơn thuốc" (type: "prescription") hay "Phiếu xét nghiệm" (type: "lab_test").
-        2. Nếu là ĐƠN THUỐC:
-           - Trích xuất: Tên bệnh viện, Phòng khám, Bác sĩ điều trị, Họ tên người bệnh, Tuổi, Chẩn đoán, Ngày khám, Thời gian điều trị.
-           - Lập LỊCH UỐNG THUỐC TRONG NGÀY (timeline: morning, noon, evening, bedtime) có thời gian gợi ý, liều lượng, số viên, ghi chú trước/sau ăn theo đúng chỉ dẫn của bác sĩ.
-           - Danh mục thuốc chi tiết (medications): Tên thương mại, hoạt chất chính, nhóm thuốc, công dụng bằng tiếng Việt bình dân dễ hiểu, cách dùng.
-           - Cảnh báo an toàn (warnings): Lưu ý kiêng khem, cảnh báo kháng sinh, tác dụng phụ nguy hiểm cần cấp cứu, lịch tái khám.
-        3. Nếu là PHIẾU XÉT NGHIỆM:
-           - Trích xuất toàn bộ các chỉ số sinh hóa (metrics): Tên chỉ số, kết quả đo, đơn vị, khoảng tham chiếu, đánh giá (High/Normal/Low), lời khuyên cụ thể.
-           - Nhận định tổng quát (ai_summary) và khuyến nghị lối sống, dinh dưỡng.
-
-        BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆT ĐỐI KHÔNG DÙNG ```json, KHÔNG GIẢI THÍCH GÌ THÊM):
-        {
-          "status": "success",
-          "type": "prescription",
-          "doc_title": "Đơn thuốc ...",
-          "facility": "Tên bệnh viện / phòng khám",
-          "department": "Khoa phòng",
-          "doctor": "Bác sĩ điều trị",
-          "patient_name": "Tên bệnh nhân (kèm tuổi nếu có)",
-          "diagnosis": "Chẩn đoán y khoa",
-          "date": "Ngày khám",
-          "duration": "Thời gian dùng thuốc",
-          "timeline": {
-            "morning": [{"name": "Tên thuốc", "dosage": "Liều lượng", "time": "07:30", "note": "Ghi chú uống trước/sau ăn", "tag": "Nhóm dược lý", "color": "rose"}],
-            "noon": [{"name": "Tên thuốc", "dosage": "Liều lượng", "time": "12:00", "note": "Ghi chú", "tag": "Nhóm", "color": "emerald"}],
-            "evening": [{"name": "Tên thuốc", "dosage": "Liều lượng", "time": "18:30", "note": "Ghi chú", "tag": "Nhóm", "color": "blue"}],
-            "bedtime": [{"name": "Tên thuốc", "dosage": "Liều lượng", "time": "21:30", "note": "Ghi chú", "tag": "Nhóm", "color": "purple"}]
-          },
-          "medications": [
-            {
-              "name": "Tên thuốc thương mại",
-              "ingredient": "Hoạt chất + hàm lượng",
-              "category": "Nhóm thuốc",
-              "purpose": "Công dụng bằng tiếng Việt bình dân",
-              "usage": "Cách dùng chi tiết"
-            }
-          ],
-          "warnings": [
-            "Cảnh báo quan trọng 1",
-            "Cảnh báo quan trọng 2"
-          ]
-        }
+        Hãy quan sát tài liệu y tế này (bao gồm chữ in và chữ viết tay):
+        1. Xác định type: "prescription" hay "lab_test".
+        2. Nếu là prescription: trích xuất facility, department, doctor, patient_name, diagnosis, date, duration, timeline 4 cữ, medications và warnings.
+        3. Nếu là lab_test: trích xuất metrics (name, value, unit, reference, status: High/Normal/Low, advice) và ai_summary.
+        Trả về DUY NHẤT một JSON hợp lệ.
         """
 
-        # Các model Vision nhanh và mạnh của Gemini
-        candidate_models = ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3.7-flash", "gemini-3.8-flash"]
-
-        raw_text = None
+        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
         for model_name in candidate_models:
             try:
-                print(f"[VISION AI] Đang quét ảnh với model: {model_name}...")
                 res = client.models.generate_content(
                     model=model_name,
                     contents=[
@@ -109,79 +206,104 @@ def scan_prescription_with_gemini(file_path: str, original_filename: str = "") -
                     ]
                 )
                 if res and res.text:
-                    raw_text = res.text.strip()
-                    print(f"[VISION AI SUCCESS] Quét thành công bằng model {model_name}!")
-                    break
-            except Exception as err:
-                print(f"[VISION AI WARNING] Model {model_name} bận ({err}). Đang chuyển model tiếp theo...")
-
-        if not raw_text:
-            return None
-
-        # Làm sạch chuỗi JSON nếu có markdown blocks
-        cleaned = raw_text
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-            cleaned = re.sub(r"\s*```$", "", cleaned)
-            cleaned = cleaned.strip()
-
-        # Tìm kiếm JSON bằng regex phòng thủ
-        match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-        if match:
-            cleaned = match.group(1).strip()
-
-        data = json.loads(cleaned)
-        if isinstance(data, dict):
-            data.setdefault("status", "success")
-            data.setdefault("type", "prescription")
-            data["scanned_by"] = "Google Gemini Vision AI"
-            data["uploaded_filename"] = original_filename or os.path.basename(file_path)
-            return data
+                    cleaned = res.text.strip()
+                    if cleaned.startswith("```"):
+                        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+                        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+                    match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
+                    if match:
+                        cleaned = match.group(1).strip()
+                    data = json.loads(cleaned)
+                    if isinstance(data, dict):
+                        data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
+                        data["pipeline_mode"] = "End-to-End Vision Fallback"
+                        data["uploaded_filename"] = original_filename or os.path.basename(file_path)
+                        return data
+            except Exception:
+                continue
 
     except Exception as e:
-        print(f"[VISION AI ERROR] Lỗi xử lý ảnh qua Gemini: {e}")
-        return None
+        print(f"[VISION FALLBACK ERROR] {e}")
 
     return None
 
 
 def analyze_uploaded_document(file_path: str, original_filename: str = "") -> Dict[str, Any]:
     """
-    Bộ điều phối quét đơn thuốc / kết quả xét nghiệm:
-    1. Ưu tiên số 1: Gọi trực tiếp Google Gemini Vision AI (đọc BẤT KỲ tài liệu nào).
-    2. Dự phòng: Nếu mất mạng / lỗi API thì dùng bộ dữ liệu lâm sàng đối chiếu.
+    BỘ ĐIỀU PHỐI KIẾN TRÚC HYBRID:
+      1. Tiền xử lý OpenCV + Bóc tách EasyOCR cục bộ.
+      2. Chuyển văn bản sang Gemini để chuẩn hóa dược học.
+      3. Dự phòng Gemini Vision nếu OCR không đọc được text.
+      4. BẢO MẬT & TRUNG THỰC: Khi cả OCR và Gemini thất bại, KHÔNG tự bịa dữ liệu mẫu hoặc trả preset.
+         Trả về trạng thái failed/needs_review kèm mã lỗi rõ ràng để người bệnh chụp lại.
     """
+    filename_clean = original_filename or os.path.basename(file_path)
+
     if not os.path.exists(file_path):
-        return get_preset_data("binh_dan")
+        return {
+            "status": "failed",
+            "needs_review": True,
+            "error_code": "FILE_NOT_FOUND",
+            "message": "Không tìm thấy tệp tài liệu cần phân tích. Vui lòng thử tải lên lại.",
+            "uploaded_filename": filename_clean
+        }
 
-    # 1. Gọi trực tiếp Vision AI
-    ai_result = scan_prescription_with_gemini(file_path, original_filename)
-    if ai_result:
-        return ai_result
+    print(f"\n🚀 [HYBRID PIPELINE START] Tiếp nhận tệp: {filename_clean}")
 
-    # 2. Dự phòng thông minh nếu không có kết nối mạng
-    file_size = os.path.getsize(file_path)
-    lower_name = (original_filename or os.path.basename(file_path)).lower()
+    # BƯỚC 1: BÓC TÁCH BẰNG MÔ HÌNH OCR CỤC BỘ
+    print("📸 [BƯỚC 1/2] Đang tiền xử lý ảnh OpenCV và chạy EasyOCR Tiếng Việt...")
+    ocr_result = extract_prescription_text(file_path)
+    total_lines = ocr_result.get("total_lines", 0)
+    avg_conf = ocr_result.get("avg_confidence", 0.0)
+    print(f"✅ [BƯỚC 1/2] Phát hiện {total_lines} dòng văn bản (Độ tin cậy TB: {avg_conf:.2f})")
 
-    if any(k in lower_name for k in ["xet_nghiem", "xetnghiem", "lab", "huyet_hoc", "sinh_hoa", "blood"]):
-        res = get_preset_data("lab_blood")
-        res["uploaded_filename"] = original_filename or os.path.basename(file_path)
-        return res
+    # BƯỚC 2: CHUẨN HÓA VĂN BẢN BẰNG GEMINI NLP NẾU CÓ DỮ LIỆU OCR
+    if ocr_result.get("success") and total_lines >= 3:
+        print("🧠 [BƯỚC 2/2] Chuyển dữ liệu OCR sang Gemini Clinical NLP...")
+        hybrid_res = normalize_and_analyze_with_gemini(ocr_result, filename_clean, file_path)
+        if hybrid_res:
+            print("🎉 [HYBRID PIPELINE SUCCESS] Chuẩn hóa dược học thành công!")
+            return hybrid_res
 
-    res = get_preset_data("binh_dan")
-    res["uploaded_filename"] = original_filename or os.path.basename(file_path)
-    return res
+    # BƯỚC 3: DỰ PHÒNG GEMINI VISION NẾU ẢNH MỜ HOẶC PDF
+    print("⚠️ [FALLBACK 1] Thử nghiệm Vision Multimodal dự phòng...")
+    vision_res = scan_prescription_with_gemini_vision(file_path, filename_clean)
+    if vision_res:
+        return vision_res
+
+    # BƯỚC 4: BÁO LỖI MINH BẠCH - TUYỆT ĐỐI KHÔNG BỊA KẾT QUẢ HAY TRẢ PRESET MẪU
+    print("🛑 [PIPELINE FAILED] Không thể nhận diện nội dung. Trả trạng thái failed để người dùng chụp lại.")
+    return {
+        "status": "failed",
+        "needs_review": True,
+        "error_code": "OCR_OR_AI_ANALYSIS_FAILED",
+        "message": "Không thể nhận diện nội dung đơn thuốc hoặc xét nghiệm từ tệp này. "
+                   "Vui lòng chụp lại ảnh rõ nét, đủ sáng, căn chỉnh góc thẳng hoặc tải bản scan có độ phân giải cao hơn.",
+        "uploaded_filename": filename_clean,
+        "ocr_stats": {
+            "engine": "EasyOCR (Tiếng Việt + Tiếng Anh Local Engine)",
+            "total_lines_detected": total_lines,
+            "avg_confidence_score": avg_conf,
+            "ocr_duration_sec": ocr_result.get("ocr_duration_sec", 0.0)
+        },
+        "raw_ocr_preview": [line["text"] for line in ocr_result.get("lines", [])[:15]] if total_lines > 0 else []
+    }
 
 
 def get_preset_data(preset_key: str) -> Dict[str, Any]:
+    """
+    Trả về kịch bản mẫu thử nghiệm (Presets) CHỈ KHI ĐƯỢC YÊU CẦU RÕ RÀNG.
+    Luôn đánh dấu is_demo: True để người dùng và giao diện nhận biết dữ liệu mô phỏng.
+    """
     today = datetime.now().strftime("%d/%m/%Y")
-    
+
     if preset_key in ["binh_dan", "tran_trung", "da_day_binh_dan"]:
         return {
-            "status": "success",
+            "status": "demo",
+            "is_demo": True,
             "type": "prescription",
-            "doc_title": "Đơn thuốc Điều trị Viêm Dạ Dày Cấp - Bệnh Viện Bình Dân",
-            "facility": "SỞ Y TẾ TP. HỒ CHÍ MINH - BỆNH VIỆN BÌNH DÂN",
+            "doc_title": "Đơn thuốc Điều trị Viêm Dạ Dày Cấp - Bệnh Viện Bình Dân (Dữ liệu Demo)",
+            "facility": "SỞ Y TẾ TP. HỒ CHÍ MINH - BỆNH VIỆN BÌNH DÂN (DEMO)",
             "department": "Phòng khám Dịch Vụ 109 - (KTC)",
             "doctor": "BS. Nguyễn Văn Hùng",
             "patient_name": "TRẦN TRUNG (49 tuổi - Nam)",
@@ -191,12 +313,12 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
             "duration": "21 ngày (Đợt điều trị tấn công - 6 loại thuốc)",
             "timeline": {
                 "morning": [
-                    {"name": "YESOM 40 40mg", "dosage": "1 viên", "time": "06:30", "note": "Trước ăn sáng 30 phút (Chữ viết tay BS: Trước ăn)", "tag": "Giảm tiết acid PPI", "color": "purple"},
-                    {"name": "SUCRATE GEL 1g", "dosage": "1 gói", "time": "06:45", "note": "Trước ăn sáng 15-30 phút (Chữ viết tay BS: Trước ăn)", "tag": "Băng se ổ loét", "color": "blue"},
-                    {"name": "ARTHUR 200mg", "dosage": "1 viên", "time": "07:45", "note": "Sau ăn sáng 15 phút (Chữ viết tay BS: Sau ăn)", "tag": "Điều hòa nhu động ruột", "color": "emerald"},
-                    {"name": "PAPAZE", "dosage": "1 viên", "time": "07:45", "note": "Sau ăn sáng 15 phút (Chữ viết tay BS: Sau ăn)", "tag": "Men tiêu hóa & Kháng acid", "color": "amber"},
-                    {"name": "BIOCID MH 3.5+2g", "dosage": "1/3 chai (~33ml)", "time": "08:30", "note": "Sau ăn sáng 1 giờ (Chữ viết tay BS: Sau ăn)", "tag": "Kháng acid dạng sữa", "color": "rose"},
-                    {"name": "DIGLUMISAN 1000mg", "dosage": "1 ống", "time": "08:30", "note": "Uống sau ăn sáng (Chữ viết tay BS: Sau ăn)", "tag": "Bảo vệ tế bào gan", "color": "indigo"}
+                    {"name": "YESOM 40 40mg", "dosage": "1 viên", "time": "06:30", "note": "Trước ăn sáng 30 phút", "tag": "Giảm tiết acid PPI", "color": "purple"},
+                    {"name": "SUCRATE GEL 1g", "dosage": "1 gói", "time": "06:45", "note": "Trước ăn sáng 15-30 phút", "tag": "Băng se ổ loét", "color": "blue"},
+                    {"name": "ARTHUR 200mg", "dosage": "1 viên", "time": "07:45", "note": "Sau ăn sáng 15 phút", "tag": "Điều hòa nhu động ruột", "color": "emerald"},
+                    {"name": "PAPAZE", "dosage": "1 viên", "time": "07:45", "note": "Sau ăn sáng 15 phút", "tag": "Men tiêu hóa & Kháng acid", "color": "amber"},
+                    {"name": "BIOCID MH 3.5+2g", "dosage": "1/3 chai (~33ml)", "time": "08:30", "note": "Sau ăn sáng 1 giờ", "tag": "Kháng acid dạng sữa", "color": "rose"},
+                    {"name": "DIGLUMISAN 1000mg", "dosage": "1 ống", "time": "08:30", "note": "Uống sau ăn sáng", "tag": "Bảo vệ tế bào gan", "color": "indigo"}
                 ],
                 "noon": [
                     {"name": "SUCRATE GEL 1g", "dosage": "1 gói", "time": "11:30", "note": "Trước ăn trưa 15-30 phút", "tag": "Băng se ổ loét", "color": "blue"},
@@ -213,7 +335,7 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
                     {"name": "DIGLUMISAN 1000mg", "dosage": "1 ống", "time": "20:00", "note": "Uống sau ăn tối", "tag": "Bảo vệ gan", "color": "indigo"}
                 ],
                 "bedtime": [
-                    {"name": "Lời dặn bác sĩ", "dosage": "Tái khám: 16/10/2014", "time": "21:30", "note": "Khám lại xin mang theo đơn này. Bệnh nhân BHYT nhớ xin giấy chuyển viện.", "tag": "Lịch hẹn tái khám", "color": "purple"}
+                    {"name": "Lời dặn bác sĩ", "dosage": "Tái khám theo hẹn", "time": "21:30", "note": "Khám lại mang theo đơn thuốc này.", "tag": "Lịch hẹn tái khám", "color": "purple"}
                 ]
             },
             "medications": [
@@ -221,62 +343,103 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
                     "name": "YESOM 40 (Esomeprazol 40mg) - 63 Viên",
                     "ingredient": "Esomeprazole 40mg",
                     "category": "Thuốc ức chế bơm proton thế hệ mới (PPI)",
-                    "purpose": "Ức chế dạ dày tiết acid clohydric cực mạnh, giảm đau rát vùng thượng vị, tạo điều kiện thuận lợi cho niêm mạc dạ dày phục hồi.",
-                    "usage": "Uống nguyên viên với nước lọc vào buổi sáng trước khi ăn 30 phút. Bác sĩ ghi chú mũi tên mực xanh: UỐNG TRƯỚC ĂN."
+                    "purpose": "Ức chế dạ dày tiết acid clohydric, giảm đau rát vùng thượng vị.",
+                    "usage": "Uống nguyên viên vào buổi sáng trước khi ăn 30 phút."
                 },
                 {
                     "name": "SUCRATE GEL (Sucralfate 1g) - 63 Gói",
                     "ingredient": "Sucralfate 1g dạng gel",
-                    "category": "Thuốc băng se niêm mạc & Bảo vệ ổ loét dạ dày",
-                    "purpose": "Tạo một lớp màng bảo vệ dính chặt che phủ lên vết viêm trợt niêm mạc dạ dày, bảo vệ dạ dày khỏi sự ăn mòn của dịch vị acid và pepsin.",
-                    "usage": "Ngày uống 3 lần, mỗi lần 1 gói. Bác sĩ ghi chú mực xanh bên lề: UỐNG TRƯỚC BỮA ĂN (khi dạ dày còn trống)."
-                },
-                {
-                    "name": "ARTHUR 200 (Trimebutine 200mg) - 63 Viên",
-                    "ingredient": "Trimebutine maleate 200mg",
-                    "category": "Thuốc điều hòa trương lực & Co bóp nhu động tiêu hóa",
-                    "purpose": "Làm dịu các cơn co thắt dạ dày - ruột, giảm triệu chứng đau bụng quặn, đầy chướng bụng, ợ hơi, khó tiêu.",
-                    "usage": "Ngày uống 3 lần, mỗi lần 1 viên. Bác sĩ ghi chú mực xanh: UỐNG SAU KHI ĂN."
-                },
-                {
-                    "name": "PAPAZE - 63 Viên",
-                    "ingredient": "Magnesi aluminometasilicate, Na bicarbonate, Cao Scopolia, Men tiêu hóa Amylase & Protease",
-                    "category": "Phức hợp kháng acid dạ dày & Enzym tiêu hóa thức ăn",
-                    "purpose": "Hỗ trợ dạ dày co bóp và phân giải thức ăn nhanh hơn, giảm áp lực ứ đọng thức ăn sinh hơi, chống đau thắt dạ dày nhờ cao Scopolia.",
-                    "usage": "Ngày uống 3 lần, mỗi lần 1 viên. Bác sĩ ghi chú mực xanh: UỐNG SAU KHI ĂN."
-                },
-                {
-                    "name": "BIOCID MH 3.5+2g (Hỗn dịch 100ml) - 21 Chai",
-                    "ingredient": "Nhôm Hydroxide 3.5g + Magnesi Hydroxide 2g",
-                    "category": "Thuốc trung hòa acid dạng sữa (Antacid)",
-                    "purpose": "Cắt cơn ợ chua, cồn cào nóng rát dạ dày ngay tức thì bằng cách trung hòa lượng acid dư thừa tự do trong lòng dạ dày.",
-                    "usage": "Ngày uống 3 lần, mỗi lần 1/3 chai (khoảng 33ml). Uống sau bữa ăn từ 1 đến 2 giờ."
-                },
-                {
-                    "name": "DIGLUMISAN (L-Arginine HCl 1000mg) - 63 Ống",
-                    "ingredient": "L-Arginine Hydrochloride 1000mg dạng dung dịch uống",
-                    "category": "Axit amin giải độc gan & Tăng cường chuyển hóa",
-                    "purpose": "Tăng cường chức năng khử độc của gan, bảo vệ tế bào gan khi người bệnh phải sử dụng nhiều nhóm thuốc đường uống cùng lúc.",
-                    "usage": "Ngày uống 3 lần, mỗi lần 1 ống bẻ uống trực tiếp sau khi ăn."
+                    "category": "Thuốc bảo vệ ổ loét dạ dày",
+                    "purpose": "Tạo màng bảo vệ che phủ vết viêm trợt niêm mạc dạ dày.",
+                    "usage": "Ngày uống 3 lần, mỗi lần 1 gói trước bữa ăn."
                 }
             ],
             "warnings": [
-                "Lưu ý phối hợp thuốc: Đơn thuốc phối hợp nhiều loại thuốc dạ dày: Cần tuân thủ nghiêm ngặt chỉ dẫn viết tay của Bác sĩ Nguyễn Văn Hùng: Nhóm TRƯỚC ĂN (Yesom, Sucrate Gel) và Nhóm SAU ĂN (Arthur, Papaze, Biocid, Diglumisan).",
-                "Giãn cách thuốc: Gói Sucrate Gel dạng bọc niêm mạc cần uống cách thuốc sữa Biocid ít nhất 1-2 tiếng để không làm giảm độ hấp thu của nhau.",
-                "Chế độ kiêng khem lâm sàng: Tuyệt đối kiêng rượu bia, thuốc lá, đồ cay nóng (ớt, tiêu), thức ăn chua (xoài sống, chanh, giấm) và đồ uống có ga.",
-                "Kế hoạch tái khám: Tái khám ngày 16/10/2014 tại Phòng khám Dịch vụ 109 BV Bình Dân. Bệnh nhân BHYT nhớ xin giấy chuyển viện đúng tuyến."
+                "[DỮ LIỆU MẪU DEMO]: Đây là đơn thuốc mẫu minh họa cho chức năng nhận diện đơn thuốc.",
+                "Cần tuân thủ chỉ dẫn của bác sĩ điều trị và không tự ý điều chỉnh thuốc."
             ]
         }
-    
+
+    elif preset_key in ["throat", "tai_mui_hong", "ho_hap", "viem_hong"]:
+        return {
+            "status": "demo",
+            "is_demo": True,
+            "type": "prescription",
+            "doc_title": "Đơn thuốc Điều trị Viêm Họng Cấp & Viêm Đường Hô Hấp Trên (Dữ liệu Demo)",
+            "facility": "SỞ Y TẾ TP. HỒ CHÍ MINH - BỆNH VIỆN TAI MŨI HỌNG (DEMO)",
+            "department": "Khoa Khám Bệnh Ngoại Trú (KTC)",
+            "doctor": "BS. CKII Trần Minh Tâm",
+            "patient_name": "NGUYỄN VĂN AN (32 tuổi - Nam)",
+            "address": "Phường Võ Thị Sáu, Quận 3, TP. Hồ Chí Minh",
+            "diagnosis": "Viêm họng cấp / Viêm amidan cấp mủ (Mã ICD: J02.9)",
+            "date": today,
+            "duration": "5 ngày (Đợt điều trị ngoại trú)",
+            "timeline": {
+                "morning": [
+                    {"name": "Paracetamol 500mg", "dosage": "1 viên", "time": "08:00", "note": "Sau ăn sáng, dùng khi sốt > 38.5°C hoặc đau rát họng", "tag": "Hạ sốt & Giảm đau", "color": "blue"},
+                    {"name": "Alpha Chymotrypsin 4.2mg", "dosage": "2 viên", "time": "08:00", "note": "Ngậm dưới lưỡi tan từ từ", "tag": "Kháng viêm & Tiêu phù nề", "color": "amber"},
+                    {"name": "Dung dịch súc họng NaCl 0.9%", "dosage": "15ml", "time": "08:30", "note": "Súc họng kỹ sau khi đánh răng", "tag": "Sát khuẩn tại chỗ", "color": "emerald"}
+                ],
+                "noon": [
+                    {"name": "Alpha Chymotrypsin 4.2mg", "dosage": "2 viên", "time": "13:00", "note": "Ngậm dưới lưỡi sau ăn trưa", "tag": "Kháng viêm", "color": "amber"},
+                    {"name": "Dung dịch súc họng NaCl 0.9%", "dosage": "15ml", "time": "13:30", "note": "Súc họng sau bữa trưa", "tag": "Sát khuẩn", "color": "emerald"}
+                ],
+                "evening": [
+                    {"name": "Paracetamol 500mg", "dosage": "1 viên", "time": "19:00", "note": "Sau ăn tối nếu còn đau rát họng hoặc sốt", "tag": "Hạ sốt giảm đau", "color": "blue"},
+                    {"name": "Desloratadine 5mg", "dosage": "1 viên", "time": "20:00", "note": "Sau ăn tối, giảm kích ứng ho & nghẹt mũi", "tag": "Kháng Histamin H1", "color": "purple"},
+                    {"name": "Dung dịch súc họng NaCl 0.9%", "dosage": "15ml", "time": "21:30", "note": "Súc họng trước khi ngủ", "tag": "Sát khuẩn tại chỗ", "color": "emerald"}
+                ],
+                "bedtime": [
+                    {"name": "Lời dặn & Hẹn tái khám", "dosage": "Tái khám sau 5 ngày", "time": "22:00", "note": "Khám lại ngay nếu sốt cao liên tục không hạ hoặc khó nuốt, khó thở.", "tag": "Theo dõi lâm sàng", "color": "purple"}
+                ]
+            },
+            "medications": [
+                {
+                    "name": "Paracetamol 500mg - 10 Viên",
+                    "ingredient": "Paracetamol 500mg",
+                    "category": "Thuốc giảm đau hạ sốt giảm đau ngoại vi",
+                    "purpose": "Hạ nhiệt độ khi sốt trên 38.5°C, giảm đau rát họng khi nuốt thức ăn.",
+                    "usage": "Uống 1 viên khi sốt hoặc đau rát, mỗi lần cách nhau tối thiểu 4-6 giờ."
+                },
+                {
+                    "name": "Alpha Chymotrypsin 4.2mg (Chymoral) - 20 Viên",
+                    "ingredient": "Chymotrypsin 4200 IU",
+                    "category": "Enzym kháng viêm dạng ngậm",
+                    "purpose": "Giảm phù nề, tiêu dịch viêm sung huyết niêm mạc hầu họng và amidan.",
+                    "usage": "Ngậm dưới lưỡi 2 viên/lần, ngày 2 lần sáng và trưa."
+                },
+                {
+                    "name": "Desloratadine 5mg (Aerius) - 5 Viên",
+                    "ingredient": "Desloratadine 5mg",
+                    "category": "Kháng Histamin H1 thế hệ 2",
+                    "purpose": "Giảm phản xạ kích ứng đường thở, chống xuất tiết niêm mạc mũi họng.",
+                    "usage": "Uống 1 viên vào buổi tối sau ăn."
+                },
+                {
+                    "name": "Dung dịch Natri Clorid 0.9% - 1 Chai 500ml",
+                    "ingredient": "NaCl 0.9% đẳng trương",
+                    "category": "Dung dịch sát khuẩn vệ sinh niêm mạc",
+                    "purpose": "Rửa trôi vi khuẩn bám dính, làm dịu niêm mạc họng.",
+                    "usage": "Súc họng sâu 3-4 lần/ngày sau các bữa ăn và trước khi ngủ."
+                }
+            ],
+            "warnings": [
+                "[DỮ LIỆU MẪU DEMO]: Đây là đơn thuốc mẫu minh họa điều trị triệu chứng viêm đường hô hấp trên.",
+                "Uống nhiều nước ấm, súc họng thường xuyên và giữ ấm vùng cổ.",
+                "Nếu xuất hiện sốt cao liên tục > 39°C không hạ sau 48h hoặc khó thở, cần đến cơ sở y tế khám ngay."
+            ]
+        }
+
     elif preset_key == "lab_blood":
         return {
-            "status": "success",
+            "status": "demo",
+            "is_demo": True,
             "type": "lab_test",
-            "doc_title": "Phiếu Kết quả Xét nghiệm Sinh hóa & Huyết học Toàn diện",
-            "facility": "Trung tâm Xét nghiệm Y khoa MediLab Chuẩn ISO 15189",
+            "doc_title": "Phiếu Kết quả Xét nghiệm Sinh hóa & Huyết học (Dữ liệu Demo)",
+            "facility": "Trung tâm Xét nghiệm Y khoa MediLab (DEMO)",
             "department": "Khoa Hóa sinh - Miễn dịch",
-            "doctor": "BS. CKI Lê Thị Mai (Trưởng Labo)",
-            "patient_name": "Nguyễn Thành Khiêm",
+            "doctor": "BS. CKI Lê Thị Mai",
+            "patient_name": "Nguyễn Thành Khiêm (Mẫu)",
             "diagnosis": "Kiểm tra sức khỏe định kỳ & Đánh giá hội chứng chuyển hóa",
             "date": today,
             "duration": "Có giá trị đối chiếu trong 3 tháng",
@@ -288,16 +451,7 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
                     "reference": "3.9 - 6.4",
                     "status": "High",
                     "status_label": "Vượt ngưỡng an toàn",
-                    "advice": "Chỉ số đường huyết lúc đói vượt mức bình thường, là dấu hiệu của tình trạng tiền đái tháo đường hoặc suy giảm dung nạp glucose. Cần kiêng đồ ngọt và tinh bột trắng."
-                },
-                {
-                    "name": "HbA1c (Đường huyết trung bình 3 tháng)",
-                    "value": "6.8",
-                    "unit": "%",
-                    "reference": "4.0 - 5.6",
-                    "status": "High",
-                    "status_label": "Tăng cao",
-                    "advice": "Mức đường huyết gắn với hồng cầu trong 90 ngày qua ở mức cao (>6.5%). Khuyến cáo nên tái khám bác sĩ Nội tiết để lên phác đồ kiểm soát sớm."
+                    "advice": "Chỉ số đường huyết vượt ngưỡng, cần hạn chế tinh bột trắng và kiểm tra định kỳ."
                 },
                 {
                     "name": "Cholesterol Toàn phần",
@@ -306,16 +460,7 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
                     "reference": "< 5.2",
                     "status": "High",
                     "status_label": "Hơi cao",
-                    "advice": "Lượng mỡ máu toàn phần vượt ngưỡng tối ưu, tăng nguy cơ xơ vữa mạch máu nếu kéo dài. Cần tăng cường vận động và ăn nhiều chất xơ hòa tan."
-                },
-                {
-                    "name": "Triglyceride (Chất béo trung tính)",
-                    "value": "2.2",
-                    "unit": "mmol/L",
-                    "reference": "< 1.7",
-                    "status": "High",
-                    "status_label": "Tăng vừa",
-                    "advice": "Chỉ số phản ánh mỡ máu từ thức ăn dư thừa chưa tiêu thụ. Cần hạn chế rượu bia, mỡ động vật và nước ngọt có gas."
+                    "advice": "Mỡ máu toàn phần vượt ngưỡng, nên tập luyện thể dục thường xuyên."
                 },
                 {
                     "name": "AST / SGOT (Men gan)",
@@ -324,107 +469,27 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
                     "reference": "< 40",
                     "status": "Normal",
                     "status_label": "Bình thường",
-                    "advice": "Tế bào nhu mô gan hoạt động ổn định, không ghi nhận dấu hiệu hoại tử tế bào gan cấp."
+                    "advice": "Men gan trong giới hạn bình thường."
                 },
                 {
-                    "name": "ALT / SGPT (Men gan)",
-                    "value": "31",
-                    "unit": "U/L",
-                    "reference": "< 40",
-                    "status": "Normal",
-                    "status_label": "Bình thường",
-                    "advice": "Chỉ số men gan đặc hiệu hoàn toàn nằm trong biên độ an toàn sinh lý."
-                },
-                {
-                    "name": "Creatinine (Chức năng lọc thận)",
+                    "name": "Creatinine (Chức năng thận)",
                     "value": "72",
                     "unit": "µmol/L",
                     "reference": "53 - 106",
                     "status": "Normal",
-                    "status_label": "Rất tốt",
-                    "advice": "Tốc độ lọc cầu thận và chức năng bài tiết của hai quả thận hoàn toàn khỏe mạnh."
-                },
-                {
-                    "name": "Acid Uric (Nguy cơ bệnh Gút)",
-                    "value": "345",
-                    "unit": "µmol/L",
-                    "reference": "200 - 420",
-                    "status": "Normal",
                     "status_label": "Bình thường",
-                    "advice": "Nồng độ acid uric máu ở mức an toàn, nguy cơ lắng đọng tinh thể urat tại các khớp ở mức rất thấp."
+                    "advice": "Chức năng lọc cầu thận bình thường."
                 }
             ],
-            "ai_summary": "Phát hiện 3 chỉ số chuyển hóa bất thường vượt ngưỡng tham chiếu: Đường huyết đói (7.8 mmol/L), HbA1c (6.8%) và Mỡ máu Cholesterol (5.9 mmol/L). Tuy nhiên, chức năng gan (AST/ALT) và thận (Creatinine) đều rất tốt. Đây là thời điểm vàng để điều chỉnh chế độ ăn uống và tập luyện để đảo ngược tình trạng tiền tiểu đường trước khi chuyển thành đái tháo đường type 2.",
+            "ai_summary": "[DỮ LIỆU MẪU DEMO]: Kết quả xét nghiệm mẫu minh họa chỉ số đường huyết và mỡ máu hơi cao.",
             "lifestyle_recommendations": [
-                "Dinh dưỡng lâm sàng: Giảm 50% tinh bột trắng (cơm trắng, bún, phở), thay thế bằng gạo lứt, khoai lang, yến mạch nguyên cám.",
-                "Chế độ vận động: Tập thể dục ít nhất 30-45 phút/ngày (đi bộ nhanh, chạy bộ, đạp xe, bơi lội) 5 ngày mỗi tuần.",
-                "Bổ sung nước: Uống đủ 2 - 2.5 lít nước lọc mỗi ngày, nói KHÔNG với trà sữa, nước ép đóng chai và nước ngọt có ga.",
-                "Theo dõi chuyên khoa: Khám chuyên khoa Nội tiết - Chuyển hóa sau 4 - 6 tuần để làm lại xét nghiệm HbA1c và kiểm tra huyết áp."
+                "Tăng cường rau xanh và thực phẩm giàu chất xơ hòa tan.",
+                "Tập thể dục ít nhất 30 phút mỗi ngày."
             ]
         }
-    
-    # Default: prescription_throat
+
     return {
-        "status": "success",
-        "type": "prescription",
-        "doc_title": "Đơn thuốc Điều trị Viêm Amidan Cấp & Sốt Nhiễm trùng Hô hấp",
-        "facility": "Bệnh viện Tai Mũi Họng TP.HCM",
-        "department": "Khoa Khám bệnh Ngoại trú",
-        "doctor": "BS. CKI Nguyễn Văn An",
-        "patient_name": "Nguyễn Thành Khiêm",
-        "diagnosis": "Viêm amidan cấp mủ - Sốt nhiễm trùng đường hô hấp trên (Mã ICD: J03.9)",
-        "date": today,
-        "duration": "5 ngày liên tục",
-        "timeline": {
-            "morning": [
-                {"name": "Klamentin 1g", "dosage": "1 viên", "time": "07:30", "note": "Sau ăn sáng no 15 phút", "tag": "Kháng sinh", "color": "rose"},
-                {"name": "Panadol Extra 500mg", "dosage": "1 viên", "time": "07:30", "note": "Uống sau ăn nếu sốt > 38.5°C", "tag": "Hạ sốt, giảm đau", "color": "blue"}
-            ],
-            "noon": [
-                {"name": "Alpha Choay", "dosage": "2 viên", "time": "12:00", "note": "Ngậm dưới lưỡi cho tan từ từ", "tag": "Kháng viêm chống phù nề", "color": "emerald"}
-            ],
-            "evening": [
-                {"name": "Klamentin 1g", "dosage": "1 viên", "time": "18:30", "note": "Sau ăn tối no 15 phút", "tag": "Kháng sinh", "color": "rose"},
-                {"name": "Desloratadine 5mg", "dosage": "1 viên", "time": "19:00", "note": "Sau ăn tối, giảm ngứa rát họng", "tag": "Kháng Histamin", "color": "purple"}
-            ],
-            "bedtime": [
-                {"name": "Nước súc họng Betadine 1%", "dosage": "15 ml", "time": "21:30", "note": "Súc họng trong 30 giây rồi nhổ đi", "tag": "Sát khuẩn tại chỗ", "color": "amber"}
-            ]
-        },
-        "medications": [
-            {
-                "name": "Klamentin 1g",
-                "ingredient": "Amoxicillin 875mg + Acid Clavulanic 125mg",
-                "category": "Kháng sinh nhóm Penicillin phối hợp",
-                "purpose": "Tiêu diệt vi khuẩn sinh men Beta-lactamase gây viêm sưng, ứ mủ tại amidan và họng hạt.",
-                "usage": "Uống 1 viên/lần x 2 lần/ngày (sáng 1 viên, tối 1 viên sau ăn no). Uống liên tục ĐỦ 5 NGÀY, không ngắt quãng."
-            },
-            {
-                "name": "Panadol Extra",
-                "ingredient": "Paracetamol 500mg + Caffeine 65mg",
-                "category": "Thuốc giảm đau hạ sốt",
-                "purpose": "Giảm nhanh cơn đau rát họng khi nuốt thức ăn, hạ thân nhiệt khi có sốt trên 38.5°C.",
-                "usage": "Uống 1 viên khi sốt cao hoặc đau rát nhiều. Mỗi lần uống cách nhau tối thiểu 4 - 6 giờ. Không dùng quá 6 viên/ngày."
-            },
-            {
-                "name": "Alpha Choay",
-                "ingredient": "Chymotrypsine 4.2mg",
-                "category": "Enzym kháng viêm dạng men",
-                "purpose": "Làm tan dịch nhầy phù nề, giúp họng xẹp bớt sưng, giảm cảm giác nghẹn nuốt khó chịu.",
-                "usage": "Ngậm 2 viên dưới lưỡi vào buổi trưa để thuốc tan dần qua niêm mạc, không nên nhai nát."
-            },
-            {
-                "name": "Desloratadine 5mg",
-                "ingredient": "Desloratadine 5mg",
-                "category": "Thuốc chống dị ứng thế hệ mới",
-                "purpose": "Giảm kích ứng ngứa cổ, giảm tiết dịch mũi sau chảy xuống họng gây ho đêm, không gây buồn ngủ.",
-                "usage": "Uống 1 viên duy nhất vào buổi tối sau bữa ăn."
-            }
-        ],
-        "warnings": [
-            "Tuân thủ kháng sinh: Kháng sinh Klamentin BẮT BUỘC phải uống đủ 5 ngày liên tục. Dù sau 2 ngày họng đã hết đau cũng KHÔNG ĐƯỢC DỪNG thuốc để tránh tạo chủng vi khuẩn kháng thuốc (AMR).",
-            "Chống chỉ định chất kích thích: Không uống rượu, bia, nước tăng lực trong suốt thời gian điều trị vì sẽ làm giảm 50% hiệu quả kháng sinh và tăng độc tính lên gan.",
-            "Cảnh báo phản vệ & dị ứng: Nếu thấy nổi mẩn ngứa, môi/mắt sưng phù hoặc khó thở: NGỪNG THUỐC NGAY và gọi cấp cứu hoặc đến bệnh viện gần nhất.",
-            "Chế độ chăm sóc: Ăn cháo, súp ấm mềm, uống nhiều nước ấm, súc họng nước muối ấm 3 lần/ngày."
-        ]
+        "status": "error",
+        "is_demo": True,
+        "message": f"Kịch bản mẫu '{preset_key}' không tồn tại. Vui lòng chọn 'binh_dan' hoặc 'lab_blood'."
     }

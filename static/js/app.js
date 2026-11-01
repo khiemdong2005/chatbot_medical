@@ -36,14 +36,15 @@ const translations = {
     chip_source: "Từ nguồn uy tín",
     chat_assistant_title: "Trợ lý MediMind AI",
     chat_status: "Đang hoạt động",
-    quick_1: "📷 Nhận diện ảnh da",
-    quick_2: "🔍 Mụn nước một bên?",
-    quick_3: "🌡️ Thuốc hạ sốt an toàn?",
-    quick_4: "💊 Có cần dùng kháng sinh?",
-    quick_prompt_text_2: "Tôi bị nổi mụn nước ngứa ngáy một bên sườn",
-    quick_prompt_text_3: "Thuốc hạ sốt nào an toàn?",
-    quick_prompt_text_4: "Có cần uống kháng sinh không?",
-    chat_input_placeholder: "Nhập triệu chứng hoặc tải ảnh tổn thương da...",
+    quick_1: "🩺 Sốt 38.5°C & đau rát họng",
+    quick_2: "⚠️ Đau thắt ngực, khó thở",
+    quick_3: "💊 Lịch uống đơn thuốc sau ăn?",
+    quick_4: "🏥 Gợi ý chuyên khoa khám",
+    quick_prompt_text_1: "Tôi bị sốt 38.5 độ và đau rát họng hai hôm nay, nuốt đau",
+    quick_prompt_text_2: "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái",
+    quick_prompt_text_3: "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?",
+    quick_prompt_text_4: "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?",
+    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau ngực, sốt cao, đau dạ dày) hoặc gửi ảnh đơn thuốc...",
     disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
     disclaimer_footer_btn: "Miễn trừ trách nhiệm",
     typing_vision: "Gemini Vision đang phân tích hình thái học...",
@@ -152,9 +153,10 @@ function applyLanguage() {
 function insertQuickPrompt(num) {
   const dict = translations[currentLang] || translations.vi;
   let promptText = '';
-  if (num === 2) promptText = dict.quick_prompt_text_2;
-  else if (num === 3) promptText = dict.quick_prompt_text_3;
-  else if (num === 4) promptText = dict.quick_prompt_text_4;
+  if (num === 1) promptText = dict.quick_prompt_text_1 || "Tôi bị sốt 38.5 độ và đau rát họng hai hôm nay, nuốt đau";
+  else if (num === 2) promptText = dict.quick_prompt_text_2 || "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái";
+  else if (num === 3) promptText = dict.quick_prompt_text_3 || "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?";
+  else if (num === 4) promptText = dict.quick_prompt_text_4 || "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?";
 
   if (promptText) {
     insertPrompt(promptText);
@@ -239,7 +241,7 @@ function showFloatingDecorations() {
 
 function switchTab(tabId) {
   // Yêu cầu đăng nhập khi vào các tab bảo mật
-  const protectedTabs = ['doctor-tab', 'profile-tab', 'admin-tab'];
+  const protectedTabs = ['profile-tab', 'admin-tab'];
   if (protectedTabs.includes(tabId) && !currentUser) {
     pendingTabAfterLogin = tabId;
     openLoginModal();
@@ -247,9 +249,17 @@ function switchTab(tabId) {
   }
 
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  
+  // Top Navbar buttons
   document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.remove('bg-[#E0F2FE]', 'text-[#0284C7]', 'font-bold');
-    btn.classList.add('text-slate-600', 'font-medium');
+    btn.classList.remove('glass-pill-cyan-active', 'bg-white/20', 'text-white', 'font-bold', 'border', 'border-white/25', 'shadow-[0_0_15px_rgba(255,255,255,0.2)]');
+    btn.classList.add('text-slate-300', 'font-semibold');
+  });
+
+  // Floating Capsule Dock buttons
+  document.querySelectorAll('.dock-btn').forEach(btn => {
+    btn.classList.remove('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
+    btn.classList.add('text-white/60');
   });
 
   const activeTab = document.getElementById(tabId);
@@ -257,8 +267,14 @@ function switchTab(tabId) {
 
   const activeNav = document.getElementById('nav-' + tabId);
   if (activeNav) {
-    activeNav.classList.remove('text-slate-600', 'font-medium');
-    activeNav.classList.add('bg-[#E0F2FE]', 'text-[#0284C7]', 'font-bold');
+    activeNav.classList.remove('text-slate-300', 'font-semibold');
+    activeNav.classList.add('glass-pill-cyan-active', 'text-white', 'font-bold');
+  }
+
+  const activeDock = document.getElementById('dock-' + tabId);
+  if (activeDock) {
+    activeDock.classList.remove('text-white/60');
+    activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
   }
 }
 
@@ -275,8 +291,17 @@ function resetChat() {
   clearChatImagePreview();
   chatHistory.length = 0;
   const container = document.getElementById('chat-messages');
-  if (!container) return;
-  container.innerHTML = '';
+  if (container) container.innerHTML = '';
+
+  const historyList = document.getElementById('chat-history-list');
+  const historyEmpty = document.getElementById('chat-history-empty');
+  const searchInput = document.getElementById('history-search-input');
+  if (searchInput) searchInput.value = '';
+  if (historyList) {
+    historyList.innerHTML = '';
+    historyList.classList.add('hidden');
+  }
+  if (historyEmpty) historyEmpty.classList.remove('hidden');
 }
 
 // ==========================================
@@ -310,7 +335,7 @@ async function sendChatMessage() {
 
   const userHtml = `
     <div class="flex flex-col items-end my-1">
-      <div class="w-fit max-w-[85%] bg-[#0284C7] text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-xs leading-relaxed font-medium text-left break-words">
+      <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-lg shadow-sky-500/20 backdrop-blur-md leading-relaxed font-medium text-left break-words border border-white/20">
         ${userImgHtml}
         <div>${escapeHtml(text)}</div>
       </div>
@@ -327,11 +352,9 @@ async function sendChatMessage() {
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
     <div id="${typingId}" class="flex justify-start max-w-md">
-      <div class="bg-[#F1F5F9] border border-slate-200/80 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-600 flex items-center space-x-2 shadow-xs">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.15s"></span>
-        <span class="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-bounce" style="animation-delay: 0.3s"></span>
-        <span class="pl-1.5 text-xs font-medium text-slate-500">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
+      <div class="glass-card border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-300 flex items-center space-x-2 shadow-lg backdrop-blur-xl bg-white/[0.05]">
+        <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+        <span class="pl-1.5 text-xs font-medium text-slate-300">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
       </div>
     </div>
   `;
@@ -365,14 +388,14 @@ async function sendChatMessage() {
     let visualFindingsHtml = '';
     if (data.visual_findings && data.visual_findings.length > 0) {
       visualFindingsHtml = `
-        <div class="p-2.5 rounded-xl bg-sky-50/80 border border-sky-200/90 space-y-1.5">
-          <div class="text-[11px] font-bold text-[#0369A1] flex items-center space-x-1.5">
+        <div class="p-2.5 rounded-xl bg-sky-500/15 border border-sky-400/30 space-y-1.5">
+          <div class="text-[11px] font-bold text-sky-300 flex items-center space-x-1.5">
             <span>👁️</span>
             <span>Đặc điểm thị giác nhận định (Gemini Vision AI):</span>
           </div>
           <div class="flex flex-wrap gap-1.5 pt-0.5">
             ${data.visual_findings.map(f => `
-              <span class="text-[10px] font-medium bg-white text-slate-700 px-2 py-0.5 rounded-full border border-sky-200 shadow-2xs">
+              <span class="text-[10px] font-medium bg-white/[0.06] text-sky-200 px-2 py-0.5 rounded-full border border-sky-400/30 shadow-2xs">
                 ${escapeHtml(f)}
               </span>
             `).join('')}
@@ -385,8 +408,8 @@ async function sendChatMessage() {
     let emergencyBadge = '';
     if (data.is_emergency) {
       emergencyBadge = `
-        <div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs font-bold text-red-600 flex items-center space-x-2">
-          <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-rose-500/20 border border-rose-400/40 p-2.5 rounded-xl text-xs font-bold text-rose-300 flex items-center space-x-2 shadow-[0_0_15px_rgba(244,63,94,0.25)]">
+          <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
           </svg>
           <span>NGUY CẤP: GỌI 115 HOẶC ĐẾN CƠ SỞ CẤP CỨU GẦN NHẤT</span>
@@ -395,11 +418,11 @@ async function sendChatMessage() {
     }
 
     const botHtml = `
-      <div class="flex justify-start max-w-[90%] sm:max-w-xl">
-        <div class="bg-[#F1F5F9] border border-slate-200/80 p-4 rounded-2xl rounded-tl-sm text-sm text-slate-800 space-y-2.5 leading-relaxed shadow-xs w-full">
+      <div class="flex justify-start max-w-[95%] sm:max-w-xl">
+        <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
           ${emergencyBadge}
           ${visualFindingsHtml}
-          <div class="text-slate-800 font-normal">${formattedAnswer}</div>
+          <div class="text-slate-200 font-normal leading-relaxed">${formattedAnswer}</div>
         </div>
       </div>
     `;
@@ -437,7 +460,7 @@ function appendErrorMessage(msg) {
   const container = document.getElementById('chat-messages');
   if (!container) return;
   const errHtml = `
-    <div class="bg-red-50 border border-red-200 p-2.5 rounded-xl text-xs text-red-600 font-medium">
+    <div class="glass-card bg-rose-500/20 border border-rose-400/40 p-3 rounded-2xl text-xs text-rose-300 font-medium">
       ${escapeHtml(msg)}
     </div>
   `;
@@ -922,8 +945,8 @@ function updateAuthUI() {
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Bệnh án của tôi' : '📋 My Health Record');
-  if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Bệnh án của tôi →' : 'View My Record →');
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Hồ sơ của tôi' : '📋 My Health Record');
+  if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Hồ sơ của tôi →' : 'View My Record →');
 
   if (currentUser) {
     if (unlogged) unlogged.classList.add('hidden');
@@ -934,11 +957,25 @@ function updateAuthUI() {
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
 
-    if (ehrTitle) ehrTitle.innerText = 'Hồ sơ Sức khỏe & Bệnh án của tôi';
+    if (ehrTitle) ehrTitle.innerText = 'Hồ sơ của tôi & Tóm tắt trước khám';
     if (ehrSubtitle) ehrSubtitle.innerText = 'Tự động đồng bộ từ các lượt sàng lọc y tế của ' + currentUser.name;
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
     if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
     if (ehrAvatarBadge) ehrAvatarBadge.innerText = currentUser.badge || 'BN';
+
+    const rightPanelName = document.getElementById('right-panel-patient-name');
+    const rightPanelId = document.getElementById('right-panel-patient-id');
+    const rightPanelAvatar = document.getElementById('right-panel-avatar');
+    const rightPanelBhyt = document.getElementById('right-panel-bhyt');
+    if (rightPanelName) rightPanelName.innerText = currentUser.name;
+    if (rightPanelId) rightPanelId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 4).padStart(4, '0');
+    if (rightPanelAvatar) {
+      const initials = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
+      rightPanelAvatar.innerText = initials;
+    }
+    if (rightPanelBhyt && currentUser.bhyt) {
+      rightPanelBhyt.innerText = currentUser.bhyt;
+    }
 
     const dropAvatar = document.getElementById('dropdown-user-avatar');
     const dropName = document.getElementById('dropdown-user-name');
@@ -973,14 +1010,43 @@ function updateAuthUI() {
     const hasRecord = isDemoPatient || currentUser.hasMedicalRecord;
     if (ehrEmpty) ehrEmpty.classList.toggle('hidden', !!hasRecord);
     if (ehrFilled) ehrFilled.classList.toggle('hidden', !hasRecord);
+
+    const exportBtn = document.getElementById('ehr-export-pdf-btn');
+    if (exportBtn) {
+      if (hasRecord) {
+        exportBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        exportBtn.removeAttribute('disabled');
+        exportBtn.title = 'In hoặc tải bản tóm tắt trước khám (PDF)';
+      } else {
+        exportBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        exportBtn.title = 'Chưa có bản tóm tắt trước khám để kết xuất PDF';
+      }
+    }
     loadScanFiles();
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
-    if (ehrPatientName) ehrPatientName.innerText = 'Nguyễn Văn An';
-    if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-8429 • BHYT Tuyến TW';
+    if (nameEl) nameEl.innerText = 'Khách';
+    if (roleEl) roleEl.innerText = 'Chưa đăng nhập';
+    if (avatarEl) avatarEl.innerText = '👤';
+    if (ehrPatientName) ehrPatientName.innerText = 'Chưa đăng nhập';
+    if (ehrPatientId) ehrPatientId.innerText = 'Vui lòng đăng nhập để đồng bộ tóm tắt trước khám';
     if (ehrEmpty) ehrEmpty.classList.remove('hidden');
     if (ehrFilled) ehrFilled.classList.add('hidden');
+
+    const historyList = document.getElementById('chat-history-list');
+    const historyEmpty = document.getElementById('chat-history-empty');
+    if (historyList) {
+      historyList.innerHTML = '';
+      historyList.classList.add('hidden');
+    }
+    if (historyEmpty) historyEmpty.classList.remove('hidden');
+
+    const exportBtn = document.getElementById('ehr-export-pdf-btn');
+    if (exportBtn) {
+      exportBtn.classList.add('opacity-40', 'cursor-not-allowed');
+      exportBtn.title = 'Chưa có bản tóm tắt trước khám để kết xuất PDF';
+    }
     loadScanFiles();
   }
 }
@@ -1002,6 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
   populateDobDropdowns();
   updateAuthUI();
   applyLanguage();
+  initHistorySearch();
 
   const input = document.getElementById('user-input');
   if (input) {
@@ -1078,8 +1145,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // 🩺 HỆ THỐNG SỐ HÓA & PHÂN TÍCH ĐƠN THUỐC LÂM SÀNG (CLINICAL PRESCRIPTION PARSER)
 // ==============================================================================
 
-let currentPrescriptionData = null;
-
 async function handlePrescriptionFileSelected(e) {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -1094,7 +1159,7 @@ async function handlePrescriptionFileSelected(e) {
   const formData = new FormData();
   formData.append('file', file);
 
-  showPrescriptionLoading(true, "Đang xử lý hình ảnh và bóc tách dữ liệu...", "Đang nhận dạng ký tự quang học (OCR) và đối chiếu dược thư...");
+  showPrescriptionLoading(true, "AI đang nhận dạng văn bản & hình ảnh...", "Trích xuất danh mục thuốc, đối chiếu liều dùng và chuẩn hóa dược học...");
 
   try {
     const res = await fetch('/api/prescription/scan', {
@@ -1103,16 +1168,160 @@ async function handlePrescriptionFileSelected(e) {
     });
     const data = await res.json();
     showPrescriptionLoading(false);
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        showMedicalToast('Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.', 'warning', 4500);
+        openLoginModal();
+      } else {
+        showMedicalToast(data.message || 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.', 'error');
+      }
+      return;
+    }
+
+    if (data.status === 'failed') {
+      renderPrescriptionError(data);
+      showMedicalToast(data.message || 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.', 'error', 5000);
+      return;
+    }
+
     renderPrescriptionResult(data);
+    if (data.is_demo) {
+      showMedicalToast('Đang hiển thị đơn thuốc mẫu thử nghiệm (Demo).', 'info', 4000);
+    } else if (data.needs_review) {
+      showMedicalToast('Đã đọc tài liệu: Vui lòng đối chiếu với ảnh gốc để xác nhận các mục chưa chắc chắn.', 'warning', 5000);
+    } else {
+      showMedicalToast(`Đã nhận dạng thành công đơn thuốc: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
+    }
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
-    alert('Không thể kết nối đến máy chủ phân tích tài liệu. Vui lòng thử lại.');
+    showMedicalToast('Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.', 'error');
   }
 }
 
+function renderPrescriptionError(data) {
+  const resSec = document.getElementById('prescription-result-section');
+  if (!resSec) return;
+  const msg = data.message || 'Không thể nhận diện nội dung từ hình ảnh đã tải lên.';
+  const previewLines = data.raw_ocr_preview && data.raw_ocr_preview.length > 0 
+    ? `<div class="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 text-left font-mono text-[11px] text-slate-300 space-y-1">
+        <div class="font-bold text-slate-400 mb-1">Đoạn văn bản máy nhận diện được:</div>
+        ${data.raw_ocr_preview.map(l => `<div>• ${escapeHtml(l)}</div>`).join('')}
+       </div>`
+    : '';
+
+  resSec.innerHTML = `
+    <div class="glass-panel p-6 border border-rose-500/30 bg-rose-950/20 backdrop-blur-2xl space-y-4 text-center">
+      <div class="w-12 h-12 mx-auto rounded-full bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-rose-300 text-xl font-bold">⚠️</div>
+      <h3 class="text-lg font-black text-white">Chưa thể đọc rõ nội dung đơn thuốc</h3>
+      <p class="text-xs text-rose-200 max-w-md mx-auto leading-relaxed">${escapeHtml(msg)}</p>
+      ${previewLines}
+      <div class="pt-2 flex justify-center gap-3">
+        <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer">Chụp / Tải ảnh khác</button>
+        <button onclick="loadPrescriptionPreset('binh_dan')" class="px-4 py-2 rounded-xl glass-pill text-xs font-bold text-slate-300 hover:text-white cursor-pointer">Thử xem đơn mẫu</button>
+      </div>
+    </div>
+  `;
+  resSec.classList.remove('hidden');
+}
+
+// ==============================================================================
+// MODERN TOAST NOTIFICATION SYSTEM & AUDIO FEEDBACK (ZERO ALERT POPUPS)
+// ==============================================================================
+function showMedicalToast(message, type = 'info', duration = 3500) {
+  let container = document.getElementById('medical-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'medical-toast-container';
+    container.className = 'fixed top-5 right-5 sm:right-8 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  const typeStyles = {
+    success: 'bg-emerald-900/95 text-white border-emerald-500/50 shadow-emerald-950/20',
+    warning: 'bg-amber-900/95 text-white border-amber-500/50 shadow-amber-950/20',
+    error: 'bg-rose-900/95 text-white border-rose-500/50 shadow-rose-950/20',
+    info: 'bg-slate-900/95 text-white border-sky-500/50 shadow-slate-950/20'
+  };
+  const icons = {
+    success: `<svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`,
+    warning: `<svg class="w-5 h-5 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+    error: `<svg class="w-5 h-5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`,
+    info: `<svg class="w-5 h-5 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+  };
+
+  toast.className = `pointer-events-auto transform transition-all duration-300 ease-out translate-y-[-10px] opacity-0 flex items-start gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-xl text-xs font-semibold leading-relaxed ${typeStyles[type] || typeStyles.info}`;
+  toast.innerHTML = `
+    ${icons[type] || icons.info}
+    <div class="flex-1">${message}</div>
+    <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white transition-colors ml-1 cursor-pointer">✕</button>
+  `;
+
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+  });
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-[-10px]');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// Gentle pleasant synthesizer chime using Web Audio API
+function playMedicalChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch (e) {}
+}
+
+// Micro celebratory confetti effect
+function triggerCelebration(btnEl) {
+  playMedicalChime();
+  if (!btnEl) return;
+  const rect = btnEl.getBoundingClientRect();
+  const emojis = ['💊', '✨', '🎉', '🟢', '⭐'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+    p.className = 'fixed pointer-events-none z-50 text-base select-none transition-all duration-700 ease-out';
+    p.style.left = `${rect.left + rect.width / 2 + (Math.random() * 80 - 40)}px`;
+    p.style.top = `${rect.top + (Math.random() * 20 - 10)}px`;
+    p.style.opacity = '1';
+    p.style.transform = `translate(0, 0) scale(1)`;
+    document.body.appendChild(p);
+
+    const destX = (Math.random() - 0.5) * 160;
+    const destY = -60 - Math.random() * 80;
+
+    requestAnimationFrame(() => {
+      p.style.transform = `translate(${destX}px, ${destY}px) scale(1.3) rotate(${Math.random() * 90 - 45}deg)`;
+      p.style.opacity = '0';
+    });
+
+    setTimeout(() => p.remove(), 750);
+  }
+}
+
+let currentPrescriptionData = null;
+let currentSelectedSlotId = null;
+let adherenceSlotState = {};
+
 async function loadPrescriptionPreset(presetKey) {
-  showPrescriptionLoading(true, "Đang tải hồ sơ mẫu và thiết lập dữ liệu đối soát...", "Trích xuất danh mục hoạt chất, liều dùng và thời gian biểu...");
+  showPrescriptionLoading(true, "Đang nạp hồ sơ mẫu lâm sàng...", "Thiết lập danh mục hoạt chất, liều lượng và thời gian biểu...");
   try {
     const res = await fetch(`/api/prescription/scan?preset=${presetKey}`, {
       method: 'POST',
@@ -1121,11 +1330,29 @@ async function loadPrescriptionPreset(presetKey) {
     });
     const data = await res.json();
     showPrescriptionLoading(false);
+
+    // 1. Kiểm tra mã phản hồi & trạng thái lỗi từ máy chủ
+    if (!res.ok || data.status === 'error' || data.status === 'failed') {
+      renderPrescriptionError(data);
+      showMedicalToast(data.message || 'Không thể nạp hồ sơ mẫu. Kịch bản không tồn tại hoặc xảy ra lỗi.', 'error', 5000);
+      return;
+    }
+
+    // 2. Kiểm tra tính toàn vẹn của đơn thuốc mẫu (không được để trống danh mục thuốc)
+    if (data.type === 'prescription' && (!data.medications || data.medications.length === 0)) {
+      renderPrescriptionError({
+        message: 'Dữ liệu đơn thuốc mẫu không chứa danh mục hoạt chất hợp lệ để lập lịch điều trị.'
+      });
+      showMedicalToast('Dữ liệu đơn thuốc mẫu không hợp lệ.', 'error', 5000);
+      return;
+    }
+
     renderPrescriptionResult(data);
+    showMedicalToast(`Đã nạp hồ sơ mẫu: ${data.diagnosis || 'Đơn thuốc chuẩn'}`, 'info');
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu đối soát:', err);
     showPrescriptionLoading(false);
-    alert('Không thể nạp hồ sơ mẫu đối soát.');
+    showMedicalToast('Không thể kết nối đến máy chủ để nạp hồ sơ mẫu.', 'error');
   }
 }
 
@@ -1157,482 +1384,347 @@ function resetPrescriptionScan() {
   if (fileInput) fileInput.value = '';
   if (preview) preview.classList.add('hidden');
   if (loadSec) loadSec.classList.add('hidden');
-  if (resSec) resSec.classList.add('hidden');
+  if (resSec) {
+    resSec.classList.add('hidden');
+    resSec.innerHTML = '';
+  }
   if (inputSec) inputSec.classList.remove('hidden');
+  adherenceSlotState = {};
+  currentPrescriptionData = null;
+  inputSec?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// Helper to determine the smart active slot based on real-world time
+function detectSmartDoseSlot(slots) {
+  if (!slots || slots.length === 0) return null;
+  const hour = new Date().getHours();
+  let targetId = 'morning';
+  if (hour >= 11 && hour < 15) {
+    targetId = 'noon';
+  } else if (hour >= 15 && hour < 21) {
+    targetId = 'evening';
+  } else if (hour >= 21 || hour < 5) {
+    targetId = 'bedtime';
+  }
+
+  const match = slots.find(s => s.id === targetId);
+  return match || slots[0];
+}
+
+// ==============================================================================
+// NEXT-GEN MEDICAL DASHBOARD: USER-CENTRIC, DYNAMIC & FLUID
+// ==============================================================================
 function renderPrescriptionResult(data) {
   currentPrescriptionData = data;
   const resSec = document.getElementById('prescription-result-section');
   if (!resSec) return;
 
   const isLab = data.type === 'lab_test';
-  
-  // Extract initials for patient avatar
-  const patientName = data.patient_name || 'Bệnh nhân';
-  const nameParts = patientName.replace(/\(.*?\)/g, '').trim().split(' ').filter(Boolean);
-  const initials = nameParts.length >= 2 
-    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
-    : patientName.slice(0, 2).toUpperCase();
-
-  let html = `
-    <!-- 1. Clinical Meta Header (Vibrant Modern MedTech Style) -->
-    <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-5">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-100 gap-3">
-        <div class="flex items-center space-x-3.5">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-black text-base flex items-center justify-center shadow-md shadow-sky-600/25 shrink-0 tracking-wider">
-            ${initials}
-          </div>
-          <div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${isLab ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-sky-100 text-sky-800 border border-sky-200'}">
-                ${isLab ? 'BÁO CÁO XÉT NGHIỆM' : 'HỒ SƠ ĐƠN THUỐC ĐIỆN TỬ'}
-              </span>
-              <span class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1.5"></span>
-                Chuẩn HL7 / FHIR
-              </span>
-              <span class="text-xs text-slate-400 font-mono">Ngày lập: <strong class="text-slate-700">${data.date || 'Hôm nay'}</strong></span>
-            </div>
-            <h3 class="text-lg sm:text-xl font-black text-slate-900 mt-1 tracking-tight">${data.doc_title || (isLab ? 'Phiếu Kết Quả Xét Nghiệm' : 'Đơn Thuốc Lâm Sàng')}</h3>
-          </div>
-        </div>
-
-        <div class="flex items-center space-x-2 shrink-0 w-full sm:w-auto justify-end">
-          <button onclick="window.print()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition-all flex items-center space-x-1.5 cursor-pointer">
-            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-            </svg>
-            <span>In tài liệu</span>
-          </button>
-          <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white text-xs font-bold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer">
-            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            <span>Quét tệp khác</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 4 High-Contrast Clinical Metadata Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
-        <!-- Facility -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-sky-50/50 via-white to-white border border-sky-100 hover:border-sky-300 shadow-3xs transition-all flex items-start space-x-3 group">
-          <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 mt-0.5 shadow-3xs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-            </svg>
-          </div>
-          <div class="space-y-0.5 min-w-0">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-sky-800">Cơ sở khám bệnh</div>
-            <div class="font-extrabold text-slate-900 leading-snug truncate" title="${data.facility || ''}">${data.facility || 'Cơ sở Y tế'}</div>
-            <div class="text-[11px] text-slate-500 truncate font-medium">${data.department || 'Khoa Ngoại trú'}</div>
-          </div>
-        </div>
-
-        <!-- Doctor -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/50 via-white to-white border border-emerald-100 hover:border-emerald-300 shadow-3xs transition-all flex items-start space-x-3 group">
-          <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 shadow-3xs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-          </div>
-          <div class="space-y-0.5 min-w-0">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Bác sĩ / Kỹ thuật viên</div>
-            <div class="font-extrabold text-slate-900 truncate">${data.doctor || 'Bác sĩ điều trị'}</div>
-            <div class="text-[10px] text-emerald-700 font-bold flex items-center">
-              <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-              Ký xác thực điện tử
-            </div>
-          </div>
-        </div>
-
-        <!-- Patient -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/50 via-white to-white border border-indigo-100 hover:border-indigo-300 shadow-3xs transition-all flex items-start space-x-3 group">
-          <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5 shadow-3xs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <div class="space-y-0.5 min-w-0">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-800">Bệnh nhân / Người thụ hưởng</div>
-            <div class="font-black text-slate-900 truncate">${data.patient_name || 'Bệnh nhân'}</div>
-            <div class="text-[11px] text-slate-500 truncate font-medium">${data.address || 'Hồ sơ ngoại trú'}</div>
-          </div>
-        </div>
-
-        <!-- Diagnosis -->
-        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border border-amber-200/90 hover:border-amber-300 shadow-3xs transition-all flex items-start space-x-3 group">
-          <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 shadow-3xs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <div class="space-y-0.5 min-w-0">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-amber-800">Chẩn đoán xác định (ICD)</div>
-            <div class="font-black text-slate-900 leading-snug line-clamp-2">${data.diagnosis || 'Theo dõi lâm sàng'}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  const diag = data.diagnosis || 'Chăm sóc & Điều trị';
+  const doctor = data.doctor || 'Bác sĩ điều trị';
+  const patient = data.patient_name || 'Bệnh nhân';
+  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : '';
+  const dateStr = data.date || 'Hôm nay';
+  const duration = data.duration || '30 ngày (Theo lượng thuốc cấp)';
+  const address = data.address || '';
 
   if (isLab) {
-    // Laboratory Test Panel
-    html += `
-      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-slate-100 gap-2">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-              </svg>
+    let html = `
+      <div class="glass-panel p-6 border border-white/10 bg-white/[0.06] backdrop-blur-2xl space-y-4 shadow-2xl">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-white/10 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 uppercase">KẾT QUẢ XÉT NGHIỆM</span>
+              ${data.is_demo ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40">DỮ LIỆU MẪU (DEMO)</span>' : ''}
+              ${data.needs_review ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">CẦN XÁC NHẬN</span>' : ''}
+              <span class="text-xs text-slate-400 font-mono">Ngày lập: <strong class="text-white">${dateStr}</strong></span>
             </div>
-            <div>
-              <h4 class="text-base font-extrabold text-slate-900">Bảng Đối Chiếu Chỉ Số Sinh Hóa &amp; Huyết Học</h4>
-              <p class="text-xs text-slate-500">So sánh giá trị thực nghiệm với khoảng tham chiếu sinh lý chuẩn ISO 15189</p>
-            </div>
+            <h3 class="text-xl font-black text-white mt-1">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+            <p class="text-xs text-slate-300 font-semibold mt-0.5">${patient} • ${doctor}</p>
           </div>
-          <span class="text-xs font-mono font-bold px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-            Tổng ${(data.metrics || []).length} chỉ số
-          </span>
+          <div class="flex items-center space-x-2">
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl glass-pill text-slate-200 hover:text-white text-xs font-bold transition-all cursor-pointer">In kết quả</button>
+            <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold transition-all cursor-pointer shadow-lg shadow-sky-500/25">Quét tệp khác</button>
+          </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-slate-200">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-extrabold text-[11px] uppercase tracking-wider">
-                <th class="py-3.5 px-4">Chỉ số xét nghiệm</th>
-                <th class="py-3.5 px-4">Giá trị đo</th>
-                <th class="py-3.5 px-4">Khoảng tham chiếu</th>
-                <th class="py-3.5 px-4">Trạng thái lâm sàng</th>
-                <th class="py-3.5 px-4">Khuyến nghị sinh lý &amp; Dinh dưỡng</th>
+        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.03]">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-white/5 border-b border-white/10 text-slate-300 font-bold uppercase text-[10px]">
+              <tr>
+                <th class="py-3 px-4">Chỉ số xét nghiệm</th>
+                <th class="py-3 px-4">Kết quả</th>
+                <th class="py-3 px-4">Khoảng tham chiếu</th>
+                <th class="py-3 px-4">Đánh giá lâm sàng</th>
+                <th class="py-3 px-4">Lời khuyên</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 text-slate-700">
-    `;
-
-    (data.metrics || []).forEach(m => {
-      const isHigh = m.status === 'High';
-      const isLow = m.status === 'Low';
-      const badgeStyle = isHigh 
-        ? 'bg-rose-100 text-rose-800 border-rose-300 font-bold' 
-        : isLow 
-          ? 'bg-sky-100 text-sky-800 border-sky-300 font-bold' 
-          : 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
-
-      html += `
-        <tr class="hover:bg-slate-50 transition-colors">
-          <td class="py-3.5 px-4 font-bold text-slate-900">${m.name}</td>
-          <td class="py-3.5 px-4 font-mono font-extrabold ${isHigh ? 'text-rose-600 text-sm' : isLow ? 'text-sky-600 text-sm' : 'text-slate-900'}">
-            ${m.value} <span class="text-[11px] text-slate-400 font-normal">${m.unit}</span>
-          </td>
-          <td class="py-3.5 px-4 font-mono text-slate-500 text-[11px] font-medium">${m.reference} ${m.unit}</td>
-          <td class="py-3.5 px-4">
-            <span class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider border ${badgeStyle} inline-flex items-center space-x-1">
-              ${isHigh ? '<svg class="w-3 h-3 text-rose-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>' : ''}
-              ${m.status_label || m.status}
-            </span>
-          </td>
-          <td class="py-3.5 px-4 text-xs text-slate-600 leading-relaxed max-w-sm">${m.advice || '---'}</td>
-        </tr>
-      `;
-    });
-
-    html += `
+            <tbody class="divide-y divide-white/5">
+              ${(data.metrics || []).map(m => `
+                <tr class="hover:bg-white/5 transition-colors">
+                  <td class="py-3 px-4 font-bold text-white">${m.name}</td>
+                  <td class="py-3 px-4 font-mono font-extrabold ${m.status === 'High' ? 'text-rose-400' : m.status === 'Low' ? 'text-sky-400' : 'text-emerald-400'}">${m.value} <span class="text-[10px] text-slate-400 font-normal">${m.unit}</span></td>
+                  <td class="py-3 px-4 font-mono text-slate-400 text-[11px]">${m.reference} ${m.unit}</td>
+                  <td class="py-3 px-4">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black ${m.status === 'High' ? 'bg-rose-500/20 text-rose-300 border border-rose-400/30' : m.status === 'Low' ? 'bg-sky-500/20 text-sky-300 border border-sky-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'}">${m.status_label || m.status}</span>
+                  </td>
+                  <td class="py-3 px-4 text-slate-300 text-[11px]">${m.advice || '---'}</td>
+                </tr>
+              `).join('')}
             </tbody>
           </table>
         </div>
-
-        <!-- Clinical Synthesis Note -->
-        <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200/80 space-y-1.5">
-          <div class="text-xs font-bold text-indigo-950 flex items-center space-x-1.5">
-            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span>Tổng hợp Nhận định Lâm sàng:</span>
-          </div>
-          <p class="text-xs text-slate-700 leading-relaxed pl-5">${data.ai_summary || ''}</p>
-        </div>
-
-        <!-- Care Guidelines -->
-        ${(data.lifestyle_recommendations && data.lifestyle_recommendations.length) ? `
-          <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-2">
-            <div class="text-xs font-bold text-emerald-950 flex items-center space-x-1.5">
-              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              <span>Kế hoạch Điều chỉnh Lối sống &amp; Theo dõi:</span>
-            </div>
-            <ul class="text-xs text-slate-700 space-y-1.5 pl-6 list-disc">
-              ${data.lifestyle_recommendations.map(r => `<li class="leading-relaxed">${r}</li>`).join('')}
-            </ul>
-          </div>
-        ` : ''}
       </div>
     `;
-  } else {
-    // Structured Prescription Timeline & Formularies
-    const tl = data.timeline || {};
-    
-    // Helper to render medication items inside schedule slot
-    const renderSlotItems = (items) => {
-      if (!items || !items.length) {
-        return '<div class="text-xs text-slate-400 italic py-6 text-center font-medium bg-slate-50/50 rounded-xl border border-dashed border-slate-200">Không có thuốc chỉ định ở cữ này</div>';
-      }
-      return items.map(item => {
-        const isBeforeMeal = (item.note || '').toLowerCase().includes('trước');
-        const isAfterMeal = (item.note || '').toLowerCase().includes('sau');
-        const mealBadge = isBeforeMeal
-          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shrink-0">Trước ăn</span>'
-          : isAfterMeal
-            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-100 text-teal-900 border border-teal-300 shrink-0">Sau ăn</span>'
-            : (item.note ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 shrink-0 truncate max-w-[120px]">${item.note}</span>` : '');
+    resSec.innerHTML = html;
+    resSec.classList.remove('hidden');
+    return;
+  }
 
-        return `
-          <div class="bg-white p-3 rounded-xl border border-slate-200/90 hover:border-slate-300 hover:shadow-xs transition-all space-y-1.5 group">
-            <div class="flex justify-between items-start gap-1.5">
-              <span class="text-xs font-bold text-slate-900 leading-snug group-hover:text-sky-700 transition-colors">${item.name}</span>
-              <span class="text-[11px] font-mono font-black text-white bg-slate-900 px-2 py-0.5 rounded-md shrink-0 shadow-2xs">${item.dosage}</span>
-            </div>
-            <div class="flex items-center justify-between pt-0.5">
-              ${mealBadge}
-              ${item.tag ? `<span class="text-[10px] font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 truncate max-w-[130px]">${item.tag}</span>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    };
+  // PRESCRIPTION MODE
+  const tl = data.timeline || {};
+  const meds = data.medications || [];
+  const warnings = data.warnings || [];
 
-    html += `
-      <!-- 2. Dynamic Daily Medication Schedule (High-Energy Color-Coded Timeline) -->
-      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-5">
-        
-        <!-- Header Banner with Adherence Progress -->
-        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-sky-400 shrink-0 shadow-3xs">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <div>
-                <h4 class="text-sm sm:text-base font-black text-white tracking-tight">Thời Gian Biểu Dùng Thuốc Trong Ngày</h4>
-                <p class="text-xs text-slate-300 font-normal">Phân bổ khung giờ chuẩn dược động học • Đánh dấu các cữ đã uống để ghi nhận tiến độ</p>
-              </div>
-            </div>
-            
-            <div class="flex items-center space-x-2">
-              <span id="adherence-status-badge" class="text-xs font-mono px-3 py-1.5 rounded-full bg-white/15 text-sky-200 border border-white/20 font-black backdrop-blur-xs">
-                Tiến độ: 0/4 cữ (0%)
-              </span>
-              <span class="text-xs font-mono font-bold px-2.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                ${data.duration || 'Theo chỉ định'}
-              </span>
-            </div>
-          </div>
+  // Bảo vệ an toàn dữ liệu: không bao giờ tạo lịch uống thuốc từ danh mục thuốc rỗng
+  if (meds.length === 0) {
+    renderPrescriptionError({
+      message: data.message || 'Không tìm thấy danh mục hoạt chất hợp lệ trong tài liệu để thiết lập thời gian biểu.'
+    });
+    return;
+  }
 
-          <!-- Progress Bar -->
-          <div class="w-full bg-white/15 rounded-full h-2.5 overflow-hidden">
-            <div id="adherence-progress-bar" class="bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400 h-2.5 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-          </div>
-        </div>
+  const allSlotDefs = [
+    { id: 'morning', label: 'BUỔI SÁNG', time: '06:30 - 08:00', icon: '🌅', color: 'amber', items: tl.morning || [] },
+    { id: 'noon', label: 'BUỔI TRƯA', time: '11:30 - 12:30', icon: '☀️', color: 'sky', items: tl.noon || [] },
+    { id: 'evening', label: 'CHIỀU / TỐI', time: '18:00 - 19:30', icon: '🌙', color: 'indigo', items: tl.evening || [] },
+    { id: 'bedtime', label: 'TRƯỚC KHI NGỦ', time: '21:00 - 22:00', icon: '🛌', color: 'slate', items: tl.bedtime || [] },
+    { id: 'external', label: 'DÙNG NGOÀI DA', time: 'Sáng & Tối', icon: '🧴', color: 'purple', items: tl.external || [] }
+  ];
 
-        <!-- 4 Distinctive Visual Columns (Morning, Noon, Evening, Bedtime) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  const activeSlots = allSlotDefs.filter(s => s.items.length > 0);
+  const smartSlot = detectSmartDoseSlot(activeSlots.length > 0 ? activeSlots : allSlotDefs);
+  currentSelectedSlotId = smartSlot ? smartSlot.id : (activeSlots[0]?.id || 'morning');
+
+  adherenceSlotState = {};
+  activeSlots.forEach(s => { adherenceSlotState[s.id] = false; });
+
+  const patientInitials = (patient.split(' ').slice(-2).map(w => w[0]).join('') || 'BN').toUpperCase();
+
+  let html = `
+    <div class="space-y-4 font-sans select-none">
+
+      <!-- 1. PATIENT & DIAGNOSIS GLASSMORPHIC HERO BAR -->
+      <div class="glass-card p-5 border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-2xl transition-all">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           
-          <!-- Column 1: Morning (Amber / Golden Glow) -->
-          <div id="slot-card-morning" class="rounded-2xl border-2 border-amber-200/90 bg-gradient-to-b from-amber-50/50 via-white to-amber-50/20 p-4 flex flex-col justify-between space-y-3.5 shadow-2xs hover:border-amber-400 hover:shadow-xs transition-all">
-            <div>
-              <div class="flex justify-between items-center pb-2.5 border-b border-amber-200/70">
-                <div class="flex items-center space-x-2">
-                  <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold shadow-3xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                  </div>
-                  <span class="text-xs font-black text-amber-950 tracking-wider">BUỔI SÁNG</span>
-                </div>
-                <span class="text-[11px] font-mono font-bold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-300">06:30 - 07:30</span>
-              </div>
-              <div class="space-y-2 mt-3">
-                ${renderSlotItems(tl.morning)}
-              </div>
+          <div class="flex items-start sm:items-center space-x-3.5">
+            <div class="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
+              ${patientInitials}
             </div>
-
-            <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-amber-200/90 hover:bg-amber-50/60 cursor-pointer transition-colors shadow-3xs">
-              <span class="text-xs font-bold text-amber-950">Đã dùng cữ sáng</span>
-              <input type="checkbox" onchange="toggleSlotAdherence('morning', this.checked)" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 border-slate-300">
-            </label>
+            <div class="space-y-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                  ĐƠN NGOẠI TRÚ
+                </span>
+                ${data.is_demo ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40">DỮ LIỆU MẪU (DEMO)</span>' : ''}
+                ${data.needs_review ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">CẦN XÁC NHẬN</span>' : ''}
+                <span class="text-xs text-slate-400 font-mono">Ngày khám: <strong class="text-white font-bold">${dateStr}</strong></span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  Đợt dùng: ${duration}
+                </span>
+              </div>
+              <div class="flex items-baseline gap-2 pt-0.5">
+                <h2 class="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-1.5 truncate">
+                  <span class="text-sky-400 font-bold">🩺 Chẩn đoán:</span> ${diag}
+                </h2>
+              </div>
+              <p class="text-xs text-slate-300 font-medium">
+                Bệnh nhân: <strong class="text-white font-bold">${patient}</strong>
+                ${address ? ` • <span class="text-slate-400 font-normal">${address}</span>` : ''}
+                ${doctor ? ` • Kê đơn: <strong class="text-slate-300">${doctor}</strong>` : ''}
+              </p>
+            </div>
           </div>
 
-          <!-- Column 2: Noon (Cyan / Sky Daylight) -->
-          <div id="slot-card-noon" class="rounded-2xl border-2 border-sky-200/90 bg-gradient-to-b from-sky-50/50 via-white to-sky-50/20 p-4 flex flex-col justify-between space-y-3.5 shadow-2xs hover:border-sky-400 hover:shadow-xs transition-all">
-            <div>
-              <div class="flex justify-between items-center pb-2.5 border-b border-sky-200/70">
-                <div class="flex items-center space-x-2">
-                  <div class="w-7 h-7 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold shadow-3xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                  </div>
-                  <span class="text-xs font-black text-sky-950 tracking-wider">BUỔI TRƯA</span>
-                </div>
-                <span class="text-[11px] font-mono font-bold text-sky-900 bg-sky-100/90 px-2 py-0.5 rounded-full border border-sky-300">11:30 - 12:30</span>
-              </div>
-              <div class="space-y-2 mt-3">
-                ${renderSlotItems(tl.noon)}
-              </div>
-            </div>
-
-            <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-sky-200/90 hover:bg-sky-50/60 cursor-pointer transition-colors shadow-3xs">
-              <span class="text-xs font-bold text-sky-950">Đã dùng cữ trưa</span>
-              <input type="checkbox" onchange="toggleSlotAdherence('noon', this.checked)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 border-slate-300">
-            </label>
+          <div class="flex items-center space-x-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/10">
+            <button onclick="askBotAboutPrescription()" class="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-2xl shadow-lg shadow-sky-500/25 transition-all flex items-center space-x-2 cursor-pointer hover:scale-102">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <span>Hỏi Bác sĩ AI</span>
+            </button>
+            <button onclick="window.print()" class="px-3.5 py-2.5 rounded-2xl glass-pill text-slate-200 hover:text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+              <span class="hidden sm:inline">In đơn</span>
+            </button>
+            <button onclick="resetPrescriptionScan()" class="px-3.5 py-2.5 rounded-2xl glass-card bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-white/10">
+              <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Quét đơn khác</span>
+            </button>
           </div>
-
-          <!-- Column 3: Evening (Indigo Twilight) -->
-          <div id="slot-card-evening" class="rounded-2xl border-2 border-indigo-200/90 bg-gradient-to-b from-indigo-50/50 via-white to-indigo-50/20 p-4 flex flex-col justify-between space-y-3.5 shadow-2xs hover:border-indigo-400 hover:shadow-xs transition-all">
-            <div>
-              <div class="flex justify-between items-center pb-2.5 border-b border-indigo-200/70">
-                <div class="flex items-center space-x-2">
-                  <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shadow-3xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                    </svg>
-                  </div>
-                  <span class="text-xs font-black text-indigo-950 tracking-wider">CHIỀU / TỐI</span>
-                </div>
-                <span class="text-[11px] font-mono font-bold text-indigo-900 bg-indigo-100/90 px-2 py-0.5 rounded-full border border-indigo-300">18:00 - 19:00</span>
-              </div>
-              <div class="space-y-2 mt-3">
-                ${renderSlotItems(tl.evening)}
-              </div>
-            </div>
-
-            <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-indigo-200/90 hover:bg-indigo-50/60 cursor-pointer transition-colors shadow-3xs">
-              <span class="text-xs font-bold text-indigo-950">Đã dùng cữ tối</span>
-              <input type="checkbox" onchange="toggleSlotAdherence('evening', this.checked)" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
-            </label>
-          </div>
-
-          <!-- Column 4: Bedtime (Purple Night) -->
-          <div id="slot-card-bedtime" class="rounded-2xl border-2 border-purple-200/90 bg-gradient-to-b from-purple-50/50 via-white to-purple-50/20 p-4 flex flex-col justify-between space-y-3.5 shadow-2xs hover:border-purple-400 hover:shadow-xs transition-all">
-            <div>
-              <div class="flex justify-between items-center pb-2.5 border-b border-purple-200/70">
-                <div class="flex items-center space-x-2">
-                  <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold shadow-3xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
-                    </svg>
-                  </div>
-                  <span class="text-xs font-black text-purple-950 tracking-wider">TRƯỚC KHI NGỦ</span>
-                </div>
-                <span class="text-[11px] font-mono font-bold text-purple-900 bg-purple-100/90 px-2 py-0.5 rounded-full border border-purple-300">21:00 - 22:00</span>
-              </div>
-              <div class="space-y-2 mt-3">
-                ${renderSlotItems(tl.bedtime)}
-              </div>
-            </div>
-
-            <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-purple-200/90 hover:bg-purple-50/60 cursor-pointer transition-colors shadow-3xs">
-              <span class="text-xs font-bold text-purple-950">Đã dùng trước ngủ</span>
-              <input type="checkbox" onchange="toggleSlotAdherence('bedtime', this.checked)" class="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300">
-            </label>
-          </div>
-
         </div>
       </div>
 
-      <!-- 3. Pharmacological Formulary Cards (Lively & High Contrast) -->
-      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-4">
-        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shadow-3xs">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-              </svg>
+      <!-- 2. SMART DOCTOR'S SAFETY ALERTS -->
+      ${warnings.length > 0 ? `
+        <div class="glass-card p-4 border border-amber-400/40 bg-amber-950/25 text-amber-200 backdrop-blur-xl shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all">
+          <div class="flex items-center justify-between cursor-pointer" onclick="toggleWarningDetails()">
+            <div class="flex items-center space-x-2.5">
+              <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-amber-500/25 border border-white/20">
+                ⚠️
+              </span>
+              <div>
+                <h4 class="text-xs font-black text-amber-300 uppercase tracking-tight">CHỈ DẪN AN TOÀN &amp; LƯU Ý BÁC SĨ:</h4>
+                <p class="text-[11px] text-amber-200/90 font-medium line-clamp-1">${warnings[0]}</p>
+              </div>
             </div>
+            <button id="btn-toggle-warnings" class="text-xs font-bold text-amber-300 hover:text-white transition-colors flex items-center space-x-1 shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/30">
+              <span id="label-toggle-warnings">Xem tất cả (${warnings.length})</span>
+              <svg id="icon-toggle-warnings" class="w-3.5 h-3.5 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+          </div>
+          <div id="expanded-warning-list" class="hidden mt-3 pt-3 border-t border-amber-400/20 space-y-2">
+            <ul class="text-xs text-amber-200 font-medium space-y-2 pl-4 list-disc leading-relaxed">
+              ${warnings.map(w => `<li>${w}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- 3. REAL-TIME SMART HERO: CỮ THUỐC ĐANG ĐẾN / HIỆN TẠI -->
+      <div id="smart-hero-dose-card" class="glass-panel-elevated p-6 border border-sky-400/35 bg-white/[0.06] backdrop-blur-2xl shadow-[0_0_35px_rgba(56,189,248,0.15)] space-y-5 transition-all relative overflow-hidden">
+        
+        <div class="absolute -right-16 -top-16 w-60 h-60 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-3 relative z-10">
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">${smartSlot ? smartSlot.icon : '🕒'}</span>
             <div>
-              <h4 class="text-base font-black text-slate-900">Danh Mục Dược Phẩm Chỉ Định</h4>
-              <p class="text-xs text-slate-500 font-normal">Tra cứu hoạt chất, nhóm dược lý học và cơ chế tác dụng lâm sàng</p>
+              <div class="flex items-center space-x-2">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 rounded-md">
+                  ĐANG TRONG KHUNG GIỜ DÙNG THUỐC
+                </span>
+              </div>
+              <h3 id="current-hero-slot-title" class="text-xl sm:text-2xl font-black text-white mt-0.5">
+                ${smartSlot ? smartSlot.label : 'LỊCH UỐNG THUỐC'} <span class="text-xs sm:text-sm font-mono text-slate-400 font-bold">(${smartSlot ? smartSlot.time : ''})</span>
+              </h3>
             </div>
           </div>
-          <span class="text-xs font-mono font-black px-3 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
-            ${(data.medications || []).length} loại thuốc
-          </span>
+
+          <div class="text-left sm:text-right space-y-1">
+            <div class="text-[11px] font-bold text-slate-300">
+              Tiến độ hôm nay: <span id="adherence-progress-text" class="font-mono font-extrabold text-sky-400">0/${activeSlots.length} cữ (0%)</span>
+            </div>
+            <div class="w-36 sm:w-44 h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/10">
+              <div id="adherence-progress-bar" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full transition-all duration-500 w-0"></div>
+            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          ${(data.medications || []).map((m, idx) => {
-            // Palette rotation for vibrant diversity
-            const palettes = [
-              { border: 'border-l-sky-500', badge: 'bg-sky-50 text-sky-800 border-sky-200' },
-              { border: 'border-l-teal-500', badge: 'bg-teal-50 text-teal-800 border-teal-200' },
-              { border: 'border-l-indigo-500', badge: 'bg-indigo-50 text-indigo-800 border-indigo-200' },
-              { border: 'border-l-amber-500', badge: 'bg-amber-50 text-amber-800 border-amber-200' },
-              { border: 'border-l-rose-500', badge: 'bg-rose-50 text-rose-800 border-rose-200' },
-              { border: 'border-l-purple-500', badge: 'bg-purple-50 text-purple-800 border-purple-200' }
-            ];
-            const p = palettes[idx % palettes.length];
+        <div id="hero-slot-medications-list" class="space-y-3 relative z-10">
+          ${renderSlotPillChecklist(smartSlot || activeSlots[0])}
+        </div>
 
-            return `
-              <div class="p-4 rounded-2xl border-l-4 ${p.border} border-t border-r border-b border-slate-200/90 bg-white hover:shadow-xs transition-all space-y-2.5">
-                <div class="flex justify-between items-start gap-2">
-                  <div>
-                    <h5 class="text-sm font-black text-slate-900 tracking-tight">${m.name}</h5>
-                    <p class="text-xs text-slate-500 font-mono mt-0.5 font-semibold">${m.ingredient || ''}</p>
+        <div class="pt-2 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <button id="btn-hero-complete" onclick="toggleHeroSlotCompletion('${smartSlot ? smartSlot.id : ''}', this)" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center space-x-2.5 cursor-pointer hover:scale-102 border border-white/20">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span id="btn-hero-complete-text">XÁC NHẬN ĐÃ UỐNG XONG CỮ NÀY</span>
+          </button>
+          
+          <span class="text-[11px] text-slate-400 font-medium text-center sm:text-right">
+            Nhấn để đánh dấu tiến độ điều trị trong ngày
+          </span>
+        </div>
+      </div>
+
+      <!-- 4. INTERACTIVE TIMELINE SELECTOR & TỦ THUỐC -->
+      <div class="glass-panel p-5 border border-white/10 bg-white/[0.06] space-y-4">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-3">
+          <div class="flex flex-wrap items-center gap-1.5 p-1 glass-dock rounded-2xl">
+            <button id="tab-nav-schedule" onclick="switchPrescriptionMainTab('schedule')" class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer">
+              🕒 Lộ trình trong ngày
+            </button>
+            <button id="tab-nav-formulary" onclick="switchPrescriptionMainTab('formulary')" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer">
+              💊 Tủ thuốc &amp; Dược thư (${meds.length} loại)
+            </button>
+          </div>
+
+          <div id="quick-slot-switcher" class="flex flex-wrap items-center gap-1.5">
+            ${activeSlots.map(s => `
+              <button id="pill-slot-${s.id}" onclick="selectSpecificSlot('${s.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer ${s.id === currentSelectedSlotId ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 border border-white/20' : 'glass-pill text-slate-300 hover:text-white'}">
+                <span>${s.icon}</span>
+                <span>${s.label.replace('BUỔI ', '')}</span>
+                <span class="font-mono text-[10px] opacity-80">(${s.items.length})</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 1: LỘ TRÌNH THEO CỮ -->
+        <div id="content-tab-schedule" class="space-y-4">
+          <div id="selected-slot-details-view" class="space-y-3">
+            ${renderSelectedSlotFullView(smartSlot || activeSlots[0])}
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 2: TỦ THUỐC & TRA CỨU DƯỢC THƯ (FORMULARY) -->
+        <div id="content-tab-formulary" class="hidden space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${meds.map((m, idx) => `
+              <div class="glass-card rounded-2xl p-4 border border-white/10 hover:border-sky-400/50 bg-white/[0.05] transition-all space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center font-mono font-black text-xs shrink-0 border border-sky-400/30">
+                      ${idx + 1}
+                    </div>
+                    <div>
+                      <h4 class="text-sm font-black text-white">${m.name}</h4>
+                      <p class="text-[11px] font-mono text-slate-400 font-semibold">${m.ingredient || ''}</p>
+                    </div>
                   </div>
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${p.badge} shrink-0">
+                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 shrink-0">
                     ${m.category || 'Thuốc kê đơn'}
                   </span>
                 </div>
-                <p class="text-xs text-slate-700 leading-relaxed"><span class="font-extrabold text-slate-900">Tác dụng:</span> ${m.purpose}</p>
-                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-800 leading-relaxed">
-                  <span class="font-black text-slate-900">Chỉ định:</span> ${m.usage}
+
+                <div class="text-xs text-slate-300 leading-relaxed glass-card p-2.5 rounded-xl border border-white/5 bg-white/5">
+                  <span class="font-black text-white">Mục đích điều trị:</span> ${m.purpose}
+                </div>
+
+                <div class="text-xs text-teal-200 font-bold bg-teal-500/15 border border-teal-400/30 rounded-xl p-2.5 leading-relaxed flex items-center justify-between gap-2">
+                  <div>
+                    <span class="font-extrabold">Cách dùng:</span> ${m.usage}
+                  </div>
+                  <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-400 hover:text-sky-300 underline font-extrabold whitespace-nowrap cursor-pointer">
+                    Hỏi AI →
+                  </button>
                 </div>
               </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- 4. Clinical Safety & Contraindications Box -->
-      <div class="p-5 rounded-3xl border-l-4 border-l-amber-500 bg-amber-50/70 border border-amber-200/90 shadow-2xs space-y-3">
-        <div class="flex items-center space-x-2.5 text-amber-950 font-black text-sm">
-          <div class="w-7 h-7 rounded-lg bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0 shadow-3xs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
+            `).join('')}
           </div>
-          <span>Khuyến Cáo Dược Học &amp; Cảnh Báo An Toàn Lâm Sàng:</span>
         </div>
-        <ul class="text-xs text-slate-800 space-y-2 pl-5 list-disc leading-relaxed font-medium">
-          ${(data.warnings || []).map(w => `<li>${w}</li>`).join('')}
-        </ul>
-      </div>
-    `;
-  }
 
-  // Clinical Bottom Actions
-  html += `
-    <div class="flex flex-wrap gap-3 items-center justify-between pt-2">
-      <div class="flex flex-wrap gap-2.5">
-        <button onclick="setMedicationReminder()" class="px-5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm shadow-sky-600/25 transition-all flex items-center space-x-2 cursor-pointer">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-          </svg>
-          <span>Đồng bộ Lịch Nhắc Uống Thuốc</span>
-        </button>
-        <button onclick="askBotAboutPrescription()" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center space-x-2 cursor-pointer">
-          <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-          </svg>
-          <span>Hỏi Dược Sĩ Lâm Sàng</span>
+      </div>
+
+      <!-- 5. BOTTOM UTILITIES -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <div class="flex items-center space-x-2">
+          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-2xl glass-pill hover:bg-white/15 text-slate-200 text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer border border-white/10">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span>Nhắc nhở uống thuốc định kỳ</span>
+          </button>
+        </div>
+
+        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-2xl glass-pill hover:bg-white/15 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer border border-white/10" title="Quay lại vùng tải đơn thuốc mới">
+          <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span>← Tải lên đơn thuốc khác</span>
         </button>
       </div>
 
-      <button onclick="resetPrescriptionScan()" class="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors flex items-center space-x-1 cursor-pointer">
-        <span>Quét đơn thuốc khác</span>
-        <span>→</span>
-      </button>
     </div>
   `;
 
@@ -1640,41 +1732,234 @@ function renderPrescriptionResult(data) {
   resSec.classList.remove('hidden');
 }
 
-// Interactive Adherence Tracker State
-let adherenceState = { morning: false, noon: false, evening: false, bedtime: false };
-
-function toggleSlotAdherence(slot, isChecked) {
-  adherenceState[slot] = isChecked;
-  const card = document.getElementById(`slot-card-${slot}`);
-  if (card) {
-    if (isChecked) {
-      card.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50/30');
-    } else {
-      card.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50/30');
-    }
+// Render the checklist inside the Smart Hero card
+function renderSlotPillChecklist(slot) {
+  if (!slot || !slot.items || slot.items.length === 0) {
+    return `<div class="p-4 rounded-2xl glass-card text-center text-xs text-slate-400 font-medium">Không có thuốc chỉ định ở cữ này</div>`;
   }
 
-  const completed = Object.values(adherenceState).filter(Boolean).length;
-  const percent = Math.round((completed / 4) * 100);
+  const beforeMeal = slot.items.filter(it => (it.note || '').toLowerCase().includes('trước'));
+  const externalPills = slot.items.filter(it => (it.note || '').toLowerCase().includes('ngoài') || (it.tag || '').toLowerCase().includes('ngoài'));
+  const afterMeal = slot.items.filter(it => !beforeMeal.includes(it) && !externalPills.includes(it));
 
-  const badge = document.getElementById('adherence-status-badge');
-  const bar = document.getElementById('adherence-progress-bar');
-  if (badge) {
-    badge.innerText = `Tiến độ: ${completed}/4 cữ (${percent}%)`;
-    if (completed === 4) {
-      badge.className = "text-xs font-mono px-3 py-1.5 rounded-full bg-emerald-500 text-white font-black shadow-md";
-      badge.innerText = "Đã hoàn thành 100% lịch uống thuốc!";
-    } else {
-      badge.className = "text-xs font-mono px-3 py-1.5 rounded-full bg-white/15 text-sky-200 border border-white/20 font-black backdrop-blur-xs";
-    }
+  return `
+    <!-- BEFORE MEAL -->
+    ${beforeMeal.length > 0 ? `
+      <div class="space-y-2">
+        <div class="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 border border-amber-400/30 px-2.5 py-0.5 rounded-lg inline-flex items-center">
+          <span class="w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>UỐNG TRƯỚC KHI ĂN (30 PHÚT)
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          ${beforeMeal.map((m, idx) => `
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-amber-400/30 bg-amber-950/20 text-xs hover:border-amber-400/60 transition-colors">
+              <div class="flex items-center space-x-2.5 min-w-0">
+                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 border-amber-400/50 bg-slate-900 cursor-pointer">
+                <div class="truncate">
+                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
+                  <span class="text-[10px] text-amber-300 font-bold">${m.tag || 'Trước ăn'}</span>
+                </div>
+              </div>
+              <span class="font-mono font-black text-amber-200 bg-amber-500/30 border border-amber-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- AFTER MEAL -->
+    ${afterMeal.length > 0 ? `
+      <div class="space-y-2 mt-2">
+        <div class="text-[10px] font-black uppercase tracking-wider text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2.5 py-0.5 rounded-lg inline-flex items-center">
+          <span class="w-2 h-2 rounded-full bg-sky-400 mr-1.5 animate-pulse"></span>UỐNG SAU KHI ĂN NO
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          ${afterMeal.map((m, idx) => `
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-white/10 bg-white/[0.04] text-xs hover:border-sky-400/50 transition-colors">
+              <div class="flex items-center space-x-2.5 min-w-0">
+                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-sky-500 focus:ring-sky-400 border-white/20 bg-slate-900 cursor-pointer">
+                <div class="truncate">
+                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
+                  <span class="text-[10px] text-slate-400 font-bold">${m.tag || 'Sau ăn'}</span>
+                </div>
+              </div>
+              <span class="font-mono font-black text-sky-200 bg-sky-500/30 border border-sky-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- EXTERNAL APPLICATION (XOA BÓP NGOÀI DA) -->
+    ${externalPills.length > 0 ? `
+      <div class="space-y-2 mt-2">
+        <div class="text-[10px] font-black uppercase tracking-wider text-purple-300 bg-purple-500/20 border border-purple-400/30 px-2.5 py-0.5 rounded-lg inline-flex items-center">
+          <span class="w-2 h-2 rounded-full bg-purple-400 mr-1.5 animate-pulse"></span>CHẾ PHẨM DÙNG NGOÀI DA (TUYỆT ĐỐI KHÔNG UỐNG)
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          ${externalPills.map((m, idx) => `
+            <div class="flex items-center justify-between p-3 rounded-2xl glass-card border border-purple-400/30 bg-purple-950/20 text-xs hover:border-purple-400/60 transition-colors">
+              <div class="flex items-center space-x-2.5 min-w-0">
+                <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-purple-500 focus:ring-purple-400 border-purple-400/50 bg-slate-900 cursor-pointer">
+                <div class="truncate">
+                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
+                  <span class="text-[10px] text-purple-300 font-bold">${m.note || 'Xoa lưng đau'}</span>
+                </div>
+              </div>
+              <span class="font-mono font-black text-purple-200 bg-purple-500/30 border border-purple-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+// Render full view when clicking a specific slot tab
+function renderSelectedSlotFullView(slot) {
+  return `
+    <div class="p-4 sm:p-5 rounded-2xl border border-white/10 glass-card bg-white/[0.05] space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-2xl">${slot.icon}</span>
+          <div>
+            <h4 class="text-sm font-black text-white">${slot.label}</h4>
+            <p class="text-xs text-slate-400 font-mono">${slot.time}</p>
+          </div>
+        </div>
+        <span class="text-xs font-mono font-black px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
+          ${slot.items.length} loại thuốc
+        </span>
+      </div>
+      <div>
+        ${renderSlotPillChecklist(slot)}
+      </div>
+    </div>
+  `;
+}
+
+// Checkbox item micro-interaction
+function togglePillChecked(checkbox) {
+  const container = checkbox.closest('div');
+  const nameEl = container.querySelector('.pill-name');
+  if (checkbox.checked) {
+    if (nameEl) nameEl.classList.add('line-through', 'opacity-50');
+    playMedicalChime();
+  } else {
+    if (nameEl) nameEl.classList.remove('line-through', 'opacity-50');
   }
-  if (bar) {
-    bar.style.width = `${percent}%`;
+}
+
+// Toggle hero slot completion button
+function toggleHeroSlotCompletion(slotId, btnEl) {
+  if (!slotId) return;
+  adherenceSlotState[slotId] = !adherenceSlotState[slotId];
+  const isDone = adherenceSlotState[slotId];
+
+  triggerCelebration(btnEl);
+
+  const btnText = document.getElementById('btn-hero-complete-text');
+  if (isDone) {
+    btnEl.className = 'w-full sm:w-auto px-8 py-3.5 bg-emerald-800 text-white text-sm font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2.5 cursor-pointer border border-emerald-500/30';
+    if (btnText) {
+      const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      btnText.innerText = `✓ ĐÃ HOÀN THÀNH CỮ NÀY LÚC ${nowStr}`;
+    }
+    showMedicalToast(`Tuyệt vời! Bạn đã hoàn thành cữ thuốc.`, 'success');
+  } else {
+    btnEl.className = 'w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center space-x-2.5 cursor-pointer hover:scale-102 border border-white/20';
+    if (btnText) btnText.innerText = 'XÁC NHẬN ĐÃ UỐNG XONG CỮ NÀY';
+  }
+
+  updateAdherenceProgress();
+}
+
+function updateAdherenceProgress() {
+  const keys = Object.keys(adherenceSlotState);
+  const total = keys.length || 3;
+  const completed = keys.filter(k => adherenceSlotState[k]).length;
+  const percent = Math.round((completed / total) * 100);
+
+  const textEl = document.getElementById('adherence-progress-text');
+  const barEl = document.getElementById('adherence-progress-bar');
+
+  if (textEl) textEl.innerText = `${completed}/${total} cữ (${percent}%)`;
+  if (barEl) barEl.style.width = `${percent}%`;
+}
+
+// Toggle expanding all doctor's warnings
+function toggleWarningDetails() {
+  const list = document.getElementById('expanded-warning-list');
+  const icon = document.getElementById('icon-toggle-warnings');
+  const label = document.getElementById('label-toggle-warnings');
+  if (!list) return;
+
+  if (list.classList.contains('hidden')) {
+    list.classList.remove('hidden');
+    if (icon) icon.classList.add('rotate-180');
+    if (label) label.innerText = 'Thu gọn';
+  } else {
+    list.classList.add('hidden');
+    if (icon) icon.classList.remove('rotate-180');
+    if (label) label.innerText = `Xem tất cả (${(currentPrescriptionData?.warnings || []).length})`;
+  }
+}
+
+// Switching between "Lộ trình" and "Tủ thuốc"
+function switchPrescriptionMainTab(tab) {
+  const schedTab = document.getElementById('content-tab-schedule');
+  const formTab = document.getElementById('content-tab-formulary');
+  const navSched = document.getElementById('tab-nav-schedule');
+  const navForm = document.getElementById('tab-nav-formulary');
+  const quickSwitcher = document.getElementById('quick-slot-switcher');
+
+  if (tab === 'schedule') {
+    if (schedTab) schedTab.classList.remove('hidden');
+    if (formTab) formTab.classList.add('hidden');
+    if (quickSwitcher) quickSwitcher.classList.remove('hidden');
+    if (navSched) navSched.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer';
+    if (navForm) navForm.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer';
+  } else {
+    if (schedTab) schedTab.classList.add('hidden');
+    if (formTab) formTab.classList.remove('hidden');
+    if (quickSwitcher) quickSwitcher.classList.add('hidden');
+    if (navSched) navSched.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer';
+    if (navForm) navForm.className = 'px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer';
+  }
+}
+
+// Switch slot in the view
+function selectSpecificSlot(slotId) {
+  currentSelectedSlotId = slotId;
+  const tl = currentPrescriptionData?.timeline || {};
+  const allSlotDefs = [
+    { id: 'morning', label: 'BUỔI SÁNG', time: '06:30 - 08:00', icon: '🌅', items: tl.morning || [] },
+    { id: 'noon', label: 'BUỔI TRƯA', time: '11:30 - 12:30', icon: '☀️', items: tl.noon || [] },
+    { id: 'evening', label: 'CHIỀU / TỐI', time: '18:00 - 19:30', icon: '🌙', items: tl.evening || [] },
+    { id: 'bedtime', label: 'TRƯỚC KHI NGỦ', time: '21:00 - 22:00', icon: '🛌', items: tl.bedtime || [] },
+    { id: 'external', label: 'DÙNG NGOÀI DA', time: 'Sáng & Tối', icon: '🧴', items: tl.external || [] }
+  ];
+  const target = allSlotDefs.find(s => s.id === slotId);
+
+  allSlotDefs.forEach(s => {
+    const pill = document.getElementById(`pill-slot-${s.id}`);
+    if (pill) {
+      if (s.id === slotId) {
+        pill.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer bg-sky-500 text-white shadow-lg shadow-sky-500/30 border border-white/20';
+      } else {
+        pill.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer glass-pill text-slate-300 hover:text-white';
+      }
+    }
+  });
+
+  const viewContainer = document.getElementById('selected-slot-details-view');
+  if (viewContainer && target) {
+    viewContainer.innerHTML = renderSelectedSlotFullView(target);
   }
 }
 
 function setMedicationReminder() {
-  alert('Đã đồng bộ lịch uống thuốc vào hệ thống quản lý bệnh án. Lịch trình tự động nhắc theo khung giờ: 06:30, 11:30, 18:00 và 21:00.');
+  playMedicalChime();
+  showMedicalToast('Xem thử tính năng nhắc thuốc: Đây là bản minh họa giao diện các cữ uống thuốc trong ngày.', 'info', 4000);
 }
 
 function askBotAboutPrescription() {
@@ -1683,7 +1968,258 @@ function askBotAboutPrescription() {
   switchTab('chat-tab');
   const chatInput = document.getElementById('chat-input') || document.getElementById('user-input');
   if (chatInput) {
-    chatInput.value = `Xin bác sĩ tư vấn thêm về hướng điều trị và lưu ý kiêng khem đối với chẩn đoán: "${diag}".`;
+    chatInput.value = `Xin bác sĩ tư vấn kỹ hơn về hướng điều trị, cách dùng thuốc và lưu ý kiêng khem cho chẩn đoán: "${diag}".`;
     chatInput.focus();
   }
+}
+
+function askBotAboutSpecificMedicine(medName) {
+  switchTab('chat-tab');
+  const chatInput = document.getElementById('chat-input') || document.getElementById('user-input');
+  if (chatInput) {
+    chatInput.value = `Bác sĩ giải thích giúp tôi công dụng, cách dùng và tác dụng phụ cần chú ý khi uống thuốc: "${medName}".`;
+    chatInput.focus();
+  }
+}
+
+// ==============================================================================
+// CLINICAL MINIMAL AMBIENT PRESETS (Ultra-clean, Low-detail & VisionOS Mesh)
+// ==============================================================================
+const medicalWallpapers = [
+  { 
+    id: 'minimal_midnight', 
+    name: 'Tối giản Midnight Aurora (Chuẩn VisionOS - Mặc định)', 
+    dark: 'radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 45%), radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 40%), radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%), radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.10) 0%, transparent 45%), radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 40%), linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%)',
+    light: 'radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F6 100%)'
+  },
+  { 
+    id: 'minimal_cyan', 
+    name: 'Ánh sáng Lâm sàng Cyan (Clinical Cyan Glow)', 
+    dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)',
+    light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)'
+  },
+  { 
+    id: 'minimal_sapphire', 
+    name: 'Không gian Sapphire Y tế (Sapphire Twilight)', 
+    dark: 'radial-gradient(circle at 75% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 50%), radial-gradient(circle at 20% 85%, rgba(14, 165, 233, 0.12) 0%, transparent 45%), linear-gradient(180deg, #080A18 0%, #0D1226 50%, #05060E 100%)',
+    light: 'radial-gradient(ellipse at 80% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, #EEF2FF 0%, #E0E7FF 100%)'
+  },
+  { 
+    id: 'minimal_slate', 
+    name: 'Kính Khói Neutral Studio (Minimal Dark Slate)', 
+    dark: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 60%), linear-gradient(180deg, #0F172A 0%, #090E1A 50%, #030712 100%)',
+    light: 'radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.04) 0%, transparent 60%), linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%)'
+  }
+];
+
+let currentWallpaperIndex = 0;
+
+function cycleMedicalWallpaper() {
+  currentWallpaperIndex = (currentWallpaperIndex + 1) % medicalWallpapers.length;
+  const wp = medicalWallpapers[currentWallpaperIndex];
+  const isLight = document.body.classList.contains('light-glass');
+  
+  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
+  showMedicalToast("Đã chuyển không gian: " + wp.name, "info");
+  playMedicalChime();
+}
+
+function toggleGlassThemeMode() {
+  document.body.classList.toggle('light-glass');
+  const isLight = document.body.classList.contains('light-glass');
+  const wp = medicalWallpapers[currentWallpaperIndex];
+  
+  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
+  if (isLight) {
+    showMedicalToast("Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)", "success");
+  } else {
+    showMedicalToast("Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)", "info");
+  }
+  playMedicalChime();
+}
+
+// ==========================================
+// User Interaction Helpers (Export, GPS, Demo)
+// ==========================================
+const loadPresetPrescription = loadPrescriptionPreset;
+
+function exportPdfSummary() {
+  const ehrEmpty = document.getElementById('ehr-content-empty');
+  if (ehrEmpty && !ehrEmpty.classList.contains('hidden')) {
+    showMedicalToast('Bạn chưa có bản tóm tắt trước khám để kết xuất PDF. Vui lòng hoàn thành buổi sàng lọc với Trợ lý AI trước.', 'warning', 4500);
+    return;
+  }
+  window.print();
+}
+
+function requestUserLocation() {
+  const statusText = document.getElementById('gps-status-text');
+  if (!navigator.geolocation) {
+    showMedicalToast('Trình duyệt không hỗ trợ Geolocation GPS.', 'warning');
+    return;
+  }
+  if (statusText) statusText.innerText = 'Đang định vị GPS...';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      if (statusText) statusText.innerText = `Đã định vị (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`;
+      showMedicalToast('Đã xác định vị trí GPS thực tế. Khoảng cách đã được đồng bộ.', 'success');
+    },
+    (err) => {
+      if (statusText) statusText.innerText = 'Khu vực: TP.HCM (Khoảng cách ước tính)';
+      showMedicalToast('Không thể lấy vị trí GPS thực. Đang dùng mốc ước tính TP.HCM.', 'info');
+    },
+    { timeout: 8000 }
+  );
+}
+
+function loadDemoConsultation() {
+  switchTab('chat-tab');
+  hideFloatingDecorations();
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="p-3 mb-3 rounded-2xl bg-sky-950/70 border border-sky-400/40 text-sky-200 text-xs flex items-center justify-between shadow-lg">
+      <div class="flex items-center space-x-2">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/30 text-sky-300 border border-sky-400/30">MẪU DEMO</span>
+        <span>Hội thoại mẫu minh họa quy trình sàng lọc lâm sàng</span>
+      </div>
+      <button onclick="resetChat()" class="text-[11px] underline text-sky-400 hover:text-white cursor-pointer font-medium">Làm mới hội thoại</button>
+    </div>
+
+    <!-- User demo message -->
+    <div class="flex flex-col items-end my-1">
+      <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-lg shadow-sky-500/20 backdrop-blur-md leading-relaxed font-medium text-left break-words border border-white/20">
+        <div>Tôi bị ho khan kéo dài 4 ngày nay, kèm đau rát họng và sốt nhẹ 37.8°C, không khó thở. Tôi nên làm gì?</div>
+      </div>
+      <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">Người bệnh (Bản mẫu)</div>
+    </div>
+
+    <!-- Assistant demo response -->
+    <div class="flex justify-start max-w-[95%] sm:max-w-xl my-2">
+      <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+          <span class="text-[11px] font-bold text-sky-300">Trợ lý sức khỏe AI • Đánh giá sơ bộ</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-semibold">Nguy cơ: 30/100 (An toàn)</span>
+        </div>
+        <div class="text-slate-200 font-normal leading-relaxed space-y-2">
+          <p><strong>1. Đánh giá sơ bộ & Phân tầng nguy cơ:</strong><br>
+          • <strong>Triệu chứng:</strong> Ho khan 4 ngày, rát họng, sốt nhẹ 37.8°C.<br>
+          • <strong>Dấu hiệu cảnh báo:</strong> Không ghi nhận khó thở, đau ngực dữ dội hay tím tái.<br>
+          • <strong>Phân loại:</strong> Phù hợp theo dõi và chăm sóc ban đầu tại nhà.</p>
+
+          <p><strong>2. Khuyến nghị chăm sóc tại nhà:</strong><br>
+          • Nghỉ ngơi trong phòng thoáng khí, uống đủ nước ấm (2 - 2.5 lít/ngày).<br>
+          • Súc họng bằng dung dịch nước muối sinh lý 0.9% từ 3 - 4 lần mỗi ngày.<br>
+          • Nếu sốt trên 38.5°C gây mệt mỏi, có thể dùng Paracetamol 500mg (1 viên/lần, cách 4-6 giờ, tối đa không quá 3g/ngày và không có tiền sử bệnh gan).</p>
+
+          <p class="text-amber-300 text-xs bg-amber-500/10 p-2.5 rounded-xl border border-amber-400/20">
+            ⚠️ <strong>Dấu hiệu cần đi khám ngay:</strong> Sốt cao liên tục &gt; 39°C không hạ sau 48h, khó thở, thở rít, đau tức ngực hoặc khạc đờm lẫn máu.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.scrollTop = container.scrollHeight;
+
+  const historyList = document.getElementById('chat-history-list');
+  const historyEmpty = document.getElementById('chat-history-empty');
+  if (historyEmpty) historyEmpty.classList.add('hidden');
+  if (historyList) {
+    historyList.classList.remove('hidden');
+    historyList.innerHTML = `
+      <div class="chat-history-item p-3 rounded-xl bg-white/[0.04] border border-sky-500/30 space-y-1 cursor-pointer hover:bg-white/[0.08] transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">[MẪU] Ho khan &amp; sốt nhẹ</span>
+          <span class="text-[10px] text-slate-400">Vừa xong</span>
+        </div>
+        <p class="text-[11px] text-slate-300 truncate">Ho khan 4 ngày, đau rát họng, sốt nhẹ 37.8°C...</p>
+        <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-white/5">
+          <span class="text-sky-400 font-semibold">Điểm nguy cơ: 30/100</span>
+          <span class="text-emerald-400">An toàn</span>
+        </div>
+      </div>
+    `;
+  }
+
+  showMedicalToast('Đã nạp hội thoại mẫu (Demo). Đây là dữ liệu minh họa, không phải lịch sử y tế thật.', 'info', 4000);
+}
+
+// ==========================================
+// Specialized Task-Based Navigation & Filters
+// ==========================================
+function openNewPrescriptionUpload() {
+  switchTab('ocr-tab');
+  resetPrescriptionScan();
+}
+
+function filterHospitals(category, btnEl) {
+  document.querySelectorAll('.hospital-filter-btn').forEach(btn => {
+    btn.classList.remove('bg-white/20', 'text-white', 'border', 'border-white/25', 'font-bold', 'shadow-xs');
+    btn.classList.add('glass-pill', 'text-slate-300', 'font-semibold');
+  });
+  if (btnEl) {
+    btnEl.classList.remove('glass-pill', 'text-slate-300', 'font-semibold');
+    btnEl.classList.add('bg-white/20', 'text-white', 'border', 'border-white/25', 'font-bold', 'shadow-xs');
+  }
+
+  const cards = document.querySelectorAll('.hospital-card');
+  let matchCount = 0;
+  cards.forEach(card => {
+    const cats = (card.getAttribute('data-category') || '').split(' ');
+    if (category === 'all' || cats.includes(category)) {
+      card.classList.remove('hidden');
+      matchCount++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+
+  const noResults = document.getElementById('hospital-no-results');
+  if (noResults) {
+    noResults.classList.toggle('hidden', matchCount > 0);
+  }
+}
+
+function initHistorySearch() {
+  const searchInput = document.getElementById('history-search-input');
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    const historyList = document.getElementById('chat-history-list');
+    if (!historyList) return;
+
+    const items = historyList.querySelectorAll('.chat-history-item');
+    if (items.length === 0) return;
+
+    let matchCount = 0;
+    items.forEach(item => {
+      const text = item.innerText.toLowerCase();
+      if (!query || text.includes(query)) {
+        item.classList.remove('hidden');
+        matchCount++;
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    let noMatchNotice = document.getElementById('history-no-match-notice');
+    if (matchCount === 0 && query) {
+      if (!noMatchNotice) {
+        noMatchNotice = document.createElement('div');
+        noMatchNotice.id = 'history-no-match-notice';
+        noMatchNotice.className = 'p-3 text-center text-xs text-slate-400 bg-white/[0.02] border border-white/5 rounded-xl';
+        noMatchNotice.innerHTML = `<span>Không tìm thấy phiên tư vấn nào khớp với "<strong>${escapeHtml(query)}</strong>"</span>`;
+        historyList.appendChild(noMatchNotice);
+      } else {
+        noMatchNotice.innerHTML = `<span>Không tìm thấy phiên tư vấn nào khớp với "<strong>${escapeHtml(query)}</strong>"</span>`;
+        noMatchNotice.classList.remove('hidden');
+      }
+    } else if (noMatchNotice) {
+      noMatchNotice.classList.add('hidden');
+    }
+  });
 }

@@ -5,14 +5,14 @@
 Mục đích:
   - Tầng An toàn kép (Double Guardrails) cho hệ thống Chatbot Y tế phục vụ Người Dân.
   - TIỀN KIỂM (Pre-check): Phát hiện sớm dấu hiệu nguy kịch (Cờ đỏ), có xử lý bẫy phủ định ("không khó thở") và chữ không dấu.
-  - HẬU KIỂM (Post-check): Chặn đứng việc AI tự ý kê đơn thuốc kháng sinh hay thuốc đặc trị.
+  - HẬU KIỂM (Post-check): Chặn đứng và thay thế việc AI tự ý kê đơn thuốc kháng sinh hay thuốc đặc trị.
   - BỘ MÁY DỰ PHÒNG (Fallback Engine): Tự động tư vấn triệu chứng theo phác đồ MedlinePlus/Bộ Y Tế khi mất mạng hoặc không có API Key.
 ================================================================================
 """
 
 import re
 import unicodedata
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 # ------------------------------------------------------------------------------
@@ -55,12 +55,12 @@ EMERGENCY_SIGNS = [
 ]
 
 # Danh mục các từ phủ định trong tiếng Việt để tránh báo nhầm ("tôi không khó thở")
-NEGATION_WORDS = ["không", "khong", "chưa", "chua", "chẳng", "chang", "không hề", "khong he", "không bị", "khong bi"]
-
-
-# ------------------------------------------------------------------------------
-# 2. BƯỚC TIỀN KIỂM: PHÁT HIỆN CỜ ĐỎ CẤP CỨU & XỬ LÝ PHỦ ĐỊNH
-# ------------------------------------------------------------------------------
+NEGATION_WORDS = [
+    "không", "khong", "chưa", "chua", "chẳng", "chang",
+    "không hề", "khong he", "chẳng hề", "chang he", "chưa hề", "chua he",
+    "không bị", "khong bi", "chẳng bị", "chang bi", "chưa bị", "chua bi",
+    "không có", "khong co", "chẳng có", "chang co", "chưa có", "chua co"
+]
 
 # English emergency keywords
 EMERGENCY_SIGNS_EN = [
@@ -68,6 +68,11 @@ EMERGENCY_SIGNS_EN = [
     "cannot breathe", "choking", "facial drooping", "slurred speech", "paralysis",
     "seizure", "unconscious", "passed out", "coughing blood", "vomiting blood", "anaphylaxis"
 ]
+
+
+# ------------------------------------------------------------------------------
+# 2. BƯỚC TIỀN KIỂM: PHÁT HIỆN CỜ ĐỎ CẤP CỨU & XỬ LÝ PHỦ ĐỊNH
+# ------------------------------------------------------------------------------
 
 def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
     """
@@ -82,29 +87,28 @@ def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
         vi_kw = sign["vi"]
         no_kw = sign["no_accent"]
 
-        # Kiểm tra xem từ khóa có xuất hiện trong tin nhắn (có dấu hoặc không dấu)
         is_matched = (vi_kw in text_lower) or (no_kw in text_no_accent)
 
         if is_matched:
-            # KIỂM TRA BẪY PHỦ ĐỊNH: Quét xem ngay phía trước từ khóa có từ "không" không
-            # Ví dụ: "không bị khó thở", "không tức ngực"
+            # KIỂM TRA BẪY PHỦ ĐỊNH: Quét xem ngay phía trước từ khóa có từ phủ định không
             is_negated = False
             for neg in NEGATION_WORDS:
-                pattern_vi = rf"\b{neg}\s+(bị\s+)?{re.escape(vi_kw)}"
-                pattern_no = rf"\b{neg}\s+(bi\s+)?{re.escape(no_kw)}"
+                pattern_vi = rf"\b{neg}\s+(?:(?:hề|có|thấy|bị|cảm thấy)\s+)?{re.escape(vi_kw)}"
+                pattern_no = rf"\b{neg}\s+(?:(?:he|co|thay|bi|cam thay)\s+)?{re.escape(no_kw)}"
                 if re.search(pattern_vi, text_lower) or re.search(pattern_no, text_no_accent):
                     is_negated = True
                     break
 
-            # Nếu KHÔNG bị phủ định thì mới tính là cờ đỏ thực sự!
             if not is_negated:
                 matched_flags.append(vi_kw.capitalize())
 
-    # Also check English emergency signs if lang == 'en'
     if lang == "en":
         for en_sign in EMERGENCY_SIGNS_EN:
             if en_sign in text_lower:
-                matched_flags.append(en_sign.title())
+                # English negation check
+                pattern_en = rf"\b(no|not|without|neither)\s+({re.escape(en_sign)})"
+                if not re.search(pattern_en, text_lower):
+                    matched_flags.append(en_sign.title())
 
     if matched_flags:
         if lang == "en":
@@ -137,7 +141,7 @@ def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
 
 
 # ------------------------------------------------------------------------------
-# 3. BƯỚC HẬU KIỂM: MÀNG LỌC CHẶN KÊ ĐƠN THUỐC KHÁNG SINH BỪA BÃI
+# 3. BƯỚC HẬU KIỂM: MÀNG LỌC CHẶN VÀ THAY THẾ KÊ ĐƠN THUỐC KHÁNG SINH
 # ------------------------------------------------------------------------------
 
 ANTIBIOTIC_BLACKLIST = [
@@ -147,48 +151,102 @@ ANTIBIOTIC_BLACKLIST = [
     "erythromycin", "penicillin", "gentamicin", "ceftriaxone"
 ]
 
+
 def apply_safety_guardrails(answer: str, lang: str = "vi") -> str:
     """
     Hậu kiểm an toàn (Post-generation Guardrail):
-    Rà soát câu trả lời của AI trước khi gửi cho người dân.
-    Nếu phát hiện nhắc tên thuốc kháng sinh kê đơn -> Tự động thêm khuyến cáo an toàn bắt buộc.
+    Rà soát câu trả lời của AI và Fallback.
+    Nếu phát hiện nhắc tên thuốc kháng sinh kê đơn hoặc hướng dẫn liều dùng:
+      - Loại bỏ/thay thế nội dung vi phạm bằng cảnh báo từ chối kê đơn chuẩn y tế.
+      - Tuyệt đối không giữ nguyên hướng dẫn dùng thuốc kháng sinh bị cấm.
     """
+    if not answer:
+        return ""
+
     answer_lower = answer.lower()
     found_antibiotics = [ab for ab in ANTIBIOTIC_BLACKLIST if ab in answer_lower]
 
-    if found_antibiotics:
-        if lang == "en":
-            warning_note = (
-                "\n\n> [!CAUTION]\n"
-                f"> ⚠️ **MEDICATION SAFETY WARNING:**\n"
-                f"> The medication mentioned ({', '.join(found_antibiotics).capitalize()}) belongs to **PRESCRIPTION-ONLY ANTIBIOTICS**.\n"
-                "> Under medical safety guidelines, AI is strictly prohibited from prescribing dosages. You **must not self-medicate** to avoid severe anaphylaxis and antimicrobial resistance. Please consult a qualified physician."
-            )
-        else:
-            warning_note = (
-                "\n\n> [!CAUTION]\n"
-                f"> ⚠️ **CẢNH BÁO AN TOÀN DƯỢC PHẨM:**\n"
-                f"> Thuốc được đề cập ({', '.join(found_antibiotics).capitalize()}) thuộc nhóm **KHÁNG SINH KÊ ĐƠN BẮT BUỘC**.\n"
-                "> Theo quy định của Bộ Y Tế, AI tuyệt đối không chỉ định liều dùng. Bạn **không được tự ý mua uống** để tránh nguy cơ sốc phản vệ và vi khuẩn kháng thuốc. Hãy thăm khám bác sĩ chuyên khoa để có đơn thuốc chính xác."
-            )
-        return answer + warning_note
+    if not found_antibiotics:
+        return answer
 
-    return answer
+    ab_names_str = ", ".join([ab.capitalize() for ab in found_antibiotics])
+
+    if lang == "en":
+        replacement_block = (
+            f"> [!CAUTION]\n"
+            f"> 🛑 **SAFETY INTERVENTION - PRESCRIPTION MEDICATION DETECTED ({ab_names_str}):**\n"
+            "> Under strict healthcare safety protocols and MOH regulations, AI assistants are strictly prohibited "
+            "from prescribing, dosing, or instructing the use of prescription antibiotics.\n"
+            "> Any self-medication with antibiotics carries severe risks of acute anaphylaxis, organ toxicity, "
+            "and dangerous antimicrobial resistance. Please consult a licensed medical practitioner for a proper examination and prescription."
+        )
+    else:
+        replacement_block = (
+            f"> [!CAUTION]\n"
+            f"> 🛑 **CAN THIỆP AN TOÀN Y TẾ - PHÁT HIỆN THUỐC KHÁNG SINH ({ab_names_str}):**\n"
+            "> Theo quy chuẩn an toàn lâm sàng của Bộ Y Tế, Trợ lý AI tuyệt đối không kê đơn, chỉ định liều dùng hoặc khuyến nghị tự ý sử dụng các loại thuốc kháng sinh.\n"
+            "> Việc tự ý mua và dùng kháng sinh tiềm ẩn nguy cơ sốc phản vệ nguy kịch, tổn thương gan thận và gia tăng tình trạng kháng kháng sinh trong cộng đồng. "
+            "Bạn hãy thăm khám trực tiếp tại cơ sở y tế để được bác sĩ chẩn đoán nguyên nhân và kê đơn chính xác."
+        )
+
+    # Tách đoạn văn bản và thay thế các đoạn có chứa tên kháng sinh
+    paragraphs = answer.split("\n\n")
+    cleaned_paragraphs = []
+    replaced_any = False
+
+    for p in paragraphs:
+        p_lower = p.lower()
+        if any(ab in p_lower for ab in found_antibiotics):
+            # Thay thế đoạn vi phạm bằng khối can thiệp an toàn
+            cleaned_paragraphs.append(replacement_block)
+            replaced_any = True
+        else:
+            cleaned_paragraphs.append(p)
+
+    if not replaced_any:
+        cleaned_paragraphs.append(replacement_block)
+
+    return "\n\n".join(cleaned_paragraphs)
 
 
 # ------------------------------------------------------------------------------
 # 4. BỘ MÁY TƯ VẤN DỰ PHÒNG NỘI BỘ (FALLBACK ENGINE - CHẠY 100% OFFLINE)
 # ------------------------------------------------------------------------------
 
-def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'vi') -> Dict[str, Any]:
+def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = None, lang: str = 'vi', has_image: bool = False) -> Dict[str, Any]:
     """
     Bộ máy phân loại lâm sàng nội bộ: Hoạt động khi chưa có API Key hoặc mất mạng.
     Đưa ra lời khuyên chăm sóc ban đầu tại nhà chuẩn MedlinePlus và Bộ Y Tế.
+    - Không tự suy diễn phát hiện hình ảnh khi không có xử lý ảnh thành công.
+    - Đảm bảo đánh giá khẩn cấp nhất quán.
     """
+    history = history or []
     text = message.lower().strip()
+    
+    # Kiểm tra khẩn cấp trước tiên để đảm bảo tính nhất quán
+    emergency_check = assess_emergency_risk(message, lang=lang)
+    if emergency_check["is_emergency"]:
+        return {
+            "answer": emergency_check["message"],
+            "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
+            "risk_score": 90,
+            "symptoms": emergency_check["symptoms"],
+            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
+            "is_emergency": True,
+            "visual_findings": [],
+            "differential_diagnosis": ["Tình trạng cấp cứu tim mạch/hô hấp/tuần hoàn"],
+            "sources": [
+                {
+                    "title": "Quy trình Cấp cứu Ban đầu - Bộ Y Tế",
+                    "source": "Cục Quản lý Khám chữa bệnh",
+                    "url": "https://kcb.vn"
+                }
+            ]
+        }
+
     risk_score = 30
-    risk_level = "Thấp (Tự chăm sóc & Theo dõi)"
-    specialist = "Nội tổng quát / Y học gia đình"
+    risk_level = "Thấp (Tự chăm sóc & Theo dõi)" if lang == "vi" else "Low (Self-care & Monitor)"
+    specialist = "Nội tổng quát / Y học gia đình" if lang == "vi" else "General Internal Medicine"
 
     # Phát hiện chào hỏi
     GREETING_PATTERNS = [
@@ -198,17 +256,16 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
     is_greeting = any(re.search(pat, text) for pat in GREETING_PATTERNS) or text in ["hello", "hi", "chào", "xin chào"]
 
     # Nhận diện triệu chứng
-    is_fever = any(w in text for w in ["sốt", "sot", "nhiệt độ", "nong"])
-    is_cough_throat = any(w in text for w in ["ho", "rát họng", "đau họng", "dau hong", "rat hong"])
-    is_headache = any(w in text for w in ["đau đầu", "dau dau", "nhức đầu", "nhuc dau"])
-    is_stomach = any(w in text for w in ["đau bụng", "dau bung", "tiêu chảy", "tieu chay", "buồn nôn", "da day", "dạ dày"])
-    is_respiratory = any(w in text for w in ["nghẹt mũi", "nghet mui", "sổ mũi", "so mui", "chảy nước mũi"])
+    is_fever = any(w in text for w in ["sốt", "sot", "nhiệt độ", "nong", "fever", "temperature"])
+    is_cough_throat = any(w in text for w in ["ho", "rát họng", "đau họng", "dau hong", "rat hong", "cough", "sore throat"])
+    is_headache = any(w in text for w in ["đau đầu", "dau dau", "nhức đầu", "nhuc dau", "headache"])
+    is_stomach = any(w in text for w in ["đau bụng", "dau bung", "tiêu chảy", "tieu chay", "buồn nôn", "da day", "dạ dày", "stomach", "diarrhea"])
+    is_respiratory = any(w in text for w in ["nghẹt mũi", "nghet mui", "sổ mũi", "so mui", "chảy nước mũi", "runny nose", "congestion"])
     is_skin = any(w in text for w in [
         "tổn thương", "ton thuong", "bệnh da", "benh da", "da liễu", "da lieu",
         "mẩn ngứa", "man ngua", "ngứa", "ngua", "mụn nước", "mun nuoc", "phát ban", "phat ban",
         "mề đay", "me day", "nổi mề đay", "dị ứng", "di ung", "zona", "chàm", "cham", "eczema",
-        "nấm da", "nam da", "mụn trứng cá", "mun trung ca", "bức ảnh", "buc anh", "ảnh", "anh",
-        "bệnh của tôi là bệnh gì", "benh cua toi la benh gi"
+        "nấm da", "nam da", "mụn trứng cá", "mun trung ca", "rash", "itchy", "hives"
     ])
 
     has_symptoms = any([is_fever, is_cough_throat, is_headache, is_stomach, is_respiratory, is_skin])
@@ -220,11 +277,17 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
                 "Chào bạn! Tôi là **Trợ lý Sức khỏe MediMind AI**.\n\n"
                 "Hôm nay bạn cảm thấy trong người thế nào? Hãy chia sẻ với mình các biểu hiện cơ thể bạn đang gặp "
                 "(ví dụ: đau họng, sốt, ho, đau đầu, mệt mỏi hay câu hỏi về thuốc/chỉ số xét nghiệm) để mình hỗ trợ tư vấn ban đầu nhé!"
+            ) if lang == "vi" else (
+                "Hello! I am your **MediMind AI Health Assistant**.\n\n"
+                "How are you feeling today? Please describe any symptoms or health questions you have so I can provide initial evidence-based guidance."
             ),
-            "risk_level": "Chào hỏi ban đầu",
+            "risk_level": "Chào hỏi ban đầu" if lang == "vi" else "Initial Greeting",
             "risk_score": 10,
             "symptoms": ["Khởi tạo hội thoại"],
-            "specialist": "Y học gia đình",
+            "specialist": "Y học gia đình" if lang == "vi" else "Family Medicine",
+            "visual_findings": [],
+            "differential_diagnosis": [],
+            "is_emergency": False,
             "sources": [{"title": "Hệ thống Tư vấn Sức khỏe Ban đầu MediMind", "url": "https://medlineplus.gov"}]
         }
 
@@ -237,23 +300,33 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
                 "• Bạn cảm thấy khó chịu ở vị trí nào trên cơ thể?\n"
                 "• Dấu hiệu này xuất hiện được bao nhiêu ngày rồi?\n"
                 "• Có kèm theo sốt, mệt mỏi hay biểu hiện gì khác không?"
+            ) if lang == "vi" else (
+                "Thank you for reaching out. To assist you with more accurate initial guidance, could you provide more details?\n\n"
+                "• Where is the discomfort located?\n"
+                "• How long have you experienced these symptoms?\n"
+                "• Do you have any fever, fatigue, or other related signs?"
             ),
-            "risk_level": "Cần thêm thông tin",
+            "risk_level": "Cần thêm thông tin" if lang == "vi" else "Information Needed",
             "risk_score": 15,
             "symptoms": ["Mô tả chưa rõ"],
-            "specialist": "Nội tổng quát",
+            "specialist": "Nội tổng quát" if lang == "vi" else "General Internal Medicine",
+            "visual_findings": [],
+            "differential_diagnosis": [],
+            "is_emergency": False,
             "sources": [{"title": "MedlinePlus Medical Encyclopedia", "url": "https://medlineplus.gov"}]
         }
 
     # Xây dựng phản hồi lâm sàng tự nhiên & thấu cảm
     symptoms_detected = []
     advice_bullets = []
+    diff_diag = []
 
     if is_fever and is_cough_throat:
         symptoms_detected = ["Sốt", "Đau rát họng / Ho"]
         risk_score = 45
         risk_level = "Trung bình (Theo dõi & Chăm sóc)"
         specialist = "Tai Mũi Họng / Hô hấp"
+        diff_diag = ["Viêm họng cấp thể xuất tiết", "Nhiễm virus đường hô hấp trên"]
         advice_bullets = [
             "**Súc họng nước muối ấm (0.9%):** Súc miệng từ 3 - 4 lần mỗi ngày sau ăn và trước khi đi ngủ giúp sát khuẩn, giảm phù nề niêm mạc họng.",
             "**Uống nhiều nước ấm:** Bổ sung từ 1.5 - 2 lít nước ấm, nước cam hoặc nước chanh ấm để làm dịu cổ họng và hỗ trợ hạ nhiệt.",
@@ -263,6 +336,7 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
     elif is_cough_throat:
         symptoms_detected = ["Viêm đau họng / Ho"]
         specialist = "Tai Mũi Họng"
+        diff_diag = ["Viêm họng do kích ứng hoặc virus"]
         advice_bullets = [
             "**Giữ ấm vùng cổ và ngực:** Tránh uống nước đá lạnh hoặc ngồi phòng điều hòa nhiệt độ quá thấp (< 25°C).",
             "**Súc họng nước muối sinh lý:** Thực hiện đều đặn mỗi ngày giúp giảm cảm giác ngứa rát và tan đờm.",
@@ -272,17 +346,18 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
         symptoms_detected = ["Tổn thương da / Mẩn ngứa / Dị ứng da"]
         specialist = "Da liễu (Dermatology)"
         risk_score = 35
+        diff_diag = ["Mề đay cấp tính (Urticaria)", "Viêm da tiếp xúc dị ứng"]
         advice_bullets = [
             "**Vệ sinh vùng da sạch sẽ:** Rửa nhẹ nhàng bằng nước sạch hoặc nước muối sinh lý 0.9%, lau khô bằng khăn bông mềm, tuyệt đối không chà xát hoặc cào gãi làm trầy xước.",
             "**Chườm mát làm dịu:** Dùng khăn sạch thấm nước mát đắp lên vùng da ngứa rát trong 10 - 15 phút để giảm cảm giác châm chích và làm dịu phản ứng sung huyết.",
             "**Tránh tác nhân kích ứng:** Tạm ngưng sử dụng các loại xà phòng, sữa tắm có chất tẩy rửa mạnh hoặc hóa chất; mặc trang phục rộng rãi, thoáng mát bằng chất liệu cotton tự nhiên.",
             "**Dấu hiệu cần đi khám ngay:** Nếu tổn thương lan rộng nhanh, có bọng nước vỡ loét, kèm theo sốt cao hoặc sưng nề vùng mắt/môi, bạn cần đến chuyên khoa Da liễu để bác sĩ thăm khám trực tiếp."
         ]
-        diff_diag = ["Mề đay cấp tính (Urticaria)", "Viêm da tiếp xúc dị ứng", "Zona thần kinh (Herpes Zoster)"]
     elif is_stomach:
         symptoms_detected = ["Đau bụng / Rối loạn tiêu hóa"]
         risk_score = 40
         specialist = "Tiêu hóa"
+        diff_diag = ["Rối loạn tiêu hóa chức năng", "Viêm dạ dày ruột nhẹ"]
         advice_bullets = [
             "**Chế độ ăn nhẹ thanh đạm:** Ưu tiên cháo loãng, súp nóng, chia nhỏ bữa ăn và tạm tránh đồ cay nóng, dầu mỡ, cà phê.",
             "**Bù nước và điện giải:** Nếu có kèm tiêu chảy, hãy pha Oresol đúng tỷ lệ ghi trên gói để uống từng ngụm nhỏ.",
@@ -291,6 +366,7 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
     else:
         symptoms_detected = ["Mệt mỏi / Cảm cúm nhẹ"]
         specialist = "Nội tổng quát"
+        diff_diag = ["Hội chứng cảm cúm thông thường"]
         advice_bullets = [
             "**Nghỉ ngơi đầy đủ:** Giữ phòng ngủ thoáng khí, ngủ đủ giấc để cơ thể tự phục hồi hệ miễn dịch.",
             "**Bổ sung dinh dưỡng:** Ăn thức ăn lỏng ấm, bổ sung vitamin C từ hoa quả tươi."
@@ -305,14 +381,18 @@ def analyze_symptoms(message: str, history: List[Dict[str, Any]], lang: str = 'v
         "*Lưu ý: Các hướng dẫn trên mang tính chất hỗ trợ chăm sóc ban đầu. Nếu các triệu chứng kéo dài trên 3 ngày hoặc có chiều hướng nặng lên, bạn hãy tới cơ sở y tế để được bác sĩ thăm khám trực tiếp nhé.*"
     )
 
+    # KHÔNG tự suy diễn phát hiện hình ảnh khi không có xử lý ảnh thực tế
+    visual_findings_result = ["Quan sát hình thái tổn thương da (chờ bác sĩ trực tiếp đối chiếu)"] if (has_image and is_skin) else []
+
     return {
         "answer": answer_text,
         "risk_level": risk_level,
-        "risk_score": risk_score,
+        "risk_score": max(0, min(100, risk_score)),
         "symptoms": symptoms_detected,
         "specialist": specialist,
-        "differential_diagnosis": diff_diag if 'diff_diag' in locals() else [],
-        "visual_findings": ["Tổn thương dạng mẩn đỏ / mụn nước ngoài da"] if is_skin else [],
+        "differential_diagnosis": diff_diag,
+        "visual_findings": visual_findings_result,
+        "is_emergency": False,
         "sources": [
             {
                 "title": "MedlinePlus Medical Encyclopedia - NIH",

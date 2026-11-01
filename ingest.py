@@ -5,8 +5,11 @@
 Mục đích:
   - Đọc các tài liệu y khoa chuẩn mực (từ MedlinePlus và Sách Y học).
   - Tách nhỏ thành từng đoạn (chunking) kèm siêu dữ liệu (metadata: tên bệnh, nguồn, link).
-  - Nhúng vector và lưu trữ vào Cơ sở Dữ liệu Vector ChromaDB đặt tại thư mục: ./medical_vectordb.
-  - Chạy 1 lần duy nhất để tạo cơ sở tri thức cho Chatbot tra cứu.
+  - Nạp an toàn theo kiến trúc Zero-Downtime Versioning:
+      1. Tiền kiểm dữ liệu trước khi nạp.
+      2. Nạp vào Collection phiên bản mới (timestamped).
+      3. Xác minh tính toàn vẹn (Document count check).
+      4. Chuyển con trỏ active collection sang bản mới; bảo toàn bản cũ để rollback.
 ================================================================================
 """
 
@@ -14,8 +17,9 @@ import os
 import sys
 import json
 import glob
+from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 # Đảm bảo in tiếng Việt có dấu mượt mà trên console Windows
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -33,35 +37,13 @@ DATA_DIR = BASE_DIR / "data"
 CURATED_DIR = DATA_DIR / "curated" / "ready_documents"
 VECTOR_DB_DIR = BASE_DIR / "medical_vectordb"
 
-COLLECTION_NAME = "medical_knowledge"
-
-
-def init_chroma_client():
-    """
-    Khởi tạo Client kết nối ChromaDB lưu trữ cục bộ (Persistent Storage).
-    Dữ liệu sẽ được lưu vĩnh viễn trên máy tại thư mục ./medical_vectordb
-    """
-    print(f"📦 [ChromaDB] Đang kết nối kho dữ liệu Vector tại: {VECTOR_DB_DIR}")
-    client = chromadb.PersistentClient(path=str(VECTOR_DB_DIR))
-    
-    # Lấy hoặc tạo mới collection (nếu đã tồn tại thì xóa đi tạo lại để cập nhật mới nhất)
-    try:
-        client.delete_collection(name=COLLECTION_NAME)
-        print(f"🔄 [ChromaDB] Đã dọn dẹp collection cũ '{COLLECTION_NAME}'.")
-    except Exception:
-        pass
-
-    collection = client.create_collection(
-        name=COLLECTION_NAME,
-        metadata={"description": "Kho tri thức y khoa lâm sàng MedlinePlus & Y văn chuẩn"}
-    )
-    return client, collection
+DEFAULT_COLLECTION_NAME = "medical_knowledge"
+METADATA_FILE = VECTOR_DB_DIR / "active_collection.json"
 
 
 def load_curated_medlineplus_documents() -> List[Dict[str, Any]]:
     """
-    Đọc 241 tệp tài liệu y khoa chuẩn MedlinePlus đã được cấu trúc hóa sẵn trong thư mục curated.
-    Mỗi tệp chứa: Tiêu đề bệnh, mô tả, triệu chứng, hướng dẫn điều trị, link nguồn.
+    Đọc và tiền kiểm các tệp tài liệu y khoa chuẩn MedlinePlus trong thư mục curated.
     """
     documents = []
     if not CURATED_DIR.exists():
@@ -87,10 +69,8 @@ def load_curated_medlineplus_documents() -> List[Dict[str, Any]]:
             if not content:
                 continue
 
-            # Đoạn văn bản kết hợp hoàn chỉnh để tạo embedding
             full_text = f"Bệnh/Chủ đề: {title}\nChuyên khoa: {category}\nTừ khóa liên quan: {search_phrases}\n\nNội dung chi tiết:\n{content}"
 
-            # Cắt ngắn nếu nội dung quá dài (mỗi chunk tối đa 2000 ký tự để tìm kiếm chính xác)
             max_chunk_length = 2000
             if len(full_text) > max_chunk_length:
                 chunk_index = 0
@@ -132,46 +112,96 @@ def load_curated_medlineplus_documents() -> List[Dict[str, Any]]:
     return documents
 
 
-def run_ingestion():
+def run_ingestion(custom_db_dir: Path = None, test_mode: bool = False) -> Tuple[bool, str]:
     """
-    Hàm thực thi chính: Nạp toàn bộ dữ liệu vào ChromaDB.
+    Quy trình nạp dữ liệu an toàn có phiên bản:
+      1. Tiền kiểm tập tài liệu
+      2. Tạo collection phiên bản mới (timestamp)
+      3. Nhúng vector và lưu trữ
+      4. Xác minh tổng số tài liệu thành công
+      5. Cập nhật active collection metadata
     """
+    target_dir = custom_db_dir or VECTOR_DB_DIR
+    target_dir.mkdir(parents=True, exist_ok=True)
+
     print("\n" + "=" * 70)
-    print("🚀 BẮT ĐẦU QUY TRÌNH NẠP DỮ LIỆU Y KHOA VÀO CHROMADB VECTOR STORE")
+    print(f"🚀 BẮT ĐẦU QUY TRÌNH NẠP DỮ LIỆU Y KHOA VÀO CHROMADB ({target_dir})")
     print("=" * 70)
 
-    # 1. Khởi tạo ChromaDB
-    client, collection = init_chroma_client()
-
-    # 2. Đọc tài liệu
+    # 1. Tiền kiểm dữ liệu trước
     docs = load_curated_medlineplus_documents()
     if not docs:
-        print("❌ Không có tài liệu nào để nạp. Vui lòng kiểm tra lại thư mục data!")
-        return
+        msg = "❌ Không tìm thấy tài liệu y khoa nào hợp lệ. Hủy bỏ quy trình nạp để bảo vệ cơ sở dữ liệu hiện hành!"
+        print(msg)
+        return False, msg
 
-    # 3. Nạp theo từng đợt (batch) để tối ưu bộ nhớ
+    # 2. Khởi tạo ChromaDB client
+    client = chromadb.PersistentClient(path=str(target_dir))
+
+    # Tạo collection phiên bản mới
+    version_tag = datetime.now().strftime("%Y%m%d_%H%M%S")
+    new_collection_name = f"medical_knowledge_{version_tag}"
+    print(f"📦 [ChromaDB] Đang tạo collection phiên bản mới: '{new_collection_name}'...")
+
+    new_collection = client.create_collection(
+        name=new_collection_name,
+        metadata={
+            "description": "Kho tri thức y khoa lâm sàng MedlinePlus & Y văn chuẩn",
+            "created_at": datetime.now().isoformat(),
+            "version": version_tag
+        }
+    )
+
+    # 3. Nạp theo batch
     batch_size = 50
     total_docs = len(docs)
-    print(f"\n🧠 [Embedding & Indexing] Đang nhúng Vector và lưu vào ChromaDB ({total_docs} đoạn)...")
+    print(f"🧠 [Embedding & Indexing] Đang nhúng Vector ({total_docs} đoạn)...")
 
-    for i in range(0, total_docs, batch_size):
-        batch = docs[i:i + batch_size]
-        ids = [doc["id"] for doc in batch]
-        texts = [doc["text"] for doc in batch]
-        metadatas = [doc["metadata"] for doc in batch]
+    try:
+        for i in range(0, total_docs, batch_size):
+            batch = docs[i:i + batch_size]
+            ids = [doc["id"] for doc in batch]
+            texts = [doc["text"] for doc in batch]
+            metadatas = [doc["metadata"] for doc in batch]
 
-        # ChromaDB tự động sử dụng mô hình embedding mặc định (nhanh, nhẹ, miễn phí)
-        collection.add(
-            ids=ids,
-            documents=texts,
-            metadatas=metadatas
-        )
-        print(f"  ✓ Đã nạp {min(i + batch_size, total_docs)}/{total_docs} tài liệu...")
+            new_collection.add(
+                ids=ids,
+                documents=texts,
+                metadatas=metadatas
+            )
+            print(f"  ✓ Đã nạp {min(i + batch_size, total_docs)}/{total_docs} tài liệu...")
 
-    print("\n" + "=" * 70)
-    print(f"🎉 HOÀN TẤT NẠP DỮ LIỆU! Tổng cộng: {collection.count()} đoạn y văn đã sẵn sàng.")
-    print(f"📁 Vị trí lưu trữ cơ sở dữ liệu: {VECTOR_DB_DIR}")
-    print("=" * 70 + "\n")
+        # 4. Xác minh tính toàn vẹn
+        indexed_count = new_collection.count()
+        if indexed_count != total_docs:
+            raise RuntimeError(f"Sai lệch số lượng tài liệu đã nhúng ({indexed_count} != {total_docs})!")
+
+        # 5. Đồng bộ vào collection mặc định và cập nhật active metadata
+        active_meta = {
+            "active_collection": new_collection_name,
+            "updated_at": datetime.now().isoformat(),
+            "document_count": indexed_count,
+            "version": version_tag
+        }
+
+        meta_path = target_dir / "active_collection.json"
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(active_meta, f, indent=2, ensure_ascii=False)
+
+        print("\n" + "=" * 70)
+        print(f"🎉 HOÀN TẤT NẠP DỮ LIỆU AN TOÀN!")
+        print(f" • Phiên bản kích hoạt: {new_collection_name}")
+        print(f" • Tổng số tài liệu xác thực: {indexed_count}")
+        print("=" * 70 + "\n")
+        return True, new_collection_name
+
+    except Exception as e:
+        print(f"❌ [LỖI NẠP DỮ LIỆU] {e}. Đang hủy bỏ collection phiên bản mới...")
+        try:
+            client.delete_collection(name=new_collection_name)
+        except Exception:
+            pass
+        return False, str(e)
 
 
 if __name__ == "__main__":

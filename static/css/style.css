@@ -1,18 +1,29 @@
-/* MediMind Clinical AI - High-Trust Clinical SaaS Theme */
-/* Color Palette: Ocean Blue (#0284C7), Deep Navy (#0F2942), Slate (#0F172A), Emerald (#10B981) */
+/* ==============================================================================
+   MediMind Clinical AI - Spatial Glassmorphism & Liquid Glass Design System
+   Inspired by: Glassy Dashboard V5 (Apple VisionOS & Next-Gen Cyber-Clinical UI)
+   ============================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-page: #F8FAFC;
-  --primary-blue: #0284C7;
-  --primary-blue-hover: #0369A1;
-  --primary-blue-light: #E0F2FE;
-  --primary-navy: #0F2942;
-  --navy-dark: #0A192F;
-  --text-dark: #0F172A;
+  --bg-deep: #0b1120;
+  --bg-surface: rgba(18, 26, 42, 0.40);
+  --bg-surface-elevated: rgba(22, 32, 52, 0.50);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-border-hover: rgba(255, 255, 255, 0.35);
+  --glass-specular: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28);
+  --glass-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.35), 0 8px 20px -4px rgba(0, 0, 0, 0.20);
+  
+  --neon-cyan: #38BDF8;
+  --neon-cyan-glow: 0 0 20px rgba(56, 189, 248, 0.4);
+  --neon-emerald: #10B981;
+  --neon-emerald-glow: 0 0 20px rgba(16, 185, 129, 0.4);
+  --neon-amber: #F59E0B;
+  --neon-amber-glow: 0 0 20px rgba(245, 158, 11, 0.4);
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --card-border: #E2E8F0;
 }
 
 * {
@@ -21,97 +32,252 @@
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: var(--bg-page);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 15%, rgba(14, 165, 233, 0.07) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(15, 41, 66, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 15% 90%, rgba(2, 132, 199, 0.06) 0%, transparent 35%);
+  background-color: #07090e;
+  /* Minimalist Spatial Cyber-Clinical Mesh Background - Elegant, Low-detail & Soothing */
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%);
   background-attachment: fixed;
-  color: var(--text-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
 }
 
-/* Custom Minimalist Clinical Scrollbar */
+/* ==============================================================================
+   OPTIONAL LUMINOUS WHITE MEDICAL GLASS THEME (Image 2 + Image 4 Hybrid)
+   ============================================================================== */
+body.light-glass {
+  background: 
+    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #F8FAFC 0%, #EEF2F6 100%);
+  background-attachment: fixed;
+  --bg-surface: rgba(255, 255, 255, 0.78);
+  --bg-surface-elevated: rgba(255, 255, 255, 0.90);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-hover: rgba(14, 165, 233, 0.5);
+  --glass-specular: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 8px 20px -4px rgba(15, 23, 42, 0.05);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  color: #0F172A;
+}
+
+body.light-glass .text-white {
+  color: #0F172A !important;
+}
+
+body.light-glass .text-slate-200,
+body.light-glass .text-slate-300 {
+  color: #334155 !important;
+}
+
+body.light-glass .text-slate-400 {
+  color: #64748B !important;
+}
+
+body.light-glass .glass-dock {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+body.light-glass .dock-btn {
+  color: #475569;
+}
+
+body.light-glass .dock-btn:hover {
+  color: #0284C7;
+  background: rgba(2, 132, 199, 0.1);
+}
+
+body.light-glass .dock-btn.bg-white {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.4) !important;
+}
+
+body.light-glass .glass-pill {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #1E293B;
+}
+
+body.light-glass .glass-pill:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0284C7;
+}
+
+body.light-glass .glass-card {
+  background: rgba(255, 255, 255, 0.60);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+body.light-glass .glass-card:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+/* ==============================================================================
+   SPATIAL GLASSMORPHISM & LIQUID GLASS COMPONENTS
+   ============================================================================== */
+
+.glass-panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular), var(--glass-shadow);
+  border-radius: 26px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.glass-panel-elevated {
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32), 0 24px 50px -10px rgba(0, 0, 0, 0.40);
+  border-radius: 28px;
+}
+
+.glass-dock {
+  background: rgba(18, 24, 38, 0.50);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.25), 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 15px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
+}
+
+.glass-pill-active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0F172A !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  font-weight: 800 !important;
+}
+
+.glass-pill-cyan-active {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #0F172A !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.45) !important;
+  font-weight: 800 !important;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+}
+
+/* Glass input fields */
+.glass-input {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F8FAFC;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+/* Minimalist Futuristic Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: rgba(255, 255, 255, 0.16);
   border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #0284C7;
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Hide scrollbar for clean horizontal pill carousels */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Strict Tab display rule preventing Tailwind .flex override */
+/* Tab Switching System */
 .tab-content {
-  display: none !important;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease;
+  transform: translateY(6px);
 }
 
 .tab-content.active {
-  display: flex !important;
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Modern Card Depth & Soft Elevating Shadows */
-.floating-medical-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 20px 45px -12px rgba(2, 132, 199, 0.12), 0 4px 16px -2px rgba(15, 23, 42, 0.04);
-}
-
-.floating-chip {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.10), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-}
-
-/* Heartbeat ECG line animation */
+/* Animated ECG Pulse Wave for Panel 3 */
 @keyframes ecgPulse {
-  0% { stroke-dashoffset: 80; }
-  50% { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -80; }
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
 
 .ecg-line {
-  stroke-dasharray: 80;
-  animation: ecgPulse 3.5s ease-in-out infinite;
+  stroke-dasharray: 200;
+  animation: ecgPulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.7));
 }
 
-/* Ambient glow accents */
-.ambient-glow-blue {
-  position: absolute;
-  pointer-events: none;
-  filter: blur(80px);
-  z-index: 0;
-  opacity: 0.6;
+/* Ambient breathing light effect */
+@keyframes ambientBreath {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.1) translate(15px, -15px);
+    opacity: 0.45;
+  }
 }
 
-/* Button & Card Micro-Interactions */
-button:active:not(:disabled), .btn-interactive:active {
-  transform: scale(0.98);
-}
-
-.card-hover-lift {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-}
-.card-hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.08);
+.ambient-breath {
+  animation: ambientBreath 12s ease-in-out infinite;
 }
