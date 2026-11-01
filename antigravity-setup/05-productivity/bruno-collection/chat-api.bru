@@ -1,0 +1,18 @@
+meta {
+  name: Gửi tin nhắn Triage Lâm sàng
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://127.0.0.1:8000/api/chat
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "Tôi bị sốt 38.5 độ và đau họng 2 ngày nay",
+    "session_id": "test-session-001"
+  }
+}
