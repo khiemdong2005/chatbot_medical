@@ -32,13 +32,16 @@
 
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #0b1120;
-  /* Luminous Modern Smart Hospital & Daylight Clinical Glass Atrium */
+  background-color: #07090e;
+  /* Minimalist Spatial Cyber-Clinical Mesh Background - Elegant, Low-detail & Soothing */
   background: 
-    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%),
-    radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(10, 16, 30, 0.30) 100%),
-    url('/static/images/glass_dashboard_bg.jpg') center center / cover no-repeat fixed;
+    radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -51,9 +54,10 @@ body {
    ============================================================================== */
 body.light-glass {
   background: 
-    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(240, 249, 255, 0.55) 100%),
-    url('/static/images/glass_dashboard_bg.jpg') center center / cover no-repeat fixed;
+    radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #F8FAFC 0%, #EEF2F6 100%);
+  background-attachment: fixed;
   --bg-surface: rgba(255, 255, 255, 0.78);
   --bg-surface-elevated: rgba(255, 255, 255, 0.90);
   --glass-border: rgba(255, 255, 255, 0.75);

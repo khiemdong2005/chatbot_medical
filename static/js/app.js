@@ -956,8 +956,17 @@ function updateAuthUI() {
 
     const rightPanelName = document.getElementById('right-panel-patient-name');
     const rightPanelId = document.getElementById('right-panel-patient-id');
+    const rightPanelAvatar = document.getElementById('right-panel-avatar');
+    const rightPanelBhyt = document.getElementById('right-panel-bhyt');
     if (rightPanelName) rightPanelName.innerText = currentUser.name;
-    if (rightPanelId) rightPanelId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 4).padStart(4, '0') + ' • 60T';
+    if (rightPanelId) rightPanelId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 4).padStart(4, '0');
+    if (rightPanelAvatar) {
+      const initials = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
+      rightPanelAvatar.innerText = initials;
+    }
+    if (rightPanelBhyt && currentUser.bhyt) {
+      rightPanelBhyt.innerText = currentUser.bhyt;
+    }
 
     const dropAvatar = document.getElementById('dropdown-user-avatar');
     const dropName = document.getElementById('dropdown-user-name');
@@ -1851,13 +1860,33 @@ function askBotAboutSpecificMedicine(medName) {
 }
 
 // ==============================================================================
-// CLINICAL AMBIENT WALLPAPER CYCLER (High-Tech Medical Scenery & VisionOS)
+// CLINICAL MINIMAL AMBIENT PRESETS (Ultra-clean, Low-detail & VisionOS Mesh)
 // ==============================================================================
 const medicalWallpapers = [
-  { id: 'bright_hospital', name: 'Bệnh viện Quốc tế Ánh sáng Tự nhiên (Daylight Atrium)', url: '/static/images/bg_bright_hospital.jpg' },
-  { id: 'bright_research', name: 'Viện Nghiên cứu Y học Ánh sáng Tự nhiên', url: '/static/images/bg_bright_research.jpg' },
-  { id: 'bright_clinic', name: 'Phòng khám Lâm sàng Hiện đại & Tiện nghi', url: '/static/images/bg_bright_clinic.jpg' },
-  { id: 'panoramic_lounge', name: 'Không gian Panoramic Glass V5 (Apple VisionOS)', url: '/static/images/bg_panoramic_lounge.jpg' }
+  { 
+    id: 'minimal_midnight', 
+    name: 'Tối giản Midnight Aurora (Chuẩn VisionOS - Mặc định)', 
+    dark: 'radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 45%), radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 40%), radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%), radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.10) 0%, transparent 45%), radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 40%), linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%)',
+    light: 'radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F6 100%)'
+  },
+  { 
+    id: 'minimal_cyan', 
+    name: 'Ánh sáng Lâm sàng Cyan (Clinical Cyan Glow)', 
+    dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)',
+    light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)'
+  },
+  { 
+    id: 'minimal_sapphire', 
+    name: 'Không gian Sapphire Y tế (Sapphire Twilight)', 
+    dark: 'radial-gradient(circle at 75% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 50%), radial-gradient(circle at 20% 85%, rgba(14, 165, 233, 0.12) 0%, transparent 45%), linear-gradient(180deg, #080A18 0%, #0D1226 50%, #05060E 100%)',
+    light: 'radial-gradient(ellipse at 80% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, #EEF2FF 0%, #E0E7FF 100%)'
+  },
+  { 
+    id: 'minimal_slate', 
+    name: 'Kính Khói Neutral Studio (Minimal Dark Slate)', 
+    dark: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 60%), linear-gradient(180deg, #0F172A 0%, #090E1A 50%, #030712 100%)',
+    light: 'radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.04) 0%, transparent 60%), linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%)'
+  }
 ];
 
 let currentWallpaperIndex = 0;
@@ -1867,11 +1896,7 @@ function cycleMedicalWallpaper() {
   const wp = medicalWallpapers[currentWallpaperIndex];
   const isLight = document.body.classList.contains('light-glass');
   
-  if (isLight) {
-    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(240, 249, 255, 0.55) 100%), url('" + wp.url + "')";
-  } else {
-    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(10, 16, 30, 0.30) 100%), url('" + wp.url + "')";
-  }
+  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
   showMedicalToast("Đã chuyển không gian: " + wp.name, "info");
   playMedicalChime();
 }
@@ -1881,12 +1906,12 @@ function toggleGlassThemeMode() {
   const isLight = document.body.classList.contains('light-glass');
   const wp = medicalWallpapers[currentWallpaperIndex];
   
+  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
   if (isLight) {
-    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 60%), linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(240, 249, 255, 0.55) 100%), url('" + wp.url + "')";
-    showMedicalToast("Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Luminous Medical Glass)", "success");
+    showMedicalToast("Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)", "success");
   } else {
-    document.body.style.backgroundImage = "radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.16) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, rgba(15, 23, 42, 0.12) 0%, rgba(10, 16, 30, 0.30) 100%), url('" + wp.url + "')";
-    showMedicalToast("Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Smoky Daylight Glass)", "info");
+    showMedicalToast("Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)", "info");
   }
   playMedicalChime();
+}
 }
