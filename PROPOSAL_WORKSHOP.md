@@ -86,13 +86,8 @@ Dự án tập trung giải quyết 4 điểm nghẽn (Pain Points) nhức nhố
 
 #### 4.1. Sơ đồ Luồng Kiến trúc Tổng thể (High-Level AWS Architecture)
 
-##### A. Bản vẽ Trình diễn Chính thức (Presentation Reference - Chuẩn Slide AWS Workshop):
 ![Kiến trúc AWS Production Chuẩn MediMind Clinical AI](static/images/aws_architecture_tv_style.png)
 *(Tải bản vẽ Vector SVG độ phân giải cao phục vụ slide PowerPoint / phóng to không vỡ nét: [aws_architecture_tv_style.svg](static/images/aws_architecture_tv_style.svg) | Tải bản PNG Full HD 16:9: [aws_architecture_tv_style.png](static/images/aws_architecture_tv_style.png))*
-
-##### B. Bản vẽ Phân vùng Mạng Chi tiết (Network Subnets & DMZ Boundary):
-![Kiến trúc AWS Network Subnets](static/images/aws_architecture_perfect.png)
-*(Tải bản vẽ Vector SVG: [aws_architecture_perfect.svg](static/images/aws_architecture_perfect.svg))*
 
 
 ```mermaid
