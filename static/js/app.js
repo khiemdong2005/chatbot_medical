@@ -241,7 +241,7 @@ function showFloatingDecorations() {
 
 function switchTab(tabId) {
   // Yêu cầu đăng nhập khi vào các tab bảo mật
-  const protectedTabs = ['doctor-tab', 'profile-tab', 'admin-tab'];
+  const protectedTabs = ['profile-tab', 'admin-tab'];
   if (protectedTabs.includes(tabId) && !currentUser) {
     pendingTabAfterLogin = tabId;
     openLoginModal();
@@ -291,8 +291,17 @@ function resetChat() {
   clearChatImagePreview();
   chatHistory.length = 0;
   const container = document.getElementById('chat-messages');
-  if (!container) return;
-  container.innerHTML = '';
+  if (container) container.innerHTML = '';
+
+  const historyList = document.getElementById('chat-history-list');
+  const historyEmpty = document.getElementById('chat-history-empty');
+  const searchInput = document.getElementById('history-search-input');
+  if (searchInput) searchInput.value = '';
+  if (historyList) {
+    historyList.innerHTML = '';
+    historyList.classList.add('hidden');
+  }
+  if (historyEmpty) historyEmpty.classList.remove('hidden');
 }
 
 // ==========================================
@@ -936,8 +945,8 @@ function updateAuthUI() {
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Bệnh án của tôi' : '📋 My Health Record');
-  if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Bệnh án của tôi →' : 'View My Record →');
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Hồ sơ của tôi' : '📋 My Health Record');
+  if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Hồ sơ của tôi →' : 'View My Record →');
 
   if (currentUser) {
     if (unlogged) unlogged.classList.add('hidden');
@@ -948,7 +957,7 @@ function updateAuthUI() {
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
 
-    if (ehrTitle) ehrTitle.innerText = 'Hồ sơ Sức khỏe & Bệnh án của tôi';
+    if (ehrTitle) ehrTitle.innerText = 'Hồ sơ của tôi & Tóm tắt trước khám';
     if (ehrSubtitle) ehrSubtitle.innerText = 'Tự động đồng bộ từ các lượt sàng lọc y tế của ' + currentUser.name;
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
     if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
@@ -1001,14 +1010,43 @@ function updateAuthUI() {
     const hasRecord = isDemoPatient || currentUser.hasMedicalRecord;
     if (ehrEmpty) ehrEmpty.classList.toggle('hidden', !!hasRecord);
     if (ehrFilled) ehrFilled.classList.toggle('hidden', !hasRecord);
+
+    const exportBtn = document.getElementById('ehr-export-pdf-btn');
+    if (exportBtn) {
+      if (hasRecord) {
+        exportBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        exportBtn.removeAttribute('disabled');
+        exportBtn.title = 'In hoặc tải bản tóm tắt trước khám (PDF)';
+      } else {
+        exportBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        exportBtn.title = 'Chưa có bản tóm tắt trước khám để kết xuất PDF';
+      }
+    }
     loadScanFiles();
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
-    if (ehrPatientName) ehrPatientName.innerText = 'Nguyễn Văn An';
-    if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-8429 • BHYT Tuyến TW';
+    if (nameEl) nameEl.innerText = 'Khách';
+    if (roleEl) roleEl.innerText = 'Chưa đăng nhập';
+    if (avatarEl) avatarEl.innerText = '👤';
+    if (ehrPatientName) ehrPatientName.innerText = 'Chưa đăng nhập';
+    if (ehrPatientId) ehrPatientId.innerText = 'Vui lòng đăng nhập để đồng bộ tóm tắt trước khám';
     if (ehrEmpty) ehrEmpty.classList.remove('hidden');
     if (ehrFilled) ehrFilled.classList.add('hidden');
+
+    const historyList = document.getElementById('chat-history-list');
+    const historyEmpty = document.getElementById('chat-history-empty');
+    if (historyList) {
+      historyList.innerHTML = '';
+      historyList.classList.add('hidden');
+    }
+    if (historyEmpty) historyEmpty.classList.remove('hidden');
+
+    const exportBtn = document.getElementById('ehr-export-pdf-btn');
+    if (exportBtn) {
+      exportBtn.classList.add('opacity-40', 'cursor-not-allowed');
+      exportBtn.title = 'Chưa có bản tóm tắt trước khám để kết xuất PDF';
+    }
     loadScanFiles();
   }
 }
@@ -1030,6 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
   populateDobDropdowns();
   updateAuthUI();
   applyLanguage();
+  initHistorySearch();
 
   const input = document.getElementById('user-input');
   if (input) {
@@ -1129,13 +1168,62 @@ async function handlePrescriptionFileSelected(e) {
     });
     const data = await res.json();
     showPrescriptionLoading(false);
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        showMedicalToast('Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.', 'warning', 4500);
+        openLoginModal();
+      } else {
+        showMedicalToast(data.message || 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.', 'error');
+      }
+      return;
+    }
+
+    if (data.status === 'failed') {
+      renderPrescriptionError(data);
+      showMedicalToast(data.message || 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.', 'error', 5000);
+      return;
+    }
+
     renderPrescriptionResult(data);
-    showMedicalToast(`Đã nhận dạng thành công đơn thuốc: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
+    if (data.is_demo) {
+      showMedicalToast('Đang hiển thị đơn thuốc mẫu thử nghiệm (Demo).', 'info', 4000);
+    } else if (data.needs_review) {
+      showMedicalToast('Đã đọc tài liệu: Vui lòng đối chiếu với ảnh gốc để xác nhận các mục chưa chắc chắn.', 'warning', 5000);
+    } else {
+      showMedicalToast(`Đã nhận dạng thành công đơn thuốc: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
+    }
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
     showMedicalToast('Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.', 'error');
   }
+}
+
+function renderPrescriptionError(data) {
+  const resSec = document.getElementById('prescription-result-section');
+  if (!resSec) return;
+  const msg = data.message || 'Không thể nhận diện nội dung từ hình ảnh đã tải lên.';
+  const previewLines = data.raw_ocr_preview && data.raw_ocr_preview.length > 0 
+    ? `<div class="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 text-left font-mono text-[11px] text-slate-300 space-y-1">
+        <div class="font-bold text-slate-400 mb-1">Đoạn văn bản máy nhận diện được:</div>
+        ${data.raw_ocr_preview.map(l => `<div>• ${escapeHtml(l)}</div>`).join('')}
+       </div>`
+    : '';
+
+  resSec.innerHTML = `
+    <div class="glass-panel p-6 border border-rose-500/30 bg-rose-950/20 backdrop-blur-2xl space-y-4 text-center">
+      <div class="w-12 h-12 mx-auto rounded-full bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-rose-300 text-xl font-bold">⚠️</div>
+      <h3 class="text-lg font-black text-white">Chưa thể đọc rõ nội dung đơn thuốc</h3>
+      <p class="text-xs text-rose-200 max-w-md mx-auto leading-relaxed">${escapeHtml(msg)}</p>
+      ${previewLines}
+      <div class="pt-2 flex justify-center gap-3">
+        <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer">Chụp / Tải ảnh khác</button>
+        <button onclick="loadPrescriptionPreset('binh_dan')" class="px-4 py-2 rounded-xl glass-pill text-xs font-bold text-slate-300 hover:text-white cursor-pointer">Thử xem đơn mẫu</button>
+      </div>
+    </div>
+  `;
+  resSec.classList.remove('hidden');
 }
 
 // ==============================================================================
@@ -1242,12 +1330,29 @@ async function loadPrescriptionPreset(presetKey) {
     });
     const data = await res.json();
     showPrescriptionLoading(false);
+
+    // 1. Kiểm tra mã phản hồi & trạng thái lỗi từ máy chủ
+    if (!res.ok || data.status === 'error' || data.status === 'failed') {
+      renderPrescriptionError(data);
+      showMedicalToast(data.message || 'Không thể nạp hồ sơ mẫu. Kịch bản không tồn tại hoặc xảy ra lỗi.', 'error', 5000);
+      return;
+    }
+
+    // 2. Kiểm tra tính toàn vẹn của đơn thuốc mẫu (không được để trống danh mục thuốc)
+    if (data.type === 'prescription' && (!data.medications || data.medications.length === 0)) {
+      renderPrescriptionError({
+        message: 'Dữ liệu đơn thuốc mẫu không chứa danh mục hoạt chất hợp lệ để lập lịch điều trị.'
+      });
+      showMedicalToast('Dữ liệu đơn thuốc mẫu không hợp lệ.', 'error', 5000);
+      return;
+    }
+
     renderPrescriptionResult(data);
     showMedicalToast(`Đã nạp hồ sơ mẫu: ${data.diagnosis || 'Đơn thuốc chuẩn'}`, 'info');
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu đối soát:', err);
     showPrescriptionLoading(false);
-    showMedicalToast('Không thể nạp hồ sơ mẫu đối soát.', 'error');
+    showMedicalToast('Không thể kết nối đến máy chủ để nạp hồ sơ mẫu.', 'error');
   }
 }
 
@@ -1279,9 +1384,14 @@ function resetPrescriptionScan() {
   if (fileInput) fileInput.value = '';
   if (preview) preview.classList.add('hidden');
   if (loadSec) loadSec.classList.add('hidden');
-  if (resSec) resSec.classList.add('hidden');
+  if (resSec) {
+    resSec.classList.add('hidden');
+    resSec.innerHTML = '';
+  }
   if (inputSec) inputSec.classList.remove('hidden');
   adherenceSlotState = {};
+  currentPrescriptionData = null;
+  inputSec?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Helper to determine the smart active slot based on real-world time
@@ -1325,6 +1435,8 @@ function renderPrescriptionResult(data) {
           <div>
             <div class="flex items-center space-x-2">
               <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 uppercase">KẾT QUẢ XÉT NGHIỆM</span>
+              ${data.is_demo ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40">DỮ LIỆU MẪU (DEMO)</span>' : ''}
+              ${data.needs_review ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">CẦN XÁC NHẬN</span>' : ''}
               <span class="text-xs text-slate-400 font-mono">Ngày lập: <strong class="text-white">${dateStr}</strong></span>
             </div>
             <h3 class="text-xl font-black text-white mt-1">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
@@ -1374,6 +1486,14 @@ function renderPrescriptionResult(data) {
   const meds = data.medications || [];
   const warnings = data.warnings || [];
 
+  // Bảo vệ an toàn dữ liệu: không bao giờ tạo lịch uống thuốc từ danh mục thuốc rỗng
+  if (meds.length === 0) {
+    renderPrescriptionError({
+      message: data.message || 'Không tìm thấy danh mục hoạt chất hợp lệ trong tài liệu để thiết lập thời gian biểu.'
+    });
+    return;
+  }
+
   const allSlotDefs = [
     { id: 'morning', label: 'BUỔI SÁNG', time: '06:30 - 08:00', icon: '🌅', color: 'amber', items: tl.morning || [] },
     { id: 'noon', label: 'BUỔI TRƯA', time: '11:30 - 12:30', icon: '☀️', color: 'sky', items: tl.noon || [] },
@@ -1407,6 +1527,8 @@ function renderPrescriptionResult(data) {
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
                   ĐƠN NGOẠI TRÚ
                 </span>
+                ${data.is_demo ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40">DỮ LIỆU MẪU (DEMO)</span>' : ''}
+                ${data.needs_review ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">CẦN XÁC NHẬN</span>' : ''}
                 <span class="text-xs text-slate-400 font-mono">Ngày khám: <strong class="text-white font-bold">${dateStr}</strong></span>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   Đợt dùng: ${duration}
@@ -1597,8 +1719,9 @@ function renderPrescriptionResult(data) {
           </button>
         </div>
 
-        <button onclick="resetPrescriptionScan()" class="text-xs font-extrabold text-slate-400 hover:text-white transition-colors cursor-pointer">
-          ← Tải lên đơn thuốc khác
+        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-2xl glass-pill hover:bg-white/15 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer border border-white/10" title="Quay lại vùng tải đơn thuốc mới">
+          <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span>← Tải lên đơn thuốc khác</span>
         </button>
       </div>
 
@@ -1836,7 +1959,7 @@ function selectSpecificSlot(slotId) {
 
 function setMedicationReminder() {
   playMedicalChime();
-  showMedicalToast('Đã thiết lập tự động nhắc giờ uống thuốc theo chuẩn dược động học (06:30, 11:30, 18:00 và 21:00).', 'success');
+  showMedicalToast('Xem thử tính năng nhắc thuốc: Đây là bản minh họa giao diện các cữ uống thuốc trong ngày.', 'info', 4000);
 }
 
 function askBotAboutPrescription() {
@@ -1914,4 +2037,189 @@ function toggleGlassThemeMode() {
   }
   playMedicalChime();
 }
+
+// ==========================================
+// User Interaction Helpers (Export, GPS, Demo)
+// ==========================================
+const loadPresetPrescription = loadPrescriptionPreset;
+
+function exportPdfSummary() {
+  const ehrEmpty = document.getElementById('ehr-content-empty');
+  if (ehrEmpty && !ehrEmpty.classList.contains('hidden')) {
+    showMedicalToast('Bạn chưa có bản tóm tắt trước khám để kết xuất PDF. Vui lòng hoàn thành buổi sàng lọc với Trợ lý AI trước.', 'warning', 4500);
+    return;
+  }
+  window.print();
+}
+
+function requestUserLocation() {
+  const statusText = document.getElementById('gps-status-text');
+  if (!navigator.geolocation) {
+    showMedicalToast('Trình duyệt không hỗ trợ Geolocation GPS.', 'warning');
+    return;
+  }
+  if (statusText) statusText.innerText = 'Đang định vị GPS...';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      if (statusText) statusText.innerText = `Đã định vị (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`;
+      showMedicalToast('Đã xác định vị trí GPS thực tế. Khoảng cách đã được đồng bộ.', 'success');
+    },
+    (err) => {
+      if (statusText) statusText.innerText = 'Khu vực: TP.HCM (Khoảng cách ước tính)';
+      showMedicalToast('Không thể lấy vị trí GPS thực. Đang dùng mốc ước tính TP.HCM.', 'info');
+    },
+    { timeout: 8000 }
+  );
+}
+
+function loadDemoConsultation() {
+  switchTab('chat-tab');
+  hideFloatingDecorations();
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="p-3 mb-3 rounded-2xl bg-sky-950/70 border border-sky-400/40 text-sky-200 text-xs flex items-center justify-between shadow-lg">
+      <div class="flex items-center space-x-2">
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/30 text-sky-300 border border-sky-400/30">MẪU DEMO</span>
+        <span>Hội thoại mẫu minh họa quy trình sàng lọc lâm sàng</span>
+      </div>
+      <button onclick="resetChat()" class="text-[11px] underline text-sky-400 hover:text-white cursor-pointer font-medium">Làm mới hội thoại</button>
+    </div>
+
+    <!-- User demo message -->
+    <div class="flex flex-col items-end my-1">
+      <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-lg shadow-sky-500/20 backdrop-blur-md leading-relaxed font-medium text-left break-words border border-white/20">
+        <div>Tôi bị ho khan kéo dài 4 ngày nay, kèm đau rát họng và sốt nhẹ 37.8°C, không khó thở. Tôi nên làm gì?</div>
+      </div>
+      <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">Người bệnh (Bản mẫu)</div>
+    </div>
+
+    <!-- Assistant demo response -->
+    <div class="flex justify-start max-w-[95%] sm:max-w-xl my-2">
+      <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
+        <div class="flex items-center justify-between pb-2 border-b border-white/10">
+          <span class="text-[11px] font-bold text-sky-300">Trợ lý sức khỏe AI • Đánh giá sơ bộ</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-semibold">Nguy cơ: 30/100 (An toàn)</span>
+        </div>
+        <div class="text-slate-200 font-normal leading-relaxed space-y-2">
+          <p><strong>1. Đánh giá sơ bộ & Phân tầng nguy cơ:</strong><br>
+          • <strong>Triệu chứng:</strong> Ho khan 4 ngày, rát họng, sốt nhẹ 37.8°C.<br>
+          • <strong>Dấu hiệu cảnh báo:</strong> Không ghi nhận khó thở, đau ngực dữ dội hay tím tái.<br>
+          • <strong>Phân loại:</strong> Phù hợp theo dõi và chăm sóc ban đầu tại nhà.</p>
+
+          <p><strong>2. Khuyến nghị chăm sóc tại nhà:</strong><br>
+          • Nghỉ ngơi trong phòng thoáng khí, uống đủ nước ấm (2 - 2.5 lít/ngày).<br>
+          • Súc họng bằng dung dịch nước muối sinh lý 0.9% từ 3 - 4 lần mỗi ngày.<br>
+          • Nếu sốt trên 38.5°C gây mệt mỏi, có thể dùng Paracetamol 500mg (1 viên/lần, cách 4-6 giờ, tối đa không quá 3g/ngày và không có tiền sử bệnh gan).</p>
+
+          <p class="text-amber-300 text-xs bg-amber-500/10 p-2.5 rounded-xl border border-amber-400/20">
+            ⚠️ <strong>Dấu hiệu cần đi khám ngay:</strong> Sốt cao liên tục &gt; 39°C không hạ sau 48h, khó thở, thở rít, đau tức ngực hoặc khạc đờm lẫn máu.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.scrollTop = container.scrollHeight;
+
+  const historyList = document.getElementById('chat-history-list');
+  const historyEmpty = document.getElementById('chat-history-empty');
+  if (historyEmpty) historyEmpty.classList.add('hidden');
+  if (historyList) {
+    historyList.classList.remove('hidden');
+    historyList.innerHTML = `
+      <div class="chat-history-item p-3 rounded-xl bg-white/[0.04] border border-sky-500/30 space-y-1 cursor-pointer hover:bg-white/[0.08] transition-all">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">[MẪU] Ho khan &amp; sốt nhẹ</span>
+          <span class="text-[10px] text-slate-400">Vừa xong</span>
+        </div>
+        <p class="text-[11px] text-slate-300 truncate">Ho khan 4 ngày, đau rát họng, sốt nhẹ 37.8°C...</p>
+        <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-white/5">
+          <span class="text-sky-400 font-semibold">Điểm nguy cơ: 30/100</span>
+          <span class="text-emerald-400">An toàn</span>
+        </div>
+      </div>
+    `;
+  }
+
+  showMedicalToast('Đã nạp hội thoại mẫu (Demo). Đây là dữ liệu minh họa, không phải lịch sử y tế thật.', 'info', 4000);
+}
+
+// ==========================================
+// Specialized Task-Based Navigation & Filters
+// ==========================================
+function openNewPrescriptionUpload() {
+  switchTab('ocr-tab');
+  resetPrescriptionScan();
+}
+
+function filterHospitals(category, btnEl) {
+  document.querySelectorAll('.hospital-filter-btn').forEach(btn => {
+    btn.classList.remove('bg-white/20', 'text-white', 'border', 'border-white/25', 'font-bold', 'shadow-xs');
+    btn.classList.add('glass-pill', 'text-slate-300', 'font-semibold');
+  });
+  if (btnEl) {
+    btnEl.classList.remove('glass-pill', 'text-slate-300', 'font-semibold');
+    btnEl.classList.add('bg-white/20', 'text-white', 'border', 'border-white/25', 'font-bold', 'shadow-xs');
+  }
+
+  const cards = document.querySelectorAll('.hospital-card');
+  let matchCount = 0;
+  cards.forEach(card => {
+    const cats = (card.getAttribute('data-category') || '').split(' ');
+    if (category === 'all' || cats.includes(category)) {
+      card.classList.remove('hidden');
+      matchCount++;
+    } else {
+      card.classList.add('hidden');
+    }
+  });
+
+  const noResults = document.getElementById('hospital-no-results');
+  if (noResults) {
+    noResults.classList.toggle('hidden', matchCount > 0);
+  }
+}
+
+function initHistorySearch() {
+  const searchInput = document.getElementById('history-search-input');
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    const historyList = document.getElementById('chat-history-list');
+    if (!historyList) return;
+
+    const items = historyList.querySelectorAll('.chat-history-item');
+    if (items.length === 0) return;
+
+    let matchCount = 0;
+    items.forEach(item => {
+      const text = item.innerText.toLowerCase();
+      if (!query || text.includes(query)) {
+        item.classList.remove('hidden');
+        matchCount++;
+      } else {
+        item.classList.add('hidden');
+      }
+    });
+
+    let noMatchNotice = document.getElementById('history-no-match-notice');
+    if (matchCount === 0 && query) {
+      if (!noMatchNotice) {
+        noMatchNotice = document.createElement('div');
+        noMatchNotice.id = 'history-no-match-notice';
+        noMatchNotice.className = 'p-3 text-center text-xs text-slate-400 bg-white/[0.02] border border-white/5 rounded-xl';
+        noMatchNotice.innerHTML = `<span>Không tìm thấy phiên tư vấn nào khớp với "<strong>${escapeHtml(query)}</strong>"</span>`;
+        historyList.appendChild(noMatchNotice);
+      } else {
+        noMatchNotice.innerHTML = `<span>Không tìm thấy phiên tư vấn nào khớp với "<strong>${escapeHtml(query)}</strong>"</span>`;
+        noMatchNotice.classList.remove('hidden');
+      }
+    } else if (noMatchNotice) {
+      noMatchNotice.classList.add('hidden');
+    }
+  });
 }

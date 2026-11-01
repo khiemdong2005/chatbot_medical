@@ -1,3 +1,4 @@
+import os
 import datetime
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -33,7 +34,7 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self) -> dict:
-        """Xuất thông tin an toàn và đồng bộ thông tin cá nhân bên dưới họ tên."""
+        """Xuất thông tin an toàn và chuẩn hóa vai trò."""
         is_phone = self.email.endswith("@phone.medimind")
         display_account = self.phone_number if (is_phone and self.phone_number) else self.email
 
@@ -47,16 +48,17 @@ class User(db.Model):
         elif not is_phone and self.email:
             info_parts.append(self.email)
 
-        personal_info = " • ".join(info_parts) if info_parts else "Thành viên"
+        personal_info = " • ".join(info_parts) if info_parts else ("Bác sĩ chuyên khoa" if self.role == "doctor" else "Thành viên")
+        badge = "BS" if self.role == "doctor" else "BN"
 
         return {
             "id": self.id,
             "email": display_account,
             "name": self.full_name,
-            "role": personal_info,
+            "role": self.role,
+            "roleType": self.role,
             "personal_info": personal_info,
-            "roleType": "patient",
-            "badge": "BN",
+            "badge": badge,
             "phone_number": self.phone_number or "",
             "dob": self.dob or "",
             "gender": self.gender or "",
@@ -65,40 +67,82 @@ class User(db.Model):
         }
 
 
+class MedicalDocument(db.Model):
+    """
+    Mô hình quản lý tệp tài liệu y khoa / kết quả xét nghiệm gắn với chủ sở hữu (RBAC).
+    Không cho phép truy cập hoặc xóa tài liệu của người dùng khác.
+    """
+    __tablename__ = "medical_documents"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    storage_filename = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    original_filename = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    file_size = db.Column(db.Integer, nullable=False)
+    file_type = db.Column(db.String(20), nullable=False)
+    mime_type = db.Column(db.String(100), nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    owner = db.relationship("User", backref=db.backref("documents", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        def format_size(bytes_size):
+            if bytes_size < 1024:
+                return f"{bytes_size} B"
+            elif bytes_size < 1024 * 1024:
+                return f"{bytes_size / 1024:.1f} KB"
+            else:
+                return f"{bytes_size / (1024 * 1024):.1f} MB"
+
+        return {
+            "id": self.id,
+            "name": self.original_filename,
+            "filename": self.storage_filename,
+            "size": format_size(self.file_size),
+            "size_bytes": self.file_size,
+            "type": self.file_type.upper(),
+            "uploaded_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else "",
+            "owner_id": self.owner_id
+        }
+
+
+class ClinicalConsultation(db.Model):
+    """
+    Mô hình lưu trữ lịch sử tư vấn lâm sàng phục vụ tóm tắt trước khám (Pre-visit Summary).
+    Đảm bảo dữ liệu tóm tắt được trích xuất từ ca tư vấn thực của người dùng, không dùng dữ liệu giả.
+    """
+    __tablename__ = "clinical_consultations"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    message = db.Column(db.Text, nullable=False)
+    answer = db.Column(db.Text, nullable=False)
+    risk_level = db.Column(db.String(100), nullable=True)
+    risk_score = db.Column(db.Integer, default=30)
+    symptoms = db.Column(db.Text, nullable=True)  # JSON-encoded string
+    specialist = db.Column(db.String(100), nullable=True)
+    is_emergency = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("consultations", lazy=True, cascade="all, delete-orphan"))
+
+
 def init_db(app):
     """Khởi tạo cơ sở dữ liệu và tự động nâng cấp cấu trúc bảng nếu cần."""
     db.init_app(app)
     with app.app_context():
         db.create_all()
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(db.text("ALTER TABLE users ADD COLUMN dob VARCHAR(50)"))
-                conn.commit()
-        except Exception:
-            pass
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(db.text("ALTER TABLE users ADD COLUMN gender VARCHAR(20)"))
-                conn.commit()
-        except Exception:
-            pass
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(db.text("ALTER TABLE users ADD COLUMN address VARCHAR(255)"))
-                conn.commit()
-        except Exception:
-            pass
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(db.text("ALTER TABLE users ADD COLUMN bhyt VARCHAR(50)"))
-                conn.commit()
-        except Exception:
-            pass
-        _seed_demo_accounts()
+        from core.migrations import run_migrations
+        run_migrations(db.engine)
+
+        seed_enabled = os.getenv("SEED_DEMO_ACCOUNTS", "false").lower() in ("true", "1", "yes")
+        if seed_enabled:
+            _seed_demo_accounts()
 
 
 def _seed_demo_accounts():
-    """Tạo sẵn 2 tài khoản Bác sĩ và Bệnh nhân mẫu nếu chưa tồn tại trong CSDL."""
+    """Tạo sẵn 2 tài khoản Bác sĩ và Bệnh nhân mẫu nếu cấu hình SEED_DEMO_ACCOUNTS được bật."""
     # 1. Bác sĩ mẫu
     doctor = User.query.filter_by(email="bacsi.an@medimind.vn").first()
     if not doctor:

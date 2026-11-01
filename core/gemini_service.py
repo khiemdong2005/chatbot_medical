@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import uuid
 import logging
 from typing import Dict, Any, List, Optional
 from google import genai
@@ -8,6 +9,7 @@ from google.genai import types
 from core.prompts import VIETNAMESE_MEDICAL_SYSTEM_PROMPT
 
 logger = logging.getLogger("GeminiService")
+
 
 class GeminiMedicalService:
     """
@@ -23,9 +25,9 @@ class GeminiMedicalService:
         if self.is_configured():
             try:
                 self.client = genai.Client(api_key=self.api_key)
-                print(f"✅ [GEMINI SERVICE] Đã kết nối thành công Google Gemini SDK (Model: {self.model})")
+                logger.info(f"✅ [GEMINI SERVICE] Kết nối thành công Gemini SDK (Model: {self.model})")
             except Exception as e:
-                print(f"⚠️ [GEMINI SERVICE] Lỗi khởi tạo SDK: {e}")
+                logger.warning(f"⚠️ [GEMINI SERVICE] Lỗi khởi tạo SDK: {e}")
 
     def is_configured(self) -> bool:
         """Kiểm tra xem Gemini API Key đã được cấu hình hợp lệ chưa."""
@@ -42,14 +44,15 @@ class GeminiMedicalService:
         rag_docs: Optional[List[Dict[str, Any]]] = None,
         image_bytes: Optional[bytes] = None,
         image_mime_type: str = "image/jpeg",
-        lang: str = "vi"
+        lang: str = "vi",
+        request_id: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Gọi Google Gemini API để phân tích triệu chứng y tế và trả về kết quả có cấu trúc JSON.
-        Hỗ trợ Đa phương thức (Multimodal): Phân tích cả văn bản và hình ảnh tổn thương lâm sàng.
-        Tích hợp RAG Context từ kho tri thức y khoa để chống ảo giác (Hallucination).
-        Tự động fallback sang mô hình Lite nếu mô hình chính tạm thời bận (503).
+        - Không log thông tin sức khỏe cá nhân (PHI) của người bệnh.
+        - Kiểm chứng schema JSON chặt chẽ; JSON hỏng/thiếu trường bắt buộc sẽ trả None để kích hoạt fallback.
         """
+        req_id = request_id or uuid.uuid4().hex[:8]
         if not self.is_configured():
             self.api_key = os.getenv("GEMINI_API_KEY", "").strip()
             if self.is_configured():
@@ -59,20 +62,12 @@ class GeminiMedicalService:
                     pass
 
         if not self.is_configured() or not self.client:
-            print("[⚠️ GEMINI SERVICE] Chưa cấu hình GEMINI_API_KEY. Kích hoạt Fallback Rule-Based Engine.")
+            logger.info(f"[REQ-{req_id}] GEMINI_API_KEY chưa cấu hình hoặc không sẵn sàng. Chuyển Fallback.")
             return None
 
         has_image = bool(image_bytes and len(image_bytes) > 0)
-        print(f"\n{'='*60}")
-        print(f"[🚀 GEMINI API CALL] Đang gửi yêu cầu tới Google Gemini...")
-        print(f" • Model: {self.model}")
-        print(f" • Chế độ: {'Multimodal (Kèm ảnh chụp tổn thương)' if has_image else 'Text Only'}")
-        print(f" • Tin nhắn người bệnh: '{user_message}'")
-        if rag_docs:
-            print(f" • Tài liệu RAG đối chiếu: {len(rag_docs)} đoạn trích y khoa")
-        print(f"{'='*60}")
-
         start_time = time.time()
+        logger.info(f"[REQ-{req_id}] Gửi yêu cầu Gemini | Model: {self.model} | Multimodal: {has_image} | Lang: {lang}")
 
         # Chuẩn bị khối tài liệu RAG nếu có
         rag_context_block = ""
@@ -87,7 +82,6 @@ class GeminiMedicalService:
                 + "\n\nBẠN HÃY CĂN CỨ VÀO THÔNG TIN TRONG CÁC TÀI LIỆU TRÊN ĐỂ TƯ VẤN CHO NGƯỜI DÂN MỘT CÁCH CHUẨN XÁC, ẤM ÁP VÀ DỄ HIỂU NHẤT."
             )
 
-        # Định hình System Instruction tăng cường định dạng JSON phản hồi & Thái độ ân cần
         is_en = (lang == "en")
         lang_directive = (
             "LANGUAGE REQUIREMENT:\n"
@@ -141,7 +135,7 @@ class GeminiMedicalService:
                 image_part = types.Part.from_bytes(data=image_bytes, mime_type=image_mime_type)
                 req_contents = [image_part, prompt_content]
             except Exception as e_part:
-                print(f"⚠️ Lỗi tạo image part: {e_part}. Chuyển sang text.")
+                logger.warning(f"[REQ-{req_id}] Lỗi tạo image part: {e_part}. Chuyển sang text.")
                 req_contents = prompt_content
         else:
             prompt_suffix = "Return JSON in English with empathetic guidance" if is_en else "Trả về JSON có lời hỏi thăm ân cần"
@@ -155,7 +149,6 @@ class GeminiMedicalService:
                 response_mime_type="application/json"
             )
 
-            # Thử gọi model chính; nếu gặp 429 (hết quota), 503 hoặc 404 thì tự động chuyển sang model dự phòng
             candidate_models = [self.model, "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.7-flash"]
             models_to_try = []
             for m in candidate_models:
@@ -175,17 +168,21 @@ class GeminiMedicalService:
                         break
                 except Exception as m_err:
                     last_err = m_err
-                    print(f"[🔄 GEMINI FALLBACK] Model {model_name} không khả dụng ({type(m_err).__name__}). Đang thử model tiếp theo...")
+                    logger.warning(f"[REQ-{req_id}] Model {model_name} không khả dụng ({type(m_err).__name__}). Đang thử model tiếp theo...")
 
             if not res or not res.text:
-                raise last_err or RuntimeError("Không thể nhận phản hồi từ bất kỳ mô hình Gemini nào.")
+                raise last_err or RuntimeError("Không thể nhận phản hồi từ mô hình Gemini.")
 
             latency = time.time() - start_time
             raw_text = res.text or ""
-            parsed = self._parse_json(raw_text)
+            parsed = self._validate_and_parse_json(raw_text)
+
+            if parsed is None:
+                logger.warning(f"[REQ-{req_id}] Phản hồi từ Gemini không vượt qua schema validation. Chuyển Fallback.")
+                return None
 
             # Cập nhật danh sách nguồn trích dẫn thật từ RAG nếu có
-            if rag_docs and parsed:
+            if rag_docs:
                 parsed["sources"] = [
                     {
                         "title": d.get("title", "MedlinePlus"),
@@ -195,23 +192,25 @@ class GeminiMedicalService:
                     for d in rag_docs
                 ]
 
-            print(f"[✅ GEMINI SUCCESS] HTTP 200 OK | Thời gian phản hồi: {latency:.2f}s")
-            print(f" • Chuyên khoa định tuyến: {parsed.get('specialist')}")
-            print(f" • Mức độ rủi ro (Risk Score): {parsed.get('risk_score')}/100")
-            print(f" • Số lượng nguồn trích dẫn: {len(parsed.get('sources', []))}")
-            if parsed.get("visual_findings"):
-                print(f" • Nhận định thị giác: {parsed.get('visual_findings')}")
-            print(f"{'='*60}\n")
+            # Đảm bảo không bịa visual_findings nếu không có ảnh
+            if not has_image:
+                parsed["visual_findings"] = []
 
+            logger.info(f"[REQ-{req_id}] Gemini thành công | Latency: {latency:.2f}s | Specialist: {parsed.get('specialist')}")
             return parsed
 
         except Exception as e:
             latency = time.time() - start_time
-            print(f"[💥 GEMINI EXCEPTION] Lỗi kết nối sau {latency:.2f}s: {e}")
+            logger.warning(f"[REQ-{req_id}] Gemini lỗi sau {latency:.2f}s: {e}")
             return None
 
-    def _parse_json(self, raw_text: str) -> Dict[str, Any]:
-        """Bóc tách chuỗi JSON trả về phòng thủ (Defensive JSON Parser)."""
+    def _validate_and_parse_json(self, raw_text: str) -> Optional[Dict[str, Any]]:
+        """
+        Kiểm chứng cấu trúc JSON theo Schema chuẩn y tế.
+        - Trả về None nếu JSON hỏng hoặc thiếu trường bắt buộc 'answer'.
+        - Chuẩn hóa và giới hạn risk_score trong khoảng 0..100.
+        - Không mặc định thành kết quả nguy cơ thấp nếu dữ liệu không hợp lệ.
+        """
         text = raw_text.strip()
         if text.startswith("```"):
             lines = text.split("\n")
@@ -222,20 +221,33 @@ class GeminiMedicalService:
             text = "\n".join(lines).strip()
 
         try:
-            return json.loads(text)
+            data = json.loads(text)
         except Exception:
-            return {
-                "answer": text,
-                "risk_level": "Trung bình (Cần thăm khám)",
-                "risk_score": 40,
-                "symptoms": ["Triệu chứng chung"],
-                "specialist": "Nội tổng quát",
-                "medications": [],
-                "sources": [
-                    {
-                        "title": "MedlinePlus Medical Encyclopedia",
-                        "source": "NIH National Library of Medicine",
-                        "url": "https://medlineplus.gov"
-                    }
-                ]
-            }
+            return None
+
+        if not isinstance(data, dict):
+            return None
+
+        # Trường bắt buộc phải có và không rỗng
+        answer = data.get("answer")
+        if not answer or not isinstance(answer, str) or not answer.strip():
+            return None
+
+        # Chuẩn hóa risk_score: phải nằm trong 0..100
+        raw_score = data.get("risk_score")
+        try:
+            score = int(raw_score)
+            clamped_score = max(0, min(100, score))
+        except (ValueError, TypeError):
+            clamped_score = 30
+        data["risk_score"] = clamped_score
+
+        # Chuẩn hóa các trường danh sách
+        for list_field in ["visual_findings", "differential_diagnosis", "symptoms", "home_care_tips"]:
+            if not isinstance(data.get(list_field), list):
+                data[list_field] = []
+
+        if not isinstance(data.get("sources"), list):
+            data["sources"] = []
+
+        return data
