@@ -245,6 +245,7 @@ const DEFAULT_USER_PROFILE = {
   address: "",
   joined: "11/09/2026",
   hasCustomAvatar: false,
+  notifications: [],
   avatar: "/static/images/avatar_male.png"
 };
 
@@ -268,6 +269,7 @@ const translations = {
   vi: {
         // Notifications & Clinical Profile i18n
     notif_title: "Thông báo",
+    notif_empty: "Không có thông báo mới",
     notif_mark_read: "Đánh dấu đã đọc tất cả",
     notif_unread_count: "4 mới",
     notif_all_read: "Đã đọc hết",
@@ -320,6 +322,7 @@ const translations = {
     set_lbl_timezone: "Múi giờ",
     set_lbl_date_format: "Định dạng ngày",
     set_notif_title: "Thông báo",
+    notif_empty: "Không có thông báo mới",
     set_notif_desc: "Quản lý cách bạn nhận thông báo",
     set_lbl_browser_push: "Thông báo đẩy trình duyệt",
     set_lbl_browser_push_desc: "Nhận thông báo ngay cả khi đã đóng trang",
@@ -509,6 +512,7 @@ const translations = {
   en: {
         // Notifications & Clinical Profile i18n
     notif_title: "Notifications",
+    notif_empty: "No new notifications",
     notif_mark_read: "Mark all as read",
     notif_unread_count: "4 new",
     notif_all_read: "All read",
@@ -561,6 +565,7 @@ const translations = {
     set_lbl_timezone: "Timezone",
     set_lbl_date_format: "Date Format",
     set_notif_title: "Notifications",
+    notif_empty: "No new notifications",
     set_notif_desc: "Manage how you receive notifications",
     set_lbl_browser_push: "Browser Push Notifications",
     set_lbl_browser_push_desc: "Receive notifications even when the page is closed",
@@ -2853,12 +2858,6 @@ function toggleGlassThemeMode() {
   document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
   document.body.style.backgroundAttachment = 'fixed';
   localStorage.setItem('medimind_theme', isLight ? 'light' : 'dark');
-
-  if (isLight) {
-    showMedicalToast(currentLang === 'en' ? "Activated: Clinical Light Glass (Clinical Cyan Glow)" : "Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Clinical Cyan Glow)", "success");
-  } else {
-    showMedicalToast(currentLang === 'en' ? "Activated: Transparent Spatial Glass (Clinical Cyan Glow)" : "Đã kích hoạt: Kính Tối Không Gian (Clinical Cyan Glow)", "info");
-  }
 }
 
 function cycleMedicalWallpaper() {
@@ -2883,6 +2882,38 @@ function closeNotificationDropdown() {
   }
 }
 
+function renderNotifications(notifs) {
+  const badge = document.getElementById('notif-badge');
+  const countEl = document.getElementById('notif-unread-count');
+  const markReadBtn = document.getElementById('notif-mark-read-btn');
+  const listEl = document.getElementById('notif-items-list');
+  if (!listEl) return;
+
+  const items = notifs || [];
+  if (items.length === 0) {
+    if (badge) badge.classList.add('hidden');
+    if (countEl) countEl.classList.add('hidden');
+    if (markReadBtn) markReadBtn.classList.add('hidden');
+    listEl.innerHTML = `
+      <div id="notif-empty-state" class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
+        <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+        <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">${currentLang === 'en' ? 'No new notifications' : 'Không có thông báo mới'}</p>
+      </div>`;
+  } else {
+    if (badge) {
+      badge.innerText = items.length;
+      badge.classList.remove('hidden');
+    }
+    if (countEl) {
+      countEl.innerText = `${items.length} ${currentLang === 'en' ? 'new' : 'mới'}`;
+      countEl.classList.remove('hidden');
+    }
+    if (markReadBtn) markReadBtn.classList.remove('hidden');
+  }
+}
+
 function markAllNotificationsAsRead() {
   const badge = document.getElementById('notif-badge');
   const countEl = document.getElementById('notif-unread-count');
@@ -2896,9 +2927,8 @@ function markAllNotificationsAsRead() {
   items.forEach(it => {
     it.classList.add('opacity-60');
   });
-  const toastMsg = currentLang === 'vi' ? 'Đã đánh dấu tất cả thông báo là đã đọc' : 'All notifications marked as read';
-  showMedicalToast(toastMsg, 'success');
 }
+
 
 // User Interaction Helpers (Export, GPS, Demo)
 // ==========================================

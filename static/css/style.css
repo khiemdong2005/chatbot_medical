@@ -330,6 +330,14 @@ body.light-glass #notif-title {
   color: #0F172A !important;
 }
 
+body.light-glass #notif-empty-state p {
+  color: #64748B !important;
+}
+
+body.light-glass #notif-empty-state svg {
+  color: #94A3B8 !important;
+}
+
 
 /* ==============================================================================
    High-Contrast Profile Labels & Typography (Light & Dark Glass Guaranteed)

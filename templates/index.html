@@ -146,7 +146,7 @@ background: #94A3B8;
       <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
       </svg>
-      <span id="notif-badge" class="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">4</span>
+      <span id="notif-badge" class="hidden absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">0</span>
     </button>
 
     <!-- Notification Dropdown Menu -->
@@ -154,61 +154,20 @@ background: #94A3B8;
       <div class="flex items-center justify-between pb-2 border-b border-white/10 px-1">
         <div class="flex items-center space-x-2">
           <span class="font-bold text-sm text-white" id="notif-title" data-i18n="notif_title">Thông báo</span>
-          <span id="notif-unread-count" class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">4 mới</span>
+          <span id="notif-unread-count" class="hidden px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">0</span>
         </div>
-        <button type="button" onclick="markAllNotificationsAsRead()" class="text-[11px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline" id="notif-mark-read-btn" data-i18n="notif_mark_read">
+        <button type="button" onclick="markAllNotificationsAsRead()" class="hidden text-[11px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline" id="notif-mark-read-btn" data-i18n="notif_mark_read">
           Đánh dấu đã đọc tất cả
         </button>
       </div>
 
-      <!-- Notifications List -->
+      <!-- Notifications List (Empty by default for new accounts) -->
       <div id="notif-items-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-        <!-- Item 1 -->
-        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('ocr-tab'); closeNotificationDropdown();">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-100 flex items-center space-x-1.5">
-              <span>💊</span>
-              <span data-i18n="notif_1_title">Đơn thuốc đã phân tích</span>
-            </span>
-            <span class="text-[10px] text-slate-400">10m</span>
-          </div>
-          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_1_desc">Đơn thuốc Amoxicillin 500mg đã được bóc tách và đối chiếu liều dùng MedlinePlus thành công.</p>
-        </div>
-
-        <!-- Item 2 -->
-        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('chat-tab'); closeNotificationDropdown();">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-amber-300 flex items-center space-x-1.5">
-              <span>⚠️</span>
-              <span data-i18n="notif_2_title">Cảnh báo lâm sàng</span>
-            </span>
-            <span class="text-[10px] text-slate-400">1h</span>
-          </div>
-          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_2_desc">Hệ thống AI khuyến nghị uống kháng sinh cách bữa ăn 30 phút để tối ưu hấp thu.</p>
-        </div>
-
-        <!-- Item 3 -->
-        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('booking-tab'); closeNotificationDropdown();">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-100 flex items-center space-x-1.5">
-              <span>🏥</span>
-              <span data-i18n="notif_3_title">Cơ sở y tế sẵn sàng</span>
-            </span>
-            <span class="text-[10px] text-slate-400">3h</span>
-          </div>
-          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_3_desc">Tuyến khám chuyên khoa Tai Mũi Họng tại BV Chợ Rẫy (cách 3.5km) đang mở tiếp nhận.</p>
-        </div>
-
-        <!-- Item 4 -->
-        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('doctor-tab'); closeNotificationDropdown();">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-100 flex items-center space-x-1.5">
-              <span>📋</span>
-              <span data-i18n="notif_4_title">Hồ sơ sức khỏe đã đồng bộ</span>
-            </span>
-            <span class="text-[10px] text-slate-400">1d</span>
-          </div>
-          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_4_desc">Dữ liệu sàng lọc và tóm tắt trước khám của bạn đã được cập nhật vào hồ sơ.</p>
+        <div id="notif-empty-state" class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
+          <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+          <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">Không có thông báo mới</p>
         </div>
       </div>
     </div>
