@@ -139,14 +139,55 @@ background: #94A3B8;
 
   <!-- Auth State 2: Logged In -->
   <div id="auth-logged" class="hidden relative flex items-center space-x-2 shrink-0">
-    <div id="user-chip-button" class="flex items-center space-x-2 glass-pill px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-all" onclick="toggleUserDropdown(event)">
+    <div id="user-chip-button" class="flex items-center space-x-2 glass-pill px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-all hover:bg-white/10" onclick="toggleUserDropdown(event)">
       <div id="user-avatar-badge" class="w-6 h-6 rounded-full bg-sky-500/30 text-sky-300 font-bold text-[11px] flex items-center justify-center shrink-0 border border-sky-400/40">
-        👤
+        BN
       </div>
       <div class="text-left hidden lg:block whitespace-nowrap">
         <span id="user-display-name" class="text-xs font-bold text-white block leading-tight">Khách</span>
         <span id="user-role-badge" class="text-[9px] text-sky-400 font-semibold block leading-none">Chưa đăng nhập</span>
       </div>
+      <svg id="user-dropdown-arrow" class="w-3.5 h-3.5 text-slate-400 ml-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    </div>
+
+    <!-- Dropdown Menu for Logged In User -->
+    <div id="user-dropdown-menu" class="hidden absolute right-0 top-full mt-2 w-72 glass-panel-elevated p-2 z-50 shadow-2xl border border-white/15 bg-slate-900/95 backdrop-blur-2xl rounded-2xl text-xs space-y-1">
+      <!-- User info header -->
+      <div class="p-2.5 rounded-xl bg-white/[0.04] border border-white/10 flex items-center space-x-2.5 mb-1">
+        <div id="dropdown-user-avatar" class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-sm border border-sky-400/30 shrink-0">
+          BN
+        </div>
+        <div class="truncate">
+          <div id="dropdown-user-name" class="font-bold text-white text-xs truncate">Khách</div>
+          <div id="dropdown-user-info" class="text-[10px] text-sky-400 truncate">Chưa đăng nhập</div>
+        </div>
+      </div>
+
+      <!-- Action 1: My Health Record -->
+      <button type="button" onclick="closeUserDropdown(); switchTab('doctor-tab');" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-2.5 text-slate-200 font-medium transition-colors cursor-pointer">
+        <span class="text-base">📋</span>
+        <span data-i18n="menu_ehr">Hồ sơ &amp; Tóm tắt trước khám</span>
+      </button>
+
+      <!-- Action 2: Update Profile -->
+      <button type="button" onclick="closeUserDropdown(); switchTab('profile-tab');" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-2.5 text-slate-200 font-medium transition-colors cursor-pointer">
+        <span class="text-base">👤</span>
+        <span data-i18n="menu_profile">Cập nhật thông tin cá nhân</span>
+      </button>
+
+      <!-- Action 3: Switch / Login Another Account -->
+      <button type="button" onclick="closeUserDropdown(); openLoginModal();" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-2.5 text-sky-300 font-medium transition-colors cursor-pointer">
+        <span class="text-base">🔄</span>
+        <span data-i18n="menu_switch_account">Đổi tài khoản khác</span>
+      </button>
+
+      <div class="h-px bg-white/10 my-1"></div>
+
+      <!-- Action 4: Logout -->
+      <button type="button" onclick="closeUserDropdown(); handleLogout();" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-rose-500/20 flex items-center space-x-2.5 text-rose-300 font-semibold transition-colors cursor-pointer">
+        <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span data-i18n="menu_logout">Đăng xuất</span>
+      </button>
     </div>
   </div>
 

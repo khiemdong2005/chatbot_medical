@@ -836,12 +836,16 @@ function escapeHtml(string) {
 function toggleUserDropdown(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('user-dropdown-menu');
+  const arrow = document.getElementById('user-dropdown-arrow');
   if (menu) menu.classList.toggle('hidden');
+  if (arrow) arrow.classList.toggle('rotate-180');
 }
 
 function closeUserDropdown() {
   const menu = document.getElementById('user-dropdown-menu');
+  const arrow = document.getElementById('user-dropdown-arrow');
   if (menu) menu.classList.add('hidden');
+  if (arrow) arrow.classList.remove('rotate-180');
 }
 
 function toggleProfileEdit(isEdit) {
@@ -1346,6 +1350,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if (chatMessagesContainer.scrollTop > 15) hideFloatingDecorations();
     });
   }
+
+  // Click outside to close user dropdown & lang dropdown
+  document.addEventListener('click', (e) => {
+    const userChip = document.getElementById('user-chip-button');
+    const userMenu = document.getElementById('user-dropdown-menu');
+    if (userMenu && !userMenu.classList.contains('hidden')) {
+      if (!userChip?.contains(e.target) && !userMenu.contains(e.target)) {
+        closeUserDropdown();
+      }
+    }
+    const langBtn = document.getElementById('lang-btn');
+    const langMenu = document.getElementById('lang-dropdown-menu');
+    if (langMenu && !langMenu.classList.contains('hidden')) {
+      if (!langBtn?.contains(e.target) && !langMenu.contains(e.target)) {
+        closeLanguageDropdown();
+      }
+    }
+  });
 
   // Đóng modal & dropdown khi bấm Escape
   document.addEventListener('keydown', (e) => {
