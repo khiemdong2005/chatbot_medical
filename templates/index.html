@@ -11,7 +11,7 @@
     darkMode: 'class'
   };
 </script>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.1.1">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.1.2">
 <style>
 /* Strict Tab display rule preventing Tailwind .flex override */
 .tab-content {
@@ -47,7 +47,12 @@ background: #94A3B8;
 
 <!-- Spatial Floating Capsule Dock (Glassy Dashboard V5 Left Dock) -->
 <aside class="fixed left-2 sm:left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3 py-4 px-2 rounded-full glass-dock shadow-2xl">
-  <button onclick="switchTab('chat-tab')" id="dock-chat-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all bg-white text-slate-950 shadow-[0_0_20px_rgba(255,255,255,0.45)] cursor-pointer">
+  <button onclick="switchTab('home-tab')" id="dock-home-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all bg-white text-slate-950 shadow-[0_0_20px_rgba(255,255,255,0.45)] cursor-pointer">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    <span data-i18n="dock_home" class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Trang chủ</span>
+  </button>
+
+  <button onclick="switchTab('chat-tab')" id="dock-chat-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
     <span data-i18n="dock_chat" class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Trợ lý sức khỏe</span>
   </button>
@@ -78,7 +83,7 @@ background: #94A3B8;
 <!-- Top Navigation Bar (Floating Pill Header with Even Spacing) -->
 <header class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between z-30 shrink-0 relative gap-4 pl-16 sm:pl-20">
 <!-- Brand Logo with Glowing Pulse Beacon -->
-<div class="flex items-center space-x-3 cursor-pointer shrink-0" onclick="switchTab('chat-tab')">
+<div class="flex items-center space-x-3 cursor-pointer shrink-0" onclick="switchTab('home-tab')">
   <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
@@ -95,7 +100,8 @@ background: #94A3B8;
 
 <!-- Center Floating Capsule Pill Navbar (Glassy Dashboard V5 Style) -->
 <nav class="hidden lg:flex items-center glass-dock p-1.5 rounded-full gap-1 shrink-0">
-  <button onclick="switchTab('chat-tab')" id="nav-chat-tab" data-i18n="nav_chat" class="nav-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all glass-pill-cyan-active cursor-pointer">Trợ lý sức khỏe</button>
+  <button onclick="switchTab('home-tab')" id="nav-home-tab" data-i18n="nav_home" class="nav-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all glass-pill-cyan-active cursor-pointer">Trang chủ</button>
+  <button onclick="switchTab('chat-tab')" id="nav-chat-tab" data-i18n="nav_chat" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Trợ lý sức khỏe</button>
   <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" data-i18n="nav_ocr" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Đọc đơn thuốc &amp; xét nghiệm</button>
   <button onclick="switchTab('booking-tab')" id="nav-booking-tab" data-i18n="nav_booking" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Cơ sở y tế</button>
   <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" data-i18n="nav_doctor" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Hồ sơ của tôi</button>
@@ -214,7 +220,148 @@ background: #94A3B8;
 </div>
 </header>
 <main class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-4 flex-1 flex flex-col justify-start relative z-10 min-h-[calc(100vh-100px)] pl-16 sm:pl-20">
-<div id="chat-tab" class="tab-content active flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch pt-2">
+<!-- ============================================================== -->
+<!-- TAB: TRANG CHỦ (HOME TAB - Image 1)                            -->
+<!-- ============================================================== -->
+<div id="home-tab" class="tab-content active w-full flex-1 flex-col py-3 sm:py-6 space-y-8 animate-in fade-in duration-200">
+  
+  <!-- HERO SECTION -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-2">
+    <!-- Left Hero Column (Image 1) -->
+    <div class="lg:col-span-7 space-y-6">
+      <!-- Tag Pill -->
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span data-i18n="home_hero_tag">Trợ lý AI cho sức khỏe cá nhân</span>
+      </div>
+
+      <!-- Main Headline -->
+      <div class="space-y-1">
+        <h1 class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]">
+          <span data-i18n="home_hero_title">Trợ lý sức khỏe</span><br>
+          <span class="text-teal-600 dark:text-teal-400" data-i18n="home_hero_title_sub">thông minh mỗi ngày</span>
+        </h1>
+      </div>
+
+      <!-- Hero Subtitle -->
+      <p data-i18n="home_hero_desc" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+        Trò chuyện với MediMind AI để hiểu sơ bộ về triệu chứng, giải thích thuật ngữ y khoa và tra cứu hồ sơ khám bệnh ở một nơi duy nhất.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3 pt-2">
+        <button onclick="switchTab('chat-tab')" class="px-6 py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm shadow-xl shadow-teal-600/25 flex items-center space-x-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          <span data-i18n="home_btn_chat">Trò chuyện với trợ lý</span>
+        </button>
+
+        <button onclick="switchTab('doctor-tab')" class="px-6 py-3.5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-white font-bold text-sm shadow-md hover:shadow-lg flex items-center space-x-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
+          <svg class="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span data-i18n="home_btn_record">Xem hồ sơ bệnh án</span>
+        </button>
+      </div>
+
+      <!-- Trust Badges -->
+      <div class="flex items-center space-x-6 text-xs text-slate-500 dark:text-slate-400 font-semibold pt-1">
+        <span class="flex items-center space-x-2">
+          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span data-i18n="home_badge_security">Thông tin được bảo mật</span>
+        </span>
+        <span class="flex items-center space-x-2">
+          <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span data-i18n="home_badge_history">Lưu lịch sử trò chuyện</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Right Hero Column: Interactive Preview Card (Image 1) -->
+    <div class="lg:col-span-5 flex justify-center">
+      <div onclick="toggleFloatingChat(true)" class="w-full max-w-md bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl hover:shadow-teal-500/10 transition-all cursor-pointer group">
+        <!-- Card Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-600/30">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Trợ lý MediMind AI</h3>
+              <p class="text-[11px] text-emerald-500 font-medium flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span>Đang hoạt động</span>
+              </p>
+            </div>
+          </div>
+          <span class="text-xs text-teal-600 dark:text-teal-400 font-bold bg-teal-50 dark:bg-teal-500/10 px-2.5 py-1 rounded-full border border-teal-200 dark:border-teal-500/30">Hỏi ngay 💬</span>
+        </div>
+
+        <!-- Chat Preview Bubbles (Image 1) -->
+        <div class="py-4 space-y-3">
+          <!-- User bubble -->
+          <div class="flex justify-end">
+            <div class="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-tr-xs bg-teal-600 text-white shadow-md text-xs sm:text-sm leading-relaxed">
+              Tôi bị sốt 38.5°C và đau rát họng được 2 ngày.
+            </div>
+          </div>
+
+          <!-- Assistant bubble -->
+          <div class="flex justify-start">
+            <div class="max-w-[90%] px-4 py-3 rounded-2xl rounded-tl-xs bg-slate-50 dark:bg-white/[0.06] border border-slate-100 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs sm:text-sm leading-relaxed">
+              Triệu chứng của bạn có thể liên quan đến viêm họng. Hãy nghỉ ngơi, uống đủ nước và theo dõi nhiệt độ. Nếu sốt trên 3 ngày hoặc khó thở, hãy đến cơ sở y tế sớm.
+            </div>
+          </div>
+        </div>
+
+        <!-- Hint trigger -->
+        <div class="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-xs text-slate-400">
+          <span>Bấm để mở trợ lý góc phải</span>
+          <span class="text-teal-600 dark:text-teal-400 font-bold flex items-center gap-1">Mở Chatbox →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 FEATURE CARDS AT BOTTOM (Image 1) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-4">
+    <!-- Card 1: Hỏi đáp triệu chứng -->
+    <div onclick="switchTab('chat-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-teal-500/40 transition-all cursor-pointer group">
+      <div class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+      </div>
+      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" data-i18n="home_feat1_title">Hỏi đáp triệu chứng</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat1_desc">Mô tả triệu chứng của bạn để nhận gợi ý sơ bộ và biết nên khám chuyên khoa nào.</p>
+    </div>
+
+    <!-- Card 2: Giải thích thuật ngữ y khoa -->
+    <div onclick="switchTab('ocr-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-teal-500/40 transition-all cursor-pointer group">
+      <div class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+      </div>
+      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" data-i18n="home_feat2_title">Giải thích thuật ngữ y khoa</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat2_desc">Hiểu rõ kết quả xét nghiệm, chẩn đoán và các thuật ngữ trong hồ sơ khám bệnh.</p>
+    </div>
+
+    <!-- Card 3: Lưu lịch sử tư vấn -->
+    <div onclick="switchTab('chat-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-teal-500/40 transition-all cursor-pointer group">
+      <div class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" data-i18n="home_feat3_title">Lưu lịch sử tư vấn</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat3_desc">Mọi cuộc trò chuyện được lưu lại để bạn xem lại bất cứ lúc nào.</p>
+    </div>
+
+    <!-- Card 4: Kết nối hồ sơ bệnh án -->
+    <div onclick="switchTab('doctor-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-teal-500/40 transition-all cursor-pointer group">
+      <div class="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-500/15 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+      </div>
+      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" data-i18n="home_feat4_title">Kết nối hồ sơ bệnh án</h3>
+      <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat4_desc">Tra cứu lịch sử khám, chỉ số sinh tồn và tái khám của từng bệnh nhân.</p>
+    </div>
+  </div>
+
+</div>
+
+<div id="chat-tab" class="tab-content flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch pt-2">
 
   <!-- ============================================================== -->
   <!-- PANEL 1 (LEFT): LỊCH SỬ TƯ VẤN LÂM SÀNG (Col 4/12)             -->
@@ -1383,10 +1530,10 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 <h3 class="text-xl font-extrabold text-white" id="auth-modal-title">Đăng nhập MediMind AI</h3>
 <p data-i18n="modal_auth_subtitle" class="text-xs text-slate-400 font-medium">Hệ thống Trợ lý Y tế &amp; Phân tầng Lâm sàng</p>
 </div>
-<!-- Mode Switcher: Đăng nhập vs Đăng ký -->
-<div class="flex border-b border-white/10 text-xs font-bold text-center">
-<button type="button" id="tab-auth-login" onclick="toggleAuthMode('login')" data-i18n="tab_login" class="flex-1 pb-2 border-b-2 border-sky-400 text-sky-400 transition-all">Đăng nhập</button>
-<button type="button" id="tab-auth-register" onclick="toggleAuthMode('register')" data-i18n="tab_register" class="flex-1 pb-2 border-b-2 border-transparent text-slate-400 hover:text-white transition-all">Tạo tài khoản mới</button>
+<!-- Mode Switcher: Đăng nhập vs Đăng ký (Segmented Control matching Image 3) -->
+<div class="auth-segmented-tabs flex items-center p-1 rounded-xl border border-sky-200 dark:border-white/10 bg-sky-50/70 dark:bg-white/5 text-xs font-bold text-center gap-1">
+<button type="button" id="tab-auth-login" onclick="toggleAuthMode('login')" data-i18n="tab_login" class="flex-1 py-2 px-3 rounded-lg border-2 border-sky-500 bg-white text-sky-600 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-400 font-bold shadow-xs transition-all cursor-pointer">Đăng nhập</button>
+<button type="button" id="tab-auth-register" onclick="toggleAuthMode('register')" data-i18n="tab_register" class="flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-white font-medium transition-all cursor-pointer">Tạo tài khoản mới</button>
 </div>
 <!-- LOGIN FORM -->
 <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
@@ -1624,6 +1771,88 @@ Hủy bỏ
 <p id="lightbox-caption" class="text-xs text-slate-600 text-center px-3 py-2 leading-relaxed bg-slate-50 rounded-xl border border-slate-100"></p>
 </div>
 </div>
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<!-- ============================================================== -->
+<!-- FLOATING CHATBOX WIDGET (Image 2)                              -->
+<!-- Displayed on all tabs except "Trợ lý sức khỏe" (chat-tab)       -->
+<!-- ============================================================== -->
+<div id="floating-chat-container" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+  
+  <!-- Mini Chat Window (Image 2) -->
+  <div id="floating-chat-window" class="hidden w-[360px] sm:w-[420px] h-[520px] max-h-[85vh] rounded-3xl shadow-2xl border flex flex-col overflow-hidden mb-3 animate-in fade-in slide-in-from-bottom-5 duration-200">
+    <!-- Header (Exact Image 2) -->
+    <div class="px-4 py-3.5 flex items-center justify-between border-b shrink-0 floating-chat-header">
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-md">
+            AI
+          </div>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 absolute bottom-0 right-0 border-2 border-slate-900 shadow-[0_0_8px_#34D399]"></span>
+        </div>
+        <div>
+          <h4 class="text-xs sm:text-sm font-extrabold text-white">Trợ lý sức khỏe AI</h4>
+          <p class="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Đang trực tuyến</span>
+          </p>
+        </div>
+      </div>
+      <!-- Actions: Fullscreen, Minimize, Close (Image 2) -->
+      <div class="flex items-center space-x-1.5">
+        <button onclick="expandFloatingChatToFull()" title="Toàn màn hình" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+        </button>
+        <button onclick="toggleFloatingChat(false)" title="Thu nhỏ" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+        </button>
+        <button onclick="toggleFloatingChat(false)" title="Đóng" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="floating-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+      <!-- Greeting bubble (Image 2) -->
+      <div class="p-4 rounded-2xl border floating-welcome-bubble space-y-1.5">
+        <div class="flex items-center space-x-2 text-sky-400 font-bold">
+          <span>🩺</span>
+          <span>Chào bạn, tôi là Trợ lý AI MediMind!</span>
+        </div>
+        <p class="leading-relaxed">Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé!</p>
+      </div>
+    </div>
+
+    <!-- Bottom Actions & Input (Image 2) -->
+    <div class="p-3 border-t shrink-0 space-y-2.5 floating-chat-footer">
+      <!-- Quick pills (Image 2) -->
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="sendQuickFloatingPrompt('Cách uống thuốc theo đơn an toàn?')" class="px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 floating-quick-pill transition-all cursor-pointer">
+          <span>💊</span><span>Cách uống thuốc?</span>
+        </button>
+        <button type="button" onclick="sendQuickFloatingPrompt('Nên khám chuyên khoa nào khi có triệu chứng?')" class="px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 floating-quick-pill transition-all cursor-pointer">
+          <span>🏥</span><span>Khám khoa nào?</span>
+        </button>
+      </div>
+
+      <!-- Input box (Image 2) -->
+      <div class="flex items-center space-x-2 rounded-full px-3.5 py-1.5 border floating-input-wrap shadow-inner">
+        <input type="text" id="floating-user-input" placeholder="Hỏi nhanh trợ lý AI..." class="flex-1 bg-transparent text-xs sm:text-sm focus:outline-none" onkeydown="if(event.key==='Enter') sendFloatingChatMessage()">
+        <button type="button" onclick="sendFloatingChatMessage()" class="w-8 h-8 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trigger FAB Icon Button (Image 2) -->
+  <button id="floating-chat-btn" onclick="toggleFloatingChat()" class="w-14 h-14 rounded-full bg-gradient-to-r from-teal-500 to-sky-600 text-white flex items-center justify-center shadow-2xl shadow-sky-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer border-2 border-white/25 group relative" title="Trò chuyện với Trợ lý AI MediMind">
+    <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+    </svg>
+    <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 absolute top-1 right-1 border-2 border-white animate-pulse"></span>
+  </button>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}?v=16.1.2"></script>
 </body>
 </html>

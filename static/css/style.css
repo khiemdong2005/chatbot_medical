@@ -799,3 +799,154 @@ body.light-glass #login-modal #tab-auth-register.text-sky-400 {
   color: #0284C7 !important;
   border-color: #0284C7 !important;
 }
+
+
+/* ==============================================================
+   HOME TAB HERO & FEATURE CARDS (Image 1)
+   ============================================================== */
+.home-card {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.home-card:hover {
+  transform: translateY(-4px);
+}
+
+body.light-glass .home-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.light-glass .home-card:hover {
+  border-color: #0D9488 !important;
+  box-shadow: 0 20px 35px -10px rgba(13, 148, 136, 0.16) !important;
+}
+
+/* ==============================================================
+   FLOATING CHATBOX WIDGET (Image 2)
+   ============================================================== */
+#floating-chat-window {
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+body.light-glass #floating-chat-window {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  color: #0F172A !important;
+}
+
+body.light-glass .floating-chat-header {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.light-glass .floating-welcome-bubble {
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
+body.light-glass .floating-welcome-bubble p {
+  color: #334155 !important;
+}
+
+body.light-glass .floating-chat-footer {
+  background: #FFFFFF !important;
+  border-top: 1px solid #E2E8F0 !important;
+}
+
+body.light-glass .floating-quick-pill {
+  background: #F0FDFA !important;
+  border: 1px solid #99F6E4 !important;
+  color: #0D9488 !important;
+}
+
+body.light-glass .floating-quick-pill:hover {
+  background: #CCFBF1 !important;
+}
+
+body.light-glass .floating-input-wrap {
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+body.light-glass .floating-input-wrap input {
+  color: #0F172A !important;
+}
+
+body.light-glass .floating-input-wrap input::placeholder {
+  color: #94A3B8 !important;
+}
+
+/* Dark mode for floating chatbox */
+body:not(.light-glass) #floating-chat-window {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75) !important;
+  color: #F8FAFC !important;
+}
+
+body:not(.light-glass) .floating-chat-header {
+  background: rgba(30, 41, 59, 0.85) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body:not(.light-glass) .floating-welcome-bubble {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #F8FAFC !important;
+}
+
+body:not(.light-glass) .floating-welcome-bubble p {
+  color: #CBD5E1 !important;
+}
+
+body:not(.light-glass) .floating-chat-footer {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body:not(.light-glass) .floating-quick-pill {
+  background: rgba(20, 184, 166, 0.15) !important;
+  border: 1px solid rgba(20, 184, 166, 0.3) !important;
+  color: #2DD4BF !important;
+}
+
+body:not(.light-glass) .floating-quick-pill:hover {
+  background: rgba(20, 184, 166, 0.25) !important;
+}
+
+body:not(.light-glass) .floating-input-wrap {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #FFFFFF !important;
+}
+
+body:not(.light-glass) .floating-input-wrap input {
+  color: #FFFFFF !important;
+}
+
+body:not(.light-glass) .floating-input-wrap input::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ==============================================================
+   AUTH SEGMENTED TABS (Image 3)
+   ============================================================== */
+.auth-segmented-tabs {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+body.light-glass .auth-segmented-tabs {
+  background-color: #F0F9FF !important;
+  border: 1.5px solid #BAE6FD !important;
+}
+
+body:not(.light-glass) .auth-segmented-tabs {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

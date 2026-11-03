@@ -269,6 +269,24 @@ const translations = {
   vi: {
         // Notifications & Clinical Profile i18n
     notif_title: "Thông báo",
+    nav_home: "Trang chủ",
+    dock_home: "Trang chủ",
+    home_hero_tag: "Trợ lý AI cho sức khỏe cá nhân",
+    home_hero_title: "Trợ lý sức khỏe",
+    home_hero_title_sub: "thông minh mỗi ngày",
+    home_hero_desc: "Trò chuyện với MediMind AI để hiểu sơ bộ về triệu chứng, giải thích thuật ngữ y khoa và tra cứu hồ sơ khám bệnh ở một nơi duy nhất.",
+    home_btn_chat: "Trò chuyện với trợ lý",
+    home_btn_record: "Xem hồ sơ bệnh án",
+    home_badge_security: "Thông tin được bảo mật",
+    home_badge_history: "Lưu lịch sử trò chuyện",
+    home_feat1_title: "Hỏi đáp triệu chứng",
+    home_feat1_desc: "Mô tả triệu chứng của bạn để nhận gợi ý sơ bộ và biết nên khám chuyên khoa nào.",
+    home_feat2_title: "Giải thích thuật ngữ y khoa",
+    home_feat2_desc: "Hiểu rõ kết quả xét nghiệm, chẩn đoán và các thuật ngữ trong hồ sơ khám bệnh.",
+    home_feat3_title: "Lưu lịch sử tư vấn",
+    home_feat3_desc: "Mọi cuộc trò chuyện được lưu lại để bạn xem lại bất cứ lúc nào.",
+    home_feat4_title: "Kết nối hồ sơ bệnh án",
+    home_feat4_desc: "Tra cứu lịch sử khám, chỉ số sinh tồn và tái khám của từng bệnh nhân.",
     notif_empty: "Không có thông báo mới",
     notif_mark_read: "Đánh dấu đã đọc tất cả",
     notif_unread_count: "4 mới",
@@ -512,6 +530,24 @@ const translations = {
   en: {
         // Notifications & Clinical Profile i18n
     notif_title: "Notifications",
+    nav_home: "Home",
+    dock_home: "Home",
+    home_hero_tag: "Personal AI Health Assistant",
+    home_hero_title: "Smart Daily Health",
+    home_hero_title_sub: "Assistant",
+    home_hero_desc: "Chat with MediMind AI for preliminary symptom assessment, medical terminology explanations, and clinical records all in one place.",
+    home_btn_chat: "Chat with Assistant",
+    home_btn_record: "View Health Record",
+    home_badge_security: "Data Encrypted & Secure",
+    home_badge_history: "Chat History Saved",
+    home_feat1_title: "Symptom Q&A",
+    home_feat1_desc: "Describe your symptoms for preliminary guidance and specialty recommendations.",
+    home_feat2_title: "Medical Terminology",
+    home_feat2_desc: "Understand lab results, clinical diagnoses, and prescriptions clearly.",
+    home_feat3_title: "Consultation History",
+    home_feat3_desc: "All triage discussions are securely saved for your future reference.",
+    home_feat4_title: "Electronic Health Records",
+    home_feat4_desc: "Access your clinical summaries, vital signs, and scheduled visits anytime.",
     notif_empty: "No new notifications",
     notif_mark_read: "Mark all as read",
     notif_unread_count: "4 new",
@@ -948,6 +984,16 @@ function switchTab(tabId) {
   if (activeDock) {
     activeDock.classList.remove('text-white/60');
     activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
+  }
+
+  // Floating Chatbox: Show on all tabs except Trợ lý sức khỏe (chat-tab)
+  const floatingChat = document.getElementById('floating-chat-container');
+  if (floatingChat) {
+    if (tabId === 'chat-tab') {
+      floatingChat.classList.add('hidden');
+    } else {
+      floatingChat.classList.remove('hidden');
+    }
   }
 }
 
@@ -1441,6 +1487,9 @@ function syncAuthModalTheme() {
       modal.classList.add('bg-black/60');
     }
   }
+  if (typeof toggleAuthMode === 'function') {
+    toggleAuthMode(currentAuthMode);
+  }
 }
 
 function openLoginModal() {
@@ -1484,33 +1533,54 @@ function populateDobDropdowns() {
 
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
-  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
   currentAuthMode = mode;
   const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
-  const tabLogin = document.getElementById('tab-auth-login');
-  const tabRegister = document.getElementById('tab-auth-register');
   const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  if (mode === 'register') {
-    populateDobDropdowns();
-    if (titleEl) titleEl.innerText = dict.modal_register_title || (currentLang === 'en' ? 'Create MediMind Account' : 'Đăng ký tài khoản MediMind');
-    tabLogin?.classList.remove('border-sky-400', 'text-sky-400', 'border-[#0284C7]', 'text-[#0284C7]');
-    tabLogin?.classList.add('border-transparent', 'text-slate-400');
-    tabRegister?.classList.remove('border-transparent', 'text-slate-400');
-    tabRegister?.classList.add('border-sky-400', 'text-sky-400');
-    loginForm?.classList.add('hidden');
-    registerForm?.classList.remove('hidden');
-    document.getElementById('register-last-name')?.focus();
+  const regForm = document.getElementById('register-form');
+  const tabLogin = document.getElementById('tab-auth-login');
+  const tabReg = document.getElementById('tab-auth-register');
+
+  const isLight = document.body.classList.contains('light-glass');
+
+  if (mode === 'login') {
+    if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (regForm) regForm.classList.add('hidden');
+
+    if (tabLogin) {
+      if (isLight) {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-2 border-sky-500 bg-white text-sky-600 font-bold shadow-xs transition-all cursor-pointer";
+      } else {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border border-sky-400/50 bg-sky-500/20 text-sky-300 font-bold shadow-xs transition-all cursor-pointer";
+      }
+    }
+    if (tabReg) {
+      if (isLight) {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-sky-600 font-medium transition-all cursor-pointer";
+      } else {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
+      }
+    }
   } else {
-    if (titleEl) titleEl.innerText = dict.modal_login_title || (currentLang === 'en' ? 'Sign In to MediMind AI' : 'Đăng nhập MediMind AI');
-    tabRegister?.classList.remove('border-sky-400', 'text-sky-400', 'border-[#0284C7]', 'text-[#0284C7]');
-    tabRegister?.classList.add('border-transparent', 'text-slate-400');
-    tabLogin?.classList.remove('border-transparent', 'text-slate-400');
-    tabLogin?.classList.add('border-sky-400', 'text-sky-400');
-    registerForm?.classList.add('hidden');
-    loginForm?.classList.remove('hidden');
-    document.getElementById('login-identifier')?.focus();
+    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
+    if (loginForm) loginForm.classList.add('hidden');
+    if (regForm) regForm.classList.remove('hidden');
+
+    if (tabReg) {
+      if (isLight) {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-2 border-sky-500 bg-white text-sky-600 font-bold shadow-xs transition-all cursor-pointer";
+      } else {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border border-sky-400/50 bg-sky-500/20 text-sky-300 font-bold shadow-xs transition-all cursor-pointer";
+      }
+    }
+    if (tabLogin) {
+      if (isLight) {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-sky-600 font-medium transition-all cursor-pointer";
+      } else {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
+      }
+    }
   }
 }
 
@@ -3241,4 +3311,112 @@ function handleSaveImage1Profile(e) {
 
   const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin thành công!';
   showMedicalToast(msg, 'success');
+}
+
+
+// ==============================================================
+// FLOATING CHATBOX WIDGET HANDLERS (Image 2)
+// ==============================================================
+let isFloatingChatOpen = false;
+
+function toggleFloatingChat(forceState) {
+  const win = document.getElementById('floating-chat-window');
+  if (!win) return;
+  
+  if (typeof forceState === 'boolean') {
+    isFloatingChatOpen = forceState;
+  } else {
+    isFloatingChatOpen = !isFloatingChatOpen;
+  }
+
+  if (isFloatingChatOpen) {
+    win.classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('floating-user-input')?.focus();
+    }, 100);
+  } else {
+    win.classList.add('hidden');
+  }
+}
+
+function expandFloatingChatToFull() {
+  toggleFloatingChat(false);
+  switchTab('chat-tab');
+}
+
+function sendQuickFloatingPrompt(text) {
+  const input = document.getElementById('floating-user-input');
+  if (input) {
+    input.value = text;
+    sendFloatingChatMessage();
+  }
+}
+
+async function sendFloatingChatMessage() {
+  const input = document.getElementById('floating-user-input');
+  const msgContainer = document.getElementById('floating-chat-messages');
+  if (!input || !msgContainer) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Render user bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'flex justify-end';
+  userBubble.innerHTML = `
+    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-xs bg-teal-600 text-white shadow-md text-xs leading-relaxed">
+      ${escapeHtml(text)}
+    </div>
+  `;
+  msgContainer.appendChild(userBubble);
+  input.value = '';
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  // Add typing indicator
+  const typingId = 'floating-typing-' + Date.now();
+  const typingIndicator = document.createElement('div');
+  typingIndicator.className = 'flex justify-start';
+  typingIndicator.id = typingId;
+  typingIndicator.innerHTML = `
+    <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs glass-card border border-white/10 text-xs text-sky-400 flex items-center space-x-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+      <span class="text-[11px] font-medium text-slate-300">MediMind đang đối chiếu dữ liệu...</span>
+    </div>
+  `;
+  msgContainer.appendChild(typingIndicator);
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        user_name: currentUser ? (currentUser.first_name || currentUser.name || 'Bệnh nhân') : 'Bệnh nhân'
+      })
+    });
+    const data = await res.json();
+    document.getElementById(typingId)?.remove();
+
+    const botBubble = document.createElement('div');
+    botBubble.className = 'flex justify-start';
+    botBubble.innerHTML = `
+      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs glass-card border border-white/10 text-xs leading-relaxed text-slate-200">
+        ${data.reply || data.response || 'Hệ thống đã ghi nhận thông tin của bạn.'}
+      </div>
+    `;
+    msgContainer.appendChild(botBubble);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  } catch (err) {
+    document.getElementById(typingId)?.remove();
+    const errBubble = document.createElement('div');
+    errBubble.className = 'flex justify-start';
+    errBubble.innerHTML = `
+      <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs">
+        Không thể kết nối đến máy chủ lâm sàng. Vui lòng thử lại.
+      </div>
+    `;
+    msgContainer.appendChild(errBubble);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
 }
