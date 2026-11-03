@@ -406,3 +406,134 @@ body:not(.light-glass) #profile-card-email,
 body:not(.light-glass) #profile-card-phone {
   color: #CBD5E1 !important;
 }
+
+
+/* ==============================================================================
+   Dock Floating Capsule Tooltip & Active States (High Contrast & No Clash)
+   ============================================================================== */
+.dock-tooltip {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45) !important;
+  letter-spacing: -0.01em !important;
+  font-weight: 600 !important;
+  pointer-events: none !important;
+}
+
+.dock-tooltip,
+.dock-tooltip * {
+  color: #FFFFFF !important;
+}
+
+body.light-glass .dock-tooltip {
+  background-color: #0F172A !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.20) !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35) !important;
+}
+
+body.light-glass .dock-tooltip,
+body.light-glass .dock-tooltip * {
+  color: #FFFFFF !important;
+}
+
+body.light-glass .dock-divider {
+  background-color: rgba(203, 213, 225, 0.8) !important;
+}
+
+body.light-glass .dock-btn {
+  color: #64748B !important;
+}
+
+body.light-glass .dock-btn:hover {
+  color: #0284C7 !important;
+  background-color: rgba(2, 132, 199, 0.12) !important;
+}
+
+body.light-glass .dock-btn.bg-white {
+  background-color: #0284C7 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.45) !important;
+}
+
+body.light-glass .dock-btn.bg-white svg {
+  color: #FFFFFF !important;
+}
+
+/* ==============================================================================
+   Color Protection for Buttons, Badges, Chat Bubbles in Light Glass
+   ============================================================================== */
+body.light-glass .from-sky-500,
+body.light-glass [class*="from-sky-500"],
+body.light-glass [class*="bg-sky-500"],
+body.light-glass [class*="bg-sky-600"],
+body.light-glass [class*="bg-blue-600"],
+body.light-glass [class*="bg-blue-500"],
+body.light-glass [class*="bg-emerald-500"],
+body.light-glass [class*="bg-teal-600"],
+body.light-glass [class*="bg-orange-500"],
+body.light-glass [class*="bg-amber-500"],
+body.light-glass button[class*="bg-orange-"],
+body.light-glass button[class*="bg-amber-"],
+body.light-glass button[class*="bg-blue-"],
+body.light-glass button[class*="bg-sky-"],
+body.light-glass .btn-primary {
+  color: #FFFFFF !important;
+}
+
+body.light-glass .from-sky-500 *,
+body.light-glass [class*="from-sky-500"] *,
+body.light-glass [class*="bg-sky-500"] *,
+body.light-glass [class*="bg-sky-600"] *,
+body.light-glass [class*="bg-blue-600"] *,
+body.light-glass [class*="bg-blue-500"] *,
+body.light-glass [class*="bg-emerald-500"] *,
+body.light-glass [class*="bg-teal-600"] *,
+body.light-glass [class*="bg-orange-500"] *,
+body.light-glass [class*="bg-amber-500"] *,
+body.light-glass button[class*="bg-orange-"] *,
+body.light-glass button[class*="bg-amber-"] *,
+body.light-glass button[class*="bg-blue-"] *,
+body.light-glass button[class*="bg-sky-"] *,
+body.light-glass .btn-primary * {
+  color: #FFFFFF !important;
+}
+
+/* Dropdowns & Panels in Light Glass Mode */
+body.light-glass #lang-dropdown-menu,
+body.light-glass .glass-panel-elevated {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(203, 213, 225, 0.9) !important;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15) !important;
+  color: #0F172A !important;
+}
+
+body.light-glass #lang-dropdown-menu button {
+  color: #0F172A !important;
+}
+
+body.light-glass #lang-dropdown-menu button:hover {
+  background-color: rgba(241, 245, 249, 0.9) !important;
+}
+
+body.light-glass #user-dropdown-menu button {
+  color: #0F172A !important;
+}
+
+body.light-glass #user-dropdown-menu button:hover {
+  background-color: rgba(241, 245, 249, 0.9) !important;
+}
+
+/* Hospital Filter Buttons in Light Glass Mode */
+body.light-glass .hospital-filter-btn {
+  color: #334155 !important;
+  border-color: #CBD5E1 !important;
+}
+
+body.light-glass .hospital-filter-btn.bg-white\/20,
+body.light-glass .hospital-filter-btn.active {
+  background-color: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #0284C7 !important;
+}
