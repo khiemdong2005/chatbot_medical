@@ -1,10 +1,9 @@
 # 🩺 MediMind AI — Clinical Assistant & Symptom Triage Platform
 > **Nền tảng Trợ lý AI Y tế Lâm sàng & Sàng lọc Triệu chứng End-to-End**  
-> Kết hợp giữa **Clinical Triage Protocol**, **Medical Safety Guardrails** và **Kiến trúc Điện toán Đám mây AWS**.
+> Kết hợp giữa **Clinical Triage Protocol**, **Medical Safety Guardrails**.
 
 [![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/Framework-Flask%203.1.0-emerald.svg)](https://flask.palletsprojects.com/)
-[![Cloud Ready](https://img.shields.io/badge/Cloud-AWS%20S3%20%7C%20ECR%20%7C%20App%20Runner-orange.svg)](https://aws.amazon.com/)
 [![Medical Protocol](https://img.shields.io/badge/Protocol-Clinical%20Triage%20Guidelines-red.svg)](#-nguyên-tắc-an-toàn-y-tế)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
 
@@ -143,25 +142,7 @@ Mở trình duyệt web và truy cập: **`http://localhost:8000`** hoặc **`ht
 
 ---
 
-## ☁️ 7. Triển khai Đám mây AWS (AWS Cloud Deployment)
-
-Hệ thống sẵn sàng tích hợp 3 dịch vụ điện toán đám mây cốt lõi của AWS:
-1. **Amazon S3**: Lưu trữ an toàn, phân quyền bảo mật cho ảnh chụp phiếu kết quả xét nghiệm và hồ sơ bệnh nhân.
-2. **Amazon ECR (Elastic Container Registry)**: Đóng gói ứng dụng thành Docker Container siêu nhẹ:
-   ```dockerfile
-   FROM python:3.12-slim
-   WORKDIR /app
-   COPY requirements.txt .
-   RUN pip install --no-cache-dir -r requirements.txt
-   COPY . .
-   EXPOSE 8000
-   CMD ["python", "app.py"]
-   ```
-3. **AWS App Runner**: Kết nối trực tiếp với ECR Image, tự động cấp phát chứng chỉ HTTPS/SSL, cấu hình Auto-scaling dựa theo tải truy cập người bệnh thực tế.
-
----
-
-## ⚖️ 8. Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)
+## ⚖️ 7. Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)
 
 > **CẢNH BÁO QUAN TRỌNG:**  
 > MediMind AI là hệ thống hỗ trợ tham khảo và sàng lọc thông tin y tế ban đầu, **hoàn toàn không thay thế** cho việc chẩn đoán, thăm khám, kê đơn hoặc điều trị trực tiếp từ các bác sĩ chuyên khoa hoặc nhân viên y tế có chứng chỉ hành nghề.  
