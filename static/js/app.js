@@ -1465,6 +1465,12 @@ function syncAuthModalTheme() {
   const card = document.getElementById('auth-modal-card');
   const title = document.getElementById('auth-modal-title');
   const modal = document.getElementById('login-modal');
+  const dividerBadge = document.getElementById('auth-divider-badge');
+  const divLineLeft = document.getElementById('auth-divider-line-left');
+  const divLineRight = document.getElementById('auth-divider-line-right');
+  const btnGoogle = document.getElementById('btn-google-signin');
+  const googleCard = document.getElementById('google-account-card');
+
   if (!card) return;
 
   if (isLight) {
@@ -1478,6 +1484,18 @@ function syncAuthModalTheme() {
       modal.classList.remove('bg-black/60');
       modal.classList.add('bg-slate-900/40');
     }
+    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-white rounded-full";
+    if (divLineLeft) divLineLeft.className = "border-t border-slate-200 w-full";
+    if (divLineRight) divLineRight.className = "border-t border-slate-200 w-full";
+    if (btnGoogle) {
+      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 border border-slate-300/80 cursor-pointer";
+      const span = btnGoogle.querySelector('span');
+      if (span) span.className = "font-semibold text-slate-700";
+    }
+    if (googleCard) {
+      googleCard.classList.remove('bg-slate-900', 'text-white', 'border-white/15');
+      googleCard.classList.add('bg-white', 'text-slate-800', 'border-slate-200');
+    }
   } else {
     card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200');
     card.classList.add('bg-slate-900/95', 'text-white', 'border-white/15', 'shadow-2xl');
@@ -1488,6 +1506,18 @@ function syncAuthModalTheme() {
     if (modal) {
       modal.classList.remove('bg-slate-900/40');
       modal.classList.add('bg-black/60');
+    }
+    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-slate-900 rounded-full";
+    if (divLineLeft) divLineLeft.className = "border-t border-white/10 w-full";
+    if (divLineRight) divLineRight.className = "border-t border-white/10 w-full";
+    if (btnGoogle) {
+      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-3 border border-white/15 cursor-pointer";
+      const span = btnGoogle.querySelector('span');
+      if (span) span.className = "font-semibold text-white";
+    }
+    if (googleCard) {
+      googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
+      googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
     }
   }
   if (typeof toggleAuthMode === 'function') {
@@ -1943,23 +1973,29 @@ async function startOtpLoginFlow() {
 // ==============================================================
 // GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN
 // ==============================================================
-async function handleGoogleSignIn() {
-  // 1-Click frictionless sign-in: prompts with default or custom email
-  let googleEmail = prompt('Đăng nhập nhanh 1-Click bằng Google:\nNhập địa chỉ Gmail của bạn (hoặc nhấn OK để dùng tài khoản mặc định):', 'tu.lecong.clinical@gmail.com');
-  if (googleEmail === null) return;
-  googleEmail = googleEmail.trim() || 'tu.lecong.clinical@gmail.com';
+function handleGoogleSignIn() {
+  const modal = document.getElementById('google-account-modal');
+  if (modal) {
+    if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+    modal.classList.remove('hidden');
+  }
+}
 
-  const defaultName = googleEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  const simulatedAvatar = 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar';
+function closeGoogleAccountModal() {
+  const modal = document.getElementById('google-account-modal');
+  if (modal) modal.classList.add('hidden');
+}
 
+async function executeGoogleLogin(email, name, avatarUrl) {
+  closeGoogleAccountModal();
   try {
     const res = await fetch('/api/auth/google', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: googleEmail,
-        name: defaultName,
-        avatar_url: simulatedAvatar
+        email: email,
+        name: name,
+        avatar_url: avatarUrl || 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar'
       })
     });
     const data = await res.json();
@@ -1986,6 +2022,18 @@ async function handleGoogleSignIn() {
     console.error('Lỗi Google Sign-In:', err);
     alert('Không thể kết nối máy chủ Google OAuth.');
   }
+}
+
+function promptCustomGoogleAccount() {
+  const customEmail = prompt('Nhập địa chỉ Gmail của bạn:');
+  if (!customEmail) return;
+  const trimmed = customEmail.trim();
+  if (!trimmed.includes('@')) {
+    alert('Email không hợp lệ.');
+    return;
+  }
+  const name = trimmed.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  executeGoogleLogin(trimmed, name, 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar');
 }
 
 async function handleRegisterSubmit(e) {
