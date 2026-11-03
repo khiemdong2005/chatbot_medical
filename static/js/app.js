@@ -1426,8 +1426,9 @@ function renderPrescriptionResult(data) {
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
   const dateStr = data.date || 'Hôm nay';
   const duration = data.duration || '30 ngày';
-  const rawDob = (data.dob || data.birth_date || '').toString().trim();
-  const rawAge = (data.age || '').toString().trim();
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const rawAge = (data.age || data.data?.age || '').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nữ').toString().trim();
   const currentYear = new Date().getFullYear();
 
   // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
@@ -1664,7 +1665,7 @@ function renderPrescriptionResult(data) {
                   </span>
                   <span class="text-slate-300">•</span>
                   <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 font-bold">${data.gender || 'Nữ'}</strong>
+                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 font-bold">${rawGender}</strong>
                   </span>
                 </div>
               </div>
