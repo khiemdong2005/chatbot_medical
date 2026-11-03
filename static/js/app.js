@@ -75,6 +75,7 @@ const translations = {
     ph_history_search: "Tìm kiếm phiên tư vấn...",
     history_empty_title: "Chưa có lịch sử tư vấn",
     history_empty_desc: "Các cuộc sàng lọc triệu chứng sẽ được lưu tự động tại đây sau khi hoàn tất.",
+    history_demo_label: "Dữ liệu thử nghiệm:",
     history_demo_btn: "Xem thử ca tư vấn mẫu (Demo)",
     history_security: "Bảo mật dữ liệu cá nhân",
     history_encrypted: "Cục bộ & Mã hóa",
@@ -83,38 +84,76 @@ const translations = {
     assistant_btn_summary: "Hồ sơ & Tóm tắt",
     assistant_greeting_title: "Chào bạn, tôi là Trợ lý sức khỏe AI MediMind!",
     assistant_greeting_desc: "Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
-    ehr_title: "Hồ Sơ Của Tôi",
-    ehr_tag: "TÓM TẮT TRƯỚC KHÁM",
-    ehr_subtitle: "Lưu trữ tóm tắt các lần sàng lọc triệu chứng & tài liệu đơn thuốc của bạn",
-    ehr_export_text: "Xuất Tóm Tắt (PDF)",
-    ehr_home: "Trang chủ",
-    ehr_empty_title: "Bạn chưa có bản tóm tắt trước khám",
-    ehr_empty_desc: "Chưa có dữ liệu tư vấn nào được ghi nhận. Hãy trao đổi với Trợ lý sức khỏe AI hoặc tải ảnh đơn thuốc để hệ thống tự động tổng hợp thông tin trước khám cho bạn.",
-    ehr_btn_start_chat: "Bắt đầu tư vấn triệu chứng",
-    ehr_btn_upload: "Tải đơn thuốc / xét nghiệm",
-    hero_badge: "Dự án AI vì sức khỏe cộng đồng 2026",
-    hero_title_1: "Trợ lý sức khỏe",
-    hero_title_2: "thông minh",
-    hero_desc: "Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.",
-    hero_btn_check: "Kiểm tra triệu chứng",
-    hero_btn_scan: "Đọc đơn thuốc",
-    trust_security: "Bảo mật thông tin",
-    trust_support: "Hỗ trợ 24/7",
-    trust_banner: "Đã hỗ trợ hơn <strong class=\"text-slate-800 font-bold\">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus",
-    chip_hr: "Nhịp tim",
-    chip_info: "Thông tin y khoa",
-    chip_source: "Từ nguồn uy tín",
-    chat_assistant_title: "Trợ lý MediMind AI",
-    chat_status: "Đang hoạt động",
     quick_1: "🩺 Sốt 38.5°C & đau rát họng",
-    quick_2: "⚠️ Đau thắt ngực, khó thở",
+    quick_2: "⚠️ Đau tức ngực, khó thở",
     quick_3: "💊 Lịch uống đơn thuốc sau ăn?",
     quick_4: "🏥 Gợi ý chuyên khoa khám",
     quick_prompt_text_1: "Tôi bị sốt 38.5 độ và đau rát họng hai hôm nay, nuốt đau",
     quick_prompt_text_2: "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái",
     quick_prompt_text_3: "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?",
     quick_prompt_text_4: "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?",
-    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau ngực, sốt cao, đau dạ dày) hoặc gửi ảnh đơn thuốc...",
+    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau tức ngực, sốt, đau dạ dày) hoặc gửi ảnh đơn thuốc...",
+    hospital_title: "Cơ Sở Y Tế & Bệnh Viện",
+    hospital_location_est: "Khu vực: TP.HCM (Khoảng cách ước tính)",
+    hospital_subtitle: "Tra cứu vị trí bệnh viện tuyến đầu • Khoảng cách tính từ trung tâm TP.HCM hoặc bấm để dùng GPS",
+    hospital_btn_115: "Tổng đài Cấp cứu 115",
+    btn_home: "Trang chủ",
+    hospital_filter_all: "Tất cả cơ sở (3)",
+    hospital_filter_central: "Tuyến Trung Ương",
+    hospital_filter_class1: "Đa khoa Hạng 1",
+    hospital_filter_emergency: "Cấp cứu 24/7",
+    hospital_map_title: "Bản đồ trực tiếp (Google Maps)",
+    hospital_map_fullscreen: "Mở toàn màn hình →",
+    hospital_btn_directions: "Chỉ đường Google Maps",
+    hospital_btn_call: "Gọi BV",
+    ehr_title: "Hồ sơ của tôi & Tóm tắt trước khám",
+    ehr_tag: "TÓM TẮT TRƯỚC KHÁM",
+    ehr_subtitle: "Lưu trữ tóm tắt các lần sàng lọc triệu chứng & tài liệu đơn thuốc của bạn",
+    ehr_export_text: "Xuất Tóm Tắt (PDF)",
+    ehr_empty_title: "Bạn chưa có bản tóm tắt trước khám",
+    ehr_empty_desc: "Chưa có dữ liệu tư vấn nào được ghi nhận. Hãy trao đổi với Trợ lý sức khỏe AI hoặc tải ảnh đơn thuốc để hệ thống tự động tổng hợp thông tin trước khám cho bạn.",
+    ehr_btn_start_chat: "Bắt đầu tư vấn triệu chứng →",
+    ehr_btn_upload: "Tải đơn thuốc / xét nghiệm",
+    vital_bp: "Huyết áp",
+    vital_hr: "Nhịp tim",
+    vital_temp: "Thân nhiệt",
+    vital_spo2: "SpO2",
+    vital_temp_sub: "Sốt nhẹ",
+    vital_spo2_sub: "Đạt chuẩn",
+    ehr_card_narrative: "Diễn tiến Bệnh cảnh & Lý do vào viện",
+    ehr_card_narrative_sub: "Trích xuất tự động qua Chatbot AI",
+    ehr_card_allergy: "CẢNH BÁO TIỀN SỬ DỊ ỨNG & CHỐNG CHỈ ĐỊNH LÂM SÀNG",
+    ehr_card_dx: "Định hướng Chẩn đoán sơ bộ (AI)",
+    ehr_card_orders: "Đề xuất Chỉ định Cận lâm sàng (Clinical Orders)",
+    ehr_card_actions: "Thao tác Bệnh án",
+    ehr_card_ready: "Hồ sơ sẵn sàng",
+    ehr_btn_print_a4: "In Bệnh án A4",
+    ehr_btn_save_emr: "Lưu vào EMR",
+    profile_breadcrumb_home: "Trang chủ",
+    profile_breadcrumb_title: "Cập nhật hồ sơ cá nhân",
+    profile_title: "Thông tin cá nhân",
+    profile_desc: "Quản lý và cập nhật thông tin cá nhân dùng trong việc sàng lọc y tế và bệnh án",
+    profile_btn_view_ehr: "Xem Bệnh án của tôi →",
+    profile_active_badge: "Hồ sơ y tế hoạt động",
+    profile_lbl_dob: "Ngày sinh",
+    profile_lbl_gender: "Giới tính",
+    profile_lbl_phone: "Điện thoại",
+    profile_lbl_fullname: "Họ và tên",
+    profile_lbl_email: "Địa chỉ Email",
+    profile_lbl_bhyt: "Mã thẻ BHYT (nếu có)",
+    profile_lbl_city: "Tỉnh / Thành phố",
+    profile_lbl_address: "Địa chỉ nơi cư trú",
+    profile_btn_save: "Lưu thông tin",
+    profile_btn_back: "Quay lại trang chủ",
+    footer_disclaimer_link: "Tuyên bố Miễn trừ Trách nhiệm Y tế",
+    footer_version: "Phiên bản 2.5 • Chuẩn Y tế AWS Cloud",
+    footer_disclaimer_title: "Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)",
+    footer_disclaimer_text: "Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, vui lòng gọi cấp cứu 115.",
+    toast_space_prefix: "Đã chuyển không gian: ",
+    toast_glass_light: "Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)",
+    toast_glass_dark: "Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)",
+    guest_user: "Khách",
+    not_logged_in: "Chưa đăng nhập",
     disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
     disclaimer_footer_btn: "Miễn trừ trách nhiệm",
     typing_vision: "Gemini Vision đang phân tích hình thái học...",
@@ -189,6 +228,7 @@ const translations = {
     ph_history_search: "Search consultations...",
     history_empty_title: "No consultation history yet",
     history_empty_desc: "Your symptom screenings will be automatically saved here upon completion.",
+    history_demo_label: "Demo dataset:",
     history_demo_btn: "View Demo Consultation Case",
     history_security: "Personal Data Privacy",
     history_encrypted: "Local & Encrypted",
@@ -196,30 +236,7 @@ const translations = {
     assistant_header_subtitle: "Online • MedlinePlus Guidelines & Formulary",
     assistant_btn_summary: "Record & Summary",
     assistant_greeting_title: "Hello, I am MediMind Clinical AI Assistant!",
-    assistant_greeting_desc: "I can assist you with initial symptom triage, prescription explanations, and appropriate clinic referrals. What health concern can I help you with today?",
-    ehr_title: "My Health Record",
-    ehr_tag: "PRE-VISIT SUMMARY",
-    ehr_subtitle: "Archive of symptom screening summaries and prescription documents",
-    ehr_export_text: "Export Summary (PDF)",
-    ehr_home: "Home",
-    ehr_empty_title: "No Pre-Visit Summary Available",
-    ehr_empty_desc: "No consultation data recorded yet. Talk with our AI Health Assistant or upload a prescription to generate your summary.",
-    ehr_btn_start_chat: "Start Symptom Consultation",
-    ehr_btn_upload: "Upload Prescription / Lab",
-    hero_badge: "Community Health AI Initiative 2026",
-    hero_title_1: "Smart Healthcare",
-    hero_title_2: "Assistant",
-    hero_desc: "AI-powered clinical triage, prescription analysis, and evidence-grounded health assistance referenced from trusted medical guidelines.",
-    hero_btn_check: "Check Symptoms",
-    hero_btn_scan: "Scan Prescription",
-    trust_security: "Data Security",
-    trust_support: "24/7 Support",
-    trust_banner: "Assisted over <strong class=\"text-slate-800 font-bold\">15,200+</strong> clinical screenings based on MedlinePlus protocols",
-    chip_hr: "Heart Rate",
-    chip_info: "Medical Info",
-    chip_source: "From trusted sources",
-    chat_assistant_title: "MediMind AI Assistant",
-    chat_status: "Online",
+    assistant_greeting_desc: "I can assist you with preliminary symptom triage, prescription explanations, and appropriate clinic referrals. What health concern can I help you with today?",
     quick_1: "🩺 Fever 38.5°C & Sore Throat",
     quick_2: "⚠️ Chest Tightness, Dyspnea",
     quick_3: "💊 Post-meal Prescription Schedule?",
@@ -228,7 +245,68 @@ const translations = {
     quick_prompt_text_2: "I have intense crushing chest pain, sweating, and shortness of breath radiating to left arm",
     quick_prompt_text_3: "Should I take this medication before or after meals?",
     quick_prompt_text_4: "I feel burning epigastric pain after eating, which specialty should I consult?",
-    chat_input_placeholder: "Describe symptoms (e.g. chest pain, fever, stomach pain) or send prescription photo...",
+    chat_input_placeholder: "Describe symptoms (e.g. chest pain, fever, stomach ache) or send prescription photo...",
+    hospital_title: "Medical Facilities & Hospitals",
+    hospital_location_est: "Region: Ho Chi Minh City (Estimated Distance)",
+    hospital_subtitle: "Find top referral hospitals • Distance calculated from city center or tap for GPS",
+    hospital_btn_115: "Emergency Hotline 115",
+    btn_home: "Home",
+    hospital_filter_all: "All Facilities (3)",
+    hospital_filter_central: "Central Hospitals",
+    hospital_filter_class1: "Class 1 General",
+    hospital_filter_emergency: "24/7 Emergency",
+    hospital_map_title: "Live Map (Google Maps)",
+    hospital_map_fullscreen: "Open Fullscreen →",
+    hospital_btn_directions: "Google Maps Directions",
+    hospital_btn_call: "Call Hospital",
+    ehr_title: "My Health Record & Pre-Visit Summary",
+    ehr_tag: "PRE-VISIT SUMMARY",
+    ehr_subtitle: "Archive of symptom screening summaries and prescription documents",
+    ehr_export_text: "Export Summary (PDF)",
+    ehr_empty_title: "No Pre-Visit Summary Available",
+    ehr_empty_desc: "No consultation data recorded yet. Talk with our AI Health Assistant or upload a prescription to generate your summary.",
+    ehr_btn_start_chat: "Start Symptom Consultation →",
+    ehr_btn_upload: "Upload Prescription / Lab",
+    vital_bp: "Blood Pressure",
+    vital_hr: "Heart Rate",
+    vital_temp: "Body Temp",
+    vital_spo2: "SpO2",
+    vital_temp_sub: "Mild fever",
+    vital_spo2_sub: "Normal",
+    ehr_card_narrative: "Clinical History & Chief Complaint",
+    ehr_card_narrative_sub: "Extracted automatically by MediMind AI",
+    ehr_card_allergy: "CLINICAL ALLERGY ALERT & CONTRAINDICATIONS",
+    ehr_card_dx: "Provisional Diagnostic Impressions (AI)",
+    ehr_card_orders: "Recommended Clinical Orders",
+    ehr_card_actions: "Medical Record Actions",
+    ehr_card_ready: "Record Ready",
+    ehr_btn_print_a4: "Print A4 Record",
+    ehr_btn_save_emr: "Save to EMR",
+    profile_breadcrumb_home: "Home",
+    profile_breadcrumb_title: "Update Health Profile",
+    profile_title: "Personal Information",
+    profile_desc: "Manage and update health demographics used in medical screening and records",
+    profile_btn_view_ehr: "View My Medical Record →",
+    profile_active_badge: "Active Health Record",
+    profile_lbl_dob: "Date of Birth",
+    profile_lbl_gender: "Gender",
+    profile_lbl_phone: "Phone Number",
+    profile_lbl_fullname: "Full Name",
+    profile_lbl_email: "Email Address",
+    profile_lbl_bhyt: "Health Insurance ID (optional)",
+    profile_lbl_city: "City / Province",
+    profile_lbl_address: "Residential Address",
+    profile_btn_save: "Save Information",
+    profile_btn_back: "Back to Home",
+    footer_disclaimer_link: "Medical Disclaimer",
+    footer_version: "Version 2.5 • AWS Cloud Health Compliant",
+    footer_disclaimer_title: "Medical Disclaimer",
+    footer_disclaimer_text: "MediMind AI is developed for educational, technical demonstration, and research proof-of-concept purposes. The inferences, scores, and referenced guidelines do not constitute formal clinical diagnoses or medical advice. Always consult licensed medical professionals or healthcare facilities for medical conditions. In case of emergency, call 115 immediately.",
+    toast_space_prefix: "Switched theme: ",
+    toast_glass_light: "Activated: Clinical Light Glass (Daylight Minimal)",
+    toast_glass_dark: "Activated: Transparent Spatial Glass (Dark Minimal)",
+    guest_user: "Guest",
+    not_logged_in: "Not signed in",
     disclaimer_footer_text: "⚠️ Educational Health AI Prototype • ",
     disclaimer_footer_btn: "Medical Disclaimer",
     typing_vision: "Gemini Vision is analyzing morphology...",
@@ -1116,7 +1194,7 @@ function updateAuthUI() {
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Hồ sơ của tôi' : '📋 My Health Record');
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? 'Hồ sơ của tôi' : 'My Health Record');
   if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Hồ sơ của tôi →' : 'View My Record →');
 
   if (currentUser) {
@@ -1124,14 +1202,21 @@ function updateAuthUI() {
     if (logged) logged.classList.remove('hidden');
     if (nameEl) nameEl.innerText = currentUser.name;
 
-    const subInfo = currentUser.personal_info || currentUser.role || 'Thành viên';
+    let subInfo = currentUser.personal_info || currentUser.role || (currentLang === 'en' ? 'Member' : 'Thành viên');
+    if (currentLang === 'en') {
+      subInfo = subInfo.replace(/^Nam\b/, 'Male').replace(/^Nữ\b/, 'Female').replace(/^Khác\b/, 'Other');
+      if (subInfo === 'patient') subInfo = 'Patient';
+      if (subInfo === 'doctor') subInfo = 'Physician';
+      if (subInfo === 'Thành viên') subInfo = 'Member';
+    }
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
 
-    if (ehrTitle) ehrTitle.innerText = 'Hồ sơ của tôi & Tóm tắt trước khám';
-    if (ehrSubtitle) ehrSubtitle.innerText = 'Tự động đồng bộ từ các lượt sàng lọc y tế của ' + currentUser.name;
+    if (ehrTitle) ehrTitle.innerText = currentLang === 'en' ? 'My Health Record & Pre-Visit Summary' : 'Hồ sơ của tôi & Tóm tắt trước khám';
+    if (ehrSubtitle) ehrSubtitle.innerText = currentLang === 'en' ? ('Automatically synchronized from clinical screenings of ' + currentUser.name) : ('Tự động đồng bộ từ các lượt sàng lọc y tế của ' + currentUser.name);
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
-    if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
+    const ptCodePrefix = currentLang === 'en' ? 'Patient ID' : 'Mã BN';
+    if (ehrPatientId) ehrPatientId.innerText = ptCodePrefix + ': #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
     if (ehrAvatarBadge) ehrAvatarBadge.innerText = currentUser.badge || 'BN';
 
     const rightPanelName = document.getElementById('right-panel-patient-name');
@@ -1139,7 +1224,7 @@ function updateAuthUI() {
     const rightPanelAvatar = document.getElementById('right-panel-avatar');
     const rightPanelBhyt = document.getElementById('right-panel-bhyt');
     if (rightPanelName) rightPanelName.innerText = currentUser.name;
-    if (rightPanelId) rightPanelId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 4).padStart(4, '0');
+    if (rightPanelId) rightPanelId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 4).padStart(4, '0');
     if (rightPanelAvatar) {
       const initials = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
       rightPanelAvatar.innerText = initials;
@@ -1166,8 +1251,8 @@ function updateAuthUI() {
     const tabCity = document.getElementById('tab-profile-city');
     const tabAddress = document.getElementById('tab-profile-address');
 
-    if (tabBannerId) tabBannerId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0');
-    if (tabBannerName) tabBannerName.innerText = 'Họ tên: ' + currentUser.name;
+    if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
+    if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
@@ -1197,11 +1282,11 @@ function updateAuthUI() {
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
-    if (nameEl) nameEl.innerText = 'Khách';
-    if (roleEl) roleEl.innerText = 'Chưa đăng nhập';
+    if (nameEl) nameEl.innerText = currentLang === 'en' ? 'Guest' : 'Khách';
+    if (roleEl) roleEl.innerText = currentLang === 'en' ? 'Not signed in' : 'Chưa đăng nhập';
     if (avatarEl) avatarEl.innerText = '👤';
-    if (ehrPatientName) ehrPatientName.innerText = 'Chưa đăng nhập';
-    if (ehrPatientId) ehrPatientId.innerText = 'Vui lòng đăng nhập để đồng bộ tóm tắt trước khám';
+    if (ehrPatientName) ehrPatientName.innerText = currentLang === 'en' ? 'Not signed in' : 'Chưa đăng nhập';
+    if (ehrPatientId) ehrPatientId.innerText = currentLang === 'en' ? 'Please sign in to sync pre-visit summary' : 'Vui lòng đăng nhập để đồng bộ tóm tắt trước khám';
     if (ehrEmpty) ehrEmpty.classList.remove('hidden');
     if (ehrFilled) ehrFilled.classList.add('hidden');
 
@@ -2159,25 +2244,25 @@ function askBotAboutSpecificMedicine(medName) {
 const medicalWallpapers = [
   { 
     id: 'minimal_midnight', 
-    name: 'Tối giản Midnight Aurora (Chuẩn VisionOS - Mặc định)', 
+    name: 'Tối giản Midnight Aurora (Chuẩn VisionOS - Mặc định)', name_en: 'Midnight Aurora (VisionOS Default)', 
     dark: 'radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 45%), radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 40%), radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%), radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.10) 0%, transparent 45%), radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 40%), linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%)',
     light: 'radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F6 100%)'
   },
   { 
     id: 'minimal_cyan', 
-    name: 'Ánh sáng Lâm sàng Cyan (Clinical Cyan Glow)', 
+    name: 'Ánh sáng Lâm sàng Cyan (Clinical Cyan Glow)', name_en: 'Clinical Cyan Glow', 
     dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)',
     light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)'
   },
   { 
     id: 'minimal_sapphire', 
-    name: 'Không gian Sapphire Y tế (Sapphire Twilight)', 
+    name: 'Không gian Sapphire Y tế (Sapphire Twilight)', name_en: 'Sapphire Twilight Ambient', 
     dark: 'radial-gradient(circle at 75% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 50%), radial-gradient(circle at 20% 85%, rgba(14, 165, 233, 0.12) 0%, transparent 45%), linear-gradient(180deg, #080A18 0%, #0D1226 50%, #05060E 100%)',
     light: 'radial-gradient(ellipse at 80% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, #EEF2FF 0%, #E0E7FF 100%)'
   },
   { 
     id: 'minimal_slate', 
-    name: 'Kính Khói Neutral Studio (Minimal Dark Slate)', 
+    name: 'Kính Khói Neutral Studio (Minimal Dark Slate)', name_en: 'Minimal Dark Slate', 
     dark: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 60%), linear-gradient(180deg, #0F172A 0%, #090E1A 50%, #030712 100%)',
     light: 'radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.04) 0%, transparent 60%), linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%)'
   }
@@ -2191,7 +2276,9 @@ function cycleMedicalWallpaper() {
   const isLight = document.body.classList.contains('light-glass');
   
   document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
-  showMedicalToast("Đã chuyển không gian: " + wp.name, "info");
+  const wpName = (currentLang === 'en' && wp.name_en) ? wp.name_en : wp.name;
+  const prefix = currentLang === 'en' ? 'Switched theme: ' : 'Đã chuyển không gian: ';
+  showMedicalToast(prefix + wpName, "info");
   playMedicalChime();
 }
 
@@ -2202,9 +2289,9 @@ function toggleGlassThemeMode() {
   
   document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
   if (isLight) {
-    showMedicalToast("Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)", "success");
+    showMedicalToast(currentLang === 'en' ? "Activated: Clinical Light Glass (Daylight Minimal)" : "Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)", "success");
   } else {
-    showMedicalToast("Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)", "info");
+    showMedicalToast(currentLang === 'en' ? "Activated: Transparent Spatial Glass (Dark Minimal)" : "Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)", "info");
   }
   playMedicalChime();
 }
