@@ -1387,6 +1387,7 @@ async function handleSaveProfile(e) {
       currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || gender);
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
+      broadcastTabEvent('PROFILE_UPDATE', { user: currentUser });
       openProfileModal();
       toggleProfileEdit(false);
       alert('Cập nhật thông tin cá nhân thành công!');
@@ -1442,6 +1443,7 @@ async function handleTabSaveProfile(e) {
       currentUser.city = city;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
+      broadcastTabEvent('PROFILE_UPDATE', { user: currentUser });
       alert('Cập nhật hồ sơ thông tin cá nhân thành công!');
     } else {
       alert(data.error || 'Cập nhật thất bại.');
@@ -1500,6 +1502,7 @@ function openLoginModal() {
     modal.classList.remove('hidden');
     document.getElementById('login-identifier')?.focus();
   }
+  if (typeof setupOtpDigitInputs === 'function') setupOtpDigitInputs();
 }
 
 function closeLoginModal() {
@@ -1539,6 +1542,10 @@ function toggleAuthMode(mode) {
   const titleEl = document.getElementById('auth-modal-title');
   const loginForm = document.getElementById('login-form');
   const regForm = document.getElementById('register-form');
+  const otpForm = document.getElementById('otp-form');
+  const googleContainer = document.getElementById('google-auth-container');
+  const socialDivider = document.getElementById('auth-social-divider');
+  const tabsContainer = document.querySelector('.auth-segmented-tabs');
   const tabLogin = document.getElementById('tab-auth-login');
   const tabReg = document.getElementById('tab-auth-register');
 
@@ -1548,8 +1555,12 @@ function toggleAuthMode(mode) {
     if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
     if (loginForm) loginForm.classList.remove('hidden');
     if (regForm) regForm.classList.add('hidden');
+    if (otpForm) otpForm.classList.add('hidden');
+    if (googleContainer) googleContainer.classList.remove('hidden');
+    if (socialDivider) socialDivider.classList.remove('hidden');
+    if (tabsContainer) tabsContainer.classList.remove('hidden');
 
-        if (tabLogin) {
+    if (tabLogin) {
       if (isLight) {
         tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
       } else {
@@ -1563,10 +1574,14 @@ function toggleAuthMode(mode) {
         tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
       }
     }
-  } else {
-    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Dang ky tài khoản MediMind";
+  } else if (mode === 'register') {
+    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.remove('hidden');
+    if (otpForm) otpForm.classList.add('hidden');
+    if (googleContainer) googleContainer.classList.add('hidden');
+    if (socialDivider) socialDivider.classList.add('hidden');
+    if (tabsContainer) tabsContainer.classList.remove('hidden');
 
     if (tabReg) {
       if (isLight) {
@@ -1582,11 +1597,395 @@ function toggleAuthMode(mode) {
         tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
       }
     }
+  } else if (mode === 'otp') {
+    if (titleEl) titleEl.innerText = "Xác thực mã bảo mật (OTP)";
+    if (loginForm) loginForm.classList.add('hidden');
+    if (regForm) regForm.classList.add('hidden');
+    if (otpForm) otpForm.classList.remove('hidden');
+    if (googleContainer) googleContainer.classList.add('hidden');
+    if (socialDivider) socialDivider.classList.add('hidden');
+    if (tabsContainer) tabsContainer.classList.add('hidden');
   }
 }
 
 function selectLoginRole(role) {
   currentRole = 'patient';
+}
+
+
+// ==============================================================
+// CROSS-TAB REALTIME SYNCHRONIZATION (BroadcastChannel API v16.1.0)
+// ==============================================================
+const TAB_SYNC_CHANNEL_NAME = 'medimind_tab_sync';
+let tabSyncChannel = null;
+
+try {
+  if (typeof BroadcastChannel !== 'undefined') {
+    tabSyncChannel = new BroadcastChannel(TAB_SYNC_CHANNEL_NAME);
+  }
+} catch (e) {
+  console.warn('BroadcastChannel not supported in this context:', e);
+}
+
+function broadcastTabEvent(eventType, payload) {
+  const message = { type: eventType, payload, timestamp: Date.now() };
+  if (tabSyncChannel) {
+    try {
+      tabSyncChannel.postMessage(message);
+    } catch (e) {
+      console.warn('BroadcastChannel send error:', e);
+    }
+  }
+  try {
+    localStorage.setItem('medimind_cross_tab_event', JSON.stringify(message));
+  } catch (e) {}
+}
+
+function handleCrossTabMessage(data) {
+  if (!data || !data.type) return;
+  console.log('⚡ [Cross-Tab Sync 0.01s] Event received:', data.type, data.payload);
+
+  if (data.type === 'THEME_CHANGE') {
+    const targetTheme = data.payload?.theme || 'light';
+    const isCurrentlyLight = document.body.classList.contains('light-glass');
+    if ((targetTheme === 'light' && !isCurrentlyLight) || (targetTheme === 'dark' && isCurrentlyLight)) {
+      if (targetTheme === 'light') {
+        document.body.classList.add('light-glass');
+        document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.light;
+      } else {
+        document.body.classList.remove('light-glass');
+        document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
+      }
+      document.body.style.backgroundAttachment = 'fixed';
+      localStorage.setItem('medimind_theme', targetTheme);
+      if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+    }
+  } else if (data.type === 'AUTH_LOGIN' || data.type === 'PROFILE_UPDATE') {
+    if (data.payload?.user) {
+      currentUser = data.payload.user;
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      updateAuthUI();
+      if (typeof closeLoginModal === 'function') closeLoginModal();
+    }
+  } else if (data.type === 'AUTH_LOGOUT') {
+    currentUser = null;
+    localStorage.removeItem('medimind_user');
+    updateAuthUI();
+    if (typeof switchTab === 'function') switchTab('chat-tab');
+  }
+}
+
+if (tabSyncChannel) {
+  tabSyncChannel.onmessage = (event) => {
+    handleCrossTabMessage(event.data);
+  };
+}
+
+window.addEventListener('storage', (event) => {
+  if (event.key === 'medimind_cross_tab_event' && event.newValue) {
+    try {
+      const parsed = JSON.parse(event.newValue);
+      handleCrossTabMessage(parsed);
+    } catch (e) {}
+  } else if (event.key === 'medimind_theme' && event.newValue) {
+    handleCrossTabMessage({ type: 'THEME_CHANGE', payload: { theme: event.newValue } });
+  } else if (event.key === 'medimind_user') {
+    if (event.newValue) {
+      try {
+        const u = JSON.parse(event.newValue);
+        handleCrossTabMessage({ type: 'AUTH_LOGIN', payload: { user: u } });
+      } catch (e) {}
+    } else {
+      handleCrossTabMessage({ type: 'AUTH_LOGOUT', payload: null });
+    }
+  }
+});
+
+
+// ==============================================================
+// OTP VERIFICATION FLOW & 6-DIGIT AUTO-FOCUS INPUTS
+// ==============================================================
+let otpCountdownTimer = null;
+let currentOtpRemaining = 59;
+let pendingOtpFlow = {
+  identifier: '',
+  channel: 'sms',
+  purpose: 'register',
+  userData: null,
+  previousMode: 'register'
+};
+
+function setupOtpDigitInputs() {
+  const container = document.getElementById('otp-inputs-container');
+  if (!container) return;
+  const digits = container.querySelectorAll('.otp-digit');
+
+  digits.forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = val;
+      if (val && index < digits.length - 1) {
+        digits[index + 1].focus();
+        digits[index + 1].select();
+      }
+      checkAutoSubmitOtp();
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && index > 0) {
+        digits[index - 1].focus();
+        digits[index - 1].select();
+      } else if (e.key === 'ArrowLeft' && index > 0) {
+        digits[index - 1].focus();
+      } else if (e.key === 'ArrowRight' && index < digits.length - 1) {
+        digits[index + 1].focus();
+      }
+    });
+
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+      const cleanDigits = pasteData.replace(/[^0-9]/g, '').slice(0, 6);
+      if (cleanDigits.length > 0) {
+        cleanDigits.split('').forEach((char, i) => {
+          if (digits[i]) digits[i].value = char;
+        });
+        const targetIndex = Math.min(cleanDigits.length, digits.length - 1);
+        digits[targetIndex].focus();
+        checkAutoSubmitOtp();
+      }
+    });
+  });
+}
+
+function checkAutoSubmitOtp() {
+  const code = getOtpCodeFromInputs();
+  const btn = document.getElementById('btn-otp-verify-submit');
+  if (code.length === 6) {
+    if (btn) btn.classList.add('ring-2', 'ring-sky-400');
+  } else {
+    if (btn) btn.classList.remove('ring-2', 'ring-sky-400');
+  }
+}
+
+function getOtpCodeFromInputs() {
+  const digits = document.querySelectorAll('.otp-digit');
+  let code = '';
+  digits.forEach(d => { code += (d.value || '').trim(); });
+  return code;
+}
+
+function clearOtpInputs() {
+  const digits = document.querySelectorAll('.otp-digit');
+  digits.forEach(d => { d.value = ''; });
+  if (digits[0]) digits[0].focus();
+}
+
+function startOtpCountdown(seconds = 59) {
+  if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+  currentOtpRemaining = seconds;
+
+  const timerWrap = document.getElementById('otp-timer-wrap');
+  const countdownEl = document.getElementById('otp-countdown');
+  const resendBtn = document.getElementById('btn-otp-resend');
+
+  if (timerWrap) timerWrap.classList.remove('hidden');
+  if (resendBtn) resendBtn.classList.add('hidden');
+  if (countdownEl) countdownEl.innerText = `${currentOtpRemaining}s`;
+
+  otpCountdownTimer = setInterval(() => {
+    currentOtpRemaining--;
+    if (currentOtpRemaining <= 0) {
+      clearInterval(otpCountdownTimer);
+      otpCountdownTimer = null;
+      if (timerWrap) timerWrap.classList.add('hidden');
+      if (resendBtn) resendBtn.classList.remove('hidden');
+    } else {
+      if (countdownEl) countdownEl.innerText = `${currentOtpRemaining}s`;
+    }
+  }, 1000);
+}
+
+async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
+  try {
+    const res = await fetch('/api/auth/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, channel, purpose, full_name: fullName })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.error || 'Không thể gửi mã xác thực OTP.');
+      return;
+    }
+
+    toggleAuthMode('otp');
+    setupOtpDigitInputs();
+
+    const channelLabel = document.getElementById('otp-channel-label');
+    if (channelLabel) {
+      channelLabel.innerText = channel === 'email' ? 'hộp thư Gmail' : 'tin nhắn SMS';
+    }
+
+    const targetDisplay = document.getElementById('otp-target-display');
+    if (targetDisplay) {
+      targetDisplay.innerText = identifier;
+    }
+
+    const devHint = document.getElementById('otp-dev-hint');
+    if (devHint) {
+      if (data.dev_otp) {
+        devHint.innerText = `🔑 [Mã thử nghiệm Dev]: ${data.dev_otp}`;
+        devHint.classList.remove('hidden');
+      } else {
+        devHint.classList.add('hidden');
+      }
+    }
+
+    clearOtpInputs();
+    startOtpCountdown(data.cooldown || 59);
+
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast(`Mã OTP đã được gửi tới ${identifier}!`, 'success');
+    }
+  } catch (err) {
+    console.error('Lỗi yêu cầu gửi OTP:', err);
+    alert('Không thể kết nối máy chủ gửi OTP.');
+  }
+}
+
+async function handleOtpSubmit(e) {
+  if (e) e.preventDefault();
+  const code = getOtpCodeFromInputs();
+  if (code.length !== 6) {
+    alert('Vui lòng nhập đủ 6 chữ số của mã OTP.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/otp/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identifier: pendingOtpFlow.identifier,
+        channel: pendingOtpFlow.channel,
+        code,
+        purpose: pendingOtpFlow.purpose,
+        user_data: pendingOtpFlow.userData
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.user) {
+        currentUser = data.user;
+        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
+      }
+      closeLoginModal();
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast(data.message || 'Xác thực mã OTP thành công!', 'success');
+      } else {
+        alert(data.message || 'Xác thực danh tính thành công!');
+      }
+
+      if (pendingTabAfterLogin) {
+        const target = pendingTabAfterLogin;
+        pendingTabAfterLogin = null;
+        switchTab(target);
+      }
+    } else {
+      alert(data.error || 'Mã xác thực không chính xác.');
+      clearOtpInputs();
+    }
+  } catch (err) {
+    console.error('Lỗi xác thực OTP:', err);
+    alert('Không thể kết nối máy chủ xác thực.');
+  }
+}
+
+async function handleResendOtp() {
+  if (!pendingOtpFlow.identifier) return;
+  await requestAndShowOtp(
+    pendingOtpFlow.identifier,
+    pendingOtpFlow.channel,
+    pendingOtpFlow.purpose,
+    pendingOtpFlow.userData?.full_name || ''
+  );
+}
+
+function cancelOtpStep() {
+  if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+  toggleAuthMode(pendingOtpFlow.previousMode || 'login');
+}
+
+async function startOtpLoginFlow() {
+  let identifier = (document.getElementById('login-identifier')?.value || '').trim();
+  if (!identifier) {
+    identifier = prompt('Vui lòng nhập Email hoặc Số điện thoại để nhận mã OTP:');
+    if (!identifier) return;
+    identifier = identifier.trim();
+  }
+
+  const channel = identifier.includes('@') ? 'email' : 'sms';
+  pendingOtpFlow = {
+    identifier,
+    channel,
+    purpose: 'login_2fa',
+    userData: null,
+    previousMode: 'login'
+  };
+
+  await requestAndShowOtp(identifier, channel, 'login_2fa');
+}
+
+
+// ==============================================================
+// GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN
+// ==============================================================
+async function handleGoogleSignIn() {
+  // 1-Click frictionless sign-in: prompts with default or custom email
+  let googleEmail = prompt('Đăng nhập nhanh 1-Click bằng Google:\nNhập địa chỉ Gmail của bạn (hoặc nhấn OK để dùng tài khoản mặc định):', 'tu.lecong.clinical@gmail.com');
+  if (googleEmail === null) return;
+  googleEmail = googleEmail.trim() || 'tu.lecong.clinical@gmail.com';
+
+  const defaultName = googleEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const simulatedAvatar = 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar';
+
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: googleEmail,
+        name: defaultName,
+        avatar_url: simulatedAvatar
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.user) {
+      currentUser = data.user;
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      updateAuthUI();
+      closeLoginModal();
+      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast(`Đăng nhập thành công với Google (${currentUser.email})!`, 'success');
+      } else {
+        alert(`Chào mừng ${currentUser.full_name} đã đăng nhập thành công với Google!`);
+      }
+      if (pendingTabAfterLogin) {
+        const target = pendingTabAfterLogin;
+        pendingTabAfterLogin = null;
+        switchTab(target);
+      }
+    } else {
+      alert(data.error || 'Đăng nhập Google thất bại.');
+    }
+  } catch (err) {
+    console.error('Lỗi Google Sign-In:', err);
+    alert('Không thể kết nối máy chủ Google OAuth.');
+  }
 }
 
 async function handleRegisterSubmit(e) {
@@ -1611,44 +2010,27 @@ async function handleRegisterSubmit(e) {
   }
 
   const dob = (day && month && year) ? `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}` : '';
+  const channel = identifier.includes('@') ? 'email' : 'sms';
 
-  try {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        last_name: lastName,
-        first_name: firstName,
-        name: fullName,
-        dob,
-        gender,
-        identifier,
-        email: identifier,
-        full_name: fullName,
-        password,
-        role: 'patient'
-      })
-    });
-    const data = await res.json();
-    if (data.success && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      updateAuthUI();
-      closeLoginModal();
-      alert('Đăng ký tài khoản thành công! Chào mừng ' + currentUser.name + ' gia nhập MediMind.');
-      document.getElementById('register-form')?.reset();
-      if (pendingTabAfterLogin) {
-        const target = pendingTabAfterLogin;
-        pendingTabAfterLogin = null;
-        switchTab(target);
-      }
-    } else {
-      alert(data.error || 'Đăng ký tài khoản thất bại.');
-    }
-  } catch (err) {
-    console.error('Lỗi đăng ký:', err);
-    alert('Không thể kết nối đến máy chủ.');
-  }
+  pendingOtpFlow = {
+    identifier,
+    channel,
+    purpose: 'register',
+    userData: {
+      last_name: lastName,
+      first_name: firstName,
+      name: fullName,
+      full_name: fullName,
+      dob,
+      gender,
+      password,
+      email: identifier.includes('@') ? identifier : undefined,
+      phone_number: !identifier.includes('@') ? identifier : undefined
+    },
+    previousMode: 'register'
+  };
+
+  await requestAndShowOtp(identifier, channel, 'register', fullName);
 }
 
 async function quickLogin(type) {
@@ -1665,6 +2047,7 @@ async function quickLogin(type) {
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
+      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
       closeLoginModal();
     } else {
       alert(data.error || 'Đăng nhập thất bại.');
@@ -1694,6 +2077,7 @@ async function handleLoginSubmit(e) {
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
+      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
       closeLoginModal();
       document.getElementById('login-form')?.reset();
       if (pendingTabAfterLogin) {
@@ -1719,6 +2103,7 @@ async function handleLogout() {
   currentUser = null;
   localStorage.removeItem('medimind_user');
   updateAuthUI();
+  broadcastTabEvent('AUTH_LOGOUT', null);
   switchTab('chat-tab');
 }
 
@@ -3138,8 +3523,10 @@ function toggleGlassThemeMode() {
   const isLight = document.body.classList.contains('light-glass');
   document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
   document.body.style.backgroundAttachment = 'fixed';
-  localStorage.setItem('medimind_theme', isLight ? 'light' : 'dark');
+  const newTheme = isLight ? 'light' : 'dark';
+  localStorage.setItem('medimind_theme', newTheme);
   if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+  broadcastTabEvent('THEME_CHANGE', { theme: newTheme });
 }
 
 function cycleMedicalWallpaper() {

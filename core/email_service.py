@@ -1,5 +1,6 @@
 # ==============================================================
 # MEDIMIND CLINICAL AI - SMTP TRANSACTIONAL EMAIL SERVICE
+# Hỗ trợ gửi Email giao dịch, mã OTP bảo mật 2 lớp & Xác thực tài khoản
 # ==============================================================
 
 import os
@@ -10,7 +11,7 @@ from typing import Optional, Dict, Any
 
 
 class EmailService:
-    """Dịch vụ gửi Email giao dịch (OTP, Khôi phục mật khẩu, Chào mừng)."""
+    """Dịch vụ gửi Email giao dịch (OTP 2FA, Khôi phục mật khẩu, Chào mừng)."""
     def __init__(self):
         self.server = os.getenv("SMTP_SERVER", "")
         self.port = int(os.getenv("SMTP_PORT", 587))
@@ -55,10 +56,68 @@ class EmailService:
             print(f"❌ [Email Service] Lỗi khi gửi thư tới {to_email}: {e}")
             return False
 
+    def send_verification_otp(self, to_email: str, otp_code: str, full_name: Optional[str] = None, purpose: str = "register") -> bool:
+        """Gửi mã OTP 6 số xác thực 2 lớp / Đăng ký qua Email với giao diện y tế cao cấp."""
+        name = full_name or "Quý bệnh nhân"
+        purpose_title = "Xác thực tài khoản mới" if purpose == "register" else ("Đăng nhập thiết bị mới (2FA)" if purpose == "login_2fa" else "Xác nhận danh tính y tế")
+        subject = f"[{otp_code}] Mã xác thực {purpose_title} - MediMind Clinical AI"
+
+        formatted_otp = " ".join(list(otp_code))
+
+        html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; }}
+            .card {{ max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }}
+            .header {{ background: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%); padding: 32px 24px; text-align: center; color: #ffffff; }}
+            .header h1 {{ margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }}
+            .header p {{ margin: 6px 0 0; font-size: 13px; opacity: 0.9; }}
+            .content {{ padding: 32px 24px; color: #334155; line-height: 1.6; font-size: 14px; }}
+            .otp-box {{ background: #f0f9ff; border: 2px dashed #38bdf8; border-radius: 16px; padding: 20px; text-align: center; margin: 24px 0; }}
+            .otp-code {{ font-size: 32px; font-weight: 900; letter-spacing: 8px; color: #0284c7; font-family: 'Courier New', monospace; display: block; }}
+            .otp-exp {{ font-size: 12px; color: #64748b; margin-top: 8px; font-weight: 600; }}
+            .warning {{ background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; font-size: 12px; color: #92400e; margin: 20px 0; }}
+            .footer {{ background: #f8fafc; padding: 20px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8; }}
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="header">
+              <h1>🏥 MediMind Clinical AI</h1>
+              <p>Hệ thống Trợ lý Y tế & Phân tầng Lâm sàng An toàn</p>
+            </div>
+            <div class="content">
+              <p>Kính chào <strong>{name}</strong>,</p>
+              <p>Hệ thống vừa nhận được yêu cầu <strong>{purpose_title.lower()}</strong> cho tài khoản của bạn. Vui lòng nhập mã bảo mật một lần (OTP) dưới đây để hoàn tất:</p>
+              
+              <div class="otp-box">
+                <span class="otp-code">{formatted_otp}</span>
+                <div class="otp-exp">⏱️ Mã có hiệu lực trong vòng 5 phút (300 giây)</div>
+              </div>
+
+              <div class="warning">
+                <strong>🔒 Lưu ý bảo mật HIPAA:</strong> Tuyệt đối không chia sẻ mã này cho bất kỳ ai. Nhân viên MediMind không bao giờ chủ động gọi điện để hỏi mã xác thực của bạn.
+              </div>
+
+              <p style="font-size: 12px; color: #64748b;">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua thư hoặc đổi mật khẩu ngay để bảo vệ hồ sơ bệnh án cá nhân.</p>
+            </div>
+            <div class="footer">
+              <p>© 2026 MediMind Clinical AI. Bảo mật dữ liệu cá nhân cục bộ chuẩn y khoa.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+        """
+        text = f"Kính chào {name},\nMã xác thực {purpose_title} của bạn là: {otp_code}.\nMã có hiệu lực trong 5 phút. Tuyệt đối không chia sẻ mã này cho ai."
+        return self.send_email(to_email, subject, html, text)
+
     def send_welcome_email(self, to_email: str, full_name: str) -> bool:
         subject = "Chào mừng bạn đến với MediMind Clinical AI"
         html = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded: 16px;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
             <div style="background-color: #0284C7; padding: 20px; text-align: center; border-radius: 12px; color: white;">
                 <h2 style="margin: 0;">MediMind Clinical AI</h2>
                 <p style="margin: 5px 0 0 0; font-size: 13px;">Trợ lý Y tế Sàng lọc Thông minh</p>
@@ -80,23 +139,7 @@ class EmailService:
         return self.send_email(to_email, subject, html, text)
 
     def send_password_reset_otp(self, to_email: str, otp_code: str) -> bool:
-        subject = f"[{otp_code}] Mã xác nhận đặt lại mật khẩu - MediMind"
-        html = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h3 style="color: #0284C7; margin: 0;">Đặt lại mật khẩu tài khoản</h3>
-                <p style="color: #64748b; font-size: 13px;">Mã xác thực y tế một lần (OTP)</p>
-            </div>
-            <div style="background-color: #f0f9ff; border: 1px dashed #0284C7; padding: 18px; text-align: center; border-radius: 12px;">
-                <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #0369a1;">{otp_code}</span>
-            </div>
-            <p style="font-size: 12px; color: #64748b; margin-top: 20px; line-height: 1.5;">
-                Mã này có hiệu lực trong vòng <strong>5 phút</strong>. Tuyệt đối không chia sẻ mã này cho bất kỳ ai để đảm bảo an toàn cho hồ sơ sức khỏe của bạn.
-            </p>
-        </div>
-        """
-        text = f"Mã xác nhận đặt lại mật khẩu MediMind của bạn là: {otp_code}. Mã có hiệu lực trong 5 phút."
-        return self.send_email(to_email, subject, html, text)
+        return self.send_verification_otp(to_email, otp_code, purpose="reset_pwd")
 
 
 email_service = EmailService()

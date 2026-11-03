@@ -8,7 +8,7 @@ db = SQLAlchemy()
 class User(db.Model):
     """
     Mô hình Người dùng (User Model) tuân thủ kiến trúc SQLAlchemy ORM.
-    Chạy 100% trên SQLite ở Local và tương thích hoàn toàn khi chuyển dịch lên AWS RDS PostgreSQL.
+    Chạy 100% trên SQLite ở Local và tương thích hoàn toàn khi chuyển dịch lên production.
     """
     __tablename__ = "users"
 
@@ -23,6 +23,7 @@ class User(db.Model):
     gender = db.Column(db.String(20), nullable=True)  # Giới tính (Nam / Nữ / Khác)
     address = db.Column(db.String(255), nullable=True)  # Địa chỉ / Tỉnh thành
     bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
+    avatar_url = db.Column(db.String(500), nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_password(self, password: str) -> None:
@@ -55,6 +56,7 @@ class User(db.Model):
             "id": self.id,
             "email": display_account,
             "name": self.full_name,
+            "full_name": self.full_name,
             "role": self.role,
             "roleType": self.role,
             "personal_info": personal_info,
@@ -63,7 +65,8 @@ class User(db.Model):
             "dob": self.dob or "",
             "gender": self.gender or "",
             "address": self.address or "",
-            "bhyt": self.bhyt or ""
+            "bhyt": self.bhyt or "",
+            "avatar_url": self.avatar_url or ""
         }
 
 

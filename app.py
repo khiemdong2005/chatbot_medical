@@ -28,6 +28,7 @@ load_dotenv()
 
 # Nạp cơ sở dữ liệu và các mô hình
 from core.models import db, User, MedicalDocument, ClinicalConsultation, init_db
+from core.otp_service import otp_manager
 from core.storage_service import (
     process_secure_upload,
     decode_and_validate_base64_image,
@@ -266,6 +267,246 @@ def create_app(test_config=None):
         """Đăng xuất và hủy phiên làm việc."""
         session.clear()
         return jsonify({"success": True, "message": "Đã đăng xuất thành công."})
+
+    # ==============================================================
+    # HỆ THỐNG XÁC THỰC OTP (EMAIL / SMS) & GOOGLE OAUTH 2.0
+    # ==============================================================
+
+    @app.route("/api/auth/otp/send", methods=["POST"])
+    def auth_send_otp():
+        """
+        Gửi mã xác thực OTP 6 số qua Gmail hoặc SMS Twilio / SpeedSMS.
+        Rate-limit: cooldown 60s, TTL 5 phút, CSPRNG.
+        """
+        data = request.get_json(silent=True) or {}
+        identifier = (data.get("identifier") or data.get("email") or data.get("phone") or "").strip()
+        channel = (data.get("channel") or "").strip().lower()
+        purpose = (data.get("purpose") or "register").strip()
+        full_name = (data.get("full_name") or data.get("name") or "").strip()
+
+        if not identifier:
+            return jsonify({"success": False, "error": "Vui lòng nhập Email hoặc Số điện thoại."}), 400
+
+        # Tự động nhận diện kênh gửi nếu client không truyền channel
+        if not channel:
+            channel = "email" if "@" in identifier else "sms"
+
+        if channel == "email":
+            if "@" not in identifier:
+                return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+        else:
+            clean_phone = "".join(filter(str.isdigit, identifier))
+            if len(clean_phone) < 9 or len(clean_phone) > 11:
+                return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (9-11 chữ số)."}), 400
+            identifier = clean_phone
+
+        success, msg, cooldown = otp_manager.request_otp(
+            identifier=identifier,
+            channel=channel,
+            purpose=purpose,
+            full_name=full_name or "Quý khách"
+        )
+
+        if not success:
+            return jsonify({"success": False, "error": msg, "cooldown": cooldown}), 429 if cooldown > 0 else 400
+
+        res_data = {
+            "success": True,
+            "message": msg,
+            "channel": channel,
+            "identifier": identifier,
+            "cooldown": cooldown,
+            "expires_in": otp_manager.ttl
+        }
+
+        # Trả về dev_otp nếu đang trong môi trường dev cục bộ
+        if not is_prod:
+            res_data["dev_otp"] = otp_manager.get_active_code(identifier, channel)
+
+        return jsonify(res_data)
+
+
+    @app.route("/api/auth/otp/verify", methods=["POST"])
+    def auth_verify_otp():
+        """
+        Xác minh mã OTP 6 số:
+        Hỗ trợ:
+          - purpose='register': Xác thực OTP và khởi tạo tài khoản bệnh nhân an toàn
+          - purpose='login_2fa': Xác thực OTP và đăng nhập cấp session
+          - purpose='verify': Xác minh chung
+        """
+        data = request.get_json(silent=True) or {}
+        identifier = (data.get("identifier") or "").strip()
+        channel = (data.get("channel") or "").strip().lower()
+        code = (data.get("code") or "").strip()
+        purpose = (data.get("purpose") or "register").strip()
+        user_data = data.get("user_data") or {}
+
+        if not identifier or not code:
+            return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ thông tin và mã OTP 6 chữ số."}), 400
+
+        if not channel:
+            channel = "email" if "@" in identifier else "sms"
+
+        if channel == "sms":
+            identifier = "".join(filter(str.isdigit, identifier))
+
+        success, err_msg = otp_manager.verify_otp(
+            identifier=identifier,
+            channel=channel,
+            code=code,
+            purpose=purpose
+        )
+
+        if not success:
+            return jsonify({"success": False, "error": err_msg}), 400
+
+        # Nếu là kịch bản Đăng ký (Register with OTP)
+        if purpose == "register" and user_data:
+            full_name = (user_data.get("full_name") or user_data.get("name") or "Bệnh nhân mới").strip()
+            password = (user_data.get("password") or "").strip()
+            dob = (user_data.get("dob") or "").strip()
+            gender = (user_data.get("gender") or "Nam").strip()
+
+            if channel == "email":
+                email = identifier
+                phone_number = (user_data.get("phone_number") or "").strip() or None
+            else:
+                phone_number = identifier
+                email = f"{identifier}@phone.medimind"
+
+            # Kiểm tra tài khoản đã tồn tại chưa
+            existing = User.query.filter(
+                (User.email == email) |
+                ((User.phone_number == phone_number) & (User.phone_number.isnot(None)))
+            ).first()
+            if existing:
+                return jsonify({"success": False, "error": "Tài khoản này đã tồn tại trên hệ thống."}), 409
+
+            if not password:
+                import secrets
+                password = secrets.token_urlsafe(12)
+
+            new_user = User(
+                email=email,
+                full_name=full_name,
+                role="patient",
+                phone_number=phone_number,
+                dob=dob,
+                gender=gender
+            )
+            new_user.set_password(password)
+            db.session.add(new_user)
+            db.session.commit()
+
+            session["user_id"] = new_user.id
+            session["user_role"] = new_user.role
+
+            return jsonify({
+                "success": True,
+                "message": "Xác thực danh tính và đăng ký tài khoản thành công!",
+                "user": new_user.to_dict()
+            }), 201
+
+        # Nếu là kịch bản Đăng nhập 2FA (2FA Login)
+        if purpose == "login_2fa":
+            clean_phone = "".join(filter(str.isdigit, identifier))
+            user = User.query.filter(
+                (User.email == identifier) |
+                (User.phone_number == identifier) |
+                (User.phone_number == clean_phone) |
+                (User.email == f"{clean_phone}@phone.medimind")
+            ).first()
+
+            if not user:
+                return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
+
+            session["user_id"] = user.id
+            session["user_role"] = user.role
+
+            return jsonify({
+                "success": True,
+                "message": f"Xác thực 2 lớp thành công! Chào mừng {user.full_name}.",
+                "user": user.to_dict()
+            })
+
+        return jsonify({
+            "success": True,
+            "message": "Xác thực mã OTP thành công."
+        })
+
+
+    @app.route("/api/auth/google", methods=["POST"])
+    def auth_google():
+        """
+        Đăng nhập 1-Click bằng Google Identity Services / OAuth 2.0:
+        Tiếp nhận JWT credential hoặc thông tin người dùng từ client,
+        tự động đồng bộ Họ tên, Email và Ảnh đại diện Google vào MediMind.
+        """
+        import base64
+        import secrets
+
+        data = request.get_json(silent=True) or {}
+        credential = data.get("credential")
+        email = (data.get("email") or "").strip().lower()
+        full_name = (data.get("name") or "").strip()
+        avatar_url = (data.get("avatar_url") or data.get("picture") or "").strip()
+
+        # Giải mã Google JWT credential nếu có
+        if credential and isinstance(credential, str):
+            try:
+                parts = credential.split(".")
+                if len(parts) >= 2:
+                    payload_b64 = parts[1]
+                    payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
+                    payload_json = base64.urlsafe_b64decode(payload_b64.encode("ascii")).decode("utf-8")
+                    token_info = json.loads(payload_json)
+
+                    if token_info.get("email"):
+                        email = token_info["email"].strip().lower()
+                    if token_info.get("name"):
+                        full_name = token_info["name"].strip()
+                    if token_info.get("picture"):
+                        avatar_url = token_info["picture"].strip()
+            except Exception as e:
+                logger.warning(f"Lỗi giải mã Google JWT Token: {e}")
+
+        if not email or "@" not in email:
+            return jsonify({"success": False, "error": "Email Google không hợp lệ hoặc không được cung cấp."}), 400
+
+        if not full_name:
+            full_name = email.split("@")[0].capitalize()
+
+        # Tìm hoặc tạo người dùng
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # Đồng bộ lại Avatar và Họ tên từ Google nếu chưa có
+            if avatar_url and not user.avatar_url:
+                user.avatar_url = avatar_url
+            if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
+                user.full_name = full_name
+            db.session.commit()
+        else:
+            user = User(
+                email=email,
+                full_name=full_name,
+                role="patient",
+                avatar_url=avatar_url or None
+            )
+            user.set_password(secrets.token_urlsafe(24))
+            db.session.add(user)
+            db.session.commit()
+
+        # Khởi tạo Session
+        session["user_id"] = user.id
+        session["user_role"] = user.role
+
+        return jsonify({
+            "success": True,
+            "message": f"Đăng nhập thành công với tài khoản Google ({user.email})!",
+            "user": user.to_dict()
+        })
+
 
 
     # ==============================================================

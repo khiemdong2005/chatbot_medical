@@ -57,6 +57,11 @@ MIGRATIONS = [
             FOREIGN KEY (user_id) REFERENCES users (id)
         );
         """
+    ),
+    (
+        "2026_01_05_auth_enhancements",
+        "Bổ sung cột avatar_url cho đăng nhập Google và OTP",
+        None
     )
 ]
 
@@ -105,9 +110,13 @@ def run_migrations(engine):
                         for col_name, col_type in columns_to_add:
                             if col_name not in existing_cols:
                                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
+                elif version == "2026_01_05_auth_enhancements":
+                    if "users" in inspector.get_table_names():
+                        existing_cols = {col["name"] for col in inspector.get_columns("users")}
+                        if "avatar_url" not in existing_cols:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
-                    # SQLite có thể yêu cầu chạy từng câu lệnh riêng lẻ
                     for stmt in sql.strip().split(";"):
                         stmt_clean = stmt.strip()
                         if stmt_clean:
