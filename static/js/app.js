@@ -1426,8 +1426,39 @@ function renderPrescriptionResult(data) {
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
   const dateStr = data.date || 'Hôm nay';
   const duration = data.duration || '30 ngày';
-  const dob = data.dob || data.age || '45 tuổi';
-  const bhyt = data.bhyt || 'GD47902158829';
+  const rawDob = (data.dob || data.birth_date || '').toString().trim();
+  const rawAge = (data.age || '').toString().trim();
+  const currentYear = new Date().getFullYear();
+
+  // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
+  let displayBirthInfo = '';
+  let displayAge = '';
+
+  // Tìm năm 4 chữ số (19xx hoặc 20xx)
+  const yearMatch = rawDob.match(/(19\d{2}|20\d{2})/);
+  if (yearMatch) {
+    const birthYear = parseInt(yearMatch[1], 10);
+    const calculatedAge = currentYear - birthYear;
+    
+    // Nếu có dạng ngày đầy đủ dd/mm/yyyy
+    const fullDateMatch = rawDob.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/);
+    if (fullDateMatch) {
+      displayBirthInfo = fullDateMatch[1];
+    } else {
+      displayBirthInfo = birthYear.toString();
+    }
+    displayAge = `${calculatedAge} tuổi`;
+  } else if (rawAge && !isNaN(parseInt(rawAge, 10))) {
+    const parsedAge = parseInt(rawAge, 10);
+    displayAge = `${parsedAge} tuổi`;
+    displayBirthInfo = `${currentYear - parsedAge}`;
+  } else if (rawDob) {
+    displayBirthInfo = rawDob;
+    displayAge = '';
+  } else {
+    displayBirthInfo = 'Chưa xác định';
+    displayAge = '';
+  }
   const medId = data.document_id ? `#MED-${data.document_id}` : `#MED-8841`;
   const fileName = data.uploaded_filename || 'ToaThuoc_KhamDinhKy.jpg';
   const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
@@ -1622,21 +1653,18 @@ function renderPrescriptionResult(data) {
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
-                  <span class="bg-teal-800 text-white text-[9px] font-bold px-2 py-0.5 rounded">BHYT Đúng tuyến</span>
+                  
                 </div>
                 <h3 class="text-lg font-black text-slate-900 mt-0.5">${patient}</h3>
                 
-                <div class="text-xs text-slate-600 font-medium mt-1 flex flex-wrap items-center gap-2">
+                <div class="text-xs text-slate-600 font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
                   <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Tuổi:</span> <strong>${dob}</strong>
+                    <span class="text-slate-400 font-normal">Ngày/Năm sinh:</span> <strong class="text-slate-900 font-bold">${displayBirthInfo}</strong>
+                    ${displayAge ? `<span class="px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-bold">(${displayAge})</span>` : ''}
                   </span>
                   <span class="text-slate-300">•</span>
                   <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong>${data.gender || 'Nữ'}</strong>
-                  </span>
-                  <span class="text-slate-300">•</span>
-                  <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Mã BHYT:</span> <strong class="font-mono text-teal-900">${bhyt}</strong>
+                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 font-bold">${data.gender || 'Nữ'}</strong>
                   </span>
                 </div>
               </div>
