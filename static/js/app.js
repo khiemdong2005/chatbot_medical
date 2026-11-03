@@ -1,23 +1,44 @@
 
 // ==========================================
-// Eye Toggle Masking & Province/District Data
+// Eye Toggle Masking for 7 Fields & Province Helper
 // ==========================================
 const fieldMaskState = {
   'p-email': false,
-  'p-phone': false
+  'p-phone': false,
+  'p-cccd': false,
+  'p-issue-date': false,
+  'p-bhyt': false,
+  'p-valid-from': false,
+  'p-valid-to': false
 };
 
-function maskEmail(email) {
-  if (!email || !email.includes('@')) return email || '';
-  const [user, domain] = email.split('@');
-  if (user.length <= 2) return user[0] + '•••@' + domain;
-  return user[0] + '••••••••' + user.slice(-1) + '@' + domain;
-}
+const fieldRealValues = {};
 
-function maskPhone(phone) {
-  if (!phone) return phone || '';
-  if (phone.length <= 4) return '••••';
-  return phone.slice(0, 3) + '••••' + phone.slice(-3);
+function maskFieldValue(val, fieldId) {
+  if (!val) return '';
+  if (fieldId === 'p-email') {
+    if (!val.includes('@')) return '••••••••';
+    const [user, domain] = val.split('@');
+    if (user.length <= 2) return user[0] + '•••@' + domain;
+    return user[0] + '••••••••' + user.slice(-1) + '@' + domain;
+  }
+  if (fieldId === 'p-phone') {
+    if (val.length <= 4) return '••••';
+    return val.slice(0, 3) + '••••' + val.slice(-3);
+  }
+  if (fieldId === 'p-cccd') {
+    if (val.length <= 6) return '••••••';
+    return val.slice(0, 3) + '••••••' + val.slice(-3);
+  }
+  if (fieldId === 'p-bhyt') {
+    if (val.length <= 5) return '•••••';
+    return val.slice(0, 3) + '••••••••••' + val.slice(-2);
+  }
+  if (fieldId.includes('date') || fieldId.includes('valid')) {
+    return '••/••/••••';
+  }
+  if (val.length <= 4) return '••••';
+  return val.slice(0, 2) + '••••' + val.slice(-2);
 }
 
 function toggleFieldMask(fieldId) {
@@ -26,19 +47,26 @@ function toggleFieldMask(fieldId) {
   const input = document.getElementById(fieldId);
   const eyeIcon = document.getElementById(fieldId + '-eye');
   
-  const realVal = (fieldId === 'p-email') ? (currentUser?.email || 'benhnhan.an@gmail.com') : (currentUser?.phone_number || '0347047101');
-  
-  if (input) {
-    input.value = isMasked ? ((fieldId === 'p-email') ? maskEmail(realVal) : maskPhone(realVal)) : realVal;
+  if (!input) return;
+
+  if (isMasked) {
+    if (!fieldRealValues[fieldId]) {
+      fieldRealValues[fieldId] = input.value;
+    }
+    input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
+  } else {
+    input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
   }
 
-  // Sync left card
+  // Sync left card if email or phone
   if (fieldId === 'p-email') {
     const cardEmail = document.getElementById('profile-card-email');
-    if (cardEmail) cardEmail.innerText = isMasked ? maskEmail(realVal) : realVal;
+    const realEmail = fieldRealValues[fieldId] || input.value;
+    if (cardEmail) cardEmail.innerText = isMasked ? maskFieldValue(realEmail, 'p-email') : realEmail;
   } else if (fieldId === 'p-phone') {
     const cardPhone = document.getElementById('profile-card-phone');
-    if (cardPhone) cardPhone.innerText = isMasked ? maskPhone(realVal) : realVal;
+    const realPhone = fieldRealValues[fieldId] || input.value;
+    if (cardPhone) cardPhone.innerText = isMasked ? maskFieldValue(realPhone, 'p-phone') : realPhone;
   }
 
   if (eyeIcon) {
@@ -49,16 +77,6 @@ function toggleFieldMask(fieldId) {
     }
   }
 }
-
-const VIETNAM_DISTRICTS = {
-  "Thành phố Hồ Chí Minh": ["Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8", "Quận 10", "Quận 11", "Quận 12", "TP. Thủ Đức", "Quận Bình Thạnh", "Quận Gò Vấp", "Quận Phú Nhuận", "Quận Tân Bình", "Quận Tân Phú", "Huyện Bình Chánh", "Huyện Cần Giờ", "Huyện Củ Chi", "Huyện Hóc Môn", "Huyện Nhà Bè"],
-  "Thành phố Hà Nội": ["Quận Ba Đình", "Quận Hoàn Kiếm", "Quận Tây Hồ", "Quận Long Biên", "Quận Cầu Giấy", "Quận Đống Đa", "Quận Hai Bà Trưng", "Quận Hoàng Mai", "Quận Thanh Xuân", "Quận Nam Từ Liêm", "Quận Bắc Từ Liêm", "Quận Hà Đông", "Thị xã Sơn Tây", "Huyện Ba Vì", "Huyện Đông Anh", "Huyện Gia Lâm", "Huyện Sóc Sơn", "Huyện Thanh Trì"],
-  "Thành phố Đà Nẵng": ["Quận Hải Châu", "Quận Thanh Khê", "Quận Sơn Trà", "Quận Ngũ Hành Sơn", "Quận Liên Chiểu", "Quận Cẩm Lệ", "Huyện Hòa Vang"],
-  "Thành phố Hải Phòng": ["Quận Hồng Bàng", "Quận Ngô Quyền", "Quận Lê Chân", "Quận Hải An", "Quận Kiến An", "Quận Đồ Sơn", "Quận Dương Kinh", "Huyện Thủy Nguyên", "Huyện An Dương"],
-  "Thành phố Cần Thơ": ["Quận Ninh Kiều", "Quận Bình Thủy", "Quận Cái Răng", "Quận Ô Môn", "Quận Thốt Nốt", "Huyện Phong Điền", "Huyện Thới Lai"],
-  "Thành phố Huế": ["Quận Phú Xuân", "Quận Thuận Hóa", "Thị xã Hương Thủy", "Thị xã Hương Trà", "Huyện Phong Điền", "Huyện Phú Vang", "Huyện Phú Lộc"],
-  "Thành phố Quảng Ninh": ["Thành phố Hạ Long", "Thành phố Cẩm Phả", "Thành phố Móng Cái", "Thành phố Uông Bí", "Thị xã Đông Triều", "Thị xã Quảng Yên"]
-};
 
 function handleProvinceChange() {
   const provEl = document.getElementById('p-province');
@@ -93,15 +111,25 @@ const DEFAULT_USER_PROFILE = {
   clinical_id: "84291908",
   name: "Nguyễn Văn An",
   full_name: "Nguyễn Văn An",
+  dob: "04/10/2005",
   gender: "Nam",
+  phone_number: "0347047101",
+  email: "benhnhan.an@gmail.com",
   role: "patient",
   badge: "BN",
-  email: "benhnhan.an@gmail.com",
-  phone_number: "0347047101",
-  dob: "04/10/2005",
-  province: "Thành phố Hồ Chí Minh",
-  district: "Quận 1",
-  address: "Số 123 đường Nguyễn Huệ, Phường Bến Nghé",
+  cccd: "",
+  issue_date: "",
+  bhyt: "",
+  facility: "",
+  valid_from: "",
+  valid_to: "",
+  issue_place: "",
+  nationality: "VN",
+  ethnicity: "",
+  religion: "",
+  province: "",
+  ward: "",
+  address: "",
   joined: "11/09/2026",
   avatar: "/static/images/user_avatar.png"
 };
@@ -1494,10 +1522,11 @@ function updateAuthUI() {
     if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
-    // Sync Image 1 fields (Screenshot UI)
+    // Sync Image 1 fields (Registration preserved, others empty on 1st edit)
     const pBirthDate = document.getElementById('p-birthdate');
     const pGender = document.getElementById('p-gender');
     const pPhone = document.getElementById('p-phone');
+    const pEmail = document.getElementById('p-email');
     const pCccd = document.getElementById('p-cccd');
     const pIssueDate = document.getElementById('p-issue-date');
     const pBhyt = document.getElementById('p-bhyt');
@@ -1516,31 +1545,59 @@ function updateAuthUI() {
     const cardEmail = document.getElementById('profile-card-email');
     const cardPhone = document.getElementById('profile-card-phone');
 
+    // 1. Preserved from Registration
     if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
     if (pGender && currentUser.gender) pGender.value = currentUser.gender;
     
     const phoneVal = currentUser.phone_number || '0347047101';
-    if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskPhone(phoneVal) : phoneVal;
-    
-    if (pCccd) pCccd.value = currentUser.cccd || '066205001075';
-    if (pIssueDate) pIssueDate.value = currentUser.issue_date || '07/04/2021';
-    if (pBhyt) pBhyt.value = currentUser.bhyt || 'GD4797931853610';
-    if (pFacility) pFacility.value = currentUser.facility || 'Bệnh viện Đại học Y Dược TP.HCM';
-    if (pValidFrom) pValidFrom.value = currentUser.valid_from || '01/01/2024';
-    if (pValidTo) pValidTo.value = currentUser.valid_to || '31/12/2028';
-    if (pIssuePlace) pIssuePlace.value = currentUser.issue_place || 'Cục Cảnh sát QLHC về TTXH';
+    fieldRealValues['p-phone'] = phoneVal;
+    if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
+
+    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
+    fieldRealValues['p-email'] = emailVal;
+    if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
+
+    // 2. Initial edit: Empty if not yet provided by user
+    const cccdVal = currentUser.cccd || '';
+    fieldRealValues['p-cccd'] = cccdVal;
+    if (pCccd) pCccd.value = fieldMaskState['p-cccd'] ? maskFieldValue(cccdVal, 'p-cccd') : cccdVal;
+
+    const issueDateVal = currentUser.issue_date || '';
+    fieldRealValues['p-issue-date'] = issueDateVal;
+    if (pIssueDate) pIssueDate.value = fieldMaskState['p-issue-date'] ? maskFieldValue(issueDateVal, 'p-issue-date') : issueDateVal;
+
+    const bhytVal = currentUser.bhyt || '';
+    fieldRealValues['p-bhyt'] = bhytVal;
+    if (pBhyt) pBhyt.value = fieldMaskState['p-bhyt'] ? maskFieldValue(bhytVal, 'p-bhyt') : bhytVal;
+
+    if (pFacility) pFacility.value = currentUser.facility || '';
+
+    const validFromVal = currentUser.valid_from || '';
+    fieldRealValues['p-valid-from'] = validFromVal;
+    if (pValidFrom) pValidFrom.value = fieldMaskState['p-valid-from'] ? maskFieldValue(validFromVal, 'p-valid-from') : validFromVal;
+
+    const validToVal = currentUser.valid_to || '';
+    fieldRealValues['p-valid-to'] = validToVal;
+    if (pValidTo) pValidTo.value = fieldMaskState['p-valid-to'] ? maskFieldValue(validToVal, 'p-valid-to') : validToVal;
+
+    if (pIssuePlace) pIssuePlace.value = currentUser.issue_place || '';
     if (pNationality) pNationality.value = currentUser.nationality || 'VN';
-    if (pEthnicity && currentUser.ethnicity) pEthnicity.value = currentUser.ethnicity;
-    if (pReligion && currentUser.religion) pReligion.value = currentUser.religion;
-    if (pProvince && currentUser.province) pProvince.value = currentUser.province;
-    if (pWard) pWard.value = currentUser.ward || 'Xã Ea Drăng';
-    if (pAddress) pAddress.value = currentUser.address || '335 Giải Phóng , TDP 6 , T.T Eadrang , Huyện Eahleo , Tỉnh Đắk Lắk';
+    if (pEthnicity) pEthnicity.value = currentUser.ethnicity || '';
+    if (pReligion) pReligion.value = currentUser.religion || '';
+    
+    if (pProvince) {
+      pProvince.value = currentUser.province || '';
+      handleProvinceChange();
+      if (pWard) {
+        pWard.value = currentUser.ward || '';
+      }
+    }
+    if (pAddress) pAddress.value = currentUser.address || '';
 
     if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Văn An';
-    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
-    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskEmail(emailVal) : emailVal;
-    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskPhone(phoneVal) : phoneVal;
-
+    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
+    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
+    
     if (currentUser.avatar) {
       const topAvatar = document.getElementById('user-avatar-img');
       const dispAvatar = document.getElementById('profile-avatar-display');
@@ -2871,20 +2928,31 @@ function handleSaveImage1Profile(e) {
   if (e) e.preventDefault();
   const birthDate = document.getElementById('p-birthdate')?.value.trim();
   const gender = document.getElementById('p-gender')?.value || 'Nam';
-  let phone = document.getElementById('p-phone')?.value.trim();
-  if (fieldMaskState['p-phone']) {
-    phone = currentUser?.phone_number || phone;
-  }
-  const cccd = document.getElementById('p-cccd')?.value.trim() || '';
-  const issueDate = document.getElementById('p-issue-date')?.value.trim() || '';
-  const bhyt = document.getElementById('p-bhyt')?.value.trim() || '';
+  
+  const getFieldValue = (fieldId, fallback = '') => {
+    if (fieldMaskState[fieldId] && fieldRealValues[fieldId] !== undefined) {
+      return fieldRealValues[fieldId];
+    }
+    const val = document.getElementById(fieldId)?.value.trim();
+    if (val !== undefined && val !== null) {
+      fieldRealValues[fieldId] = val;
+      return val;
+    }
+    return fallback;
+  };
+
+  const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
+  const email = getFieldValue('p-email', currentUser?.email || '');
+  const cccd = getFieldValue('p-cccd');
+  const issueDate = getFieldValue('p-issue-date');
+  const bhyt = getFieldValue('p-bhyt');
   const facility = document.getElementById('p-facility')?.value.trim() || '';
-  const validFrom = document.getElementById('p-valid-from')?.value.trim() || '';
-  const validTo = document.getElementById('p-valid-to')?.value.trim() || '';
+  const validFrom = getFieldValue('p-valid-from');
+  const validTo = getFieldValue('p-valid-to');
   const issuePlace = document.getElementById('p-issue-place')?.value.trim() || '';
   const nationality = document.getElementById('p-nationality')?.value.trim() || 'VN';
-  const ethnicity = document.getElementById('p-ethnicity')?.value || 'Kinh';
-  const religion = document.getElementById('p-religion')?.value || 'Không';
+  const ethnicity = document.getElementById('p-ethnicity')?.value || '';
+  const religion = document.getElementById('p-religion')?.value || '';
   const province = document.getElementById('p-province')?.value || '';
   const ward = document.getElementById('p-ward')?.value.trim() || '';
   const address = document.getElementById('p-address')?.value.trim() || '';
@@ -2896,6 +2964,7 @@ function handleSaveImage1Profile(e) {
   currentUser.dob = birthDate;
   currentUser.gender = gender;
   currentUser.phone_number = phone || currentUser.phone_number;
+  currentUser.email = email || currentUser.email;
   currentUser.cccd = cccd;
   currentUser.issue_date = issueDate;
   currentUser.bhyt = bhyt;
@@ -2914,7 +2983,9 @@ function handleSaveImage1Profile(e) {
 
   // Sync Left Card
   const cPhone = document.getElementById('profile-card-phone');
-  if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskPhone(currentUser.phone_number) : (currentUser.phone_number || '');
+  const cEmail = document.getElementById('profile-card-email');
+  if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(currentUser.phone_number, 'p-phone') : (currentUser.phone_number || '');
+  if (cEmail) cEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(currentUser.email, 'p-email') : (currentUser.email || '');
 
   updateAuthUI();
 
