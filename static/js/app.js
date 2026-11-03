@@ -2,7 +2,7 @@
 // Features: Multimodal Gemini Vision, RAG, Double Guardrails, Bilingual i18n, RBAC, Profile & Scan Dataset Management
 
 const chatHistory = [];
-let currentLang = 'vi';
+let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
 let pendingTabAfterLogin = null;
@@ -13,15 +13,85 @@ let selectedChatImageBase64 = null;
 // ==========================================
 const translations = {
   vi: {
-    brand_subtitle: "HIPAA Compliant • Phác đồ MedlinePlus",
-    nav_chat: "Trang chủ",
-    nav_ocr: "Đọc đơn thuốc",
-    nav_booking: "Bệnh viện",
-    nav_doctor: "Bệnh án của tôi",
+    brand_subtitle: "Bảo mật thông tin cá nhân • Phác đồ MedlinePlus",
+    nav_chat: "Trợ lý sức khỏe",
+    nav_ocr: "Đọc đơn thuốc & xét nghiệm",
+    nav_booking: "Cơ sở y tế",
+    nav_doctor: "Hồ sơ của tôi",
     nav_admin: "Hạ tầng Cloud",
     nav_login: "Đăng nhập",
     nav_start: "Bắt đầu ngay",
     user_role: "Bác sĩ lâm sàng",
+    dock_chat: "Trợ lý sức khỏe",
+    dock_ocr: "Đọc đơn thuốc & xét nghiệm",
+    dock_booking: "Cơ sở y tế & Bệnh viện",
+    dock_doctor: "Hồ sơ của tôi",
+    dock_wallpaper: "Đổi không gian Y tế",
+    dock_theme: "Kính Sáng / Kính Khói",
+    dock_reset: "Cuộc trò chuyện mới",
+    ocr_title: "Đọc Đơn Thuốc & Xét Nghiệm",
+    ocr_subtitle: "Bóc tách danh mục thuốc, đối chiếu liều dùng và gợi ý lịch uống sau khi bạn xác nhận",
+    ocr_btn_upload_new: "Tải tài liệu mới",
+    ocr_btn_home: "Trang chủ",
+    ocr_box_title: "Tải Lên Đơn Thuốc Hoặc Phiếu Xét Nghiệm",
+    ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép tài liệu (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)",
+    ocr_btn_choose: "Chọn tài liệu từ thiết bị",
+    ocr_privacy_note: "🔒 Tài liệu được bảo mật và chỉ lưu vào hồ sơ cá nhân sau khi bạn xác nhận kết quả.",
+    ocr_preset_hint: "Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:",
+    ocr_preset_gastro: "Đơn thuốc mẫu (Tiêu hóa)",
+    ocr_preset_resp: "Đơn thuốc mẫu (Hô hấp)",
+    ocr_preset_blood: "Phiếu xét nghiệm mẫu (Máu)",
+    modal_login_title: "Đăng nhập MediMind AI",
+    modal_register_title: "Đăng ký tài khoản MediMind",
+    modal_auth_subtitle: "Hệ thống Trợ lý Y tế & Phân tầng Lâm sàng",
+    tab_login: "Đăng nhập",
+    tab_register: "Tạo tài khoản mới",
+    ph_identifier: "Email hoặc số di động",
+    ph_password: "Mật khẩu",
+    btn_login: "Đăng nhập",
+    link_forgot_pwd: "Quên mật khẩu?",
+    btn_create_account: "Tạo tài khoản mới",
+    btn_demo_login: "Đăng nhập tài khoản mẫu thử nghiệm",
+    lbl_name: "Tên",
+    ph_last_name: "Họ",
+    ph_first_name: "Tên",
+    lbl_dob: "Ngày sinh",
+    opt_day: "Ngày",
+    opt_month: "Tháng",
+    opt_year: "Năm",
+    lbl_gender: "Giới tính",
+    opt_gender_select: "Chọn giới tính",
+    opt_male: "Nam",
+    opt_female: "Nữ",
+    opt_other: "Khác",
+    lbl_identifier: "Số di động hoặc email",
+    lbl_password: "Mật khẩu",
+    btn_register_submit: "Đăng ký tài khoản mới",
+    lbl_have_account: "Đã có tài khoản?",
+    link_login_now: "Đăng nhập ngay",
+    history_title: "Lịch Sử Tư Vấn",
+    history_subtitle: "Các phiên sàng lọc & phân tích triệu chứng",
+    history_btn_new: "Hội thoại mới",
+    ph_history_search: "Tìm kiếm phiên tư vấn...",
+    history_empty_title: "Chưa có lịch sử tư vấn",
+    history_empty_desc: "Các cuộc sàng lọc triệu chứng sẽ được lưu tự động tại đây sau khi hoàn tất.",
+    history_demo_btn: "Xem thử ca tư vấn mẫu (Demo)",
+    history_security: "Bảo mật dữ liệu cá nhân",
+    history_encrypted: "Cục bộ & Mã hóa",
+    assistant_header_title: "Trợ lý sức khỏe AI",
+    assistant_header_subtitle: "Đang trực tuyến • Phác đồ MedlinePlus & Dược thư",
+    assistant_btn_summary: "Hồ sơ & Tóm tắt",
+    assistant_greeting_title: "Chào bạn, tôi là Trợ lý sức khỏe AI MediMind!",
+    assistant_greeting_desc: "Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
+    ehr_title: "Hồ Sơ Của Tôi",
+    ehr_tag: "TÓM TẮT TRƯỚC KHÁM",
+    ehr_subtitle: "Lưu trữ tóm tắt các lần sàng lọc triệu chứng & tài liệu đơn thuốc của bạn",
+    ehr_export_text: "Xuất Tóm Tắt (PDF)",
+    ehr_home: "Trang chủ",
+    ehr_empty_title: "Bạn chưa có bản tóm tắt trước khám",
+    ehr_empty_desc: "Chưa có dữ liệu tư vấn nào được ghi nhận. Hãy trao đổi với Trợ lý sức khỏe AI hoặc tải ảnh đơn thuốc để hệ thống tự động tổng hợp thông tin trước khám cho bạn.",
+    ehr_btn_start_chat: "Bắt đầu tư vấn triệu chứng",
+    ehr_btn_upload: "Tải đơn thuốc / xét nghiệm",
     hero_badge: "Dự án AI vì sức khỏe cộng đồng 2026",
     hero_title_1: "Trợ lý sức khỏe",
     hero_title_2: "thông minh",
@@ -58,14 +128,84 @@ const translations = {
   },
   en: {
     brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
-    nav_chat: "Home",
-    nav_ocr: "Prescriptions",
-    nav_booking: "Hospitals",
+    nav_chat: "Health Assistant",
+    nav_ocr: "Prescriptions & Labs",
+    nav_booking: "Hospitals & Clinics",
     nav_doctor: "My Health Record",
     nav_admin: "Cloud Infrastructure",
     nav_login: "Sign In",
     nav_start: "Get Started",
     user_role: "Clinical Physician",
+    dock_chat: "Health Assistant",
+    dock_ocr: "Prescriptions & Labs",
+    dock_booking: "Hospitals & Clinics",
+    dock_doctor: "My Health Record",
+    dock_wallpaper: "Change Wallpaper",
+    dock_theme: "Light / Dark Glass",
+    dock_reset: "New Conversation",
+    ocr_title: "Prescription & Lab OCR",
+    ocr_subtitle: "Extract drug lists, verify dosages, and generate intake schedules after confirmation",
+    ocr_btn_upload_new: "Upload New Document",
+    ocr_btn_home: "Home",
+    ocr_box_title: "Upload Prescription or Lab Report",
+    ocr_box_desc: "Clear text, adequate light, all edges visible (Supports JPG, PNG, PDF, up to 10MB)",
+    ocr_btn_choose: "Select from Device",
+    ocr_privacy_note: "🔒 Your document is encrypted and only saved to your personal health record upon confirmation.",
+    ocr_preset_hint: "No document at hand? Try quick samples:",
+    ocr_preset_gastro: "Sample Prescription (Gastro)",
+    ocr_preset_resp: "Sample Prescription (Resp)",
+    ocr_preset_blood: "Sample Lab Report (Blood)",
+    modal_login_title: "Sign In to MediMind AI",
+    modal_register_title: "Create MediMind Account",
+    modal_auth_subtitle: "Clinical Decision Support & Health Assistant",
+    tab_login: "Sign In",
+    tab_register: "Create Account",
+    ph_identifier: "Email or mobile number",
+    ph_password: "Password",
+    btn_login: "Sign In",
+    link_forgot_pwd: "Forgot Password?",
+    btn_create_account: "Create New Account",
+    btn_demo_login: "Quick Demo Patient Sign-in",
+    lbl_name: "Name",
+    ph_last_name: "Last Name",
+    ph_first_name: "First Name",
+    lbl_dob: "Date of Birth",
+    opt_day: "Day",
+    opt_month: "Month",
+    opt_year: "Year",
+    lbl_gender: "Gender",
+    opt_gender_select: "Select Gender",
+    opt_male: "Male",
+    opt_female: "Female",
+    opt_other: "Other",
+    lbl_identifier: "Mobile Number or Email",
+    lbl_password: "Password",
+    btn_register_submit: "Register New Account",
+    lbl_have_account: "Already have an account?",
+    link_login_now: "Sign In Now",
+    history_title: "Consultation History",
+    history_subtitle: "Screening sessions & symptom analyses",
+    history_btn_new: "New Session",
+    ph_history_search: "Search consultations...",
+    history_empty_title: "No consultation history yet",
+    history_empty_desc: "Your symptom screenings will be automatically saved here upon completion.",
+    history_demo_btn: "View Demo Consultation Case",
+    history_security: "Personal Data Privacy",
+    history_encrypted: "Local & Encrypted",
+    assistant_header_title: "MediMind AI Health Assistant",
+    assistant_header_subtitle: "Online • MedlinePlus Guidelines & Formulary",
+    assistant_btn_summary: "Record & Summary",
+    assistant_greeting_title: "Hello, I am MediMind Clinical AI Assistant!",
+    assistant_greeting_desc: "I can assist you with initial symptom triage, prescription explanations, and appropriate clinic referrals. What health concern can I help you with today?",
+    ehr_title: "My Health Record",
+    ehr_tag: "PRE-VISIT SUMMARY",
+    ehr_subtitle: "Archive of symptom screening summaries and prescription documents",
+    ehr_export_text: "Export Summary (PDF)",
+    ehr_home: "Home",
+    ehr_empty_title: "No Pre-Visit Summary Available",
+    ehr_empty_desc: "No consultation data recorded yet. Talk with our AI Health Assistant or upload a prescription to generate your summary.",
+    ehr_btn_start_chat: "Start Symptom Consultation",
+    ehr_btn_upload: "Upload Prescription / Lab",
     hero_badge: "Community Health AI Initiative 2026",
     hero_title_1: "Smart Healthcare",
     hero_title_2: "Assistant",
@@ -80,14 +220,15 @@ const translations = {
     chip_source: "From trusted sources",
     chat_assistant_title: "MediMind AI Assistant",
     chat_status: "Online",
-    quick_1: "📷 Skin Image AI",
-    quick_2: "🔍 Unilateral Blisters?",
-    quick_3: "🌡️ Safe Antipyretic?",
-    quick_4: "💊 Need Antibiotics?",
-    quick_prompt_text_2: "I have itchy blisters clustered on one side of my torso",
-    quick_prompt_text_3: "What is a safe fever reducer medication?",
-    quick_prompt_text_4: "Do I need to take antibiotics for a cold or sore throat?",
-    chat_input_placeholder: "Describe symptoms or upload a skin lesion photo...",
+    quick_1: "🩺 Fever 38.5°C & Sore Throat",
+    quick_2: "⚠️ Chest Tightness, Dyspnea",
+    quick_3: "💊 Post-meal Prescription Schedule?",
+    quick_4: "🏥 Specialty Referral Guidance",
+    quick_prompt_text_1: "I have had a fever of 38.5 C and sore throat for 2 days, painful swallowing",
+    quick_prompt_text_2: "I have intense crushing chest pain, sweating, and shortness of breath radiating to left arm",
+    quick_prompt_text_3: "Should I take this medication before or after meals?",
+    quick_prompt_text_4: "I feel burning epigastric pain after eating, which specialty should I consult?",
+    chat_input_placeholder: "Describe symptoms (e.g. chest pain, fever, stomach pain) or send prescription photo...",
     disclaimer_footer_text: "⚠️ Educational Health AI Prototype • ",
     disclaimer_footer_btn: "Medical Disclaimer",
     typing_vision: "Gemini Vision is analyzing morphology...",
@@ -121,8 +262,11 @@ function closeLanguageDropdown() {
 
 function setLanguage(lang) {
   currentLang = lang;
+  try { localStorage.setItem('medimind_lang', lang); } catch (e) {}
   closeLanguageDropdown();
+  populateDobDropdowns();
   applyLanguage();
+  updateAuthUI();
 }
 
 function applyLanguage() {
@@ -134,6 +278,23 @@ function applyLanguage() {
   const checkEn = document.getElementById('check-en');
   if (checkVi) checkVi.classList.toggle('hidden', currentLang !== 'vi');
   if (checkEn) checkEn.classList.toggle('hidden', currentLang !== 'en');
+
+  // Dynamic Auth modal header based on currentAuthMode
+  const titleEl = document.getElementById('auth-modal-title');
+  if (titleEl) {
+    titleEl.innerText = (typeof currentAuthMode !== 'undefined' && currentAuthMode === 'register')
+      ? (dict.modal_register_title || 'Đăng ký tài khoản MediMind')
+      : (dict.modal_login_title || 'Đăng nhập MediMind AI');
+  }
+
+  // Update gender options text
+  const genderSelect = document.getElementById('register-gender');
+  if (genderSelect && genderSelect.options.length >= 4) {
+    genderSelect.options[0].text = dict.opt_gender_select || 'Chọn giới tính';
+    genderSelect.options[1].text = dict.opt_male || 'Nam';
+    genderSelect.options[2].text = dict.opt_female || 'Nữ';
+    genderSelect.options[3].text = dict.opt_other || 'Khác';
+  }
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
@@ -749,20 +910,30 @@ function populateDobDropdowns() {
   const monthSelect = document.getElementById('register-dob-month');
   const yearSelect = document.getElementById('register-dob-year');
   if (!daySelect || !monthSelect || !yearSelect) return;
-  if (daySelect.children.length <= 1) {
-    daySelect.innerHTML = '<option value="" disabled selected>Ngày</option>' + 
-      Array.from({length: 31}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
-    monthSelect.innerHTML = '<option value="" disabled selected>Tháng</option>' + 
-      Array.from({length: 12}, (_, i) => `<option value="${i+1}">Tháng ${i+1}</option>`).join('');
-    const currentYear = new Date().getFullYear();
-    yearSelect.innerHTML = '<option value="" disabled selected>Năm</option>' + 
-      Array.from({length: 85}, (_, i) => `<option value="${currentYear - i}">${currentYear - i}</option>`).join('');
-  }
+
+  const prevDay = daySelect.value;
+  const prevMonth = monthSelect.value;
+  const prevYear = yearSelect.value;
+
+  const dayText = currentLang === 'en' ? 'Day' : 'Ngày';
+  const monthText = currentLang === 'en' ? 'Month' : 'Tháng';
+  const yearText = currentLang === 'en' ? 'Year' : 'Năm';
+
+  daySelect.innerHTML = `<option value="" disabled ${!prevDay ? 'selected' : ''} class="bg-slate-900 text-white">${dayText}</option>` + 
+    Array.from({length: 31}, (_, i) => `<option value="${i+1}" ${prevDay == (i+1) ? 'selected' : ''} class="bg-slate-900 text-white">${i+1}</option>`).join('');
+
+  monthSelect.innerHTML = `<option value="" disabled ${!prevMonth ? 'selected' : ''} class="bg-slate-900 text-white">${monthText}</option>` + 
+    Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${prevMonth == (i+1) ? 'selected' : ''} class="bg-slate-900 text-white">${currentLang === 'en' ? `Month ${i+1}` : `Tháng ${i+1}`}</option>`).join('');
+
+  const currentYear = new Date().getFullYear();
+  yearSelect.innerHTML = `<option value="" disabled ${!prevYear ? 'selected' : ''} class="bg-slate-900 text-white">${yearText}</option>` + 
+    Array.from({length: 85}, (_, i) => `<option value="${currentYear - i}" ${prevYear == (currentYear - i) ? 'selected' : ''} class="bg-slate-900 text-white">${currentYear - i}</option>`).join('');
 }
 
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
   currentAuthMode = mode;
+  const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
   const tabLogin = document.getElementById('tab-auth-login');
   const tabRegister = document.getElementById('tab-auth-register');
@@ -770,20 +941,20 @@ function toggleAuthMode(mode) {
   const registerForm = document.getElementById('register-form');
   if (mode === 'register') {
     populateDobDropdowns();
-    if (titleEl) titleEl.innerText = 'Đăng ký tài khoản MediMind';
-    tabLogin?.classList.remove('border-[#0284C7]', 'text-[#0284C7]');
-    tabLogin?.classList.add('border-transparent', 'text-slate-500');
-    tabRegister?.classList.remove('border-transparent', 'text-slate-500');
-    tabRegister?.classList.add('border-[#0284C7]', 'text-[#0284C7]');
+    if (titleEl) titleEl.innerText = dict.modal_register_title || (currentLang === 'en' ? 'Create MediMind Account' : 'Đăng ký tài khoản MediMind');
+    tabLogin?.classList.remove('border-sky-400', 'text-sky-400', 'border-[#0284C7]', 'text-[#0284C7]');
+    tabLogin?.classList.add('border-transparent', 'text-slate-400');
+    tabRegister?.classList.remove('border-transparent', 'text-slate-400');
+    tabRegister?.classList.add('border-sky-400', 'text-sky-400');
     loginForm?.classList.add('hidden');
     registerForm?.classList.remove('hidden');
     document.getElementById('register-last-name')?.focus();
   } else {
-    if (titleEl) titleEl.innerText = 'Đăng nhập MediMind AI';
-    tabRegister?.classList.remove('border-[#0284C7]', 'text-[#0284C7]');
-    tabRegister?.classList.add('border-transparent', 'text-slate-500');
-    tabLogin?.classList.remove('border-transparent', 'text-slate-500');
-    tabLogin?.classList.add('border-[#0284C7]', 'text-[#0284C7]');
+    if (titleEl) titleEl.innerText = dict.modal_login_title || (currentLang === 'en' ? 'Sign In to MediMind AI' : 'Đăng nhập MediMind AI');
+    tabRegister?.classList.remove('border-sky-400', 'text-sky-400', 'border-[#0284C7]', 'text-[#0284C7]');
+    tabRegister?.classList.add('border-transparent', 'text-slate-400');
+    tabLogin?.classList.remove('border-transparent', 'text-slate-400');
+    tabLogin?.classList.add('border-sky-400', 'text-sky-400');
     registerForm?.classList.add('hidden');
     loginForm?.classList.remove('hidden');
     document.getElementById('login-identifier')?.focus();
@@ -892,7 +1063,7 @@ async function handleLoginSubmit(e) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, email: identifier, password, role: currentRole })
+      body: JSON.stringify({ identifier, email: identifier, password })
     });
     const data = await res.json();
     if (data.success && data.user) {
