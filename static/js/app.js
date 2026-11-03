@@ -249,14 +249,11 @@ const DEFAULT_USER_PROFILE = {
   avatar: "/static/images/avatar_male.png"
 };
 
+// Default visitor: NO USER LOGGED IN unless explicit valid user exists in localStorage
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
 if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png') || currentUser.avatar?.includes('.svg'))) {
   currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
   currentUser.hasCustomAvatar = false;
-  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-}
-if (!currentUser || !currentUser.clinical_id || currentUser.clinical_id.length !== 8 || currentUser.name === 'Luyến Lê Công' || currentUser.name === 'BS. Lê Công Luyến') {
-  currentUser = DEFAULT_USER_PROFILE;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 }
 let pendingTabAfterLogin = null;
@@ -1701,7 +1698,8 @@ function handleCrossTabMessage(data) {
     currentUser = null;
     localStorage.removeItem('medimind_user');
     updateAuthUI();
-    if (typeof switchTab === 'function') switchTab('chat-tab');
+    if (typeof switchTab === 'function') switchTab('home-tab');
+  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
   }
 }
 
@@ -2024,6 +2022,28 @@ async function executeGoogleLogin(email, name, avatarUrl) {
   }
 }
 
+
+function toggleCustomGoogleInput() {
+  const box = document.getElementById('custom-google-input-box');
+  if (box) {
+    box.classList.toggle('hidden');
+    if (!box.classList.contains('hidden')) {
+      document.getElementById('custom-google-email')?.focus();
+    }
+  }
+}
+
+function submitCustomGoogleLogin() {
+  const emailInput = document.getElementById('custom-google-email');
+  const email = (emailInput?.value || '').trim();
+  if (!email || !email.includes('@')) {
+    alert('Vui lòng nhập địa chỉ Gmail hợp lệ.');
+    return;
+  }
+  const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  executeGoogleLogin(email, name, 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar');
+}
+
 function promptCustomGoogleAccount() {
   const customEmail = prompt('Nhập địa chỉ Gmail của bạn:');
   if (!customEmail) return;
@@ -2152,7 +2172,8 @@ async function handleLogout() {
   localStorage.removeItem('medimind_user');
   updateAuthUI();
   broadcastTabEvent('AUTH_LOGOUT', null);
-  switchTab('chat-tab');
+  switchTab('home-tab');
+  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
 }
 
 function updateAuthUI() {
@@ -2403,6 +2424,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
   applyLanguage();
   initHistorySearch();
+  switchTab('home-tab');
+  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
 
   const input = document.getElementById('user-input');
   if (input) {

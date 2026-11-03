@@ -3483,39 +3483,108 @@ Hủy bỏ
 <script src="{{ url_for('static', filename='js/app.js') }}?v=16.1.3"></script>
 
 
-<!-- GOOGLE ONE-CLICK ACCOUNT CHOOSER MODAL -->
-<div id="google-account-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
-  <div id="google-account-card" class="glass-panel p-6 max-w-sm w-full rounded-2xl border border-slate-200 shadow-2xl bg-white text-slate-800 space-y-4">
-    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-      <div class="flex items-center gap-2">
+<!-- GOOGLE OAUTH ACCOUNT CHOOSER MODAL (Based on Google Account Chooser reference) -->
+<div id="google-account-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+  <div class="max-w-md w-full rounded-[28px] bg-[#1e1f20] text-[#e3e3e3] border border-[#333537] p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-200">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between pb-1">
+      <div class="flex items-center gap-2.5">
         <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
         </svg>
-        <span class="text-xs font-semibold text-slate-500">Đăng nhập với Google</span>
+        <span class="text-xs font-medium text-[#c4c7c5]">Đăng nhập bằng Google</span>
       </div>
-      <button type="button" onclick="closeGoogleAccountModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-full cursor-pointer">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button type="button" onclick="closeGoogleAccountModal()" class="text-[#8e918f] hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
+    <!-- Title & Subtitle -->
     <div class="space-y-1">
-      <h4 class="text-sm font-bold text-slate-900">Chọn tài khoản</h4>
-      <p class="text-xs text-slate-500">để tiếp tục đến <strong class="text-slate-700">MediMind Clinical AI</strong></p>
+      <h3 class="text-2xl font-normal text-white">Chọn tài khoản</h3>
+      <p class="text-xs text-[#c4c7c5]">Tiếp tục tới <span class="text-sky-400 font-semibold">medimind.vn</span></p>
     </div>
 
-    <!-- Account List -->
-    <div class="space-y-2 pt-1">
-      <button type="button" onclick="executeGoogleLogin('tu.lecong.clinical@gmail.com', 'Lê Công Tú', 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar')" class="w-full p-3 rounded-xl border border-slate-200 hover:border-sky-400 hover:bg-sky-50/50 flex items-center gap-3 transition-all text-left cursor-pointer group">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold flex items-center justify-center shadow-sm text-sm shrink-0">
-          T
+    <!-- Account List (Matching User Screenshot Image 3) -->
+    <div class="space-y-1 divide-y divide-[#333537] border-y border-[#333537] py-1">
+      <!-- Account 1: Nguyễn Ngọc Anh Tú -->
+      <button type="button" onclick="executeGoogleLogin('nguyenngocanhtufb@gmail.com', 'Nguyễn Ngọc Anh Tú', 'https://lh3.googleusercontent.com/a/ACg8ocK_tu_avatar')" class="w-full py-3 px-2 flex items-center gap-3.5 hover:bg-white/[0.06] rounded-xl transition-colors text-left cursor-pointer group">
+        <div class="w-9 h-9 rounded-full bg-[#0284c7] text-white font-bold flex items-center justify-center text-sm shrink-0">
+          N
         </div>
         <div class="flex-1 min-w-0">
-          <div class="text-xs font-bold text-slate-900 truncate group-hover:text-sky-600">Lê Công Tú</div>
-          <div class="text-[11px] text-slate-500 truncate">tu.lecong.clinical@gmail.com</div>
+          <div class="text-sm font-medium text-white group-hover:text-sky-300 truncate">Nguyễn Ngọc Anh Tú</div>
+          <div class="text-xs text-[#8e918f] truncate">nguyenngocanhtufb@gmail.com</div>
         </div>
+      </button>
+
+      <!-- Account 2: Tú Tú -->
+      <button type="button" onclick="executeGoogleLogin('anktusneiem@gmail.com', 'Tú Tú', 'https://lh3.googleusercontent.com/a/ACg8ocK_tutu_avatar')" class="w-full py-3 px-2 flex items-center gap-3.5 hover:bg-white/[0.06] rounded-xl transition-colors text-left cursor-pointer group">
+        <div class="w-9 h-9 rounded-full bg-[#ea580c] text-white font-bold flex items-center justify-center text-xs shrink-0">
+          Tú
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white group-hover:text-sky-300 truncate">Tú Tú</div>
+          <div class="text-xs text-[#8e918f] truncate">anktusneiem@gmail.com</div>
+        </div>
+      </button>
+
+      <!-- Account 3: Luyến Lê Công -->
+      <button type="button" onclick="executeGoogleLogin('lecongluyen9a1@gmail.com', 'Luyến Lê Công', 'https://lh3.googleusercontent.com/a/ACg8ocK_luyen_avatar')" class="w-full py-3 px-2 flex items-center gap-3.5 hover:bg-white/[0.06] rounded-xl transition-colors text-left cursor-pointer group">
+        <div class="w-9 h-9 rounded-full bg-[#16a34a] text-white font-bold flex items-center justify-center text-sm shrink-0">
+          L
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white group-hover:text-sky-300 truncate">Luyến Lê Công</div>
+          <div class="text-xs text-[#8e918f] truncate">lecongluyen9a1@gmail.com</div>
+        </div>
+      </button>
+
+      <!-- Account 4: Cong Luyen Le -->
+      <button type="button" onclick="executeGoogleLogin('lecongluyenwork26@gmail.com', 'Cong Luyen Le', 'https://lh3.googleusercontent.com/a/ACg8ocK_congluyen_avatar')" class="w-full py-3 px-2 flex items-center gap-3.5 hover:bg-white/[0.06] rounded-xl transition-colors text-left cursor-pointer group">
+        <div class="w-9 h-9 rounded-full bg-[#475569] text-white font-bold flex items-center justify-center text-sm shrink-0">
+          C
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white group-hover:text-sky-300 truncate">Cong Luyen Le</div>
+          <div class="text-xs text-[#8e918f] truncate">lecongluyenwork26@gmail.com</div>
+        </div>
+      </button>
+
+      <!-- Account 5: Sử dụng một tài khoản khác -->
+      <button type="button" onclick="toggleCustomGoogleInput()" class="w-full py-3 px-2 flex items-center gap-3.5 hover:bg-white/[0.06] rounded-xl transition-colors text-left cursor-pointer group">
+        <div class="w-9 h-9 rounded-full border border-[#8e918f] text-[#8e918f] flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-[#e3e3e3] group-hover:text-white">Sử dụng một tài khoản khác</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Custom Gmail input form (hidden by default) -->
+    <div id="custom-google-input-box" class="hidden space-y-2 pt-1">
+      <input type="email" id="custom-google-email" placeholder="Nhập địa chỉ Gmail..." class="w-full px-3.5 py-2.5 rounded-xl bg-[#282a2c] border border-[#444746] text-sm text-white placeholder-[#8e918f] focus:outline-none focus:border-sky-400">
+      <div class="flex items-center gap-2 justify-end">
+        <button type="button" onclick="toggleCustomGoogleInput()" class="px-3 py-1.5 text-xs text-[#8e918f] hover:text-white">Hủy</button>
+        <button type="button" onclick="submitCustomGoogleLogin()" class="px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold">Tiếp tục</button>
+      </div>
+    </div>
+
+    <!-- Footer matching Google UI -->
+    <div class="flex items-center justify-between pt-2 text-[11px] text-[#8e918f]">
+      <span>Tiếng Việt</span>
+      <div class="flex items-center gap-3">
+        <a href="#" onclick="return false;" class="hover:text-white">Trợ giúp</a>
+        <a href="#" onclick="return false;" class="hover:text-white">Quyền riêng tư</a>
+        <a href="#" onclick="return false;" class="hover:text-white">Điều khoản</a>
+      </div>
+    </div>
+  </div>
+</div>
       </button>
 
       <button type="button" onclick="executeGoogleLogin('khiemdong2005@gmail.com', 'Lê Công Luyến', 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar_2')" class="w-full p-3 rounded-xl border border-slate-200 hover:border-sky-400 hover:bg-sky-50/50 flex items-center gap-3 transition-all text-left cursor-pointer group">
