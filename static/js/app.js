@@ -150,6 +150,22 @@ const translations = {
     p_lbl_role: "Vai trò / Chức danh chuyên môn",
     p_btn_save: "Lưu thay đổi",
         // Personal Information i18n
+        // Screenshot Form i18n
+    p_lbl_cccd: "CMT/CCCD",
+    p_lbl_issue_date: "Ngày cấp",
+    p_sec_bhyt: "Bảo hiểm y tế",
+    p_lbl_bhyt_code: "Mã BHYT",
+    p_lbl_facility: "Cơ sở khám chữa bệnh",
+    p_lbl_valid_from: "Hiệu lực từ",
+    p_lbl_valid_to: "Hết hiệu lực",
+    p_lbl_issue_place: "Nơi cấp",
+    p_lbl_nationality: "Quốc tịch (mã)",
+    p_lbl_ethnicity: "Dân tộc",
+    p_lbl_religion: "Tôn giáo",
+    p_lbl_ward: "Phường/Xã",
+    p_lbl_address_hokhau: "Địa chỉ theo sổ hộ khẩu",
+    p_btn_save_info: "Lưu thông tin",
+    p_btn_back_account: "Quay lại trang tài khoản",
     p_section_title: "Thông tin cá nhân",
     p_lbl_name: "Họ và tên",
     p_lbl_gender: "Giới tính",
@@ -352,6 +368,22 @@ const translations = {
     p_lbl_role: "Role / Headline",
     p_btn_save: "Save Changes",
         // Personal Information i18n
+        // Screenshot Form i18n
+    p_lbl_cccd: "Citizen ID / CCCD",
+    p_lbl_issue_date: "Issue Date",
+    p_sec_bhyt: "Health Insurance",
+    p_lbl_bhyt_code: "Health Insurance Code",
+    p_lbl_facility: "Primary Care Facility",
+    p_lbl_valid_from: "Effective From",
+    p_lbl_valid_to: "Valid Until",
+    p_lbl_issue_place: "Place of Issue",
+    p_lbl_nationality: "Nationality (Code)",
+    p_lbl_ethnicity: "Ethnicity",
+    p_lbl_religion: "Religion",
+    p_lbl_ward: "Ward / Commune",
+    p_lbl_address_hokhau: "Permanent Address",
+    p_btn_save_info: "Save Information",
+    p_btn_back_account: "Back to Account Page",
     p_section_title: "Personal Information",
     p_lbl_name: "Full Name",
     p_lbl_gender: "Gender",
@@ -1462,46 +1494,50 @@ function updateAuthUI() {
     if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
-    // Sync Image 1 fields (8 Requirements)
-    const pFullName = document.getElementById('p-fullname');
-    const pGender = document.getElementById('p-gender');
+    // Sync Image 1 fields (Screenshot UI)
     const pBirthDate = document.getElementById('p-birthdate');
-    const pClinicalId = document.getElementById('p-student-id');
-    const pEmail = document.getElementById('p-email');
+    const pGender = document.getElementById('p-gender');
     const pPhone = document.getElementById('p-phone');
+    const pCccd = document.getElementById('p-cccd');
+    const pIssueDate = document.getElementById('p-issue-date');
+    const pBhyt = document.getElementById('p-bhyt');
+    const pFacility = document.getElementById('p-facility');
+    const pValidFrom = document.getElementById('p-valid-from');
+    const pValidTo = document.getElementById('p-valid-to');
+    const pIssuePlace = document.getElementById('p-issue-place');
+    const pNationality = document.getElementById('p-nationality');
+    const pEthnicity = document.getElementById('p-ethnicity');
+    const pReligion = document.getElementById('p-religion');
     const pProvince = document.getElementById('p-province');
-    const pDistrict = document.getElementById('p-district');
+    const pWard = document.getElementById('p-ward');
     const pAddress = document.getElementById('p-address');
 
     const cardName = document.getElementById('profile-card-name');
     const cardEmail = document.getElementById('profile-card-email');
     const cardPhone = document.getElementById('profile-card-phone');
 
-    if (!currentUser.clinical_id || currentUser.clinical_id.length !== 8) {
-      currentUser.clinical_id = "84291908";
-    }
-
-    if (pFullName) pFullName.value = currentUser.name || 'Nguyễn Văn An';
-    if (pGender && currentUser.gender) pGender.value = currentUser.gender;
     if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
-    if (pClinicalId) pClinicalId.value = currentUser.clinical_id || '84291908';
+    if (pGender && currentUser.gender) pGender.value = currentUser.gender;
     
-    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
     const phoneVal = currentUser.phone_number || '0347047101';
-    
-    if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskEmail(emailVal) : emailVal;
     if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskPhone(phoneVal) : phoneVal;
     
-    if (pProvince && currentUser.province) {
-      pProvince.value = currentUser.province;
-      handleProvinceChange();
-      if (pDistrict && currentUser.district) {
-        pDistrict.value = currentUser.district;
-      }
-    }
-    if (pAddress) pAddress.value = currentUser.address || 'Số 123 đường Nguyễn Huệ, Phường Bến Nghé';
+    if (pCccd) pCccd.value = currentUser.cccd || '066205001075';
+    if (pIssueDate) pIssueDate.value = currentUser.issue_date || '07/04/2021';
+    if (pBhyt) pBhyt.value = currentUser.bhyt || 'GD4797931853610';
+    if (pFacility) pFacility.value = currentUser.facility || 'Bệnh viện Đại học Y Dược TP.HCM';
+    if (pValidFrom) pValidFrom.value = currentUser.valid_from || '01/01/2024';
+    if (pValidTo) pValidTo.value = currentUser.valid_to || '31/12/2028';
+    if (pIssuePlace) pIssuePlace.value = currentUser.issue_place || 'Cục Cảnh sát QLHC về TTXH';
+    if (pNationality) pNationality.value = currentUser.nationality || 'VN';
+    if (pEthnicity && currentUser.ethnicity) pEthnicity.value = currentUser.ethnicity;
+    if (pReligion && currentUser.religion) pReligion.value = currentUser.religion;
+    if (pProvince && currentUser.province) pProvince.value = currentUser.province;
+    if (pWard) pWard.value = currentUser.ward || 'Xã Ea Drăng';
+    if (pAddress) pAddress.value = currentUser.address || '335 Giải Phóng , TDP 6 , T.T Eadrang , Huyện Eahleo , Tỉnh Đắk Lắk';
 
     if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Văn An';
+    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
     if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskEmail(emailVal) : emailVal;
     if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskPhone(phoneVal) : phoneVal;
 
@@ -2833,52 +2869,55 @@ function handleProfileAvatarUpload(e) {
 
 function handleSaveImage1Profile(e) {
   if (e) e.preventDefault();
-  const fullName = document.getElementById('p-fullname')?.value.trim();
-  const gender = document.getElementById('p-gender')?.value || 'Nam';
   const birthDate = document.getElementById('p-birthdate')?.value.trim();
-  const email = currentUser?.email || document.getElementById('p-email')?.value.trim();
+  const gender = document.getElementById('p-gender')?.value || 'Nam';
   let phone = document.getElementById('p-phone')?.value.trim();
   if (fieldMaskState['p-phone']) {
     phone = currentUser?.phone_number || phone;
   }
+  const cccd = document.getElementById('p-cccd')?.value.trim() || '';
+  const issueDate = document.getElementById('p-issue-date')?.value.trim() || '';
+  const bhyt = document.getElementById('p-bhyt')?.value.trim() || '';
+  const facility = document.getElementById('p-facility')?.value.trim() || '';
+  const validFrom = document.getElementById('p-valid-from')?.value.trim() || '';
+  const validTo = document.getElementById('p-valid-to')?.value.trim() || '';
+  const issuePlace = document.getElementById('p-issue-place')?.value.trim() || '';
+  const nationality = document.getElementById('p-nationality')?.value.trim() || 'VN';
+  const ethnicity = document.getElementById('p-ethnicity')?.value || 'Kinh';
+  const religion = document.getElementById('p-religion')?.value || 'Không';
   const province = document.getElementById('p-province')?.value || '';
-  const district = document.getElementById('p-district')?.value || '';
+  const ward = document.getElementById('p-ward')?.value.trim() || '';
   const address = document.getElementById('p-address')?.value.trim() || '';
-
-  if (!fullName) {
-    alert(currentLang === 'en' ? 'Please enter your full name.' : 'Vui lòng nhập họ và tên.');
-    return;
-  }
 
   if (!currentUser) {
     currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
   }
 
-  if (!currentUser.clinical_id || currentUser.clinical_id.length !== 8) {
-    currentUser.clinical_id = "84291908";
-  }
-
-  currentUser.name = fullName;
-  currentUser.full_name = fullName;
-  currentUser.gender = gender;
   currentUser.dob = birthDate;
+  currentUser.gender = gender;
   currentUser.phone_number = phone || currentUser.phone_number;
+  currentUser.cccd = cccd;
+  currentUser.issue_date = issueDate;
+  currentUser.bhyt = bhyt;
+  currentUser.facility = facility;
+  currentUser.valid_from = validFrom;
+  currentUser.valid_to = validTo;
+  currentUser.issue_place = issuePlace;
+  currentUser.nationality = nationality;
+  currentUser.ethnicity = ethnicity;
+  currentUser.religion = religion;
   currentUser.province = province;
-  currentUser.district = district;
+  currentUser.ward = ward;
   currentUser.address = address;
 
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 
   // Sync Left Card
-  const cName = document.getElementById('profile-card-name');
-  const cEmail = document.getElementById('profile-card-email');
   const cPhone = document.getElementById('profile-card-phone');
-  if (cName) cName.innerText = fullName;
-  if (cEmail) cEmail.innerText = fieldMaskState['p-email'] ? maskEmail(currentUser.email) : (currentUser.email || '');
   if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskPhone(currentUser.phone_number) : (currentUser.phone_number || '');
 
   updateAuthUI();
 
-  const msg = currentLang === 'en' ? 'Personal Information updated successfully!' : 'Đã cập nhật thông tin cá nhân thành công!';
+  const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin thành công!';
   showMedicalToast(msg, 'success');
 }
