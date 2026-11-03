@@ -36,6 +36,7 @@ from core.storage_service import (
 from core.chat_service import process_clinical_chat
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.pipeline_orchestrator import process_medical_document_pipeline
 
 logger = logging.getLogger("MediMindApp")
 
@@ -497,7 +498,12 @@ def create_app(test_config=None):
                 db.session.rollback()
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
-            res = analyze_uploaded_document(meta["absolute_path"], meta["original_filename"])
+            mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
+            res = process_medical_document_pipeline(
+                file_path=meta["absolute_path"],
+                original_filename=meta["original_filename"],
+                mask_pii=mask_pii
+            )
             if doc_id:
                 res["document_id"] = doc_id
             return jsonify(res)
