@@ -70,7 +70,7 @@ body.light-glass {
   color: #0F172A;
 }
 
-body.light-glass .text-white {
+body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not(#floating-chat-btn):not(#floating-chat-btn *) {
   color: #0F172A !important;
 }
 
@@ -411,31 +411,22 @@ body:not(.light-glass) #profile-card-phone {
 /* ==============================================================================
    Dock Floating Capsule Tooltip & Active States (High Contrast & No Clash)
    ============================================================================== */
-.dock-tooltip {
-  background-color: rgba(15, 23, 42, 0.95) !important;
+.dock-tooltip,
+.dock-tooltip *,
+span.dock-tooltip,
+body.light-glass .dock-tooltip,
+body.light-glass .dock-tooltip *,
+body.light-glass span.dock-tooltip,
+body:not(.light-glass) .dock-tooltip,
+body:not(.light-glass) .dock-tooltip * {
+  background-color: #0F172A !important;
   color: #FFFFFF !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45) !important;
   letter-spacing: -0.01em !important;
   font-weight: 600 !important;
   pointer-events: none !important;
-}
-
-.dock-tooltip,
-.dock-tooltip * {
-  color: #FFFFFF !important;
-}
-
-body.light-glass .dock-tooltip {
-  background-color: #0F172A !important;
-  color: #FFFFFF !important;
-  border: 1px solid rgba(255, 255, 255, 0.20) !important;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35) !important;
-}
-
-body.light-glass .dock-tooltip,
-body.light-glass .dock-tooltip * {
-  color: #FFFFFF !important;
 }
 
 body.light-glass .dock-divider {
@@ -818,8 +809,8 @@ body.light-glass .home-card {
 }
 
 body.light-glass .home-card:hover {
-  border-color: #0D9488 !important;
-  box-shadow: 0 20px 35px -10px rgba(13, 148, 136, 0.16) !important;
+  border-color: #0284C7 !important;
+  box-shadow: 0 20px 35px -10px rgba(2, 132, 199, 0.20) !important;
 }
 
 /* ==============================================================
@@ -971,19 +962,72 @@ body:not(.light-glass) .floating-input-wrap input::placeholder {
 }
 
 /* ==============================================================
-   AUTH SEGMENTED TABS (Image 3)
+   AUTH SEGMENTED TABS & AUTH MODAL ENHANCEMENTS
    ============================================================== */
 .auth-segmented-tabs {
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  display: flex !important;
+  gap: 4px !important;
 }
 
 body.light-glass .auth-segmented-tabs {
-  background-color: #F0F9FF !important;
-  border: 1.5px solid #BAE6FD !important;
+  background-color: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+body.light-glass .auth-segmented-tabs button.active {
+  background-color: #FFFFFF !important;
+  color: #0284C7 !important;
+  -webkit-text-fill-color: #0284C7 !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.light-glass .auth-segmented-tabs button:not(.active) {
+  background: transparent !important;
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+  font-weight: 600 !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 body:not(.light-glass) .auth-segmented-tabs {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+body:not(.light-glass) .auth-segmented-tabs button.active {
+  background-color: #0284C7 !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4) !important;
+}
+
+body:not(.light-glass) .auth-segmented-tabs button:not(.active) {
+  background: transparent !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Explicit Title Contrast for Dark and Light Mode */
+body.light-glass #login-modal #auth-modal-title,
+body.light-glass #auth-modal-title {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body:not(.light-glass) #login-modal #auth-modal-title,
+body:not(.light-glass) #auth-modal-title {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  font-weight: 800 !important;
 }

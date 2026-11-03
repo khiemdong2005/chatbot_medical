@@ -967,6 +967,7 @@ function switchTab(tabId) {
 
   // Floating Capsule Dock buttons
   document.querySelectorAll('.dock-btn').forEach(btn => {
+    btn.removeAttribute('title');
     btn.classList.remove('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
     btn.classList.add('text-white/60');
   });
@@ -1548,35 +1549,35 @@ function toggleAuthMode(mode) {
     if (loginForm) loginForm.classList.remove('hidden');
     if (regForm) regForm.classList.add('hidden');
 
-    if (tabLogin) {
+        if (tabLogin) {
       if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-2 border-sky-500 bg-white text-sky-600 font-bold shadow-xs transition-all cursor-pointer";
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
       } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border border-sky-400/50 bg-sky-500/20 text-sky-300 font-bold shadow-xs transition-all cursor-pointer";
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
       }
     }
     if (tabReg) {
       if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-sky-600 font-medium transition-all cursor-pointer";
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
       } else {
         tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
       }
     }
   } else {
-    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
+    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Dang ky tài khoản MediMind";
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.remove('hidden');
 
     if (tabReg) {
       if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-2 border-sky-500 bg-white text-sky-600 font-bold shadow-xs transition-all cursor-pointer";
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
       } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border border-sky-400/50 bg-sky-500/20 text-sky-300 font-bold shadow-xs transition-all cursor-pointer";
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
       }
     }
     if (tabLogin) {
       if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-sky-600 font-medium transition-all cursor-pointer";
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
       } else {
         tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
       }
@@ -3128,6 +3129,8 @@ function initThemeMode() {
     document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
   }
   document.body.style.backgroundAttachment = 'fixed';
+  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+  document.querySelectorAll('.dock-btn').forEach(btn => btn.removeAttribute('title'));
 }
 
 function toggleGlassThemeMode() {
