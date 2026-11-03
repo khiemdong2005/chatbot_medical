@@ -1,3 +1,87 @@
+
+// ==========================================
+// Eye Toggle Masking & Province/District Data
+// ==========================================
+const fieldMaskState = {
+  'p-email': false,
+  'p-phone': false
+};
+
+function maskEmail(email) {
+  if (!email || !email.includes('@')) return email || '';
+  const [user, domain] = email.split('@');
+  if (user.length <= 2) return user[0] + '•••@' + domain;
+  return user[0] + '••••••••' + user.slice(-1) + '@' + domain;
+}
+
+function maskPhone(phone) {
+  if (!phone) return phone || '';
+  if (phone.length <= 4) return '••••';
+  return phone.slice(0, 3) + '••••' + phone.slice(-3);
+}
+
+function toggleFieldMask(fieldId) {
+  fieldMaskState[fieldId] = !fieldMaskState[fieldId];
+  const isMasked = fieldMaskState[fieldId];
+  const input = document.getElementById(fieldId);
+  const eyeIcon = document.getElementById(fieldId + '-eye');
+  
+  const realVal = (fieldId === 'p-email') ? (currentUser?.email || 'benhnhan.an@gmail.com') : (currentUser?.phone_number || '0347047101');
+  
+  if (input) {
+    input.value = isMasked ? ((fieldId === 'p-email') ? maskEmail(realVal) : maskPhone(realVal)) : realVal;
+  }
+
+  // Sync left card
+  if (fieldId === 'p-email') {
+    const cardEmail = document.getElementById('profile-card-email');
+    if (cardEmail) cardEmail.innerText = isMasked ? maskEmail(realVal) : realVal;
+  } else if (fieldId === 'p-phone') {
+    const cardPhone = document.getElementById('profile-card-phone');
+    if (cardPhone) cardPhone.innerText = isMasked ? maskPhone(realVal) : realVal;
+  }
+
+  if (eyeIcon) {
+    if (isMasked) {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
+    } else {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+  }
+}
+
+const VIETNAM_DISTRICTS = {
+  "Thành phố Hồ Chí Minh": ["Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8", "Quận 10", "Quận 11", "Quận 12", "TP. Thủ Đức", "Quận Bình Thạnh", "Quận Gò Vấp", "Quận Phú Nhuận", "Quận Tân Bình", "Quận Tân Phú", "Huyện Bình Chánh", "Huyện Cần Giờ", "Huyện Củ Chi", "Huyện Hóc Môn", "Huyện Nhà Bè"],
+  "Thành phố Hà Nội": ["Quận Ba Đình", "Quận Hoàn Kiếm", "Quận Tây Hồ", "Quận Long Biên", "Quận Cầu Giấy", "Quận Đống Đa", "Quận Hai Bà Trưng", "Quận Hoàng Mai", "Quận Thanh Xuân", "Quận Nam Từ Liêm", "Quận Bắc Từ Liêm", "Quận Hà Đông", "Thị xã Sơn Tây", "Huyện Ba Vì", "Huyện Đông Anh", "Huyện Gia Lâm", "Huyện Sóc Sơn", "Huyện Thanh Trì"],
+  "Thành phố Đà Nẵng": ["Quận Hải Châu", "Quận Thanh Khê", "Quận Sơn Trà", "Quận Ngũ Hành Sơn", "Quận Liên Chiểu", "Quận Cẩm Lệ", "Huyện Hòa Vang"],
+  "Thành phố Hải Phòng": ["Quận Hồng Bàng", "Quận Ngô Quyền", "Quận Lê Chân", "Quận Hải An", "Quận Kiến An", "Quận Đồ Sơn", "Quận Dương Kinh", "Huyện Thủy Nguyên", "Huyện An Dương"],
+  "Thành phố Cần Thơ": ["Quận Ninh Kiều", "Quận Bình Thủy", "Quận Cái Răng", "Quận Ô Môn", "Quận Thốt Nốt", "Huyện Phong Điền", "Huyện Thới Lai"],
+  "Thành phố Huế": ["Quận Phú Xuân", "Quận Thuận Hóa", "Thị xã Hương Thủy", "Thị xã Hương Trà", "Huyện Phong Điền", "Huyện Phú Vang", "Huyện Phú Lộc"],
+  "Thành phố Quảng Ninh": ["Thành phố Hạ Long", "Thành phố Cẩm Phả", "Thành phố Móng Cái", "Thành phố Uông Bí", "Thị xã Đông Triều", "Thị xã Quảng Yên"]
+};
+
+function handleProvinceChange() {
+  const provEl = document.getElementById('p-province');
+  const distEl = document.getElementById('p-district');
+  if (!provEl || !distEl) return;
+  
+  const prov = provEl.value;
+  distEl.innerHTML = '';
+  
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.innerText = currentLang === 'en' ? '-- Select District/Ward --' : '-- Chọn huyện/xã --';
+  distEl.appendChild(defaultOpt);
+  
+  const list = VIETNAM_DISTRICTS[prov] || ["Trung tâm Huyện/Thị xã", "Khu vực 1", "Khu vực 2", "Huyện/Xã khác"];
+  list.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.innerText = d;
+    distEl.appendChild(opt);
+  });
+}
+
 // MediMind Clinical AI - Medical Ocean Blue & Navy Interaction Logic
 // Features: Multimodal Gemini Vision, RAG, Double Guardrails, Bilingual i18n, RBAC, Profile & Scan Dataset Management
 
@@ -5,28 +89,25 @@ const chatHistory = [];
 let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
 const DEFAULT_USER_PROFILE = {
-  id: 190809,
-  name: "BS. Lê Công Luyến",
-  full_name: "BS. Lê Công Luyến",
-  role: "doctor",
-  badge: "BS",
-  email: "lecongluyen9a1@gmail.com",
+  id: 84291908,
+  clinical_id: "84291908",
+  name: "Nguyễn Văn An",
+  full_name: "Nguyễn Văn An",
+  gender: "Nam",
+  role: "patient",
+  badge: "BN",
+  email: "benhnhan.an@gmail.com",
   phone_number: "0347047101",
-  student_id: "MM-2026-AI09",
-  clinical_id: "MM-2026-AI09",
   dob: "04/10/2005",
-  group: "Trung tâm AI Y tế MediMind",
-  department: "Trung tâm AI Y tế MediMind",
-  university: "Trung tâm Y tế Thông minh MediMind (MediMind Clinical Center)",
-  linkedin: "https://medimind.ai/specialist/lecongluyen",
-  headline: "Chuyên gia Lâm sàng",
-  personal_info: "Chuyên gia Lâm sàng @ MediMind Clinical AI",
+  province: "Thành phố Hồ Chí Minh",
+  district: "Quận 1",
+  address: "Số 123 đường Nguyễn Huệ, Phường Bến Nghé",
   joined: "11/09/2026",
   avatar: "/static/images/user_avatar.png"
 };
 
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
-if (!currentUser || currentUser.student_id === 'SE190809' || currentUser.group === 'CBT_TEAM' || !currentUser.name || currentUser.name === 'Luyến Lê Công') {
+if (!currentUser || !currentUser.clinical_id || currentUser.clinical_id.length !== 8 || currentUser.name === 'Luyến Lê Công' || currentUser.name === 'BS. Lê Công Luyến') {
   currentUser = DEFAULT_USER_PROFILE;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 }
@@ -68,6 +149,25 @@ const translations = {
     p_lbl_portfolio: "Hồ sơ Chuyên môn (Portfolio / Chứng chỉ)",
     p_lbl_role: "Vai trò / Chức danh chuyên môn",
     p_btn_save: "Lưu thay đổi",
+        // Personal Information i18n
+    p_section_title: "Thông tin cá nhân",
+    p_lbl_name: "Họ và tên",
+    p_lbl_gender: "Giới tính",
+    gender_male: "Nam",
+    gender_female: "Nữ",
+    gender_other: "Khác",
+    p_lbl_birthdate: "Ngày sinh",
+    p_lbl_clinical_id: "Clinical ID",
+    p_lbl_clinical_id_hint: "Mã định danh 8 chữ số cố định được cấp khi tạo tài khoản",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email không thể thay đổi",
+    p_lbl_phone: "Số điện thoại",
+    p_lbl_province: "Tỉnh / Thành Phố",
+    p_lbl_district: "Huyện / Xã",
+    p_lbl_address: "Địa chỉ",
+    p_lbl_address_ph: "Số nhà, tên đường, khu phố...",
+    p_btn_save: "Lưu thay đổi",
+    p_avatar_change: "Đổi ảnh",
     brand_subtitle: "Bảo mật thông tin cá nhân • Phác đồ MedlinePlus",
     nav_chat: "Trợ lý sức khỏe",
     nav_ocr: "Đọc đơn thuốc & xét nghiệm",
@@ -251,6 +351,25 @@ const translations = {
     p_lbl_portfolio: "Clinical Portfolio",
     p_lbl_role: "Role / Headline",
     p_btn_save: "Save Changes",
+        // Personal Information i18n
+    p_section_title: "Personal Information",
+    p_lbl_name: "Full Name",
+    p_lbl_gender: "Gender",
+    gender_male: "Male",
+    gender_female: "Female",
+    gender_other: "Other",
+    p_lbl_birthdate: "Birth Date",
+    p_lbl_clinical_id: "Clinical ID",
+    p_lbl_clinical_id_hint: "Fixed 8-digit clinical ID assigned at account creation",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email cannot be changed",
+    p_lbl_phone: "Phone Number",
+    p_lbl_province: "Province / City",
+    p_lbl_district: "District / Ward",
+    p_lbl_address: "Address",
+    p_lbl_address_ph: "House number, street, ward...",
+    p_btn_save: "Save Changes",
+    p_avatar_change: "Change",
     brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
     nav_chat: "Health Assistant",
     nav_ocr: "Prescriptions & Labs",
@@ -1343,36 +1462,48 @@ function updateAuthUI() {
     if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
-    // Sync Image 1 fields
+    // Sync Image 1 fields (8 Requirements)
     const pFullName = document.getElementById('p-fullname');
+    const pGender = document.getElementById('p-gender');
+    const pBirthDate = document.getElementById('p-birthdate');
+    const pClinicalId = document.getElementById('p-student-id');
     const pEmail = document.getElementById('p-email');
     const pPhone = document.getElementById('p-phone');
-    const pStudentId = document.getElementById('p-student-id');
-    const pBirthDate = document.getElementById('p-birthdate');
-    const pGroup = document.getElementById('p-group');
-    const pUniversity = document.getElementById('p-university');
-    const pLinkedin = document.getElementById('p-linkedin');
-    const pHeadline = document.getElementById('p-headline');
+    const pProvince = document.getElementById('p-province');
+    const pDistrict = document.getElementById('p-district');
+    const pAddress = document.getElementById('p-address');
 
     const cardName = document.getElementById('profile-card-name');
-    const cardHeadline = document.getElementById('profile-card-headline');
     const cardEmail = document.getElementById('profile-card-email');
     const cardPhone = document.getElementById('profile-card-phone');
 
-    if (pFullName) pFullName.value = currentUser.name || 'Luyến Lê Công';
-    if (pEmail) pEmail.value = currentUser.email || 'lecongluyen9a1@gmail.com';
-    if (pPhone) pPhone.value = currentUser.phone_number || '0347047101';
-    if (pStudentId) pStudentId.value = currentUser.student_id || 'SE190809';
-    if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
-    if (pGroup) pGroup.value = currentUser.group || 'CBT_TEAM';
-    if (pUniversity && currentUser.university) pUniversity.value = currentUser.university;
-    if (pLinkedin) pLinkedin.value = currentUser.linkedin || 'https://www.linkedin.com/in/nitaxiso2005/';
-    if (pHeadline) pHeadline.value = currentUser.headline || 'Information Assurance';
+    if (!currentUser.clinical_id || currentUser.clinical_id.length !== 8) {
+      currentUser.clinical_id = "84291908";
+    }
 
-    if (cardName) cardName.innerText = currentUser.name || 'Luyến Lê Công';
-    if (cardHeadline) cardHeadline.innerText = currentUser.headline ? (currentUser.headline + ' @ AWS Study Group') : 'Information Assurance @ AWS Study Group';
-    if (cardEmail) cardEmail.innerText = currentUser.email || 'lecongluyen9a1@gmail.com';
-    if (cardPhone) cardPhone.innerText = currentUser.phone_number || '0347047101';
+    if (pFullName) pFullName.value = currentUser.name || 'Nguyễn Văn An';
+    if (pGender && currentUser.gender) pGender.value = currentUser.gender;
+    if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
+    if (pClinicalId) pClinicalId.value = currentUser.clinical_id || '84291908';
+    
+    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
+    const phoneVal = currentUser.phone_number || '0347047101';
+    
+    if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskEmail(emailVal) : emailVal;
+    if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskPhone(phoneVal) : phoneVal;
+    
+    if (pProvince && currentUser.province) {
+      pProvince.value = currentUser.province;
+      handleProvinceChange();
+      if (pDistrict && currentUser.district) {
+        pDistrict.value = currentUser.district;
+      }
+    }
+    if (pAddress) pAddress.value = currentUser.address || 'Số 123 đường Nguyễn Huệ, Phường Bến Nghé';
+
+    if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Văn An';
+    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskEmail(emailVal) : emailVal;
+    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskPhone(phoneVal) : phoneVal;
 
     if (currentUser.avatar) {
       const topAvatar = document.getElementById('user-avatar-img');
@@ -2703,47 +2834,51 @@ function handleProfileAvatarUpload(e) {
 function handleSaveImage1Profile(e) {
   if (e) e.preventDefault();
   const fullName = document.getElementById('p-fullname')?.value.trim();
-  const email = document.getElementById('p-email')?.value.trim();
-  const phone = document.getElementById('p-phone')?.value.trim();
-  const studentId = document.getElementById('p-student-id')?.value.trim();
+  const gender = document.getElementById('p-gender')?.value || 'Nam';
   const birthDate = document.getElementById('p-birthdate')?.value.trim();
-  const group = document.getElementById('p-group')?.value.trim();
-  const university = document.getElementById('p-university')?.value;
-  const linkedin = document.getElementById('p-linkedin')?.value.trim();
-  const headline = document.getElementById('p-headline')?.value.trim();
+  const email = currentUser?.email || document.getElementById('p-email')?.value.trim();
+  let phone = document.getElementById('p-phone')?.value.trim();
+  if (fieldMaskState['p-phone']) {
+    phone = currentUser?.phone_number || phone;
+  }
+  const province = document.getElementById('p-province')?.value || '';
+  const district = document.getElementById('p-district')?.value || '';
+  const address = document.getElementById('p-address')?.value.trim() || '';
 
   if (!fullName) {
-    alert('Please enter your full name.');
+    alert(currentLang === 'en' ? 'Please enter your full name.' : 'Vui lòng nhập họ và tên.');
     return;
   }
 
   if (!currentUser) {
-    currentUser = { id: 8429, role: 'patient', badge: 'BN' };
+    currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
+  }
+
+  if (!currentUser.clinical_id || currentUser.clinical_id.length !== 8) {
+    currentUser.clinical_id = "84291908";
   }
 
   currentUser.name = fullName;
   currentUser.full_name = fullName;
-  currentUser.email = email || currentUser.email;
-  currentUser.phone_number = phone || currentUser.phone_number;
-  currentUser.student_id = studentId;
+  currentUser.gender = gender;
   currentUser.dob = birthDate;
-  currentUser.group = group;
-  currentUser.university = university;
-  currentUser.linkedin = linkedin;
-  currentUser.headline = headline;
+  currentUser.phone_number = phone || currentUser.phone_number;
+  currentUser.province = province;
+  currentUser.district = district;
+  currentUser.address = address;
 
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 
-  // Sync left card
+  // Sync Left Card
   const cName = document.getElementById('profile-card-name');
-  const cHeadline = document.getElementById('profile-card-headline');
   const cEmail = document.getElementById('profile-card-email');
   const cPhone = document.getElementById('profile-card-phone');
   if (cName) cName.innerText = fullName;
-  if (cHeadline) cHeadline.innerText = headline ? (headline + ' @ AWS Study Group') : 'Information Assurance @ AWS Study Group';
-  if (cEmail) cEmail.innerText = email;
-  if (cPhone) cPhone.innerText = phone;
+  if (cEmail) cEmail.innerText = fieldMaskState['p-email'] ? maskEmail(currentUser.email) : (currentUser.email || '');
+  if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskPhone(currentUser.phone_number) : (currentUser.phone_number || '');
 
   updateAuthUI();
-  showMedicalToast('Profile changes saved successfully!', 'success');
+
+  const msg = currentLang === 'en' ? 'Personal Information updated successfully!' : 'Đã cập nhật thông tin cá nhân thành công!';
+  showMedicalToast(msg, 'success');
 }
