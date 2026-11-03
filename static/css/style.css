@@ -691,3 +691,111 @@ body:not(.light-glass) #login-modal button[onclick*="quickLogin"] {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: #CBD5E1 !important;
 }
+
+
+/* ==============================================================================
+   LIGHT MODE: 100% Luminous White Auth Modal Box & Inputs
+   ============================================================================== */
+body.light-glass #auth-modal-card,
+body.light-glass #login-modal #auth-modal-card,
+body.light-glass #login-modal .glass-panel {
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  color: #0F172A !important;
+}
+
+body.light-glass #login-modal #auth-modal-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #login-modal p[data-i18n="modal_auth_subtitle"] {
+  color: #64748B !important;
+}
+
+body.light-glass #login-modal label {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #login-modal input,
+body.light-glass #login-modal select {
+  background-color: #F8FAFC !important;
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.light-glass #login-modal input::placeholder {
+  color: #94A3B8 !important;
+}
+
+body.light-glass #login-modal input:focus,
+body.light-glass #login-modal select:focus {
+  background-color: #FFFFFF !important;
+  border-color: #0284C7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+}
+
+body.light-glass #login-modal select option {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+body.light-glass #login-modal button[data-i18n="btn_create_account"],
+body.light-glass #login-modal .glass-pill {
+  background-color: rgba(2, 132, 199, 0.08) !important;
+  border: 1.5px solid rgba(2, 132, 199, 0.3) !important;
+  color: #0284C7 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #login-modal button[data-i18n="btn_create_account"]:hover,
+body.light-glass #login-modal .glass-pill:hover {
+  background-color: rgba(2, 132, 199, 0.15) !important;
+  color: #0369A1 !important;
+}
+
+body.light-glass #login-modal button[onclick*="quickLogin"],
+body.light-glass #login-modal .glass-card {
+  background-color: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #475569 !important;
+}
+
+body.light-glass #login-modal button[onclick*="quickLogin"]:hover {
+  background-color: #E2E8F0 !important;
+  color: #0284C7 !important;
+}
+
+body.light-glass #login-modal a {
+  color: #0284C7 !important;
+}
+
+body.light-glass #login-modal button[onclick*="closeLoginModal"] {
+  color: #64748B !important;
+}
+
+body.light-glass #login-modal button[onclick*="closeLoginModal"]:hover {
+  color: #0F172A !important;
+  background-color: #F1F5F9 !important;
+}
+
+body.light-glass #login-modal .border-white\/10 {
+  border-color: #E2E8F0 !important;
+}
+
+body.light-glass #login-modal #tab-auth-login.text-slate-400,
+body.light-glass #login-modal #tab-auth-register.text-slate-400 {
+  color: #64748B !important;
+}
+
+body.light-glass #login-modal #tab-auth-login.text-sky-400,
+body.light-glass #login-modal #tab-auth-register.text-sky-400 {
+  color: #0284C7 !important;
+  border-color: #0284C7 !important;
+}

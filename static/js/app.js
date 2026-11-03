@@ -1411,7 +1411,40 @@ function closeProfileModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+function syncAuthModalTheme() {
+  const isLight = document.body.classList.contains('light-glass');
+  const card = document.getElementById('auth-modal-card');
+  const title = document.getElementById('auth-modal-title');
+  const modal = document.getElementById('login-modal');
+  if (!card) return;
+
+  if (isLight) {
+    card.classList.remove('bg-slate-900/95', 'text-white', 'border-white/15');
+    card.classList.add('bg-white', 'text-slate-900', 'border-slate-200', 'shadow-2xl');
+    if (title) {
+      title.classList.remove('text-white');
+      title.classList.add('text-slate-900');
+    }
+    if (modal) {
+      modal.classList.remove('bg-black/60');
+      modal.classList.add('bg-slate-900/40');
+    }
+  } else {
+    card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200');
+    card.classList.add('bg-slate-900/95', 'text-white', 'border-white/15', 'shadow-2xl');
+    if (title) {
+      title.classList.remove('text-slate-900');
+      title.classList.add('text-white');
+    }
+    if (modal) {
+      modal.classList.remove('bg-slate-900/40');
+      modal.classList.add('bg-black/60');
+    }
+  }
+}
+
 function openLoginModal() {
+  syncAuthModalTheme();
   const modal = document.getElementById('login-modal');
   if (modal) {
     modal.classList.remove('hidden');
@@ -1451,6 +1484,7 @@ function populateDobDropdowns() {
 
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
+  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
   currentAuthMode = mode;
   const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
@@ -2858,6 +2892,7 @@ function toggleGlassThemeMode() {
   document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
   document.body.style.backgroundAttachment = 'fixed';
   localStorage.setItem('medimind_theme', isLight ? 'light' : 'dark');
+  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
 }
 
 function cycleMedicalWallpaper() {
