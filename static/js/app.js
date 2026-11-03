@@ -945,7 +945,48 @@ function showFloatingDecorations() {
   }
 }
 
-function switchTab(tabId) {
+
+// ==============================================================
+// CLIENT-SIDE ROUTING & DEEP LINKING (Tab State Persistence)
+// ==============================================================
+const TAB_HASH_MAP = {
+  'home-tab': 'home',
+  'chat-tab': 'chat',
+  'ocr-tab': 'ocr',
+  'facilities-tab': 'facilities',
+  'profile-tab': 'profile'
+};
+const HASH_TAB_MAP = {
+  'home': 'home-tab',
+  'chat': 'chat-tab',
+  'ocr': 'ocr-tab',
+  'facilities': 'facilities-tab',
+  'profile': 'profile-tab'
+};
+
+function resolveInitialTab() {
+  const hash = window.location.hash.replace('#', '').trim();
+  if (hash && HASH_TAB_MAP[hash]) {
+    const target = HASH_TAB_MAP[hash];
+    if (target === 'profile-tab' && !currentUser) return 'home-tab';
+    return target;
+  }
+  const savedTab = sessionStorage.getItem('medimind_active_tab');
+  if (savedTab && document.getElementById(savedTab)) {
+    if (savedTab === 'profile-tab' && !currentUser) return 'home-tab';
+    return savedTab;
+  }
+  return 'home-tab';
+}
+
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.replace('#', '').trim();
+  if (hash && HASH_TAB_MAP[hash]) {
+    switchTab(HASH_TAB_MAP[hash], false);
+  }
+});
+
+function switchTab(tabId, updateHistory = true) {
   // Yêu cầu đăng nhập khi vào các tab bảo mật
   const protectedTabs = ['profile-tab', 'admin-tab'];
   if (protectedTabs.includes(tabId) && !currentUser) {
@@ -982,6 +1023,21 @@ function switchTab(tabId) {
   if (activeDock) {
     activeDock.classList.remove('text-white/60');
     activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
+  }
+
+  // UI State Persistence: Save active tab to sessionStorage for F5 reload restoration
+  sessionStorage.setItem('medimind_active_tab', tabId);
+
+  // Deep Linking: Update URL Hash seamlessly without page jump
+  if (updateHistory) {
+    const slug = TAB_HASH_MAP[tabId] || tabId.replace('-tab', '');
+    if (window.location.hash !== `#${slug}`) {
+      try {
+        history.replaceState(null, '', `#${slug}`);
+      } catch (e) {
+        window.location.hash = slug;
+      }
+    }
   }
 
   // Floating Chatbox: Show on all tabs except Trợ lý sức khỏe (chat-tab)
@@ -1697,9 +1753,14 @@ function handleCrossTabMessage(data) {
   } else if (data.type === 'AUTH_LOGOUT') {
     currentUser = null;
     localStorage.removeItem('medimind_user');
+    sessionStorage.removeItem('medimind_active_tab');
+    try {
+      history.replaceState(null, '', window.location.pathname);
+    } catch (e) {
+      window.location.hash = '';
+    }
     updateAuthUI();
     if (typeof switchTab === 'function') switchTab('home-tab');
-  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
   }
 }
 
@@ -2170,10 +2231,15 @@ async function handleLogout() {
   }
   currentUser = null;
   localStorage.removeItem('medimind_user');
+  sessionStorage.removeItem('medimind_active_tab');
+  try {
+    history.replaceState(null, '', window.location.pathname);
+  } catch (e) {
+    window.location.hash = '';
+  }
   updateAuthUI();
   broadcastTabEvent('AUTH_LOGOUT', null);
   switchTab('home-tab');
-  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
 }
 
 function updateAuthUI() {
@@ -2424,7 +2490,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
   applyLanguage();
   initHistorySearch();
-  switchTab('home-tab');
+  switchTab(resolveInitialTab(), false);
   fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
 
   const input = document.getElementById('user-input');
