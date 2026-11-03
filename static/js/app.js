@@ -1258,6 +1258,43 @@ function updateAuthUI() {
     if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
+    // Sync Image 1 fields
+    const pFullName = document.getElementById('p-fullname');
+    const pEmail = document.getElementById('p-email');
+    const pPhone = document.getElementById('p-phone');
+    const pStudentId = document.getElementById('p-student-id');
+    const pBirthDate = document.getElementById('p-birthdate');
+    const pGroup = document.getElementById('p-group');
+    const pUniversity = document.getElementById('p-university');
+    const pLinkedin = document.getElementById('p-linkedin');
+    const pHeadline = document.getElementById('p-headline');
+
+    const cardName = document.getElementById('profile-card-name');
+    const cardHeadline = document.getElementById('profile-card-headline');
+    const cardEmail = document.getElementById('profile-card-email');
+    const cardPhone = document.getElementById('profile-card-phone');
+
+    if (pFullName) pFullName.value = currentUser.name || 'Luyến Lê Công';
+    if (pEmail) pEmail.value = currentUser.email || 'lecongluyen9a1@gmail.com';
+    if (pPhone) pPhone.value = currentUser.phone_number || '0347047101';
+    if (pStudentId) pStudentId.value = currentUser.student_id || 'SE190809';
+    if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
+    if (pGroup) pGroup.value = currentUser.group || 'CBT_TEAM';
+    if (pUniversity && currentUser.university) pUniversity.value = currentUser.university;
+    if (pLinkedin) pLinkedin.value = currentUser.linkedin || 'https://www.linkedin.com/in/nitaxiso2005/';
+    if (pHeadline) pHeadline.value = currentUser.headline || 'Information Assurance';
+
+    if (cardName) cardName.innerText = currentUser.name || 'Luyến Lê Công';
+    if (cardHeadline) cardHeadline.innerText = currentUser.headline ? (currentUser.headline + ' @ AWS Study Group') : 'Information Assurance @ AWS Study Group';
+    if (cardEmail) cardEmail.innerText = currentUser.email || 'lecongluyen9a1@gmail.com';
+    if (cardPhone) cardPhone.innerText = currentUser.phone_number || '0347047101';
+
+    if (currentUser.avatar) {
+      const topAvatar = document.getElementById('user-avatar-img');
+      const dispAvatar = document.getElementById('profile-avatar-display');
+      if (topAvatar) topAvatar.src = currentUser.avatar;
+      if (dispAvatar) dispAvatar.src = currentUser.avatar;
+    }
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
     if (tabPhone) tabPhone.value = currentUser.phone_number || '';
@@ -2502,4 +2539,75 @@ function initHistorySearch() {
       noMatchNotice.classList.add('hidden');
     }
   });
+}
+
+
+// ==========================================
+// Image 1 Personal Information Logic
+// ==========================================
+function handleProfileAvatarUpload(e) {
+  const file = e.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const dataUrl = evt.target.result;
+    const avatarDisplay = document.getElementById('profile-avatar-display');
+    const topAvatarImg = document.getElementById('user-avatar-img');
+    if (avatarDisplay) avatarDisplay.src = dataUrl;
+    if (topAvatarImg) topAvatarImg.src = dataUrl;
+    if (currentUser) {
+      currentUser.avatar = dataUrl;
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+    }
+    showMedicalToast('Đã cập nhật ảnh đại diện thành công!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSaveImage1Profile(e) {
+  if (e) e.preventDefault();
+  const fullName = document.getElementById('p-fullname')?.value.trim();
+  const email = document.getElementById('p-email')?.value.trim();
+  const phone = document.getElementById('p-phone')?.value.trim();
+  const studentId = document.getElementById('p-student-id')?.value.trim();
+  const birthDate = document.getElementById('p-birthdate')?.value.trim();
+  const group = document.getElementById('p-group')?.value.trim();
+  const university = document.getElementById('p-university')?.value;
+  const linkedin = document.getElementById('p-linkedin')?.value.trim();
+  const headline = document.getElementById('p-headline')?.value.trim();
+
+  if (!fullName) {
+    alert('Please enter your full name.');
+    return;
+  }
+
+  if (!currentUser) {
+    currentUser = { id: 8429, role: 'patient', badge: 'BN' };
+  }
+
+  currentUser.name = fullName;
+  currentUser.full_name = fullName;
+  currentUser.email = email || currentUser.email;
+  currentUser.phone_number = phone || currentUser.phone_number;
+  currentUser.student_id = studentId;
+  currentUser.dob = birthDate;
+  currentUser.group = group;
+  currentUser.university = university;
+  currentUser.linkedin = linkedin;
+  currentUser.headline = headline;
+
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+
+  // Sync left card
+  const cName = document.getElementById('profile-card-name');
+  const cHeadline = document.getElementById('profile-card-headline');
+  const cEmail = document.getElementById('profile-card-email');
+  const cPhone = document.getElementById('profile-card-phone');
+  if (cName) cName.innerText = fullName;
+  if (cHeadline) cHeadline.innerText = headline ? (headline + ' @ AWS Study Group') : 'Information Assurance @ AWS Study Group';
+  if (cEmail) cEmail.innerText = email;
+  if (cPhone) cPhone.innerText = phone;
+
+  updateAuthUI();
+  showMedicalToast('Profile changes saved successfully!', 'success');
 }
