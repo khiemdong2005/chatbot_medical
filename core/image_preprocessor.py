@@ -1,7 +1,11 @@
 import os
 import sys
-import cv2
-import numpy as np
+try:
+    import cv2
+    import numpy as np
+except ImportError:
+    cv2 = None
+    np = None
 from typing import Dict, Any, Tuple
 
 # Ensure UTF-8 output on console
@@ -23,6 +27,16 @@ def preprocess_prescription_image(image_path: str, save_debug: bool = True) -> D
     """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Không tìm thấy tệp ảnh tại: {image_path}")
+
+    if cv2 is None or np is None:
+        return {
+            "processed_path": image_path,
+            "orig_size": (0, 0),
+            "processed_size": (0, 0),
+            "deskew_angle": 0.0,
+            "clahe_applied": False,
+            "bilateral_filtered": False
+        }
 
     # Đọc ảnh tiếng Việt / Unicode an toàn bằng numpy
     try:
