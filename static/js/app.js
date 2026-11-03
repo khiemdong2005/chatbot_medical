@@ -1,3 +1,31 @@
+// ==========================================
+// Facebook-Style Default Avatars by Gender (Nam, Nữ, Khác)
+// ==========================================
+function getDefaultAvatarByGender(gender) {
+  const g = (gender || '').toLowerCase().trim();
+  if (g === 'nữ' || g === 'female' || g === 'nu') {
+    return '/static/images/avatar_female.svg';
+  }
+  if (g === 'khác' || g === 'other' || g === 'khac') {
+    return '/static/images/avatar_other.svg';
+  }
+  return '/static/images/avatar_male.svg';
+}
+
+function handleProfileGenderChange(newGender) {
+  if (!currentUser) return;
+  // If user hasn't uploaded a custom photo, sync avatar with chosen gender
+  if (!currentUser.hasCustomAvatar) {
+    const newAvatar = getDefaultAvatarByGender(newGender);
+    currentUser.avatar = newAvatar;
+    const avatarDisplay = document.getElementById('profile-avatar-display');
+    const topAvatarImg = document.getElementById('user-avatar-img');
+    if (avatarDisplay) avatarDisplay.src = newAvatar;
+    if (topAvatarImg) topAvatarImg.src = newAvatar;
+    localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+  }
+}
+
 
 // ==========================================
 // Settings Tab Helpers (Account, Security, Appearance)
@@ -216,10 +244,16 @@ const DEFAULT_USER_PROFILE = {
   ward: "",
   address: "",
   joined: "11/09/2026",
-  avatar: "/static/images/user_avatar.png"
+  hasCustomAvatar: false,
+  avatar: "/static/images/avatar_male.svg"
 };
 
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
+if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png'))) {
+  currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
+  currentUser.hasCustomAvatar = false;
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+}
 if (!currentUser || !currentUser.clinical_id || currentUser.clinical_id.length !== 8 || currentUser.name === 'Luyến Lê Công' || currentUser.name === 'BS. Lê Công Luyến') {
   currentUser = DEFAULT_USER_PROFILE;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
@@ -1296,6 +1330,9 @@ async function handleSaveProfile(e) {
     const data = await res.json();
     if (data.success && data.user) {
       currentUser = data.user;
+      // Set Facebook-style default avatar based on gender (Nam, Nữ, Khác)
+      currentUser.hasCustomAvatar = false;
+      currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || gender);
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
       openProfileModal();
@@ -1738,12 +1775,19 @@ function updateAuthUI() {
       setTheme.value = document.body.classList.contains('light-glass') ? 'light' : 'dark';
     }
 
-    if (currentUser.avatar) {
-      const topAvatar = document.getElementById('user-avatar-img');
-      const dispAvatar = document.getElementById('profile-avatar-display');
-      if (topAvatar) topAvatar.src = currentUser.avatar;
-      if (dispAvatar) dispAvatar.src = currentUser.avatar;
+    // Facebook Style Avatar Sync
+    const avatarUrl = (currentUser.hasCustomAvatar && currentUser.avatar) 
+      ? currentUser.avatar 
+      : getDefaultAvatarByGender(currentUser.gender || 'Nam');
+    
+    if (!currentUser.hasCustomAvatar) {
+      currentUser.avatar = avatarUrl;
     }
+    
+    const topAvatar = document.getElementById('user-avatar-img');
+    const dispAvatar = document.getElementById('profile-avatar-display');
+    if (topAvatar) topAvatar.src = avatarUrl;
+    if (dispAvatar) dispAvatar.src = avatarUrl;
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
     if (tabPhone) tabPhone.value = currentUser.phone_number || '';
@@ -3056,6 +3100,7 @@ function handleProfileAvatarUpload(e) {
     if (avatarDisplay) avatarDisplay.src = dataUrl;
     if (topAvatarImg) topAvatarImg.src = dataUrl;
     if (currentUser) {
+      currentUser.hasCustomAvatar = true;
       currentUser.avatar = dataUrl;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
     }
