@@ -6,6 +6,11 @@
 <title>MediMind Clinical AI - Spatial Glassy Health Suite (VisionOS & Liquid Glass)</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class'
+  };
+</script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <style>
 /* Strict Tab display rule preventing Tailwind .flex override */
@@ -913,7 +918,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 
         <!-- Name Only (Preserved from registration) -->
         <div class="pt-1">
-          <h3 id="profile-card-name" class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Nguyễn Văn An</h3>
+          <h3 id="profile-card-name" class="text-xl font-extrabold tracking-tight">Nguyễn Văn An</h3>
         </div>
 
         <!-- Contact details (Preserved from registration) -->
@@ -945,12 +950,12 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <!-- Row 1: Ngày sinh | Giới tính | Điện thoại | Email (Preserved from Registration) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_birthdate">Ngày sinh</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_birthdate">Ngày sinh</label>
               <input type="text" id="p-birthdate" value="04/10/2005" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_gender">Giới tính</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_gender">Giới tính</label>
               <select id="p-gender" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <option value="Nam" selected data-i18n="gender_male">Nam</option>
                 <option value="Nữ" data-i18n="gender_female">Nữ</option>
@@ -959,7 +964,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_phone">Điện thoại</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_phone">Điện thoại</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-phone" value="0347047101" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <button type="button" onclick="toggleFieldMask('p-phone')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Số điện thoại">
@@ -972,7 +977,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_email">Email</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_email">Email</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-email" value="benhnhan.an@gmail.com" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <button type="button" onclick="toggleFieldMask('p-email')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Email">
@@ -988,7 +993,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <!-- Row 2: CMT/CCCD (Eye toggle, empty on 1st edit) | Ngày cấp (Eye toggle, empty on 1st edit) -->
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div class="sm:col-span-8">
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_cccd">CMT/CCCD</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_cccd">CMT/CCCD</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-cccd" value="" placeholder="Nhập số CMT/CCCD..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors font-mono">
                 <button type="button" onclick="toggleFieldMask('p-cccd')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện CMT/CCCD">
@@ -1001,7 +1006,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div class="sm:col-span-4">
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_issue_date">Ngày cấp</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_issue_date">Ngày cấp</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-issue-date" value="" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <button type="button" onclick="toggleFieldMask('p-issue-date')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Ngày cấp">
@@ -1016,13 +1021,13 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 
           <!-- Section Heading: Bảo hiểm y tế (Bold Heading) -->
           <div class="pt-2">
-            <h4 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider pb-1 border-b border-slate-200 dark:border-white/10" data-i18n="p_sec_bhyt">Bảo hiểm y tế</h4>
+            <h4 class="p-section-heading text-sm font-bold uppercase tracking-wider pb-1 border-b border-slate-200 dark:border-white/10" data-i18n="p_sec_bhyt">Bảo hiểm y tế</h4>
           </div>
 
           <!-- Row 3: Mã BHYT (Eye toggle, empty on 1st edit) | Cơ sở khám chữa bệnh (empty on 1st edit) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_bhyt_code">Mã BHYT</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_bhyt_code">Mã BHYT</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-bhyt" value="" placeholder="Nhập mã thẻ BHYT..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors font-mono">
                 <button type="button" onclick="toggleFieldMask('p-bhyt')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Mã BHYT">
@@ -1035,7 +1040,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_facility">Cơ sở khám chữa bệnh</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_facility">Cơ sở khám chữa bệnh</label>
               <input type="text" id="p-facility" value="" placeholder="Cơ sở KCB ban đầu..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
             </div>
           </div>
@@ -1043,7 +1048,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <!-- Row 4: Hiệu lực từ (Eye toggle, empty on 1st edit) | Hết hiệu lực (Eye toggle, empty on 1st edit) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_valid_from">Hiệu lực từ</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_valid_from">Hiệu lực từ</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-valid-from" value="" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <button type="button" onclick="toggleFieldMask('p-valid-from')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Hiệu lực từ">
@@ -1056,7 +1061,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_valid_to">Hết hiệu lực</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_valid_to">Hết hiệu lực</label>
               <div class="relative flex items-center">
                 <input type="text" id="p-valid-to" value="" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <button type="button" onclick="toggleFieldMask('p-valid-to')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Hết hiệu lực">
@@ -1072,12 +1077,12 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <!-- Row 5: Nơi cấp (empty on 1st edit) | Quốc tịch (mã) -->
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div class="sm:col-span-8">
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_issue_place">Nơi cấp</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_issue_place">Nơi cấp</label>
               <input type="text" id="p-issue-place" value="" placeholder="Nơi cấp CMT/CCCD..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
             </div>
 
             <div class="sm:col-span-4">
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_nationality">Quốc tịch (mã)</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_nationality">Quốc tịch (mã)</label>
               <input type="text" id="p-nationality" value="VN" placeholder="VD: VN" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors uppercase font-mono">
             </div>
           </div>
@@ -1085,7 +1090,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <!-- Row 6: Dân tộc (empty on 1st edit) | Tôn giáo (empty on 1st edit) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_ethnicity">Dân tộc</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_ethnicity">Dân tộc</label>
               <select id="p-ethnicity" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <option value="" selected>-- Chọn dân tộc --</option>
                 <option value="Kinh">Kinh</option>
@@ -1103,7 +1108,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_religion">Tôn giáo</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_religion">Tôn giáo</label>
               <select id="p-religion" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <option value="" selected>-- Chọn tôn giáo --</option>
                 <option value="Không">Không</option>
@@ -1121,7 +1126,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <!-- Row 7: Tỉnh/Thành phố (empty on 1st edit) | Phường/Xã (empty on 1st edit) -->
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div class="sm:col-span-8">
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_province">Tỉnh/Thành phố</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_province">Tỉnh/Thành phố</label>
               <select id="p-province" onchange="handleProvinceChange()" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 <option value="" selected>-- Chọn tỉnh/thành --</option>
                 <option value="Chưa Xác Định">Chưa Xác Định</option>
@@ -1172,14 +1177,14 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             </div>
 
             <div class="sm:col-span-4">
-              <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_ward">Phường/Xã</label>
+              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_ward">Phường/Xã</label>
               <input type="text" id="p-ward" value="" placeholder="Phường/Xã..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
             </div>
           </div>
 
           <!-- Row 8: Địa chỉ theo sổ hộ khẩu (empty on 1st edit) -->
           <div>
-            <label class="block text-xs font-bold text-slate-900 dark:text-white mb-1.5" data-i18n="p_lbl_address_hokhau">Địa chỉ theo sổ hộ khẩu</label>
+            <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_address_hokhau">Địa chỉ theo sổ hộ khẩu</label>
             <input type="text" id="p-address" value="" placeholder="Số nhà, đường, thôn/ấp, phường/xã..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
           </div>
 

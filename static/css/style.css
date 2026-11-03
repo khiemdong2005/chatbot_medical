@@ -329,3 +329,72 @@ body.light-glass .notif-item:hover {
 body.light-glass #notif-title {
   color: #0F172A !important;
 }
+
+
+/* ==============================================================================
+   High-Contrast Profile Labels & Typography (Light & Dark Glass Guaranteed)
+   ============================================================================== */
+body.light-glass .p-label,
+body.light-glass #profile-tab label {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  font-size: 0.8125rem !important;
+  letter-spacing: -0.01em !important;
+  display: block !important;
+}
+
+body.light-glass .p-section-heading,
+body.light-glass #profile-tab h4 {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  border-color: #E2E8F0 !important;
+}
+
+body.light-glass #profile-card-name {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #profile-card-email,
+body.light-glass #profile-card-phone {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+body.light-glass #profile-tab input,
+body.light-glass #profile-tab select {
+  color: #0F172A !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  font-weight: 500 !important;
+}
+
+body.light-glass #profile-tab input::placeholder {
+  color: #94A3B8 !important;
+}
+
+/* Dark Mode High-Contrast Rules */
+body:not(.light-glass) .p-label,
+body:not(.light-glass) #profile-tab label {
+  color: #F8FAFC !important;
+  font-weight: 700 !important;
+  font-size: 0.8125rem !important;
+  display: block !important;
+}
+
+body:not(.light-glass) .p-section-heading,
+body:not(.light-glass) #profile-tab h4 {
+  color: #F8FAFC !important;
+  font-weight: 800 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body:not(.light-glass) #profile-card-name {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+body:not(.light-glass) #profile-card-email,
+body:not(.light-glass) #profile-card-phone {
+  color: #CBD5E1 !important;
+}
