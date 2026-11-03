@@ -2030,92 +2030,154 @@ async function startOtpLoginFlow() {
 
 
 // ==============================================================
-// GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN
+// GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN (5-STATE MACHINE)
 // ==============================================================
+let currentGoogleState = 'select'; // 'select' | 'custom' | 'loading' | 'success'
+
 function handleGoogleSignIn() {
   const modal = document.getElementById('google-account-modal');
   if (modal) {
     if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+    setGoogleModalState('select');
     modal.classList.remove('hidden');
   }
 }
 
 function closeGoogleAccountModal() {
+  // Trạng thái 4 – Hủy đăng nhập: Đóng popup, quay lại modal đăng nhập ban đầu mà không đổi dữ liệu
   const modal = document.getElementById('google-account-modal');
   if (modal) modal.classList.add('hidden');
+  setGoogleModalState('select');
 }
 
-async function executeGoogleLogin(email, name, avatarUrl) {
-  closeGoogleAccountModal();
+function setGoogleModalState(state) {
+  currentGoogleState = state;
+  const stateSelect = document.getElementById('google-state-select');
+  const stateCustom = document.getElementById('google-state-custom');
+  const stateLoading = document.getElementById('google-state-loading');
+  const stateSuccess = document.getElementById('google-state-success');
+  const heading = document.getElementById('google-modal-heading');
+  const subheading = document.getElementById('google-modal-subheading');
+
+  if (stateSelect) stateSelect.classList.toggle('hidden', state !== 'select');
+  if (stateCustom) stateCustom.classList.toggle('hidden', state !== 'custom');
+  if (stateLoading) stateLoading.classList.toggle('hidden', state !== 'loading');
+  if (stateSuccess) stateSuccess.classList.toggle('hidden', state !== 'success');
+
+  if (heading && subheading) {
+    if (state === 'select') {
+      heading.textContent = 'Chọn tài khoản';
+      subheading.innerHTML = 'Để tiếp tục đến <span class="text-white font-medium">MediMind AI</span>';
+    } else if (state === 'custom') {
+      heading.textContent = 'Đăng nhập';
+      subheading.innerHTML = 'Sử dụng Tài khoản Google của bạn';
+      const input = document.getElementById('google-custom-email-input');
+      if (input) setTimeout(() => input.focus(), 60);
+    } else if (state === 'loading') {
+      heading.textContent = 'Đang xác thực...';
+      subheading.innerHTML = 'Đang bảo mật phiên kết nối';
+    } else if (state === 'success') {
+      heading.textContent = 'Hoàn tất!';
+      subheading.innerHTML = 'Chào mừng bạn đến với MediMind AI';
+    }
+  }
+}
+
+async function startGoogleAccountSelection(email, name, initial, bgColor) {
+  // Cập nhật thông tin lên State 3 trước để sẵn sàng hiển thị
+  const avatarEl = document.getElementById('google-success-avatar');
+  const nameEl = document.getElementById('google-success-name');
+  const emailEl = document.getElementById('google-success-email');
+
+  if (avatarEl) {
+    avatarEl.textContent = initial || name.charAt(0).toUpperCase();
+    avatarEl.style.backgroundColor = bgColor || '#0284c7';
+  }
+  if (nameEl) nameEl.textContent = name;
+  if (emailEl) emailEl.textContent = email;
+
+  // Trạng thái 2 – Đang đăng nhập (Loading animation & pulse)
+  setGoogleModalState('loading');
+
   try {
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: email,
-        name: name,
-        avatar_url: avatarUrl || 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar'
-      })
-    });
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${(bgColor || '#0284c7').replace('#', '')}&color=fff&size=128`;
+    
+    const [res] = await Promise.all([
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, avatar_url: avatarUrl })
+      }),
+      new Promise(resolve => setTimeout(resolve, 750)) // Smooth animation pause
+    ]);
+
     const data = await res.json();
     if (data.success && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      updateAuthUI();
-      closeLoginModal();
-      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-      if (typeof showMedicalToast === 'function') {
-        showMedicalToast(`Đăng nhập thành công với Google (${currentUser.email})!`, 'success');
-      } else {
-        alert(`Chào mừng ${currentUser.full_name} đã đăng nhập thành công với Google!`);
-      }
-      if (pendingTabAfterLogin) {
-        const target = pendingTabAfterLogin;
-        pendingTabAfterLogin = null;
-        switchTab(target);
-      }
+      // Trạng thái 3 – Đăng nhập thành công (Demo checkmark & selected user display)
+      setGoogleModalState('success');
+
+      // Tự động chuyển đến giao diện Dashboard mẫu sau hiệu ứng hoàn tất
+      setTimeout(() => {
+        currentUser = data.user;
+        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        closeGoogleAccountModal();
+        closeLoginModal();
+        broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
+
+        if (typeof showMedicalToast === 'function') {
+          showMedicalToast(`Đăng nhập thành công với Google (${currentUser.email})!`, 'success');
+        }
+
+        if (pendingTabAfterLogin) {
+          const target = pendingTabAfterLogin;
+          pendingTabAfterLogin = null;
+          switchTab(target);
+        } else {
+          switchTab('home-tab');
+        }
+      }, 1200);
+
     } else {
+      setGoogleModalState('select');
       alert(data.error || 'Đăng nhập Google thất bại.');
     }
   } catch (err) {
     console.error('Lỗi Google Sign-In:', err);
+    setGoogleModalState('select');
     alert('Không thể kết nối máy chủ Google OAuth.');
   }
 }
 
+function submitCustomGoogleAccount() {
+  const input = document.getElementById('google-custom-email-input');
+  let raw = (input?.value || '').trim();
+  if (!raw) {
+    input?.focus();
+    return;
+  }
+  let email = raw;
+  if (!email.includes('@')) {
+    email += '@gmail.com';
+  }
+  const prefix = email.split('@')[0];
+  const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Google User';
+  const initial = name.charAt(0).toUpperCase();
+  startGoogleAccountSelection(email, name, initial, '#0284c7');
+}
 
-function toggleCustomGoogleInput() {
-  const box = document.getElementById('custom-google-input-box');
-  if (box) {
-    box.classList.toggle('hidden');
-    if (!box.classList.contains('hidden')) {
-      document.getElementById('custom-google-email')?.focus();
+// Bắt phím Escape và Enter cho Google Account Modal
+window.addEventListener('keydown', (e) => {
+  const modal = document.getElementById('google-account-modal');
+  if (modal && !modal.classList.contains('hidden')) {
+    if (e.key === 'Escape' && currentGoogleState !== 'loading') {
+      closeGoogleAccountModal();
+    }
+    if (e.key === 'Enter' && currentGoogleState === 'custom') {
+      submitCustomGoogleAccount();
     }
   }
-}
-
-function submitCustomGoogleLogin() {
-  const emailInput = document.getElementById('custom-google-email');
-  const email = (emailInput?.value || '').trim();
-  if (!email || !email.includes('@')) {
-    alert('Vui lòng nhập địa chỉ Gmail hợp lệ.');
-    return;
-  }
-  const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  executeGoogleLogin(email, name, 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar');
-}
-
-function promptCustomGoogleAccount() {
-  const customEmail = prompt('Nhập địa chỉ Gmail của bạn:');
-  if (!customEmail) return;
-  const trimmed = customEmail.trim();
-  if (!trimmed.includes('@')) {
-    alert('Email không hợp lệ.');
-    return;
-  }
-  const name = trimmed.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  executeGoogleLogin(trimmed, name, 'https://lh3.googleusercontent.com/a/ACg8ocK_simulated_google_avatar');
-}
+});
 
 async function handleRegisterSubmit(e) {
   e.preventDefault();
