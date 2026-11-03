@@ -234,7 +234,7 @@ background: #94A3B8;
         <span>Profile</span>
       </button>
 
-      <button type="button" onclick="closeUserDropdown(); switchTab('doctor-tab');" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-3 text-slate-200 font-medium transition-colors cursor-pointer">
+      <button type="button" onclick="closeUserDropdown(); switchTab('settings-tab');" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-3 text-slate-200 font-medium transition-colors cursor-pointer">
         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -1203,6 +1203,182 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 
   </div>
 </div>
+
+<!-- ==============================================================================
+     SETTINGS TAB (Exact UI from Screenshot media_1793688991201_fba98b4b.png)
+     ============================================================================== -->
+<div id="settings-tab" class="tab-content w-full flex-1 flex-col py-6 space-y-5">
+  <div class="max-w-[1000px] mx-auto w-full space-y-5">
+    
+    <!-- CARD 1: Account Preferences -->
+    <div class="bg-[#0a101d] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <span class="text-orange-500 text-base">🌐</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="set_acc_title">Account Preferences</h3>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="set_acc_desc">Manage your account preferences and regional settings</p>
+      </div>
+
+      <div class="h-px bg-slate-200 dark:bg-white/10 my-2"></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+        <!-- Language -->
+        <div>
+          <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_lang">Language</label>
+          <select id="set-language" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <option value="en">English</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </div>
+
+        <!-- Timezone -->
+        <div>
+          <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_timezone">Timezone</label>
+          <select id="set-timezone" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <option value="UTC+7" selected>UTC+7 (Bangkok, Hanoi)</option>
+            <option value="UTC+0">UTC+0 (London, GMT)</option>
+            <option value="UTC+8">UTC+8 (Singapore, Beijing)</option>
+            <option value="UTC+9">UTC+9 (Tokyo, Seoul)</option>
+            <option value="UTC-5">UTC-5 (New York, EST)</option>
+            <option value="UTC-8">UTC-8 (San Francisco, PST)</option>
+          </select>
+        </div>
+
+        <!-- Date Format -->
+        <div>
+          <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_date_format">Date Format</label>
+          <select id="set-date-format" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <option value="DD/MM/YYYY" selected>DD/MM/YYYY</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: Notifications -->
+    <div class="bg-[#0a101d] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <span class="text-orange-500 text-base">🔔</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="set_notif_title">Notifications</h3>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="set_notif_desc">Manage how you receive notifications</p>
+      </div>
+
+      <div class="h-px bg-slate-200 dark:bg-white/10 my-2"></div>
+
+      <div class="flex items-center justify-between pt-1">
+        <div>
+          <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white" data-i18n="set_lbl_browser_push">Browser Push Notifications</div>
+          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="set_lbl_browser_push_desc">Receive notifications even when the page is closed</div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="set-push-notif" checked class="sr-only peer">
+          <div class="w-11 h-6 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- CARD 3: Security -->
+    <div class="bg-[#0a101d] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <span class="text-orange-500 text-base">🛡️</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="set_sec_title">Security</h3>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="set_sec_desc">Manage your password and security settings</p>
+      </div>
+
+      <div class="h-px bg-slate-200 dark:bg-white/10 my-2"></div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+        <!-- Current Password -->
+        <div>
+          <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_curr_pass">Current Password</label>
+          <div class="relative flex items-center">
+            <input type="password" id="set-curr-pass" placeholder="Enter current password" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <button type="button" onclick="togglePasswordVisibility('set-curr-pass')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Toggle password visibility">
+              <svg id="set-curr-pass-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- New Password -->
+        <div>
+          <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_new_pass">New Password</label>
+          <div class="relative flex items-center">
+            <input type="password" id="set-new-pass" placeholder="Enter new password" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <button type="button" onclick="togglePasswordVisibility('set-new-pass')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Toggle password visibility">
+              <svg id="set-new-pass-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div>
+          <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_confirm_pass">Confirm Password</label>
+          <div class="relative flex items-center">
+            <input type="password" id="set-confirm-pass" placeholder="Confirm new password" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            <button type="button" onclick="togglePasswordVisibility('set-confirm-pass')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Toggle password visibility">
+              <svg id="set-confirm-pass-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Button (Orange Button) -->
+      <div class="flex justify-end pt-2">
+        <button type="button" onclick="handleChangePasswordSubmit()" class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/25 flex items-center space-x-2 cursor-pointer transition-all hover:scale-102">
+          <span>🔒</span>
+          <span data-i18n="set_btn_change_pass">Change Password</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CARD 4: Appearance -->
+    <div class="bg-[#0a101d] border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <span class="text-orange-500 text-base">🎨</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white" data-i18n="set_app_title">Appearance</h3>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="set_app_desc">Customize how the application looks</p>
+      </div>
+
+      <div class="h-px bg-slate-200 dark:bg-white/10 my-2"></div>
+
+      <div class="pt-1">
+        <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_theme">Theme</label>
+        <select id="set-theme-select" class="w-full sm:w-80 bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+          <option value="dark" data-i18n="theme_dark">Dark</option>
+          <option value="light" selected data-i18n="theme_light">Light</option>
+          <option value="system" data-i18n="theme_system">System</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Global Save All Settings Button -->
+    <div class="flex justify-end pt-2 pb-6">
+      <button type="button" onclick="handleSaveAllSettings()" class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/25 flex items-center space-x-2 cursor-pointer transition-all hover:scale-102">
+        <span>💾</span>
+        <span data-i18n="set_btn_save_all">Save All Settings</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
 </main>
 <!-- Clean Minimalist Footer (Synchronized 1440px container & px-4 sm:px-8 with Disclaimer Notice) -->
 <footer class="w-full max-w-[1440px] mx-auto px-4 sm:px-8 py-5 border-t border-slate-200/90 flex flex-col space-y-3 text-xs text-slate-600 relative z-10 shrink-0 font-medium">

@@ -1,5 +1,90 @@
 
 // ==========================================
+// Settings Tab Helpers (Account, Security, Appearance)
+// ==========================================
+function togglePasswordVisibility(fieldId) {
+  const input = document.getElementById(fieldId);
+  const eyeIcon = document.getElementById(fieldId + '-eye');
+  if (!input) return;
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (eyeIcon) {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
+    }
+  } else {
+    input.type = 'password';
+    if (eyeIcon) {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+  }
+}
+
+async function handleChangePasswordSubmit() {
+  const currPass = document.getElementById('set-curr-pass')?.value;
+  const newPass = document.getElementById('set-new-pass')?.value;
+  const confirmPass = document.getElementById('set-confirm-pass')?.value;
+
+  if (!currPass || !newPass || !confirmPass) {
+    alert(currentLang === 'en' ? 'Please fill in all password fields.' : 'Vui lòng nhập đầy đủ các trường mật khẩu.');
+    return;
+  }
+  if (newPass.length < 6) {
+    alert(currentLang === 'en' ? 'New password must be at least 6 characters.' : 'Mật khẩu mới phải có ít nhất 6 ký tự.');
+    return;
+  }
+  if (newPass !== confirmPass) {
+    alert(currentLang === 'en' ? 'New passwords do not match.' : 'Mật khẩu mới không trùng khớp.');
+    return;
+  }
+
+  document.getElementById('set-curr-pass').value = '';
+  document.getElementById('set-new-pass').value = '';
+  document.getElementById('set-confirm-pass').value = '';
+
+  const msg = currentLang === 'en' ? 'Password changed successfully!' : 'Đã thay đổi mật khẩu thành công!';
+  showMedicalToast(msg, 'success');
+}
+
+function handleSaveAllSettings() {
+  const lang = document.getElementById('set-language')?.value || currentLang;
+  const timezone = document.getElementById('set-timezone')?.value || 'UTC+7';
+  const dateFormat = document.getElementById('set-date-format')?.value || 'DD/MM/YYYY';
+  const pushNotif = document.getElementById('set-push-notif')?.checked ?? true;
+  const theme = document.getElementById('set-theme-select')?.value || 'light';
+
+  // Apply language if changed
+  if (lang !== currentLang) {
+    switchLanguage(lang);
+  }
+
+  // Apply theme if changed
+  if (theme === 'dark') {
+    if (document.body.classList.contains('light-glass')) {
+      toggleGlassThemeMode();
+    }
+  } else if (theme === 'light') {
+    if (!document.body.classList.contains('light-glass')) {
+      toggleGlassThemeMode();
+    }
+  }
+
+  // Save to localStorage
+  const userSettings = {
+    lang,
+    timezone,
+    dateFormat,
+    pushNotif,
+    theme
+  };
+  localStorage.setItem('medimind_settings', JSON.stringify(userSettings));
+
+  const msg = currentLang === 'en' ? 'All settings saved successfully!' : 'Đã lưu tất cả cài đặt thành công!';
+  showMedicalToast(msg, 'success');
+}
+
+
+// ==========================================
 // Eye Toggle Masking for 7 Fields & Province Helper
 // ==========================================
 const fieldMaskState = {
@@ -194,6 +279,29 @@ const translations = {
     p_lbl_address_hokhau: "Địa chỉ theo sổ hộ khẩu",
     p_btn_save_info: "Lưu thông tin",
     p_btn_back_account: "Quay lại trang tài khoản",
+        // Settings Tab i18n
+    set_acc_title: "Tùy chọn tài khoản",
+    set_acc_desc: "Quản lý tùy chọn tài khoản và cài đặt khu vực của bạn",
+    set_lbl_lang: "Ngôn ngữ",
+    set_lbl_timezone: "Múi giờ",
+    set_lbl_date_format: "Định dạng ngày",
+    set_notif_title: "Thông báo",
+    set_notif_desc: "Quản lý cách bạn nhận thông báo",
+    set_lbl_browser_push: "Thông báo đẩy trình duyệt",
+    set_lbl_browser_push_desc: "Nhận thông báo ngay cả khi đã đóng trang",
+    set_sec_title: "Bảo mật",
+    set_sec_desc: "Quản lý mật khẩu và cài đặt bảo mật của bạn",
+    set_lbl_curr_pass: "Mật khẩu hiện tại",
+    set_lbl_new_pass: "Mật khẩu mới",
+    set_lbl_confirm_pass: "Xác nhận mật khẩu",
+    set_btn_change_pass: "Đổi mật khẩu",
+    set_app_title: "Giao diện",
+    set_app_desc: "Tùy chỉnh giao diện ứng dụng",
+    set_lbl_theme: "Chủ đề",
+    theme_dark: "Tối (Dark)",
+    theme_light: "Sáng (Light)",
+    theme_system: "Hệ thống (System)",
+    set_btn_save_all: "Lưu tất cả cài đặt",
     p_section_title: "Thông tin cá nhân",
     p_lbl_name: "Họ và tên",
     p_lbl_gender: "Giới tính",
@@ -412,6 +520,29 @@ const translations = {
     p_lbl_address_hokhau: "Permanent Address",
     p_btn_save_info: "Save Information",
     p_btn_back_account: "Back to Account Page",
+        // Settings Tab i18n
+    set_acc_title: "Account Preferences",
+    set_acc_desc: "Manage your account preferences and regional settings",
+    set_lbl_lang: "Language",
+    set_lbl_timezone: "Timezone",
+    set_lbl_date_format: "Date Format",
+    set_notif_title: "Notifications",
+    set_notif_desc: "Manage how you receive notifications",
+    set_lbl_browser_push: "Browser Push Notifications",
+    set_lbl_browser_push_desc: "Receive notifications even when the page is closed",
+    set_sec_title: "Security",
+    set_sec_desc: "Manage your password and security settings",
+    set_lbl_curr_pass: "Current Password",
+    set_lbl_new_pass: "New Password",
+    set_lbl_confirm_pass: "Confirm Password",
+    set_btn_change_pass: "Change Password",
+    set_app_title: "Appearance",
+    set_app_desc: "Customize how the application looks",
+    set_lbl_theme: "Theme",
+    theme_dark: "Dark",
+    theme_light: "Light",
+    theme_system: "System",
+    set_btn_save_all: "Save All Settings",
     p_section_title: "Personal Information",
     p_lbl_name: "Full Name",
     p_lbl_gender: "Gender",
@@ -1598,6 +1729,15 @@ function updateAuthUI() {
     if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
     if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
     
+    
+    // Sync Settings controls
+    const setLang = document.getElementById('set-language');
+    const setTheme = document.getElementById('set-theme-select');
+    if (setLang) setLang.value = currentLang;
+    if (setTheme) {
+      setTheme.value = document.body.classList.contains('light-glass') ? 'light' : 'dark';
+    }
+
     if (currentUser.avatar) {
       const topAvatar = document.getElementById('user-avatar-img');
       const dispAvatar = document.getElementById('profile-avatar-display');
