@@ -3364,7 +3364,7 @@ async function sendFloatingChatMessage() {
   const userBubble = document.createElement('div');
   userBubble.className = 'flex justify-end';
   userBubble.innerHTML = `
-    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-xs bg-teal-600 text-white shadow-md text-xs leading-relaxed">
+    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md text-xs leading-relaxed font-medium">
       ${escapeHtml(text)}
     </div>
   `;
@@ -3398,10 +3398,11 @@ async function sendFloatingChatMessage() {
     const data = await res.json();
     document.getElementById(typingId)?.remove();
 
+    const isLightMode = document.body.classList.contains('light-glass');
     const botBubble = document.createElement('div');
     botBubble.className = 'flex justify-start';
     botBubble.innerHTML = `
-      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs glass-card border border-white/10 text-xs leading-relaxed text-slate-200">
+      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs ${isLightMode ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-white/10 text-slate-200 border border-white/10'} text-xs leading-relaxed shadow-xs">
         ${data.reply || data.response || 'Hệ thống đã ghi nhận thông tin của bạn.'}
       </div>
     `;

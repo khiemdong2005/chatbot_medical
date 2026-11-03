@@ -823,52 +823,74 @@ body.light-glass .home-card:hover {
 }
 
 /* ==============================================================
-   FLOATING CHATBOX WIDGET (Image 2)
+   FLOATING CHATBOX WIDGET (Image 2 & 3 High-Contrast Theme Fix)
    ============================================================== */
 #floating-chat-window {
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
 }
 
+/* --- LIGHT MODE (High Contrast, Pure Legibility) --- */
 body.light-glass #floating-chat-window {
+  background-color: #FFFFFF !important;
   background: #FFFFFF !important;
-  border: 1px solid #CBD5E1 !important;
+  border: 1px solid #E2E8F0 !important;
   box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
   color: #0F172A !important;
 }
 
 body.light-glass .floating-chat-header {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: #FFFFFF !important;
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+body.light-glass .floating-chat-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass .floating-chat-action-btn {
+  background-color: #F1F5F9 !important;
+  color: #475569 !important;
+  border: 1px solid #E2E8F0 !important;
+}
+body.light-glass .floating-chat-action-btn:hover {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
 }
 
 body.light-glass .floating-welcome-bubble {
-  background: #F1F5F9 !important;
+  background-color: #F8FAFC !important;
   border: 1px solid #E2E8F0 !important;
-  color: #1E293B !important;
+  color: #0F172A !important;
 }
 
 body.light-glass .floating-welcome-bubble p {
   color: #334155 !important;
+  font-weight: 500 !important;
 }
 
 body.light-glass .floating-chat-footer {
+  background-color: #FFFFFF !important;
   background: #FFFFFF !important;
   border-top: 1px solid #E2E8F0 !important;
 }
 
 body.light-glass .floating-quick-pill {
-  background: #F0FDFA !important;
-  border: 1px solid #99F6E4 !important;
-  color: #0D9488 !important;
+  background-color: #F0F9FF !important;
+  border: 1.5px solid #BAE6FD !important;
+  color: #0284C7 !important;
+  font-weight: 700 !important;
 }
 
 body.light-glass .floating-quick-pill:hover {
-  background: #CCFBF1 !important;
+  background-color: #E0F2FE !important;
+  color: #0369A1 !important;
 }
 
 body.light-glass .floating-input-wrap {
-  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
   border: 1.5px solid #CBD5E1 !important;
   color: #0F172A !important;
 }
@@ -881,17 +903,31 @@ body.light-glass .floating-input-wrap input::placeholder {
   color: #94A3B8 !important;
 }
 
-/* Dark mode for floating chatbox */
+/* --- DARK MODE --- */
 body:not(.light-glass) #floating-chat-window {
-  background: rgba(15, 23, 42, 0.95) !important;
+  background: rgba(15, 23, 42, 0.96) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75) !important;
   color: #F8FAFC !important;
 }
 
 body:not(.light-glass) .floating-chat-header {
-  background: rgba(30, 41, 59, 0.85) !important;
+  background: rgba(30, 41, 59, 0.95) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body:not(.light-glass) .floating-chat-title {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+body:not(.light-glass) .floating-chat-action-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #E2E8F0 !important;
+}
+body:not(.light-glass) .floating-chat-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #FFFFFF !important;
 }
 
 body:not(.light-glass) .floating-welcome-bubble {
@@ -905,18 +941,19 @@ body:not(.light-glass) .floating-welcome-bubble p {
 }
 
 body:not(.light-glass) .floating-chat-footer {
-  background: rgba(15, 23, 42, 0.95) !important;
+  background: rgba(15, 23, 42, 0.96) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 body:not(.light-glass) .floating-quick-pill {
-  background: rgba(20, 184, 166, 0.15) !important;
-  border: 1px solid rgba(20, 184, 166, 0.3) !important;
-  color: #2DD4BF !important;
+  background: rgba(2, 132, 199, 0.15) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  color: #38BDF8 !important;
+  font-weight: 700 !important;
 }
 
 body:not(.light-glass) .floating-quick-pill:hover {
-  background: rgba(20, 184, 166, 0.25) !important;
+  background: rgba(2, 132, 199, 0.25) !important;
 }
 
 body:not(.light-glass) .floating-input-wrap {
