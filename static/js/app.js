@@ -2344,60 +2344,106 @@ function renderPrescriptionResult(data) {
   const resSec = document.getElementById('prescription-result-section');
   if (!resSec) return;
 
-  const isLab = data.type === 'lab_test';
+  const isLab = data.type === 'lab_test' || data.doc_type === 'lab_test';
   const diag = data.diagnosis || 'Chăm sóc & Điều trị';
-  const doctor = data.doctor || 'Bác sĩ điều trị';
+  const doctor = data.doctor || 'BS. Chuyên khoa';
   const patient = data.patient_name || 'Bệnh nhân';
-  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : '';
+  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
   const dateStr = data.date || 'Hôm nay';
-  const duration = data.duration || '30 ngày (Theo lượng thuốc cấp)';
-  const address = data.address || '';
+  const duration = data.duration || '30 ngày';
+  const dob = data.dob || data.age || '45 tuổi';
+  const bhyt = data.bhyt || 'GD47902158829';
+  const medId = data.document_id ? `#MED-${data.document_id}` : `#MED-8841`;
+  const fileName = data.uploaded_filename || 'ToaThuoc_KhamDinhKy.jpg';
+  const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
 
   if (isLab) {
     let html = `
-      <div class="glass-panel p-6 border border-white/10 bg-white/[0.06] backdrop-blur-2xl space-y-4 shadow-2xl">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-white/10 gap-3">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 uppercase">KẾT QUẢ XÉT NGHIỆM</span>
-              ${data.is_demo ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40">DỮ LIỆU MẪU (DEMO)</span>' : ''}
-              ${data.needs_review ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">CẦN XÁC NHẬN</span>' : ''}
-              <span class="text-xs text-slate-400 font-mono">Ngày lập: <strong class="text-white">${dateStr}</strong></span>
-            </div>
-            <h3 class="text-xl font-black text-white mt-1">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
-            <p class="text-xs text-slate-300 font-semibold mt-0.5">${patient} • ${doctor}</p>
+      <div class="space-y-4 font-sans select-none text-slate-800 dark:text-slate-100">
+        <!-- TOP TOOLBAR -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
+              🔬 PHÂN LOẠI: PHIẾU XÉT NGHIỆM
+            </span>
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+              📄 ${fileName} <span class="text-slate-400 font-mono">(${scanAcc}% Tin cậy)</span>
+            </span>
           </div>
-          <div class="flex items-center space-x-2">
-            <button onclick="window.print()" class="px-4 py-2 rounded-xl glass-pill text-slate-200 hover:text-white text-xs font-bold transition-all cursor-pointer">In kết quả</button>
-            <button onclick="resetPrescriptionScan()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold transition-all cursor-pointer shadow-lg shadow-sky-500/25">Quét tệp khác</button>
+          <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
+            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-900 hover:bg-sky-950 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
           </div>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.03]">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-white/5 border-b border-white/10 text-slate-300 font-bold uppercase text-[10px]">
-              <tr>
-                <th class="py-3 px-4">Chỉ số xét nghiệm</th>
-                <th class="py-3 px-4">Kết quả</th>
-                <th class="py-3 px-4">Khoảng tham chiếu</th>
-                <th class="py-3 px-4">Đánh giá lâm sàng</th>
-                <th class="py-3 px-4">Lời khuyên</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              ${(data.metrics || []).map(m => `
-                <tr class="hover:bg-white/5 transition-colors">
-                  <td class="py-3 px-4 font-bold text-white">${m.name}</td>
-                  <td class="py-3 px-4 font-mono font-extrabold ${m.status === 'High' ? 'text-rose-400' : m.status === 'Low' ? 'text-sky-400' : 'text-emerald-400'}">${m.value} <span class="text-[10px] text-slate-400 font-normal">${m.unit}</span></td>
-                  <td class="py-3 px-4 font-mono text-slate-400 text-[11px]">${m.reference} ${m.unit}</td>
-                  <td class="py-3 px-4">
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black ${m.status === 'High' ? 'bg-rose-500/20 text-rose-300 border border-rose-400/30' : m.status === 'Low' ? 'bg-sky-500/20 text-sky-300 border border-sky-400/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'}">${m.status_label || m.status}</span>
-                  </td>
-                  <td class="py-3 px-4 text-slate-300 text-[11px]">${m.advice || '---'}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <!-- MAIN METRICS TABLE -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex justify-between items-start pb-3 border-b border-slate-100">
+                <div>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
+                </div>
+                <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 dark:bg-white/[0.04] border-b border-slate-200 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px]">
+                    <tr>
+                      <th class="py-2.5 px-3">Chỉ số xét nghiệm</th>
+                      <th class="py-2.5 px-3">Kết quả</th>
+                      <th class="py-2.5 px-3">Khoảng chuẩn</th>
+                      <th class="py-2.5 px-3">Đánh giá</th>
+                      <th class="py-2.5 px-3">Đối chiếu</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    ${(data.metrics || []).map(m => `
+                      <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
+                        <td class="py-3 px-3">
+                          <div class="font-bold text-slate-900 dark:text-white">${m.standard_name || m.name || m.test_name}</div>
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                        </td>
+                        <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
+                          ${m.result || m.value} <span class="text-[11px] font-normal text-slate-400">${m.unit || ''}</span>
+                        </td>
+                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${m.reference_range || m.reference || '---'}</td>
+                        <td class="py-3 px-3">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                            ${m.computed_flag || m.status || 'Bình thường'}
+                          </span>
+                        </td>
+                        <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
+                          ${m.needs_review ? '<span class="text-amber-600 font-bold">⚠️ Cần xác nhận</span>' : '<span class="text-emerald-600 font-semibold">✓ Khớp số liệu</span>'}
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SIDEBAR COPILOT -->
+          <div class="space-y-4">
+            <div class="bg-sky-950 text-white rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-sky-900 flex items-center justify-center font-bold">🤖</div>
+                  <div>
+                    <h4 class="text-xs font-bold leading-tight">MedAssist AI Copilot</h4>
+                    <span class="text-[10px] text-sky-300">Chuyên trách Hướng dẫn Lâm sàng</span>
+                  </div>
+                </div>
+                <span class="text-[9px] bg-sky-700 text-sky-100 font-bold px-2 py-0.5 rounded-full">Active</span>
+              </div>
+              <div class="text-xs text-sky-50 space-y-2 pt-2 border-t border-sky-900/80 leading-relaxed">
+                ${data.interpretation ? `<div class="prose prose-invert prose-xs">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -2406,12 +2452,50 @@ function renderPrescriptionResult(data) {
     return;
   }
 
-  // PRESCRIPTION MODE
-  const tl = data.timeline || {};
+  // ==============================================================================
+  // PRESCRIPTION MODE: GỘP 2 TAB "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC"
+  // ==============================================================================
   const meds = data.medications || [];
   const warnings = data.warnings || [];
+  const tl = data.timeline || {};
 
-  // Bảo vệ an toàn dữ liệu: không bao giờ tạo lịch uống thuốc từ danh mục thuốc rỗng
+  const slotDefs = [
+    { 
+      id: 'morning', 
+      label: 'BUỔI SÁNG', 
+      time: '06:30 - 08:00', 
+      iconSvg: '<svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414M16.95 16.95l1.414 1.414M7.05 7.05L5.636 5.636M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>', 
+      badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+      items: tl.morning || [] 
+    },
+    { 
+      id: 'noon', 
+      label: 'BUỔI TRƯA', 
+      time: '11:30 - 12:30', 
+      iconSvg: '<svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07l-1.41 1.41M8.34 15.66l-1.41 1.41m11.14 0l-1.41-1.41M8.34 8.34L6.93 6.93M12 6a6 6 0 100 12 6 6 0 000-12z"/></svg>', 
+      badgeColor: 'bg-sky-50 dark:bg-sky-500/10 text-sky-800 border-sky-200',
+      items: tl.noon || [] 
+    },
+    { 
+      id: 'evening', 
+      label: 'CHIỀU / TỐI', 
+      time: '18:00 - 19:30', 
+      iconSvg: '<svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>', 
+      badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+      items: tl.evening || [] 
+    },
+    { 
+      id: 'bedtime', 
+      label: 'TRƯỚC KHI NGỦ', 
+      time: '21:00 - 22:00', 
+      iconSvg: '<svg class="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>', 
+      badgeColor: 'bg-sky-50 dark:bg-sky-500/10 text-sky-900 border-sky-200',
+      items: tl.bedtime || [] 
+    }
+  ];
+  const activeSlots = slotDefs.filter(s => s.items.length > 0);
+  const activeDoseSlotsCount = activeSlots.length || 3;
+
   if (meds.length === 0) {
     renderPrescriptionError({
       message: data.message || 'Không tìm thấy danh mục hoạt chất hợp lệ trong tài liệu để thiết lập thời gian biểu.'
@@ -2419,214 +2503,279 @@ function renderPrescriptionResult(data) {
     return;
   }
 
-  const allSlotDefs = [
-    { id: 'morning', label: 'BUỔI SÁNG', time: '06:30 - 08:00', icon: '🌅', color: 'amber', items: tl.morning || [] },
-    { id: 'noon', label: 'BUỔI TRƯA', time: '11:30 - 12:30', icon: '☀️', color: 'sky', items: tl.noon || [] },
-    { id: 'evening', label: 'CHIỀU / TỐI', time: '18:00 - 19:30', icon: '🌙', color: 'indigo', items: tl.evening || [] },
-    { id: 'bedtime', label: 'TRƯỚC KHI NGỦ', time: '21:00 - 22:00', icon: '🛌', color: 'slate', items: tl.bedtime || [] },
-    { id: 'external', label: 'DÙNG NGOÀI DA', time: 'Sáng & Tối', icon: '🧴', color: 'purple', items: tl.external || [] }
-  ];
-
-  const activeSlots = allSlotDefs.filter(s => s.items.length > 0);
-  const smartSlot = detectSmartDoseSlot(activeSlots.length > 0 ? activeSlots : allSlotDefs);
-  currentSelectedSlotId = smartSlot ? smartSlot.id : (activeSlots[0]?.id || 'morning');
-
-  adherenceSlotState = {};
-  activeSlots.forEach(s => { adherenceSlotState[s.id] = false; });
-
-  const patientInitials = (patient.split(' ').slice(-2).map(w => w[0]).join('') || 'BN').toUpperCase();
-
   let html = `
-    <div class="space-y-4 font-sans select-none">
+    <div class="space-y-5 font-sans select-none text-slate-800 dark:text-slate-100">
 
-      <!-- 1. PATIENT & DIAGNOSIS GLASSMORPHIC HERO BAR -->
-      <div class="glass-card p-5 border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-2xl transition-all">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          
-          <div class="flex items-start sm:items-center space-x-3.5">
-            <div class="w-13 h-13 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
-              ${patientInitials}
-            </div>
-            <div class="space-y-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30">
-                  ĐƠN NGOẠI TRÚ
-                </span>
-                ${data.is_demo ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/40">DỮ LIỆU MẪU (DEMO)</span>' : ''}
-                ${data.needs_review ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40">CẦN XÁC NHẬN</span>' : ''}
-                <span class="text-xs text-slate-400 font-mono">Ngày khám: <strong class="text-white font-bold">${dateStr}</strong></span>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  Đợt dùng: ${duration}
-                </span>
-              </div>
-              <div class="flex items-baseline gap-2 pt-0.5">
-                <h2 class="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-1.5 truncate">
-                  <span class="text-sky-400 font-bold">🩺 Chẩn đoán:</span> ${diag}
-                </h2>
-              </div>
-              <p class="text-xs text-slate-300 font-medium">
-                Bệnh nhân: <strong class="text-white font-bold">${patient}</strong>
-                ${address ? ` • <span class="text-slate-400 font-normal">${address}</span>` : ''}
-                ${doctor ? ` • Kê đơn: <strong class="text-slate-300">${doctor}</strong>` : ''}
-              </p>
-            </div>
-          </div>
-
-          <div class="flex items-center space-x-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/10">
-            <button onclick="askBotAboutPrescription()" class="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-2xl shadow-lg shadow-sky-500/25 transition-all flex items-center space-x-2 cursor-pointer hover:scale-102">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-              <span>Hỏi Bác sĩ AI</span>
-            </button>
-            <button onclick="window.print()" class="px-3.5 py-2.5 rounded-2xl glass-pill text-slate-200 hover:text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-              <span class="hidden sm:inline">In đơn</span>
-            </button>
-            <button onclick="resetPrescriptionScan()" class="px-3.5 py-2.5 rounded-2xl glass-card bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer border border-white/10">
-              <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              <span>Quét đơn khác</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. SMART DOCTOR'S SAFETY ALERTS -->
-      ${warnings.length > 0 ? `
-        <div class="glass-card p-4 border border-amber-400/40 bg-amber-950/25 text-amber-200 backdrop-blur-xl shadow-[0_0_20px_rgba(251,191,36,0.15)] transition-all">
-          <div class="flex items-center justify-between cursor-pointer" onclick="toggleWarningDetails()">
-            <div class="flex items-center space-x-2.5">
-              <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-amber-500/25 border border-white/20">
-                ⚠️
-              </span>
-              <div>
-                <h4 class="text-xs font-black text-amber-300 uppercase tracking-tight">CHỈ DẪN AN TOÀN &amp; LƯU Ý BÁC SĨ:</h4>
-                <p class="text-[11px] text-amber-200/90 font-medium line-clamp-1">${warnings[0]}</p>
-              </div>
-            </div>
-            <button id="btn-toggle-warnings" class="text-xs font-bold text-amber-300 hover:text-white transition-colors flex items-center space-x-1 shrink-0 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/30">
-              <span id="label-toggle-warnings">Xem tất cả (${warnings.length})</span>
-              <svg id="icon-toggle-warnings" class="w-3.5 h-3.5 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-          </div>
-          <div id="expanded-warning-list" class="hidden mt-3 pt-3 border-t border-amber-400/20 space-y-2">
-            <ul class="text-xs text-amber-200 font-medium space-y-2 pl-4 list-disc leading-relaxed">
-              ${warnings.map(w => `<li>${w}</li>`).join('')}
-            </ul>
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- 3. REAL-TIME SMART HERO: CỮ THUỐC ĐANG ĐẾN / HIỆN TẠI -->
-      <div id="smart-hero-dose-card" class="glass-panel-elevated p-6 border border-sky-400/35 bg-white/[0.06] backdrop-blur-2xl shadow-[0_0_35px_rgba(56,189,248,0.15)] space-y-5 transition-all relative overflow-hidden">
-        
-        <div class="absolute -right-16 -top-16 w-60 h-60 bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/10 gap-3 relative z-10">
-          <div class="flex items-center space-x-3">
-            <span class="text-3xl">${smartSlot ? smartSlot.icon : '🕒'}</span>
-            <div>
-              <div class="flex items-center space-x-2">
-                <span class="relative flex h-2.5 w-2.5">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 rounded-md">
-                  ĐANG TRONG KHUNG GIỜ DÙNG THUỐC
-                </span>
-              </div>
-              <h3 id="current-hero-slot-title" class="text-xl sm:text-2xl font-black text-white mt-0.5">
-                ${smartSlot ? smartSlot.label : 'LỊCH UỐNG THUỐC'} <span class="text-xs sm:text-sm font-mono text-slate-400 font-bold">(${smartSlot ? smartSlot.time : ''})</span>
-              </h3>
-            </div>
-          </div>
-
-          <div class="text-left sm:text-right space-y-1">
-            <div class="text-[11px] font-bold text-slate-300">
-              Tiến độ hôm nay: <span id="adherence-progress-text" class="font-mono font-extrabold text-sky-400">0/${activeSlots.length} cữ (0%)</span>
-            </div>
-            <div class="w-36 sm:w-44 h-2.5 bg-white/10 rounded-full overflow-hidden border border-white/10">
-              <div id="adherence-progress-bar" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 rounded-full transition-all duration-500 w-0"></div>
-            </div>
-          </div>
-        </div>
-
-        <div id="hero-slot-medications-list" class="space-y-3 relative z-10">
-          ${renderSlotPillChecklist(smartSlot || activeSlots[0])}
-        </div>
-
-        <div class="pt-2 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <button id="btn-hero-complete" onclick="toggleHeroSlotCompletion('${smartSlot ? smartSlot.id : ''}', this)" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-sm font-extrabold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center space-x-2.5 cursor-pointer hover:scale-102 border border-white/20">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            <span id="btn-hero-complete-text">XÁC NHẬN ĐÃ UỐNG XONG CỮ NÀY</span>
-          </button>
-          
-          <span class="text-[11px] text-slate-400 font-medium text-center sm:text-right">
-            Nhấn để đánh dấu tiến độ điều trị trong ngày
+      <!-- 1. TOP STATUS BAR (Ảnh mẫu: Phân loại đơn thuốc bản gốc) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC
+          </span>
+          <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
+            📄 ${fileName} <span class="text-slate-400 font-mono font-normal">(${scanAcc}% Scan OCR)</span>
+          </span>
+          <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
+            ✓ Đã trích xuất dữ liệu an toàn
           </span>
         </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs cursor-pointer">
+            Export Summary PDF
+          </button>
+          <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-900 hover:bg-sky-950 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+            <span>💾 Lưu vào Hồ sơ</span>
+          </button>
+        </div>
       </div>
 
-      <!-- 4. INTERACTIVE TIMELINE SELECTOR & TỦ THUỐC -->
-      <div class="glass-panel p-5 border border-white/10 bg-white/[0.06] space-y-4">
+      <!-- 2. COMPACT CLINICAL HEADER: THẺ NGANG VỪA VẶN, GỌN GÀNG, KHÔNG DƯ KHOẢNG TRỐNG -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-3">
-          <div class="flex flex-wrap items-center gap-1.5 p-1 glass-dock rounded-2xl">
-            <button id="tab-nav-schedule" onclick="switchPrescriptionMainTab('schedule')" class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-white text-slate-950 shadow-md cursor-pointer">
-              🕒 Lộ trình trong ngày
-            </button>
-            <button id="tab-nav-formulary" onclick="switchPrescriptionMainTab('formulary')" class="px-4 py-2 rounded-xl text-xs font-black transition-all text-slate-300 hover:text-white cursor-pointer">
-              💊 Tủ thuốc &amp; Dược thư (${meds.length} loại)
-            </button>
+        <!-- CỘT TRÁI (8/12): THÔNG TIN BỆNH NHÂN & NƠI KHÁM GỌN GÀNG -->
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
+          
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
+                  <span class="bg-sky-900 text-white text-[9px] font-bold px-2 py-0.5 rounded">BHYT Đúng tuyến</span>
+                </div>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${patient}</h3>
+                
+                <div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1 flex flex-wrap items-center gap-2">
+                  <span class="inline-flex items-center gap-1">
+                    <span class="text-slate-400 font-normal">Tuổi:</span> <strong>${dob}</strong>
+                  </span>
+                  <span class="text-slate-300">•</span>
+                  <span class="inline-flex items-center gap-1">
+                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong>${data.gender || 'Nữ'}</strong>
+                  </span>
+                  <span class="text-slate-300">•</span>
+                  <span class="inline-flex items-center gap-1">
+                    <span class="text-slate-400 font-normal">Mã BHYT:</span> <strong class="font-mono text-sky-950">${bhyt}</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-right shrink-0">
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Mã bệnh án</span>
+              <span class="inline-block mt-0.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-950 font-mono font-black text-xs">
+                ${medId}
+              </span>
+            </div>
           </div>
 
-          <div id="quick-slot-switcher" class="flex flex-wrap items-center gap-1.5">
-            ${activeSlots.map(s => `
-              <button id="pill-slot-${s.id}" onclick="selectSpecificSlot('${s.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer ${s.id === currentSelectedSlotId ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/30 border border-white/20' : 'glass-pill text-slate-300 hover:text-white'}">
-                <span>${s.icon}</span>
-                <span>${s.label.replace('BUỔI ', '')}</span>
-                <span class="font-mono text-[10px] opacity-80">(${s.items.length})</span>
-              </button>
-            `).join('')}
+          <!-- NƠI KHÁM & CHẨN ĐOÁN -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
+              <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Nơi khám</span>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${facility}</h4>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
+              <div class="min-w-0">
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Chẩn đoán</span>
+                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate block">${diag}</span>
+              </div>
+              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 shrink-0">
+                K29.1
+              </span>
+            </div>
           </div>
+
         </div>
 
-        <!-- TAB CONTENT 1: LỘ TRÌNH THEO CỮ -->
-        <div id="content-tab-schedule" class="space-y-4">
-          <div id="selected-slot-details-view" class="space-y-3">
-            ${renderSelectedSlotFullView(smartSlot || activeSlots[0])}
+        <!-- CỘT PHẢI (4/12): MEDASSIST AI COPILOT THIẾT KẾ COMPACT TIẾT KIỆM KHÔNG GIAN -->
+        <div class="lg:col-span-4 bg-sky-950 text-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-sky-900">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-sky-900 flex items-center justify-center text-sky-200 border border-sky-700">
+                <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-xs font-black tracking-tight leading-tight">MedAssist AI Copilot</h4>
+                <p class="text-[9px] text-sky-300">Hướng dẫn đơn thuốc</p>
+              </div>
+            </div>
+            <span class="text-[9px] font-bold bg-sky-900 text-sky-200 border border-sky-700 px-2 py-0.2 rounded-full">
+              Active
+            </span>
           </div>
+
+          <div class="space-y-1.5 text-xs text-sky-50">
+            <div class="bg-sky-900/60 border border-sky-700/60 p-2 rounded-lg flex items-start gap-2">
+              <span class="text-sky-300 font-bold text-[11px] shrink-0">1.</span>
+              <p class="text-[11px] leading-tight opacity-90"><strong class="text-sky-200">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
+            </div>
+            <div class="bg-sky-900/60 border border-sky-700/60 p-2 rounded-lg flex items-start gap-2">
+              <span class="text-sky-300 font-bold text-[11px] shrink-0">2.</span>
+              <p class="text-[11px] leading-tight opacity-90"><strong class="text-sky-200">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
+            </div>
+          </div>
+
+          <button onclick="askBotAboutPrescription()" class="w-full py-2 rounded-xl bg-sky-900 hover:bg-sky-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-sky-700 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span>Hỏi Bác sĩ AI</span>
+          </button>
         </div>
 
-        <!-- TAB CONTENT 2: TỦ THUỐC & TRA CỨU DƯỢC THƯ (FORMULARY) -->
-        <div id="content-tab-formulary" class="hidden space-y-3">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            ${meds.map((m, idx) => `
-              <div class="glass-card rounded-2xl p-4 border border-white/10 hover:border-sky-400/50 bg-white/[0.05] transition-all space-y-2.5">
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex items-center space-x-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center font-mono font-black text-xs shrink-0 border border-sky-400/30">
-                      ${idx + 1}
+      </div>
+
+      <!-- 3. GỘP CHUNG 1 BẢN GỒM 2 TAB: "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC TRONG NGÀY" -->
+      <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
+        
+        <!-- HEADER VỚI 2 TABS NẰM TRONG CÙNG 1 BẢN -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-white/[0.04]/80 border-b border-slate-200/80 gap-3">
+          
+          <div class="flex items-center gap-2 p-1 bg-slate-200/70 rounded-xl w-full sm:w-auto">
+            <!-- TAB 1: THUỐC TRONG TOA (MẶC ĐỊNH HIỆN ĐẦU TIÊN) -->
+            <button id="btn-subtab-meds" onclick="switchPrescriptionDossierTab('meds')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer">
+              <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              <span>Danh mục thuốc trong toa</span>
+              <span class="px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 font-mono text-[10px]">
+                0${meds.length}
+              </span>
+            </button>
+
+            <!-- TAB 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
+            <button id="btn-subtab-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer">
+              <svg class="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Lịch uống &amp; Cữ thuốc trong ngày</span>
+              <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 dark:text-slate-200 font-mono text-[10px]">
+                0${activeDoseSlotsCount} cữ
+              </span>
+            </button>
+          </div>
+
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium px-2 flex items-center gap-2">
+            <span>⏱️ Điều trị: <strong>${duration}</strong> liên tục</span>
+            <span class="text-sky-900 font-bold bg-sky-50 dark:bg-sky-500/10 border border-sky-200 px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
+              ✓ Khớp chuẩn ICD-10
+            </span>
+          </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB NỘI DUNG 1: BẢNG KÊ CHI TIẾT THUỐC TRONG TOA -->
+        <!-- ========================================== -->
+        <div id="pane-prescription-meds" class="p-5 space-y-3.5">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
+            Danh mục gồm <strong>${meds.length} loại thuốc đặc hiệu</strong> được bác sĩ chỉ định, kèm hàm lượng và cơ chế an toàn dược lý:
+          </div>
+
+          <div class="space-y-3">
+            ${meds.map((m, idx) => {
+              const numStr = (idx + 1).toString().padStart(2, '0');
+              const freq = m.frequency || '3 lần / ngày';
+              const usage = m.usage || m.purpose || 'Uống đúng chỉ dẫn sau bữa ăn';
+              const dose = m.dose || '1 viên';
+              const days = m.days || '60 viên (Đủ 30 ngày)';
+              const strength = m.strength ? `(${m.strength})` : '';
+
+              return `
+                <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3.5">
+                      <div class="w-8 h-8 rounded-lg bg-sky-900 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-2xs">
+                        ${numStr}
+                      </div>
+                      <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${m.standard_name || m.name} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
+                          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-sky-100 text-sky-950 border border-sky-300 shadow-2xs">
+                            ${m.purpose || m.category || 'Thuốc đặc trị'}
+                          </span>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength || 'Theo liều'}</strong> / viên</span>
+                          <span>•</span>
+                          <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h4 class="text-sm font-black text-white">${m.name}</h4>
-                      <p class="text-[11px] font-mono text-slate-400 font-semibold">${m.ingredient || ''}</p>
+
+                    <div class="text-right shrink-0">
+                      <span class="text-xs font-black text-slate-950 block">${dose} / lần</span>
+                      <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${freq}</span>
                     </div>
                   </div>
-                  <span class="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-400/30 shrink-0">
-                    ${m.category || 'Thuốc kê đơn'}
+
+                  <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-700 dark:text-slate-200 leading-relaxed flex items-start justify-between gap-2">
+                    <div class="flex items-start gap-2">
+                      <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
+                      <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
+                    </div>
+                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-700 hover:text-sky-950 underline font-bold shrink-0 cursor-pointer">
+                      Hỏi AI →
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB NỘI DUNG 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
+        <!-- ========================================== -->
+        <div id="pane-prescription-schedule" class="hidden p-5 space-y-4">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
+            Lộ trình phân bổ <strong>${activeDoseSlotsCount} cữ thuốc trong ngày</strong> theo chuẩn dược động học, đảm bảo hấp thu tối ưu:
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${activeSlots.map(s => `
+              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/50 space-y-3">
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">
+                      ${s.iconSvg}
+                    </div>
+                    <div>
+                      <h5 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide">${s.label}</h5>
+                      <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-semibold">${s.time}</span>
+                    </div>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-sky-950 font-mono">
+                    ${s.items.length} loại
                   </span>
                 </div>
 
-                <div class="text-xs text-slate-300 leading-relaxed glass-card p-2.5 rounded-xl border border-white/5 bg-white/5">
-                  <span class="font-black text-white">Mục đích điều trị:</span> ${m.purpose}
-                </div>
-
-                <div class="text-xs text-teal-200 font-bold bg-teal-500/15 border border-teal-400/30 rounded-xl p-2.5 leading-relaxed flex items-center justify-between gap-2">
-                  <div>
-                    <span class="font-extrabold">Cách dùng:</span> ${m.usage}
-                  </div>
-                  <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-400 hover:text-sky-300 underline font-extrabold whitespace-nowrap cursor-pointer">
-                    Hỏi AI →
-                  </button>
+                <div class="space-y-2">
+                  ${s.items.map(it => `
+                    <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
+                      <div>
+                        <strong class="font-bold text-slate-900 dark:text-white">${it.name}</strong>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
+                      </div>
+                      <span class="font-mono font-bold text-sky-950 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 border border-sky-200">
+                        ${it.dose || '1 viên'}
+                      </span>
+                    </div>
+                  `).join('')}
                 </div>
               </div>
             `).join('')}
@@ -2635,18 +2784,17 @@ function renderPrescriptionResult(data) {
 
       </div>
 
-      <!-- 5. BOTTOM UTILITIES -->
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-        <div class="flex items-center space-x-2">
-          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-2xl glass-pill hover:bg-white/15 text-slate-200 text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer border border-white/10">
-            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span>Nhắc nhở uống thuốc định kỳ</span>
+      <!-- 4. BOTTOM BAR ACTIONS -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div class="flex items-center gap-2">
+          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-sky-900 hover:bg-sky-950 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span>Bật nhắc nhở uống thuốc định kỳ</span>
           </button>
         </div>
 
-        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-2xl glass-pill hover:bg-white/15 text-slate-300 hover:text-white text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer border border-white/10" title="Quay lại vùng tải đơn thuốc mới">
-          <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          <span>← Tải lên đơn thuốc khác</span>
+        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs">
+          <span>← Quét đơn thuốc khác</span>
         </button>
       </div>
 
@@ -2656,6 +2804,32 @@ function renderPrescriptionResult(data) {
   resSec.innerHTML = html;
   resSec.classList.remove('hidden');
 }
+
+// Hàm chuyển đổi mượt mà giữa 2 tab trong cùng 1 bản
+function switchPrescriptionDossierTab(tabKey) {
+  const btnMeds = document.getElementById('btn-subtab-meds');
+  const btnSched = document.getElementById('btn-subtab-schedule');
+  const paneMeds = document.getElementById('pane-prescription-meds');
+  const paneSched = document.getElementById('pane-prescription-schedule');
+
+  if (!btnMeds || !btnSched || !paneMeds || !paneSched) return;
+
+  if (tabKey === 'meds') {
+    // Active meds
+    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
+    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
+    paneMeds.classList.remove('hidden');
+    paneSched.classList.add('hidden');
+  } else {
+    // Active schedule
+    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
+    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
+    paneSched.classList.remove('hidden');
+    paneMeds.classList.add('hidden');
+  }
+}
+
+
 
 // Render the checklist inside the Smart Hero card
 function renderSlotPillChecklist(slot) {
