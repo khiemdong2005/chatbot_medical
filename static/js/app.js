@@ -4,7 +4,30 @@
 const chatHistory = [];
 let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
+const DEFAULT_USER_PROFILE = {
+  id: 190809,
+  name: "Luyến Lê Công",
+  full_name: "Luyến Lê Công",
+  role: "patient",
+  badge: "BN",
+  email: "lecongluyen9a1@gmail.com",
+  phone_number: "0347047101",
+  student_id: "SE190809",
+  dob: "04/10/2005",
+  group: "CBT_TEAM",
+  university: "Trường Đại học FPT",
+  linkedin: "https://www.linkedin.com/in/nitaxiso2005/",
+  headline: "Information Assurance",
+  personal_info: "Information Assurance @ AWS Study Group",
+  joined: "11/09/2026",
+  avatar: "/static/images/user_avatar.png"
+};
+
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
+if (!currentUser) {
+  currentUser = DEFAULT_USER_PROFILE;
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+}
 let pendingTabAfterLogin = null;
 let selectedChatImageBase64 = null;
 
