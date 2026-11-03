@@ -4,12 +4,12 @@
 function getDefaultAvatarByGender(gender) {
   const g = (gender || '').toLowerCase().trim();
   if (g === 'nữ' || g === 'female' || g === 'nu') {
-    return '/static/images/avatar_female.svg';
+    return '/static/images/avatar_female.png';
   }
   if (g === 'khác' || g === 'other' || g === 'khac') {
-    return '/static/images/avatar_other.svg';
+    return '/static/images/avatar_other.png';
   }
-  return '/static/images/avatar_male.svg';
+  return '/static/images/avatar_male.png';
 }
 
 function handleProfileGenderChange(newGender) {
@@ -245,11 +245,11 @@ const DEFAULT_USER_PROFILE = {
   address: "",
   joined: "11/09/2026",
   hasCustomAvatar: false,
-  avatar: "/static/images/avatar_male.svg"
+  avatar: "/static/images/avatar_male.png"
 };
 
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
-if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png'))) {
+if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png') || currentUser.avatar?.includes('.svg'))) {
   currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
   currentUser.hasCustomAvatar = false;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
