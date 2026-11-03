@@ -34,7 +34,7 @@ background: #94A3B8;
 }
 </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative">
+<body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative light-glass" style="background: radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%); background-attachment: fixed;">
 <!-- Ambient Glassy Twilight Lighting Blobs (Glassy Dashboard V5 Style) -->
 <div class="fixed -top-40 -left-40 w-[600px] h-[600px] bg-sky-500/12 rounded-full blur-[140px] pointer-events-none z-0 ambient-breath"></div>
 <div class="fixed top-1/3 -right-40 w-[650px] h-[650px] bg-indigo-500/10 rounded-full blur-[150px] pointer-events-none z-0 ambient-breath" style="animation-delay: -3s;"></div>
@@ -63,15 +63,6 @@ background: #94A3B8;
   </button>
 
   <div class="w-6 h-px bg-white/15 my-1"></div>
-
-  <button onclick="cycleMedicalWallpaper()" class="dock-btn group relative w-9 h-9 rounded-full flex items-center justify-center transition-all text-white/50 hover:text-sky-300 hover:bg-white/10 cursor-pointer" title="Đổi không gian Y tế">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-    <span data-i18n="dock_wallpaper" class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Đổi không gian Y tế</span>
-  </button>
-  <button onclick="toggleGlassThemeMode()" id="dock-theme-toggle" class="dock-btn group relative w-9 h-9 rounded-full flex items-center justify-center transition-all text-white/50 hover:text-amber-300 hover:bg-white/10 cursor-pointer" title="Đổi chế độ Kính Sáng / Kính Khói">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-    <span data-i18n="dock_theme" class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Kính Sáng / Kính Khói</span>
-  </button>
 
   <button onclick="resetChat()" class="dock-btn group relative w-10 h-10 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-sky-300 hover:bg-white/10 cursor-pointer" title="Cuộc trò chuyện mới">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -144,12 +135,78 @@ background: #94A3B8;
     </svg>
   </button>
 
-  <!-- Bell Notification Icon with Badge '4' (from Image 3) -->
-  <div class="relative cursor-pointer hover:bg-white/10 p-2 rounded-full transition-colors" onclick="showMedicalToast(currentLang === 'en' ? 'You have 4 clinical alerts' : 'Bạn có 4 thông báo mới', 'info')">
-    <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-    </svg>
-    <span class="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">4</span>
+  <!-- Bell Notification Icon with Interactive Dropdown (Requirement 3) -->
+  <div class="relative">
+    <button type="button" id="notif-btn" onclick="toggleNotificationDropdown(event)" class="relative p-2 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer" title="Thông báo lâm sàng">
+      <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+      <span id="notif-badge" class="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">4</span>
+    </button>
+
+    <!-- Notification Dropdown Menu -->
+    <div id="notif-dropdown-menu" class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0e1626]/95 border border-white/10 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2 backdrop-blur-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10 px-1">
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-sm text-white" id="notif-title" data-i18n="notif_title">Thông báo</span>
+          <span id="notif-unread-count" class="px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">4 mới</span>
+        </div>
+        <button type="button" onclick="markAllNotificationsAsRead()" class="text-[11px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline" id="notif-mark-read-btn" data-i18n="notif_mark_read">
+          Đánh dấu đã đọc tất cả
+        </button>
+      </div>
+
+      <!-- Notifications List -->
+      <div id="notif-items-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+        <!-- Item 1 -->
+        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('ocr-tab'); closeNotificationDropdown();">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-100 flex items-center space-x-1.5">
+              <span>💊</span>
+              <span data-i18n="notif_1_title">Đơn thuốc đã phân tích</span>
+            </span>
+            <span class="text-[10px] text-slate-400">10m</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_1_desc">Đơn thuốc Amoxicillin 500mg đã được bóc tách và đối chiếu liều dùng MedlinePlus thành công.</p>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('chat-tab'); closeNotificationDropdown();">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-amber-300 flex items-center space-x-1.5">
+              <span>⚠️</span>
+              <span data-i18n="notif_2_title">Cảnh báo lâm sàng</span>
+            </span>
+            <span class="text-[10px] text-slate-400">1h</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_2_desc">Hệ thống AI khuyến nghị uống kháng sinh cách bữa ăn 30 phút để tối ưu hấp thu.</p>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('booking-tab'); closeNotificationDropdown();">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-100 flex items-center space-x-1.5">
+              <span>🏥</span>
+              <span data-i18n="notif_3_title">Cơ sở y tế sẵn sàng</span>
+            </span>
+            <span class="text-[10px] text-slate-400">3h</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_3_desc">Tuyến khám chuyên khoa Tai Mũi Họng tại BV Chợ Rẫy (cách 3.5km) đang mở tiếp nhận.</p>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="notif-item p-2.5 rounded-xl bg-white/[0.04] border border-white/5 hover:border-white/10 transition-colors cursor-pointer space-y-1" onclick="switchTab('doctor-tab'); closeNotificationDropdown();">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-100 flex items-center space-x-1.5">
+              <span>📋</span>
+              <span data-i18n="notif_4_title">Hồ sơ sức khỏe đã đồng bộ</span>
+            </span>
+            <span class="text-[10px] text-slate-400">1d</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-snug" data-i18n="notif_4_desc">Dữ liệu sàng lọc và tóm tắt trước khám của bạn đã được cập nhật vào hồ sơ.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Auth State 2: Logged In (Image 3 Dropdown Style) -->
@@ -829,7 +886,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 <div id="profile-tab" class="tab-content w-full flex-1 flex-col py-6 space-y-4">
   <div class="max-w-[1240px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
     
-    <!-- LEFT CARD: User Summary Card (Exact Image 1 Left) -->
+    <!-- LEFT CARD: User Clinical Summary Card -->
     <div class="lg:col-span-4 bg-[#0a101d] border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center justify-between shadow-2xl relative space-y-5">
       <!-- Circular Avatar with Orange Camera overlay -->
       <div class="space-y-3 pt-2">
@@ -843,8 +900,8 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 
         <!-- Name & Headline -->
         <div>
-          <h3 id="profile-card-name" class="text-xl font-bold text-white tracking-tight">Luyến Lê Công</h3>
-          <p id="profile-card-headline" class="text-xs text-slate-400 mt-1">Information Assurance @ AWS Study Group</p>
+          <h3 id="profile-card-name" class="text-xl font-bold text-white tracking-tight">BS. Lê Công Luyến</h3>
+          <p id="profile-card-headline" class="text-xs text-slate-400 mt-1" data-i18n="profile_headline_full">Chuyên gia Lâm sàng @ MediMind Clinical AI</p>
         </div>
 
         <!-- Contact details with Orange icons -->
@@ -860,15 +917,15 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
         </div>
       </div>
 
-      <!-- Two Badges (ACTIVE & JOINED from Image 1) -->
+      <!-- Two Badges (ACTIVE & JOINED) -->
       <div class="w-full space-y-2.5 pt-4">
         <div class="w-full bg-[#111A2E] border border-white/5 rounded-xl p-3 flex items-center space-x-3 text-left">
           <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
           </div>
           <div>
-            <span class="text-xs font-bold text-white block tracking-wide">ACTIVE</span>
-            <span class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">STATUS</span>
+            <span class="text-xs font-bold text-white block tracking-wide" data-i18n="badge_active_text">ACTIVE / VERIFIED</span>
+            <span class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold" data-i18n="badge_status_label">CLINICAL STATUS</span>
           </div>
         </div>
 
@@ -878,16 +935,19 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           </div>
           <div>
             <span class="text-xs font-bold text-white block tracking-wide" id="profile-card-joined">11/09/2026</span>
-            <span class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">JOINED</span>
+            <span class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold" data-i18n="badge_joined_label">REGISTERED</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT CARD: Personal Information Form (Exact Image 1 Right) -->
+    <!-- RIGHT CARD: MediMind Clinical Information Form -->
     <div class="lg:col-span-8 bg-[#0a101d] border border-white/10 rounded-2xl p-6 sm:p-7 shadow-2xl flex flex-col justify-between space-y-6">
       <div>
-        <h3 class="text-base font-bold text-white pb-3 border-b border-white/10">Personal Information</h3>
+        <h3 class="text-base font-bold text-white pb-3 border-b border-white/10 flex items-center space-x-2">
+          <span>🩺</span>
+          <span data-i18n="profile_form_title">Thông tin Chuyên môn Lâm sàng MediMind AI</span>
+        </h3>
 
         <form id="profile-form-img1" onsubmit="handleSaveImage1Profile(event)" class="space-y-4 pt-3">
           <!-- Row 1: Full Name * | Email * | Phone Number -->
@@ -895,45 +955,45 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
                 <span class="text-orange-500">👤</span>
-                <span>Full Name</span>
+                <span data-i18n="p_lbl_name">Full Name</span>
                 <span class="text-rose-500">*</span>
               </label>
-              <input type="text" id="p-fullname" required value="Luyến Lê Công" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+              <input type="text" id="p-fullname" required value="BS. Lê Công Luyến" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
             </div>
 
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
                 <span class="text-orange-500">✉</span>
-                <span>Email</span>
+                <span data-i18n="p_lbl_email">Email</span>
                 <span class="text-rose-500">*</span>
               </label>
               <input type="email" id="p-email" required readonly value="lecongluyen9a1@gmail.com" class="w-full bg-[#101827]/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-400 cursor-not-allowed">
-              <span class="text-[11px] text-slate-500 mt-1 block">Email cannot be changed</span>
+              <span class="text-[11px] text-slate-500 mt-1 block" data-i18n="p_lbl_email_hint">Email cannot be changed</span>
             </div>
 
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
                 <span class="text-orange-500">📞</span>
-                <span>Phone Number</span>
+                <span data-i18n="p_lbl_phone">Phone Number</span>
               </label>
               <input type="text" id="p-phone" value="0347047101" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
             </div>
           </div>
 
-          <!-- Row 2: Student ID | Birth Date | Group -->
+          <!-- Row 2: Clinical ID | Birth Date | Clinical Department -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
                 <span class="text-orange-500 font-bold">#</span>
-                <span>Student ID</span>
+                <span data-i18n="p_lbl_clinical_id">Clinical ID</span>
               </label>
-              <input type="text" id="p-student-id" value="SE190809" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+              <input type="text" id="p-student-id" value="MM-2026-AI09" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors font-mono">
             </div>
 
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
                 <span class="text-orange-500">📅</span>
-                <span>Birth Date</span>
+                <span data-i18n="p_lbl_birthdate">Birth Date</span>
               </label>
               <div class="relative">
                 <input type="text" id="p-birthdate" value="04/10/2005" placeholder="DD/MM/YYYY" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
@@ -943,35 +1003,35 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
 
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
-                <span class="text-orange-500">👥</span>
-                <span>Group</span>
+                <span class="text-orange-500">🏥</span>
+                <span data-i18n="p_lbl_dept">Department</span>
               </label>
-              <input type="text" id="p-group" value="CBT_TEAM" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
-              <span class="text-[11px] text-slate-500 mt-1 block">Manage your group under Self-Service • My Group.</span>
+              <input type="text" id="p-group" value="Trung tâm AI Y tế MediMind" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+              <span class="text-[11px] text-slate-500 mt-1 block" data-i18n="p_lbl_dept_hint">Quản lý khoa chuyên môn tại Hệ thống Y tế MediMind.</span>
             </div>
           </div>
 
-          <!-- Row 3: University | LinkedIn -->
+          <!-- Row 3: Hospital Facility | Clinical Portfolio -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
-                <span class="text-orange-500">📇</span>
-                <span>University</span>
+                <span class="text-orange-500">🏢</span>
+                <span data-i18n="p_lbl_hospital">Hospital / Facility</span>
               </label>
               <select id="p-university" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
-                <option value="Trường Đại học FPT" selected class="bg-slate-900 text-white">Trường Đại học FPT</option>
-                <option value="Đại học Quốc gia TP.HCM" class="bg-slate-900 text-white">Đại học Quốc gia TP.HCM</option>
-                <option value="Đại học Bách Khoa TP.HCM" class="bg-slate-900 text-white">Đại học Bách Khoa TP.HCM</option>
-                <option value="Đại học Y Dược TP.HCM" class="bg-slate-900 text-white">Đại học Y Dược TP.HCM</option>
+                <option value="Trung tâm Y tế Thông minh MediMind (MediMind Clinical Center)" selected class="bg-slate-900 text-white">Trung tâm Y tế Thông minh MediMind (MediMind Clinical Center)</option>
+                <option value="Bệnh viện Chợ Rẫy TP.HCM" class="bg-slate-900 text-white">Bệnh viện Chợ Rẫy TP.HCM</option>
+                <option value="Bệnh viện Đại học Y Dược TP.HCM" class="bg-slate-900 text-white">Bệnh viện Đại học Y Dược TP.HCM</option>
+                <option value="Bệnh viện Tai Mũi Họng TP.HCM" class="bg-slate-900 text-white">Bệnh viện Tai Mũi Họng TP.HCM</option>
               </select>
             </div>
 
             <div>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
-                <span class="text-orange-500 font-bold text-xs bg-orange-500/20 px-1 rounded">in</span>
-                <span>LinkedIn</span>
+                <span class="text-orange-500 font-bold text-xs bg-orange-500/20 px-1 rounded">🌐</span>
+                <span data-i18n="p_lbl_portfolio">Clinical Portfolio</span>
               </label>
-              <input type="url" id="p-linkedin" value="https://www.linkedin.com/in/nitaxiso2005/" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors font-mono">
+              <input type="url" id="p-linkedin" value="https://medimind.ai/specialist/lecongluyen" class="w-full bg-[#101827] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors font-mono">
             </div>
           </div>
 
@@ -979,11 +1039,11 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <div>
             <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-200 mb-1.5">
               <span class="text-orange-500">💼</span>
-              <span>Role / Headline</span>
+              <span data-i18n="p_lbl_role">Role / Headline</span>
             </label>
             <div class="flex items-center">
-              <input type="text" id="p-headline" value="Information Assurance" class="flex-1 bg-[#101827] border border-white/10 rounded-l-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
-              <span class="bg-[#152033] border border-l-0 border-white/10 rounded-r-xl px-4 py-2.5 text-xs text-slate-300 font-medium">@ AWS Study Group</span>
+              <input type="text" id="p-headline" value="Chuyên gia Lâm sàng" class="flex-1 bg-[#101827] border border-white/10 rounded-l-xl px-3.5 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+              <span class="bg-[#152033] border border-l-0 border-white/10 rounded-r-xl px-4 py-2.5 text-xs text-slate-300 font-medium">@ MediMind Clinical AI</span>
             </div>
           </div>
 
@@ -991,7 +1051,7 @@ Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="t
           <div class="pt-4 flex justify-end">
             <button type="submit" class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center space-x-2 cursor-pointer hover:scale-102">
               <span>💾</span>
-              <span>Save Changes</span>
+              <span data-i18n="p_btn_save">Save Changes</span>
             </button>
           </div>
         </form>

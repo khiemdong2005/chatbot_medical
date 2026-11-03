@@ -281,3 +281,51 @@ body.light-glass .glass-card:hover {
 .ambient-breath {
   animation: ambientBreath 12s ease-in-out infinite;
 }
+
+
+/* ==============================================================================
+   Light Glass Clinical Mode Overrides (Cyan Glow + Clean White Glass)
+   ============================================================================== */
+body.light-glass {
+  background: 
+    radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%),
+    linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body.light-glass .bg-\[\#0a101d\],
+body.light-glass .bg-\[\#0e1626\],
+body.light-glass .bg-\[\#111A2E\],
+body.light-glass .bg-\[\#152033\] {
+  background-color: rgba(255, 255, 255, 0.90) !important;
+  border-color: rgba(203, 213, 225, 0.9) !important;
+  color: #0F172A !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.light-glass input.bg-\[\#101827\],
+body.light-glass select.bg-\[\#101827\] {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+body.light-glass #notif-dropdown-menu,
+body.light-glass #user-dropdown-menu {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  border-color: rgba(203, 213, 225, 0.9) !important;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15) !important;
+}
+
+body.light-glass .notif-item {
+  background-color: rgba(241, 245, 249, 0.9) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+
+body.light-glass .notif-item:hover {
+  background-color: rgba(224, 242, 254, 0.95) !important;
+}
+
+body.light-glass #notif-title {
+  color: #0F172A !important;
+}

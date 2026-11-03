@@ -6,25 +6,27 @@ let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
 const DEFAULT_USER_PROFILE = {
   id: 190809,
-  name: "Luyến Lê Công",
-  full_name: "Luyến Lê Công",
-  role: "patient",
-  badge: "BN",
+  name: "BS. Lê Công Luyến",
+  full_name: "BS. Lê Công Luyến",
+  role: "doctor",
+  badge: "BS",
   email: "lecongluyen9a1@gmail.com",
   phone_number: "0347047101",
-  student_id: "SE190809",
+  student_id: "MM-2026-AI09",
+  clinical_id: "MM-2026-AI09",
   dob: "04/10/2005",
-  group: "CBT_TEAM",
-  university: "Trường Đại học FPT",
-  linkedin: "https://www.linkedin.com/in/nitaxiso2005/",
-  headline: "Information Assurance",
-  personal_info: "Information Assurance @ AWS Study Group",
+  group: "Trung tâm AI Y tế MediMind",
+  department: "Trung tâm AI Y tế MediMind",
+  university: "Trung tâm Y tế Thông minh MediMind (MediMind Clinical Center)",
+  linkedin: "https://medimind.ai/specialist/lecongluyen",
+  headline: "Chuyên gia Lâm sàng",
+  personal_info: "Chuyên gia Lâm sàng @ MediMind Clinical AI",
   joined: "11/09/2026",
   avatar: "/static/images/user_avatar.png"
 };
 
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
-if (!currentUser) {
+if (!currentUser || currentUser.student_id === 'SE190809' || currentUser.group === 'CBT_TEAM' || !currentUser.name || currentUser.name === 'Luyến Lê Công') {
   currentUser = DEFAULT_USER_PROFILE;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 }
@@ -36,6 +38,36 @@ let selectedChatImageBase64 = null;
 // ==========================================
 const translations = {
   vi: {
+        // Notifications & Clinical Profile i18n
+    notif_title: "Thông báo",
+    notif_mark_read: "Đánh dấu đã đọc tất cả",
+    notif_unread_count: "4 mới",
+    notif_all_read: "Đã đọc hết",
+    notif_1_title: "Đơn thuốc đã phân tích",
+    notif_1_desc: "Đơn thuốc Amoxicillin 500mg đã được bóc tách và đối chiếu liều dùng MedlinePlus thành công.",
+    notif_2_title: "Cảnh báo lâm sàng",
+    notif_2_desc: "Hệ thống AI khuyến nghị uống kháng sinh cách bữa ăn 30 phút để tối ưu hấp thu.",
+    notif_3_title: "Cơ sở y tế sẵn sàng",
+    notif_3_desc: "Tuyến khám chuyên khoa Tai Mũi Họng tại BV Chợ Rẫy (cách 3.5km) đang mở tiếp nhận.",
+    notif_4_title: "Hồ sơ sức khỏe đã đồng bộ",
+    notif_4_desc: "Dữ liệu sàng lọc và tóm tắt trước khám của bạn đã được cập nhật vào hồ sơ.",
+    profile_form_title: "Thông tin Chuyên môn Lâm sàng MediMind AI",
+    profile_headline_full: "Chuyên gia Lâm sàng @ MediMind Clinical AI",
+    badge_active_text: "ACTIVE / VERIFIED",
+    badge_status_label: "TRẠNG THÁI LÂM SÀNG",
+    badge_joined_label: "NGÀY THAM GIA",
+    p_lbl_name: "Họ và tên",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email không thể thay đổi",
+    p_lbl_phone: "Số điện thoại",
+    p_lbl_clinical_id: "Mã số Chuyên viên (Clinical ID)",
+    p_lbl_birthdate: "Ngày sinh",
+    p_lbl_dept: "Khoa / Đơn vị lâm sàng",
+    p_lbl_dept_hint: "Quản lý khoa chuyên môn tại Hệ thống Y tế MediMind.",
+    p_lbl_hospital: "Cơ sở y tế / Bệnh viện",
+    p_lbl_portfolio: "Hồ sơ Chuyên môn (Portfolio / Chứng chỉ)",
+    p_lbl_role: "Vai trò / Chức danh chuyên môn",
+    p_btn_save: "Lưu thay đổi",
     brand_subtitle: "Bảo mật thông tin cá nhân • Phác đồ MedlinePlus",
     nav_chat: "Trợ lý sức khỏe",
     nav_ocr: "Đọc đơn thuốc & xét nghiệm",
@@ -189,6 +221,36 @@ const translations = {
     default_image_prompt: "Xin bác sĩ quan sát bức ảnh và phân tích giúp tôi dấu hiệu tổn thương trên da."
   },
   en: {
+        // Notifications & Clinical Profile i18n
+    notif_title: "Notifications",
+    notif_mark_read: "Mark all as read",
+    notif_unread_count: "4 new",
+    notif_all_read: "All read",
+    notif_1_title: "Prescription Analyzed",
+    notif_1_desc: "Amoxicillin 500mg prescription parsed and verified against MedlinePlus dosage guidelines.",
+    notif_2_title: "Clinical Advisory",
+    notif_2_desc: "AI system advises taking medication 30 minutes after meals to optimize absorption.",
+    notif_3_title: "Facility Available",
+    notif_3_desc: "ENT Specialist consultation at Cho Ray Hospital (3.5km away) is currently accepting patients.",
+    notif_4_title: "Health Record Synchronized",
+    notif_4_desc: "Your pre-visit clinical summary and screening history have been securely synchronized.",
+    profile_form_title: "MediMind AI Clinical & Specialist Information",
+    profile_headline_full: "Clinical AI Specialist @ MediMind Clinical AI",
+    badge_active_text: "ACTIVE / VERIFIED",
+    badge_status_label: "CLINICAL STATUS",
+    badge_joined_label: "REGISTERED",
+    p_lbl_name: "Full Name",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email cannot be changed",
+    p_lbl_phone: "Phone Number",
+    p_lbl_clinical_id: "Clinical ID",
+    p_lbl_birthdate: "Birth Date",
+    p_lbl_dept: "Department",
+    p_lbl_dept_hint: "Managed under MediMind Clinical Division.",
+    p_lbl_hospital: "Hospital / Facility",
+    p_lbl_portfolio: "Clinical Portfolio",
+    p_lbl_role: "Role / Headline",
+    p_btn_save: "Save Changes",
     brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
     nav_chat: "Health Assistant",
     nav_ocr: "Prescriptions & Labs",
@@ -1385,6 +1447,7 @@ function closeDisclaimerModal() {
 // Initialization & Global Event Listeners
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+  initThemeMode();
   populateDobDropdowns();
   updateAuthUI();
   applyLanguage();
@@ -1413,6 +1476,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Click outside to close user dropdown & lang dropdown
   document.addEventListener('click', (e) => {
+        const notifBtn = document.getElementById('notif-btn');
+    const notifMenu = document.getElementById('notif-dropdown-menu');
+    if (notifMenu && !notifMenu.classList.contains('hidden')) {
+      if (!notifBtn?.contains(e.target) && !notifMenu.contains(e.target)) {
+        closeNotificationDropdown();
+      }
+    }
     const userChip = document.getElementById('user-chip-button');
     const userMenu = document.getElementById('user-dropdown-menu');
     if (userMenu && !userMenu.classList.contains('hidden')) {
@@ -2352,33 +2422,76 @@ const medicalWallpapers = [
 
 let currentWallpaperIndex = 0;
 
-function cycleMedicalWallpaper() {
-  currentWallpaperIndex = (currentWallpaperIndex + 1) % medicalWallpapers.length;
-  const wp = medicalWallpapers[currentWallpaperIndex];
-  const isLight = document.body.classList.contains('light-glass');
-  
-  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
-  const wpName = (currentLang === 'en' && wp.name_en) ? wp.name_en : wp.name;
-  const prefix = currentLang === 'en' ? 'Switched theme: ' : 'Đã chuyển không gian: ';
-  showMedicalToast(prefix + wpName, "info");
-  playMedicalChime();
+const CLINICAL_CYAN_GLOW = {
+  light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)',
+  dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)'
+};
+
+function initThemeMode() {
+  const savedTheme = localStorage.getItem('medimind_theme') || 'light';
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-glass');
+    document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.light;
+  } else {
+    document.body.classList.remove('light-glass');
+    document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
+  }
+  document.body.style.backgroundAttachment = 'fixed';
 }
 
 function toggleGlassThemeMode() {
   document.body.classList.toggle('light-glass');
   const isLight = document.body.classList.contains('light-glass');
-  const wp = medicalWallpapers[currentWallpaperIndex];
-  
-  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
+  document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
+  document.body.style.backgroundAttachment = 'fixed';
+  localStorage.setItem('medimind_theme', isLight ? 'light' : 'dark');
+
   if (isLight) {
-    showMedicalToast(currentLang === 'en' ? "Activated: Clinical Light Glass (Daylight Minimal)" : "Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)", "success");
+    showMedicalToast(currentLang === 'en' ? "Activated: Clinical Light Glass (Clinical Cyan Glow)" : "Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Clinical Cyan Glow)", "success");
   } else {
-    showMedicalToast(currentLang === 'en' ? "Activated: Transparent Spatial Glass (Dark Minimal)" : "Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)", "info");
+    showMedicalToast(currentLang === 'en' ? "Activated: Transparent Spatial Glass (Clinical Cyan Glow)" : "Đã kích hoạt: Kính Tối Không Gian (Clinical Cyan Glow)", "info");
   }
-  playMedicalChime();
 }
 
-// ==========================================
+function cycleMedicalWallpaper() {
+  // Medical space switching removed as per request #1, locked to Clinical Cyan Glow
+  showMedicalToast(currentLang === 'en' ? "Theme locked: Clinical Cyan Glow" : "Không gian cố định: Ánh sáng Lâm sàng Cyan", "info");
+}
+
+// Notification Dropdown Logic (Requirement 3)
+function toggleNotificationDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+  closeUserDropdown();
+  closeLanguageDropdown();
+}
+
+function closeNotificationDropdown() {
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (menu && !menu.classList.contains('hidden')) {
+    menu.classList.add('hidden');
+  }
+}
+
+function markAllNotificationsAsRead() {
+  const badge = document.getElementById('notif-badge');
+  const countEl = document.getElementById('notif-unread-count');
+  if (badge) badge.classList.add('hidden');
+  if (countEl) {
+    countEl.innerText = (currentLang === 'vi' ? 'Đã đọc hết' : 'All read');
+    countEl.classList.remove('bg-orange-500/20', 'text-orange-400');
+    countEl.classList.add('bg-slate-500/20', 'text-slate-400');
+  }
+  const items = document.querySelectorAll('.notif-item');
+  items.forEach(it => {
+    it.classList.add('opacity-60');
+  });
+  const toastMsg = currentLang === 'vi' ? 'Đã đánh dấu tất cả thông báo là đã đọc' : 'All notifications marked as read';
+  showMedicalToast(toastMsg, 'success');
+}
+
 // User Interaction Helpers (Export, GPS, Demo)
 // ==========================================
 const loadPresetPrescription = loadPrescriptionPreset;
