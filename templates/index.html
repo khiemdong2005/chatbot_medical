@@ -24,7 +24,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.2.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.5.0">
 
 <style>
 
@@ -808,7 +808,7 @@ background: #94A3B8;
 
           <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/25 shrink-0">
 
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
 
           </div>
 
@@ -2879,11 +2879,11 @@ Hủy bỏ
     <!-- Header with soft sky tint (Matching Screenshot) -->
     <div class="floating-chat-header px-4 py-3.5 bg-[#F0F7FF] dark:bg-slate-800/90 border-b border-sky-100 dark:border-white/10 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-3">
-        <!-- Beaker Lab Avatar with Online Indicator -->
+        <!-- MediMind Heart Avatar with Online Indicator -->
         <div class="relative shrink-0">
-          <div class="w-10 h-10 rounded-2xl bg-[#0284C7] flex items-center justify-center text-white shadow-sm shadow-sky-500/20">
-            <svg class="w-5 h-5 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-5 0v5.5L4.5 18A2 2 0 006.2 21h11.6a2 2 0 001.7-3L14 8.5V3M7.5 15h9"/>
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
+            <svg class="w-5 h-5 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
             </svg>
           </div>
           <span class="w-3.5 h-3.5 rounded-full bg-[#10B981] border-2 border-white dark:border-slate-800 absolute -bottom-0.5 -right-0.5"></span>
@@ -2960,11 +2960,11 @@ Hủy bỏ
     </div>
 
     <!-- Main Avatar Bubble Button -->
-    <div class="w-12 h-12 rounded-full bg-[#0284C7] p-0.5 shadow-[0_0_20px_rgba(2,132,199,0.35)] hover:shadow-[0_0_30px_rgba(2,132,199,0.55)] hover:scale-105 transition-all flex items-center justify-center text-white relative">
-      <svg class="w-6 h-6 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-5 0v5.5L4.5 18A2 2 0 006.2 21h11.6a2 2 0 001.7-3L14 8.5V3M7.5 15h9"/>
+    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 shadow-[0_0_20px_rgba(2,132,199,0.35)] hover:shadow-[0_0_30px_rgba(99,102,241,0.55)] hover:scale-105 border border-white/20 transition-all flex items-center justify-center text-white relative">
+      <svg class="w-6 h-6 text-white inline-block" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
       </svg>
-      <span class="w-3.5 h-3.5 rounded-full bg-[#10B981] border-2 border-white dark:border-slate-800 absolute bottom-0 right-0"></span>
+      <span class="w-3.5 h-3.5 rounded-full bg-[#10B981] border-2 border-white dark:border-slate-800 absolute -bottom-0.5 -right-0.5 shadow-sm"></span>
     </div>
   </div>
 
@@ -2973,7 +2973,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.2.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.5.0"></script>
 
 
 <!-- ============================================================== -->
