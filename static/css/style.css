@@ -1568,11 +1568,33 @@ body.light-glass #booking-tab .facility-card h3 {
   font-weight: 900 !important;
 }
 
-body.light-glass #booking-tab .facility-type-btn.active {
-  background: #F0F9FF !important;
-  color: #0284C7 !important;
-  border: 1px solid #BAE6FD !important;
+body.light-glass #booking-tab .facility-type-btn.active,
+body:not(.light-glass) #booking-tab .facility-type-btn.active {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #0284C7 !important;
   font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
+}
+
+body.light-glass #booking-tab .facility-type-btn.active span,
+body:not(.light-glass) #booking-tab .facility-type-btn.active span {
+  color: #FFFFFF !important;
+}
+
+body.light-glass #booking-tab .facility-type-btn.active [id^="badge-count-"],
+body:not(.light-glass) #booking-tab .facility-type-btn.active [id^="badge-count-"] {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+}
+
+body.light-glass #booking-tab .facility-spec-btn.active,
+body:not(.light-glass) #booking-tab .facility-spec-btn.active {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #0284C7 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
 }
 
 body.light-glass #booking-tab .facility-region-btn.active {

@@ -998,8 +998,8 @@ background: #94A3B8;
   <!-- Top Action & Title Bar -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
     <div class="flex items-center space-x-3.5">
-      <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/25 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/10">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/30 flex items-center justify-center shrink-0 border border-white/20">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
         </svg>
       </div>
@@ -1040,12 +1040,12 @@ background: #94A3B8;
         <div class="space-y-2 pt-2 border-t border-slate-200/80 dark:border-white/10">
           <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">LOẠI HÌNH CƠ SỞ</span>
           <div class="space-y-1" id="facility-type-list">
-            <button type="button" onclick="selectFacilityType('all', this)" class="facility-type-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/40 text-xs font-bold transition-all cursor-pointer">
+            <button type="button" onclick="selectFacilityType('all', this)" class="facility-type-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-600 text-white border border-sky-500 shadow-md shadow-sky-600/25 text-xs font-bold transition-all cursor-pointer">
               <span class="flex items-center gap-2">
                 <span>✨</span>
                 <span>Tất cả cơ sở</span>
               </span>
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/20 text-sky-800 dark:text-sky-200" id="badge-count-all">148</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/25 text-white" id="badge-count-all">148</span>
             </button>
 
             <button type="button" onclick="selectFacilityType('general', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
@@ -1096,7 +1096,7 @@ background: #94A3B8;
         <div class="space-y-2.5 pt-2 border-t border-slate-200/80 dark:border-white/10">
           <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">CHUYÊN KHOA NỔI BẬT</span>
           <div class="flex flex-wrap gap-1.5" id="facility-specialty-tags">
-            <button type="button" onclick="toggleFacilitySpecialty('Tim mạch', this)" class="facility-spec-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/50 shadow-xs transition-all cursor-pointer">Tim mạch</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Tim mạch', this)" class="facility-spec-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white border border-sky-500 shadow-xs transition-all cursor-pointer">Tim mạch</button>
             <button type="button" onclick="toggleFacilitySpecialty('Nhi khoa', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Nhi khoa</button>
             <button type="button" onclick="toggleFacilitySpecialty('Tai Mũi Họng', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Tai Mũi Họng</button>
             <button type="button" onclick="toggleFacilitySpecialty('Nội tiết & Tiểu đường', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Nội tiết &amp; Tiểu đường</button>
@@ -3049,7 +3049,7 @@ Hủy bỏ
 <!-- ============================================================== -->
 <!-- FLOATING MINI CHATBOT WIDGET (Exact match to media_1793768002431_0814a694.png) -->
 <!-- ============================================================== -->
-<div id="floating-chatbot-root" class="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2.5 select-auto">
+<div id="floating-chatbot-root" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 flex flex-col items-end gap-2.5 select-auto">
 
   <!-- 1. Floating Mini Chat Window (Cửa sổ chat thu nhỏ góc dưới) -->
   <div id="floating-chat-window" class="w-[360px] sm:w-[380px] max-w-[calc(100vw-32px)] h-[520px] max-h-[78vh] flex flex-col rounded-3xl shadow-2xl border border-slate-200/90 dark:border-white/10 overflow-hidden bg-white dark:bg-slate-900 transition-all duration-300 hidden">
@@ -3237,7 +3237,7 @@ Hủy bỏ
     </button>
 
     <div class="flex items-start space-x-3.5 pr-8">
-      <div id="detail-modal-icon-box" class="w-12 h-12 rounded-2xl border border-sky-400/40 bg-sky-500/10 text-sky-500 dark:text-sky-300 flex items-center justify-center shrink-0 text-xl">
+      <div id="detail-modal-icon-box" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-lg shadow-sky-500/25 flex items-center justify-center shrink-0 text-xl border border-white/20">
         🏥
       </div>
       <div class="space-y-1">
