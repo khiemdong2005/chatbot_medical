@@ -36,6 +36,7 @@ from core.storage_service import (
 from core.chat_service import process_clinical_chat
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.intake_service import intake_service
 
 logger = logging.getLogger("MediMindApp")
 
@@ -336,6 +337,91 @@ def create_app(test_config=None):
             logger.error(f"Lỗi xử lý tư vấn y tế: {e}")
             return jsonify({"error": "Đã xảy ra sự cố trong quá trình xử lý yêu cầu y tế."}), 500
 
+    # ==============================================================
+    # HỆ THỐNG HỎI BỆNH CÓ CẤU TRÚC & TÓM TẮT TRƯỚC KHÁM (MỤC 8 & 9)
+    # ==============================================================
+
+    @app.route("/api/intake/session", methods=["POST"])
+    def intake_get_or_create_session():
+        """Khởi tạo hoặc tải lại phiên hỏi bệnh lâm sàng có cấu trúc."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        user_id = session.get("user_id")
+        s = intake_service.get_or_create_session(conversation_id, user_id=user_id)
+        return jsonify({
+            "success": True,
+            "conversation_id": s["conversation_id"],
+            "status": s["status"],
+            "facts": s["facts"],
+            "version": s["version"],
+            "is_confirmed": s["is_confirmed"]
+        })
+
+    @app.route("/api/intake/message", methods=["POST"])
+    def intake_send_message():
+        """
+        Tiếp nhận tin nhắn trong phiên hỏi bệnh:
+          - Trích xuất dữ kiện (triệu chứng có, triệu chứng ĐÃ PHỦ NHẬN, thời gian, thân nhiệt)
+          - Chọn câu hỏi tiếp theo từ dữ kiện còn thiếu (không hỏi lặp)
+          - Cập nhật Tóm tắt trước khám 2 phần (Phần A & Phần B)
+        """
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        user_message = (data.get("message") or "").strip()
+        image_str = data.get("image")
+
+        if not user_message and not image_str:
+            return jsonify({"error": "Vui lòng nhập nội dung mô tả hoặc đính kèm ảnh."}), 400
+
+        image_bytes = None
+        if image_str:
+            img_bytes, mime, err = decode_and_validate_base64_image(image_str)
+            if not err:
+                image_bytes = img_bytes
+
+        s = intake_service.get_or_create_session(conversation_id, user_id=session.get("user_id"))
+        result = intake_service.process_message(
+            conversation_id=s["conversation_id"],
+            message=user_message,
+            image_bytes=image_bytes
+        )
+
+        return jsonify(result)
+
+    @app.route("/api/intake/update-fact", methods=["POST"])
+    def intake_update_fact():
+        """Chỉnh sửa 1 dữ kiện lâm sàng (tăng version và yêu cầu xác nhận lại)."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        field = data.get("field")
+        value = data.get("value")
+
+        if not conversation_id or not field:
+            return jsonify({"error": "Thiếu conversation_id hoặc trường cần cập nhật."}), 400
+
+        res = intake_service.update_fact(conversation_id, field, value)
+        return jsonify(res)
+
+    @app.route("/api/intake/confirm-summary", methods=["POST"])
+    def intake_confirm_summary():
+        """Bệnh nhân xác nhận: Bản tóm tắt phản ánh đúng lời khai thực tế."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        if not conversation_id:
+            return jsonify({"error": "Thiếu conversation_id."}), 400
+
+        res = intake_service.confirm_summary(conversation_id)
+        return jsonify(res)
+
+    @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
+    def intake_get_summary(conversation_id):
+        """Lấy bản tóm tắt trước khám 2 phần của phiên."""
+        summary = intake_service.get_summary(conversation_id)
+        return jsonify({
+            "conversation_id": conversation_id,
+            "summary": summary
+        })
+
 
     # ==============================================================
     # HỆ THỐNG QUẢN LÝ TÀI LIỆU Y TẾ & SCAN DATASET (RBAC & SECURE STORAGE)
@@ -569,6 +655,28 @@ def create_app(test_config=None):
             ]
         })
 
+
+    @app.route("/api/consultations", methods=["GET"])
+    def get_consultations():
+        """Lấy danh sách các phiên tư vấn đã lưu của tài khoản hiện tại."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"consultations": []}), 200
+        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
+        return jsonify({"consultations": [c.to_dict() for c in consultations]}), 200
+
+    @app.route("/api/consultations/<int:cid>", methods=["DELETE"])
+    def delete_consultation(cid):
+        """Xóa một phiên tư vấn theo ID của người dùng."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"error": "Vui lòng đăng nhập."}), 401
+        c = ClinicalConsultation.query.filter_by(id=cid, user_id=user_id).first()
+        if c:
+            db.session.delete(c)
+            db.session.commit()
+            return jsonify({"message": "Đã xóa phiên tư vấn thành công."}), 200
+        return jsonify({"error": "Không tìm thấy phiên tư vấn."}), 404
 
     # ==============================================================
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)

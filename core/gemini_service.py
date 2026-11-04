@@ -4,10 +4,12 @@ import json
 import uuid
 import logging
 from typing import Dict, Any, List, Optional
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from core.prompts import VIETNAMESE_MEDICAL_SYSTEM_PROMPT
 
+load_dotenv()
 logger = logging.getLogger("GeminiService")
 
 
@@ -20,11 +22,13 @@ class GeminiMedicalService:
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY", "").strip()
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-3.5-flash").strip()
+        self.model = model or os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest").strip()
         self.client = None
         if self.is_configured():
             try:
-                self.client = genai.Client(api_key=self.api_key)
+                # Cấu hình timeout 10 giây tránh trường hợp mạng treo làm đơ giao diện
+                http_options = types.HttpOptions(timeout=10000)
+                self.client = genai.Client(api_key=self.api_key, http_options=http_options)
                 logger.info(f"✅ [GEMINI SERVICE] Kết nối thành công Gemini SDK (Model: {self.model})")
             except Exception as e:
                 logger.warning(f"⚠️ [GEMINI SERVICE] Lỗi khởi tạo SDK: {e}")
@@ -53,11 +57,12 @@ class GeminiMedicalService:
         - Kiểm chứng schema JSON chặt chẽ; JSON hỏng/thiếu trường bắt buộc sẽ trả None để kích hoạt fallback.
         """
         req_id = request_id or uuid.uuid4().hex[:8]
-        if not self.is_configured():
+        if not self.is_configured() or not self.client:
             self.api_key = os.getenv("GEMINI_API_KEY", "").strip()
             if self.is_configured():
                 try:
-                    self.client = genai.Client(api_key=self.api_key)
+                    http_options = types.HttpOptions(timeout=10000)
+                    self.client = genai.Client(api_key=self.api_key, http_options=http_options)
                 except Exception:
                     pass
 
@@ -90,15 +95,19 @@ class GeminiMedicalService:
             if is_en else ""
         )
         answer_desc = (
-            "Medical consultation response for patient (in fluent English, warm, empathetic tone, beginning with supportive acknowledgment, bulleted evidence-based non-pharmacological home care guidance, monitoring instructions, and well wishes at the end)"
+            "Medical consultation response for patient (STRICT LIMIT: 60 - 100 words. Format: 1 short acknowledgment sentence (<15 words); 2-3 bullet points of immediate actions (<15 words each); 1 warning sign bullet point (<15 words). Direct, focused, no verbose filler)."
             if is_en else
-            "Nội dung phản hồi tư vấn y tế cho người bệnh (bằng Tiếng Việt, giọng điệu ân cần, đồng cảm, có mở đầu hỏi thăm thấu cảm, các gạch đầu dòng hướng dẫn chăm sóc tại nhà an toàn không dùng thuốc, lưu ý theo dõi và lời chúc mau khỏe ở cuối)"
+            "Nội dung phản hồi tư vấn y tế cho người bệnh (BẮT BUỘC NGẮN GỌN: 60 - 100 TỪ. Cấu trúc 3 phần: 1 câu ngắn ghi nhận (<15 từ); 2-3 gạch đầu dòng việc cần làm ngay (<15 từ/dòng); 1 gạch đầu dòng dấu hiệu cảnh báo đi khám (<15 từ). Đi thẳng vào trọng tâm, không giải thích lý thuyết y khoa lan man)."
         )
 
         instruction_prompt = (
             f"{VIETNAMESE_MEDICAL_SYSTEM_PROMPT}\n"
             f"{rag_context_block}\n\n"
             f"{lang_directive}"
+            "NGUYÊN TẮC BẮT BUỘC VỀ ĐỘ DÀI & ĐỊNH DẠNG (STRICT CONCISENESS):\n"
+            "- ĐỘ DÀI TRƯỜNG 'answer' BẮT BUỘC TRONG KHOẢNG 60 - 100 TỪ. KHÔNG VIẾT DÀI HƠN.\n"
+            "- KHÔNG VIẾT ĐOẠN VĂN LÊ THÊ. Dùng đúng 1 câu mở đầu, sau đó là 2-3 gạch đầu dòng ngắn, kết bằng 1 cảnh báo đi khám.\n"
+            "- Người dùng rất bận và lười đọc, hãy tập trung vào 'Tôi cần làm gì ngay bây giờ?'.\n\n"
             "NGUYÊN TẮC Y ĐỨC BẮT BUỘC / MEDICAL ETHICS:\n"
             "- DO NOT PRESCRIBE MEDICATIONS or specific dosages. Recommend safe non-pharmacological care (hydration, rest, cooling compresses, hygiene).\n"
             "- Advise patient to consult a licensed physician or pharmacist if symptoms persist.\n\n"
@@ -149,7 +158,7 @@ class GeminiMedicalService:
                 response_mime_type="application/json"
             )
 
-            candidate_models = [self.model, "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.7-flash"]
+            candidate_models = [self.model, "gemini-flash-lite-latest"]
             models_to_try = []
             for m in candidate_models:
                 if m and m not in models_to_try:
@@ -168,7 +177,8 @@ class GeminiMedicalService:
                         break
                 except Exception as m_err:
                     last_err = m_err
-                    logger.warning(f"[REQ-{req_id}] Model {model_name} không khả dụng ({type(m_err).__name__}). Đang thử model tiếp theo...")
+                    logger.warning(f"[REQ-{req_id}] Model {model_name} không phản hồi ({type(m_err).__name__}).")
+                    break  # Tránh lặp vô tận gây chậm trễ cho người dùng
 
             if not res or not res.text:
                 raise last_err or RuntimeError("Không thể nhận phản hồi từ mô hình Gemini.")

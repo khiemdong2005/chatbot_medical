@@ -40,47 +40,8 @@ background: #94A3B8;
 <div class="fixed top-1/3 -right-40 w-[650px] h-[650px] bg-indigo-500/10 rounded-full blur-[150px] pointer-events-none z-0 ambient-breath" style="animation-delay: -3s;"></div>
 <div class="fixed -bottom-40 left-1/3 w-[700px] h-[700px] bg-amber-500/8 rounded-full blur-[160px] pointer-events-none z-0 ambient-breath" style="animation-delay: -5s;"></div>
 
-<!-- Spatial Floating Capsule Dock (Glassy Dashboard V5 Left Dock) -->
-<aside class="fixed left-2 sm:left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-3 py-4 px-2 rounded-full glass-dock shadow-2xl">
-  <button onclick="switchTab('chat-tab')" id="dock-chat-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all bg-white text-slate-950 shadow-[0_0_20px_rgba(255,255,255,0.45)] cursor-pointer" title="Trợ lý sức khỏe AI">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Trợ lý sức khỏe</span>
-  </button>
-  
-  <button onclick="switchTab('ocr-tab')" id="dock-ocr-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer" title="Đọc đơn thuốc &amp; xét nghiệm">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Đọc đơn thuốc &amp; xét nghiệm</span>
-  </button>
-
-  <button onclick="switchTab('booking-tab')" id="dock-booking-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer" title="Cơ sở y tế &amp; Bệnh viện">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Cơ sở y tế &amp; Bệnh viện</span>
-  </button>
-
-  <button onclick="switchTab('doctor-tab')" id="dock-doctor-tab" class="dock-btn group relative w-11 h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer" title="Hồ sơ của tôi">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Hồ sơ của tôi</span>
-  </button>
-
-  <div class="w-6 h-px bg-white/15 my-1"></div>
-
-  <button onclick="cycleMedicalWallpaper()" class="dock-btn group relative w-9 h-9 rounded-full flex items-center justify-center transition-all text-white/50 hover:text-sky-300 hover:bg-white/10 cursor-pointer" title="Đổi không gian Y tế">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Đổi không gian Y tế</span>
-  </button>
-  <button onclick="toggleGlassThemeMode()" id="dock-theme-toggle" class="dock-btn group relative w-9 h-9 rounded-full flex items-center justify-center transition-all text-white/50 hover:text-amber-300 hover:bg-white/10 cursor-pointer" title="Đổi chế độ Kính Sáng / Kính Khói">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Kính Sáng / Kính Khói</span>
-  </button>
-
-  <button onclick="resetChat()" class="dock-btn group relative w-10 h-10 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-sky-300 hover:bg-white/10 cursor-pointer" title="Cuộc trò chuyện mới">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-    <span class="absolute left-14 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 shadow-2xl backdrop-blur-md">Cuộc trò chuyện mới</span>
-  </button>
-</aside>
-
-<!-- Top Navigation Bar (Floating Pill Header with Even Spacing) -->
-<header class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between z-30 shrink-0 relative gap-4 pl-16 sm:pl-20">
+<!-- Top Navigation Bar (Integrated Capsule Dock Header) -->
+<header class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between z-30 shrink-0 relative gap-4">
 <!-- Brand Logo with Glowing Pulse Beacon -->
 <div class="flex items-center space-x-3 cursor-pointer shrink-0" onclick="switchTab('chat-tab')">
   <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
@@ -97,8 +58,8 @@ background: #94A3B8;
   </div>
 </div>
 
-<!-- Center Floating Capsule Pill Navbar (Glassy Dashboard V5 Style) -->
-<nav class="hidden lg:flex items-center glass-dock p-1.5 rounded-full gap-1 shrink-0">
+<!-- Center Floating Capsule Pill Navbar (Integrated Spatial Capsule Dock) -->
+<nav class="hidden md:flex items-center glass-dock p-1.5 rounded-full gap-1 shrink-0">
   <button onclick="switchTab('chat-tab')" id="nav-chat-tab" class="nav-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all glass-pill-cyan-active cursor-pointer">
     Trợ lý sức khỏe
   </button>
@@ -110,6 +71,21 @@ background: #94A3B8;
   </button>
   <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">
     Hồ sơ của tôi
+  </button>
+
+  <div class="w-px h-5 bg-white/20 mx-1"></div>
+
+  <!-- Đổi không gian Y tế -->
+  <button onclick="cycleMedicalWallpaper()" class="w-8 h-8 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-sky-300 hover:bg-white/10 cursor-pointer" title="Đổi không gian Y tế">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+  </button>
+  <!-- Đổi chế độ Kính Sáng / Kính Khói -->
+  <button onclick="toggleGlassThemeMode()" id="nav-theme-toggle" class="w-8 h-8 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-amber-300 hover:bg-white/10 cursor-pointer" title="Đổi chế độ Kính Sáng / Kính Khói">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+  </button>
+  <!-- Cuộc trò chuyện mới -->
+  <button onclick="resetChat()" class="w-8 h-8 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-emerald-300 hover:bg-white/10 cursor-pointer" title="Cuộc trò chuyện mới">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
   </button>
 </nav>
 
@@ -145,15 +121,15 @@ background: #94A3B8;
     </button>
   </div>
 
-  <!-- Auth State 2: Logged In -->
+  <!-- Auth State 2: Logged In (Chuẩn Mẫu Ảnh 2) -->
   <div id="auth-logged" class="hidden relative flex items-center space-x-2 shrink-0">
-    <div id="user-chip-button" class="flex items-center space-x-2 glass-pill px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-all" onclick="toggleUserDropdown(event)">
-      <div id="user-avatar-badge" class="w-6 h-6 rounded-full bg-sky-500/30 text-sky-300 font-bold text-[11px] flex items-center justify-center shrink-0 border border-sky-400/40">
-        👤
+    <div id="user-chip-button" class="flex items-center space-x-2.5 glass-dock px-3.5 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-all border border-slate-700/60 hover:border-sky-400/50 shadow-sm" onclick="toggleUserDropdown(event)" title="Hồ sơ tài khoản">
+      <div id="user-avatar-badge" class="w-8 h-8 rounded-full bg-sky-600/35 text-sky-400 font-black text-xs flex items-center justify-center shrink-0 border border-sky-400/50 shadow-inner">
+        BN
       </div>
-      <div class="text-left hidden lg:block whitespace-nowrap">
-        <span id="user-display-name" class="text-xs font-bold text-white block leading-tight">Khách</span>
-        <span id="user-role-badge" class="text-[9px] text-sky-400 font-semibold block leading-none">Chưa đăng nhập</span>
+      <div class="text-left hidden sm:block whitespace-nowrap pr-1">
+        <span id="user-display-name" class="text-xs sm:text-sm font-extrabold text-white block leading-tight">Nguyễn Thành Khiêm</span>
+        <span id="user-role-badge" class="text-[10px] text-sky-400 font-bold block leading-tight">Nữ • 24/10/1997 • 0971221306</span>
       </div>
     </div>
   </div>
@@ -161,7 +137,7 @@ background: #94A3B8;
 
 </div>
 </header>
-<main class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-4 flex-1 flex flex-col justify-start relative z-10 min-h-[calc(100vh-100px)] pl-16 sm:pl-20">
+<main class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-4 flex-1 flex flex-col justify-start relative z-10 min-h-[calc(100vh-100px)]">
 <div id="chat-tab" class="tab-content active flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch pt-2">
 
   <!-- ============================================================== -->
@@ -188,37 +164,84 @@ background: #94A3B8;
       </div>
 
       <!-- Dynamic History Container (No misleading fake personal presets) -->
-      <div id="chat-history-container" class="space-y-2 pt-1">
+      <div id="chat-history-container" class="space-y-3 pt-1">
+        <!-- Populated real history list if available -->
+        <div id="chat-history-list" class="space-y-1.5 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar hidden"></div>
+
         <!-- Empty State Default -->
-        <div id="chat-history-empty" class="p-5 text-center text-xs text-white/50 space-y-3 rounded-2xl bg-white/[0.02] border border-white/5">
-          <div class="w-10 h-10 mx-auto rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sky-400 text-base">
+        <div id="chat-history-empty" class="p-3.5 text-center text-xs text-white/50 space-y-2 rounded-xl bg-white/[0.02] border border-white/5">
+          <div class="w-8 h-8 mx-auto rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-sky-400 text-sm">
             💬
           </div>
           <div>
-            <p class="font-bold text-white/80">Chưa có lịch sử tư vấn</p>
-            <p class="text-[11px] text-white/45 mt-1 leading-relaxed">
-              Các cuộc sàng lọc triệu chứng sẽ được lưu tự động tại đây sau khi hoàn tất.
+            <p class="font-bold text-white/80 text-xs">Chưa có lịch sử tư vấn</p>
+            <p class="text-[10.5px] text-white/45 mt-0.5 leading-relaxed">
+              Các cuộc sàng lọc triệu chứng sẽ được lưu tự động tại đây.
             </p>
           </div>
-          <div class="pt-2 border-t border-white/10">
-            <span class="text-[10px] text-slate-400 block mb-2 font-mono">Dữ liệu thử nghiệm:</span>
-            <button type="button" onclick="loadDemoConsultation()" class="w-full py-2 px-3 rounded-xl glass-pill text-xs text-sky-300 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5">
+          <div class="pt-1.5 border-t border-white/10">
+            <button type="button" onclick="loadDemoConsultation()" class="w-full py-1.5 px-2.5 rounded-lg glass-pill text-[11px] text-sky-300 hover:text-white font-semibold transition-all cursor-pointer flex items-center justify-center space-x-1.5">
               <span>🧪</span>
               <span>Xem thử ca tư vấn mẫu (Demo)</span>
             </button>
           </div>
         </div>
 
-        <!-- Populated real history list if available -->
-        <div id="chat-history-list" class="space-y-2 hidden"></div>
+        <!-- Live Clinical Intake Facts Card (Tuân thủ Mục 8 & 9) -->
+        <div id="live-intake-card" class="p-3.5 rounded-2xl bg-white/[0.04] border border-sky-400/30 space-y-2.5">
+          <div class="flex items-center justify-between pb-2 border-b border-white/10">
+            <div class="flex items-center space-x-1.5 text-xs font-bold text-sky-300">
+              <span>📋</span>
+              <span>Thông tin đã ghi nhận</span>
+            </div>
+            <span id="intake-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30">
+              Chờ khởi tạo
+            </span>
+          </div>
+
+          <!-- Facts List -->
+          <div class="space-y-1.5 text-[11px]">
+            <div class="flex items-start gap-1.5">
+              <span class="text-white/50 shrink-0">Lý do:</span>
+              <span id="intake-chief-complaint" class="text-white font-medium truncate">Chưa có thông tin</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-white/50 shrink-0">Triệu chứng:</span>
+              <span id="intake-present-symptoms" class="text-sky-300 font-semibold">--</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-white/50 shrink-0">Đã phủ nhận:</span>
+              <span id="intake-denied-symptoms" class="text-emerald-400/90 font-medium italic">Chưa ghi nhận</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-white/50 shrink-0">Thời gian:</span>
+              <span id="intake-duration" class="text-white/80">--</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-white/50 shrink-0">Thân nhiệt:</span>
+              <span id="intake-vitals" class="text-amber-300 font-semibold">--</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-2 border-t border-white/10 flex items-center gap-2">
+            <button type="button" onclick="openPreVisitSummaryModal()" class="flex-1 py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 text-[11px] font-bold transition-all border border-sky-400/30 flex items-center justify-center gap-1 cursor-pointer">
+              <span>📄</span>
+              <span>Tóm tắt trước khám</span>
+            </button>
+            <button type="button" id="btn-confirm-intake" onclick="confirmCurrentIntake()" class="py-1.5 px-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-bold transition-all border border-emerald-400/30 cursor-pointer" title="Xác nhận lời khai đúng thực tế">
+              <span>✓ Xác nhận</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Security Footnote -->
+    <!-- Medical Standard Footnote -->
     <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/50">
-      <span>Bảo mật dữ liệu cá nhân</span>
-      <span class="text-emerald-400 font-mono font-bold flex items-center gap-1">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Cục bộ &amp; Mã hóa
+      <span>Quy chuẩn y tế</span>
+      <span class="text-sky-300 font-medium flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>Đối chiếu y văn MedlinePlus
       </span>
     </div>
   </div>
@@ -592,221 +615,315 @@ Chỉ đường Google Maps
     </div>
   </div>
   
-<div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-<div class="glass-panel p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-<div>
-  <div class="flex items-center space-x-2">
-    <h2 class="text-base sm:text-lg font-black text-white tracking-tight" id="ehr-title">Hồ Sơ Của Tôi</h2>
-    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-sky-500/20 text-sky-300 border border-sky-400/30">TÓM TẮT TRƯỚC KHÁM</span>
-  </div>
-  <p class="text-xs text-slate-400 mt-0.5" id="ehr-subtitle">Lưu trữ tóm tắt các lần sàng lọc triệu chứng &amp; tài liệu đơn thuốc của bạn</p>
-</div>
-<div class="flex items-center space-x-2.5">
-  <button id="ehr-export-pdf-btn" onclick="exportPdfSummary()" class="text-xs font-bold px-4 py-2 rounded-xl glass-pill text-slate-300 hover:text-white flex items-center space-x-1.5 transition-all cursor-pointer">
-    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-    </svg>
-    <span id="ehr-export-text">Xuất Tóm Tắt (PDF)</span>
-  </button>
-  <button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-300 hover:text-white px-4 py-2 rounded-xl glass-pill transition-all flex items-center space-x-1.5 cursor-pointer">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-    <span>Trang chủ</span>
-  </button>
-</div>
-</div>
-<!-- Empty State for Users without records -->
-<div id="ehr-content-empty" class="w-full glass-panel p-10 flex flex-col items-center justify-center text-center space-y-4 shadow-2xl my-4">
-<div class="w-16 h-16 rounded-3xl bg-sky-500/20 text-sky-400 border border-sky-400/30 flex items-center justify-center mb-1">
-<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-</svg>
-</div>
-<div class="space-y-1.5">
-<h3 class="text-base font-bold text-white">Bạn chưa có bản tóm tắt trước khám</h3>
-<p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-Chưa có dữ liệu tư vấn nào được ghi nhận. Hãy trao đổi với Trợ lý sức khỏe AI hoặc tải ảnh đơn thuốc để hệ thống tự động tổng hợp thông tin trước khám cho bạn.
-</p>
-</div>
-<div class="pt-2 flex flex-wrap items-center justify-center gap-3">
-<button onclick="switchTab('chat-tab')" class="px-6 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-sky-500/25 transition-all flex items-center space-x-2 cursor-pointer">
-<span>Bắt đầu tư vấn triệu chứng</span>
-<span>→</span>
-</button>
-<button onclick="openNewPrescriptionUpload()" class="glass-pill px-6 py-2.5 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer">
-Tải đơn thuốc / xét nghiệm
-</button>
-</div>
-</div>
-<!-- Filled State: 12-Column Doctor EHR Grid -->
-<div id="ehr-content-filled" class="w-full flex-1 flex-col space-y-4 hidden">
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
-<!-- Left Column: Patient Demographics, Vitals & Medical History (lg:col-span-7) -->
-<div class="lg:col-span-7 space-y-4">
-<!-- Card 1: Patient Administrative Info & Vitals Grid -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-4 shadow-2xl bg-white/[0.04] text-white">
-<div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
-<div class="flex items-center space-x-3">
-<div id="ehr-avatar-badge" class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-sm border border-sky-400/30">
-👤
-</div>
-<div>
-<h3 id="ehr-patient-name" class="text-sm font-bold text-white">Chưa đăng nhập</h3>
-<span id="ehr-patient-id" class="text-[11px] text-slate-400">Vui lòng đăng nhập để đồng bộ tóm tắt trước khám</span>
-</div>
-</div>
-<div class="flex items-center space-x-2">
-<span class="text-[10px] font-bold text-amber-300 bg-amber-500/20 border border-amber-400/30 px-2.5 py-1 rounded-full uppercase tracking-wider">
-Triage: Trung bình (35/100)
-</span>
-<span class="text-xs text-slate-400 font-mono">26/10/2026</span>
-</div>
-</div>
-<!-- Vitals 4-Grid with Clinical Telemetry Styling -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-  <!-- BP -->
-  <div class="p-3 rounded-2xl glass-card border border-sky-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
-    <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 border border-sky-400/30">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+<div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-6">
+  <!-- Top Action & Title Bar (Đồng bộ Dark Glass Theme) -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-white/10">
+    <div class="flex items-center space-x-3.5">
+      <div class="w-12 h-12 rounded-2xl bg-teal-500/20 text-teal-300 border border-teal-400/30 flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/10">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight" id="ehr-title">Hồ sơ bệnh án</h2>
+        <p class="text-xs text-slate-400 mt-0.5" id="ehr-subtitle">Theo dõi lịch sử khám và điều trị</p>
+      </div>
     </div>
-    <div>
-      <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Huyết áp</span>
-      <span class="text-xs font-black text-white font-mono">120/80 <span class="text-[9px] font-normal text-slate-400">mmHg</span></span>
+    <div class="flex items-center space-x-2.5">
+      <button id="ehr-export-pdf-btn" onclick="exportPdfSummary()" class="text-xs font-bold px-4 py-2.5 rounded-xl glass-pill text-slate-200 hover:text-white border border-white/10 hover:border-white/20 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
+        <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span id="ehr-export-text">Xuất Tóm Tắt (PDF)</span>
+      </button>
+      <button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-200 hover:text-white px-4 py-2.5 rounded-xl glass-pill border border-white/10 hover:border-white/20 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <span>Trang chủ</span>
+      </button>
     </div>
   </div>
 
-  <!-- HR -->
-  <div class="p-3 rounded-2xl glass-card border border-rose-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
-    <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 border border-rose-400/30">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-    </div>
-    <div>
-      <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Nhịp tim</span>
-      <span class="text-xs font-black text-white font-mono">72 <span class="text-[9px] font-normal text-slate-400">bpm</span></span>
+  <!-- PATIENT SWITCHER (BỆNH NHÂN - Đồng bộ Dark Glass Theme) -->
+  <div class="space-y-2">
+    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">BỆNH NHÂN</span>
+    <div class="flex flex-wrap items-center gap-3" id="patient-switcher-container">
+      <!-- Patient 1 Pill (Active Default) -->
+      <button type="button" id="patient-pill-minh_anh" onclick="selectPatientProfile('minh_anh')" class="patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-teal-500/20 text-white shadow-lg shadow-teal-500/10 border border-teal-400/50 backdrop-blur-xl transition-all cursor-pointer">
+        <div class="w-9 h-9 rounded-xl bg-teal-500/30 text-teal-200 font-black text-xs flex items-center justify-center border border-teal-400/40">
+          NA
+        </div>
+        <div class="text-left">
+          <div class="text-sm font-extrabold text-white leading-tight">Nguyễn Minh Anh</div>
+          <div class="text-[11px] text-teal-300 font-medium leading-tight">Nữ · 38 tuổi</div>
+        </div>
+      </button>
+
+      <!-- Patient 2 Pill -->
+      <button type="button" id="patient-pill-quoc_bao" onclick="selectPatientProfile('quoc_bao')" class="patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl glass-pill text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all cursor-pointer">
+        <div class="w-9 h-9 rounded-xl bg-white/5 text-slate-300 font-black text-xs flex items-center justify-center border border-white/10">
+          TB
+        </div>
+        <div class="text-left">
+          <div class="text-sm font-bold text-slate-200 leading-tight">Trần Quốc Bảo</div>
+          <div class="text-[11px] text-slate-400 font-medium leading-tight">Nam · 51 tuổi</div>
+        </div>
+      </button>
     </div>
   </div>
 
-  <!-- Temp -->
-  <div class="p-3 rounded-2xl glass-card border border-amber-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
-    <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 border border-amber-400/30">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-    </div>
-    <div>
-      <span class="text-[10px] text-amber-300 block font-bold uppercase tracking-wider">Thân nhiệt</span>
-      <span class="text-xs font-black text-white font-mono">38.2°C <span class="text-[9px] font-bold text-amber-300 bg-amber-500/20 px-1 rounded">Sốt nhẹ</span></span>
-    </div>
-  </div>
+  <!-- 2-COLUMN MAIN MEDICAL RECORD GRID (Đồng bộ Dark Glass Theme) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
+    <!-- LEFT COLUMN: Patient Info Cards (Col 4/12) -->
+    <div class="lg:col-span-4 space-y-4">
+      <!-- Dark Teal-Navy Glass Gradient Header Profile Card -->
+      <div id="ehr-hero-card" class="glass-card border border-teal-500/30 rounded-2xl p-6 text-white shadow-xl space-y-5 relative overflow-hidden bg-gradient-to-br from-teal-900/40 via-slate-900/60 to-emerald-950/30 backdrop-blur-xl">
+        <div class="flex items-center space-x-3.5">
+          <div id="ehr-avatar-large" class="w-14 h-14 rounded-2xl bg-teal-500/25 text-teal-200 font-black text-lg flex items-center justify-center border border-teal-400/40 shadow-inner">
+            NA
+          </div>
+          <div>
+            <h3 id="ehr-hero-name" class="text-lg font-black leading-tight text-white">Nguyễn Minh Anh</h3>
+            <p id="ehr-hero-demographics" class="text-xs text-teal-300 font-medium mt-0.5">Nữ · 38 tuổi</p>
+          </div>
+        </div>
 
-  <!-- SpO2 -->
-  <div class="p-3 rounded-2xl glass-card border border-emerald-400/30 bg-white/[0.03] shadow-sm flex items-center space-x-2.5">
-    <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-400/30">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div class="rounded-xl p-3 bg-white/[0.04] border border-white/10">
+            <span class="text-[11px] text-slate-400 block font-medium">Số lần khám</span>
+            <span id="ehr-visit-count" class="text-2xl font-black text-white mt-1 block">3</span>
+          </div>
+          <div class="rounded-xl p-3 bg-white/[0.04] border border-white/10">
+            <span class="text-[11px] text-slate-400 block font-medium">Lần khám gần nhất</span>
+            <span id="ehr-last-visit-date" class="text-xs font-black text-teal-300 mt-2.5 block font-mono">18/10/2026</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Demographic Glass Card -->
+      <div class="glass-card border border-white/10 rounded-2xl p-5 shadow-xl bg-white/[0.03] backdrop-blur-xl space-y-4 text-white">
+        <!-- Ngày sinh -->
+        <div class="flex items-start space-x-3.5">
+          <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">NGÀY SINH</span>
+            <span id="ehr-dob-val" class="text-xs font-bold text-white mt-0.5 block">12/04/1988</span>
+          </div>
+        </div>
+
+        <!-- Nhóm máu -->
+        <div class="flex items-start space-x-3.5">
+          <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21.5c-3.5 0-6.5-2.8-6.5-6.3 0-3.9 6.5-12.2 6.5-12.2s6.5 8.3 6.5 12.2c0 3.5-3 6.3-6.5 6.3z"></path></svg>
+          </div>
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">NHÓM MÁU</span>
+            <span id="ehr-blood-val" class="text-xs font-bold text-white mt-0.5 block font-mono">O+</span>
+          </div>
+        </div>
+
+        <!-- Điện thoại -->
+        <div class="flex items-start space-x-3.5">
+          <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          </div>
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">ĐIỆN THOẠI</span>
+            <span id="ehr-phone-val" class="text-xs font-bold text-white mt-0.5 block font-mono">0901 234 567</span>
+          </div>
+        </div>
+
+        <!-- Dị ứng -->
+        <div class="flex items-start space-x-3.5 pt-1">
+          <div class="w-8 h-8 rounded-xl bg-white/5 border border-white/10 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+          </div>
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">DỊ ỨNG</span>
+            <div id="ehr-allergies-container" class="flex flex-wrap gap-1.5">
+              <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-400/30">
+                <span>⚠️</span>
+                <span>Penicillin</span>
+              </span>
+              <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-400/30">
+                <span>⚠️</span>
+                <span>Hải sản</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">SpO2</span>
-      <span class="text-xs font-black text-emerald-400 font-mono">98% <span class="text-[9px] font-bold text-emerald-300 bg-emerald-500/20 px-1 rounded">Đạt chuẩn</span></span>
+
+    <!-- RIGHT COLUMN: Clinical History Timeline (Col 8/12) -->
+    <div class="lg:col-span-8 space-y-4">
+      <div class="flex items-center justify-between pb-1">
+        <h3 class="text-base font-black text-white">Lịch sử khám bệnh</h3>
+        <span id="ehr-records-count-badge" class="text-xs text-slate-400 font-semibold font-mono">3 hồ sơ</span>
+      </div>
+
+      <!-- Timeline Cards Container -->
+      <div id="ehr-timeline-list" class="relative pl-6 space-y-4 border-l-2 border-teal-500/30">
+        <!-- Record 1 (Viêm họng cấp - 18/10/2026) -->
+        <div onclick="openMedicalRecordDetail('rec_1')" class="relative group cursor-pointer">
+          <!-- Timeline Indicator Dot -->
+          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-teal-400 border-2 border-slate-900 shadow-md shadow-teal-400/50"></div>
+
+          <!-- Card Content (Dark Glass) -->
+          <div class="glass-card border border-white/10 rounded-2xl p-5 shadow-lg bg-white/[0.03] hover:bg-white/[0.06] hover:border-teal-400/40 hover:shadow-teal-500/10 backdrop-blur-xl transition-all">
+            <div class="flex items-start justify-between gap-2">
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-teal-400 font-mono">18/10/2026</span>
+                <h4 class="text-base font-black text-white group-hover:text-teal-300 transition-colors">Viêm họng cấp</h4>
+                <p class="text-xs text-slate-400">BS. Lê Thu Hà · Nội tổng quát</p>
+                <div class="pt-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300 text-[11px] font-mono border border-white/10">ICD-10: J02.9</span>
+                </div>
+              </div>
+
+              <div class="flex items-center self-center pl-2">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-teal-300 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Record 2 (Rối loạn nhịp xoang - 02/06/2026) -->
+        <div onclick="openMedicalRecordDetail('rec_2')" class="relative group cursor-pointer">
+          <!-- Timeline Indicator Dot -->
+          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-teal-400 border-2 border-slate-900 shadow-md shadow-teal-400/50"></div>
+
+          <!-- Card Content (Dark Glass) -->
+          <div class="glass-card border border-white/10 rounded-2xl p-5 shadow-lg bg-white/[0.03] hover:bg-white/[0.06] hover:border-teal-400/40 hover:shadow-teal-500/10 backdrop-blur-xl transition-all">
+            <div class="flex items-start justify-between gap-2">
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-teal-400 font-mono">02/06/2026</span>
+                <h4 class="text-base font-black text-white group-hover:text-teal-300 transition-colors">Rối loạn nhịp xoang</h4>
+                <p class="text-xs text-slate-400">BS. Phạm Đức Long · Tim mạch</p>
+                <div class="pt-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300 text-[11px] font-mono border border-white/10">ICD-10: I49.5</span>
+                </div>
+              </div>
+
+              <div class="flex items-center self-center pl-2">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-teal-300 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Record 3 (Thiếu máu thiếu sắt - 20/11/2025) -->
+        <div onclick="openMedicalRecordDetail('rec_3')" class="relative group cursor-pointer">
+          <!-- Timeline Indicator Dot -->
+          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-teal-400 border-2 border-slate-900 shadow-md shadow-teal-400/50"></div>
+
+          <!-- Card Content (Dark Glass) -->
+          <div class="glass-card border border-white/10 rounded-2xl p-5 shadow-lg bg-white/[0.03] hover:bg-white/[0.06] hover:border-teal-400/40 hover:shadow-teal-500/10 backdrop-blur-xl transition-all">
+            <div class="flex items-start justify-between gap-2">
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-teal-400 font-mono">20/11/2025</span>
+                <h4 class="text-base font-black text-white group-hover:text-teal-300 transition-colors">Thiếu máu thiếu sắt</h4>
+                <p class="text-xs text-slate-400">BS. Lê Thu Hà · Nội tổng quát</p>
+                <div class="pt-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300 text-[11px] font-mono border border-white/10">ICD-10: D50.9</span>
+                </div>
+              </div>
+
+              <div class="flex items-center self-center pl-2">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-teal-300 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-</div>
-<!-- Card 2: Clinical Narrative & Evolution -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
-<h4 class="text-xs font-bold text-white pb-2 border-b border-white/10 flex items-center justify-between">
-<span>Diễn tiến Bệnh cảnh & Lý do vào viện</span>
-<span class="text-[10px] text-sky-400 font-mono">Trích xuất tự động qua Chatbot AI</span>
-</h4>
-<div class="space-y-2 text-xs text-slate-300 leading-relaxed">
-<p>• <strong>Lý do khám:</strong> Đau rát họng, nuốt đau, nghẹt sổ mũi và có sốt nhẹ kéo dài 24 giờ.</p>
-<p>• <strong>Quá trình bệnh lý:</strong> Khởi phát đột ngột sau khi tiếp xúc không khí lạnh. Chưa xuất hiện khó thở dữ dội, không đau tức ngực, không nôn ói. Đã tự súc họng nước muối sinh lý tại nhà.</p>
-<p>• <strong>Thói quen sinh hoạt:</strong> Không hút thuốc lá, tiếp xúc thường xuyên với máy lạnh văn phòng.</p>
-</div>
-</div>
-<!-- Card 3: Allergy Alert & Contraindications (Red Highlight) -->
-<div class="glass-card border border-rose-400/30 rounded-2xl p-4.5 space-y-2 bg-rose-950/25 text-rose-200 shadow-[0_0_20px_rgba(244,63,94,0.15)]">
-<div class="flex items-center space-x-2 text-rose-400 font-bold text-xs">
-<svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-</svg>
-<span>CẢNH BÁO TIỀN SỬ DỊ ỨNG & CHỐNG CHỈ ĐỊNH LÂM SÀNG</span>
-</div>
-<p class="text-xs text-rose-200/90 leading-relaxed pl-6">
-Bệnh nhân có tiền sử dị ứng với kháng sinh nhóm <strong class="text-rose-300">Penicillin, Amoxicillin</strong> (từng nổi mề đay cấp tính).
-<strong class="block mt-1 text-rose-300">Chống chỉ định: Tuyệt đối không chỉ định kháng sinh nhóm Beta-lactam.</strong>
-</p>
-</div>
-</div>
-<!-- Right Column: AI Diagnosis, Clinical Orders & Physician Actions (lg:col-span-5) -->
-<div class="lg:col-span-5 space-y-4">
-<!-- Card 4: AI Diagnostic Impression (ICD-10) -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
-<div class="flex items-center justify-between pb-2 border-b border-white/10">
-<h4 class="text-xs font-bold text-white">Định hướng Chẩn đoán sơ bộ (AI)</h4>
-<span class="text-[10px] text-sky-400 font-mono">ICD-10 Mapping</span>
-</div>
-<div class="space-y-2">
-<div class="p-3 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-between">
-<div>
-<span class="text-xs font-bold text-white block">Viêm đường hô hấp trên cấp (J06.9)</span>
-<span class="text-[10px] text-slate-300">Phù hợp triệu chứng sốt, đau họng, sổ mũi</span>
-</div>
-<span class="text-xs font-bold text-white bg-sky-500 px-2.5 py-1 rounded-lg shadow-sm">88%</span>
-</div>
-<div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-<div>
-<span class="text-xs font-bold text-slate-200 block">Viêm mũi xoang cấp tính (J01)</span>
-<span class="text-[10px] text-slate-400">Chẩn đoán phân biệt theo dõi</span>
-</div>
-<span class="text-xs font-semibold text-slate-300 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">62%</span>
-</div>
-</div>
-</div>
-<!-- Card 5: Recommended Diagnostic Orders -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
-<h4 class="text-xs font-bold text-white pb-2 border-b border-white/10">
-Đề xuất Chỉ định Cận lâm sàng (Clinical Orders)
-</h4>
-<div class="space-y-2 text-xs">
-<label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 cursor-pointer">
-<input type="checkbox" checked class="w-4 h-4 text-sky-500 rounded border-white/20 bg-slate-900 focus:ring-sky-400">
-<span class="font-medium text-slate-200">Tổng phân tích tế bào máu ngoại vi (CBC)</span>
-</label>
-<label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 cursor-pointer">
-<input type="checkbox" checked class="w-4 h-4 text-sky-500 rounded border-white/20 bg-slate-900 focus:ring-sky-400">
-<span class="font-medium text-slate-200">Nội soi Tai Mũi Họng đánh giá niêm mạc</span>
-</label>
-<label class="flex items-center space-x-2.5 p-2 rounded-xl hover:bg-white/5 cursor-pointer">
-<input type="checkbox" class="w-4 h-4 text-sky-500 rounded border-white/20 bg-slate-900 focus:ring-sky-400">
-<span class="text-slate-400">Test nhanh Cúm A/B (theo dõi nếu sốt > 38.5°C kéo dài)</span>
-</label>
-</div>
-</div>
-<!-- Card 6: Physician Action Controls -->
-<div class="glass-card border border-white/10 rounded-2xl p-5 space-y-3 shadow-2xl bg-white/[0.04] text-white">
-<div class="flex items-center justify-between pb-2 border-b border-white/10">
-<span class="text-xs font-bold text-white">Thao tác Bệnh án</span>
-<span class="text-[10px] text-emerald-400 font-bold flex items-center space-x-1">
-<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-<span>Hồ sơ sẵn sàng</span>
-</span>
-</div>
-<div class="grid grid-cols-2 gap-2.5 pt-1">
-<button onclick="window.print()" class="py-2.5 glass-pill text-slate-200 hover:text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
-<svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-</svg>
-<span>In Bệnh án A4</span>
-</button>
-<button onclick="alert('Hệ thống chưa kết nối liên thông trực tiếp với bệnh viện. Bạn có thể in hoặc xuất bản tóm tắt trước khám này để mang theo khi đến phòng khám.')" class="py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-sky-500/25 flex items-center justify-center space-x-1.5 cursor-pointer">
-<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-</svg>
-<span>Lưu vào EMR</span>
-</button>
-</div>
-</div>
-</div>
-</div>
-</div>
+
 <!-- ============================================================== -->
+<!-- CLINICAL DETAIL INSPECTION MODAL (Đồng bộ Dark Glass Theme)    -->
+<!-- ============================================================== -->
+<div id="medical-record-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeMedicalRecordDetail()">
+  <div class="glass-panel-elevated bg-[#0a1124]/95 border border-white/15 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6 text-white backdrop-blur-2xl">
+    <!-- Close Button -->
+    <button type="button" onclick="closeMedicalRecordDetail()" class="absolute right-5 top-5 w-8 h-8 rounded-full bg-white/10 text-slate-400 hover:text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer" title="Đóng">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <!-- Header Section -->
+    <div class="space-y-1.5 pr-8">
+      <span id="modal-record-date" class="text-xs font-bold text-teal-400 font-mono">18/10/2026</span>
+      <h3 id="modal-record-title" class="text-xl sm:text-2xl font-black text-white">Viêm họng cấp</h3>
+      <p id="modal-record-doctor" class="text-xs text-slate-400">BS. Lê Thu Hà · Nội tổng quát</p>
+      
+      <div class="flex items-center space-x-2 pt-2">
+        <span id="modal-record-status" class="hidden"></span>
+        <span id="modal-record-icd" class="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300 text-xs font-mono border border-white/10">
+          ICD-10: J02.9
+        </span>
+      </div>
+    </div>
+
+    <!-- Section 1: CHỈ SỐ SINH TỒN (4 tiles) -->
+    <div class="space-y-2 pt-1 border-t border-white/10">
+      <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-300/90 block">CHỈ SỐ SINH TỒN</span>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!-- BP -->
+        <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-3 shadow-inner">
+          <span class="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">Huyết áp</span>
+          <span id="modal-bp-val" class="text-xs sm:text-sm font-black text-white mt-1 block font-mono">118/76 mmHg</span>
+        </div>
+        <!-- HR -->
+        <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-3 shadow-inner">
+          <span class="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">Nhịp tim</span>
+          <span id="modal-hr-val" class="text-xs sm:text-sm font-black text-white mt-1 block font-mono">88 lần/phút</span>
+        </div>
+        <!-- Temp -->
+        <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-3 shadow-inner">
+          <span class="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">Nhiệt độ</span>
+          <span id="modal-temp-val" class="text-xs sm:text-sm font-black text-teal-300 mt-1 block font-mono">38.2 °C</span>
+        </div>
+        <!-- Weight -->
+        <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-3 shadow-inner">
+          <span class="text-[10px] text-slate-400 block font-medium uppercase tracking-wider">Cân nặng</span>
+          <span id="modal-weight-val" class="text-xs sm:text-sm font-black text-white mt-1 block font-mono">56.5 kg</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: TRIỆU CHỨNG -->
+    <div class="space-y-1.5 pt-1 border-t border-white/10">
+      <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-300/90 block">TRIỆU CHỨNG</span>
+      <p id="modal-symptoms-val" class="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+        Đau họng, sốt nhẹ 38.2°C, khó nuốt 3 ngày
+      </p>
+    </div>
+
+    <!-- Section 3: KẾT QUẢ XÉT NGHIỆM -->
+    <div class="space-y-1.5 pt-1 border-t border-white/10">
+      <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-300/90 block">KẾT QUẢ XÉT NGHIỆM</span>
+      <p id="modal-labs-val" class="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+        Xét nghiệm nhanh kháng nguyên liên cầu: âm tính. Bạch cầu 11.2 G/L, tăng nhẹ.
+      </p>
+    </div>
+
+    <!-- Section 4: GHI CHÚ CỦA BÁC SĨ -->
+    <div class="space-y-1.5 pt-1 border-t border-white/10">
+      <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-300/90 block">GHI CHÚ CỦA BÁC SĨ</span>
+      <p id="modal-notes-val" class="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+        Uống đủ nước, tái khám nếu sốt kéo dài trên 3 ngày.
+      </p>
+    </div>
+
+    <!-- Section 5: NGÀY TÁI KHÁM -->
+    <div class="space-y-1.5 pt-1 border-t border-white/10">
+      <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-300/90 block">NGÀY TÁI KHÁM</span>
+      <p id="modal-followup-val" class="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+        Không hẹn tái khám
+      </p>
+    </div>
+  </div>
 </div>
 <!-- TAB 5: CLOUD MLOPS -->
 <!-- ============================================================== -->
@@ -1212,6 +1329,169 @@ Hủy bỏ
 <p id="lightbox-caption" class="text-xs text-slate-600 text-center px-3 py-2 leading-relaxed bg-slate-50 rounded-xl border border-slate-100"></p>
 </div>
 </div>
+<!-- PRE-VISIT CLINICAL SUMMARY MODAL (Tuân thủ Mục 8 Chuẩn Lâm Sàng) -->
+<div id="previsit-summary-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4" onclick="closePreVisitSummaryModal()">
+  <div class="glass-panel-elevated w-full max-w-2xl max-h-[90vh] rounded-3xl p-5 sm:p-6 overflow-y-auto space-y-4 border border-white/20 shadow-2xl relative text-slate-200" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between pb-3 border-b border-white/15">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-400/30 flex items-center justify-center text-xl">
+          📋
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight">Bản Tóm Tắt Lâm Sàng Trước Khám</h3>
+          <p class="text-[11px] text-white/60">Trích xuất tự động từ lời khai người bệnh • Phục vụ Bác sĩ thăm khám</p>
+        </div>
+      </div>
+      <button type="button" onclick="closePreVisitSummaryModal()" class="w-8 h-8 rounded-full glass-pill flex items-center justify-center text-white/60 hover:text-white cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <!-- Status Banner -->
+    <div id="modal-summary-status-banner" class="p-2.5 rounded-xl bg-sky-500/15 border border-sky-400/30 text-xs flex items-center justify-between text-sky-200">
+      <span id="modal-summary-status-text" class="font-bold">Phiên bản: v1 • Chờ người bệnh xác nhận</span>
+      <span id="modal-summary-created-at" class="text-[10px] text-white/60"></span>
+    </div>
+
+    <!-- PHẦN A: THÔNG TIN ĐÃ THU THẬP TỪ NGƯỜI BỆNH -->
+    <div class="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5">
+      <div class="text-xs font-bold text-sky-300 flex items-center gap-1.5 pb-1 border-b border-white/5">
+        <span>👤</span>
+        <span>Phần A — Thông tin đã thu thập từ người bệnh</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+        <div><strong class="text-white/60 block text-[11px]">Lý do tư vấn:</strong> <span id="summary-a-complaint" class="text-white font-medium">--</span></div>
+        <div><strong class="text-white/60 block text-[11px]">Thời gian diễn tiến:</strong> <span id="summary-a-duration" class="text-white font-medium">--</span></div>
+        <div><strong class="text-white/60 block text-[11px]">Triệu chứng xác nhận:</strong> <span id="summary-a-present" class="text-sky-300 font-semibold">--</span></div>
+        <div><strong class="text-white/60 block text-[11px]">TRIỆU CHỨNG ĐÃ PHỦ NHẬN:</strong> <span id="summary-a-denied" class="text-emerald-400 font-medium italic">--</span></div>
+        <div><strong class="text-white/60 block text-[11px]">Chỉ số tự đo:</strong> <span id="summary-a-vitals" class="text-amber-300 font-semibold">--</span></div>
+        <div><strong class="text-white/60 block text-[11px]">Hình ảnh đính kèm:</strong> <span id="summary-a-attachments" class="text-white/80">--</span></div>
+      </div>
+      <div class="pt-2 text-[11px] text-white/60 border-t border-white/5">
+        <strong class="text-white/70">Thông tin cần bổ sung thêm:</strong> <span id="summary-a-missing" class="text-amber-300/90 font-medium">--</span>
+      </div>
+    </div>
+
+    <!-- PHẦN B: KẾT QUẢ HỆ THỐNG & ĐỊNH HƯỚNG CHĂM SÓC -->
+    <div class="p-4 rounded-2xl bg-white/[0.04] border border-white/10 space-y-2.5">
+      <div class="text-xs font-bold text-emerald-300 flex items-center gap-1.5 pb-1 border-b border-white/5">
+        <span>🩺</span>
+        <span>Phần B — Đánh giá sơ bộ &amp; Hướng tiếp cận chăm sóc</span>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center gap-2">
+          <strong class="text-white/60">Trạng thái sàng lọc:</strong>
+          <span id="summary-b-status" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">--</span>
+        </div>
+        <div><strong class="text-white/60">Chuyên khoa khuyến nghị:</strong> <span id="summary-b-specialist" class="text-sky-300 font-bold">--</span></div>
+        <div><strong class="text-white/60">Hướng tiếp cận:</strong> <span id="summary-b-approach" class="text-slate-300 leading-relaxed block mt-0.5">--</span></div>
+        <div id="summary-b-sources" class="pt-1 text-[11px] text-sky-300/80"></div>
+      </div>
+      <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400/20 text-[11px] text-amber-200/90 leading-relaxed">
+        ⚠️ <strong>Giới hạn y tế:</strong> Kết quả phục vụ tóm tắt trước khám và hỗ trợ bác sĩ. Đây KHÔNG phải là chẩn đoán y khoa chính thức hay đơn thuốc điều trị.
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="pt-2 flex items-center justify-between gap-3">
+      <button type="button" onclick="closePreVisitSummaryModal()" class="py-2 px-4 rounded-xl glass-pill text-xs font-semibold text-slate-300 hover:text-white cursor-pointer">
+        Đóng lại
+      </button>
+      <button type="button" id="modal-btn-confirm" onclick="confirmCurrentIntakeFromModal()" class="py-2.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/30 transition-all flex items-center gap-1.5 cursor-pointer">
+        <span>✓</span>
+        <span>Tôi xác nhận lời khai đúng thực tế</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- FLOATING MINI CHATBOT WIDGET (Bong bóng & Khung chat góc dưới) -->
+<!-- ============================================================== -->
+<div id="floating-chatbot-root" class="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2.5 hidden select-auto">
+
+  <!-- 1. Floating Mini Chat Window (Cửa sổ chat thu nhỏ góc dưới) -->
+  <div id="floating-chat-window" class="w-[380px] max-w-[calc(100vw-32px)] h-[520px] max-h-[75vh] flex flex-col rounded-3xl glass-panel-elevated shadow-2xl border border-sky-400/30 overflow-hidden backdrop-blur-2xl bg-slate-950/92 transition-all duration-300 hidden">
+    <!-- Header -->
+    <div class="px-4 py-3 bg-gradient-to-r from-sky-500/20 via-indigo-500/15 to-purple-500/20 border-b border-white/10 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="relative">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-sky-500/30">
+            AI
+          </div>
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse"></span>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-white tracking-tight">Trợ lý sức khỏe AI</h4>
+          <p class="text-[10px] text-sky-300 flex items-center gap-1 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>Đang trực tuyến
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls: Expand to Full, Minimize, Close Completely -->
+      <div class="flex items-center gap-1">
+        <!-- Expand to full chat-tab -->
+        <button type="button" onclick="expandFloatingChatToFull()" class="w-7 h-7 rounded-lg glass-pill flex items-center justify-center text-white/60 hover:text-sky-300 hover:bg-white/10 transition-all cursor-pointer" title="Mở toàn màn hình (Về trang chat chính)">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+        </button>
+        <!-- Minimize to bubble -->
+        <button type="button" onclick="minimizeFloatingChat()" class="w-7 h-7 rounded-lg glass-pill flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all cursor-pointer" title="Thu nhỏ lại thành bong bóng">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+        </button>
+        <!-- Close completely -->
+        <button type="button" onclick="closeFloatingChatCompletely()" class="w-7 h-7 rounded-lg glass-pill flex items-center justify-center text-white/60 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer" title="Tắt hoàn toàn chatbot">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="floating-chat-messages" class="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar text-xs">
+      <!-- Synced messages will be rendered here -->
+    </div>
+
+    <!-- Quick Prompts in Mini Chat -->
+    <div class="px-3 py-1.5 border-t border-white/5 flex gap-1.5 overflow-x-auto text-[10px] shrink-0 no-scrollbar">
+      <button type="button" onclick="insertFloatingPrompt('Thuốc này uống trước hay sau ăn?')" class="px-2 py-0.5 rounded-full glass-pill text-white/70 hover:text-white shrink-0 cursor-pointer">💊 Cách uống thuốc?</button>
+      <button type="button" onclick="insertFloatingPrompt('Gợi ý chuyên khoa khám phù hợp')" class="px-2 py-0.5 rounded-full glass-pill text-white/70 hover:text-white shrink-0 cursor-pointer">🏥 Khám khoa nào?</button>
+    </div>
+
+    <!-- Input Footer -->
+    <div class="p-3 border-t border-white/10 bg-white/[0.02] shrink-0">
+      <div class="relative flex items-center">
+        <input type="text" id="floating-user-input" placeholder="Hỏi nhanh trợ lý AI..." class="w-full glass-pill rounded-full py-2 pl-4 pr-10 text-xs text-white placeholder-white/40 border border-white/10 focus:border-sky-400/50 focus:outline-none">
+        <button type="button" onclick="sendFloatingChatMessage()" class="absolute right-1.5 w-7 h-7 rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:scale-105 flex items-center justify-center text-white transition-all shadow-md shadow-sky-500/30 cursor-pointer" title="Gửi tin nhắn">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Floating Launcher Bubble (Bong bóng tròn kích hoạt góc dưới) -->
+  <div id="floating-chat-bubble" class="flex items-center gap-2 group cursor-pointer" onclick="toggleFloatingChatWindow()">
+    <!-- Quick tooltip prompt -->
+    <div class="glass-pill px-3 py-1.5 rounded-full text-[11px] font-semibold text-white/90 shadow-xl border border-sky-400/30 backdrop-blur-xl bg-slate-900/85 flex items-center gap-1.5 hover:bg-slate-900 transition-all">
+      <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+      <span>Trợ lý sức khỏe AI</span>
+      <!-- Dismiss 'X' button on bubble to turn off completely -->
+      <button type="button" onclick="event.stopPropagation(); closeFloatingChatCompletely()" class="ml-1 p-0.5 rounded-full hover:bg-white/20 text-white/50 hover:text-rose-300 transition-colors" title="Tắt hoàn toàn chatbot">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Main Avatar Bubble Button -->
+    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-400 p-0.5 shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:shadow-[0_0_30px_rgba(56,189,248,0.65)] hover:scale-105 transition-all">
+      <div class="w-full h-full rounded-full bg-slate-950/70 backdrop-blur-md flex items-center justify-center text-white relative">
+        <svg class="w-5 h-5 text-sky-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 absolute top-0.5 right-0.5"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

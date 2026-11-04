@@ -127,6 +127,25 @@ class ClinicalConsultation(db.Model):
 
     user = db.relationship("User", backref=db.backref("consultations", lazy=True, cascade="all, delete-orphan"))
 
+    def to_dict(self) -> dict:
+        import json
+        symptoms_list = []
+        try:
+            symptoms_list = json.loads(self.symptoms or "[]")
+        except Exception:
+            symptoms_list = []
+        return {
+            "id": self.id,
+            "message": self.message,
+            "answer": self.answer,
+            "risk_level": self.risk_level or "Theo dõi tại nhà",
+            "risk_score": self.risk_score,
+            "symptoms": symptoms_list,
+            "specialist": self.specialist or "Y học gia đình",
+            "is_emergency": bool(self.is_emergency),
+            "created_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else ""
+        }
+
 
 def init_db(app):
     """Khởi tạo cơ sở dữ liệu và tự động nâng cấp cấu trúc bảng nếu cần."""

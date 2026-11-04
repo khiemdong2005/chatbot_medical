@@ -328,19 +328,20 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
         specialist = "Tai Mũi Họng / Hô hấp"
         diff_diag = ["Viêm họng cấp thể xuất tiết", "Nhiễm virus đường hô hấp trên"]
         advice_bullets = [
-            "**Súc họng nước muối ấm (0.9%):** Súc miệng từ 3 - 4 lần mỗi ngày sau ăn và trước khi đi ngủ giúp sát khuẩn, giảm phù nề niêm mạc họng.",
-            "**Uống nhiều nước ấm:** Bổ sung từ 1.5 - 2 lít nước ấm, nước cam hoặc nước chanh ấm để làm dịu cổ họng và hỗ trợ hạ nhiệt.",
-            "**Theo dõi thân nhiệt:** Nếu sốt trên 38.5°C hoặc đau rát nhiều, có thể dùng Paracetamol 500mg (cách nhau 4 - 6 giờ/lần, không quá 3000mg/ngày) nếu không có tiền sử dị ứng hay bệnh gan.",
-            "**Dấu hiệu cần đi khám:** Nếu sốt cao liên tục không hạ sau 48 giờ hoặc có đờm đặc màu vàng/xanh, hãy tới cơ sở y tế gần nhất."
+            "**Súc họng nước muối ấm (0.9%):** Súc 3 lần/ngày giúp sạch họng, giảm đau rát.",
+            "**Uống nhiều nước ấm:** Bổ sung 1.5 - 2 lít nước ấm và nghỉ ngơi nơi thoáng khí.",
+            "**Hạ sốt an toàn:** Dùng Paracetamol 500mg nếu sốt >38.5°C (cách nhau 4-6 giờ, nếu không dị ứng).",
+            "⚠️ **Đi khám ngay:** Nếu sốt cao liên tục >48 giờ, khó thở hoặc khạc đờm đặc vàng/xanh."
         ]
     elif is_cough_throat:
         symptoms_detected = ["Viêm đau họng / Ho"]
         specialist = "Tai Mũi Họng"
         diff_diag = ["Viêm họng do kích ứng hoặc virus"]
         advice_bullets = [
-            "**Giữ ấm vùng cổ và ngực:** Tránh uống nước đá lạnh hoặc ngồi phòng điều hòa nhiệt độ quá thấp (< 25°C).",
-            "**Súc họng nước muối sinh lý:** Thực hiện đều đặn mỗi ngày giúp giảm cảm giác ngứa rát và tan đờm.",
-            "**Dùng siro ho thảo dược:** Có thể ngậm mật ong chanh đào hoặc siro ho thảo dược an toàn để làm dịu cơn ho khan."
+            "**Giữ ấm cổ:** Tránh uống nước đá lạnh và tránh phòng điều hòa quá lạnh (<25°C).",
+            "**Súc họng nước muối:** Thực hiện 3 lần/ngày sau khi ăn giúp làm dịu cổ họng.",
+            "**Làm dịu cơn ho:** Có thể ngậm mật ong chanh hoặc siro ho thảo dược.",
+            "⚠️ **Đi khám:** Nếu ho kéo dài trên 7 ngày hoặc ho kèm sốt cao, khó thở."
         ]
     elif is_skin:
         symptoms_detected = ["Tổn thương da / Mẩn ngứa / Dị ứng da"]
@@ -348,10 +349,10 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
         risk_score = 35
         diff_diag = ["Mề đay cấp tính (Urticaria)", "Viêm da tiếp xúc dị ứng"]
         advice_bullets = [
-            "**Vệ sinh vùng da sạch sẽ:** Rửa nhẹ nhàng bằng nước sạch hoặc nước muối sinh lý 0.9%, lau khô bằng khăn bông mềm, tuyệt đối không chà xát hoặc cào gãi làm trầy xước.",
-            "**Chườm mát làm dịu:** Dùng khăn sạch thấm nước mát đắp lên vùng da ngứa rát trong 10 - 15 phút để giảm cảm giác châm chích và làm dịu phản ứng sung huyết.",
-            "**Tránh tác nhân kích ứng:** Tạm ngưng sử dụng các loại xà phòng, sữa tắm có chất tẩy rửa mạnh hoặc hóa chất; mặc trang phục rộng rãi, thoáng mát bằng chất liệu cotton tự nhiên.",
-            "**Dấu hiệu cần đi khám ngay:** Nếu tổn thương lan rộng nhanh, có bọng nước vỡ loét, kèm theo sốt cao hoặc sưng nề vùng mắt/môi, bạn cần đến chuyên khoa Da liễu để bác sĩ thăm khám trực tiếp."
+            "**Vệ sinh nhẹ nhàng:** Rửa bằng nước muối sinh lý, lau khô khăn mềm, tuyệt đối không cào gãi.",
+            "**Chườm mát:** Đắp khăn mát sạch 10-15 phút để giảm ngứa rát châm chích.",
+            "**Tránh kích ứng:** Tạm ngưng xà phòng hay mỹ phẩm lạ; mặc đồ cotton thoáng rộng.",
+            "⚠️ **Đi khám ngay:** Nếu nốt ban lan nhanh, có mụn nước mủ hoặc sưng phù môi/mắt."
         ]
     elif is_stomach:
         symptoms_detected = ["Đau bụng / Rối loạn tiêu hóa"]
@@ -359,26 +360,26 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
         specialist = "Tiêu hóa"
         diff_diag = ["Rối loạn tiêu hóa chức năng", "Viêm dạ dày ruột nhẹ"]
         advice_bullets = [
-            "**Chế độ ăn nhẹ thanh đạm:** Ưu tiên cháo loãng, súp nóng, chia nhỏ bữa ăn và tạm tránh đồ cay nóng, dầu mỡ, cà phê.",
-            "**Bù nước và điện giải:** Nếu có kèm tiêu chảy, hãy pha Oresol đúng tỷ lệ ghi trên gói để uống từng ngụm nhỏ.",
-            "**Dấu hiệu cần cấp cứu:** Nếu đau quặn dữ dội lệch hố chậu phải (nghi viêm ruột thừa) hoặc nôn nhiều, hãy tới bệnh viện ngay."
+            "**Ăn nhẹ thanh đạm:** Ăn cháo loãng, súp ấm; tránh đồ cay nóng, dầu mỡ và cà phê.",
+            "**Bù nước:** Uống từng ngụm nhỏ nước ấm hoặc Oresol nếu có đi ngoài.",
+            "⚠️ **Cấp cứu ngay:** Nếu đau quặn dữ dội hố chậu phải hoặc nôn liên tục."
         ]
     else:
         symptoms_detected = ["Mệt mỏi / Cảm cúm nhẹ"]
         specialist = "Nội tổng quát"
         diff_diag = ["Hội chứng cảm cúm thông thường"]
         advice_bullets = [
-            "**Nghỉ ngơi đầy đủ:** Giữ phòng ngủ thoáng khí, ngủ đủ giấc để cơ thể tự phục hồi hệ miễn dịch.",
-            "**Bổ sung dinh dưỡng:** Ăn thức ăn lỏng ấm, bổ sung vitamin C từ hoa quả tươi."
+            "**Nghỉ ngơi:** Giữ phòng ngủ thoáng khí, ngủ đủ giấc để hồi phục thể trạng.",
+            "**Bổ sung dinh dưỡng:** Ăn cháo súp ấm, uống nước cam hoặc nước ấm.",
+            "⚠️ **Đi khám:** Nếu mệt mỏi kéo dài hoặc xuất hiện sốt cao."
         ]
 
     bullets_text = "\n".join([f"• {b}" for b in advice_bullets])
     answer_text = (
-        f"Dựa trên các dấu hiệu bạn chia sẻ ({', '.join(symptoms_detected)}), "
-        "tình trạng này thường gặp ở phản ứng viêm đường hô hấp hoặc rối loạn nhẹ. "
-        "Dưới đây là một số hướng dẫn chăm sóc ban đầu tại nhà an toàn:\n\n"
+        f"Mình đã ghi nhận bạn đang gặp triệu chứng: {', '.join(symptoms_detected)}.\n\n"
+        "Các việc bạn nên làm ngay:\n"
         f"{bullets_text}\n\n"
-        "*Lưu ý: Các hướng dẫn trên mang tính chất hỗ trợ chăm sóc ban đầu. Nếu các triệu chứng kéo dài trên 3 ngày hoặc có chiều hướng nặng lên, bạn hãy tới cơ sở y tế để được bác sĩ thăm khám trực tiếp nhé.*"
+        "*(Lưu ý: Hướng dẫn chăm sóc ban đầu, hãy khám bác sĩ nếu triệu chứng không đỡ)*"
     )
 
     # KHÔNG tự suy diễn phát hiện hình ảnh khi không có xử lý ảnh thực tế
