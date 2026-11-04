@@ -159,35 +159,38 @@ function toggleFieldMask(fieldId) {
   const isMasked = fieldMaskState[fieldId];
   const input = document.getElementById(fieldId);
   const eyeIcon = document.getElementById(fieldId + '-eye');
+  const cardEyeIcon = document.getElementById('profile-card-' + (fieldId === 'p-phone' ? 'phone' : 'email') + '-eye');
   
-  if (!input) return;
-
-  if (isMasked) {
-    if (!fieldRealValues[fieldId]) {
-      fieldRealValues[fieldId] = input.value;
+  if (input) {
+    if (isMasked) {
+      if (!fieldRealValues[fieldId]) {
+        fieldRealValues[fieldId] = input.value;
+      }
+      input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
+    } else {
+      input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
     }
-    input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
-  } else {
-    input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
   }
 
   // Sync left card if email or phone
   if (fieldId === 'p-email') {
     const cardEmail = document.getElementById('profile-card-email');
-    const realEmail = fieldRealValues[fieldId] || input.value;
+    const realEmail = (fieldRealValues[fieldId] !== undefined && fieldRealValues[fieldId] !== '') ? fieldRealValues[fieldId] : (input ? input.value : '');
     if (cardEmail) cardEmail.innerText = isMasked ? maskFieldValue(realEmail, 'p-email') : realEmail;
   } else if (fieldId === 'p-phone') {
     const cardPhone = document.getElementById('profile-card-phone');
-    const realPhone = fieldRealValues[fieldId] || input.value;
+    const realPhone = (fieldRealValues[fieldId] !== undefined && fieldRealValues[fieldId] !== '') ? fieldRealValues[fieldId] : (input ? input.value : '');
     if (cardPhone) cardPhone.innerText = isMasked ? maskFieldValue(realPhone, 'p-phone') : realPhone;
   }
 
+  const eyeSvgOpen = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  const eyeSvgClosed = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
+
   if (eyeIcon) {
-    if (isMasked) {
-      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
-    } else {
-      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
-    }
+    eyeIcon.innerHTML = isMasked ? eyeSvgClosed : eyeSvgOpen;
+  }
+  if (cardEyeIcon) {
+    cardEyeIcon.innerHTML = isMasked ? eyeSvgClosed : eyeSvgOpen;
   }
 }
 
@@ -2061,8 +2064,13 @@ function updateAuthUI() {
     if (pName) pName.value = currentUser.name || '';
     if (pBirthDate) pBirthDate.value = currentUser.dob || '24/10/1997';
     if (pGender && currentUser.gender) pGender.value = currentUser.gender;
-    if (pPhone) pPhone.value = currentUser.phone_number || currentUser.phone || '0971 221 306';
-    if (pEmail) pEmail.value = currentUser.email || 'khiem@example.com';
+    const rawPhoneVal = currentUser.phone_number || currentUser.phone || '0971 221 306';
+    const rawEmailVal = currentUser.email || 'khiem@example.com';
+    fieldRealValues['p-phone'] = rawPhoneVal;
+    fieldRealValues['p-email'] = rawEmailVal;
+
+    if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(rawPhoneVal, 'p-phone') : rawPhoneVal;
+    if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(rawEmailVal, 'p-email') : rawEmailVal;
     if (pBlood && currentUser.blood_type) pBlood.value = currentUser.blood_type;
     if (pAllergies) pAllergies.value = currentUser.allergies || 'Penicillin, Hải sản';
     if (pHeight) pHeight.value = currentUser.height || '168';
@@ -2070,8 +2078,8 @@ function updateAuthUI() {
     if (pAddress) pAddress.value = currentUser.address || 'Quận 10, TP. Hồ Chí Minh';
 
     if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Thành Khiêm';
-    if (cardPhone) cardPhone.innerText = currentUser.phone_number || currentUser.phone || '0971 221 306';
-    if (cardEmail) cardEmail.innerText = currentUser.email || 'khiem@example.com';
+    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(rawPhoneVal, 'p-phone') : rawPhoneVal;
+    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(rawEmailVal, 'p-email') : rawEmailVal;
     if (cardJoined) cardJoined.innerText = currentUser.created_at || '24/10/2026';
 
     calculateProfileCompletion();
@@ -4495,12 +4503,15 @@ function handleProfileAvatarUpload(e) {
 }
 
 function calculateProfileCompletion() {
+  const phoneVal = (fieldMaskState['p-phone'] && fieldRealValues['p-phone']) ? fieldRealValues['p-phone'] : document.getElementById('p-phone')?.value.trim();
+  const emailVal = (fieldMaskState['p-email'] && fieldRealValues['p-email']) ? fieldRealValues['p-email'] : document.getElementById('p-email')?.value.trim();
+
   const fields = [
     document.getElementById('p-name')?.value.trim(),
     document.getElementById('p-birthdate')?.value.trim(),
     document.getElementById('p-gender')?.value,
-    document.getElementById('p-phone')?.value.trim(),
-    document.getElementById('p-email')?.value.trim(),
+    phoneVal,
+    emailVal,
     document.getElementById('p-blood')?.value,
     document.getElementById('p-allergies')?.value.trim(),
     document.getElementById('p-address')?.value.trim()
@@ -4526,8 +4537,14 @@ function handleSaveImage1Profile(e) {
   const name = document.getElementById('p-name')?.value.trim();
   const birthDate = document.getElementById('p-birthdate')?.value.trim();
   const gender = document.getElementById('p-gender')?.value || 'Nam';
-  const phone = document.getElementById('p-phone')?.value.trim();
-  const email = document.getElementById('p-email')?.value.trim();
+  let phone = document.getElementById('p-phone')?.value.trim();
+  let email = document.getElementById('p-email')?.value.trim();
+  if (fieldMaskState['p-phone'] && fieldRealValues['p-phone']) {
+    phone = fieldRealValues['p-phone'];
+  }
+  if (fieldMaskState['p-email'] && fieldRealValues['p-email']) {
+    email = fieldRealValues['p-email'];
+  }
   const blood = document.getElementById('p-blood')?.value || 'O+';
   const allergies = document.getElementById('p-allergies')?.value.trim() || '';
   const height = document.getElementById('p-height')?.value.trim() || '';
