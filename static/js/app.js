@@ -456,10 +456,10 @@ const translations = {
     history_demo_btn: "Xem thử ca tư vấn mẫu (Demo)",
     history_security: "Bảo mật dữ liệu cá nhân",
     history_encrypted: "Cục bộ & Mã hóa",
-    assistant_header_title: "Trợ lý sức khỏe AI",
+    assistant_header_title: "Trợ lý y tế MediMind",
     assistant_header_subtitle: "Đang trực tuyến • Phác đồ MedlinePlus & Dược thư",
     assistant_btn_summary: "Hồ sơ & Tóm tắt",
-    assistant_greeting_title: "Chào bạn, tôi là Trợ lý sức khỏe AI MediMind!",
+    assistant_greeting_title: "Chào bạn, tôi là Bác sĩ Trợ lý MediMind!",
     assistant_greeting_desc: "Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
     quick_1: "🩺 Sốt 38.5°C & đau rát họng",
     quick_2: "⚠️ Đau tức ngực, khó thở",
@@ -2261,7 +2261,7 @@ function syncFloatingChatMessages() {
       <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-sky-400/20 text-slate-300 space-y-2 text-xs">
         <div class="flex items-center gap-2 text-sky-300 font-bold">
           <span>🩺</span>
-          <span>Chào bạn, tôi là Trợ lý AI MediMind!</span>
+          <span>Chào bạn, tôi là Bác sĩ Trợ lý MediMind!</span>
         </div>
         <p class="text-[11px] text-slate-300 leading-relaxed">
           Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé!
@@ -3741,7 +3741,7 @@ function loadDemoConsultation() {
     <div class="flex justify-start max-w-[95%] sm:max-w-xl my-2">
       <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
         <div class="flex items-center justify-between pb-2 border-b border-white/10">
-          <span class="text-[11px] font-bold text-sky-300">Trợ lý sức khỏe AI • Đánh giá sơ bộ</span>
+          <span class="text-[11px] font-bold text-sky-300">Trợ lý y tế MediMind • Đánh giá sơ bộ</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-semibold">Sàng lọc: Theo dõi &amp; chăm sóc tại nhà</span>
         </div>
         <div class="text-slate-200 font-normal leading-relaxed space-y-2">
@@ -3947,23 +3947,23 @@ function renderChatHistoryList(filterQuery = '') {
 
     return `
       <div onclick="loadSession('${session.id}')" 
-           class="chat-history-item p-2.5 rounded-xl border transition-all cursor-pointer group relative ${isActive ? 'bg-sky-500/20 border-sky-400/60 shadow-md shadow-sky-500/15 ring-1 ring-sky-400/40' : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.08] hover:border-white/20'}">
+           class="chat-history-item p-2.5 rounded-xl border transition-all cursor-pointer group relative ${isActive ? 'bg-sky-500/20 border-sky-400/60 shadow-md shadow-sky-500/15 ring-1 ring-sky-400/40' : 'bg-white/80 dark:bg-white/[0.03] border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20'}">
         <div class="flex items-center justify-between gap-1.5">
           <div class="flex items-center gap-1.5 min-w-0">
-            ${isActive ? '<span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-white/30 shrink-0"></span>'}
-            <span class="text-xs font-bold text-white truncate group-hover:text-sky-200 transition-colors">${escapeHtml(session.title || 'Phiên tư vấn')}</span>
+            ${isActive ? '<span class="w-2 h-2 rounded-full bg-teal-500 dark:bg-sky-400 animate-pulse shrink-0"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-white/30 shrink-0"></span>'}
+            <span class="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-teal-600 dark:group-hover:text-sky-200 transition-colors">${escapeHtml(session.title || 'Phiên tư vấn')}</span>
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <span class="text-[10px] text-white/40">${timeFormatted}</span>
-            <button type="button" onclick="event.stopPropagation(); deleteSession('${session.id}')" class="opacity-0 group-hover:opacity-100 p-0.5 text-white/40 hover:text-rose-400 transition-opacity" title="Xóa phiên tư vấn">
+            <span class="text-[10px] text-slate-500 dark:text-white/40 font-mono">${timeFormatted}</span>
+            <button type="button" onclick="event.stopPropagation(); deleteSession('${session.id}')" class="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-500 transition-opacity" title="Xóa phiên tư vấn">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
           </div>
         </div>
-        <p class="text-[11px] text-white/60 truncate mt-1 leading-snug">${escapeHtml(session.lastMessage || '')}</p>
-        <div class="flex items-center justify-between text-[10px] pt-1.5 mt-1 border-t border-white/5">
-          <span class="text-sky-300 font-medium">${session.messageCount || 1} tin nhắn</span>
-          <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold ${session.riskBadgeClass || 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'}">${escapeHtml(session.riskLevel || 'Theo dõi')}</span>
+        <p class="text-[11px] text-slate-600 dark:text-white/60 truncate mt-1 leading-snug font-medium">${escapeHtml(session.lastMessage || '')}</p>
+        <div class="flex items-center justify-between text-[10px] pt-1.5 mt-1 border-t border-slate-100 dark:border-white/5">
+          <span class="text-teal-700 dark:text-sky-300 font-bold">${session.messageCount || 1} tin nhắn</span>
+          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${session.riskBadgeClass || 'bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-400/30'}">${escapeHtml(session.riskLevel || 'Theo dõi')}</span>
         </div>
       </div>
     `;

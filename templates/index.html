@@ -24,7 +24,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.3.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.4.0">
 
 <style>
 
@@ -623,12 +623,12 @@ background: #94A3B8;
 
 <!-- Live Clinical Intake Facts Card (Tuân thủ Mục 8 & 9) -->
         <div id="live-intake-card" class="p-3.5 rounded-2xl bg-white/[0.04] border border-sky-400/30 space-y-2.5">
-          <div class="flex items-center justify-between pb-2 border-b border-white/10">
-            <div class="flex items-center space-x-1.5 text-xs font-bold text-sky-300">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-white/10">
+            <div class="flex items-center space-x-1.5 text-xs font-bold text-teal-700 dark:text-sky-300" id="intake-card-title">
               <span>📋</span>
               <span>Thông tin đã ghi nhận</span>
             </div>
-            <span id="intake-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30">
+            <span id="intake-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-400/30">
               Chờ khởi tạo
             </span>
           </div>
@@ -636,34 +636,34 @@ background: #94A3B8;
           <!-- Facts List -->
           <div class="space-y-1.5 text-[11px]">
             <div class="flex items-start gap-1.5">
-              <span class="text-white/50 shrink-0">Lý do:</span>
-              <span id="intake-chief-complaint" class="text-white font-medium truncate">Chưa có thông tin</span>
+              <span class="intake-fact-label text-slate-500 dark:text-white/50 shrink-0 font-bold">Lý do:</span>
+              <span id="intake-chief-complaint" class="text-slate-900 dark:text-white font-medium truncate">Chưa có thông tin</span>
             </div>
             <div class="flex items-start gap-1.5">
-              <span class="text-white/50 shrink-0">Triệu chứng:</span>
-              <span id="intake-present-symptoms" class="text-sky-300 font-semibold">--</span>
+              <span class="intake-fact-label text-slate-500 dark:text-white/50 shrink-0 font-bold">Triệu chứng:</span>
+              <span id="intake-present-symptoms" class="text-teal-700 dark:text-sky-300 font-bold">--</span>
             </div>
             <div class="flex items-start gap-1.5">
-              <span class="text-white/50 shrink-0">Đã phủ nhận:</span>
-              <span id="intake-denied-symptoms" class="text-emerald-400/90 font-medium italic">Chưa ghi nhận</span>
+              <span class="intake-fact-label text-slate-500 dark:text-white/50 shrink-0 font-bold">Đã phủ nhận:</span>
+              <span id="intake-denied-symptoms" class="text-emerald-700 dark:text-emerald-400/90 font-medium italic">Chưa ghi nhận</span>
             </div>
             <div class="flex items-start gap-1.5">
-              <span class="text-white/50 shrink-0">Thời gian:</span>
-              <span id="intake-duration" class="text-white/80">--</span>
+              <span class="intake-fact-label text-slate-500 dark:text-white/50 shrink-0 font-bold">Thời gian:</span>
+              <span id="intake-duration" class="text-slate-800 dark:text-white/80 font-bold">--</span>
             </div>
             <div class="flex items-start gap-1.5">
-              <span class="text-white/50 shrink-0">Thân nhiệt:</span>
-              <span id="intake-vitals" class="text-amber-300 font-semibold">--</span>
+              <span class="intake-fact-label text-slate-500 dark:text-white/50 shrink-0 font-bold">Thân nhiệt:</span>
+              <span id="intake-vitals" class="text-amber-600 dark:text-amber-300 font-bold">--</span>
             </div>
           </div>
 
           <!-- Action Buttons -->
-          <div class="pt-2 border-t border-white/10 flex items-center gap-2">
-            <button type="button" onclick="openPreVisitSummaryModal()" class="flex-1 py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 text-[11px] font-bold transition-all border border-sky-400/30 flex items-center justify-center gap-1 cursor-pointer">
+          <div class="pt-2 border-t border-slate-200/80 dark:border-white/10 flex items-center gap-2">
+            <button type="button" id="btn-pre-visit-summary" onclick="openPreVisitSummaryModal()" class="flex-1 py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-900 dark:text-sky-200 text-[11px] font-bold transition-all border border-sky-400/30 flex items-center justify-center gap-1 cursor-pointer">
               <span>📄</span>
               <span>Tóm tắt trước khám</span>
             </button>
-            <button type="button" id="btn-confirm-intake" onclick="confirmCurrentIntake()" class="py-1.5 px-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-bold transition-all border border-emerald-400/30 cursor-pointer" title="Xác nhận lời khai đúng thực tế">
+            <button type="button" id="btn-confirm-intake" onclick="confirmCurrentIntake()" class="py-1.5 px-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold transition-all border border-emerald-400/30 cursor-pointer" title="Xác nhận lời khai đúng thực tế">
               <span>✓ Xác nhận</span>
             </button>
           </div>
@@ -673,9 +673,7 @@ background: #94A3B8;
 
     </div>
 
-
-
-        <!-- Medical Standard Footnote -->
+    <!-- Medical Standard Footnote -->
     <div class="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/50">
       <span>Quy chuẩn y tế</span>
       <span class="text-sky-300 font-medium flex items-center gap-1">
@@ -704,9 +702,9 @@ background: #94A3B8;
 
         <div class="relative">
 
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/25 shrink-0 font-black text-sm">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/25 shrink-0">
 
-            AI
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
 
           </div>
 
@@ -716,7 +714,7 @@ background: #94A3B8;
 
         <div>
 
-          <h3 data-i18n="assistant_header_title" class="text-sm font-extrabold text-white flex items-center gap-2">Trợ lý sức khỏe AI</h3>
+          <h3 data-i18n="assistant_header_title" class="text-sm font-extrabold text-white flex items-center gap-2">Trợ lý y tế MediMind</h3>
 
           <p data-i18n="assistant_header_subtitle" class="text-[11px] text-white/60 font-medium">Đang trực tuyến • Phác đồ MedlinePlus &amp; Dược thư</p>
 
@@ -762,7 +760,7 @@ background: #94A3B8;
 
           <span>🩺</span>
 
-          <span data-i18n="assistant_greeting_title">Chào bạn, tôi là Trợ lý sức khỏe AI MediMind!</span>
+          <span data-i18n="assistant_greeting_title">Chào bạn, tôi là Bác sĩ Trợ lý MediMind!</span>
 
         </div>
 
@@ -3285,13 +3283,13 @@ Hủy bỏ
     <div class="px-4 py-3 bg-gradient-to-r from-sky-500/20 via-indigo-500/15 to-purple-500/20 border-b border-white/10 flex items-center justify-between shrink-0">
       <div class="flex items-center gap-2.5">
         <div class="relative">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-md shadow-sky-500/30">
-            AI
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/30 border border-white/20">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
           </div>
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse"></span>
         </div>
         <div>
-          <h4 class="text-xs font-bold text-white tracking-tight">Trợ lý sức khỏe AI</h4>
+          <h4 class="text-xs font-bold text-white tracking-tight">Trợ lý y tế MediMind</h4>
           <p class="text-[10px] text-sky-300 flex items-center gap-1 font-medium">
             <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>Đang trực tuyến
           </p>
@@ -3329,7 +3327,7 @@ Hủy bỏ
     <!-- Input Footer -->
     <div class="p-3 border-t border-white/10 bg-white/[0.02] shrink-0">
       <div class="relative flex items-center">
-        <input type="text" id="floating-user-input" placeholder="Hỏi nhanh trợ lý AI..." class="w-full glass-pill rounded-full py-2 pl-4 pr-10 text-xs text-white placeholder-white/40 border border-white/10 focus:border-sky-400/50 focus:outline-none">
+        <input type="text" id="floating-user-input" placeholder="Hỏi nhanh trợ lý y tế..." class="w-full glass-pill rounded-full py-2 pl-4 pr-10 text-xs text-white placeholder-white/40 border border-white/10 focus:border-sky-400/50 focus:outline-none">
         <button type="button" onclick="sendFloatingChatMessage()" class="absolute right-1.5 w-7 h-7 rounded-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:scale-105 flex items-center justify-center text-white transition-all shadow-md shadow-sky-500/30 cursor-pointer" title="Gửi tin nhắn">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
         </button>
@@ -3342,7 +3340,7 @@ Hủy bỏ
     <!-- Quick tooltip prompt -->
     <div class="glass-pill px-3 py-1.5 rounded-full text-[11px] font-semibold text-white/90 shadow-xl border border-sky-400/30 backdrop-blur-xl bg-slate-900/85 flex items-center gap-1.5 hover:bg-slate-900 transition-all">
       <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-      <span>Trợ lý sức khỏe AI</span>
+      <span>Trợ lý y tế MediMind</span>
       <!-- Dismiss 'X' button on bubble to turn off completely -->
       <button type="button" onclick="event.stopPropagation(); closeFloatingChatCompletely()" class="ml-1 p-0.5 rounded-full hover:bg-white/20 text-white/50 hover:text-rose-300 transition-colors" title="Tắt hoàn toàn chatbot">
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -3360,7 +3358,7 @@ Hủy bỏ
 
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=16.3.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=16.4.0"></script>
 
 </body>
 

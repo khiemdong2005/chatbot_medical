@@ -1183,3 +1183,273 @@ body.light-glass #medical-record-modal .text-teal-700 {
   color: #0D9488 !important;
   font-weight: 800 !important;
 }
+
+
+/* ============================================================== */
+/* LIGHT MODE: CHAT TAB & CLINICAL INTAKE HIGH CONTRAST THEME     */
+/* ============================================================== */
+body.light-glass #chat-tab .glass-panel,
+body.light-glass #chat-tab .glass-panel-elevated {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05) !important;
+}
+
+body.light-glass #chat-tab h3 {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #chat-tab p[data-i18n="history_subtitle"],
+body.light-glass #chat-tab p[data-i18n="assistant_header_subtitle"] {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+/* History search input */
+body.light-glass #history-search-input {
+  background: #F8FAFC !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.light-glass #history-search-input::placeholder {
+  color: #64748B !important;
+  font-weight: 500 !important;
+}
+
+body.light-glass #history-search-input + svg,
+body.light-glass .relative > svg.text-white\/40 {
+  color: #64748B !important;
+}
+
+/* New chat button */
+body.light-glass #chat-tab button[onclick="resetChat()"] {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0284C7 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #chat-tab button[onclick="resetChat()"]:hover {
+  background: #E0F2FE !important;
+  border-color: #0284C7 !important;
+}
+
+/* Chat history items */
+body.light-glass .chat-history-item {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
+}
+
+body.light-glass .chat-history-item:hover {
+  background: #F8FAFC !important;
+  border-color: #0D9488 !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1) !important;
+}
+
+body.light-glass .chat-history-item.bg-sky-500\/20 {
+  background: #F0FDFA !important;
+  border-color: #0D9488 !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15) !important;
+}
+
+body.light-glass .chat-history-item span.text-white {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass .chat-history-item p.text-white\/60 {
+  color: #475569 !important;
+}
+
+body.light-glass .chat-history-item span.text-sky-300 {
+  color: #0D9488 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass .chat-history-item span.text-white\/40 {
+  color: #64748B !important;
+  font-weight: 600 !important;
+}
+
+/* Live Intake Card */
+body.light-glass #live-intake-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%) !important;
+  border: 1.5px solid #99F6E4 !important;
+  box-shadow: 0 8px 25px -5px rgba(13, 148, 136, 0.12) !important;
+}
+
+body.light-glass #live-intake-card #intake-card-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #live-intake-card #intake-status-badge {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #live-intake-card .intake-fact-label,
+body.light-glass #live-intake-card span.text-white\/50 {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #live-intake-card #intake-chief-complaint {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #live-intake-card #intake-present-symptoms {
+  color: #0D9488 !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #live-intake-card #intake-denied-symptoms {
+  color: #059669 !important;
+  font-weight: 700 !important;
+  font-style: italic !important;
+}
+
+body.light-glass #live-intake-card #intake-duration {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #live-intake-card #intake-vitals {
+  color: #D97706 !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #live-intake-card #btn-pre-visit-summary {
+  background: #E0F2FE !important;
+  border: 1.5px solid #7DD3FC !important;
+  color: #0369A1 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+}
+
+body.light-glass #live-intake-card #btn-pre-visit-summary:hover {
+  background: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+
+body.light-glass #live-intake-card #btn-confirm-intake {
+  background: #D1FAE5 !important;
+  border: 1.5px solid #6EE7B7 !important;
+  color: #065F46 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
+}
+
+body.light-glass #live-intake-card #btn-confirm-intake:hover {
+  background: #A7F3D0 !important;
+  color: #047857 !important;
+}
+
+/* Chat Messages & Bubbles in Light Mode */
+body.light-glass #chat-messages .glass-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.light-glass #chat-messages .glass-card p {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  line-height: 1.6 !important;
+}
+
+body.light-glass #chat-messages .glass-card span.text-sky-400 {
+  color: #0284C7 !important;
+  font-weight: 800 !important;
+}
+
+body.light-glass #chat-messages strong {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+
+/* Header button: Hồ sơ & Tóm tắt */
+body.light-glass #chat-tab button[onclick="switchTab('doctor-tab')"] {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+}
+
+body.light-glass #chat-tab button[onclick="switchTab('doctor-tab')"]:hover {
+  background: #F0FDFA !important;
+  border-color: #0D9488 !important;
+  color: #0D9488 !important;
+}
+
+/* Quick Prompt Suggestion Pills */
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(1)"] {
+  background: #E0F2FE !important;
+  border: 1.5px solid #7DD3FC !important;
+  color: #0369A1 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(1)"]:hover {
+  background: #BAE6FD !important;
+}
+
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(2)"] {
+  background: #FEE2E2 !important;
+  border: 1.5px solid #FCA5A5 !important;
+  color: #991B1B !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(2)"]:hover {
+  background: #FECACA !important;
+}
+
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(3)"],
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(4)"] {
+  background: #F1F5F9 !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(3)"]:hover,
+body.light-glass #chat-tab button[onclick="insertQuickPrompt(4)"]:hover {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+/* Input dock capsule */
+body.light-glass #chat-tab .glass-dock {
+  background: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.light-glass #chat-tab #user-input {
+  color: #0F172A !important;
+  font-weight: 500 !important;
+}
+
+body.light-glass #chat-tab #user-input::placeholder {
+  color: #64748B !important;
+}
+
+body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"] {
+  color: #475569 !important;
+}
+
+body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"]:hover {
+  color: #0284C7 !important;
+  background-color: #F1F5F9 !important;
+}
