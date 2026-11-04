@@ -23,7 +23,8 @@ class User(db.Model):
     gender = db.Column(db.String(20), nullable=True)  # Giới tính (Nam / Nữ / Khác)
     address = db.Column(db.String(255), nullable=True)  # Địa chỉ / Tỉnh thành
     bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
-    avatar_url = db.Column(db.String(500), nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
+    avatar_url = db.Column(db.String(500), nullable=True)
+    clinical_profile = db.Column(db.Text, nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     def set_password(self, password: str) -> None:
@@ -52,7 +53,7 @@ class User(db.Model):
         personal_info = " • ".join(info_parts) if info_parts else ("Bác sĩ chuyên khoa" if self.role == "doctor" else "Thành viên")
         badge = "BS" if self.role == "doctor" else "BN"
 
-        return {
+        user_dict = {
             "id": self.id,
             "email": display_account,
             "name": self.full_name,
@@ -68,6 +69,15 @@ class User(db.Model):
             "bhyt": self.bhyt or "",
             "avatar_url": self.avatar_url or ""
         }
+        if self.clinical_profile:
+            try:
+                import json
+                extra = json.loads(self.clinical_profile)
+                if isinstance(extra, dict):
+                    user_dict.update(extra)
+            except Exception:
+                pass
+        return user_dict
 
 
 class MedicalDocument(db.Model):

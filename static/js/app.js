@@ -2703,7 +2703,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
   initHistorySearch();
   switchTab(resolveInitialTab(), false);
-  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = data.user; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
+  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = { ...(currentUser || {}), ...data.user }; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
 
   const input = document.getElementById('user-input');
   if (input) {
@@ -4386,7 +4386,20 @@ async function handleSaveImage1Profile(e) {
           name: currentUser.full_name || currentUser.name,
           phone_number: currentUser.phone_number,
           gender: currentUser.gender,
-          dob: currentUser.dob
+          dob: currentUser.dob,
+          address: currentUser.address,
+          bhyt: currentUser.bhyt,
+          cccd: currentUser.cccd,
+          issue_date: currentUser.issue_date,
+          issue_place: currentUser.issue_place,
+          facility: currentUser.facility,
+          valid_from: currentUser.valid_from,
+          valid_to: currentUser.valid_to,
+          nationality: currentUser.nationality,
+          ethnicity: currentUser.ethnicity,
+          religion: currentUser.religion,
+          province: currentUser.province,
+          ward: currentUser.ward
         })
       });
     } catch (_) {}

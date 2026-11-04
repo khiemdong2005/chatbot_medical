@@ -253,6 +253,23 @@ def create_app(test_config=None):
         if email and "@" in email and not user.email.endswith("@phone.medimind"):
             user.email = email
 
+        # Luu toan bo ho so mo rong vao JSON clinical_profile
+        extra_profile = {
+            "ethnicity": data.get("ethnicity", "").strip(),
+            "religion": data.get("religion", "").strip(),
+            "province": data.get("province", "").strip(),
+            "ward": data.get("ward", "").strip(),
+            "address": address,
+            "cccd": data.get("cccd", "").strip(),
+            "issue_date": data.get("issue_date", "").strip(),
+            "issue_place": data.get("issue_place", "").strip(),
+            "facility": data.get("facility", "").strip(),
+            "valid_from": data.get("valid_from", "").strip(),
+            "valid_to": data.get("valid_to", "").strip(),
+            "nationality": data.get("nationality", "").strip() or "VN"
+        }
+        user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
+
         db.session.commit()
 
         return jsonify({
