@@ -2430,6 +2430,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
   initHistorySearch();
   selectPatientProfile('minh_anh');
+  updateHomeGreeting();
 
   const input = document.getElementById('user-input');
   if (input) {
@@ -4338,7 +4339,19 @@ const medicalPatientsData = {
 
 let activeMedicalPatientKey = 'current_patient';
 
+function updateHomeGreeting() {
+  const greetingEl = document.getElementById('home-greeting-text');
+  if (!greetingEl) return;
+  const hour = new Date().getHours();
+  let timeGreeting = "CHÀO BUỔI SÁNG";
+  if (hour >= 12 && hour < 18) timeGreeting = "CHÀO BUỔI CHIỀU";
+  else if (hour >= 18) timeGreeting = "CHÀO BUỔI TỐI";
+  const name = (currentUser && (currentUser.name || currentUser.full_name)) ? (currentUser.name || currentUser.full_name).toUpperCase() : "NGUYỄN THÀNH KHIÊM";
+  greetingEl.innerText = `${timeGreeting}, ${name}`;
+}
+
 function syncCurrentPatientProfile() {
+  updateHomeGreeting();
   if (currentUser) {
     const cp = medicalPatientsData.current_patient;
     cp.name = currentUser.name || currentUser.full_name || cp.name;

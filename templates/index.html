@@ -24,7 +24,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.4.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.5.0">
 
 <style>
 
@@ -437,92 +437,197 @@ background: #94A3B8;
 <main class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 py-4 flex-1 flex flex-col justify-start relative z-10 min-h-[calc(100vh-100px)] pl-16 sm:pl-20">
 
 <!-- ============================================================== -->
-<!-- TAB: TRANG CHỦ (HOME TAB - Image 1)                            -->
 <!-- ============================================================== -->
-<div id="home-tab" class="tab-content active w-full flex-1 flex-col py-4 sm:py-8 space-y-10 animate-in fade-in duration-200">
+<!-- TAB: TRANG CHỦ (HOME TAB - Redesigned Hero & 3-Card Discovery)  -->
+<!-- ============================================================== -->
+<div id="home-tab" class="tab-content active w-full flex-1 flex-col py-2 sm:py-4 space-y-8 animate-in fade-in duration-200">
   
-  <!-- HERO SECTION (Centered, Clean, No Preview Card) -->
-  <div class="max-w-4xl mx-auto text-center flex flex-col items-center space-y-6 pt-4 pb-2">
-    <!-- Tag Pill (Synced Sky Blue) -->
-    <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-sky-500/10 border border-sky-400/30 text-sky-600 dark:text-sky-400 text-xs font-bold">
-      <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
-      <span data-i18n="home_hero_tag">Trợ lý AI cho sức khỏe cá nhân</span>
+  <!-- HERO BANNER CARD (Synchronized Mint Daylight & Dark Glass Theme) -->
+  <div class="home-hero-banner relative overflow-hidden rounded-[32px] p-6 sm:p-10 lg:p-12 border border-teal-200/80 dark:border-teal-500/25 transition-all">
+    
+    <!-- Background Ambient Glow & Subtle Shapes -->
+    <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-teal-400/10 dark:bg-teal-500/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-emerald-400/10 dark:bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center relative z-10">
+      
+      <!-- LEFT COLUMN: Greeting, Big Headline, Description, Actions & Trust Badges -->
+      <div class="lg:col-span-7 space-y-4 sm:space-y-5">
+        
+        <!-- Greeting Pill with pulsating orange dot -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-md border border-teal-200/90 dark:border-white/15 text-[11px] font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-200 shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#F59E0B] animate-pulse"></span>
+          <span id="home-greeting-text">CHÀO BUỔI SÁNG, NGUYỄN THÀNH KHIÊM</span>
+        </div>
+
+        <!-- Big Headline -->
+        <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.18]">
+          Chăm sóc sức khỏe<br>
+          thông minh hơn mỗi ngày.
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl font-normal">
+          Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.
+        </p>
+
+        <!-- CTA Action Buttons -->
+        <div class="flex flex-wrap items-center gap-3 pt-1">
+          <!-- Primary: Trò chuyện với trợ lý > -->
+          <button onclick="switchTab('chat-tab')" class="px-6 py-3.5 rounded-2xl bg-[#0F766E] hover:bg-[#0D6E66] dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-600 text-white font-bold text-sm shadow-lg shadow-teal-900/20 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span>Trò chuyện với trợ lý</span>
+            <svg class="w-3.5 h-3.5 ml-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+
+          <!-- Secondary: Mở hồ sơ sức khỏe -->
+          <button onclick="switchTab('doctor-tab')" class="px-6 py-3.5 rounded-2xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/20 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/15 font-bold text-sm shadow-xs flex items-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
+            <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Mở hồ sơ sức khỏe</span>
+          </button>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="flex flex-wrap items-center gap-6 pt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            <span>Thông tin được bảo mật</span>
+          </span>
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Hỗ trợ dựa trên dữ liệu</span>
+          </span>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Concentric Orbital Radar Graphic & Floating Health Metric Pill -->
+      <div class="lg:col-span-5 flex items-center justify-center relative min-h-[320px] sm:min-h-[360px]">
+        
+        <!-- Radar Orbital Container -->
+        <div class="w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] relative flex items-center justify-center">
+          
+          <!-- Outer Concentric Ring -->
+          <div class="w-[270px] h-[270px] sm:w-[320px] sm:h-[320px] rounded-full border border-teal-300/60 dark:border-teal-400/25 absolute"></div>
+          
+          <!-- Middle Concentric Ring -->
+          <div class="w-[190px] h-[190px] sm:w-[225px] sm:h-[225px] rounded-full border border-teal-300/70 dark:border-teal-400/30 absolute"></div>
+          
+          <!-- Inner Concentric Ring -->
+          <div class="w-[120px] h-[120px] sm:w-[145px] sm:h-[145px] rounded-full border border-teal-400/80 dark:border-teal-400/35 absolute"></div>
+
+          <!-- Orbiting Icon Badge 1: Stethoscope (Top-Right on outer ring) -->
+          <div class="absolute top-5 right-12 sm:top-6 sm:right-16 w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-500/30 shadow-md flex items-center justify-center text-teal-700 dark:text-teal-400" title="Khám lâm sàng">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.8 2.4A2.4 2.4 0 0 0 2.4 4.8v4.8a7.2 7.2 0 0 0 14.4 0V4.8a2.4 2.4 0 0 0-2.4-2.4"/>
+              <path d="M9.6 16.8v2.4a4.8 4.8 0 0 0 9.6 0v-4.8"/>
+              <circle cx="19.2" cy="12" r="2.4"/>
+            </svg>
+          </div>
+
+          <!-- Orbiting Icon Badge 2: Star/Sparkle (Left on middle ring) -->
+          <div class="absolute top-1/2 -left-2 sm:-left-3 -translate-y-1/2 w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-500/30 shadow-md flex items-center justify-center text-teal-600 dark:text-teal-400" title="Đánh giá thông minh">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          </div>
+
+          <!-- Orbiting Icon Badge 3: Pulse (Bottom-Right on outer ring) -->
+          <div class="absolute bottom-10 right-4 sm:bottom-12 sm:right-6 w-7 h-7 rounded-full bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-500/30 shadow-md flex items-center justify-center text-teal-600 dark:text-teal-400" title="Chỉ số sinh tồn">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+
+          <!-- Center Core Glowing Circle with Medical Heart Icon -->
+          <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#0F766E] dark:bg-teal-600 flex items-center justify-center text-white shadow-xl shadow-teal-900/30 ring-8 ring-teal-500/25 dark:ring-teal-400/20 z-10 relative">
+            <svg class="w-9 h-9 sm:w-11 sm:h-11 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m-3-3h6" />
+            </svg>
+          </div>
+
+        </div>
+
+        <!-- Floating Health Metric Badge (At bottom-right of the radar) -->
+        <div class="absolute -bottom-3 sm:bottom-1 right-0 sm:right-4 z-20 bg-white dark:bg-slate-900 border border-teal-200/90 dark:border-white/15 rounded-2xl py-2 px-3.5 shadow-xl shadow-teal-950/10 flex items-center gap-3 backdrop-blur-md">
+          <div class="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </div>
+          <div>
+            <div class="text-xs font-black text-slate-900 dark:text-white leading-tight">Khỏe mạnh</div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Chỉ số hôm nay</div>
+          </div>
+          <div class="text-xl sm:text-2xl font-black text-teal-700 dark:text-teal-400 leading-none pl-1">
+            92%
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- Main Headline (Synced Sky-Indigo Gradient) -->
-    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.15]">
-      <span data-i18n="home_hero_title">Trợ lý sức khỏe</span><br>
-      <span class="bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 bg-clip-text text-transparent" data-i18n="home_hero_title_sub">thông minh mỗi ngày</span>
-    </h1>
-
-    <!-- Hero Subtitle -->
-    <p data-i18n="home_hero_desc" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl font-normal">
-      Trò chuyện với MediMind AI để hiểu sơ bộ về triệu chứng, giải thích thuật ngữ y khoa và tra cứu hồ sơ khám bệnh ở một nơi duy nhất.
-    </p>
-
-    <!-- Action Buttons (Synced to MediMind Gradient) -->
-    <div class="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-      <button onclick="switchTab('chat-tab')" class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-sky-500/30 flex items-center space-x-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-        <span data-i18n="home_btn_chat">Trò chuyện với trợ lý</span>
-      </button>
-
-      <button onclick="switchTab('doctor-tab')" class="px-7 py-3.5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white font-bold text-sm shadow-md hover:shadow-lg flex items-center space-x-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
-        <svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <span data-i18n="home_btn_record">Xem hồ sơ bệnh án</span>
-      </button>
-    </div>
-
-    <!-- Trust Badges (Synced Sky Blue) -->
-    <div class="flex items-center justify-center space-x-6 text-xs text-slate-500 dark:text-slate-400 font-semibold pt-1">
-      <span class="flex items-center space-x-2">
-        <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-        <span data-i18n="home_badge_security">Thông tin được bảo mật</span>
-      </span>
-      <span class="flex items-center space-x-2">
-        <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span data-i18n="home_badge_history">Lưu lịch sử trò chuyện</span>
-      </span>
-    </div>
   </div>
 
-  <!-- 4 FEATURE CARDS AT BOTTOM (Synced Sky Theme) -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 pt-2">
-    <!-- Card 1: Hỏi đáp triệu chứng -->
-    <div onclick="switchTab('chat-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-sky-400/50 transition-all cursor-pointer group">
-      <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+  <!-- SECTION 2: KHÁM PHÁ (Discovery Section & 3 Feature Cards Grid) -->
+  <div class="space-y-4 pt-1">
+    
+    <!-- Section Header (Left title, Right description & link) -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <span class="text-[11px] font-extrabold tracking-widest uppercase text-amber-600 dark:text-amber-400 block mb-1">KHÁM PHÁ</span>
+        <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          Mọi thứ bạn cần<br class="hidden sm:inline"> để sống khỏe hơn.
+        </h2>
       </div>
-      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" data-i18n="home_feat1_title">Hỏi đáp triệu chứng</h3>
-      <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat1_desc">Mô tả triệu chứng của bạn để nhận gợi ý sơ bộ và biết nên khám chuyên khoa nào.</p>
+      <div class="text-left md:text-right max-w-md">
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal">
+          Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.
+        </p>
+        <button onclick="switchTab('doctor-tab')" class="inline-flex items-center gap-1 text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors cursor-pointer">
+          <span>Khám phá tất cả</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
     </div>
 
-    <!-- Card 2: Giải thích thuật ngữ y khoa -->
-    <div onclick="switchTab('ocr-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-sky-400/50 transition-all cursor-pointer group">
-      <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+    <!-- 3 FEATURE CARDS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 pt-2">
+      
+      <!-- Card 1: Trò chuyện cùng AI -->
+      <div onclick="switchTab('chat-tab')" class="home-discovery-card home-card-chat rounded-3xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-teal-100/70 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          </div>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">HỖ TRỢ 24/7</span>
+          <h3 class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">Trò chuyện cùng AI</h3>
+          <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Giải đáp các thắc mắc sức khỏe thường gặp bằng ngôn ngữ dễ hiểu.</p>
+        </div>
       </div>
-      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" data-i18n="home_feat2_title">Giải thích thuật ngữ y khoa</h3>
-      <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat2_desc">Hiểu rõ kết quả xét nghiệm, chẩn đoán và các thuật ngữ trong hồ sơ khám bệnh.</p>
+
+      <!-- Card 2: Hồ sơ sức khỏe -->
+      <div onclick="switchTab('doctor-tab')" class="home-discovery-card home-card-records rounded-3xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-sky-100/70 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">THÔNG TIN CỦA BẠN</span>
+          <h3 class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">Hồ sơ sức khỏe</h3>
+          <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Quản lý chỉ số, lịch sử khám và những thông tin quan trọng của gia đình.</p>
+        </div>
+      </div>
+
+      <!-- Card 3: Lịch hẹn sắp tới -->
+      <div onclick="switchTab('booking-tab')" class="home-discovery-card home-card-booking rounded-3xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-orange-100/70 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">ĐỒNG HÀNH CÙNG BẠN</span>
+          <h3 class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-orange-700 dark:group-hover:text-orange-400 transition-colors">Lịch hẹn sắp tới</h3>
+          <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Theo dõi lịch khám và nhận nhắc nhở để không bỏ lỡ những cuộc hẹn quan trọng.</p>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Card 3: Lưu lịch sử tư vấn -->
-    <div onclick="switchTab('chat-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-sky-400/50 transition-all cursor-pointer group">
-      <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
-      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" data-i18n="home_feat3_title">Lưu lịch sử tư vấn</h3>
-      <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat3_desc">Mọi cuộc trò chuyện được lưu lại để bạn xem lại bất cứ lúc nào.</p>
-    </div>
-
-    <!-- Card 4: Kết nối hồ sơ bệnh án -->
-    <div onclick="switchTab('doctor-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-sky-400/50 transition-all cursor-pointer group">
-      <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-      </div>
-      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" data-i18n="home_feat4_title">Kết nối hồ sơ bệnh án</h3>
-      <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat4_desc">Tra cứu lịch sử khám, chỉ số sinh tồn và tái khám của từng bệnh nhân.</p>
-    </div>
   </div>
 
 </div>
@@ -3358,7 +3463,7 @@ Hủy bỏ
 
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=16.4.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=16.5.0"></script>
 
 </body>
 

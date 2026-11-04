@@ -1453,3 +1453,101 @@ body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"]:hover {
   color: #0284C7 !important;
   background-color: #F1F5F9 !important;
 }
+
+/* ==============================================================
+   HOME TAB: REDESIGNED HERO & 3-CARD DISCOVERY (Dual-Theme Synced)
+   ============================================================== */
+.home-hero-banner {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light Glass Mode: Fresh Luminous Mint Daylight */
+body.light-glass .home-hero-banner {
+  background: linear-gradient(135deg, #e8f7f2 0%, #f0fdf9 45%, #e2f5ee 100%) !important;
+  border: 1.5px solid #a7f3d0 !important;
+  box-shadow: 0 15px 35px -10px rgba(13, 148, 136, 0.08) !important;
+}
+
+body.light-glass #home-tab h1,
+body.light-glass #home-tab h2 {
+  color: #0F172A !important;
+}
+
+body.light-glass #home-tab p {
+  color: #475569 !important;
+}
+
+/* Dark Glass Mode: Deep Spatial Ambiance */
+body:not(.light-glass) .home-hero-banner {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(13, 148, 136, 0.12) 50%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border: 1px solid rgba(45, 212, 191, 0.25) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 3 Discovery Feature Cards */
+.home-discovery-card {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.home-discovery-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Light Glass Discovery Cards */
+body.light-glass .home-card-chat {
+  background-color: #F4F9F8 !important;
+  border: 1.5px solid #CCFBF1 !important;
+  box-shadow: 0 4px 15px rgba(13, 148, 136, 0.04) !important;
+}
+body.light-glass .home-card-chat:hover {
+  border-color: #0D9488 !important;
+  box-shadow: 0 15px 30px -8px rgba(13, 148, 136, 0.15) !important;
+}
+
+body.light-glass .home-card-records {
+  background-color: #F3F7FA !important;
+  border: 1.5px solid #E0F2FE !important;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.04) !important;
+}
+body.light-glass .home-card-records:hover {
+  border-color: #0284C7 !important;
+  box-shadow: 0 15px 30px -8px rgba(2, 132, 199, 0.15) !important;
+}
+
+body.light-glass .home-card-booking {
+  background-color: #FBF6F1 !important;
+  border: 1.5px solid #FFEDD5 !important;
+  box-shadow: 0 4px 15px rgba(234, 88, 12, 0.04) !important;
+}
+body.light-glass .home-card-booking:hover {
+  border-color: #EA580C !important;
+  box-shadow: 0 15px 30px -8px rgba(234, 88, 12, 0.15) !important;
+}
+
+body.light-glass .home-discovery-card h3 {
+  color: #0F172A !important;
+}
+
+body.light-glass .home-discovery-card p {
+  color: #475569 !important;
+}
+
+/* Dark Mode Discovery Cards */
+body:not(.light-glass) .home-discovery-card {
+  background: rgba(15, 23, 42, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+body:not(.light-glass) .home-card-chat:hover {
+  border-color: rgba(45, 212, 191, 0.5) !important;
+  box-shadow: 0 15px 30px -8px rgba(13, 148, 136, 0.3) !important;
+}
+body:not(.light-glass) .home-card-records:hover {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 15px 30px -8px rgba(2, 132, 199, 0.3) !important;
+}
+body:not(.light-glass) .home-card-booking:hover {
+  border-color: rgba(251, 146, 60, 0.5) !important;
+  box-shadow: 0 15px 30px -8px rgba(234, 88, 12, 0.3) !important;
+}
