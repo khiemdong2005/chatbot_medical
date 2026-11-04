@@ -1778,7 +1778,7 @@ function handleCrossTabMessage(data) {
       localStorage.setItem('medimind_theme', targetTheme);
       if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
     }
-  } else if (data.type === 'AUTH_LOGIN' || data.type === 'PROFILE_UPDATE') {
+  } else if (data.type === 'AUTH_LOGIN' || data.type === 'PROFILE_UPDATE' || data.type === 'AUTH_PROFILE_UPDATE') {
     if (data.payload?.user) {
       currentUser = data.payload.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
@@ -4157,23 +4157,136 @@ function handleProfileAvatarUpload(e) {
   reader.readAsDataURL(file);
 }
 
-function handleSaveImage1Profile(e) {
+// ==============================================================
+// 3-TIER DATA PERSISTENCE: TẦNG 1 DRAFT GUARD (Auto-Recovery)
+// ==============================================================
+let profileDraftDebounceTimer = null;
+
+function saveProfileDraftToSession() {
+  clearTimeout(profileDraftDebounceTimer);
+  profileDraftDebounceTimer = setTimeout(() => {
+    try {
+      const draft = {
+        dob: document.getElementById('p-birthdate')?.value || '',
+        gender: document.getElementById('p-gender')?.value || 'Nam',
+        phone: (fieldRealValues['p-phone'] !== undefined && fieldRealValues['p-phone'] !== '')
+          ? fieldRealValues['p-phone'] : (document.getElementById('p-phone')?.value || ''),
+        email: (fieldRealValues['p-email'] !== undefined && fieldRealValues['p-email'] !== '')
+          ? fieldRealValues['p-email'] : (document.getElementById('p-email')?.value || ''),
+        cccd: (fieldRealValues['p-cccd'] !== undefined && fieldRealValues['p-cccd'] !== '')
+          ? fieldRealValues['p-cccd'] : (document.getElementById('p-cccd')?.value || ''),
+        issue_date: (fieldRealValues['p-issue-date'] !== undefined && fieldRealValues['p-issue-date'] !== '')
+          ? fieldRealValues['p-issue-date'] : (document.getElementById('p-issue-date')?.value || ''),
+        bhyt: (fieldRealValues['p-bhyt'] !== undefined && fieldRealValues['p-bhyt'] !== '')
+          ? fieldRealValues['p-bhyt'] : (document.getElementById('p-bhyt')?.value || ''),
+        facility: document.getElementById('p-facility')?.value || '',
+        valid_from: (fieldRealValues['p-valid-from'] !== undefined && fieldRealValues['p-valid-from'] !== '')
+          ? fieldRealValues['p-valid-from'] : (document.getElementById('p-valid-from')?.value || ''),
+        valid_to: (fieldRealValues['p-valid-to'] !== undefined && fieldRealValues['p-valid-to'] !== '')
+          ? fieldRealValues['p-valid-to'] : (document.getElementById('p-valid-to')?.value || ''),
+        issue_place: document.getElementById('p-issue-place')?.value || '',
+        nationality: document.getElementById('p-nationality')?.value || 'VN',
+        ethnicity: document.getElementById('p-ethnicity')?.value || '',
+        religion: document.getElementById('p-religion')?.value || '',
+        province: document.getElementById('p-province')?.value || '',
+        ward: document.getElementById('p-ward')?.value || '',
+        address: document.getElementById('p-address')?.value || '',
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('medimind_profile_draft', JSON.stringify(draft));
+    } catch (e) {
+      console.warn('Lỗi ghi bản nháp sessionStorage:', e);
+    }
+  }, 400);
+}
+
+function restoreProfileDraftFromSession() {
+  try {
+    const raw = sessionStorage.getItem('medimind_profile_draft');
+    if (!raw) return false;
+    const draft = JSON.parse(raw);
+    if (!draft || typeof draft !== 'object') return false;
+
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && val !== undefined && val !== '') {
+        fieldRealValues[id] = val;
+        el.value = (typeof fieldMaskState !== 'undefined' && fieldMaskState[id]) ? maskFieldValue(val, id) : val;
+      }
+    };
+
+    if (draft.dob) { const el = document.getElementById('p-birthdate'); if (el) el.value = draft.dob; }
+    if (draft.gender) { const el = document.getElementById('p-gender'); if (el) el.value = draft.gender; }
+    setVal('p-phone', draft.phone);
+    setVal('p-email', draft.email);
+    setVal('p-cccd', draft.cccd);
+    setVal('p-issue-date', draft.issue_date);
+    setVal('p-bhyt', draft.bhyt);
+    if (draft.facility) { const el = document.getElementById('p-facility'); if (el) el.value = draft.facility; }
+    setVal('p-valid-from', draft.valid_from);
+    setVal('p-valid-to', draft.valid_to);
+    if (draft.issue_place) { const el = document.getElementById('p-issue-place'); if (el) el.value = draft.issue_place; }
+    if (draft.nationality) { const el = document.getElementById('p-nationality'); if (el) el.value = draft.nationality; }
+    if (draft.ethnicity) { const el = document.getElementById('p-ethnicity'); if (el) el.value = draft.ethnicity; }
+    if (draft.religion) { const el = document.getElementById('p-religion'); if (el) el.value = draft.religion; }
+    if (draft.province) {
+      const el = document.getElementById('p-province');
+      if (el) {
+        el.value = draft.province;
+        if (typeof handleProvinceChange === 'function') handleProvinceChange();
+      }
+    }
+    if (draft.ward) { const el = document.getElementById('p-ward'); if (el) el.value = draft.ward; }
+    if (draft.address) { const el = document.getElementById('p-address'); if (el) el.value = draft.address; }
+
+    if (typeof syncLeftCardPhoneEmail === 'function') syncLeftCardPhoneEmail();
+    if (typeof updateProfileCompletion === 'function') updateProfileCompletion();
+    return true;
+  } catch (e) {
+    console.warn('Lỗi đọc bản nháp sessionStorage:', e);
+    return false;
+  }
+}
+
+function attachProfileDraftListeners() {
+  const form = document.getElementById('profile-form-img1');
+  if (!form || form._hasDraftListeners) return;
+  form._hasDraftListeners = true;
+
+  const inputs = form.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
+    input.addEventListener('input', () => {
+      saveProfileDraftToSession();
+      if (typeof updateProfileCompletion === 'function') updateProfileCompletion();
+    });
+    input.addEventListener('change', () => {
+      saveProfileDraftToSession();
+      if (typeof updateProfileCompletion === 'function') updateProfileCompletion();
+    });
+  });
+}
+
+async function handleSaveImage1Profile(e) {
   if (e) e.preventDefault();
-  const birthDate = document.getElementById('p-birthdate')?.value.trim();
-  const gender = document.getElementById('p-gender')?.value || 'Nam';
-  
+
+  const submitBtn = document.querySelector('#profile-form-img1 button[type="submit"]') || e?.target?.querySelector('button[type="submit"]');
+  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : 'Lưu thông tin';
+
+  // TẦNG 2: BÓC LỚP MẶT NẠ (UNMASKING) & KIỂM TRA RÀO CHẮN (VALIDATION)
   const getFieldValue = (fieldId, fallback = '') => {
-    if (fieldMaskState[fieldId] && fieldRealValues[fieldId] !== undefined) {
+    if (fieldRealValues[fieldId] !== undefined && fieldRealValues[fieldId] !== '') {
       return fieldRealValues[fieldId];
     }
     const val = document.getElementById(fieldId)?.value.trim();
-    if (val !== undefined && val !== null) {
+    if (val !== undefined && val !== null && val !== '') {
       fieldRealValues[fieldId] = val;
       return val;
     }
     return fallback;
   };
 
+  const birthDate = document.getElementById('p-birthdate')?.value.trim() || '';
+  const gender = document.getElementById('p-gender')?.value || 'Nam';
   const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
   const email = getFieldValue('p-email', currentUser?.email || '');
   const cccd = getFieldValue('p-cccd');
@@ -4190,41 +4303,129 @@ function handleSaveImage1Profile(e) {
   const ward = document.getElementById('p-ward')?.value.trim() || '';
   const address = document.getElementById('p-address')?.value.trim() || '';
 
-  if (!currentUser) {
-    currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
+  // Kiểm tra rào chắn (Input Validation)
+  if (phone) {
+    const cleanPhone = phone.replace(/[\s.-]/g, '');
+    if (!/^(0|\+?84)[0-9]{9,10}$/.test(cleanPhone)) {
+      const phoneInput = document.getElementById('p-phone');
+      if (phoneInput) {
+        phoneInput.focus();
+        phoneInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-400');
+        setTimeout(() => phoneInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-400'), 2500);
+      }
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast('Số điện thoại không hợp lệ (cần đúng 10 chữ số).', 'error');
+      } else {
+        alert('Số điện thoại không hợp lệ (cần đúng 10 chữ số).');
+      }
+      return;
+    }
   }
 
-  currentUser.dob = birthDate;
-  currentUser.gender = gender;
-  currentUser.phone_number = phone || currentUser.phone_number;
-  currentUser.email = email || currentUser.email;
-  currentUser.cccd = cccd;
-  currentUser.issue_date = issueDate;
-  currentUser.bhyt = bhyt;
-  currentUser.facility = facility;
-  currentUser.valid_from = validFrom;
-  currentUser.valid_to = validTo;
-  currentUser.issue_place = issuePlace;
-  currentUser.nationality = nationality;
-  currentUser.ethnicity = ethnicity;
-  currentUser.religion = religion;
-  currentUser.province = province;
-  currentUser.ward = ward;
-  currentUser.address = address;
+  if (email && !email.endsWith('@phone.medimind')) {
+    if (!email.includes('@') || !email.includes('.')) {
+      const emailInput = document.getElementById('p-email');
+      if (emailInput) {
+        emailInput.focus();
+        emailInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-400');
+        setTimeout(() => emailInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-400'), 2500);
+      }
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast('Địa chỉ Email không đúng định dạng.', 'error');
+      } else {
+        alert('Địa chỉ Email không đúng định dạng.');
+      }
+      return;
+    }
+  }
 
-  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+  // Khóa nút chống bấm đúp (Idempotency Guard & Loading animation)
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+      <svg class="w-4 h-4 mr-2 animate-spin inline-block" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      Đang lưu...
+    `;
+  }
 
-  // Sync Left Card
-  const cPhone = document.getElementById('profile-card-phone');
-  const cEmail = document.getElementById('profile-card-email');
-  if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(currentUser.phone_number, 'p-phone') : (currentUser.phone_number || '');
-  if (cEmail) cEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(currentUser.email, 'p-email') : (currentUser.email || '');
+  // TẦNG 3: PERSISTENCE, OPTIMISTIC BROADCAST & XÓA BẢN NHÁP
+  try {
+    if (!currentUser) {
+      currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
+    }
 
-  updateAuthUI();
+    currentUser.dob = birthDate;
+    currentUser.gender = gender;
+    currentUser.phone_number = phone || currentUser.phone_number;
+    currentUser.email = email || currentUser.email;
+    currentUser.cccd = cccd;
+    currentUser.issue_date = issueDate;
+    currentUser.bhyt = bhyt;
+    currentUser.facility = facility;
+    currentUser.valid_from = validFrom;
+    currentUser.valid_to = validTo;
+    currentUser.issue_place = issuePlace;
+    currentUser.nationality = nationality;
+    currentUser.ethnicity = ethnicity;
+    currentUser.religion = religion;
+    currentUser.province = province;
+    currentUser.ward = ward;
+    currentUser.address = address;
 
-  const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin thành công!';
-  showMedicalToast(msg, 'success');
+    localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+
+    // Thử đồng bộ Backend nếu có session
+    try {
+      await fetch('/api/auth/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: currentUser.full_name || currentUser.name,
+          phone_number: currentUser.phone_number,
+          gender: currentUser.gender,
+          dob: currentUser.dob
+        })
+      });
+    } catch (_) {}
+
+    // Delay nhẹ 300ms tạo cảm giác mượt mà
+    await new Promise(r => setTimeout(r, 300));
+
+    // Đồng bộ thẻ bên trái & toàn bộ giao diện
+    syncLeftCardPhoneEmail();
+    updateProfileCompletion();
+    updateAuthUI();
+
+    // Phát sóng liên tab qua BroadcastChannel (Tab 2, Tab 3 cập nhật sau 0.01s)
+    if (typeof broadcastTabEvent === 'function') {
+      broadcastTabEvent('AUTH_PROFILE_UPDATE', { user: currentUser });
+    }
+
+    // Xóa sạch bản nháp tạm trong sessionStorage vì đã lưu thành công
+    sessionStorage.removeItem('medimind_profile_draft');
+
+    const msg = currentLang === 'en' ? 'Profile saved successfully!' : 'Đã lưu thông tin hồ sơ thành công!';
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast(msg, 'success');
+    } else {
+      alert(msg);
+    }
+  } catch (err) {
+    console.error('Lỗi khi lưu hồ sơ:', err);
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast('Có lỗi xảy ra khi lưu hồ sơ.', 'error');
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnHtml;
+    }
+  }
 }
+
 
 
 // ==============================================================
