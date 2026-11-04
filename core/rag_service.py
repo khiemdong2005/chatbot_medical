@@ -17,7 +17,10 @@ import json
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-import chromadb
+try:
+    import chromadb
+except ImportError:
+    chromadb = None
 
 # Đường dẫn tới thư mục lưu trữ ChromaDB
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,6 +83,10 @@ class MedicalRAGService:
 
     def _init_db(self):
         """Khởi tạo kết nối tới kho dữ liệu Vector ChromaDB."""
+        if chromadb is None:
+            print("⚠️ [RAG Service] Thư viện 'chromadb' chưa được cài đặt. RAG sẽ tạm thời chuyển sang chế độ dự phòng (fallback).")
+            self.collection = None
+            return
         try:
             if self.db_dir.exists():
                 self.client = chromadb.PersistentClient(path=str(self.db_dir))
