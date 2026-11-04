@@ -994,335 +994,205 @@ background: #94A3B8;
 
 <!-- ============================================================== -->
 
-<div id="booking-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-4">
-
-<div class="glass-panel p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-
-<div>
-
-  <div class="flex flex-wrap items-center gap-2">
-
-    <h2 data-i18n="hospital_title" class="text-base sm:text-lg font-black text-white tracking-tight">Cơ Sở Y Tế &amp; Bệnh Viện</h2>
-
-    <button type="button" onclick="requestUserLocation()" id="gps-status-btn" class="px-3 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1.5 cursor-pointer hover:bg-emerald-500/30 transition-all">
-
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-
-      <span id="gps-status-text" data-i18n="hospital_location_est">Khu vực: TP.HCM (Khoảng cách ước tính)</span>
-
-    </button>
-
+<div id="booking-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-5">
+  <!-- Top Action & Title Bar -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
+    <div class="flex items-center space-x-3.5">
+      <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/25 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/10">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight" id="facilities-title" data-i18n="hospital_title">Cơ Sở Y Tế &amp; Bệnh Viện</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="facilities-subtitle" data-i18n="hospital_subtitle">Tra cứu bệnh viện tuyến đầu, phòng khám quốc tế &amp; chỉ đường cấp cứu 24/7</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2.5">
+      <a href="tel:115" class="text-xs font-bold px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white flex items-center space-x-1.5 transition-all shadow-md shadow-rose-500/25">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        <span data-i18n="hospital_btn_115">Tổng Đài Cấp Cứu 115</span>
+      </a>
+      <button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white px-4 py-2.5 rounded-xl glass-pill border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        <span data-i18n="btn_home">Trang chủ</span>
+      </button>
+    </div>
   </div>
 
-  <p data-i18n="hospital_subtitle" class="text-xs text-slate-400 mt-0.5">Tra cứu vị trí bệnh viện tuyến đầu • Khoảng cách tính từ trung tâm TP.HCM hoặc bấm để dùng GPS</p>
+  <!-- MAIN 2-COLUMN LAYOUT (Khớp bố cục ảnh người dùng cung cấp) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+    
+    <!-- LEFT SIDEBAR: Filters & Navigation (Col 3.5 / 12) -->
+    <div class="lg:col-span-4 xl:col-span-3 space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-3xl p-5 shadow-lg space-y-5">
+        
+        <!-- Sidebar Title & Search -->
+        <div class="space-y-3">
+          <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Cơ Sở Y Tế</h3>
+          <div class="relative flex items-center">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="facility-sidebar-search" oninput="handleFacilitySearchInput(this.value)" placeholder="Tìm bệnh viện, phòng khám, quận/huyện..." class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+          </div>
+        </div>
 
+        <!-- Section 1: LOẠI HÌNH CƠ SỞ -->
+        <div class="space-y-2 pt-2 border-t border-slate-200/80 dark:border-white/10">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">LOẠI HÌNH CƠ SỞ</span>
+          <div class="space-y-1" id="facility-type-list">
+            <button type="button" onclick="selectFacilityType('all', this)" class="facility-type-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/40 text-xs font-bold transition-all cursor-pointer">
+              <span class="flex items-center gap-2">
+                <span>✨</span>
+                <span>Tất cả cơ sở</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/20 text-sky-800 dark:text-sky-200" id="badge-count-all">148</span>
+            </button>
+
+            <button type="button" onclick="selectFacilityType('general', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
+              <span class="flex items-center gap-2">
+                <span>🏥</span>
+                <span>Bệnh viện Đa khoa</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-general">52</span>
+            </button>
+
+            <button type="button" onclick="selectFacilityType('clinic', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
+              <span class="flex items-center gap-2">
+                <span>🏢</span>
+                <span>Phòng khám Quốc tế</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-clinic">36</span>
+            </button>
+
+            <button type="button" onclick="selectFacilityType('specialized', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
+              <span class="flex items-center gap-2">
+                <span>🏥</span>
+                <span>Bệnh viện Chuyên khoa</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-specialized">41</span>
+            </button>
+
+            <button type="button" onclick="selectFacilityType('testing', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
+              <span class="flex items-center gap-2">
+                <span>🧪</span>
+                <span>Trung tâm Xét nghiệm</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-testing">19</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: KHU VỰC ĐỊA LÝ -->
+        <div class="space-y-2 pt-2 border-t border-slate-200/80 dark:border-white/10">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">KHU VỰC ĐỊA LÝ</span>
+          <div class="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10" id="facility-region-group">
+            <button type="button" onclick="selectFacilityRegion('hcm', this)" class="facility-region-btn active py-2 text-center rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 shadow-sm border border-slate-200/60 dark:border-transparent transition-all cursor-pointer">TP. HCM</button>
+            <button type="button" onclick="selectFacilityRegion('hanoi', this)" class="facility-region-btn py-2 text-center rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">Hà Nội</button>
+            <button type="button" onclick="selectFacilityRegion('danang', this)" class="facility-region-btn py-2 text-center rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">Đà Nẵng</button>
+          </div>
+        </div>
+
+        <!-- Section 3: CHUYÊN KHOA NỔI BẬT -->
+        <div class="space-y-2.5 pt-2 border-t border-slate-200/80 dark:border-white/10">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">CHUYÊN KHOA NỔI BẬT</span>
+          <div class="flex flex-wrap gap-1.5" id="facility-specialty-tags">
+            <button type="button" onclick="toggleFacilitySpecialty('Tim mạch', this)" class="facility-spec-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/50 shadow-xs transition-all cursor-pointer">Tim mạch</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Nhi khoa', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Nhi khoa</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Tai Mũi Họng', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Tai Mũi Họng</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Nội tiết & Tiểu đường', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Nội tiết &amp; Tiểu đường</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Tiêu hóa & Gan mật', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Tiêu hóa &amp; Gan mật</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Chấn thương chỉnh hình', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Chấn thương chỉnh hình</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Thần kinh', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Thần kinh</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT MAIN CONTENT: Search bar, Subheader, Facility Card Grid (Col 8.5 / 12) -->
+    <div class="lg:col-span-8 xl:col-span-9 space-y-4">
+      
+      <!-- Top Search & Action Bar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-2xl p-3 sm:p-3.5 shadow-md flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <!-- Main Search Input -->
+        <div class="relative flex-1 flex items-center">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="facility-main-search" oninput="handleFacilitySearchInput(this.value)" placeholder="Nhập tên bệnh viện, triệu chứng, bác sĩ chuyên khoa..." class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+        </div>
+
+        <!-- District Filter Dropdown -->
+        <div class="sm:w-56">
+          <select id="facility-district-filter" onchange="handleFacilityDistrictChange(this.value)" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-sky-500 cursor-pointer">
+            <option value="all">Tất cả quận/huyện (TP.HCM)</option>
+            <option value="Quận 1">Quận 1</option>
+            <option value="Quận 3">Quận 3</option>
+            <option value="Quận 5">Quận 5</option>
+            <option value="Quận 10">Quận 10</option>
+            <option value="Q. Bình Thạnh">Q. Bình Thạnh</option>
+            <option value="Quận 7">Quận 7</option>
+            <option value="TP. Thủ Đức">TP. Thủ Đức</option>
+          </select>
+        </div>
+
+        <!-- Map Toggle Button -->
+        <button type="button" onclick="toggleHospitalMapSection()" id="btn-toggle-hospital-map" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
+          <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+          <span id="hospital-map-toggle-text">Bản đồ</span>
+        </button>
+      </div>
+
+      <!-- Collapsible Map Panel -->
+      <div id="hospital-map-collapsible" class="hidden glass-panel overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-xl transition-all">
+        <div class="p-3 bg-slate-50 dark:bg-white/5 border-b border-slate-200/80 dark:border-white/10 flex justify-between items-center text-xs">
+          <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Bản đồ trực tiếp (Google Maps)</span>
+          </span>
+          <div class="flex items-center gap-3">
+            <a href="https://www.google.com/maps/search/bệnh+viện+gần+nhất" target="_blank" class="text-sky-600 dark:text-sky-400 font-semibold hover:underline flex items-center gap-1">
+              <span>Mở toàn màn hình</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+            <button type="button" onclick="toggleHospitalMapSection()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1" title="Đóng bản đồ">✕</button>
+          </div>
+        </div>
+        <div class="w-full h-[320px]">
+          <iframe id="hospital-map-iframe" title="Bản đồ Bệnh viện gần nhất" width="100%" height="100%" style="border:0;" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
+        </div>
+      </div>
+
+      <!-- Subheader Status Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1 text-xs text-slate-500 dark:text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400 animate-ping"></span>
+          <span id="facility-results-count" class="font-semibold text-slate-700 dark:text-slate-300">Hiển thị 6 cơ sở y tế uy tín đạt chuẩn Bộ Y tế &amp; MedlinePlus</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">Sắp xếp:</span>
+          <select id="facility-sort-select" onchange="handleFacilitySortChange(this.value)" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 border-0 focus:outline-none cursor-pointer">
+            <option value="default">Gần nhất &amp; Đánh giá cao</option>
+            <option value="rating">Đánh giá cao nhất</option>
+            <option value="distance">Khoảng cách gần nhất</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid of Hospital Cards (3 Columns) -->
+      <div id="facility-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+
+      <!-- No Results Container -->
+      <div id="facility-no-results" class="hidden p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-2">
+        <p class="text-base font-bold text-slate-800 dark:text-slate-200">Không tìm thấy cơ sở y tế phù hợp</p>
+        <p>Vui lòng thử tìm kiếm với từ khóa khác hoặc bấm đặt lại bộ lọc.</p>
+        <button type="button" onclick="resetAllFacilityFilters()" class="mt-2 px-4 py-2 rounded-xl bg-sky-500 text-white font-bold text-xs hover:bg-sky-400 transition-colors cursor-pointer">Đặt lại bộ lọc</button>
+      </div>
+
+    </div>
+
+  </div>
 </div>
-
-<div class="flex items-center space-x-2">
-
-  <a href="tel:115" class="text-xs font-bold px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white flex items-center space-x-1.5 transition-all shadow-md shadow-rose-500/25">
-
-    <span>🚨</span>
-
-    <span data-i18n="hospital_btn_115">Tổng đài Cấp cứu 115</span>
-
-  </a>
-
-  <button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-300 hover:text-white px-4 py-2 rounded-xl glass-pill transition-all flex items-center space-x-1.5 cursor-pointer">
-
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-
-    <span data-i18n="btn_home">Trang chủ</span>
-
-  </button>
-
-</div>
-
-</div>
-
-
-
-<!-- Quick Hospital Category Filter Pills -->
-
-<div class="flex items-center space-x-2 overflow-x-auto no-scrollbar py-0.5" id="hospital-filter-bar">
-
-  <button type="button" onclick="filterHospitals('all', this)" data-i18n="hospital_filter_all" class="hospital-filter-btn px-3.5 py-1.5 rounded-full bg-white/20 text-white border border-white/25 text-xs font-bold shadow-xs whitespace-nowrap cursor-pointer">Tất cả cơ sở (3)</button>
-
-  <button type="button" onclick="filterHospitals('tuyen_tw', this)" data-i18n="hospital_filter_central" class="hospital-filter-btn px-3.5 py-1.5 rounded-full glass-pill text-slate-300 hover:text-white text-xs font-semibold transition-all whitespace-nowrap cursor-pointer">Tuyến Trung Ương</button>
-
-  <button type="button" onclick="filterHospitals('hang_1', this)" data-i18n="hospital_filter_class1" class="hospital-filter-btn px-3.5 py-1.5 rounded-full glass-pill text-slate-300 hover:text-white text-xs font-semibold transition-all whitespace-nowrap cursor-pointer">Đa khoa Hạng 1</button>
-
-  <button type="button" onclick="filterHospitals('emergency', this)" data-i18n="hospital_filter_emergency" class="hospital-filter-btn px-3.5 py-1.5 rounded-full glass-pill text-slate-300 hover:text-white text-xs font-semibold transition-all whitespace-nowrap cursor-pointer">Cấp cứu 24/7</button>
-
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 min-h-[460px]">
-
-<!-- Map Embed -->
-
-<div class="lg:col-span-7 glass-panel overflow-hidden flex flex-col shadow-2xl">
-
-<div class="p-3 bg-white/5 border-b border-white/10 flex justify-between items-center text-xs text-white">
-
-<span class="font-bold text-white flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span data-i18n="hospital_map_title">Bản đồ trực tiếp (Google Maps)</span></span>
-
-<a href="https://www.google.com/maps/search/bệnh+viện+gần+nhất" target="_blank" class="text-sky-400 font-semibold hover:underline">
-
-<span data-i18n="hospital_map_fullscreen">Mở toàn màn hình →</span>
-
-</a>
-
-</div>
-
-<div class="flex-1 w-full min-h-[380px]">
-
-<iframe
-
-title="Bản đồ Bệnh viện gần nhất"
-
-width="100%"
-
-height="100%"
-
-style="border:0; min-height: 380px;"
-
-loading="lazy"
-
-allowfullscreen
-
-referrerpolicy="no-referrer-when-downgrade"
-
-src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=embed">
-
-</iframe>
-
-</div>
-
-</div>
-
-<!-- Hospital Cards (3 Cards flush with Google Maps height) -->
-
-<div class="lg:col-span-5 space-y-3 overflow-y-auto" id="hospital-cards-container">
-
-<!-- BV 1: BV Tai Mũi Họng TP.HCM -->
-
-<div class="hospital-card glass-card rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-sky-400/50 shadow-lg transition-all" data-category="tuyen_tw emergency">
-
-<div class="flex justify-between items-start">
-
-<div>
-
-<span class="text-[9px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-full">Tuyến Trung Ương</span>
-
-<h3 class="text-sm font-bold text-white mt-1">Bệnh viện Tai Mũi Họng TP.HCM</h3>
-
-<p class="text-[11px] text-slate-400">410 Lê Văn Sỹ, Phường 14, Quận 3</p>
-
-</div>
-
-<span class="text-[11px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-lg shrink-0">~1.4 km</span>
-
-</div>
-
-<div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-
-<div class="flex items-center space-x-1.5">
-
-<div class="flex text-amber-400">
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-</div>
-
-<span class="font-extrabold text-white">4.6</span>
-
-</div>
-
-<span class="text-slate-400 text-[10px] font-normal">(1.840 đánh giá)</span>
-
-</div>
-
-<div class="flex items-center space-x-2 pt-1">
-
-<a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Tai+Mũi+Họng+TPHCM" target="_blank" class="flex-1 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
-
-<span data-i18n="hospital_btn_directions">Chỉ đường Google Maps</span>
-
-</a>
-
-<a href="tel:02839317381" class="px-3.5 py-2 glass-pill text-rose-300 border border-rose-400/30 hover:bg-rose-500/20 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0">
-
-<svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-
-</svg>
-
-<span data-i18n="hospital_btn_call">Gọi BV</span>
-
-</a>
-
-</div>
-
-</div>
-
-<!-- BV 2: BV Đại học Y Dược TP.HCM -->
-
-<div class="hospital-card glass-card rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-sky-400/50 shadow-lg transition-all" data-category="hang_1 emergency">
-
-<div class="flex justify-between items-start">
-
-<div>
-
-<span class="text-[9px] font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 rounded-full">Đa khoa Hạng 1</span>
-
-<h3 class="text-sm font-bold text-white mt-1">Bệnh viện Đại học Y Dược</h3>
-
-<p class="text-[11px] text-slate-400">215 Hồng Bàng, Phường 11, Quận 5</p>
-
-</div>
-
-<span class="text-[11px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-lg shrink-0">~2.8 km</span>
-
-</div>
-
-<div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-
-<div class="flex items-center space-x-1.5">
-
-<div class="flex text-amber-400">
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-</div>
-
-<span class="font-extrabold text-white">4.7</span>
-
-</div>
-
-<span class="text-slate-400 text-[10px] font-normal">(4.250 đánh giá)</span>
-
-</div>
-
-<div class="flex items-center space-x-2 pt-1">
-
-<a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Đại+học+Y+Dược+TPHCM" target="_blank" class="flex-1 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
-
-<span data-i18n="hospital_btn_directions">Chỉ đường Google Maps</span>
-
-</a>
-
-<a href="tel:02838554269" class="px-3.5 py-2 glass-pill text-rose-300 border border-rose-400/30 hover:bg-rose-500/20 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0">
-
-<svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-
-</svg>
-
-<span data-i18n="hospital_btn_call">Gọi BV</span>
-
-</a>
-
-</div>
-
-</div>
-
-<!-- BV 3: BV Chợ Rẫy -->
-
-<div class="hospital-card glass-card rounded-2xl p-3.5 sm:p-4 space-y-2 hover:border-sky-400/50 shadow-lg transition-all" data-category="tuyen_tw emergency">
-
-<div class="flex justify-between items-start">
-
-<div>
-
-<span class="text-[9px] font-bold text-blue-300 bg-blue-500/20 border border-blue-400/30 px-2 py-0.5 rounded-full">Tuyến Đặc Biệt</span>
-
-<h3 class="text-sm font-bold text-white mt-1">Bệnh viện Chợ Rẫy</h3>
-
-<p class="text-[11px] text-slate-400">201B Nguyễn Chí Thanh, Phường 12, Quận 5</p>
-
-</div>
-
-<span class="text-[11px] font-bold text-sky-300 bg-sky-500/20 border border-sky-400/30 px-2 py-0.5 rounded-lg shrink-0">~3.5 km</span>
-
-</div>
-
-<div class="text-xs text-amber-500 font-bold flex items-center space-x-1">
-
-<div class="flex items-center space-x-1.5">
-
-<div class="flex text-amber-400">
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-<svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-
-</div>
-
-<span class="font-extrabold text-white">4.5</span>
-
-</div>
-
-<span class="text-slate-400 text-[10px] font-normal">(5.820 đánh giá)</span>
-
-</div>
-
-<div class="flex items-center space-x-2 pt-1">
-
-<a href="https://www.google.com/maps/dir/?api=1&destination=Bệnh+viện+Chợ+Rẫy" target="_blank" class="flex-1 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs">
-
-<span data-i18n="hospital_btn_directions">Chỉ đường Google Maps</span>
-
-</a>
-
-<a href="tel:02838554137" class="px-3.5 py-2 glass-pill text-rose-300 border border-rose-400/30 hover:bg-rose-500/20 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1 shrink-0">
-
-<svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-
-</svg>
-
-<span data-i18n="hospital_btn_call">Gọi BV</span>
-
-</a>
-
-</div>
-
-</div>
-
-<div id="hospital-no-results" class="hidden p-6 text-center text-xs text-slate-400 glass-card rounded-2xl border border-white/10">Không tìm thấy cơ sở y tế theo bộ lọc đã chọn.</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ============================================================== -->
 
 <!-- TAB 3: ĐỌC ĐƠN THUỐC & XÉT NGHIỆM -->
 
@@ -3104,6 +2974,155 @@ Hủy bỏ
 
 
 <script src="{{ url_for('static', filename='js/app.js') }}?v=17.2.0"></script>
+
+
+<!-- ============================================================== -->
+<!-- FACILITY APPOINTMENT BOOKING MODAL                             -->
+<!-- ============================================================== -->
+<div id="facility-booking-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeFacilityBookingModal()">
+  <div class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5 text-slate-900 dark:text-white backdrop-blur-2xl">
+    <button type="button" onclick="closeFacilityBookingModal()" class="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer" title="Đóng">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <div class="space-y-1">
+      <span class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block font-mono">ĐẶT LỊCH KHÁM BỆNH</span>
+      <h3 id="book-modal-facility-name" class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">BVĐK Quốc Tế Vinmec Central Park</h3>
+      <p id="book-modal-facility-address" class="text-xs text-slate-500 dark:text-slate-400">208 Nguyễn Hữu Cảnh, Q. Bình Thạnh, TP.HCM</p>
+    </div>
+
+    <form onsubmit="handleFacilityBookingSubmit(event)" class="space-y-4 pt-2 border-t border-slate-200 dark:border-white/10 text-xs">
+      <input type="hidden" id="book-modal-facility-id">
+      <!-- Specialty Selection -->
+      <div>
+        <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Chuyên khoa khám</label>
+        <select id="book-modal-spec" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+          <option value="Tim mạch">Tim mạch</option>
+          <option value="Nhi khoa">Nhi khoa</option>
+          <option value="Tai Mũi Họng">Tai Mũi Họng</option>
+          <option value="Nội tiết &amp; Tiểu đường">Nội tiết &amp; Tiểu đường</option>
+          <option value="Tiêu hóa &amp; Gan mật">Tiêu hóa &amp; Gan mật</option>
+          <option value="Chấn thương chỉnh hình">Chấn thương chỉnh hình</option>
+          <option value="Khám tổng quát">Khám tổng quát</option>
+        </select>
+      </div>
+
+      <!-- Date & Time -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Ngày khám mong muốn</label>
+          <input type="date" id="book-modal-date" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Khung giờ</label>
+          <select id="book-modal-time" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+            <option value="08:00 - 09:30">Sáng (08:00 - 09:30)</option>
+            <option value="09:30 - 11:00">Sáng (09:30 - 11:00)</option>
+            <option value="13:30 - 15:00">Chiều (13:30 - 15:00)</option>
+            <option value="15:00 - 16:30">Chiều (15:00 - 16:30)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Patient Info -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Họ và tên bệnh nhân</label>
+          <input type="text" id="book-modal-name" required placeholder="Nguyễn Thành Khiêm" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Số điện thoại liên hệ</label>
+          <input type="tel" id="book-modal-phone" required placeholder="0971221306" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+        </div>
+      </div>
+
+      <!-- Symptoms / Note -->
+      <div>
+        <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Lý do khám / Triệu chứng sơ bộ</label>
+        <textarea id="book-modal-note" rows="2" placeholder="Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"></textarea>
+      </div>
+
+      <div class="pt-2 flex items-center justify-end space-x-2.5">
+        <button type="button" onclick="closeFacilityBookingModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold transition-all cursor-pointer">Hủy</button>
+        <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold shadow-md shadow-sky-500/20 transition-all cursor-pointer">Xác nhận đặt lịch</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- FACILITY DETAIL INSPECTION MODAL                              -->
+<!-- ============================================================== -->
+<div id="facility-detail-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeFacilityDetailModal()">
+  <div class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5 text-slate-900 dark:text-white backdrop-blur-2xl">
+    <button type="button" onclick="closeFacilityDetailModal()" class="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer" title="Đóng">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <div class="flex items-start space-x-3.5 pr-8">
+      <div id="detail-modal-icon-box" class="w-12 h-12 rounded-2xl border border-sky-400/40 bg-sky-500/10 text-sky-500 dark:text-sky-300 flex items-center justify-center shrink-0 text-xl">
+        🏥
+      </div>
+      <div class="space-y-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <span id="detail-modal-rating" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">⭐ 4.9</span>
+          <span id="detail-modal-quality" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-400/30">Chuẩn JCI</span>
+        </div>
+        <h3 id="detail-modal-title" class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">BVĐK Quốc Tế Vinmec Central Park</h3>
+      </div>
+    </div>
+
+    <div class="space-y-3.5 text-xs pt-2 border-t border-slate-200 dark:border-white/10">
+      <div class="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+        <svg class="w-4 h-4 text-sky-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <div>
+          <span class="font-bold text-slate-800 dark:text-slate-200 block">Địa chỉ:</span>
+          <span id="detail-modal-address">208 Nguyễn Hữu Cảnh, Phường 22, Q. Bình Thạnh, TP.HCM</span>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+        <svg class="w-4 h-4 text-sky-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div>
+          <span class="font-bold text-slate-800 dark:text-slate-200 block">Thời gian hoạt động:</span>
+          <span id="detail-modal-hours">07:30 - 17:00 • Trực cấp cứu 24/7</span>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
+        <svg class="w-4 h-4 text-sky-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+        <div>
+          <span class="font-bold text-slate-800 dark:text-slate-200 block">Hotline liên hệ:</span>
+          <a id="detail-modal-phone" href="tel:02836221166" class="text-sky-600 dark:text-sky-400 font-bold hover:underline">028 3622 1166</a>
+        </div>
+      </div>
+
+      <div>
+        <span class="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Chuyên khoa nổi bật:</span>
+        <div id="detail-modal-specialties" class="flex flex-wrap gap-1.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div>
+        <span class="font-bold text-slate-800 dark:text-slate-200 block mb-1">Giới thiệu:</span>
+        <p id="detail-modal-desc" class="text-slate-500 dark:text-slate-400 leading-relaxed">
+          Bệnh viện đa khoa quốc tế hàng đầu tại TP.HCM đạt chứng chỉ vàng JCI về an toàn và chất lượng điều trị.
+        </p>
+      </div>
+    </div>
+
+    <div class="pt-3 flex items-center justify-end space-x-2.5 border-t border-slate-200 dark:border-white/10 text-xs">
+      <a id="detail-modal-directions-btn" href="#" target="_blank" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+        <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        <span>Chỉ đường Maps</span>
+      </a>
+      <button type="button" id="detail-modal-book-btn" onclick="openBookingFromDetail()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold shadow-md shadow-sky-500/20 transition-all cursor-pointer">
+        Đặt lịch khám ngay
+      </button>
+    </div>
+  </div>
+</div>
 
 </body>
 

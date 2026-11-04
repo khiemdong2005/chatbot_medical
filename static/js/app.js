@@ -1002,9 +1002,13 @@ function switchTab(tabId) {
   const activeTab = document.getElementById(tabId);
   if (activeTab) activeTab.classList.add('active');
 
+  if (tabId === 'booking-tab') {
+    renderMedicalFacilities();
+  }
   if (tabId === 'doctor-tab') {
     syncCurrentPatientProfile();
     selectPatientProfile('current_patient');
+  renderMedicalFacilities();
   }
 
   const activeNav = document.getElementById('nav-' + tabId);
@@ -2413,6 +2417,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
   initHistorySearch();
   selectPatientProfile('current_patient');
+  renderMedicalFacilities();
   updateHomeGreeting();
 
   const input = document.getElementById('user-input');
@@ -4077,32 +4082,546 @@ function openNewPrescriptionUpload() {
   resetPrescriptionScan();
 }
 
-function filterHospitals(category, btnEl) {
-  document.querySelectorAll('.hospital-filter-btn').forEach(btn => {
-    btn.classList.remove('bg-white/20', 'text-white', 'border', 'border-white/25', 'font-bold', 'shadow-xs');
-    btn.classList.add('glass-pill', 'text-slate-300', 'font-semibold');
-  });
-  if (btnEl) {
-    btnEl.classList.remove('glass-pill', 'text-slate-300', 'font-semibold');
-    btnEl.classList.add('bg-white/20', 'text-white', 'border', 'border-white/25', 'font-bold', 'shadow-xs');
+// ==========================================
+// Medical Facilities & Hospital Interaction Logic
+// (Matching User Layout from media_1793797893780_20805a2d.jpg)
+// ==========================================
+const medicalFacilitiesData = [
+  {
+    id: 'fac_vinmec',
+    name: 'BVĐK Quốc Tế Vinmec Central Park',
+    type: 'clinic',
+    types: ['all', 'clinic', 'general'],
+    region: 'hcm',
+    district: 'Q. Bình Thạnh',
+    rating: 4.9,
+    reviews: '1.4k',
+    qualityBadge: 'Chuẩn JCI Quốc tế',
+    badgeType: 'sky',
+    address: '208 Nguyễn Hữu Cảnh, Phường 22, Q. Bình Thạnh',
+    distanceKm: 2.4,
+    distanceDisplay: '• 2.4 km',
+    specialties: ['Tim mạch', 'Ung bướu', 'Sản phụ khoa', 'Nhi khoa'],
+    hours: '07:30 - 17:00 • Cấp cứu 24/7',
+    phone: '028 3622 1166',
+    mapUrl: 'https://maps.google.com/?q=Vinmec+Central+Park+Hospital',
+    description: 'Bệnh viện đa khoa quốc tế hàng đầu tại TP.HCM đạt chứng nhận tiêu chuẩn vàng JCI về an toàn và chất lượng điều trị y tế.'
+  },
+  {
+    id: 'fac_umc',
+    name: 'Bệnh viện Đại học Y Dược TP.HCM',
+    type: 'general',
+    types: ['all', 'general'],
+    region: 'hcm',
+    district: 'Quận 5',
+    rating: 4.8,
+    reviews: '2.8k',
+    qualityBadge: 'Tuyến Trung Ương',
+    badgeType: 'emerald',
+    address: '215 Hồng Bàng, Phường 11, Quận 5',
+    distanceKm: 5.1,
+    distanceDisplay: '• 5.1 km',
+    specialties: ['Tiêu hóa & Gan mật', 'Nội tiết & Tiểu đường', 'Tai Mũi Họng', 'Tim mạch'],
+    hours: '06:30 - 16:30 • Có khám theo yêu cầu',
+    phone: '028 3855 4269',
+    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Đại+học+Y+Dược+TPHCM',
+    description: 'Bệnh viện thực hành kiểu mẫu tuyến Trung Ương với đội ngũ giáo sư, tiến sĩ đầu ngành và trang thiết bị hiện đại bậc nhất.'
+  },
+  {
+    id: 'fac_choray',
+    name: 'Bệnh viện Chợ Rẫy',
+    type: 'general',
+    types: ['all', 'general'],
+    region: 'hcm',
+    district: 'Quận 5',
+    rating: 4.7,
+    reviews: '3.5k',
+    qualityBadge: 'Hạng Đặc Biệt',
+    badgeType: 'rose',
+    address: '201B Nguyễn Chí Thanh, Phường 12, Quận 5',
+    distanceKm: 5.8,
+    distanceDisplay: '• 5.8 km',
+    specialties: ['Chấn thương chỉnh hình', 'Thần kinh', 'Tiêu hóa & Gan mật', 'Tim mạch'],
+    hours: '07:00 - 16:00 • Trực cấp cứu 24/24',
+    phone: '028 3855 4137',
+    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Chợ+Rẫy',
+    description: 'Bệnh viện tuyến cuối hạng đặc biệt khu vực phía Nam chuyên tiếp nhận các ca bệnh phức tạp và cấp cứu đa chấn thương.'
+  },
+  {
+    id: 'fac_careplus',
+    name: 'Phòng khám Quốc tế CarePlus',
+    type: 'clinic',
+    types: ['all', 'clinic'],
+    region: 'hcm',
+    district: 'Quận 3',
+    rating: 4.9,
+    reviews: '840',
+    qualityBadge: 'Bảo Hiểm Quốc Tế',
+    badgeType: 'purple',
+    address: '167A Nam Kỳ Khởi Nghĩa, Phường 7, Quận 3',
+    distanceKm: 1.8,
+    distanceDisplay: '• 1.8 km',
+    specialties: ['Nhi khoa', 'Tim mạch', 'Tai Mũi Họng', 'Nội tiết & Tiểu đường'],
+    hours: '08:00 - 20:00 • Tiếp nhận nhanh',
+    phone: '1800 6116',
+    mapUrl: 'https://maps.google.com/?q=CarePlus+Clinic+Nam+Ky+Khoi+Nghia',
+    description: 'Hệ thống phòng khám ngoại trú chuẩn quốc tế với dịch vụ nhanh chóng, bảo lãnh viện phí trực tiếp và bác sĩ tận tâm.'
+  },
+  {
+    id: 'fac_vientim',
+    name: 'Viện Tim TP. Hồ Chí Minh',
+    type: 'specialized',
+    types: ['all', 'specialized'],
+    region: 'hcm',
+    district: 'Quận 10',
+    rating: 4.8,
+    reviews: '1.1k',
+    qualityBadge: 'Chuyên Khoa Sâu',
+    badgeType: 'sky',
+    address: '04 Dương Quang Trung, Phường 12, Quận 10',
+    distanceKm: 3.6,
+    distanceDisplay: '• 3.6 km',
+    specialties: ['Tim mạch', 'Nhi khoa', 'Chấn thương chỉnh hình'],
+    hours: '07:00 - 16:30 • Đặt lịch trực tuyến',
+    phone: '028 3865 1586',
+    mapUrl: 'https://maps.google.com/?q=Viện+Tim+TPHCM',
+    description: 'Trung tâm phẫu thuật và can thiệp tim mạch hàng đầu cả nước do GS. Alain Carpentier đồng sáng lập.'
+  },
+  {
+    id: 'fac_bachmai',
+    name: 'Bệnh viện Bạch Mai',
+    type: 'general',
+    types: ['all', 'general'],
+    region: 'hanoi',
+    district: 'Đống Đa',
+    rating: 4.7,
+    reviews: '2.1k',
+    qualityBadge: 'Chuyên Gia Đầu Ngành',
+    badgeType: 'indigo',
+    address: '78 Giải Phóng, Phương Mai, Đống Đa, Hà Nội',
+    distanceKm: 999,
+    distanceDisplay: '• Hà Nội',
+    specialties: ['Tai Mũi Họng', 'Nội tiết & Tiểu đường', 'Thần kinh', 'Tim mạch'],
+    hours: '06:30 - 17:00 • Thứ 2 - Thứ 7',
+    phone: '024 3869 3731',
+    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Bạch+Mai',
+    description: 'Bệnh viện đa khoa tuyến cuối đầu ngành miền Bắc với bề dày lịch sử và các trung tâm chuyên khoa sâu kỹ thuật cao.'
+  },
+  {
+    id: 'fac_diag',
+    name: 'Trung tâm Xét nghiệm Diag Laboratories',
+    type: 'testing',
+    types: ['all', 'testing'],
+    region: 'hcm',
+    district: 'Quận 10',
+    rating: 4.8,
+    reviews: '920',
+    qualityBadge: 'Chuẩn ISO 15189',
+    badgeType: 'emerald',
+    address: '414 Cao Thắng, Phường 12, Quận 10',
+    distanceKm: 3.2,
+    distanceDisplay: '• 3.2 km',
+    specialties: ['Tiêu hóa & Gan mật', 'Nội tiết & Tiểu đường', 'Thần kinh'],
+    hours: '06:00 - 19:00 • Lấy mẫu tại nhà',
+    phone: '1900 1717',
+    mapUrl: 'https://maps.google.com/?q=Diag+Laboratories+Cao+Thang',
+    description: 'Trung tâm xét nghiệm y khoa tự động hóa hiện đại với hơn 20 năm kinh nghiệm phục vụ hàng triệu lượt xét nghiệm.'
+  },
+  {
+    id: 'fac_hoanmy_dn',
+    name: 'Bệnh viện Hoàn Mỹ Đà Nẵng',
+    type: 'general',
+    types: ['all', 'general'],
+    region: 'danang',
+    district: 'Thanh Khê',
+    rating: 4.7,
+    reviews: '1.3k',
+    qualityBadge: 'Tiêu Chuẩn Quốc Tế',
+    badgeType: 'sky',
+    address: '291 Nguyễn Văn Linh, Quận Thanh Khê, Đà Nẵng',
+    distanceKm: 999,
+    distanceDisplay: '• Đà Nẵng',
+    specialties: ['Tim mạch', 'Chấn thương chỉnh hình', 'Nhi khoa'],
+    hours: '07:00 - 17:00 • Cấp cứu 24/7',
+    phone: '0236 3650 676',
+    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Hoàn+Mỹ+Đà+Nẵng',
+    description: 'Bệnh viện tư nhân uy tín hàng đầu miền Trung với dịch vụ y tế chuẩn mực và đội ngũ chuyên gia tận tụy.'
   }
+];
 
-  const cards = document.querySelectorAll('.hospital-card');
-  let matchCount = 0;
-  cards.forEach(card => {
-    const cats = (card.getAttribute('data-category') || '').split(' ');
-    if (category === 'all' || cats.includes(category)) {
-      card.classList.remove('hidden');
-      matchCount++;
-    } else {
-      card.classList.add('hidden');
+let facilityCurrentType = 'all';
+let facilityCurrentRegion = 'hcm';
+let facilityActiveSpecialties = new Set();
+let facilitySearchQuery = '';
+let facilityDistrict = 'all';
+let facilitySort = 'default';
+let activeDetailFacilityId = null;
+
+function getFacilityBadgeColor(badgeType) {
+  switch (badgeType) {
+    case 'emerald':
+      return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40';
+    case 'rose':
+      return 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-400/40';
+    case 'purple':
+      return 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-400/40';
+    case 'indigo':
+      return 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-400/40';
+    case 'sky':
+    default:
+      return 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-400/40';
+  }
+}
+
+function renderMedicalFacilities() {
+  const container = document.getElementById('facility-cards-grid');
+  if (!container) return;
+
+  const countEl = document.getElementById('facility-results-count');
+  const noResults = document.getElementById('facility-no-results');
+
+  let list = medicalFacilitiesData.filter(fac => {
+    // 1. Filter Type
+    if (facilityCurrentType !== 'all') {
+      if (!fac.types.includes(facilityCurrentType)) return false;
     }
+
+    // 2. Filter Region (if not all, check region or allow if searching globally)
+    if (facilityCurrentRegion !== 'all' && !facilitySearchQuery) {
+      if (fac.region !== facilityCurrentRegion) return false;
+    }
+
+    // 3. Filter District
+    if (facilityDistrict !== 'all') {
+      if (fac.district !== facilityDistrict) return false;
+    }
+
+    // 4. Filter Specialties
+    if (facilityActiveSpecialties.size > 0) {
+      const hasAnySpec = Array.from(facilityActiveSpecialties).some(s => fac.specialties.includes(s));
+      if (!hasAnySpec) return false;
+    }
+
+    // 5. Search Query
+    if (facilitySearchQuery) {
+      const q = facilitySearchQuery.toLowerCase().trim();
+      const matchName = fac.name.toLowerCase().includes(q);
+      const matchAddress = fac.address.toLowerCase().includes(q);
+      const matchSpec = fac.specialties.some(s => s.toLowerCase().includes(q));
+      if (!matchName && !matchAddress && !matchSpec) return false;
+    }
+
+    return true;
   });
 
-  const noResults = document.getElementById('hospital-no-results');
-  if (noResults) {
-    noResults.classList.toggle('hidden', matchCount > 0);
+  // Sort
+  if (facilitySort === 'rating') {
+    list.sort((a, b) => b.rating - a.rating);
+  } else if (facilitySort === 'distance') {
+    list.sort((a, b) => a.distanceKm - b.distanceKm);
   }
+
+  // Update Count
+  if (countEl) {
+    countEl.innerText = `Hiển thị ${list.length} cơ sở y tế uy tín đạt chuẩn Bộ Y tế & MedlinePlus`;
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '';
+    if (noResults) noResults.classList.remove('hidden');
+    return;
+  }
+
+  if (noResults) noResults.classList.add('hidden');
+
+  container.innerHTML = list.map(fac => {
+    return `
+      <div class="facility-card group glass-card bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-xl hover:border-sky-500/40 transition-all flex flex-col justify-between space-y-3">
+        <div class="space-y-2.5">
+          <!-- Top Row: Icon + Rating + Quality Badge -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="w-10 h-10 rounded-xl border border-sky-400/30 bg-sky-500/10 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+            <div class="flex flex-wrap items-center justify-end gap-1.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-mono">
+                <span>⭐</span>
+                <span>${fac.rating}</span>
+                <span class="text-[10px] font-normal text-slate-500 dark:text-slate-400">(${fac.reviews})</span>
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${getFacilityBadgeColor(fac.badgeType)}">
+                ${fac.qualityBadge}
+              </span>
+            </div>
+          </div>
+
+          <!-- Title -->
+          <div>
+            <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white line-clamp-1 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" title="${fac.name}">
+              ${fac.name}
+            </h3>
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-1.5 mt-1">
+              <span class="truncate flex items-center gap-1" title="${fac.address}">
+                <svg class="w-3.5 h-3.5 text-rose-500 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="truncate">${fac.address}</span>
+              </span>
+              <span class="font-bold text-sky-600 dark:text-sky-400 shrink-0 font-mono text-[11px]">${fac.distanceDisplay}</span>
+            </div>
+          </div>
+
+          <!-- Specialty Tags -->
+          <div class="flex flex-wrap gap-1 pt-1">
+            ${fac.specialties.slice(0, 4).map(s => `
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
+                ${s}
+              </span>
+            `).join('')}
+          </div>
+
+          <!-- Status & Operating Hours -->
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300 pt-1 font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <span class="truncate">${fac.hours}</span>
+          </div>
+        </div>
+
+        <!-- Bottom Action Buttons -->
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+          <button type="button" onclick="openFacilityBookingModal('${fac.id}')" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-sky-500/20 text-center transition-all cursor-pointer">
+            Đặt lịch khám
+          </button>
+          <button type="button" onclick="openFacilityDetailModal('${fac.id}')" class="px-3.5 py-2 rounded-xl glass-pill border border-slate-200 dark:border-white/10 hover:border-sky-400/40 text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white font-bold text-xs transition-all cursor-pointer">
+            Chi tiết
+          </button>
+          <a href="${fac.mapUrl}" target="_blank" class="p-2 rounded-xl glass-pill border border-slate-200 dark:border-white/10 hover:border-sky-400/40 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer" title="Chỉ đường trên Google Maps">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectFacilityType(type, btn) {
+  facilityCurrentType = type;
+  document.querySelectorAll('.facility-type-btn').forEach(b => {
+    b.className = 'facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer';
+  });
+  if (btn) {
+    btn.className = 'facility-type-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/40 text-xs font-bold transition-all cursor-pointer';
+  }
+  renderMedicalFacilities();
+}
+
+function selectFacilityRegion(region, btn) {
+  facilityCurrentRegion = region;
+  document.querySelectorAll('.facility-region-btn').forEach(b => {
+    b.className = 'facility-region-btn py-2 text-center rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+  });
+  if (btn) {
+    btn.className = 'facility-region-btn active py-2 text-center rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 shadow-sm border border-slate-200/60 dark:border-transparent transition-all cursor-pointer';
+  }
+  renderMedicalFacilities();
+}
+
+function toggleFacilitySpecialty(spec, btn) {
+  if (facilityActiveSpecialties.has(spec)) {
+    facilityActiveSpecialties.delete(spec);
+    if (btn) {
+      btn.className = 'facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer';
+    }
+  } else {
+    facilityActiveSpecialties.add(spec);
+    if (btn) {
+      btn.className = 'facility-spec-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/50 shadow-xs transition-all cursor-pointer';
+    }
+  }
+  renderMedicalFacilities();
+}
+
+function handleFacilitySearchInput(val) {
+  facilitySearchQuery = val;
+  const sideSearch = document.getElementById('facility-sidebar-search');
+  const mainSearch = document.getElementById('facility-main-search');
+  if (sideSearch && sideSearch.value !== val) sideSearch.value = val;
+  if (mainSearch && mainSearch.value !== val) mainSearch.value = val;
+  renderMedicalFacilities();
+}
+
+function handleFacilityDistrictChange(val) {
+  facilityDistrict = val;
+  renderMedicalFacilities();
+}
+
+function handleFacilitySortChange(val) {
+  facilitySort = val;
+  renderMedicalFacilities();
+}
+
+function resetAllFacilityFilters() {
+  facilityCurrentType = 'all';
+  facilityCurrentRegion = 'hcm';
+  facilityActiveSpecialties.clear();
+  facilitySearchQuery = '';
+  facilityDistrict = 'all';
+  facilitySort = 'default';
+
+  const sideSearch = document.getElementById('facility-sidebar-search');
+  const mainSearch = document.getElementById('facility-main-search');
+  const distSelect = document.getElementById('facility-district-filter');
+  const sortSelect = document.getElementById('facility-sort-select');
+  if (sideSearch) sideSearch.value = '';
+  if (mainSearch) mainSearch.value = '';
+  if (distSelect) distSelect.value = 'all';
+  if (sortSelect) sortSelect.value = 'default';
+
+  const firstTypeBtn = document.querySelector('.facility-type-btn');
+  if (firstTypeBtn) selectFacilityType('all', firstTypeBtn);
+
+  const firstRegionBtn = document.querySelector('.facility-region-btn');
+  if (firstRegionBtn) selectFacilityRegion('hcm', firstRegionBtn);
+
+  document.querySelectorAll('.facility-spec-btn').forEach(b => {
+    b.className = 'facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer';
+  });
+
+  renderMedicalFacilities();
+}
+
+function toggleHospitalMapSection() {
+  const panel = document.getElementById('hospital-map-collapsible');
+  const text = document.getElementById('hospital-map-toggle-text');
+  if (!panel) return;
+  panel.classList.toggle('hidden');
+  if (text) {
+    text.innerText = panel.classList.contains('hidden') ? 'Bản đồ' : 'Thu gọn bản đồ';
+  }
+}
+
+function openFacilityBookingModal(facId) {
+  const fac = medicalFacilitiesData.find(f => f.id === facId) || medicalFacilitiesData[0];
+  if (!fac) return;
+
+  const modal = document.getElementById('facility-booking-modal');
+  const nameEl = document.getElementById('book-modal-facility-name');
+  const addrEl = document.getElementById('book-modal-facility-address');
+  const idEl = document.getElementById('book-modal-facility-id');
+  const patNameEl = document.getElementById('book-modal-name');
+  const patPhoneEl = document.getElementById('book-modal-phone');
+  const dateEl = document.getElementById('book-modal-date');
+
+  if (nameEl) nameEl.innerText = fac.name;
+  if (addrEl) addrEl.innerText = fac.address;
+  if (idEl) idEl.value = fac.id;
+
+  if (currentUser) {
+    if (patNameEl) patNameEl.value = currentUser.name || currentUser.full_name || '';
+    if (patPhoneEl) patPhoneEl.value = currentUser.phone_number || currentUser.phone || '';
+  }
+
+  if (dateEl) {
+    const tmr = new Date();
+    tmr.setDate(tmr.getDate() + 1);
+    dateEl.value = tmr.toISOString().split('T')[0];
+    dateEl.min = new Date().toISOString().split('T')[0];
+  }
+
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeFacilityBookingModal() {
+  const modal = document.getElementById('facility-booking-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function handleFacilityBookingSubmit(e) {
+  if (e) e.preventDefault();
+  const facId = document.getElementById('book-modal-facility-id')?.value;
+  const fac = medicalFacilitiesData.find(f => f.id === facId);
+  const spec = document.getElementById('book-modal-spec')?.value;
+  const date = document.getElementById('book-modal-date')?.value;
+  const time = document.getElementById('book-modal-time')?.value;
+  const patName = document.getElementById('book-modal-name')?.value;
+  const patPhone = document.getElementById('book-modal-phone')?.value;
+  const note = document.getElementById('book-modal-note')?.value;
+
+  const appointment = {
+    id: 'apt_' + Date.now(),
+    facilityName: fac ? fac.name : 'Cơ sở Y tế',
+    specialty: spec,
+    date: date,
+    time: time,
+    patientName: patName,
+    patientPhone: patPhone,
+    note: note,
+    created_at: new Date().toISOString()
+  };
+
+  const stored = JSON.parse(localStorage.getItem('medimind_appointments') || '[]');
+  stored.unshift(appointment);
+  localStorage.setItem('medimind_appointments', JSON.stringify(stored));
+
+  closeFacilityBookingModal();
+  showMedicalToast(`Đặt lịch hẹn thành công tại ${fac ? fac.name : 'bệnh viện'}!`, 'success');
+}
+
+function openFacilityDetailModal(facId) {
+  activeDetailFacilityId = facId;
+  const fac = medicalFacilitiesData.find(f => f.id === facId) || medicalFacilitiesData[0];
+  if (!fac) return;
+
+  const modal = document.getElementById('facility-detail-modal');
+  const title = document.getElementById('detail-modal-title');
+  const rating = document.getElementById('detail-modal-rating');
+  const quality = document.getElementById('detail-modal-quality');
+  const address = document.getElementById('detail-modal-address');
+  const hours = document.getElementById('detail-modal-hours');
+  const phone = document.getElementById('detail-modal-phone');
+  const desc = document.getElementById('detail-modal-desc');
+  const specs = document.getElementById('detail-modal-specialties');
+  const mapBtn = document.getElementById('detail-modal-directions-btn');
+
+  if (title) title.innerText = fac.name;
+  if (rating) rating.innerHTML = `⭐ ${fac.rating} <span class="text-[10px] font-normal text-slate-400">(${fac.reviews})</span>`;
+  if (quality) {
+    quality.innerText = fac.qualityBadge;
+    quality.className = `text-[11px] font-bold px-2 py-0.5 rounded-md border ${getFacilityBadgeColor(fac.badgeType)}`;
+  }
+  if (address) address.innerText = fac.address;
+  if (hours) hours.innerText = fac.hours;
+  if (phone) {
+    phone.innerText = fac.phone;
+    phone.href = `tel:${fac.phone.replace(/\s/g, '')}`;
+  }
+  if (desc) desc.innerText = fac.description;
+  if (mapBtn) mapBtn.href = fac.mapUrl;
+
+  if (specs) {
+    specs.innerHTML = fac.specialties.map(s => `
+      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
+        ${s}
+      </span>
+    `).join('');
+  }
+
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeFacilityDetailModal() {
+  const modal = document.getElementById('facility-detail-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function openBookingFromDetail() {
+  closeFacilityDetailModal();
+  if (activeDetailFacilityId) {
+    openFacilityBookingModal(activeDetailFacilityId);
+  }
+}
+
+// Backward compatibility for filterHospitals
+function filterHospitals(cat, btn) {
+  selectFacilityType(cat, btn);
 }
 
 function initHistorySearch() {
