@@ -154,40 +154,75 @@ function maskFieldValue(val, fieldId) {
   return val.slice(0, 2) + '••••' + val.slice(-2);
 }
 
+function syncLeftCardPhoneEmail() {
+  const cardPhone = document.getElementById('profile-card-phone');
+  const cardEmail = document.getElementById('profile-card-email');
+  const pPhone = document.getElementById('p-phone');
+  const pEmail = document.getElementById('p-email');
+
+  const rawPhone = (fieldRealValues['p-phone'] !== undefined && fieldRealValues['p-phone'] !== '')
+    ? fieldRealValues['p-phone'] 
+    : (pPhone?.value || currentUser?.phone_number || '');
+  const rawEmail = (fieldRealValues['p-email'] !== undefined && fieldRealValues['p-email'] !== '')
+    ? fieldRealValues['p-email'] 
+    : (pEmail?.value || currentUser?.email || '');
+
+  const phoneEye = document.getElementById('profile-card-phone-eye');
+  const emailEye = document.getElementById('profile-card-email-eye');
+
+  const openEyeSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  const closedEyeSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
+
+  if (cardPhone) {
+    if (rawPhone && rawPhone.trim()) {
+      cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(rawPhone, 'p-phone') : rawPhone;
+    } else {
+      cardPhone.innerText = 'Chưa có số điện thoại';
+    }
+  }
+  if (phoneEye) {
+    phoneEye.innerHTML = fieldMaskState['p-phone'] ? closedEyeSvg : openEyeSvg;
+  }
+
+  if (cardEmail) {
+    if (rawEmail && rawEmail.trim() && !rawEmail.endsWith('@phone.medimind')) {
+      cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(rawEmail, 'p-email') : rawEmail;
+    } else {
+      cardEmail.innerText = 'Chưa có email';
+    }
+  }
+  if (emailEye) {
+    emailEye.innerHTML = fieldMaskState['p-email'] ? closedEyeSvg : openEyeSvg;
+  }
+}
+
 function toggleFieldMask(fieldId) {
   fieldMaskState[fieldId] = !fieldMaskState[fieldId];
   const isMasked = fieldMaskState[fieldId];
   const input = document.getElementById(fieldId);
   const eyeIcon = document.getElementById(fieldId + '-eye');
   
-  if (!input) return;
-
-  if (isMasked) {
-    if (!fieldRealValues[fieldId]) {
-      fieldRealValues[fieldId] = input.value;
+  if (input) {
+    if (isMasked) {
+      if (!fieldRealValues[fieldId]) {
+        fieldRealValues[fieldId] = input.value;
+      }
+      input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
+    } else {
+      input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
     }
-    input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
-  } else {
-    input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
   }
 
-  // Sync left card if email or phone
-  if (fieldId === 'p-email') {
-    const cardEmail = document.getElementById('profile-card-email');
-    const realEmail = fieldRealValues[fieldId] || input.value;
-    if (cardEmail) cardEmail.innerText = isMasked ? maskFieldValue(realEmail, 'p-email') : realEmail;
-  } else if (fieldId === 'p-phone') {
-    const cardPhone = document.getElementById('profile-card-phone');
-    const realPhone = fieldRealValues[fieldId] || input.value;
-    if (cardPhone) cardPhone.innerText = isMasked ? maskFieldValue(realPhone, 'p-phone') : realPhone;
-  }
+  const openEyeSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  const closedEyeSvg = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
 
   if (eyeIcon) {
-    if (isMasked) {
-      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
-    } else {
-      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
-    }
+    eyeIcon.innerHTML = isMasked ? closedEyeSvg : openEyeSvg;
+  }
+
+  // Đồng bộ tức thì cả chữ và icon mắt sang Thẻ bên trái
+  if (fieldId === 'p-email' || fieldId === 'p-phone') {
+    syncLeftCardPhoneEmail();
   }
 }
 
@@ -2447,11 +2482,11 @@ function updateAuthUI() {
     if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
     if (pGender && currentUser.gender) pGender.value = currentUser.gender;
     
-    const phoneVal = currentUser.phone_number || '0347047101';
+    const phoneVal = currentUser.phone_number || pPhone?.value || '0347047101';
     fieldRealValues['p-phone'] = phoneVal;
     if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
 
-    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
+    const emailVal = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : (pEmail?.value || 'nguyenvana@gmail.com');
     fieldRealValues['p-email'] = emailVal;
     if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
 
@@ -2499,22 +2534,47 @@ function updateAuthUI() {
     const displayName = currentUser.full_name || currentUser.name || '';
     if (cardName) cardName.innerText = displayName || 'Chưa có họ và tên';
 
-    const displayEmail = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
+    const displayEmail = (fieldRealValues['p-email'] && !fieldRealValues['p-email'].endsWith('@phone.medimind'))
+      ? fieldRealValues['p-email']
+      : ((currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : (pEmail?.value || ''));
     if (cardEmail) {
-      if (displayEmail) {
+      if (displayEmail && displayEmail.trim()) {
         cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(displayEmail, 'p-email') : displayEmail;
       } else {
         cardEmail.innerText = 'Chưa có email';
       }
     }
 
-    const displayPhone = currentUser.phone_number || '';
+    const displayPhone = fieldRealValues['p-phone'] || currentUser.phone_number || (pPhone?.value || '');
     if (cardPhone) {
-      if (displayPhone) {
+      if (displayPhone && displayPhone.trim()) {
         cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(displayPhone, 'p-phone') : displayPhone;
       } else {
         cardPhone.innerText = 'Chưa có số điện thoại';
       }
+    }
+
+    // Attach real-time sync listeners
+    if (pPhone && !pPhone._hasSyncListener) {
+      pPhone._hasSyncListener = true;
+      pPhone.addEventListener('input', () => {
+        if (!fieldMaskState['p-phone']) {
+          fieldRealValues['p-phone'] = pPhone.value;
+        }
+        syncLeftCardPhoneEmail();
+        updateProfileCompletion();
+      });
+    }
+
+    if (pEmail && !pEmail._hasSyncListener) {
+      pEmail._hasSyncListener = true;
+      pEmail.addEventListener('input', () => {
+        if (!fieldMaskState['p-email']) {
+          fieldRealValues['p-email'] = pEmail.value;
+        }
+        syncLeftCardPhoneEmail();
+        updateProfileCompletion();
+      });
     }
 
     if (cardJoined) {
@@ -2532,6 +2592,7 @@ function updateAuthUI() {
       if (fallbackAvatar) fallbackAvatar.classList.remove('hidden');
     }
 
+    syncLeftCardPhoneEmail();
     updateProfileCompletion();
     
     
