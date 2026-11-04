@@ -1998,6 +1998,7 @@ function updateAuthUI() {
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
 
+    syncCurrentPatientProfile();
     if (ehrTitle) ehrTitle.innerText = (currentLang === 'vi' ? 'Hồ sơ bệnh án' : 'Medical Records');
     if (ehrSubtitle) ehrSubtitle.innerText = (currentLang === 'vi' ? 'Theo dõi lịch sử khám và điều trị' : 'Track examination and treatment history');
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
@@ -4130,9 +4131,82 @@ function initHistorySearch() {
 }
 
 // ==========================================
-// Medical Records (Hồ sơ bệnh án) Interaction Logic (Theo Mẫu Ảnh 5 & 6)
+// Medical Records (Hồ sơ bệnh án cá nhân) Interaction Logic
 // ==========================================
 const medicalPatientsData = {
+  current_patient: {
+    id: 'BN-2026-8429',
+    name: 'Nguyễn Thành Khiêm',
+    gender: 'Nữ',
+    age: 29,
+    dob: '24/10/1997',
+    blood: 'O+',
+    phone: '0971 221 306',
+    allergies: ['Penicillin', 'Hải sản'],
+    visitCount: 3,
+    lastVisitDate: '18/10/2026',
+    badge: 'BN',
+    roleText: 'Hồ sơ chính (Tôi)',
+    records: [
+      {
+        id: 'rec_1',
+        date: '18/10/2026',
+        title: 'Viêm họng cấp & Sốt nhẹ',
+        doctor: 'BS. Lê Thu Hà · Nội tổng quát',
+        status: 'Đã khám',
+        statusType: 'success',
+        icd: 'ICD-10: J02.9',
+        vitals: {
+          bp: '118/76 mmHg',
+          hr: '88 lần/phút',
+          temp: '38.2 °C',
+          weight: '52.5 kg'
+        },
+        symptoms: 'Đau rát họng, sốt 38.2°C, nuốt đau 3 ngày',
+        labs: 'Xét nghiệm nhanh kháng nguyên liên cầu: âm tính. Bạch cầu 11.2 G/L, tăng nhẹ.',
+        doctorNotes: 'Nghỉ ngơi, uống nhiều nước ấm, súc họng nước muối sinh lý, theo dõi thân nhiệt.',
+        followUp: 'Tái khám sau 3 ngày nếu sốt không giảm'
+      },
+      {
+        id: 'rec_2',
+        date: '02/06/2026',
+        title: 'Rối loạn nhịp xoang & Hồi hộp',
+        doctor: 'BS. Phạm Đức Long · Tim mạch',
+        status: 'Đã khám',
+        statusType: 'info',
+        icd: 'ICD-10: I49.5',
+        vitals: {
+          bp: '120/80 mmHg',
+          hr: '94 lần/phút',
+          temp: '37.0 °C',
+          weight: '52.0 kg'
+        },
+        symptoms: 'Hồi hộp, tim đập nhanh từng cơn khi làm việc căng thẳng',
+        labs: 'Điện tâm đồ (ECG): Nhịp xoang nhanh 94 bpm, không thiếu máu cơ tim.',
+        doctorNotes: 'Hạn chế cà phê, điều hòa giấc ngủ, tập thể dục nhẹ nhàng.',
+        followUp: 'Tái khám khi có triệu chứng hồi hộp tái phát'
+      },
+      {
+        id: 'rec_3',
+        date: '20/11/2025',
+        title: 'Kiểm tra sức khỏe định kỳ & Thiếu máu nhẹ',
+        doctor: 'BS. Lê Thu Hà · Nội tổng quát',
+        status: 'Đã hồi phục',
+        statusType: 'success',
+        icd: 'ICD-10: D50.9',
+        vitals: {
+          bp: '112/72 mmHg',
+          hr: '76 lần/phút',
+          temp: '36.8 °C',
+          weight: '51.5 kg'
+        },
+        symptoms: 'Thỉnh thoảng chóng mặt nhẹ khi thay đổi tư thế đột ngột',
+        labs: 'Tổng phân tích tế bào máu: Hb 11.5 g/dL, Ferritin huyết thanh trong giới hạn.',
+        doctorNotes: 'Bổ sung dinh dưỡng, tăng cường thực phẩm giàu sắt và vitamin C.',
+        followUp: 'Khám sức khỏe định kỳ mỗi 6 tháng'
+      }
+    ]
+  },
   minh_anh: {
     id: 'BN-8429',
     name: 'Nguyễn Minh Anh',
@@ -4145,9 +4219,10 @@ const medicalPatientsData = {
     visitCount: 3,
     lastVisitDate: '18/10/2026',
     badge: 'NA',
+    roleText: 'Người thân (Chị em)',
     records: [
       {
-        id: 'rec_1',
+        id: 'rec_ma1',
         date: '18/10/2026',
         title: 'Viêm họng cấp',
         doctor: 'BS. Lê Thu Hà · Nội tổng quát',
@@ -4166,7 +4241,7 @@ const medicalPatientsData = {
         followUp: 'Không hẹn tái khám'
       },
       {
-        id: 'rec_2',
+        id: 'rec_ma2',
         date: '02/06/2026',
         title: 'Rối loạn nhịp xoang',
         doctor: 'BS. Phạm Đức Long · Tim mạch',
@@ -4185,7 +4260,7 @@ const medicalPatientsData = {
         followUp: 'Tái khám sau 1 tháng'
       },
       {
-        id: 'rec_3',
+        id: 'rec_ma3',
         date: '20/11/2025',
         title: 'Thiếu máu thiếu sắt',
         doctor: 'BS. Lê Thu Hà · Nội tổng quát',
@@ -4217,6 +4292,7 @@ const medicalPatientsData = {
     visitCount: 2,
     lastVisitDate: '15/09/2026',
     badge: 'TB',
+    roleText: 'Người thân (Bố)',
     records: [
       {
         id: 'rec_qb1',
@@ -4260,28 +4336,46 @@ const medicalPatientsData = {
   }
 };
 
-let activeMedicalPatientKey = 'minh_anh';
+let activeMedicalPatientKey = 'current_patient';
+
+function syncCurrentPatientProfile() {
+  if (currentUser) {
+    const cp = medicalPatientsData.current_patient;
+    cp.name = currentUser.name || currentUser.full_name || cp.name;
+    cp.gender = currentUser.gender || cp.gender;
+    if (currentUser.dob) {
+      cp.dob = currentUser.dob.includes('-') ? currentUser.dob.split('-').reverse().join('/') : currentUser.dob;
+    }
+    cp.blood = currentUser.blood_type || cp.blood;
+    cp.phone = currentUser.phone_number || currentUser.phone || cp.phone;
+    cp.badge = currentUser.badge || 'BN';
+
+    const pillName = document.getElementById('pill-name-current_patient');
+    const pillAvatar = document.getElementById('pill-avatar-current_patient');
+    if (pillName) pillName.innerText = cp.name;
+    if (pillAvatar) pillAvatar.innerText = cp.badge;
+  }
+}
 
 function selectPatientProfile(patientKey) {
-  const patient = medicalPatientsData[patientKey];
+  syncCurrentPatientProfile();
+  const patient = medicalPatientsData[patientKey] || medicalPatientsData.current_patient;
   if (!patient) return;
   activeMedicalPatientKey = patientKey;
 
   // Update switcher pills styling
-  const pillMA = document.getElementById('patient-pill-minh_anh');
-  const pillQB = document.getElementById('patient-pill-quoc_bao');
-
-  if (pillMA && pillQB) {
-    if (patientKey === 'minh_anh') {
-      pillMA.className = 'patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-teal-500/20 text-white shadow-lg shadow-teal-500/10 border border-teal-400/50 backdrop-blur-xl transition-all cursor-pointer';
-      pillQB.className = 'patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl glass-pill text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all cursor-pointer';
+  const allPillKeys = ['current_patient', 'minh_anh', 'quoc_bao'];
+  allPillKeys.forEach(k => {
+    const pill = document.getElementById('patient-pill-' + k);
+    if (!pill) return;
+    if (k === patientKey) {
+      pill.className = 'patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-teal-500/20 text-teal-900 dark:text-white shadow-lg shadow-teal-500/15 border border-teal-500/60 dark:border-teal-400/50 backdrop-blur-xl transition-all cursor-pointer';
     } else {
-      pillQB.className = 'patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-teal-500/20 text-white shadow-lg shadow-teal-500/10 border border-teal-400/50 backdrop-blur-xl transition-all cursor-pointer';
-      pillMA.className = 'patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl glass-pill text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all cursor-pointer';
+      pill.className = 'patient-pill-btn flex items-center space-x-3 px-4 py-2.5 rounded-2xl glass-pill text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all cursor-pointer';
     }
-  }
+  });
 
-  // Update Left Card
+  // Update Left Hero Card
   const heroName = document.getElementById('ehr-hero-name');
   const heroDemo = document.getElementById('ehr-hero-demographics');
   const avatarLarge = document.getElementById('ehr-avatar-large');
@@ -4306,13 +4400,13 @@ function selectPatientProfile(patientKey) {
   if (allergiesContainer) {
     if (patient.allergies && patient.allergies.length > 0) {
       allergiesContainer.innerHTML = patient.allergies.map(alg => `
-        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-400/30">
+        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
           <span>⚠️</span>
           <span>${alg}</span>
         </span>
       `).join('');
     } else {
-      allergiesContainer.innerHTML = '<span class="text-xs text-slate-400">Không ghi nhận dị ứng</span>';
+      allergiesContainer.innerHTML = '<span class="text-xs text-slate-500 dark:text-slate-400">Không ghi nhận dị ứng</span>';
     }
   }
 
@@ -4328,22 +4422,22 @@ function renderPatientTimeline(records) {
     return `
       <div onclick="openMedicalRecordDetail('${rec.id}')" class="relative group cursor-pointer">
         <!-- Timeline Indicator Dot -->
-        <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-teal-400 border-2 border-slate-900 shadow-md shadow-teal-400/50"></div>
+        <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-teal-500 dark:bg-teal-400 border-2 border-white dark:border-slate-900 shadow-md shadow-teal-500/50"></div>
 
-        <!-- Card Content (Dark Glass) -->
-        <div class="glass-card border border-white/10 rounded-2xl p-5 shadow-lg bg-white/[0.03] hover:bg-white/[0.06] hover:border-teal-400/40 hover:shadow-teal-500/10 backdrop-blur-xl transition-all">
+        <!-- Card Content -->
+        <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-teal-500/40 hover:shadow-teal-500/10 backdrop-blur-xl transition-all">
           <div class="flex items-start justify-between gap-2">
-            <div class="space-y-1">
-              <span class="text-xs font-bold text-teal-400 font-mono">${rec.date}</span>
-              <h4 class="text-base font-black text-white group-hover:text-teal-300 transition-colors">${rec.title}</h4>
-              <p class="text-xs text-slate-400">${rec.doctor}</p>
+            <div class="space-y-1.5">
+              <span class="text-xs font-bold text-teal-600 dark:text-teal-400 font-mono">${rec.date}</span>
+              <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-300 transition-colors">${rec.title}</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${rec.doctor}</p>
               <div class="pt-2">
-                <span class="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300 text-[11px] font-mono border border-white/10">${rec.icd}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">${rec.icd}</span>
               </div>
             </div>
 
             <div class="flex items-center self-center pl-2">
-              <svg class="w-5 h-5 text-slate-400 group-hover:text-teal-300 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              <svg class="w-5 h-5 text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-300 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
           </div>
         </div>
@@ -4353,7 +4447,7 @@ function renderPatientTimeline(records) {
 }
 
 function openMedicalRecordDetail(recordId) {
-  const patient = medicalPatientsData[activeMedicalPatientKey];
+  const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
   if (!patient) return;
   const rec = patient.records.find(r => r.id === recordId) || patient.records[0];
   if (!rec) return;
@@ -4381,20 +4475,21 @@ function openMedicalRecordDetail(recordId) {
   if (titleEl) titleEl.innerText = rec.title;
   if (doctorEl) doctorEl.innerText = rec.doctor;
   if (icdEl) icdEl.innerText = rec.icd;
-
   if (statusEl) {
-    statusEl.classList.add('hidden');
+    statusEl.innerText = rec.status || 'Đã ghi nhận';
   }
 
-  if (bpEl) bpEl.innerText = rec.vitals.bp;
-  if (hrEl) hrEl.innerText = rec.vitals.hr;
-  if (tempEl) tempEl.innerText = rec.vitals.temp;
-  if (weightEl) weightEl.innerText = rec.vitals.weight;
+  if (rec.vitals) {
+    if (bpEl) bpEl.innerText = rec.vitals.bp || '--';
+    if (hrEl) hrEl.innerText = rec.vitals.hr || '--';
+    if (tempEl) tempEl.innerText = rec.vitals.temp || '--';
+    if (weightEl) weightEl.innerText = rec.vitals.weight || '--';
+  }
 
-  if (symptomsEl) symptomsEl.innerText = rec.symptoms;
-  if (labsEl) labsEl.innerText = rec.labs;
-  if (notesEl) notesEl.innerText = rec.doctorNotes;
-  if (followupEl) followupEl.innerText = rec.followUp;
+  if (symptomsEl) symptomsEl.innerText = rec.symptoms || '--';
+  if (labsEl) labsEl.innerText = rec.labs || '--';
+  if (notesEl) notesEl.innerText = rec.doctorNotes || '--';
+  if (followupEl) followupEl.innerText = rec.followUp || 'Không hẹn tái khám';
 
   modal.classList.remove('hidden');
 }
@@ -4403,6 +4498,7 @@ function closeMedicalRecordDetail() {
   const modal = document.getElementById('medical-record-modal');
   if (modal) modal.classList.add('hidden');
 }
+
 
 // ==========================================
 // Image 1 Personal Information Logic
