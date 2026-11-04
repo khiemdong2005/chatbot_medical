@@ -37,8 +37,41 @@ NEGATION_WORDS = {
     "không", "khong", "chưa", "chua", "chẳng", "chang",
     "không hề", "khong he", "không bị", "khong bi", "không có", "khong co",
     "chưa hề", "chua he", "chưa bị", "chua bi", "chưa có", "chua co",
+    "hết", "het", "đỡ", "do", "khỏi", "khoi", "không còn", "khong con",
+    "hết bị", "het bi", "hết rồi", "het roi", "đã hết", "da het",
     "no", "not", "without", "denies", "deny"
 }
+
+GREETING_WORDS = {
+    "xin", "chao", "chào", "hello", "hi", "hey", "alo", "alô",
+    "bac", "bác", "si", "sĩ", "bs", "ban", "bạn", "em", "ad", "bot",
+    "a", "ơi", "oi", "nhe", "nhé", "nha", "chuc", "chúc", "buoi", "buổi",
+    "sang", "sáng", "chieu", "chiều", "toi", "tối", "tot", "tốt", "lanh", "lành"
+}
+
+def is_greeting_only(text: str) -> bool:
+    """Kiểm tra xem câu người dùng có chỉ đơn thuần là lời chào hay không (không chứa từ khóa y tế)."""
+    if not text:
+        return True
+    cleaned = remove_accents(text.strip().lower())
+    cleaned = re.sub(r"[^\w\s]", " ", cleaned)
+    words = cleaned.split()
+    if not words:
+        return True
+    greetings = {
+        "xin", "chao", "hello", "hi", "hey", "alo",
+        "bac", "si", "bs", "ban", "em", "ad", "bot",
+        "a", "da", "oi", "nhe", "nha", "chuc", "buoi",
+        "sang", "chieu", "toi", "tot", "lanh"
+    }
+    medical_kw = {
+        "sot", "dau", "ho", "rat", "nghet", "met", "non", "bung", "ngua",
+        "thuoc", "benh", "fever", "pain", "cough", "ache", "rash", "vomit",
+        "kho", "tho", "tuc", "nguc", "nghen", "so", "mui", "chong", "mat"
+    }
+    if any(w in medical_kw for w in words):
+        return False
+    return len(words) <= 6 and all(w in greetings for w in words)
 
 # Các triệu chứng cờ đỏ hoặc triệu chứng quan trọng thường được rà soát
 CANONICAL_SYMPTOMS = {
@@ -135,19 +168,41 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
                 preceding_text = lower_text[start_window:idx]
                 preceding_no_accent = no_accent_text[start_window:idx]
 
+                # Tách ranh giới mệnh đề (dấu phẩy, chấm phẩy, liên từ nhưng/mà/chỉ còn) để không phủ định chéo sang triệu chứng khẳng định
+                boundary_pat = r"[,;\.\?!]|(?:(?:nhưng|nhung|tuy nhiên|tuy|song|chỉ còn|chi con|ma|mà))"
+                b_matches = list(re.finditer(boundary_pat, preceding_text, re.IGNORECASE))
+                if b_matches:
+                    last_b = b_matches[-1].end()
+                    preceding_text = preceding_text[last_b:]
+                    preceding_no_accent = preceding_no_accent[last_b:]
+
                 # Tách các từ trong cửa sổ trước triệu chứng
                 words_before = set(re.findall(r"\w+", preceding_text))
                 words_before_no_accent = set(re.findall(r"\w+", preceding_no_accent))
 
-                # Kiểm tra từ đơn
-                if any(w in words_before or w in words_before_no_accent for w in ["không", "khong", "chưa", "chua", "chẳng", "chang", "no", "not"]):
+                # 1. Kiểm tra tiền tố phủ định (30 ký tự trước triệu chứng)
+                if any(w in words_before or w in words_before_no_accent for w in ["không", "khong", "chưa", "chua", "chẳng", "chang", "hết", "het", "đỡ", "do", "khỏi", "khoi", "no", "not"]):
                     is_denied = True
                 else:
-                    # Kiểm tra cụm từ
                     for neg_phrase in NEGATION_WORDS:
                         if neg_phrase in preceding_text or neg_phrase in preceding_no_accent:
                             is_denied = True
                             break
+
+                # 2. Kiểm tra hậu tố phủ định (25 ký tự ngay sau triệu chứng, vd: 'sốt đã hết', 'đau họng đỡ rồi')
+                if not is_denied:
+                    end_idx = idx + len(pat)
+                    succeeding_text = lower_text[end_idx:min(len(lower_text), end_idx + 25)]
+                    succeeding_no_accent = no_accent_text[end_idx:min(len(no_accent_text), end_idx + 25)]
+                    words_after = set(re.findall(r"\w+", succeeding_text))
+                    words_after_no_accent = set(re.findall(r"\w+", succeeding_no_accent))
+                    if any(w in words_after or w in words_after_no_accent for w in ["hết", "het", "đỡ", "do", "khỏi", "khoi", "giảm", "giam"]):
+                        is_denied = True
+                    else:
+                        for neg_phrase in ["đã hết", "da het", "hết rồi", "het roi", "không còn", "khong con", "đã khỏi", "da khoi"]:
+                            if neg_phrase in succeeding_text or neg_phrase in succeeding_no_accent:
+                                is_denied = True
+                                break
                 break
 
         if matched:
@@ -392,39 +447,91 @@ def generate_pre_visit_summary(
 
 class IntakeSessionManager:
     """
-    Quản lý bộ nhớ các phiên tư vấn trong ứng dụng (In-Memory với khả năng đồng bộ DB).
+    Quản lý bộ nhớ các phiên tư vấn trong ứng dụng:
+    Bộ đệm In-Memory song song CSDL SQLite bền vững (IntakeSessionRecord).
     """
 
     def __init__(self):
         self._sessions: Dict[str, Dict[str, Any]] = {}
 
+    def _save_to_db(self, session_data: Dict[str, Any]) -> None:
+        """Đồng bộ phiên vào CSDL bền vững khi có Flask App Context."""
+        try:
+            from flask import has_app_context
+            if not has_app_context():
+                return
+            from core.models import db, IntakeSessionRecord
+            import json
+            cid = session_data["conversation_id"]
+            rec = IntakeSessionRecord.query.filter_by(conversation_id=cid).first()
+            if not rec:
+                rec = IntakeSessionRecord(conversation_id=cid)
+                db.session.add(rec)
+            rec.user_id = session_data.get("user_id")
+            rec.status = session_data.get("status", "collecting")
+            rec.turn_count = session_data.get("turn_count", 0)
+            rec.facts_json = json.dumps(session_data.get("facts", {}), ensure_ascii=False)
+            rec.messages_json = json.dumps(session_data.get("messages", []), ensure_ascii=False)
+            rec.attachments_json = json.dumps(session_data.get("attachments", []), ensure_ascii=False)
+            rec.is_emergency = bool(session_data.get("is_emergency", False))
+            rec.is_confirmed = bool(session_data.get("is_confirmed", False))
+            rec.version = session_data.get("version", 1)
+            rec.created_at = session_data.get("created_at")
+            db.session.commit()
+        except Exception:
+            pass
+
+    def _load_from_db(self, conversation_id: str) -> Optional[Dict[str, Any]]:
+        """Nạp phiên từ CSDL nếu chưa có trong RAM cache."""
+        try:
+            from flask import has_app_context
+            if not has_app_context():
+                return None
+            from core.models import IntakeSessionRecord
+            rec = IntakeSessionRecord.query.filter_by(conversation_id=conversation_id).first()
+            if not rec:
+                return None
+            d = rec.to_dict()
+            d["visual_observations"] = []
+            d["sources"] = []
+            return d
+        except Exception:
+            return None
+
     def get_or_create_session(self, conversation_id: Optional[str] = None, user_id: Optional[int] = None) -> Dict[str, Any]:
-        """Tạo mới hoặc lấy lại phiên tư vấn hiện có."""
+        """Tạo mới hoặc lấy lại phiên tư vấn hiện có (Kiểm tra RAM trước, rồi DB)."""
         cid = conversation_id or f"conv_{uuid.uuid4().hex[:10]}"
         if cid not in self._sessions:
-            self._sessions[cid] = {
-                "conversation_id": cid,
-                "user_id": user_id,
-                "status": "collecting",  # collecting | ready_for_review | confirmed
-                "turn_count": 0,
-                "facts": {
-                    "chief_complaint": "",
-                    "present_symptoms": [],
-                    "denied_symptoms": [],
-                    "duration": None,
-                    "vitals": {},
-                    "allergies": [],
-                    "medications": []
-                },
-                "messages": [],
-                "attachments": [],
-                "visual_observations": [],
-                "sources": [],
-                "is_emergency": False,
-                "is_confirmed": False,
-                "version": 1,
-                "created_at": datetime.datetime.now().strftime("%H:%M %d/%m/%Y")
-            }
+            loaded = self._load_from_db(cid)
+            if loaded:
+                self._sessions[cid] = loaded
+                if user_id and not self._sessions[cid].get("user_id"):
+                    self._sessions[cid]["user_id"] = user_id
+            else:
+                self._sessions[cid] = {
+                    "conversation_id": cid,
+                    "user_id": user_id,
+                    "status": "collecting",  # collecting | partially_collected | ready_for_review | confirmed
+                    "turn_count": 0,
+                    "facts": {
+                        "chief_complaint": "",
+                        "present_symptoms": [],
+                        "denied_symptoms": [],
+                        "duration": None,
+                        "vitals": {},
+                        "allergies": [],
+                        "medications": []
+                    },
+                    "messages": [],
+                    "attachments": [],
+                    "visual_observations": [],
+                    "sources": [],
+                    "is_emergency": False,
+                    "is_confirmed": False,
+                    "version": 1,
+                    "created_at": datetime.datetime.now().strftime("%H:%M %d/%m/%Y")
+                }
+                self._save_to_db(self._sessions[cid])
         return self._sessions[cid]
 
     def process_message(
@@ -437,9 +544,9 @@ class IntakeSessionManager:
         """
         Xử lý 1 lượt tin nhắn trong quy trình hỏi bệnh:
           1. Tiền kiểm cờ đỏ cấp cứu.
-          2. Trích xuất và cập nhật dữ kiện (gộp các triệu chứng mới, cập nhật phủ định).
+          2. Trích xuất và cập nhật dữ kiện (loại bỏ khỏi present khi phủ nhận, tự hủy xác nhận cũ).
           3. Kiểm tra thông tin còn thiếu.
-          4. Tạo câu trả lời tiếp theo hoặc chuẩn bị bản tóm tắt nếu đã đủ dữ kiện.
+          4. Đánh giá trạng thái thu thập chính xác (không nhảy sớm sang ready_for_review nếu còn thiếu).
         """
         session = self.get_or_create_session(conversation_id)
         session["turn_count"] += 1
@@ -463,6 +570,7 @@ class IntakeSessionManager:
             session["status"] = "emergency"
             answer = emergency_res.get("message")
             summary = generate_pre_visit_summary(session)
+            self._save_to_db(session)
             return {
                 "conversation_id": conversation_id,
                 "status": "emergency",
@@ -476,38 +584,61 @@ class IntakeSessionManager:
 
         # 2. Trích xuất dữ kiện mới
         extracted = extract_clinical_facts_from_text(user_text)
-
-        # Hợp nhất dữ kiện vào session (không bị ghi đè mất thông tin cũ)
         current_facts = session["facts"]
+        facts_changed = False
 
-        # Nếu chưa có lý do khám chính thì lấy tin nhắn đầu tiên làm chief_complaint
+        # Nếu chưa có lý do khám chính thì chỉ gán khi KHÔNG PHẢI là lời chào đơn thuần
         if not current_facts["chief_complaint"] and user_text:
-            current_facts["chief_complaint"] = user_text[:120]
+            if not is_greeting_only(user_text):
+                if extracted["present_symptoms"]:
+                    current_facts["chief_complaint"] = ", ".join(extracted["present_symptoms"])
+                else:
+                    current_facts["chief_complaint"] = user_text[:120]
+                facts_changed = True
 
+        # Hợp nhất triệu chứng khẳng định
         for s in extracted["present_symptoms"]:
             if s not in current_facts["present_symptoms"]:
                 current_facts["present_symptoms"].append(s)
-            # Nếu trước đó từng nghĩ là phủ nhận mà giờ khẳng định có thì bỏ khỏi denied
+                facts_changed = True
+            # Nếu trước đó từng nằm trong denied_symptoms mà giờ khẳng định có thì bỏ khỏi denied
             if s in current_facts["denied_symptoms"]:
                 current_facts["denied_symptoms"].remove(s)
+                facts_changed = True
 
+        # Hợp nhất triệu chứng phủ nhận (QUAN TRỌNG: Nếu trước đó nằm trong present_symptoms thì PHẢI xóa khỏi present_symptoms!)
         for s in extracted["denied_symptoms"]:
-            if s not in current_facts["denied_symptoms"] and s not in current_facts["present_symptoms"]:
+            if s not in current_facts["denied_symptoms"]:
                 current_facts["denied_symptoms"].append(s)
+                facts_changed = True
+            if s in current_facts["present_symptoms"]:
+                current_facts["present_symptoms"].remove(s)
+                facts_changed = True
 
-        if extracted["duration"]:
+        if extracted["duration"] and current_facts.get("duration") != extracted["duration"]:
             current_facts["duration"] = extracted["duration"]
+            facts_changed = True
 
         if extracted["vitals"]:
-            current_facts["vitals"].update(extracted["vitals"])
+            for vk, vv in extracted["vitals"].items():
+                if current_facts["vitals"].get(vk) != vv:
+                    current_facts["vitals"][vk] = vv
+                    facts_changed = True
 
         for a in extracted["allergies"]:
             if a not in current_facts["allergies"]:
                 current_facts["allergies"].append(a)
+                facts_changed = True
 
         for m in extracted["medications"]:
             if m not in current_facts["medications"]:
                 current_facts["medications"].append(m)
+                facts_changed = True
+
+        # TỰ ĐỘNG HỦY XÁC NHẬN CŨ NẾU PHIÊN ĐÃ TỪNG ĐƯỢC XÁC NHẬN MÀ NAY CÓ DỮ KIỆN MỚI
+        if facts_changed and session.get("is_confirmed"):
+            session["is_confirmed"] = False
+            session["version"] = session.get("version", 1) + 1
 
         # 3. Rà soát thông tin còn thiếu
         missing_info = identify_missing_information(current_facts)
@@ -518,11 +649,20 @@ class IntakeSessionManager:
             session["status"] = "collecting"
             answer = f"Mình đã ghi nhận thông tin từ bạn. {next_q}"
         else:
-            session["status"] = "ready_for_review"
-            answer = (
-                "Cảm ơn bạn đã cung cấp chi tiết các triệu chứng. Mình đã hoàn tất việc tổng hợp bệnh sử sơ bộ. "
-                "Bạn vui lòng kiểm tra bảng **Thông tin đã ghi nhận** và xác nhận nếu các dữ kiện đã hoàn toàn chính xác nhé!"
-            )
+            if missing_info:
+                # Dừng hỏi do quá số lượt nhưng vẫn còn thông tin thiếu trọng yếu
+                session["status"] = "partially_collected"
+                answer = (
+                    "Cảm ơn bạn. Mình đã ghi nhận các thông tin cơ bản hiện có. "
+                    "Tuy nhiên một số chi tiết (như thời gian hoặc chỉ số đo) chưa được thu thập đầy đủ. "
+                    "Bạn vui lòng kiểm tra bảng **Thông tin đã ghi nhận**, có thể bổ sung trực tiếp hoặc xác nhận nhé!"
+                )
+            else:
+                session["status"] = "ready_for_review"
+                answer = (
+                    "Cảm ơn bạn đã cung cấp chi tiết các triệu chứng. Mình đã hoàn tất việc tổng hợp bệnh sử sơ bộ. "
+                    "Bạn vui lòng kiểm tra bảng **Thông tin đã ghi nhận** và xác nhận nếu các dữ kiện đã hoàn toàn chính xác nhé!"
+                )
 
         summary = generate_pre_visit_summary(session)
 
@@ -532,6 +672,9 @@ class IntakeSessionManager:
             "content": answer,
             "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
         })
+
+        # Lưu bền vững vào CSDL
+        self._save_to_db(session)
 
         return {
             "conversation_id": conversation_id,
@@ -554,9 +697,10 @@ class IntakeSessionManager:
 
         if field in facts:
             facts[field] = value
-            session["version"] += 1
+            session["version"] = session.get("version", 1) + 1
             session["is_confirmed"] = False  # Bắt buộc xác nhận lại khi sửa dữ kiện quan trọng
             session["status"] = "ready_for_review"
+            self._save_to_db(session)
 
         summary = generate_pre_visit_summary(session)
         return {
@@ -572,6 +716,7 @@ class IntakeSessionManager:
         session = self.get_or_create_session(conversation_id)
         session["is_confirmed"] = True
         session["status"] = "confirmed"
+        self._save_to_db(session)
         summary = generate_pre_visit_summary(session)
         return {
             "conversation_id": conversation_id,

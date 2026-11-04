@@ -1170,28 +1170,28 @@ async function sendChatMessage() {
   container.scrollTop = container.scrollHeight;
 
   try {
-    // Gọi song song Chatbot AI và Dịch vụ Phân tích Dữ kiện Lâm sàng (Intake Service)
-    const [chatResponse, intakeResponse] = await Promise.allSettled([
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: chatHistory, image: currentImage, lang: currentLang })
-      }).then(r => r.json()),
-      fetch('/api/intake/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversation_id: currentConversationId, message: text, image: currentImage })
-      }).then(r => r.json())
-    ]);
+    // Gọi Chatbot AI kèm conversation_id (Backend tự động điều phối và đồng bộ với Intake Service)
+    const chatRes = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversation_id: currentConversationId,
+        message: text,
+        history: chatHistory,
+        image: currentImage,
+        lang: currentLang
+      })
+    });
+    const data = await chatRes.json();
 
     document.getElementById(typingId)?.remove();
 
-    // 1. Xử lý phản hồi từ Intake Service (Cập nhật bảng dữ kiện và tóm tắt trước khám)
-    if (intakeResponse.status === 'fulfilled' && intakeResponse.value) {
-      const intakeData = intakeResponse.value;
-      if (intakeData.conversation_id) {
-        currentConversationId = intakeData.conversation_id;
-      }
+    // Đồng bộ tức thời Intake Session và Tóm tắt trước khám từ kết quả phản hồi hợp nhất
+    if (data && data.conversation_id) {
+      currentConversationId = data.conversation_id;
+    }
+    if (data && data.intake) {
+      const intakeData = data.intake;
       if (intakeData.facts) {
         updateLiveIntakeCard(intakeData.facts, intakeData.status, intakeData.summary);
       }
@@ -1199,9 +1199,6 @@ async function sendChatMessage() {
         currentIntakeSummary = intakeData.summary;
       }
     }
-
-    // 2. Xử lý phản hồi hội thoại
-    const data = (chatResponse.status === 'fulfilled') ? chatResponse.value : null;
 
     if (!data || data.error) {
       appendErrorMessage(data?.error || dict.server_error);
@@ -1379,9 +1376,14 @@ function renderPreVisitSummaryInModal(summary) {
   if (dEl) dEl.innerText = partA.duration || '--';
   if (pEl) pEl.innerText = (partA.symptoms_present && partA.symptoms_present.length) ? partA.symptoms_present.join(', ') : '--';
   if (dnEl) dnEl.innerText = (partA.symptoms_denied && partA.symptoms_denied.length) ? partA.symptoms_denied.join(', ') : 'Chưa có triệu chứng phủ nhận';
-  if (vEl) vEl.innerText = partA.vitals || '--';
-  if (attEl) attEl.innerText = partA.attachments_and_observations || '--';
+  if (vEl) vEl.innerText = partA.vitals || 'Chưa có chỉ số tự đo tại nhà';
+  if (attEl) attEl.innerText = partA.attachments_and_observations || 'Không có tệp hình ảnh đính kèm';
   if (mEl) mEl.innerText = (partA.missing_or_unclear_info && partA.missing_or_unclear_info.length) ? partA.missing_or_unclear_info.join('; ') : 'Đã đủ thông tin cơ bản';
+
+  const algEl = document.getElementById('summary-a-allergies');
+  const medEl = document.getElementById('summary-a-medications');
+  if (algEl) algEl.innerText = partA.allergies || 'Chưa ghi nhận tiền sử dị ứng đặc biệt';
+  if (medEl) medEl.innerText = partA.current_medications || 'Chưa ghi nhận thuốc đang dùng thường xuyên';
 
   // Part B
   const bStatus = document.getElementById('summary-b-status');
@@ -1424,9 +1426,19 @@ async function confirmCurrentIntake() {
       currentIntakeSummary = data.summary;
       updateLiveIntakeCard(data.summary.part_a_patient_facts, 'confirmed', data.summary);
       showMedicalToast("Đã xác nhận lời khai bệnh sử thành công!", "success");
+      return data.summary;
     }
   } catch (e) {
     showMedicalToast("Lỗi khi xác nhận lời khai", "error");
+  }
+}
+
+async function confirmIntakeSummaryModal() {
+  const sum = await confirmCurrentIntake();
+  if (sum) {
+    renderPreVisitSummaryInModal(sum);
+  } else if (currentIntakeSummary) {
+    renderPreVisitSummaryInModal(currentIntakeSummary);
   }
 }
 
@@ -4954,8 +4966,102 @@ function selectPatientProfile(patientKey = 'current_patient') {
     }
   }
 
-  // Render Right Timeline
-  renderPatientTimeline(patient.records);
+  // Render Right Timeline theo phân hệ đã chọn (Tư vấn AI thực tế vs Bệnh viện minh họa)
+  switchEhrSubTab(currentEhrSubTab || 'ai');
+
+let currentEhrSubTab = 'ai';
+
+function switchEhrSubTab(subTab) {
+  currentEhrSubTab = subTab;
+  const btnAi = document.getElementById('ehr-subtab-ai');
+  const btnHosp = document.getElementById('ehr-subtab-hospital');
+
+  if (subTab === 'ai') {
+    if (btnAi) btnAi.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer';
+    if (btnHosp) btnHosp.className = 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+    loadAndRenderAiConsultations();
+  } else {
+    if (btnAi) btnAi.className = 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+    if (btnHosp) btnHosp.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer';
+    const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
+    renderPatientTimeline(patient.records || []);
+  }
+}
+
+async function loadAndRenderAiConsultations() {
+  const container = document.getElementById('ehr-timeline-list');
+  const countBadge = document.getElementById('ehr-records-count-badge');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/consultations');
+    const data = await res.json();
+    const list = data.consultations || [];
+
+    if (countBadge) {
+      countBadge.innerText = `${list.length} phiên tư vấn AI`;
+    }
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 space-y-3 bg-white/50 dark:bg-white/[0.02]">
+          <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center mx-auto text-xl">💬</div>
+          <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Chưa có phiên tư vấn nào được lưu</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">Các phiên tư vấn trước khám với Trợ lý AI sẽ tự động xuất hiện ở đây để bạn dễ dàng theo dõi và xuất phiếu trước khám.</p>
+          <button type="button" onclick="switchTab('chat-tab')" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 transition-all cursor-pointer shadow-sm">
+            Bắt đầu trò chuyện ngay
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = list.map((item) => {
+      const isEmg = item.is_emergency;
+      const statusClass = isEmg ? 'bg-rose-500/15 text-rose-500 border-rose-500/30' : 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30';
+      const statusText = isEmg ? 'Cảnh báo cấp cứu' : (item.risk_level || 'Tư vấn ban đầu');
+      return `
+        <div onclick="openConsultationSummaryDetail(${item.id})" class="relative group cursor-pointer">
+          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full ${isEmg ? 'bg-rose-500' : 'bg-sky-500'} border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
+          <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:border-sky-500/40 transition-all">
+            <div class="flex items-start justify-between gap-3">
+              <div class="space-y-1.5 flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">${escapeHtml(item.created_at || 'Gần đây')}</span>
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${statusClass}">${statusText}</span>
+                </div>
+                <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                  ${escapeHtml(item.message || 'Tư vấn triệu chứng')}
+                </h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                  <span>Trợ lý Y tế MediMind AI</span>
+                  <span>•</span>
+                  <span>Định hướng: ${escapeHtml(item.specialist || 'Nội tổng quát')}</span>
+                </p>
+                <div class="pt-1.5">
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/10">
+                    📋 Bấm để xem Bản Tóm Tắt Trước Khám (Pre-visit Summary)
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center self-center pl-2">
+                <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error("Lỗi tải lịch sử tư vấn:", e);
+  }
+}
+
+function openConsultationSummaryDetail(consultationId) {
+  openPreVisitSummaryModal();
+}
+
+
 }
 
 function renderPatientTimeline(records) {

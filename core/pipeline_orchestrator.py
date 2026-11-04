@@ -184,15 +184,21 @@ def process_medical_document_pipeline(
     for med in medications_list:
         sched = med.get("schedule", {})
         m_name = med.get("standard_name") or med.get("name")
-        m_dose = med.get("dose", "1 viên")
+        # Không tự ý điền mặc định "1 viên" nếu tài liệu không ghi rõ liều
+        has_dose = bool(med.get("dose") and str(med.get("dose")).strip())
+        m_dose = med.get("dose") if has_dose else "Chưa rõ liều (Cần đối chiếu đơn)"
+        needs_review_item = med.get("needs_review", False) or not has_dose
+
         for slot_key in ["morning", "noon", "evening", "bedtime"]:
             s_info = sched.get(slot_key)
             if s_info and s_info.get("active"):
+                # Không gán bừa "Uống sau ăn" nếu đơn thuốc không chỉ định
+                slot_note = s_info.get("note") or "Theo chỉ dẫn của bác sĩ/dược sĩ"
                 ui_timeline[slot_key].append({
                     "name": m_name,
                     "dose": m_dose,
-                    "note": s_info.get("note", "Uống sau ăn"),
-                    "needs_review": med.get("needs_review", False)
+                    "note": slot_note,
+                    "needs_review": needs_review_item
                 })
 
     output = {

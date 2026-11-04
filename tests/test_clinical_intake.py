@@ -137,3 +137,57 @@ def test_emergency_bypass_in_intake():
     assert "115" in res["answer"]
     assert "cấp cứu" in res["summary"]["part_b_system_assessment"]["triage_status"].lower()
 
+
+
+def test_negation_removes_from_present_symptoms():
+    """Kiểm thử 6: Lời phủ nhận sau đó phải gỡ bỏ triệu chứng khỏi present_symptoms."""
+    manager = IntakeSessionManager()
+    cid = "test_conv_negation_override"
+
+    # Lượt 1: Báo có sốt
+    res1 = manager.process_message(cid, "Tôi bị sốt cao từ tối qua")
+    assert any("Sốt" in s for s in res1["facts"]["present_symptoms"])
+    assert not any("Sốt" in s for s in res1["facts"]["denied_symptoms"])
+
+    # Lượt 2: Báo đã hết sốt (phủ nhận triệu chứng đã có trước đó)
+    res2 = manager.process_message(cid, "Tôi đã uống thuốc và nay đã hết sốt rồi, không còn sốt nữa, chỉ còn đau họng")
+    facts2 = res2["facts"]
+
+    # Sốt PHẢI bị xóa khỏi present_symptoms và chuyển sang denied_symptoms
+    assert not any("Sốt" in s for s in facts2["present_symptoms"])
+    assert any("Sốt" in s for s in facts2["denied_symptoms"])
+    assert any("Đau rát họng" in s for s in facts2["present_symptoms"])
+
+
+def test_greeting_not_chief_complaint():
+    """Kiểm thử 7: Lời chào mở đầu không bị gán nhầm thành lý do khám bệnh (chief_complaint)."""
+    manager = IntakeSessionManager()
+    cid = "test_conv_greeting"
+
+    # Gửi lời chào đơn thuần
+    res1 = manager.process_message(cid, "Xin chào bác sĩ ạ!")
+    # Lý do khám KHÔNG được là "Xin chào bác sĩ ạ!"
+    assert res1["facts"]["chief_complaint"] == "" or "chào" not in res1["facts"]["chief_complaint"].lower()
+
+    # Tin nhắn thứ 2 mô tả bệnh thực sự
+    res2 = manager.process_message(cid, "Tôi bị ho có đờm và nghẹt mũi 3 hôm nay")
+    assert res2["facts"]["chief_complaint"] != ""
+    assert "chào" not in res2["facts"]["chief_complaint"].lower()
+    assert any(w in res2["facts"]["chief_complaint"].lower() for w in ["ho", "nghẹt", "mũi"])
+
+
+def test_new_message_invalidates_old_confirmation():
+    """Kiểm thử 8: Tin nhắn mới mang dữ kiện phải tự động hủy xác nhận cũ và tăng số phiên bản."""
+    manager = IntakeSessionManager()
+    cid = "test_conv_reconfirm"
+
+    # Tạo phiên và xác nhận
+    manager.process_message(cid, "Tôi bị đau họng từ 3 ngày nay")
+    conf1 = manager.confirm_summary(cid)
+    assert conf1["is_confirmed"] is True
+    assert conf1["summary"]["version"] == 1
+
+    # Người bệnh nhắn thêm triệu chứng mới sau khi đã xác nhận
+    res2 = manager.process_message(cid, "Ngoài ra tôi có sốt 38 độ C nữa")
+    assert res2["summary"]["is_confirmed"] is False  # ĐÃ TỰ ĐỘNG HỦY XÁC NHẬN CŨ
+    assert res2["summary"]["version"] == 2  # ĐÃ TĂNG PHIÊN BẢN

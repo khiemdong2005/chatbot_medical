@@ -24,7 +24,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.5.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.6.0">
 
 <style>
 
@@ -1482,12 +1482,23 @@ background: #94A3B8;
 
     <!-- RIGHT COLUMN: Examination Timeline (Col 8/12) -->
     <div class="lg:col-span-8 space-y-4">
-      <!-- Timeline Header -->
-      <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-white/10">
-        <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-          <span>Lịch sử khám & điều trị</span>
-        </h3>
-        <span id="ehr-records-count-badge" class="text-xs text-slate-500 dark:text-slate-400 font-bold font-mono">3 hồ sơ</span>
+      <!-- Timeline Header with Sub-tab Switcher (AI Consultations vs Hospital Mock) -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <span>Lịch sử khám & tư vấn</span>
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tách bạch rõ giữa phiên tư vấn AI thực tế và hồ sơ bệnh viện liên kết</p>
+        </div>
+
+        <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 shrink-0">
+          <button type="button" id="ehr-subtab-ai" onclick="switchEhrSubTab('ai')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer">
+            💬 Tư vấn AI (Thực tế)
+          </button>
+          <button type="button" id="ehr-subtab-hospital" onclick="switchEhrSubTab('hospital')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+            🏥 Bệnh viện (Mẫu minh họa)
+          </button>
+        </div>
       </div>
 
       <!-- Timeline Cards Container -->
@@ -2786,12 +2797,178 @@ Hủy bỏ
 <!-- ============================================================== -->
 <!-- CLINICAL DETAIL INSPECTION MODAL (Đồng bộ Dark Glass Theme)    -->
 <!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- PRE-VISIT CLINICAL SUMMARY MODAL (Phiếu Chuẩn Bị Trước Khám Chuẩn 2 Phần) -->
+<!-- ============================================================== -->
+<div id="previsit-summary-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closePreVisitSummaryModal()">
+  <div class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[92vh] overflow-y-auto space-y-6 text-slate-900 dark:text-white backdrop-blur-2xl">
+    <!-- Close Button -->
+    <button type="button" onclick="closePreVisitSummaryModal()" class="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer" title="Đóng">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <!-- Header Section -->
+    <div class="space-y-2 pr-8">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/25 shrink-0 border border-white/20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Bản Tóm Tắt Tư Vấn Trước Khám</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Trích xuất tự động từ phiên trao đổi với Trợ lý AI MediMind</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 pt-1">
+        <span id="modal-summary-status-text" class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-400/30">
+          Phiên bản: v1 • Chờ xác nhận
+        </span>
+        <span id="modal-summary-created-at" class="text-xs text-slate-500 dark:text-slate-400 font-mono"></span>
+      </div>
+
+      <div class="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/40 text-[11px] text-blue-800 dark:text-blue-300 leading-relaxed">
+        <strong>Lưu ý lâm sàng:</strong> Đây là bản tóm tắt dữ kiện người bệnh tự khai báo và định hướng tiếp cận sơ bộ, KHÔNG phải chẩn đoán y khoa chính thức thay thế bác sĩ điều trị.
+      </div>
+    </div>
+
+    <!-- PHẦN A: THÔNG TIN ĐÃ THU THẬP TỪ NGƯỜI BỆNH -->
+    <div class="space-y-3.5 pt-3 border-t border-slate-200/80 dark:border-white/10">
+      <div class="flex items-center justify-between">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+          <span>Phần A — Thông tin thu thập từ người bệnh</span>
+        </h4>
+        <span class="text-[11px] text-slate-400 font-medium">(Lời khai thực tế)</span>
+      </div>
+
+      <div class="space-y-3 text-xs bg-slate-50/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/60 dark:border-white/5">
+        <!-- Lý do khám & Thời gian -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-200/60 dark:border-white/5">
+          <div class="sm:col-span-2 space-y-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Lý do tư vấn chính</span>
+            <p id="summary-a-complaint" class="text-sm font-bold text-slate-900 dark:text-white">--</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Thời gian diễn tiến</span>
+            <p id="summary-a-duration" class="text-sm font-bold text-sky-600 dark:text-sky-400 font-mono">--</p>
+          </div>
+        </div>
+
+        <!-- Triệu chứng có vs Triệu chứng phủ nhận -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-200/60 dark:border-white/5">
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>Triệu chứng ghi nhận có
+            </span>
+            <div id="summary-a-present" class="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">--</div>
+          </div>
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>Triệu chứng người bệnh đã phủ nhận
+            </span>
+            <div id="summary-a-denied" class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed italic">Chưa có triệu chứng phủ nhận</div>
+          </div>
+        </div>
+
+        <!-- Dị ứng & Thuốc đang dùng -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-200/60 dark:border-white/5">
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block flex items-center gap-1">
+              <span>⚠️</span><span>Tiền sử dị ứng</span>
+            </span>
+            <div id="summary-a-allergies" class="text-xs text-slate-800 dark:text-slate-200 font-medium">Chưa ghi nhận tiền sử dị ứng đặc biệt</div>
+          </div>
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block flex items-center gap-1">
+              <span>💊</span><span>Thuốc đang dùng thường xuyên</span>
+            </span>
+            <div id="summary-a-medications" class="text-xs text-slate-800 dark:text-slate-200 font-medium">Chưa ghi nhận thuốc đang dùng thường xuyên</div>
+          </div>
+        </div>
+
+        <!-- Chỉ số tự đo & Ảnh đính kèm -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-200/60 dark:border-white/5">
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Chỉ số tự đo tại nhà</span>
+            <div id="summary-a-vitals" class="text-xs font-mono text-slate-800 dark:text-slate-200">Chưa có chỉ số tự đo tại nhà</div>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tệp đính kèm / Quan sát ảnh</span>
+            <div id="summary-a-attachments" class="text-xs text-slate-600 dark:text-slate-400">Không có tệp hình ảnh đính kèm</div>
+          </div>
+        </div>
+
+        <!-- Thông tin còn thiếu / Cần lưu ý khi gặp bác sĩ -->
+        <div class="space-y-1">
+          <span class="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block flex items-center gap-1">
+            <span>ℹ️</span><span>Thông tin còn thiếu / Cần trao đổi thêm với bác sĩ</span>
+          </span>
+          <div id="summary-a-missing" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">Đã đủ thông tin cơ bản</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHẦN B: ĐÁNH GIÁ SƠ BỘ & HƯỚNG TIẾP CẬN -->
+    <div class="space-y-3.5 pt-3 border-t border-slate-200/80 dark:border-white/10">
+      <div class="flex items-center justify-between">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+          <span>Phần B — Đánh giá sơ bộ & Hướng tiếp cận</span>
+        </h4>
+        <span class="text-[11px] text-slate-400 font-medium">(Trợ lý AI hỗ trợ)</span>
+      </div>
+
+      <div class="space-y-3 text-xs bg-slate-50/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/60 dark:border-white/5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-200/60 dark:border-white/5">
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Phân luồng rủi ro</span>
+            <p id="summary-b-status" class="text-sm font-black text-slate-900 dark:text-white">--</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Chuyên khoa khuyến nghị</span>
+            <p id="summary-b-specialist" class="text-sm font-black text-sky-600 dark:text-sky-400">--</p>
+          </div>
+        </div>
+
+        <div class="space-y-1 pb-3 border-b border-slate-200/60 dark:border-white/5">
+          <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Hướng tiếp cận chăm sóc</span>
+          <p id="summary-b-approach" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">--</p>
+        </div>
+
+        <div class="space-y-1">
+          <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Nguồn y văn tham chiếu (RAG / MedlinePlus)</span>
+          <div id="summary-b-sources" class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed space-y-1">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/80 dark:border-white/10">
+      <button type="button" id="modal-btn-confirm" onclick="confirmIntakeSummaryModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+        <span>✓ Tôi xác nhận lời khai đúng thực tế</span>
+      </button>
+
+      <button type="button" onclick="closePreVisitSummaryModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">
+        Đóng
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="medical-record-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeMedicalRecordDetail()">
   <div class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6 text-slate-900 dark:text-white backdrop-blur-2xl">
     <!-- Close Button -->
     <button type="button" onclick="closeMedicalRecordDetail()" class="absolute right-5 top-5 w-8 h-8 rounded-full bg-white/10 text-slate-400 hover:text-white hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer" title="Đóng">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
+
+    <!-- Demo Record Warning Banner -->
+    <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2.5 shadow-sm">
+      <span class="text-base shrink-0">⚠️</span>
+      <div class="leading-relaxed">
+        <strong>Hồ sơ bệnh viện liên kết (Mẫu minh họa):</strong> Đây là bản ghi mẫu giả lập kết nối sổ y bạ cơ sở y tế để bạn trải nghiệm tính năng, <em>không phải kết quả chẩn đoán từ Chatbot AI</em>.
+      </div>
+    </div>
 
     <!-- Header Section -->
     <div class="space-y-1.5 pr-8">
@@ -2973,7 +3150,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.5.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.6.0"></script>
 
 
 <!-- ============================================================== -->

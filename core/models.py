@@ -147,6 +147,58 @@ class ClinicalConsultation(db.Model):
         }
 
 
+class IntakeSessionRecord(db.Model):
+    """
+    Mô hình lưu trữ bền vững các phiên hỏi bệnh lâm sàng (Intake Session) có cấu trúc.
+    Giữ toàn vẹn dữ liệu khi khởi động lại server hoặc chạy multi-worker.
+    """
+    __tablename__ = "intake_sessions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    conversation_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    status = db.Column(db.String(50), default="collecting")
+    turn_count = db.Column(db.Integer, default=0)
+    facts_json = db.Column(db.Text, nullable=False, default="{}")
+    messages_json = db.Column(db.Text, nullable=False, default="[]")
+    attachments_json = db.Column(db.Text, nullable=False, default="[]")
+    is_emergency = db.Column(db.Boolean, default=False)
+    is_confirmed = db.Column(db.Boolean, default=False)
+    version = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.String(50), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("intake_sessions", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        import json
+        try:
+            facts = json.loads(self.facts_json or "{}")
+        except Exception:
+            facts = {}
+        try:
+            messages = json.loads(self.messages_json or "[]")
+        except Exception:
+            messages = []
+        try:
+            attachments = json.loads(self.attachments_json or "[]")
+        except Exception:
+            attachments = []
+        return {
+            "conversation_id": self.conversation_id,
+            "user_id": self.user_id,
+            "status": self.status,
+            "turn_count": self.turn_count,
+            "facts": facts,
+            "messages": messages,
+            "attachments": attachments,
+            "is_emergency": bool(self.is_emergency),
+            "is_confirmed": bool(self.is_confirmed),
+            "version": self.version,
+            "created_at": self.created_at or ""
+        }
+
+
 def init_db(app):
     """Khởi tạo cơ sở dữ liệu và tự động nâng cấp cấu trúc bảng nếu cần."""
     db.init_app(app)

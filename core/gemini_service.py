@@ -49,7 +49,8 @@ class GeminiMedicalService:
         image_bytes: Optional[bytes] = None,
         image_mime_type: str = "image/jpeg",
         lang: str = "vi",
-        request_id: Optional[str] = None
+        request_id: Optional[str] = None,
+        clinical_hint: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Gọi Google Gemini API để phân tích triệu chứng y tế và trả về kết quả có cấu trúc JSON.
@@ -100,9 +101,18 @@ class GeminiMedicalService:
             "Nội dung phản hồi tư vấn y tế cho người bệnh (BẮT BUỘC NGẮN GỌN: 60 - 100 TỪ. Cấu trúc 3 phần: 1 câu ngắn ghi nhận (<15 từ); 2-3 gạch đầu dòng việc cần làm ngay (<15 từ/dòng); 1 gạch đầu dòng dấu hiệu cảnh báo đi khám (<15 từ). Đi thẳng vào trọng tâm, không giải thích lý thuyết y khoa lan man)."
         )
 
+        hint_block = ""
+        if clinical_hint:
+            hint_block = (
+                f"\n\nLƯU Ý THU THẬP BỆNH SỬ LÂM SÀNG BỔ SUNG:\n"
+                f"- Hệ thống ghi nhận còn thiếu thông tin sau: '{clinical_hint}'.\n"
+                f"- Ở cuối câu trả lời, hãy ân cần hỏi thêm thông tin này một cách tự nhiên để hoàn tất bản tóm tắt trước khám cho người bệnh.\n\n"
+            )
+
         instruction_prompt = (
             f"{VIETNAMESE_MEDICAL_SYSTEM_PROMPT}\n"
-            f"{rag_context_block}\n\n"
+            f"{rag_context_block}\n"
+            f"{hint_block}"
             f"{lang_directive}"
             "NGUYÊN TẮC BẮT BUỘC VỀ ĐỘ DÀI & ĐỊNH DẠNG (STRICT CONCISENESS):\n"
             "- ĐỘ DÀI TRƯỜNG 'answer' BẮT BUỘC TRONG KHOẢNG 60 - 100 TỪ. KHÔNG VIẾT DÀI HƠN.\n"

@@ -19,7 +19,8 @@ def process_clinical_chat(
     image_mime_type: str = "image/jpeg",
     lang: str = "vi",
     gemini_service: Optional[GeminiMedicalService] = None,
-    request_id: Optional[str] = None
+    request_id: Optional[str] = None,
+    clinical_hint: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Dịch vụ điều phối tư vấn lâm sàng 4 tầng dùng chung (Shared Application Service):
@@ -124,7 +125,8 @@ def process_clinical_chat(
             image_bytes=image_bytes,
             image_mime_type=image_mime_type,
             lang=lang,
-            request_id=req_id
+            request_id=req_id,
+            clinical_hint=clinical_hint
         )
     except Exception as err:
         logger.warning(f"[REQ-{req_id}] Gemini service exception: {err}")
@@ -137,6 +139,8 @@ def process_clinical_chat(
         degraded = True
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
         triage_result = analyze_symptoms(user_message, history, lang=lang, has_image=has_image)
+        if clinical_hint and triage_result.get("answer"):
+            triage_result["answer"] += f"\n\n💡 *Lưu ý y tế:* {clinical_hint}"
         if rag_docs:
             triage_result["sources"] = [
                 {
