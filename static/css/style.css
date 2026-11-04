@@ -399,6 +399,14 @@ body:not(.light-glass) #profile-tab label {
   flex-shrink: 0 !important;
 }
 
+body.light-glass #profile-tab label svg {
+  color: #0F172A !important;
+}
+
+body:not(.light-glass) #profile-tab label svg {
+  color: #E2E8F0 !important;
+}
+
 body:not(.light-glass) .p-section-heading,
 body:not(.light-glass) #profile-tab h4 {
   color: #F8FAFC !important;
