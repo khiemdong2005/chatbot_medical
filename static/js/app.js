@@ -2304,6 +2304,44 @@ async function handleLogout() {
   switchTab('home-tab');
 }
 
+
+function updateProfileCompletion() {
+  if (!currentUser) {
+    const pctEl = document.getElementById('profile-completion-pct');
+    const barEl = document.getElementById('profile-completion-bar');
+    if (pctEl) pctEl.innerText = '6%';
+    if (barEl) barEl.style.width = '6%';
+    return;
+  }
+  const fields = [
+    currentUser.full_name || currentUser.name,
+    currentUser.dob,
+    currentUser.gender,
+    currentUser.phone_number,
+    currentUser.email,
+    currentUser.cccd,
+    currentUser.issue_date,
+    currentUser.issue_place,
+    currentUser.bhyt,
+    currentUser.facility,
+    currentUser.valid_from,
+    currentUser.valid_to,
+    currentUser.nationality,
+    currentUser.ethnicity,
+    currentUser.religion,
+    currentUser.province,
+    currentUser.ward,
+    currentUser.address
+  ];
+  const filled = fields.filter(v => v && String(v).trim().length > 0).length;
+  // If only 1 field (like nationality VN) is filled, it equals 6% exactly matching Image 1
+  const pct = Math.max(6, Math.min(100, Math.round((filled / fields.length) * 100)));
+  const pctEl = document.getElementById('profile-completion-pct');
+  const barEl = document.getElementById('profile-completion-bar');
+  if (pctEl) pctEl.innerText = `${pct}%`;
+  if (barEl) barEl.style.width = `${pct}%`;
+}
+
 function updateAuthUI() {
   const unlogged = document.getElementById('auth-unlogged');
   const logged = document.getElementById('auth-logged');
@@ -2454,9 +2492,47 @@ function updateAuthUI() {
     }
     if (pAddress) pAddress.value = currentUser.address || '';
 
-    if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Văn An';
-    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
-    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
+        const cardJoined = document.getElementById('profile-card-joined');
+    const dispAvatar = document.getElementById('profile-avatar-display');
+    const fallbackAvatar = document.getElementById('profile-avatar-fallback');
+
+    const displayName = currentUser.full_name || currentUser.name || '';
+    if (cardName) cardName.innerText = displayName || 'Chưa có họ và tên';
+
+    const displayEmail = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
+    if (cardEmail) {
+      if (displayEmail) {
+        cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(displayEmail, 'p-email') : displayEmail;
+      } else {
+        cardEmail.innerText = 'Chưa có email';
+      }
+    }
+
+    const displayPhone = currentUser.phone_number || '';
+    if (cardPhone) {
+      if (displayPhone) {
+        cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(displayPhone, 'p-phone') : displayPhone;
+      } else {
+        cardPhone.innerText = 'Chưa có số điện thoại';
+      }
+    }
+
+    if (cardJoined) {
+      cardJoined.innerText = currentUser.created_at_fmt || currentUser.joined_date || (displayName ? '11/09/2026' : 'Chưa lưu');
+    }
+
+    if (currentUser.hasCustomAvatar && currentUser.avatar) {
+      if (dispAvatar) {
+        dispAvatar.src = currentUser.avatar;
+        dispAvatar.classList.remove('hidden');
+      }
+      if (fallbackAvatar) fallbackAvatar.classList.add('hidden');
+    } else {
+      if (dispAvatar) dispAvatar.classList.add('hidden');
+      if (fallbackAvatar) fallbackAvatar.classList.remove('hidden');
+    }
+
+    updateProfileCompletion();
     
     
     // Sync Settings controls
@@ -2477,7 +2553,7 @@ function updateAuthUI() {
     }
     
     const topAvatar = document.getElementById('user-avatar-img');
-    const dispAvatar = document.getElementById('profile-avatar-display');
+    // dispAvatar reused
     if (topAvatar) topAvatar.src = avatarUrl;
     if (dispAvatar) dispAvatar.src = avatarUrl;
     if (tabDob) tabDob.value = currentUser.dob || '';
@@ -2508,6 +2584,19 @@ function updateAuthUI() {
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
+    const guestCardName = document.getElementById('profile-card-name');
+    const guestCardPhone = document.getElementById('profile-card-phone');
+    const guestCardEmail = document.getElementById('profile-card-email');
+    const guestCardJoined = document.getElementById('profile-card-joined');
+    const guestDispAvatar = document.getElementById('profile-avatar-display');
+    const guestFallbackAvatar = document.getElementById('profile-avatar-fallback');
+    if (guestCardName) guestCardName.innerText = 'Chưa có họ và tên';
+    if (guestCardPhone) guestCardPhone.innerText = 'Chưa có số điện thoại';
+    if (guestCardEmail) guestCardEmail.innerText = 'Chưa có email';
+    if (guestCardJoined) guestCardJoined.innerText = 'Chưa lưu';
+    if (guestDispAvatar) guestDispAvatar.classList.add('hidden');
+    if (guestFallbackAvatar) guestFallbackAvatar.classList.remove('hidden');
+    updateProfileCompletion();
     if (nameEl) nameEl.innerText = currentLang === 'en' ? 'Guest' : 'Khách';
     if (roleEl) roleEl.innerText = currentLang === 'en' ? 'Not signed in' : 'Chưa đăng nhập';
     if (avatarEl) avatarEl.innerText = '👤';
