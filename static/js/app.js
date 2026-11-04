@@ -2233,14 +2233,17 @@ function syncFloatingChatMessages() {
 
   if (chatHistory.length === 0) {
     container.innerHTML = `
-      <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-sky-400/20 text-slate-300 space-y-2 text-xs">
-        <div class="flex items-center gap-2 text-sky-300 font-bold">
-          <span>🩺</span>
-          <span>Chào bạn, tôi là Bác sĩ Trợ lý MediMind!</span>
-        </div>
-        <p class="text-[11px] text-slate-300 leading-relaxed">
-          Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé!
+      <div class="floating-welcome-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-sky-100 dark:border-white/10 space-y-2.5 shadow-sm text-xs">
+        <h5 class="text-sm font-bold text-[#0284C7] dark:text-sky-400 leading-snug">
+          Chào bạn, tôi là Trợ lý y tế MediMind!
+        </h5>
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé.
         </p>
+        <div class="flex items-start gap-1.5 pt-2 text-[11px] text-slate-400 dark:text-slate-400 leading-normal border-t border-slate-100 dark:border-white/5">
+          <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01"/></svg>
+          <span>Thông tin chỉ mang tính tham khảo, không thay thế chẩn đoán của bác sĩ.</span>
+        </div>
       </div>
     `;
     return;
@@ -2250,7 +2253,7 @@ function syncFloatingChatMessages() {
     if (msg.role === 'user') {
       return `
         <div class="flex flex-col items-end my-1">
-          <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-3 py-2 rounded-xl rounded-tr-xs text-xs leading-relaxed font-medium text-left break-words border border-white/20 shadow-xs">
+          <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500 to-blue-600 text-white px-3.5 py-2.5 rounded-2xl rounded-tr-xs text-xs leading-relaxed font-medium text-left break-words shadow-sm">
             ${escapeHtml(msg.content)}
           </div>
           <span class="text-[9px] text-slate-400 mt-0.5 mr-1">Bạn</span>
@@ -2263,7 +2266,7 @@ function syncFloatingChatMessages() {
         .replace(/\n/g, '<br>');
       return `
         <div class="flex justify-start max-w-[90%] my-1">
-          <div class="glass-card border border-white/10 p-3 rounded-xl rounded-tl-xs text-xs text-slate-200 leading-relaxed shadow-md backdrop-blur-md bg-white/[0.06]">
+          <div class="bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 p-3.5 rounded-2xl rounded-tl-xs text-xs text-slate-800 dark:text-slate-200 leading-relaxed shadow-sm">
             ${formatted}
           </div>
         </div>

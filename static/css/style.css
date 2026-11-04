@@ -840,9 +840,9 @@ body.light-glass #floating-chat-window {
 }
 
 body.light-glass .floating-chat-header {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
-  border-bottom: 1px solid #E2E8F0 !important;
+  background-color: #F0F7FF !important;
+  background: #F0F7FF !important;
+  border-bottom: 1px solid #E0F2FE !important;
 }
 
 body.light-glass .floating-chat-title {
