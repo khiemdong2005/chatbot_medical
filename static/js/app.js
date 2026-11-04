@@ -1002,6 +1002,11 @@ function switchTab(tabId) {
   const activeTab = document.getElementById(tabId);
   if (activeTab) activeTab.classList.add('active');
 
+  if (tabId === 'doctor-tab') {
+    syncCurrentPatientProfile();
+    selectPatientProfile('current_patient');
+  }
+
   const activeNav = document.getElementById('nav-' + tabId);
   if (activeNav) {
     activeNav.classList.remove('text-slate-300', 'font-semibold');
@@ -2407,7 +2412,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
   applyLanguage();
   initHistorySearch();
-  selectPatientProfile('minh_anh');
+  selectPatientProfile('current_patient');
   updateHomeGreeting();
 
   const input = document.getElementById('user-input');
@@ -4339,20 +4344,49 @@ function syncCurrentPatientProfile() {
     }
     cp.blood = currentUser.blood_type || cp.blood;
     cp.phone = currentUser.phone_number || currentUser.phone || cp.phone;
-    cp.badge = currentUser.badge || 'BN';
+    cp.badge = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
+
+    if (currentUser.allergies && typeof currentUser.allergies === 'string') {
+      const algList = currentUser.allergies.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+      if (algList.length > 0) cp.allergies = algList;
+    }
 
     const pillName = document.getElementById('pill-name-current_patient');
     const pillAvatar = document.getElementById('pill-avatar-current_patient');
     if (pillName) pillName.innerText = cp.name;
     if (pillAvatar) pillAvatar.innerText = cp.badge;
+
+    // Direct binding to Hero card in doctor-tab
+    const heroName = document.getElementById('ehr-hero-name');
+    const heroDemo = document.getElementById('ehr-hero-demographics');
+    const avatarLarge = document.getElementById('ehr-avatar-large');
+    const dobVal = document.getElementById('ehr-dob-val');
+    const bloodVal = document.getElementById('ehr-blood-val');
+    const phoneVal = document.getElementById('ehr-phone-val');
+    const allergiesContainer = document.getElementById('ehr-allergies-container');
+
+    if (heroName) heroName.innerText = cp.name;
+    if (heroDemo) heroDemo.innerText = `${cp.gender} · ${cp.age} tuổi`;
+    if (avatarLarge) avatarLarge.innerText = cp.badge;
+    if (dobVal) dobVal.innerText = cp.dob;
+    if (bloodVal) bloodVal.innerText = cp.blood;
+    if (phoneVal) phoneVal.innerText = cp.phone;
+    if (allergiesContainer && cp.allergies && cp.allergies.length > 0) {
+      allergiesContainer.innerHTML = cp.allergies.map(alg => `
+        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
+          <span>⚠️</span>
+          <span>${alg}</span>
+        </span>
+      `).join('');
+    }
   }
 }
 
-function selectPatientProfile(patientKey) {
+function selectPatientProfile(patientKey = 'current_patient') {
   syncCurrentPatientProfile();
-  const patient = medicalPatientsData[patientKey] || medicalPatientsData.current_patient;
+  activeMedicalPatientKey = patientKey || 'current_patient';
+  const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
   if (!patient) return;
-  activeMedicalPatientKey = patientKey;
 
   // Update switcher pills styling
   const allPillKeys = ['current_patient', 'minh_anh', 'quoc_bao'];
@@ -4413,14 +4447,14 @@ function renderPatientTimeline(records) {
     return `
       <div onclick="openMedicalRecordDetail('${rec.id}')" class="relative group cursor-pointer">
         <!-- Timeline Indicator Dot -->
-        <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-teal-500 dark:bg-teal-400 border-2 border-white dark:border-slate-900 shadow-md shadow-teal-500/50"></div>
+        <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-sky-500 dark:bg-sky-400 border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
 
         <!-- Card Content -->
-        <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-teal-500/40 hover:shadow-teal-500/10 backdrop-blur-xl transition-all">
+        <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-sky-500/40 hover:shadow-sky-500/10 backdrop-blur-xl transition-all">
           <div class="flex items-start justify-between gap-2">
             <div class="space-y-1.5">
-              <span class="text-xs font-bold text-teal-600 dark:text-teal-400 font-mono">${rec.date}</span>
-              <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-300 transition-colors">${rec.title}</h4>
+              <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">${rec.date}</span>
+              <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">${rec.title}</h4>
               <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${rec.doctor}</p>
               <div class="pt-2">
                 <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">${rec.icd}</span>
@@ -4428,7 +4462,7 @@ function renderPatientTimeline(records) {
             </div>
 
             <div class="flex items-center self-center pl-2">
-              <svg class="w-5 h-5 text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-300 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
           </div>
         </div>

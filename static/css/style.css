@@ -1074,16 +1074,16 @@ body.light-glass #doctor-tab button[onclick="switchTab('chat-tab')"] {
 
 body.light-glass #doctor-tab #ehr-export-pdf-btn:hover,
 body.light-glass #doctor-tab button[onclick="switchTab('chat-tab')"]:hover {
-  background: #F0FDFA !important;
-  border-color: #0D9488 !important;
-  color: #0D9488 !important;
+  background: #F0F9FF !important;
+  border-color: #0284C7 !important;
+  color: #0284C7 !important;
 }
 
 body.light-glass #doctor-tab #ehr-hero-card {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%) !important;
-  border: 1.5px solid #99F6E4 !important;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%) !important;
+  border: 1.5px solid #BAE6FD !important;
   color: #0F172A !important;
-  box-shadow: 0 10px 30px -5px rgba(13, 148, 136, 0.12) !important;
+  box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.12) !important;
 }
 
 body.light-glass #doctor-tab #ehr-hero-name {
@@ -1092,52 +1092,27 @@ body.light-glass #doctor-tab #ehr-hero-name {
 }
 
 body.light-glass #doctor-tab #ehr-hero-demographics {
-  color: #0D9488 !important;
+  color: #0284C7 !important;
   font-weight: 700 !important;
 }
 
 body.light-glass #doctor-tab #ehr-avatar-large {
-  background: #0D9488 !important;
+  background: linear-gradient(135deg, #0EA5E9 0%, #2563EB 100%) !important;
   color: #FFFFFF !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
 }
 
 body.light-glass #doctor-tab #ehr-visit-count,
 body.light-glass #doctor-tab #ehr-last-visit-date {
-  color: #0F172A !important;
+  color: #0284C7 !important;
   font-weight: 900 !important;
 }
 
-body.light-glass #doctor-tab #ehr-hero-card .bg-teal-50\/70,
+body.light-glass #doctor-tab #ehr-hero-card .bg-sky-50\/70,
 body.light-glass #doctor-tab #ehr-hero-card .dark\:bg-white\/\[0\.04\] {
-  background: #F0FDFA !important;
-  border: 1px solid #CCFBF1 !important;
-}
-
-body.light-glass #doctor-tab .patient-pill-btn {
-  background: #FFFFFF !important;
-  border: 1px solid #CBD5E1 !important;
-  color: #334155 !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
-}
-
-body.light-glass #doctor-tab .patient-pill-btn.bg-teal-500\/20 {
-  background: #F0FDFA !important;
-  border: 1.5px solid #0D9488 !important;
-  box-shadow: 0 4px 15px rgba(13, 148, 136, 0.18) !important;
-}
-
-body.light-glass #doctor-tab .patient-pill-btn.bg-teal-500\/20 .text-white,
-body.light-glass #doctor-tab .patient-pill-btn.bg-teal-500\/20 .text-slate-900 {
-  color: #0F172A !important;
-  font-weight: 800 !important;
-}
-
-body.light-glass #doctor-tab .patient-pill-btn.bg-teal-500\/20 .text-teal-300,
-body.light-glass #doctor-tab .patient-pill-btn.bg-teal-500\/20 .text-teal-700 {
-  color: #0D9488 !important;
-  font-weight: 700 !important;
+  background: #F0F9FF !important;
+  border: 1px solid #BAE6FD !important;
 }
 
 body.light-glass #doctor-tab #ehr-timeline-list .glass-card {
@@ -1149,8 +1124,8 @@ body.light-glass #doctor-tab #ehr-timeline-list .glass-card {
 
 body.light-glass #doctor-tab #ehr-timeline-list .glass-card:hover {
   background: #F8FAFC !important;
-  border-color: #0D9488 !important;
-  box-shadow: 0 8px 25px rgba(13, 148, 136, 0.12) !important;
+  border-color: #0284C7 !important;
+  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.12) !important;
 }
 
 body.light-glass #doctor-tab #ehr-timeline-list h4 {
@@ -1159,7 +1134,7 @@ body.light-glass #doctor-tab #ehr-timeline-list h4 {
 }
 
 body.light-glass #doctor-tab #ehr-timeline-list span.font-mono {
-  color: #0D9488 !important;
+  color: #0284C7 !important;
   font-weight: 800 !important;
 }
 
@@ -1187,7 +1162,7 @@ body.light-glass #medical-record-modal #modal-record-title {
 }
 
 body.light-glass #medical-record-modal #modal-record-date {
-  color: #0D9488 !important;
+  color: #0284C7 !important;
   font-weight: 800 !important;
 }
 
@@ -1195,14 +1170,17 @@ body.light-glass #medical-record-modal p {
   color: #334155 !important;
 }
 
+body.light-glass #medical-record-modal .text-sky-300,
+body.light-glass #medical-record-modal .text-sky-500,
+body.light-glass #medical-record-modal .text-sky-600,
 body.light-glass #medical-record-modal .text-teal-300,
 body.light-glass #medical-record-modal .text-teal-700 {
-  color: #0D9488 !important;
+  color: #0284C7 !important;
   font-weight: 800 !important;
 }
 
 
-/* ============================================================== */
+
 /* LIGHT MODE: CHAT TAB & CLINICAL INTAKE HIGH CONTRAST THEME     */
 /* ============================================================== */
 body.light-glass #chat-tab .glass-panel,
