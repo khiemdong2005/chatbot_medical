@@ -2041,83 +2041,41 @@ function updateAuthUI() {
     if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
-    // Sync Image 1 fields (Registration preserved, others empty on 1st edit)
+    // Sync Essential Profile fields
+    const pName = document.getElementById('p-name');
     const pBirthDate = document.getElementById('p-birthdate');
     const pGender = document.getElementById('p-gender');
     const pPhone = document.getElementById('p-phone');
     const pEmail = document.getElementById('p-email');
-    const pCccd = document.getElementById('p-cccd');
-    const pIssueDate = document.getElementById('p-issue-date');
-    const pBhyt = document.getElementById('p-bhyt');
-    const pFacility = document.getElementById('p-facility');
-    const pValidFrom = document.getElementById('p-valid-from');
-    const pValidTo = document.getElementById('p-valid-to');
-    const pIssuePlace = document.getElementById('p-issue-place');
-    const pNationality = document.getElementById('p-nationality');
-    const pEthnicity = document.getElementById('p-ethnicity');
-    const pReligion = document.getElementById('p-religion');
-    const pProvince = document.getElementById('p-province');
-    const pWard = document.getElementById('p-ward');
+    const pBlood = document.getElementById('p-blood');
+    const pAllergies = document.getElementById('p-allergies');
+    const pHeight = document.getElementById('p-height');
+    const pWeight = document.getElementById('p-weight');
     const pAddress = document.getElementById('p-address');
 
     const cardName = document.getElementById('profile-card-name');
     const cardEmail = document.getElementById('profile-card-email');
     const cardPhone = document.getElementById('profile-card-phone');
+    const cardJoined = document.getElementById('profile-card-joined');
 
-    // 1. Preserved from Registration
-    if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
+    if (pName) pName.value = currentUser.name || '';
+    if (pBirthDate) pBirthDate.value = currentUser.dob || '24/10/1997';
     if (pGender && currentUser.gender) pGender.value = currentUser.gender;
-    
-    const phoneVal = currentUser.phone_number || '0347047101';
-    fieldRealValues['p-phone'] = phoneVal;
-    if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
+    if (pPhone) pPhone.value = currentUser.phone_number || currentUser.phone || '0971 221 306';
+    if (pEmail) pEmail.value = currentUser.email || 'khiem@example.com';
+    if (pBlood && currentUser.blood_type) pBlood.value = currentUser.blood_type;
+    if (pAllergies) pAllergies.value = currentUser.allergies || 'Penicillin, Hải sản';
+    if (pHeight) pHeight.value = currentUser.height || '168';
+    if (pWeight) pWeight.value = currentUser.weight || '58.5';
+    if (pAddress) pAddress.value = currentUser.address || 'Quận 10, TP. Hồ Chí Minh';
 
-    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
-    fieldRealValues['p-email'] = emailVal;
-    if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
+    if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Thành Khiêm';
+    if (cardPhone) cardPhone.innerText = currentUser.phone_number || currentUser.phone || '0971 221 306';
+    if (cardEmail) cardEmail.innerText = currentUser.email || 'khiem@example.com';
+    if (cardJoined) cardJoined.innerText = currentUser.created_at || '24/10/2026';
 
-    // 2. Initial edit: Empty if not yet provided by user
-    const cccdVal = currentUser.cccd || '';
-    fieldRealValues['p-cccd'] = cccdVal;
-    if (pCccd) pCccd.value = fieldMaskState['p-cccd'] ? maskFieldValue(cccdVal, 'p-cccd') : cccdVal;
+    calculateProfileCompletion();
 
-    const issueDateVal = currentUser.issue_date || '';
-    fieldRealValues['p-issue-date'] = issueDateVal;
-    if (pIssueDate) pIssueDate.value = fieldMaskState['p-issue-date'] ? maskFieldValue(issueDateVal, 'p-issue-date') : issueDateVal;
-
-    const bhytVal = currentUser.bhyt || '';
-    fieldRealValues['p-bhyt'] = bhytVal;
-    if (pBhyt) pBhyt.value = fieldMaskState['p-bhyt'] ? maskFieldValue(bhytVal, 'p-bhyt') : bhytVal;
-
-    if (pFacility) pFacility.value = currentUser.facility || '';
-
-    const validFromVal = currentUser.valid_from || '';
-    fieldRealValues['p-valid-from'] = validFromVal;
-    if (pValidFrom) pValidFrom.value = fieldMaskState['p-valid-from'] ? maskFieldValue(validFromVal, 'p-valid-from') : validFromVal;
-
-    const validToVal = currentUser.valid_to || '';
-    fieldRealValues['p-valid-to'] = validToVal;
-    if (pValidTo) pValidTo.value = fieldMaskState['p-valid-to'] ? maskFieldValue(validToVal, 'p-valid-to') : validToVal;
-
-    if (pIssuePlace) pIssuePlace.value = currentUser.issue_place || '';
-    if (pNationality) pNationality.value = currentUser.nationality || 'VN';
-    if (pEthnicity) pEthnicity.value = currentUser.ethnicity || '';
-    if (pReligion) pReligion.value = currentUser.religion || '';
-    
-    if (pProvince) {
-      pProvince.value = currentUser.province || '';
-      handleProvinceChange();
-      if (pWard) {
-        pWard.value = currentUser.ward || '';
-      }
-    }
-    if (pAddress) pAddress.value = currentUser.address || '';
-
-    if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Văn An';
-    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
-    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
-    
-    
     // Sync Settings controls
     const setLang = document.getElementById('set-language');
     const setTheme = document.getElementById('set-theme-select');
@@ -4536,75 +4494,82 @@ function handleProfileAvatarUpload(e) {
   reader.readAsDataURL(file);
 }
 
+function calculateProfileCompletion() {
+  const fields = [
+    document.getElementById('p-name')?.value.trim(),
+    document.getElementById('p-birthdate')?.value.trim(),
+    document.getElementById('p-gender')?.value,
+    document.getElementById('p-phone')?.value.trim(),
+    document.getElementById('p-email')?.value.trim(),
+    document.getElementById('p-blood')?.value,
+    document.getElementById('p-allergies')?.value.trim(),
+    document.getElementById('p-address')?.value.trim()
+  ];
+  const filled = fields.filter(v => v && v !== '' && v !== 'Chưa rõ').length;
+  const pct = Math.round((filled / fields.length) * 100);
+  
+  const valEl = document.getElementById('profile-completion-val');
+  const barEl = document.getElementById('profile-completion-bar');
+  if (valEl) valEl.innerText = pct + '%';
+  if (barEl) barEl.style.width = pct + '%';
+}
+
+function resetProfileForm() {
+  updateAuthUI();
+  calculateProfileCompletion();
+  const msg = currentLang === 'en' ? 'Profile reset to saved values.' : 'Đã khôi phục thông tin đã lưu.';
+  showMedicalToast(msg, 'info');
+}
+
 function handleSaveImage1Profile(e) {
   if (e) e.preventDefault();
+  const name = document.getElementById('p-name')?.value.trim();
   const birthDate = document.getElementById('p-birthdate')?.value.trim();
   const gender = document.getElementById('p-gender')?.value || 'Nam';
-  
-  const getFieldValue = (fieldId, fallback = '') => {
-    if (fieldMaskState[fieldId] && fieldRealValues[fieldId] !== undefined) {
-      return fieldRealValues[fieldId];
-    }
-    const val = document.getElementById(fieldId)?.value.trim();
-    if (val !== undefined && val !== null) {
-      fieldRealValues[fieldId] = val;
-      return val;
-    }
-    return fallback;
-  };
-
-  const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
-  const email = getFieldValue('p-email', currentUser?.email || '');
-  const cccd = getFieldValue('p-cccd');
-  const issueDate = getFieldValue('p-issue-date');
-  const bhyt = getFieldValue('p-bhyt');
-  const facility = document.getElementById('p-facility')?.value.trim() || '';
-  const validFrom = getFieldValue('p-valid-from');
-  const validTo = getFieldValue('p-valid-to');
-  const issuePlace = document.getElementById('p-issue-place')?.value.trim() || '';
-  const nationality = document.getElementById('p-nationality')?.value.trim() || 'VN';
-  const ethnicity = document.getElementById('p-ethnicity')?.value || '';
-  const religion = document.getElementById('p-religion')?.value || '';
-  const province = document.getElementById('p-province')?.value || '';
-  const ward = document.getElementById('p-ward')?.value.trim() || '';
+  const phone = document.getElementById('p-phone')?.value.trim();
+  const email = document.getElementById('p-email')?.value.trim();
+  const blood = document.getElementById('p-blood')?.value || 'O+';
+  const allergies = document.getElementById('p-allergies')?.value.trim() || '';
+  const height = document.getElementById('p-height')?.value.trim() || '';
+  const weight = document.getElementById('p-weight')?.value.trim() || '';
   const address = document.getElementById('p-address')?.value.trim() || '';
 
   if (!currentUser) {
     currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
   }
 
+  if (name) currentUser.name = name;
   currentUser.dob = birthDate;
   currentUser.gender = gender;
-  currentUser.phone_number = phone || currentUser.phone_number;
-  currentUser.email = email || currentUser.email;
-  currentUser.cccd = cccd;
-  currentUser.issue_date = issueDate;
-  currentUser.bhyt = bhyt;
-  currentUser.facility = facility;
-  currentUser.valid_from = validFrom;
-  currentUser.valid_to = validTo;
-  currentUser.issue_place = issuePlace;
-  currentUser.nationality = nationality;
-  currentUser.ethnicity = ethnicity;
-  currentUser.religion = religion;
-  currentUser.province = province;
-  currentUser.ward = ward;
+  if (phone) {
+    currentUser.phone = phone;
+    currentUser.phone_number = phone;
+  }
+  if (email) currentUser.email = email;
+  currentUser.blood_type = blood;
+  currentUser.allergies = allergies;
+  currentUser.height = height;
+  currentUser.weight = weight;
   currentUser.address = address;
 
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 
   // Sync Left Card
+  const cName = document.getElementById('profile-card-name');
   const cPhone = document.getElementById('profile-card-phone');
   const cEmail = document.getElementById('profile-card-email');
-  if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(currentUser.phone_number, 'p-phone') : (currentUser.phone_number || '');
-  if (cEmail) cEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(currentUser.email, 'p-email') : (currentUser.email || '');
+  if (cName) cName.innerText = currentUser.name || 'Chưa có họ và tên';
+  if (cPhone) cPhone.innerText = currentUser.phone_number || currentUser.phone || 'Chưa có số điện thoại';
+  if (cEmail) cEmail.innerText = currentUser.email || 'Chưa có email';
 
+  calculateProfileCompletion();
+  syncCurrentPatientProfile();
+  updateHomeGreeting();
   updateAuthUI();
 
-  const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin thành công!';
+  const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin hồ sơ thành công!';
   showMedicalToast(msg, 'success');
 }
-
 
 // ==============================================================
 // FLOATING CHATBOX WIDGET HANDLERS (Image 2)

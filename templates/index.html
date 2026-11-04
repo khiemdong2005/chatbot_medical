@@ -24,7 +24,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.6.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=16.7.0">
 
 <style>
 
@@ -1738,637 +1738,205 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 </div>
 
 
-<div id="profile-tab" class="tab-content w-full flex-1 flex-col py-6 space-y-4">
+<div id="profile-tab" class="tab-content w-full flex-1 flex-col py-4 sm:py-6 space-y-6">
 
-  <div class="max-w-[1240px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+  <div class="max-w-[1200px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-    
-
-    <!-- LEFT CARD: User Summary with Google Avatar -->
-
-    <div class="lg:col-span-4 bg-[#0a101d] border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center justify-between shadow-2xl relative space-y-6">
-
+    <!-- LEFT COLUMN: Profile Overview Card (Matching Screenshot media_1793766402459_ce8a7cfb.jpg) -->
+    <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-3xl p-6 sm:p-7 shadow-lg flex flex-col items-center text-center space-y-6 relative">
       
-
-      <div class="space-y-4 pt-2 w-full flex flex-col items-center">
-
-        <!-- Google-Style Avatar Container with Hover Overlay & Clean Camera Circle -->
-
-        <div class="relative w-28 h-28 mx-auto group cursor-pointer" onclick="document.getElementById('profile-avatar-upload').click()">
-
-          <div class="w-28 h-28 rounded-full overflow-hidden border-2 border-slate-200 dark:border-white/20 shadow-lg relative bg-slate-800">
-
-            <img id="profile-avatar-display" src="/static/images/avatar_male.png" alt="Avatar" class="w-full h-full object-cover">
-
+      <!-- Avatar Section with Google-Style Hover & Camera Badge -->
+      <div class="space-y-3 pt-2 w-full flex flex-col items-center">
+        
+        <div class="relative w-24 h-24 sm:w-28 sm:h-28 mx-auto group cursor-pointer" onclick="document.getElementById('profile-avatar-upload').click()" title="Nhấn để đổi ảnh đại diện">
+          <div class="w-full h-full rounded-full overflow-hidden border-2 border-slate-200 dark:border-white/20 shadow-md relative bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white">
+            <img id="profile-avatar-display" src="/static/images/avatar_female.png" alt="Avatar" class="w-full h-full object-cover">
+            
+            <!-- Hover Overlay -->
             <div class="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-opacity duration-200">
-
-              <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
+              <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-
               </svg>
-
-              <span class="text-[10px] font-medium" data-i18n="p_avatar_change">Đổi ảnh</span>
-
+              <span class="text-[10px] font-semibold">Đổi ảnh</span>
             </div>
-
           </div>
 
+          <!-- Camera Badge Circle -->
           <div class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md border border-slate-200 dark:border-white/10 flex items-center justify-center hover:scale-105 transition-transform">
-
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
+            <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-
             </svg>
-
           </div>
 
           <input type="file" id="profile-avatar-upload" accept="image/*" class="hidden" onchange="handleProfileAvatarUpload(event)">
-
         </div>
 
-
-
-        <!-- Name Only (Preserved from registration) -->
-
-        <div class="pt-1">
-
-          <h3 id="profile-card-name" class="text-xl font-extrabold tracking-tight">Nguyễn Văn An</h3>
-
+        <!-- Name & Contact details -->
+        <div class="pt-1 w-full">
+          <h3 id="profile-card-name" class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Chưa có họ và tên</h3>
         </div>
 
-
-
-        <!-- Contact details (Preserved from registration) -->
-
-        <div class="space-y-1 text-xs text-slate-600 dark:text-slate-300 pt-1 w-full text-center">
-
-          <div id="profile-card-email" class="font-medium truncate">benhnhan.an@gmail.com</div>
-
-          <div id="profile-card-phone" class="font-medium">0347047101</div>
-
+        <div class="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 w-full flex flex-col items-center">
+          <div class="flex items-center gap-1.5 font-medium">
+            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            <span id="profile-card-phone">Chưa có số điện thoại</span>
+          </div>
+          <div class="flex items-center gap-1.5 font-medium">
+            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span id="profile-card-email" class="truncate max-w-[200px]">Chưa có email</span>
+          </div>
         </div>
 
       </div>
 
-
-
-      <!-- Two Badges -->
-
-      <div class="w-full space-y-2.5 pt-2">
-
-        <div class="w-full bg-[#111A2E] border border-white/5 rounded-xl p-3 flex items-center justify-between text-left">
-
-          <span class="text-xs font-bold text-emerald-400 tracking-wide" data-i18n="badge_active_text">ACTIVE / VERIFIED</span>
-
-          <span class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold" data-i18n="badge_status_label">STATUS</span>
-
+      <!-- Hoàn thiện hồ sơ (Completion Meter) -->
+      <div class="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 text-left space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">HOÀN THIỆN HỒ SƠ</span>
+          <span id="profile-completion-percent" class="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span id="profile-completion-val">85%</span>
+          </span>
         </div>
-
-
-
-        <div class="w-full bg-[#111A2E] border border-white/5 rounded-xl p-3 flex items-center justify-between text-left">
-
-          <span class="text-xs font-bold text-sky-400 tracking-wide" id="profile-card-joined">11/09/2026</span>
-
-          <span class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold" data-i18n="badge_joined_label">JOINED</span>
-
+        <!-- Progress Track -->
+        <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+          <div id="profile-completion-bar" class="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-500" style="width: 85%;"></div>
         </div>
+      </div>
 
+      <!-- Ngày tham gia (Joined Date) -->
+      <div class="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 rounded-2xl p-3.5 flex items-center justify-between text-left">
+        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">NGÀY THAM GIA</span>
+        <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span id="profile-card-joined">Chưa lưu</span>
+        </span>
       </div>
 
     </div>
 
-
-
-    <!-- RIGHT CARD: Form layout matching exact screenshot with bold labels & eye masking -->
-
-    <div class="lg:col-span-8 bg-[#0a101d] border border-white/10 rounded-2xl p-6 sm:p-7 shadow-2xl flex flex-col justify-between space-y-5">
-
-      <div>
-
-        <form id="profile-form-img1" onsubmit="handleSaveImage1Profile(event)" class="space-y-4">
-
-          
-
-          <!-- Row 1: Ngày sinh | Giới tính | Điện thoại | Email (Preserved from Registration) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_birthdate">Ngày sinh</label>
-
-              <input type="text" id="p-birthdate" value="04/10/2005" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-            </div>
-
-
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_gender">Giới tính</label>
-
-              <select id="p-gender" onchange="handleProfileGenderChange(this.value)" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <option value="Nam" selected data-i18n="gender_male">Nam</option>
-
-                <option value="Nữ" data-i18n="gender_female">Nữ</option>
-
-                <option value="Khác" data-i18n="gender_other">Khác</option>
-
-              </select>
-
-            </div>
-
-
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_phone">Điện thoại</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-phone" value="0347047101" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <button type="button" onclick="toggleFieldMask('p-phone')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Số điện thoại">
-
-                  <svg id="p-phone-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_email">Email</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-email" value="benhnhan.an@gmail.com" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <button type="button" onclick="toggleFieldMask('p-email')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Email">
-
-                  <svg id="p-email-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Row 2: CMT/CCCD (Eye toggle, empty on 1st edit) | Ngày cấp (Eye toggle, empty on 1st edit) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-
-            <div class="sm:col-span-8">
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_cccd">CMT/CCCD</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-cccd" value="" placeholder="Nhập số CMT/CCCD..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors font-mono">
-
-                <button type="button" onclick="toggleFieldMask('p-cccd')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện CMT/CCCD">
-
-                  <svg id="p-cccd-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-
-            <div class="sm:col-span-4">
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_issue_date">Ngày cấp</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-issue-date" value="" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <button type="button" onclick="toggleFieldMask('p-issue-date')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Ngày cấp">
-
-                  <svg id="p-issue-date-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Section Heading: Bảo hiểm y tế (Bold Heading) -->
-
-          <div class="pt-2">
-
-            <h4 class="p-section-heading text-sm font-bold uppercase tracking-wider pb-1 border-b border-slate-200 dark:border-white/10" data-i18n="p_sec_bhyt">Bảo hiểm y tế</h4>
-
-          </div>
-
-
-
-          <!-- Row 3: Mã BHYT (Eye toggle, empty on 1st edit) | Cơ sở khám chữa bệnh (empty on 1st edit) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_bhyt_code">Mã BHYT</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-bhyt" value="" placeholder="Nhập mã thẻ BHYT..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors font-mono">
-
-                <button type="button" onclick="toggleFieldMask('p-bhyt')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Mã BHYT">
-
-                  <svg id="p-bhyt-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_facility">Cơ sở khám chữa bệnh</label>
-
-              <input type="text" id="p-facility" value="" placeholder="Cơ sở KCB ban đầu..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Row 4: Hiệu lực từ (Eye toggle, empty on 1st edit) | Hết hiệu lực (Eye toggle, empty on 1st edit) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_valid_from">Hiệu lực từ</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-valid-from" value="" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <button type="button" onclick="toggleFieldMask('p-valid-from')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Hiệu lực từ">
-
-                  <svg id="p-valid-from-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_valid_to">Hết hiệu lực</label>
-
-              <div class="relative flex items-center">
-
-                <input type="text" id="p-valid-to" value="" placeholder="dd/mm/yyyy" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <button type="button" onclick="toggleFieldMask('p-valid-to')" class="absolute right-2.5 text-slate-400 hover:text-slate-200 p-0.5 cursor-pointer transition-colors" title="Ẩn/Hiện Hết hiệu lực">
-
-                  <svg id="p-valid-to-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-
-                  </svg>
-
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Row 5: Nơi cấp (empty on 1st edit) | Quốc tịch (mã) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-
-            <div class="sm:col-span-8">
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_issue_place">Nơi cấp</label>
-
-              <input type="text" id="p-issue-place" value="" placeholder="Nơi cấp CMT/CCCD..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-            </div>
-
-
-
-            <div class="sm:col-span-4">
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_nationality">Quốc tịch (mã)</label>
-
-              <input type="text" id="p-nationality" value="VN" placeholder="VD: VN" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors uppercase font-mono">
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Row 6: Dân tộc (empty on 1st edit) | Tôn giáo (empty on 1st edit) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_ethnicity">Dân tộc</label>
-
-              <select id="p-ethnicity" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <option value="" selected>-- Chọn dân tộc --</option>
-
-                <option value="Kinh">Kinh</option>
-
-                <option value="Tày">Tày</option>
-
-                <option value="Thái">Thái</option>
-
-                <option value="Mường">Mường</option>
-
-                <option value="H'Mông">H'Mông</option>
-
-                <option value="Dao">Dao</option>
-
-                <option value="Khmer">Khmer</option>
-
-                <option value="Ê Đê">Ê Đê</option>
-
-                <option value="Ba Na">Ba Na</option>
-
-                <option value="Hoa">Hoa</option>
-
-                <option value="Khác">Khác</option>
-
-              </select>
-
-            </div>
-
-
-
-            <div>
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_religion">Tôn giáo</label>
-
-              <select id="p-religion" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <option value="" selected>-- Chọn tôn giáo --</option>
-
-                <option value="Không">Không</option>
-
-                <option value="Phật giáo">Phật giáo</option>
-
-                <option value="Công giáo">Công giáo</option>
-
-                <option value="Tin Lành">Tin Lành</option>
-
-                <option value="Cao Đài">Cao Đài</option>
-
-                <option value="Hòa Hảo">Hòa Hảo</option>
-
-                <option value="Hồi giáo">Hồi giáo</option>
-
-                <option value="Khác">Khác</option>
-
-              </select>
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Row 7: Tỉnh/Thành phố (empty on 1st edit) | Phường/Xã (empty on 1st edit) -->
-
-          <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-
-            <div class="sm:col-span-8">
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_province">Tỉnh/Thành phố</label>
-
-              <select id="p-province" onchange="handleProvinceChange()" class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-                <option value="" selected>-- Chọn tỉnh/thành --</option>
-
-                <option value="Chưa Xác Định">Chưa Xác Định</option>
-
-                <option value="Thành phố Cần Thơ">Thành phố Cần Thơ</option>
-
-                <option value="Thành phố Đà Nẵng">Thành phố Đà Nẵng</option>
-
-                <option value="Thành phố Hà Nội">Thành phố Hà Nội</option>
-
-                <option value="Thành phố Hải Phòng">Thành phố Hải Phòng</option>
-
-                <option value="Thành phố Hồ Chí Minh">Thành phố Hồ Chí Minh</option>
-
-                <option value="Thành phố Huế">Thành phố Huế</option>
-
-                <option value="Thành phố Quảng Ninh">Thành phố Quảng Ninh</option>
-
-                <option value="Tỉnh An Giang">Tỉnh An Giang</option>
-
-                <option value="Tỉnh Bắc Ninh">Tỉnh Bắc Ninh</option>
-
-                <option value="Tỉnh Cà Mau">Tỉnh Cà Mau</option>
-
-                <option value="Tỉnh Cao Bằng">Tỉnh Cao Bằng</option>
-
-                <option value="Tỉnh Đắk Lắk">Tỉnh Đắk Lắk</option>
-
-                <option value="Tỉnh Điện Biên">Tỉnh Điện Biên</option>
-
-                <option value="Tỉnh Đồng Nai">Tỉnh Đồng Nai</option>
-
-                <option value="Tỉnh Đồng Tháp">Tỉnh Đồng Tháp</option>
-
-                <option value="Tỉnh Gia Lai">Tỉnh Gia Lai</option>
-
-                <option value="Tỉnh Hà Tĩnh">Tỉnh Hà Tĩnh</option>
-
-                <option value="Tỉnh Hưng Yên">Tỉnh Hưng Yên</option>
-
-                <option value="Tỉnh Khánh Hòa">Tỉnh Khánh Hòa</option>
-
-                <option value="Tỉnh Kiên Giang">Tỉnh Kiên Giang</option>
-
-                <option value="Tỉnh Kon Tum">Tỉnh Kon Tum</option>
-
-                <option value="Tỉnh Lai Châu">Tỉnh Lai Châu</option>
-
-                <option value="Tỉnh Lâm Đồng">Tỉnh Lâm Đồng</option>
-
-                <option value="Tỉnh Lạng Sơn">Tỉnh Lạng Sơn</option>
-
-                <option value="Tỉnh Lào Cai">Tỉnh Lào Cai</option>
-
-                <option value="Tỉnh Long An">Tỉnh Long An</option>
-
-                <option value="Tỉnh Nam Định">Tỉnh Nam Định</option>
-
-                <option value="Tỉnh Nghệ An">Tỉnh Nghệ An</option>
-
-                <option value="Tỉnh Ninh Bình">Tỉnh Ninh Bình</option>
-
-                <option value="Tỉnh Phú Thọ">Tỉnh Phú Thọ</option>
-
-                <option value="Tỉnh Quảng Bình">Tỉnh Quảng Bình</option>
-
-                <option value="Tỉnh Quảng Nam">Tỉnh Quảng Nam</option>
-
-                <option value="Tỉnh Quảng Ngãi">Tỉnh Quảng Ngãi</option>
-
-                <option value="Tỉnh Quảng Trị">Tỉnh Quảng Trị</option>
-
-                <option value="Tỉnh Sơn La">Tỉnh Sơn La</option>
-
-                <option value="Tỉnh Tây Ninh">Tỉnh Tây Ninh</option>
-
-                <option value="Tỉnh Thái Bình">Tỉnh Thái Bình</option>
-
-                <option value="Tỉnh Thái Nguyên">Tỉnh Thái Nguyên</option>
-
-                <option value="Tỉnh Thanh Hóa">Tỉnh Thanh Hóa</option>
-
-                <option value="Tỉnh Tuyên Quang">Tỉnh Tuyên Quang</option>
-
-                <option value="Tỉnh Vĩnh Long">Tỉnh Vĩnh Long</option>
-
-                <option value="Tỉnh Vĩnh Phúc">Tỉnh Vĩnh Phúc</option>
-
-                <option value="Tỉnh Yên Bái">Tỉnh Yên Bái</option>
-
-              </select>
-
-            </div>
-
-
-
-            <div class="sm:col-span-4">
-
-              <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_ward">Phường/Xã</label>
-
-              <input type="text" id="p-ward" value="" placeholder="Phường/Xã..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
-            </div>
-
-          </div>
-
-
-
-          <!-- Row 8: Địa chỉ theo sổ hộ khẩu (empty on 1st edit) -->
-
+    <!-- RIGHT COLUMN: Personal & Medical Essentials Form (Clean, No BHYT, No CCCD) -->
+    <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-lg">
+      
+      <form id="profile-form-img1" onsubmit="handleSaveImage1Profile(event)" class="space-y-6">
+        
+        <!-- SECTION 1: THÔNG TIN CÁ NHÂN -->
+        <div class="space-y-4">
           <div>
-
-            <label class="p-label block text-xs font-bold mb-1.5" data-i18n="p_lbl_address_hokhau">Địa chỉ theo sổ hộ khẩu</label>
-
-            <input type="text" id="p-address" value="" placeholder="Số nhà, đường, thôn/ấp, phường/xã..." class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-lg px-3.5 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-
+            <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Thông tin cá nhân</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">Họ tên và cách liên hệ với bạn.</p>
           </div>
 
-
-
-          <!-- Row 9: Buttons matching image (Blue 'Lưu thông tin' + Ghost 'Quay lại trang tài khoản') -->
-
-          <div class="pt-4 flex items-center space-x-3">
-
-            <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm rounded-lg shadow-sm transition-all cursor-pointer">
-
-              <span data-i18n="p_btn_save_info">Lưu thông tin</span>
-
-            </button>
-
-            <button type="button" onclick="switchTab('doctor-tab')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-white/10 dark:hover:bg-white/15 dark:text-slate-300 font-medium text-xs sm:text-sm rounded-lg transition-all cursor-pointer">
-
-              <span data-i18n="p_btn_back_account">Quay lại trang tài khoản</span>
-
-            </button>
-
+          <!-- Field 1: Họ và tên -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Họ và tên</label>
+            <input type="text" id="p-name" placeholder="Nhập họ và tên đầy đủ" oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
           </div>
 
-        </form>
+          <!-- Field 2: Ngày sinh & Giới tính -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Ngày sinh</label>
+              <div class="relative flex items-center">
+                <input type="text" id="p-birthdate" placeholder="dd/mm/yyyy" oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-4 pr-10 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+                <svg class="w-4 h-4 text-slate-400 absolute right-3.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+            </div>
 
-      </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Giới tính</label>
+              <select id="p-gender" onchange="handleProfileGenderChange(this.value); calculateProfileCompletion();" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors cursor-pointer">
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Field 3: Số điện thoại & Email -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Số điện thoại</label>
+              <input type="text" id="p-phone" placeholder="Ví dụ: 0901234567" oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+              <input type="email" id="p-email" placeholder="ban@example.com" oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: CHỈ SỐ Y TẾ CƠ BẢN (Essential Medical Profile) -->
+        <div class="space-y-4 pt-4 border-t border-slate-200 dark:border-white/10">
+          <div>
+            <h3 class="text-base font-black text-slate-900 dark:text-white tracking-tight">Chỉ số sức khỏe cơ bản</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Giúp trợ lý y tế MediMind cá nhân hóa phác đồ tư vấn và đối chiếu y bạ.</p>
+          </div>
+
+          <!-- Field 4: Nhóm máu & Tiền sử dị ứng -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Nhóm máu</label>
+              <select id="p-blood" onchange="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors cursor-pointer">
+                <option value="O+">O+ (Phổ biến)</option>
+                <option value="A+">A+</option>
+                <option value="B+">B+</option>
+                <option value="AB+">AB+</option>
+                <option value="O-">O-</option>
+                <option value="A-">A-</option>
+                <option value="B-">B-</option>
+                <option value="AB-">AB-</option>
+                <option value="Chưa rõ">Chưa rõ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Dị ứng thuốc &amp; thực phẩm</label>
+              <input type="text" id="p-allergies" placeholder="Ví dụ: Penicillin, Hải sản, Aspirin..." oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+            </div>
+          </div>
+
+          <!-- Field 5: Chiều cao & Cân nặng -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Chiều cao (cm)</label>
+              <input type="number" id="p-height" placeholder="Ví dụ: 168" oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Cân nặng (kg)</label>
+              <input type="number" step="0.5" id="p-weight" placeholder="Ví dụ: 58.5" oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+            </div>
+          </div>
+
+          <!-- Field 6: Địa chỉ cư trú -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Địa chỉ cư trú</label>
+            <input type="text" id="p-address" placeholder="Số nhà, tên đường, Quận/Huyện, Tỉnh/Thành phố..." oninput="calculateProfileCompletion()" class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+          </div>
+        </div>
+
+        <!-- SECTION 3: ACTION BUTTONS (Matching Screenshot) -->
+        <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-200 dark:border-white/10">
+          <button type="button" onclick="resetProfileForm()" class="px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer">
+            Hủy thay đổi
+          </button>
+          
+          <button type="submit" class="px-7 py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-sky-500/25 transition-all transform hover:-translate-y-0.5 cursor-pointer">
+            Lưu thông tin
+          </button>
+        </div>
+
+      </form>
 
     </div>
-
-
 
   </div>
 
 </div>
-
-
 
 <!-- ==============================================================================
 
@@ -3462,7 +3030,7 @@ Hủy bỏ
 
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=16.6.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=16.7.0"></script>
 
 </body>
 
