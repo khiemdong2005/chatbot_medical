@@ -273,7 +273,6 @@ if (!currentUser) {
   };
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 }
-}
 let pendingTabAfterLogin = null;
 let selectedChatImageBase64 = null;
 let chatSessions = JSON.parse(localStorage.getItem('medimind_chat_sessions_v2') || '[]');
@@ -1016,8 +1015,6 @@ function switchTab(tabId) {
       } else {
         floatingRoot.classList.add('hidden');
       }
-    }
-  }
     }
   }
 }
@@ -4405,6 +4402,7 @@ function openMedicalRecordDetail(recordId) {
 function closeMedicalRecordDetail() {
   const modal = document.getElementById('medical-record-modal');
   if (modal) modal.classList.add('hidden');
+}
 
 // ==========================================
 // Image 1 Personal Information Logic
@@ -4605,6 +4603,7 @@ async function sendFloatingChatMessage() {
     msgContainer.appendChild(errBubble);
     msgContainer.scrollTop = msgContainer.scrollHeight;
   }
+}
 
 // Floating Chatbox Compatibility Aliases
 function toggleFloatingChat(forceState) {
@@ -4626,5 +4625,4 @@ function toggleFloatingChat(forceState) {
 function sendQuickFloatingPrompt(text) {
   insertFloatingPrompt(text);
   sendFloatingChatMessage();
-}
 }
