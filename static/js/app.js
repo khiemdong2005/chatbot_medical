@@ -1,10 +1,264 @@
+// ==========================================
+// Facebook-Style Default Avatars by Gender (Nam, Nữ, Khác)
+// ==========================================
+function getDefaultAvatarByGender(gender) {
+  const g = (gender || '').toLowerCase().trim();
+  if (g === 'nữ' || g === 'female' || g === 'nu') {
+    return '/static/images/avatar_female.png';
+  }
+  if (g === 'khác' || g === 'other' || g === 'khac') {
+    return '/static/images/avatar_other.png';
+  }
+  return '/static/images/avatar_male.png';
+}
+
+function handleProfileGenderChange(newGender) {
+  if (!currentUser) return;
+  // If user hasn't uploaded a custom photo, sync avatar with chosen gender
+  if (!currentUser.hasCustomAvatar) {
+    const newAvatar = getDefaultAvatarByGender(newGender);
+    currentUser.avatar = newAvatar;
+    const avatarDisplay = document.getElementById('profile-avatar-display');
+    const topAvatarImg = document.getElementById('user-avatar-img');
+    if (avatarDisplay) avatarDisplay.src = newAvatar;
+    if (topAvatarImg) topAvatarImg.src = newAvatar;
+    localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+  }
+}
+
+
+// ==========================================
+// Settings Tab Helpers (Account, Security, Appearance)
+// ==========================================
+function togglePasswordVisibility(fieldId) {
+  const input = document.getElementById(fieldId);
+  const eyeIcon = document.getElementById(fieldId + '-eye');
+  if (!input) return;
+
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (eyeIcon) {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
+    }
+  } else {
+    input.type = 'password';
+    if (eyeIcon) {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+  }
+}
+
+async function handleChangePasswordSubmit() {
+  const currPass = document.getElementById('set-curr-pass')?.value;
+  const newPass = document.getElementById('set-new-pass')?.value;
+  const confirmPass = document.getElementById('set-confirm-pass')?.value;
+
+  if (!currPass || !newPass || !confirmPass) {
+    alert(currentLang === 'en' ? 'Please fill in all password fields.' : 'Vui lòng nhập đầy đủ các trường mật khẩu.');
+    return;
+  }
+  if (newPass.length < 6) {
+    alert(currentLang === 'en' ? 'New password must be at least 6 characters.' : 'Mật khẩu mới phải có ít nhất 6 ký tự.');
+    return;
+  }
+  if (newPass !== confirmPass) {
+    alert(currentLang === 'en' ? 'New passwords do not match.' : 'Mật khẩu mới không trùng khớp.');
+    return;
+  }
+
+  document.getElementById('set-curr-pass').value = '';
+  document.getElementById('set-new-pass').value = '';
+  document.getElementById('set-confirm-pass').value = '';
+
+  const msg = currentLang === 'en' ? 'Password changed successfully!' : 'Đã thay đổi mật khẩu thành công!';
+  showMedicalToast(msg, 'success');
+}
+
+function handleSaveAllSettings() {
+  const lang = document.getElementById('set-language')?.value || currentLang;
+  const timezone = document.getElementById('set-timezone')?.value || 'UTC+7';
+  const dateFormat = document.getElementById('set-date-format')?.value || 'DD/MM/YYYY';
+  const pushNotif = document.getElementById('set-push-notif')?.checked ?? true;
+  const theme = document.getElementById('set-theme-select')?.value || 'light';
+
+  // Apply language if changed
+  if (lang !== currentLang) {
+    switchLanguage(lang);
+  }
+
+  // Apply theme if changed
+  if (theme === 'dark') {
+    if (document.body.classList.contains('light-glass')) {
+      toggleGlassThemeMode();
+    }
+  } else if (theme === 'light') {
+    if (!document.body.classList.contains('light-glass')) {
+      toggleGlassThemeMode();
+    }
+  }
+
+  // Save to localStorage
+  const userSettings = {
+    lang,
+    timezone,
+    dateFormat,
+    pushNotif,
+    theme
+  };
+  localStorage.setItem('medimind_settings', JSON.stringify(userSettings));
+
+  const msg = currentLang === 'en' ? 'All settings saved successfully!' : 'Đã lưu tất cả cài đặt thành công!';
+  showMedicalToast(msg, 'success');
+}
+
+
+// ==========================================
+// Eye Toggle Masking for 7 Fields & Province Helper
+// ==========================================
+const fieldMaskState = {
+  'p-email': false,
+  'p-phone': false,
+  'p-cccd': false,
+  'p-issue-date': false,
+  'p-bhyt': false,
+  'p-valid-from': false,
+  'p-valid-to': false
+};
+
+const fieldRealValues = {};
+
+function maskFieldValue(val, fieldId) {
+  if (!val) return '';
+  if (fieldId === 'p-email') {
+    if (!val.includes('@')) return '••••••••';
+    const [user, domain] = val.split('@');
+    if (user.length <= 2) return user[0] + '•••@' + domain;
+    return user[0] + '••••••••' + user.slice(-1) + '@' + domain;
+  }
+  if (fieldId === 'p-phone') {
+    if (val.length <= 4) return '••••';
+    return val.slice(0, 3) + '••••' + val.slice(-3);
+  }
+  if (fieldId === 'p-cccd') {
+    if (val.length <= 6) return '••••••';
+    return val.slice(0, 3) + '••••••' + val.slice(-3);
+  }
+  if (fieldId === 'p-bhyt') {
+    if (val.length <= 5) return '•••••';
+    return val.slice(0, 3) + '••••••••••' + val.slice(-2);
+  }
+  if (fieldId.includes('date') || fieldId.includes('valid')) {
+    return '••/••/••••';
+  }
+  if (val.length <= 4) return '••••';
+  return val.slice(0, 2) + '••••' + val.slice(-2);
+}
+
+function toggleFieldMask(fieldId) {
+  fieldMaskState[fieldId] = !fieldMaskState[fieldId];
+  const isMasked = fieldMaskState[fieldId];
+  const input = document.getElementById(fieldId);
+  const eyeIcon = document.getElementById(fieldId + '-eye');
+  
+  if (!input) return;
+
+  if (isMasked) {
+    if (!fieldRealValues[fieldId]) {
+      fieldRealValues[fieldId] = input.value;
+    }
+    input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
+  } else {
+    input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
+  }
+
+  // Sync left card if email or phone
+  if (fieldId === 'p-email') {
+    const cardEmail = document.getElementById('profile-card-email');
+    const realEmail = fieldRealValues[fieldId] || input.value;
+    if (cardEmail) cardEmail.innerText = isMasked ? maskFieldValue(realEmail, 'p-email') : realEmail;
+  } else if (fieldId === 'p-phone') {
+    const cardPhone = document.getElementById('profile-card-phone');
+    const realPhone = fieldRealValues[fieldId] || input.value;
+    if (cardPhone) cardPhone.innerText = isMasked ? maskFieldValue(realPhone, 'p-phone') : realPhone;
+  }
+
+  if (eyeIcon) {
+    if (isMasked) {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/>';
+    } else {
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+  }
+}
+
+function handleProvinceChange() {
+  const provEl = document.getElementById('p-province');
+  const distEl = document.getElementById('p-district');
+  if (!provEl || !distEl) return;
+  
+  const prov = provEl.value;
+  distEl.innerHTML = '';
+  
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.innerText = currentLang === 'en' ? '-- Select District/Ward --' : '-- Chọn huyện/xã --';
+  distEl.appendChild(defaultOpt);
+  
+  const list = VIETNAM_DISTRICTS[prov] || ["Trung tâm Huyện/Thị xã", "Khu vực 1", "Khu vực 2", "Huyện/Xã khác"];
+  list.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.innerText = d;
+    distEl.appendChild(opt);
+  });
+}
+
 // MediMind Clinical AI - Medical Ocean Blue & Navy Interaction Logic
 // Features: Multimodal Gemini Vision, RAG, Double Guardrails, Bilingual i18n, RBAC, Profile & Scan Dataset Management
 
 const chatHistory = [];
-let currentLang = 'vi';
+let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
+const DEFAULT_USER_PROFILE = {
+  id: 84291908,
+  clinical_id: "84291908",
+  name: "Nguyễn Văn An",
+  full_name: "Nguyễn Văn An",
+  dob: "04/10/2005",
+  gender: "Nam",
+  phone_number: "0347047101",
+  email: "benhnhan.an@gmail.com",
+  role: "patient",
+  badge: "BN",
+  cccd: "",
+  issue_date: "",
+  bhyt: "",
+  facility: "",
+  valid_from: "",
+  valid_to: "",
+  issue_place: "",
+  nationality: "VN",
+  ethnicity: "",
+  religion: "",
+  province: "",
+  ward: "",
+  address: "",
+  joined: "11/09/2026",
+  hasCustomAvatar: false,
+  notifications: [],
+  avatar: "/static/images/avatar_male.png"
+};
+
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
+if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png') || currentUser.avatar?.includes('.svg'))) {
+  currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
+  currentUser.hasCustomAvatar = false;
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+}
+if (!currentUser || !currentUser.clinical_id || currentUser.clinical_id.length !== 8 || currentUser.name === 'Luyến Lê Công' || currentUser.name === 'BS. Lê Công Luyến') {
+  currentUser = DEFAULT_USER_PROFILE;
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+}
 let pendingTabAfterLogin = null;
 let selectedChatImageBase64 = null;
 
@@ -13,38 +267,255 @@ let selectedChatImageBase64 = null;
 // ==========================================
 const translations = {
   vi: {
-    brand_subtitle: "HIPAA Compliant • Phác đồ MedlinePlus",
-    nav_chat: "Trang chủ",
-    nav_ocr: "Đọc đơn thuốc",
-    nav_booking: "Bệnh viện",
-    nav_doctor: "Bệnh án của tôi",
+        // Notifications & Clinical Profile i18n
+    notif_title: "Thông báo",
+    nav_home: "Trang chủ",
+    dock_home: "Trang chủ",
+    home_hero_tag: "Trợ lý AI cho sức khỏe cá nhân",
+    home_hero_title: "Trợ lý sức khỏe",
+    home_hero_title_sub: "thông minh mỗi ngày",
+    home_hero_desc: "Trò chuyện với MediMind AI để hiểu sơ bộ về triệu chứng, giải thích thuật ngữ y khoa và tra cứu hồ sơ khám bệnh ở một nơi duy nhất.",
+    home_btn_chat: "Trò chuyện với trợ lý",
+    home_btn_record: "Xem hồ sơ bệnh án",
+    home_badge_security: "Thông tin được bảo mật",
+    home_badge_history: "Lưu lịch sử trò chuyện",
+    home_feat1_title: "Hỏi đáp triệu chứng",
+    home_feat1_desc: "Mô tả triệu chứng của bạn để nhận gợi ý sơ bộ và biết nên khám chuyên khoa nào.",
+    home_feat2_title: "Giải thích thuật ngữ y khoa",
+    home_feat2_desc: "Hiểu rõ kết quả xét nghiệm, chẩn đoán và các thuật ngữ trong hồ sơ khám bệnh.",
+    home_feat3_title: "Lưu lịch sử tư vấn",
+    home_feat3_desc: "Mọi cuộc trò chuyện được lưu lại để bạn xem lại bất cứ lúc nào.",
+    home_feat4_title: "Kết nối hồ sơ bệnh án",
+    home_feat4_desc: "Tra cứu lịch sử khám, chỉ số sinh tồn và tái khám của từng bệnh nhân.",
+    notif_empty: "Không có thông báo mới",
+    notif_mark_read: "Đánh dấu đã đọc tất cả",
+    notif_unread_count: "4 mới",
+    notif_all_read: "Đã đọc hết",
+    notif_1_title: "Đơn thuốc đã phân tích",
+    notif_1_desc: "Đơn thuốc Amoxicillin 500mg đã được bóc tách và đối chiếu liều dùng MedlinePlus thành công.",
+    notif_2_title: "Cảnh báo lâm sàng",
+    notif_2_desc: "Hệ thống AI khuyến nghị uống kháng sinh cách bữa ăn 30 phút để tối ưu hấp thu.",
+    notif_3_title: "Cơ sở y tế sẵn sàng",
+    notif_3_desc: "Tuyến khám chuyên khoa Tai Mũi Họng tại BV Chợ Rẫy (cách 3.5km) đang mở tiếp nhận.",
+    notif_4_title: "Hồ sơ sức khỏe đã đồng bộ",
+    notif_4_desc: "Dữ liệu sàng lọc và tóm tắt trước khám của bạn đã được cập nhật vào hồ sơ.",
+    profile_form_title: "Thông tin Chuyên môn Lâm sàng MediMind AI",
+    profile_headline_full: "Chuyên gia Lâm sàng @ MediMind Clinical AI",
+    badge_active_text: "ACTIVE / VERIFIED",
+    badge_status_label: "TRẠNG THÁI LÂM SÀNG",
+    badge_joined_label: "NGÀY THAM GIA",
+    p_lbl_name: "Họ và tên",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email không thể thay đổi",
+    p_lbl_phone: "Số điện thoại",
+    p_lbl_clinical_id: "Mã số Chuyên viên (Clinical ID)",
+    p_lbl_birthdate: "Ngày sinh",
+    p_lbl_dept: "Khoa / Đơn vị lâm sàng",
+    p_lbl_dept_hint: "Quản lý khoa chuyên môn tại Hệ thống Y tế MediMind.",
+    p_lbl_hospital: "Cơ sở y tế / Bệnh viện",
+    p_lbl_portfolio: "Hồ sơ Chuyên môn (Portfolio / Chứng chỉ)",
+    p_lbl_role: "Vai trò / Chức danh chuyên môn",
+    p_btn_save: "Lưu thay đổi",
+        // Personal Information i18n
+        // Screenshot Form i18n
+    p_lbl_cccd: "CMT/CCCD",
+    p_lbl_issue_date: "Ngày cấp",
+    p_sec_bhyt: "Bảo hiểm y tế",
+    p_lbl_bhyt_code: "Mã BHYT",
+    p_lbl_facility: "Cơ sở khám chữa bệnh",
+    p_lbl_valid_from: "Hiệu lực từ",
+    p_lbl_valid_to: "Hết hiệu lực",
+    p_lbl_issue_place: "Nơi cấp",
+    p_lbl_nationality: "Quốc tịch (mã)",
+    p_lbl_ethnicity: "Dân tộc",
+    p_lbl_religion: "Tôn giáo",
+    p_lbl_ward: "Phường/Xã",
+    p_lbl_address_hokhau: "Địa chỉ theo sổ hộ khẩu",
+    p_btn_save_info: "Lưu thông tin",
+    p_btn_back_account: "Quay lại trang tài khoản",
+        // Settings Tab i18n
+    set_acc_title: "Tùy chọn tài khoản",
+    set_acc_desc: "Quản lý tùy chọn tài khoản và cài đặt khu vực của bạn",
+    set_lbl_lang: "Ngôn ngữ",
+    set_lbl_timezone: "Múi giờ",
+    set_lbl_date_format: "Định dạng ngày",
+    set_notif_title: "Thông báo",
+    notif_empty: "Không có thông báo mới",
+    set_notif_desc: "Quản lý cách bạn nhận thông báo",
+    set_lbl_browser_push: "Thông báo đẩy trình duyệt",
+    set_lbl_browser_push_desc: "Nhận thông báo ngay cả khi đã đóng trang",
+    set_sec_title: "Bảo mật",
+    set_sec_desc: "Quản lý mật khẩu và cài đặt bảo mật của bạn",
+    set_lbl_curr_pass: "Mật khẩu hiện tại",
+    set_lbl_new_pass: "Mật khẩu mới",
+    set_lbl_confirm_pass: "Xác nhận mật khẩu",
+    set_btn_change_pass: "Đổi mật khẩu",
+    set_app_title: "Giao diện",
+    set_app_desc: "Tùy chỉnh giao diện ứng dụng",
+    set_lbl_theme: "Chủ đề",
+    theme_dark: "Tối (Dark)",
+    theme_light: "Sáng (Light)",
+    theme_system: "Hệ thống (System)",
+    set_btn_save_all: "Lưu tất cả cài đặt",
+    p_section_title: "Thông tin cá nhân",
+    p_lbl_name: "Họ và tên",
+    p_lbl_gender: "Giới tính",
+    gender_male: "Nam",
+    gender_female: "Nữ",
+    gender_other: "Khác",
+    p_lbl_birthdate: "Ngày sinh",
+    p_lbl_clinical_id: "Clinical ID",
+    p_lbl_clinical_id_hint: "Mã định danh 8 chữ số cố định được cấp khi tạo tài khoản",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email không thể thay đổi",
+    p_lbl_phone: "Số điện thoại",
+    p_lbl_province: "Tỉnh / Thành Phố",
+    p_lbl_district: "Huyện / Xã",
+    p_lbl_address: "Địa chỉ",
+    p_lbl_address_ph: "Số nhà, tên đường, khu phố...",
+    p_btn_save: "Lưu thay đổi",
+    p_avatar_change: "Đổi ảnh",
+    brand_subtitle: "Bảo mật thông tin cá nhân • Phác đồ MedlinePlus",
+    nav_chat: "Trợ lý sức khỏe",
+    nav_ocr: "Đọc đơn thuốc & xét nghiệm",
+    nav_booking: "Cơ sở y tế",
+    nav_doctor: "Hồ sơ của tôi",
     nav_admin: "Hạ tầng Cloud",
     nav_login: "Đăng nhập",
     nav_start: "Bắt đầu ngay",
     user_role: "Bác sĩ lâm sàng",
-    hero_badge: "Dự án AI vì sức khỏe cộng đồng 2026",
-    hero_title_1: "Trợ lý sức khỏe",
-    hero_title_2: "thông minh",
-    hero_desc: "Hỗ trợ phân tích triệu chứng, đọc đơn thuốc và cung cấp thông tin y tế có nguồn tham khảo từ các tài liệu y khoa đáng tin cậy, được hỗ trợ bởi trí tuệ nhân tạo tiên tiến.",
-    hero_btn_check: "Kiểm tra triệu chứng",
-    hero_btn_scan: "Đọc đơn thuốc",
-    trust_security: "Bảo mật thông tin",
-    trust_support: "Hỗ trợ 24/7",
-    trust_banner: "Đã hỗ trợ hơn <strong class=\"text-slate-800 font-bold\">15.200+</strong> lượt sàng lọc lâm sàng theo phác đồ MedlinePlus",
-    chip_hr: "Nhịp tim",
-    chip_info: "Thông tin y khoa",
-    chip_source: "Từ nguồn uy tín",
-    chat_assistant_title: "Trợ lý MediMind AI",
-    chat_status: "Đang hoạt động",
+    dock_chat: "Trợ lý sức khỏe",
+    dock_ocr: "Đọc đơn thuốc & xét nghiệm",
+    dock_booking: "Cơ sở y tế & Bệnh viện",
+    dock_doctor: "Hồ sơ của tôi",
+    dock_wallpaper: "Đổi không gian Y tế",
+    dock_theme: "Kính Sáng / Kính Khói",
+    dock_reset: "Cuộc trò chuyện mới",
+    ocr_title: "Đọc Đơn Thuốc & Xét Nghiệm",
+    ocr_subtitle: "Bóc tách danh mục thuốc, đối chiếu liều dùng và gợi ý lịch uống sau khi bạn xác nhận",
+    ocr_btn_upload_new: "Tải tài liệu mới",
+    ocr_btn_home: "Trang chủ",
+    ocr_box_title: "Tải Lên Đơn Thuốc Hoặc Phiếu Xét Nghiệm",
+    ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép tài liệu (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)",
+    ocr_btn_choose: "Chọn tài liệu từ thiết bị",
+    ocr_privacy_note: "🔒 Tài liệu được bảo mật và chỉ lưu vào hồ sơ cá nhân sau khi bạn xác nhận kết quả.",
+    ocr_preset_hint: "Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:",
+    ocr_preset_gastro: "Đơn thuốc mẫu (Tiêu hóa)",
+    ocr_preset_resp: "Đơn thuốc mẫu (Hô hấp)",
+    ocr_preset_blood: "Phiếu xét nghiệm mẫu (Máu)",
+    modal_login_title: "Đăng nhập MediMind AI",
+    modal_register_title: "Đăng ký tài khoản MediMind",
+    modal_auth_subtitle: "Hệ thống Trợ lý Y tế & Phân tầng Lâm sàng",
+    tab_login: "Đăng nhập",
+    tab_register: "Tạo tài khoản mới",
+    ph_identifier: "Email hoặc số di động",
+    ph_password: "Mật khẩu",
+    btn_login: "Đăng nhập",
+    link_forgot_pwd: "Quên mật khẩu?",
+    btn_create_account: "Tạo tài khoản mới",
+    btn_demo_login: "Đăng nhập tài khoản mẫu thử nghiệm",
+    lbl_name: "Tên",
+    ph_last_name: "Họ",
+    ph_first_name: "Tên",
+    lbl_dob: "Ngày sinh",
+    opt_day: "Ngày",
+    opt_month: "Tháng",
+    opt_year: "Năm",
+    lbl_gender: "Giới tính",
+    opt_gender_select: "Chọn giới tính",
+    opt_male: "Nam",
+    opt_female: "Nữ",
+    opt_other: "Khác",
+    lbl_identifier: "Số di động hoặc email",
+    lbl_password: "Mật khẩu",
+    btn_register_submit: "Đăng ký tài khoản mới",
+    lbl_have_account: "Đã có tài khoản?",
+    link_login_now: "Đăng nhập ngay",
+    history_title: "Lịch Sử Tư Vấn",
+    history_subtitle: "Các phiên sàng lọc & phân tích triệu chứng",
+    history_btn_new: "Hội thoại mới",
+    ph_history_search: "Tìm kiếm phiên tư vấn...",
+    history_empty_title: "Chưa có lịch sử tư vấn",
+    history_empty_desc: "Các cuộc sàng lọc triệu chứng sẽ được lưu tự động tại đây sau khi hoàn tất.",
+    history_demo_label: "Dữ liệu thử nghiệm:",
+    history_demo_btn: "Xem thử ca tư vấn mẫu (Demo)",
+    history_security: "Bảo mật dữ liệu cá nhân",
+    history_encrypted: "Cục bộ & Mã hóa",
+    assistant_header_title: "Trợ lý sức khỏe AI",
+    assistant_header_subtitle: "Đang trực tuyến • Phác đồ MedlinePlus & Dược thư",
+    assistant_btn_summary: "Hồ sơ & Tóm tắt",
+    assistant_greeting_title: "Chào bạn, tôi là Trợ lý sức khỏe AI MediMind!",
+    assistant_greeting_desc: "Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
     quick_1: "🩺 Sốt 38.5°C & đau rát họng",
-    quick_2: "⚠️ Đau thắt ngực, khó thở",
+    quick_2: "⚠️ Đau tức ngực, khó thở",
     quick_3: "💊 Lịch uống đơn thuốc sau ăn?",
     quick_4: "🏥 Gợi ý chuyên khoa khám",
     quick_prompt_text_1: "Tôi bị sốt 38.5 độ và đau rát họng hai hôm nay, nuốt đau",
     quick_prompt_text_2: "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái",
     quick_prompt_text_3: "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?",
     quick_prompt_text_4: "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?",
-    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau ngực, sốt cao, đau dạ dày) hoặc gửi ảnh đơn thuốc...",
+    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau tức ngực, sốt, đau dạ dày) hoặc gửi ảnh đơn thuốc...",
+    hospital_title: "Cơ Sở Y Tế & Bệnh Viện",
+    hospital_location_est: "Khu vực: TP.HCM (Khoảng cách ước tính)",
+    hospital_subtitle: "Tra cứu vị trí bệnh viện tuyến đầu • Khoảng cách tính từ trung tâm TP.HCM hoặc bấm để dùng GPS",
+    hospital_btn_115: "Tổng đài Cấp cứu 115",
+    btn_home: "Trang chủ",
+    hospital_filter_all: "Tất cả cơ sở (3)",
+    hospital_filter_central: "Tuyến Trung Ương",
+    hospital_filter_class1: "Đa khoa Hạng 1",
+    hospital_filter_emergency: "Cấp cứu 24/7",
+    hospital_map_title: "Bản đồ trực tiếp (Google Maps)",
+    hospital_map_fullscreen: "Mở toàn màn hình →",
+    hospital_btn_directions: "Chỉ đường Google Maps",
+    hospital_btn_call: "Gọi BV",
+    ehr_title: "Hồ sơ của tôi & Tóm tắt trước khám",
+    ehr_tag: "TÓM TẮT TRƯỚC KHÁM",
+    ehr_subtitle: "Lưu trữ tóm tắt các lần sàng lọc triệu chứng & tài liệu đơn thuốc của bạn",
+    ehr_export_text: "Xuất Tóm Tắt (PDF)",
+    ehr_empty_title: "Bạn chưa có bản tóm tắt trước khám",
+    ehr_empty_desc: "Chưa có dữ liệu tư vấn nào được ghi nhận. Hãy trao đổi với Trợ lý sức khỏe AI hoặc tải ảnh đơn thuốc để hệ thống tự động tổng hợp thông tin trước khám cho bạn.",
+    ehr_btn_start_chat: "Bắt đầu tư vấn triệu chứng →",
+    ehr_btn_upload: "Tải đơn thuốc / xét nghiệm",
+    vital_bp: "Huyết áp",
+    vital_hr: "Nhịp tim",
+    vital_temp: "Thân nhiệt",
+    vital_spo2: "SpO2",
+    vital_temp_sub: "Sốt nhẹ",
+    vital_spo2_sub: "Đạt chuẩn",
+    ehr_card_narrative: "Diễn tiến Bệnh cảnh & Lý do vào viện",
+    ehr_card_narrative_sub: "Trích xuất tự động qua Chatbot AI",
+    ehr_card_allergy: "CẢNH BÁO TIỀN SỬ DỊ ỨNG & CHỐNG CHỈ ĐỊNH LÂM SÀNG",
+    ehr_card_dx: "Định hướng Chẩn đoán sơ bộ (AI)",
+    ehr_card_orders: "Đề xuất Chỉ định Cận lâm sàng (Clinical Orders)",
+    ehr_card_actions: "Thao tác Bệnh án",
+    ehr_card_ready: "Hồ sơ sẵn sàng",
+    ehr_btn_print_a4: "In Bệnh án A4",
+    ehr_btn_save_emr: "Lưu vào EMR",
+    profile_breadcrumb_home: "Trang chủ",
+    profile_breadcrumb_title: "Cập nhật hồ sơ cá nhân",
+    profile_title: "Thông tin cá nhân",
+    profile_desc: "Quản lý và cập nhật thông tin cá nhân dùng trong việc sàng lọc y tế và bệnh án",
+    profile_btn_view_ehr: "Xem Bệnh án của tôi →",
+    profile_active_badge: "Hồ sơ y tế hoạt động",
+    profile_lbl_dob: "Ngày sinh",
+    profile_lbl_gender: "Giới tính",
+    profile_lbl_phone: "Điện thoại",
+    profile_lbl_fullname: "Họ và tên",
+    profile_lbl_email: "Địa chỉ Email",
+    profile_lbl_bhyt: "Mã thẻ BHYT (nếu có)",
+    profile_lbl_city: "Tỉnh / Thành phố",
+    profile_lbl_address: "Địa chỉ nơi cư trú",
+    profile_btn_save: "Lưu thông tin",
+    profile_btn_back: "Quay lại trang chủ",
+    footer_disclaimer_link: "Tuyên bố Miễn trừ Trách nhiệm Y tế",
+    footer_version: "Phiên bản 2.5 • Chuẩn Y tế AWS Cloud",
+    footer_disclaimer_title: "Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)",
+    footer_disclaimer_text: "Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, vui lòng gọi cấp cứu 115.",
+    toast_space_prefix: "Đã chuyển không gian: ",
+    toast_glass_light: "Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)",
+    toast_glass_dark: "Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)",
+    guest_user: "Khách",
+    not_logged_in: "Chưa đăng nhập",
     disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
     disclaimer_footer_btn: "Miễn trừ trách nhiệm",
     typing_vision: "Gemini Vision đang phân tích hình thái học...",
@@ -57,37 +528,255 @@ const translations = {
     default_image_prompt: "Xin bác sĩ quan sát bức ảnh và phân tích giúp tôi dấu hiệu tổn thương trên da."
   },
   en: {
+        // Notifications & Clinical Profile i18n
+    notif_title: "Notifications",
+    nav_home: "Home",
+    dock_home: "Home",
+    home_hero_tag: "Personal AI Health Assistant",
+    home_hero_title: "Smart Daily Health",
+    home_hero_title_sub: "Assistant",
+    home_hero_desc: "Chat with MediMind AI for preliminary symptom assessment, medical terminology explanations, and clinical records all in one place.",
+    home_btn_chat: "Chat with Assistant",
+    home_btn_record: "View Health Record",
+    home_badge_security: "Data Encrypted & Secure",
+    home_badge_history: "Chat History Saved",
+    home_feat1_title: "Symptom Q&A",
+    home_feat1_desc: "Describe your symptoms for preliminary guidance and specialty recommendations.",
+    home_feat2_title: "Medical Terminology",
+    home_feat2_desc: "Understand lab results, clinical diagnoses, and prescriptions clearly.",
+    home_feat3_title: "Consultation History",
+    home_feat3_desc: "All triage discussions are securely saved for your future reference.",
+    home_feat4_title: "Electronic Health Records",
+    home_feat4_desc: "Access your clinical summaries, vital signs, and scheduled visits anytime.",
+    notif_empty: "No new notifications",
+    notif_mark_read: "Mark all as read",
+    notif_unread_count: "4 new",
+    notif_all_read: "All read",
+    notif_1_title: "Prescription Analyzed",
+    notif_1_desc: "Amoxicillin 500mg prescription parsed and verified against MedlinePlus dosage guidelines.",
+    notif_2_title: "Clinical Advisory",
+    notif_2_desc: "AI system advises taking medication 30 minutes after meals to optimize absorption.",
+    notif_3_title: "Facility Available",
+    notif_3_desc: "ENT Specialist consultation at Cho Ray Hospital (3.5km away) is currently accepting patients.",
+    notif_4_title: "Health Record Synchronized",
+    notif_4_desc: "Your pre-visit clinical summary and screening history have been securely synchronized.",
+    profile_form_title: "MediMind AI Clinical & Specialist Information",
+    profile_headline_full: "Clinical AI Specialist @ MediMind Clinical AI",
+    badge_active_text: "ACTIVE / VERIFIED",
+    badge_status_label: "CLINICAL STATUS",
+    badge_joined_label: "REGISTERED",
+    p_lbl_name: "Full Name",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email cannot be changed",
+    p_lbl_phone: "Phone Number",
+    p_lbl_clinical_id: "Clinical ID",
+    p_lbl_birthdate: "Birth Date",
+    p_lbl_dept: "Department",
+    p_lbl_dept_hint: "Managed under MediMind Clinical Division.",
+    p_lbl_hospital: "Hospital / Facility",
+    p_lbl_portfolio: "Clinical Portfolio",
+    p_lbl_role: "Role / Headline",
+    p_btn_save: "Save Changes",
+        // Personal Information i18n
+        // Screenshot Form i18n
+    p_lbl_cccd: "Citizen ID / CCCD",
+    p_lbl_issue_date: "Issue Date",
+    p_sec_bhyt: "Health Insurance",
+    p_lbl_bhyt_code: "Health Insurance Code",
+    p_lbl_facility: "Primary Care Facility",
+    p_lbl_valid_from: "Effective From",
+    p_lbl_valid_to: "Valid Until",
+    p_lbl_issue_place: "Place of Issue",
+    p_lbl_nationality: "Nationality (Code)",
+    p_lbl_ethnicity: "Ethnicity",
+    p_lbl_religion: "Religion",
+    p_lbl_ward: "Ward / Commune",
+    p_lbl_address_hokhau: "Permanent Address",
+    p_btn_save_info: "Save Information",
+    p_btn_back_account: "Back to Account Page",
+        // Settings Tab i18n
+    set_acc_title: "Account Preferences",
+    set_acc_desc: "Manage your account preferences and regional settings",
+    set_lbl_lang: "Language",
+    set_lbl_timezone: "Timezone",
+    set_lbl_date_format: "Date Format",
+    set_notif_title: "Notifications",
+    notif_empty: "No new notifications",
+    set_notif_desc: "Manage how you receive notifications",
+    set_lbl_browser_push: "Browser Push Notifications",
+    set_lbl_browser_push_desc: "Receive notifications even when the page is closed",
+    set_sec_title: "Security",
+    set_sec_desc: "Manage your password and security settings",
+    set_lbl_curr_pass: "Current Password",
+    set_lbl_new_pass: "New Password",
+    set_lbl_confirm_pass: "Confirm Password",
+    set_btn_change_pass: "Change Password",
+    set_app_title: "Appearance",
+    set_app_desc: "Customize how the application looks",
+    set_lbl_theme: "Theme",
+    theme_dark: "Dark",
+    theme_light: "Light",
+    theme_system: "System",
+    set_btn_save_all: "Save All Settings",
+    p_section_title: "Personal Information",
+    p_lbl_name: "Full Name",
+    p_lbl_gender: "Gender",
+    gender_male: "Male",
+    gender_female: "Female",
+    gender_other: "Other",
+    p_lbl_birthdate: "Birth Date",
+    p_lbl_clinical_id: "Clinical ID",
+    p_lbl_clinical_id_hint: "Fixed 8-digit clinical ID assigned at account creation",
+    p_lbl_email: "Email",
+    p_lbl_email_hint: "Email cannot be changed",
+    p_lbl_phone: "Phone Number",
+    p_lbl_province: "Province / City",
+    p_lbl_district: "District / Ward",
+    p_lbl_address: "Address",
+    p_lbl_address_ph: "House number, street, ward...",
+    p_btn_save: "Save Changes",
+    p_avatar_change: "Change",
     brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
-    nav_chat: "Home",
-    nav_ocr: "Prescriptions",
-    nav_booking: "Hospitals",
+    nav_chat: "Health Assistant",
+    nav_ocr: "Prescriptions & Labs",
+    nav_booking: "Hospitals & Clinics",
     nav_doctor: "My Health Record",
     nav_admin: "Cloud Infrastructure",
     nav_login: "Sign In",
     nav_start: "Get Started",
     user_role: "Clinical Physician",
-    hero_badge: "Community Health AI Initiative 2026",
-    hero_title_1: "Smart Healthcare",
-    hero_title_2: "Assistant",
-    hero_desc: "AI-powered clinical triage, prescription analysis, and evidence-grounded health assistance referenced from trusted medical guidelines.",
-    hero_btn_check: "Check Symptoms",
-    hero_btn_scan: "Scan Prescription",
-    trust_security: "Data Security",
-    trust_support: "24/7 Support",
-    trust_banner: "Assisted over <strong class=\"text-slate-800 font-bold\">15,200+</strong> clinical screenings based on MedlinePlus protocols",
-    chip_hr: "Heart Rate",
-    chip_info: "Medical Info",
-    chip_source: "From trusted sources",
-    chat_assistant_title: "MediMind AI Assistant",
-    chat_status: "Online",
-    quick_1: "📷 Skin Image AI",
-    quick_2: "🔍 Unilateral Blisters?",
-    quick_3: "🌡️ Safe Antipyretic?",
-    quick_4: "💊 Need Antibiotics?",
-    quick_prompt_text_2: "I have itchy blisters clustered on one side of my torso",
-    quick_prompt_text_3: "What is a safe fever reducer medication?",
-    quick_prompt_text_4: "Do I need to take antibiotics for a cold or sore throat?",
-    chat_input_placeholder: "Describe symptoms or upload a skin lesion photo...",
+    dock_chat: "Health Assistant",
+    dock_ocr: "Prescriptions & Labs",
+    dock_booking: "Hospitals & Clinics",
+    dock_doctor: "My Health Record",
+    dock_wallpaper: "Change Wallpaper",
+    dock_theme: "Light / Dark Glass",
+    dock_reset: "New Conversation",
+    ocr_title: "Prescription & Lab OCR",
+    ocr_subtitle: "Extract drug lists, verify dosages, and generate intake schedules after confirmation",
+    ocr_btn_upload_new: "Upload New Document",
+    ocr_btn_home: "Home",
+    ocr_box_title: "Upload Prescription or Lab Report",
+    ocr_box_desc: "Clear text, adequate light, all edges visible (Supports JPG, PNG, PDF, up to 10MB)",
+    ocr_btn_choose: "Select from Device",
+    ocr_privacy_note: "🔒 Your document is encrypted and only saved to your personal health record upon confirmation.",
+    ocr_preset_hint: "No document at hand? Try quick samples:",
+    ocr_preset_gastro: "Sample Prescription (Gastro)",
+    ocr_preset_resp: "Sample Prescription (Resp)",
+    ocr_preset_blood: "Sample Lab Report (Blood)",
+    modal_login_title: "Sign In to MediMind AI",
+    modal_register_title: "Create MediMind Account",
+    modal_auth_subtitle: "Clinical Decision Support & Health Assistant",
+    tab_login: "Sign In",
+    tab_register: "Create Account",
+    ph_identifier: "Email or mobile number",
+    ph_password: "Password",
+    btn_login: "Sign In",
+    link_forgot_pwd: "Forgot Password?",
+    btn_create_account: "Create New Account",
+    btn_demo_login: "Quick Demo Patient Sign-in",
+    lbl_name: "Name",
+    ph_last_name: "Last Name",
+    ph_first_name: "First Name",
+    lbl_dob: "Date of Birth",
+    opt_day: "Day",
+    opt_month: "Month",
+    opt_year: "Year",
+    lbl_gender: "Gender",
+    opt_gender_select: "Select Gender",
+    opt_male: "Male",
+    opt_female: "Female",
+    opt_other: "Other",
+    lbl_identifier: "Mobile Number or Email",
+    lbl_password: "Password",
+    btn_register_submit: "Register New Account",
+    lbl_have_account: "Already have an account?",
+    link_login_now: "Sign In Now",
+    history_title: "Consultation History",
+    history_subtitle: "Screening sessions & symptom analyses",
+    history_btn_new: "New Session",
+    ph_history_search: "Search consultations...",
+    history_empty_title: "No consultation history yet",
+    history_empty_desc: "Your symptom screenings will be automatically saved here upon completion.",
+    history_demo_label: "Demo dataset:",
+    history_demo_btn: "View Demo Consultation Case",
+    history_security: "Personal Data Privacy",
+    history_encrypted: "Local & Encrypted",
+    assistant_header_title: "MediMind AI Health Assistant",
+    assistant_header_subtitle: "Online • MedlinePlus Guidelines & Formulary",
+    assistant_btn_summary: "Record & Summary",
+    assistant_greeting_title: "Hello, I am MediMind Clinical AI Assistant!",
+    assistant_greeting_desc: "I can assist you with preliminary symptom triage, prescription explanations, and appropriate clinic referrals. What health concern can I help you with today?",
+    quick_1: "🩺 Fever 38.5°C & Sore Throat",
+    quick_2: "⚠️ Chest Tightness, Dyspnea",
+    quick_3: "💊 Post-meal Prescription Schedule?",
+    quick_4: "🏥 Specialty Referral Guidance",
+    quick_prompt_text_1: "I have had a fever of 38.5 C and sore throat for 2 days, painful swallowing",
+    quick_prompt_text_2: "I have intense crushing chest pain, sweating, and shortness of breath radiating to left arm",
+    quick_prompt_text_3: "Should I take this medication before or after meals?",
+    quick_prompt_text_4: "I feel burning epigastric pain after eating, which specialty should I consult?",
+    chat_input_placeholder: "Describe symptoms (e.g. chest pain, fever, stomach ache) or send prescription photo...",
+    hospital_title: "Medical Facilities & Hospitals",
+    hospital_location_est: "Region: Ho Chi Minh City (Estimated Distance)",
+    hospital_subtitle: "Find top referral hospitals • Distance calculated from city center or tap for GPS",
+    hospital_btn_115: "Emergency Hotline 115",
+    btn_home: "Home",
+    hospital_filter_all: "All Facilities (3)",
+    hospital_filter_central: "Central Hospitals",
+    hospital_filter_class1: "Class 1 General",
+    hospital_filter_emergency: "24/7 Emergency",
+    hospital_map_title: "Live Map (Google Maps)",
+    hospital_map_fullscreen: "Open Fullscreen →",
+    hospital_btn_directions: "Google Maps Directions",
+    hospital_btn_call: "Call Hospital",
+    ehr_title: "My Health Record & Pre-Visit Summary",
+    ehr_tag: "PRE-VISIT SUMMARY",
+    ehr_subtitle: "Archive of symptom screening summaries and prescription documents",
+    ehr_export_text: "Export Summary (PDF)",
+    ehr_empty_title: "No Pre-Visit Summary Available",
+    ehr_empty_desc: "No consultation data recorded yet. Talk with our AI Health Assistant or upload a prescription to generate your summary.",
+    ehr_btn_start_chat: "Start Symptom Consultation →",
+    ehr_btn_upload: "Upload Prescription / Lab",
+    vital_bp: "Blood Pressure",
+    vital_hr: "Heart Rate",
+    vital_temp: "Body Temp",
+    vital_spo2: "SpO2",
+    vital_temp_sub: "Mild fever",
+    vital_spo2_sub: "Normal",
+    ehr_card_narrative: "Clinical History & Chief Complaint",
+    ehr_card_narrative_sub: "Extracted automatically by MediMind AI",
+    ehr_card_allergy: "CLINICAL ALLERGY ALERT & CONTRAINDICATIONS",
+    ehr_card_dx: "Provisional Diagnostic Impressions (AI)",
+    ehr_card_orders: "Recommended Clinical Orders",
+    ehr_card_actions: "Medical Record Actions",
+    ehr_card_ready: "Record Ready",
+    ehr_btn_print_a4: "Print A4 Record",
+    ehr_btn_save_emr: "Save to EMR",
+    profile_breadcrumb_home: "Home",
+    profile_breadcrumb_title: "Update Health Profile",
+    profile_title: "Personal Information",
+    profile_desc: "Manage and update health demographics used in medical screening and records",
+    profile_btn_view_ehr: "View My Medical Record →",
+    profile_active_badge: "Active Health Record",
+    profile_lbl_dob: "Date of Birth",
+    profile_lbl_gender: "Gender",
+    profile_lbl_phone: "Phone Number",
+    profile_lbl_fullname: "Full Name",
+    profile_lbl_email: "Email Address",
+    profile_lbl_bhyt: "Health Insurance ID (optional)",
+    profile_lbl_city: "City / Province",
+    profile_lbl_address: "Residential Address",
+    profile_btn_save: "Save Information",
+    profile_btn_back: "Back to Home",
+    footer_disclaimer_link: "Medical Disclaimer",
+    footer_version: "Version 2.5 • AWS Cloud Health Compliant",
+    footer_disclaimer_title: "Medical Disclaimer",
+    footer_disclaimer_text: "MediMind AI is developed for educational, technical demonstration, and research proof-of-concept purposes. The inferences, scores, and referenced guidelines do not constitute formal clinical diagnoses or medical advice. Always consult licensed medical professionals or healthcare facilities for medical conditions. In case of emergency, call 115 immediately.",
+    toast_space_prefix: "Switched theme: ",
+    toast_glass_light: "Activated: Clinical Light Glass (Daylight Minimal)",
+    toast_glass_dark: "Activated: Transparent Spatial Glass (Dark Minimal)",
+    guest_user: "Guest",
+    not_logged_in: "Not signed in",
     disclaimer_footer_text: "⚠️ Educational Health AI Prototype • ",
     disclaimer_footer_btn: "Medical Disclaimer",
     typing_vision: "Gemini Vision is analyzing morphology...",
@@ -121,8 +810,11 @@ function closeLanguageDropdown() {
 
 function setLanguage(lang) {
   currentLang = lang;
+  try { localStorage.setItem('medimind_lang', lang); } catch (e) {}
   closeLanguageDropdown();
+  populateDobDropdowns();
   applyLanguage();
+  updateAuthUI();
 }
 
 function applyLanguage() {
@@ -134,6 +826,23 @@ function applyLanguage() {
   const checkEn = document.getElementById('check-en');
   if (checkVi) checkVi.classList.toggle('hidden', currentLang !== 'vi');
   if (checkEn) checkEn.classList.toggle('hidden', currentLang !== 'en');
+
+  // Dynamic Auth modal header based on currentAuthMode
+  const titleEl = document.getElementById('auth-modal-title');
+  if (titleEl) {
+    titleEl.innerText = (typeof currentAuthMode !== 'undefined' && currentAuthMode === 'register')
+      ? (dict.modal_register_title || 'Đăng ký tài khoản MediMind')
+      : (dict.modal_login_title || 'Đăng nhập MediMind AI');
+  }
+
+  // Update gender options text
+  const genderSelect = document.getElementById('register-gender');
+  if (genderSelect && genderSelect.options.length >= 4) {
+    genderSelect.options[0].text = dict.opt_gender_select || 'Chọn giới tính';
+    genderSelect.options[1].text = dict.opt_male || 'Nam';
+    genderSelect.options[2].text = dict.opt_female || 'Nữ';
+    genderSelect.options[3].text = dict.opt_other || 'Khác';
+  }
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
@@ -258,6 +967,7 @@ function switchTab(tabId) {
 
   // Floating Capsule Dock buttons
   document.querySelectorAll('.dock-btn').forEach(btn => {
+    btn.removeAttribute('title');
     btn.classList.remove('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
     btn.classList.add('text-white/60');
   });
@@ -275,6 +985,16 @@ function switchTab(tabId) {
   if (activeDock) {
     activeDock.classList.remove('text-white/60');
     activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
+  }
+
+  // Floating Chatbox: Show on all tabs except Trợ lý sức khỏe (chat-tab)
+  const floatingChat = document.getElementById('floating-chat-container');
+  if (floatingChat) {
+    if (tabId === 'chat-tab') {
+      floatingChat.classList.add('hidden');
+    } else {
+      floatingChat.classList.remove('hidden');
+    }
   }
 }
 
@@ -597,12 +1317,16 @@ function escapeHtml(string) {
 function toggleUserDropdown(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('user-dropdown-menu');
+  const arrow = document.getElementById('user-dropdown-arrow');
   if (menu) menu.classList.toggle('hidden');
+  if (arrow) arrow.classList.toggle('rotate-180');
 }
 
 function closeUserDropdown() {
   const menu = document.getElementById('user-dropdown-menu');
+  const arrow = document.getElementById('user-dropdown-arrow');
   if (menu) menu.classList.add('hidden');
+  if (arrow) arrow.classList.remove('rotate-180');
 }
 
 function toggleProfileEdit(isEdit) {
@@ -658,6 +1382,9 @@ async function handleSaveProfile(e) {
     const data = await res.json();
     if (data.success && data.user) {
       currentUser = data.user;
+      // Set Facebook-style default avatar based on gender (Nam, Nữ, Khác)
+      currentUser.hasCustomAvatar = false;
+      currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || gender);
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
       openProfileModal();
@@ -731,7 +1458,43 @@ function closeProfileModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+function syncAuthModalTheme() {
+  const isLight = document.body.classList.contains('light-glass');
+  const card = document.getElementById('auth-modal-card');
+  const title = document.getElementById('auth-modal-title');
+  const modal = document.getElementById('login-modal');
+  if (!card) return;
+
+  if (isLight) {
+    card.classList.remove('bg-slate-900/95', 'text-white', 'border-white/15');
+    card.classList.add('bg-white', 'text-slate-900', 'border-slate-200', 'shadow-2xl');
+    if (title) {
+      title.classList.remove('text-white');
+      title.classList.add('text-slate-900');
+    }
+    if (modal) {
+      modal.classList.remove('bg-black/60');
+      modal.classList.add('bg-slate-900/40');
+    }
+  } else {
+    card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200');
+    card.classList.add('bg-slate-900/95', 'text-white', 'border-white/15', 'shadow-2xl');
+    if (title) {
+      title.classList.remove('text-slate-900');
+      title.classList.add('text-white');
+    }
+    if (modal) {
+      modal.classList.remove('bg-slate-900/40');
+      modal.classList.add('bg-black/60');
+    }
+  }
+  if (typeof toggleAuthMode === 'function') {
+    toggleAuthMode(currentAuthMode);
+  }
+}
+
 function openLoginModal() {
+  syncAuthModalTheme();
   const modal = document.getElementById('login-modal');
   if (modal) {
     modal.classList.remove('hidden');
@@ -749,44 +1512,76 @@ function populateDobDropdowns() {
   const monthSelect = document.getElementById('register-dob-month');
   const yearSelect = document.getElementById('register-dob-year');
   if (!daySelect || !monthSelect || !yearSelect) return;
-  if (daySelect.children.length <= 1) {
-    daySelect.innerHTML = '<option value="" disabled selected>Ngày</option>' + 
-      Array.from({length: 31}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
-    monthSelect.innerHTML = '<option value="" disabled selected>Tháng</option>' + 
-      Array.from({length: 12}, (_, i) => `<option value="${i+1}">Tháng ${i+1}</option>`).join('');
-    const currentYear = new Date().getFullYear();
-    yearSelect.innerHTML = '<option value="" disabled selected>Năm</option>' + 
-      Array.from({length: 85}, (_, i) => `<option value="${currentYear - i}">${currentYear - i}</option>`).join('');
-  }
+
+  const prevDay = daySelect.value;
+  const prevMonth = monthSelect.value;
+  const prevYear = yearSelect.value;
+
+  const dayText = currentLang === 'en' ? 'Day' : 'Ngày';
+  const monthText = currentLang === 'en' ? 'Month' : 'Tháng';
+  const yearText = currentLang === 'en' ? 'Year' : 'Năm';
+
+  daySelect.innerHTML = `<option value="" disabled ${!prevDay ? 'selected' : ''} class="bg-slate-900 text-white">${dayText}</option>` + 
+    Array.from({length: 31}, (_, i) => `<option value="${i+1}" ${prevDay == (i+1) ? 'selected' : ''} class="bg-slate-900 text-white">${i+1}</option>`).join('');
+
+  monthSelect.innerHTML = `<option value="" disabled ${!prevMonth ? 'selected' : ''} class="bg-slate-900 text-white">${monthText}</option>` + 
+    Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${prevMonth == (i+1) ? 'selected' : ''} class="bg-slate-900 text-white">${currentLang === 'en' ? `Month ${i+1}` : `Tháng ${i+1}`}</option>`).join('');
+
+  const currentYear = new Date().getFullYear();
+  yearSelect.innerHTML = `<option value="" disabled ${!prevYear ? 'selected' : ''} class="bg-slate-900 text-white">${yearText}</option>` + 
+    Array.from({length: 85}, (_, i) => `<option value="${currentYear - i}" ${prevYear == (currentYear - i) ? 'selected' : ''} class="bg-slate-900 text-white">${currentYear - i}</option>`).join('');
 }
 
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
   currentAuthMode = mode;
+  const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
-  const tabLogin = document.getElementById('tab-auth-login');
-  const tabRegister = document.getElementById('tab-auth-register');
   const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  if (mode === 'register') {
-    populateDobDropdowns();
-    if (titleEl) titleEl.innerText = 'Đăng ký tài khoản MediMind';
-    tabLogin?.classList.remove('border-[#0284C7]', 'text-[#0284C7]');
-    tabLogin?.classList.add('border-transparent', 'text-slate-500');
-    tabRegister?.classList.remove('border-transparent', 'text-slate-500');
-    tabRegister?.classList.add('border-[#0284C7]', 'text-[#0284C7]');
-    loginForm?.classList.add('hidden');
-    registerForm?.classList.remove('hidden');
-    document.getElementById('register-last-name')?.focus();
+  const regForm = document.getElementById('register-form');
+  const tabLogin = document.getElementById('tab-auth-login');
+  const tabReg = document.getElementById('tab-auth-register');
+
+  const isLight = document.body.classList.contains('light-glass');
+
+  if (mode === 'login') {
+    if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
+    if (loginForm) loginForm.classList.remove('hidden');
+    if (regForm) regForm.classList.add('hidden');
+
+        if (tabLogin) {
+      if (isLight) {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
+      } else {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
+      }
+    }
+    if (tabReg) {
+      if (isLight) {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
+      } else {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
+      }
+    }
   } else {
-    if (titleEl) titleEl.innerText = 'Đăng nhập MediMind AI';
-    tabRegister?.classList.remove('border-[#0284C7]', 'text-[#0284C7]');
-    tabRegister?.classList.add('border-transparent', 'text-slate-500');
-    tabLogin?.classList.remove('border-transparent', 'text-slate-500');
-    tabLogin?.classList.add('border-[#0284C7]', 'text-[#0284C7]');
-    registerForm?.classList.add('hidden');
-    loginForm?.classList.remove('hidden');
-    document.getElementById('login-identifier')?.focus();
+    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Dang ky tài khoản MediMind";
+    if (loginForm) loginForm.classList.add('hidden');
+    if (regForm) regForm.classList.remove('hidden');
+
+    if (tabReg) {
+      if (isLight) {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
+      } else {
+        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
+      }
+    }
+    if (tabLogin) {
+      if (isLight) {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
+      } else {
+        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
+      }
+    }
   }
 }
 
@@ -892,7 +1687,7 @@ async function handleLoginSubmit(e) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, email: identifier, password, role: currentRole })
+      body: JSON.stringify({ identifier, email: identifier, password })
     });
     const data = await res.json();
     if (data.success && data.user) {
@@ -945,7 +1740,7 @@ function updateAuthUI() {
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? '📋 Hồ sơ của tôi' : '📋 My Health Record');
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? 'Hồ sơ của tôi' : 'My Health Record');
   if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Hồ sơ của tôi →' : 'View My Record →');
 
   if (currentUser) {
@@ -953,14 +1748,21 @@ function updateAuthUI() {
     if (logged) logged.classList.remove('hidden');
     if (nameEl) nameEl.innerText = currentUser.name;
 
-    const subInfo = currentUser.personal_info || currentUser.role || 'Thành viên';
+    let subInfo = currentUser.personal_info || currentUser.role || (currentLang === 'en' ? 'Member' : 'Thành viên');
+    if (currentLang === 'en') {
+      subInfo = subInfo.replace(/^Nam\b/, 'Male').replace(/^Nữ\b/, 'Female').replace(/^Khác\b/, 'Other');
+      if (subInfo === 'patient') subInfo = 'Patient';
+      if (subInfo === 'doctor') subInfo = 'Physician';
+      if (subInfo === 'Thành viên') subInfo = 'Member';
+    }
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
 
-    if (ehrTitle) ehrTitle.innerText = 'Hồ sơ của tôi & Tóm tắt trước khám';
-    if (ehrSubtitle) ehrSubtitle.innerText = 'Tự động đồng bộ từ các lượt sàng lọc y tế của ' + currentUser.name;
+    if (ehrTitle) ehrTitle.innerText = currentLang === 'en' ? 'My Health Record & Pre-Visit Summary' : 'Hồ sơ của tôi & Tóm tắt trước khám';
+    if (ehrSubtitle) ehrSubtitle.innerText = currentLang === 'en' ? ('Automatically synchronized from clinical screenings of ' + currentUser.name) : ('Tự động đồng bộ từ các lượt sàng lọc y tế của ' + currentUser.name);
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
-    if (ehrPatientId) ehrPatientId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
+    const ptCodePrefix = currentLang === 'en' ? 'Patient ID' : 'Mã BN';
+    if (ehrPatientId) ehrPatientId.innerText = ptCodePrefix + ': #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
     if (ehrAvatarBadge) ehrAvatarBadge.innerText = currentUser.badge || 'BN';
 
     const rightPanelName = document.getElementById('right-panel-patient-name');
@@ -968,7 +1770,7 @@ function updateAuthUI() {
     const rightPanelAvatar = document.getElementById('right-panel-avatar');
     const rightPanelBhyt = document.getElementById('right-panel-bhyt');
     if (rightPanelName) rightPanelName.innerText = currentUser.name;
-    if (rightPanelId) rightPanelId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 4).padStart(4, '0');
+    if (rightPanelId) rightPanelId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 4).padStart(4, '0');
     if (rightPanelAvatar) {
       const initials = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
       rightPanelAvatar.innerText = initials;
@@ -995,9 +1797,107 @@ function updateAuthUI() {
     const tabCity = document.getElementById('tab-profile-city');
     const tabAddress = document.getElementById('tab-profile-address');
 
-    if (tabBannerId) tabBannerId.innerText = 'Mã BN: #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0');
-    if (tabBannerName) tabBannerName.innerText = 'Họ tên: ' + currentUser.name;
+    if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
+    if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
+    // Sync Image 1 fields (Registration preserved, others empty on 1st edit)
+    const pBirthDate = document.getElementById('p-birthdate');
+    const pGender = document.getElementById('p-gender');
+    const pPhone = document.getElementById('p-phone');
+    const pEmail = document.getElementById('p-email');
+    const pCccd = document.getElementById('p-cccd');
+    const pIssueDate = document.getElementById('p-issue-date');
+    const pBhyt = document.getElementById('p-bhyt');
+    const pFacility = document.getElementById('p-facility');
+    const pValidFrom = document.getElementById('p-valid-from');
+    const pValidTo = document.getElementById('p-valid-to');
+    const pIssuePlace = document.getElementById('p-issue-place');
+    const pNationality = document.getElementById('p-nationality');
+    const pEthnicity = document.getElementById('p-ethnicity');
+    const pReligion = document.getElementById('p-religion');
+    const pProvince = document.getElementById('p-province');
+    const pWard = document.getElementById('p-ward');
+    const pAddress = document.getElementById('p-address');
+
+    const cardName = document.getElementById('profile-card-name');
+    const cardEmail = document.getElementById('profile-card-email');
+    const cardPhone = document.getElementById('profile-card-phone');
+
+    // 1. Preserved from Registration
+    if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
+    if (pGender && currentUser.gender) pGender.value = currentUser.gender;
+    
+    const phoneVal = currentUser.phone_number || '0347047101';
+    fieldRealValues['p-phone'] = phoneVal;
+    if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
+
+    const emailVal = currentUser.email || 'benhnhan.an@gmail.com';
+    fieldRealValues['p-email'] = emailVal;
+    if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
+
+    // 2. Initial edit: Empty if not yet provided by user
+    const cccdVal = currentUser.cccd || '';
+    fieldRealValues['p-cccd'] = cccdVal;
+    if (pCccd) pCccd.value = fieldMaskState['p-cccd'] ? maskFieldValue(cccdVal, 'p-cccd') : cccdVal;
+
+    const issueDateVal = currentUser.issue_date || '';
+    fieldRealValues['p-issue-date'] = issueDateVal;
+    if (pIssueDate) pIssueDate.value = fieldMaskState['p-issue-date'] ? maskFieldValue(issueDateVal, 'p-issue-date') : issueDateVal;
+
+    const bhytVal = currentUser.bhyt || '';
+    fieldRealValues['p-bhyt'] = bhytVal;
+    if (pBhyt) pBhyt.value = fieldMaskState['p-bhyt'] ? maskFieldValue(bhytVal, 'p-bhyt') : bhytVal;
+
+    if (pFacility) pFacility.value = currentUser.facility || '';
+
+    const validFromVal = currentUser.valid_from || '';
+    fieldRealValues['p-valid-from'] = validFromVal;
+    if (pValidFrom) pValidFrom.value = fieldMaskState['p-valid-from'] ? maskFieldValue(validFromVal, 'p-valid-from') : validFromVal;
+
+    const validToVal = currentUser.valid_to || '';
+    fieldRealValues['p-valid-to'] = validToVal;
+    if (pValidTo) pValidTo.value = fieldMaskState['p-valid-to'] ? maskFieldValue(validToVal, 'p-valid-to') : validToVal;
+
+    if (pIssuePlace) pIssuePlace.value = currentUser.issue_place || '';
+    if (pNationality) pNationality.value = currentUser.nationality || 'VN';
+    if (pEthnicity) pEthnicity.value = currentUser.ethnicity || '';
+    if (pReligion) pReligion.value = currentUser.religion || '';
+    
+    if (pProvince) {
+      pProvince.value = currentUser.province || '';
+      handleProvinceChange();
+      if (pWard) {
+        pWard.value = currentUser.ward || '';
+      }
+    }
+    if (pAddress) pAddress.value = currentUser.address || '';
+
+    if (cardName) cardName.innerText = currentUser.name || 'Nguyễn Văn An';
+    if (cardEmail) cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
+    if (cardPhone) cardPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
+    
+    
+    // Sync Settings controls
+    const setLang = document.getElementById('set-language');
+    const setTheme = document.getElementById('set-theme-select');
+    if (setLang) setLang.value = currentLang;
+    if (setTheme) {
+      setTheme.value = document.body.classList.contains('light-glass') ? 'light' : 'dark';
+    }
+
+    // Facebook Style Avatar Sync
+    const avatarUrl = (currentUser.hasCustomAvatar && currentUser.avatar) 
+      ? currentUser.avatar 
+      : getDefaultAvatarByGender(currentUser.gender || 'Nam');
+    
+    if (!currentUser.hasCustomAvatar) {
+      currentUser.avatar = avatarUrl;
+    }
+    
+    const topAvatar = document.getElementById('user-avatar-img');
+    const dispAvatar = document.getElementById('profile-avatar-display');
+    if (topAvatar) topAvatar.src = avatarUrl;
+    if (dispAvatar) dispAvatar.src = avatarUrl;
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
     if (tabPhone) tabPhone.value = currentUser.phone_number || '';
@@ -1027,11 +1927,11 @@ function updateAuthUI() {
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
-    if (nameEl) nameEl.innerText = 'Khách';
-    if (roleEl) roleEl.innerText = 'Chưa đăng nhập';
+    if (nameEl) nameEl.innerText = currentLang === 'en' ? 'Guest' : 'Khách';
+    if (roleEl) roleEl.innerText = currentLang === 'en' ? 'Not signed in' : 'Chưa đăng nhập';
     if (avatarEl) avatarEl.innerText = '👤';
-    if (ehrPatientName) ehrPatientName.innerText = 'Chưa đăng nhập';
-    if (ehrPatientId) ehrPatientId.innerText = 'Vui lòng đăng nhập để đồng bộ tóm tắt trước khám';
+    if (ehrPatientName) ehrPatientName.innerText = currentLang === 'en' ? 'Not signed in' : 'Chưa đăng nhập';
+    if (ehrPatientId) ehrPatientId.innerText = currentLang === 'en' ? 'Please sign in to sync pre-visit summary' : 'Vui lòng đăng nhập để đồng bộ tóm tắt trước khám';
     if (ehrEmpty) ehrEmpty.classList.remove('hidden');
     if (ehrFilled) ehrFilled.classList.add('hidden');
 
@@ -1067,6 +1967,7 @@ function closeDisclaimerModal() {
 // Initialization & Global Event Listeners
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+  initThemeMode();
   populateDobDropdowns();
   updateAuthUI();
   applyLanguage();
@@ -1093,6 +1994,31 @@ document.addEventListener('DOMContentLoaded', () => {
       if (chatMessagesContainer.scrollTop > 15) hideFloatingDecorations();
     });
   }
+
+  // Click outside to close user dropdown & lang dropdown
+  document.addEventListener('click', (e) => {
+        const notifBtn = document.getElementById('notif-btn');
+    const notifMenu = document.getElementById('notif-dropdown-menu');
+    if (notifMenu && !notifMenu.classList.contains('hidden')) {
+      if (!notifBtn?.contains(e.target) && !notifMenu.contains(e.target)) {
+        closeNotificationDropdown();
+      }
+    }
+    const userChip = document.getElementById('user-chip-button');
+    const userMenu = document.getElementById('user-dropdown-menu');
+    if (userMenu && !userMenu.classList.contains('hidden')) {
+      if (!userChip?.contains(e.target) && !userMenu.contains(e.target)) {
+        closeUserDropdown();
+      }
+    }
+    const langBtn = document.getElementById('lang-btn');
+    const langMenu = document.getElementById('lang-dropdown-menu');
+    if (langMenu && !langMenu.classList.contains('hidden')) {
+      if (!langBtn?.contains(e.target) && !langMenu.contains(e.target)) {
+        closeLanguageDropdown();
+      }
+    }
+  });
 
   // Đóng modal & dropdown khi bấm Escape
   document.addEventListener('keydown', (e) => {
@@ -1612,7 +2538,7 @@ function detectSmartDoseSlot(slots) {
 }
 
 // ==============================================================================
-// NEXT-GEN MEDICAL DASHBOARD: USER-CENTRIC, DYNAMIC & FLUID (MEDASSIST AI STYLE)
+// NEXT-GEN MEDICAL DASHBOARD: USER-CENTRIC, DYNAMIC & FLUID
 // ==============================================================================
 function renderPrescriptionResult(data) {
   currentPrescriptionData = data;
@@ -1671,38 +2597,38 @@ function renderPrescriptionResult(data) {
 
   if (isLab) {
     let html = `
-      <div class="space-y-4 font-sans select-none text-slate-800">
+      <div class="space-y-4 font-sans select-none text-slate-800 dark:text-slate-100">
         <!-- TOP TOOLBAR -->
-        <div class="flex flex-wrap items-center justify-between gap-3 bg-white border border-teal-100 rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
           <div class="flex flex-wrap items-center gap-2.5">
-            <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-teal-800 text-white text-xs font-bold tracking-wide">
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
               🔬 PHÂN LOẠI: PHIẾU XÉT NGHIỆM
             </span>
-            <span class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
               📄 ${fileName} <span class="text-slate-400 font-mono">(${scanAcc}% Tin cậy)</span>
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
-            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
+            <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
+            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-900 hover:bg-sky-950 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- MAIN METRICS TABLE -->
           <div class="lg:col-span-2 space-y-4">
-            <div class="bg-white border border-teal-100 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
               <div class="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div>
-                  <h3 class="text-base font-extrabold text-slate-900">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5">${facility} • Bệnh nhân: <strong class="text-teal-900 font-bold">${patient}</strong></p>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
                 </div>
                 <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
               </div>
 
               <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
-                  <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
+                  <thead class="bg-slate-50 dark:bg-white/[0.04] border-b border-slate-200 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px]">
                     <tr>
                       <th class="py-2.5 px-3">Chỉ số xét nghiệm</th>
                       <th class="py-2.5 px-3">Kết quả</th>
@@ -1713,21 +2639,21 @@ function renderPrescriptionResult(data) {
                   </thead>
                   <tbody class="divide-y divide-slate-100">
                     ${(data.metrics || []).map(m => `
-                      <tr class="hover:bg-slate-50/80 transition-colors">
+                      <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
                         <td class="py-3 px-3">
-                          <div class="font-bold text-slate-900">${m.standard_name || m.name || m.test_name}</div>
-                          ${m.loinc_code ? `<span class="text-[10px] text-teal-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                          <div class="font-bold text-slate-900 dark:text-white">${m.standard_name || m.name || m.test_name}</div>
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
                         </td>
                         <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
                           ${m.result || m.value} <span class="text-[11px] font-normal text-slate-400">${m.unit || ''}</span>
                         </td>
-                        <td class="py-3 px-3 font-mono text-slate-500 text-xs">${m.reference_range || m.reference || '---'}</td>
+                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${m.reference_range || m.reference || '---'}</td>
                         <td class="py-3 px-3">
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
                             ${m.computed_flag || m.status || 'Bình thường'}
                           </span>
                         </td>
-                        <td class="py-3 px-3 text-[11px] text-slate-500">
+                        <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
                           ${m.needs_review ? '<span class="text-amber-600 font-bold">⚠️ Cần xác nhận</span>' : '<span class="text-emerald-600 font-semibold">✓ Khớp số liệu</span>'}
                         </td>
                       </tr>
@@ -1740,18 +2666,18 @@ function renderPrescriptionResult(data) {
 
           <!-- SIDEBAR COPILOT -->
           <div class="space-y-4">
-            <div class="bg-teal-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="bg-sky-950 text-white rounded-2xl p-5 shadow-sm space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-lg bg-teal-800 flex items-center justify-center font-bold">🤖</div>
+                  <div class="w-8 h-8 rounded-lg bg-sky-900 flex items-center justify-center font-bold">🤖</div>
                   <div>
                     <h4 class="text-xs font-bold leading-tight">MedAssist AI Copilot</h4>
-                    <span class="text-[10px] text-teal-300">Chuyên trách Hướng dẫn Lâm sàng</span>
+                    <span class="text-[10px] text-sky-300">Chuyên trách Hướng dẫn Lâm sàng</span>
                   </div>
                 </div>
-                <span class="text-[9px] bg-teal-700 text-teal-100 font-bold px-2 py-0.5 rounded-full">Active</span>
+                <span class="text-[9px] bg-sky-700 text-sky-100 font-bold px-2 py-0.5 rounded-full">Active</span>
               </div>
-              <div class="text-xs text-teal-50 space-y-2 pt-2 border-t border-teal-800/80 leading-relaxed">
+              <div class="text-xs text-sky-50 space-y-2 pt-2 border-t border-sky-900/80 leading-relaxed">
                 ${data.interpretation ? `<div class="prose prose-invert prose-xs">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
               </div>
             </div>
@@ -1785,7 +2711,7 @@ function renderPrescriptionResult(data) {
       label: 'BUỔI TRƯA', 
       time: '11:30 - 12:30', 
       iconSvg: '<svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07l-1.41 1.41M8.34 15.66l-1.41 1.41m11.14 0l-1.41-1.41M8.34 8.34L6.93 6.93M12 6a6 6 0 100 12 6 6 0 000-12z"/></svg>', 
-      badgeColor: 'bg-sky-50 text-sky-800 border-sky-200',
+      badgeColor: 'bg-sky-50 dark:bg-sky-500/10 text-sky-800 border-sky-200',
       items: tl.noon || [] 
     },
     { 
@@ -1800,8 +2726,8 @@ function renderPrescriptionResult(data) {
       id: 'bedtime', 
       label: 'TRƯỚC KHI NGỦ', 
       time: '21:00 - 22:00', 
-      iconSvg: '<svg class="w-5 h-5 text-teal-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>', 
-      badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
+      iconSvg: '<svg class="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>', 
+      badgeColor: 'bg-sky-50 dark:bg-sky-500/10 text-sky-900 border-sky-200',
       items: tl.bedtime || [] 
     }
   ];
@@ -1816,16 +2742,16 @@ function renderPrescriptionResult(data) {
   }
 
   let html = `
-    <div class="space-y-5 font-sans select-none text-slate-800">
+    <div class="space-y-5 font-sans select-none text-slate-800 dark:text-slate-100">
 
       <!-- 1. TOP STATUS BAR (Ảnh mẫu: Phân loại đơn thuốc bản gốc) -->
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-white border border-teal-100 rounded-2xl p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
         <div class="flex flex-wrap items-center gap-2.5">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-800 text-white text-xs font-bold tracking-wide">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC
           </span>
-          <span class="text-xs text-slate-600 font-semibold flex items-center gap-1.5">
+          <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
             📄 ${fileName} <span class="text-slate-400 font-mono font-normal">(${scanAcc}% Scan OCR)</span>
           </span>
           <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
@@ -1834,10 +2760,10 @@ function renderPrescriptionResult(data) {
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all shadow-2xs cursor-pointer">
+          <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs cursor-pointer">
             Export Summary PDF
           </button>
-          <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
+<button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
             <span>📋 Xem Lịch sử / Quét thêm</span>
           </button>
         </div>
@@ -1847,30 +2773,30 @@ function renderPrescriptionResult(data) {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
         <!-- CỘT TRÁI (8/12): THÔNG TIN BỆNH NHÂN & NƠI KHÁM GỌN GÀNG -->
-        <div class="lg:col-span-8 bg-white border border-teal-100 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
           
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-start gap-3.5">
-              <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 text-teal-800" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
               </div>
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
-                  
+
                 </div>
-                <h3 class="text-lg font-black text-slate-900 mt-0.5">${patient}</h3>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${patient}</h3>
                 
-                <div class="text-xs text-slate-600 font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
+<div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
                   <span class="inline-flex items-center gap-1">
                     <span class="text-slate-400 font-normal">Ngày/Năm sinh:</span> <strong class="text-slate-900 font-bold">${displayBirthInfo}</strong>
                     ${displayAge ? `<span class="px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-bold">(${displayAge})</span>` : ''}
                   </span>
                   <span class="text-slate-300">•</span>
                   <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 font-bold">${rawGender}</strong>
+<span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 dark:text-white font-bold">${rawGender}</strong>
                   </span>
                 </div>
               </div>
@@ -1878,7 +2804,7 @@ function renderPrescriptionResult(data) {
 
             <div class="text-right shrink-0">
               <span class="text-[10px] text-slate-400 uppercase font-bold block">Mã bệnh án</span>
-              <span class="inline-block mt-0.5 px-3 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 font-mono font-black text-xs">
+              <span class="inline-block mt-0.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-950 font-mono font-black text-xs">
                 ${medId}
               </span>
             </div>
@@ -1886,24 +2812,24 @@ function renderPrescriptionResult(data) {
 
           <!-- NƠI KHÁM & CHẨN ĐOÁN -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-            <div class="flex items-center gap-2.5 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/70">
-              <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-teal-800" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
+              <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
               </div>
               <div class="min-w-0">
                 <span class="text-[9px] font-bold text-slate-400 uppercase block">Nơi khám</span>
-                <h4 class="text-xs font-bold text-slate-900 truncate">${facility}</h4>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${facility}</h4>
               </div>
             </div>
 
-            <div class="flex items-center justify-between gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/70">
+            <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
               <div class="min-w-0">
                 <span class="text-[9px] font-bold text-slate-400 uppercase block">Chẩn đoán</span>
-                <span class="text-xs font-bold text-slate-800 truncate block">${diag}</span>
+                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate block">${diag}</span>
               </div>
-              <span class="text-[10px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-white border border-slate-200 shrink-0">
+              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 shrink-0">
                 K29.1
               </span>
             </div>
@@ -1912,37 +2838,37 @@ function renderPrescriptionResult(data) {
         </div>
 
         <!-- CỘT PHẢI (4/12): MEDASSIST AI COPILOT THIẾT KẾ COMPACT TIẾT KIỆM KHÔNG GIAN -->
-        <div class="lg:col-span-4 bg-teal-900 text-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div class="flex items-center justify-between pb-2 border-b border-teal-800">
+        <div class="lg:col-span-4 bg-sky-950 text-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-sky-900">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-teal-800 flex items-center justify-center text-teal-200 border border-teal-700">
-                <svg class="w-4 h-4 text-teal-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <div class="w-7 h-7 rounded-lg bg-sky-900 flex items-center justify-center text-sky-200 border border-sky-700">
+                <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
               </div>
               <div>
                 <h4 class="text-xs font-black tracking-tight leading-tight">MedAssist AI Copilot</h4>
-                <p class="text-[9px] text-teal-300">Hướng dẫn đơn thuốc</p>
+                <p class="text-[9px] text-sky-300">Hướng dẫn đơn thuốc</p>
               </div>
             </div>
-            <span class="text-[9px] font-bold bg-teal-800 text-teal-200 border border-teal-700 px-2 py-0.2 rounded-full">
+            <span class="text-[9px] font-bold bg-sky-900 text-sky-200 border border-sky-700 px-2 py-0.2 rounded-full">
               Active
             </span>
           </div>
 
-          <div class="space-y-1.5 text-xs text-teal-50">
-            <div class="bg-teal-800/60 border border-teal-700/60 p-2 rounded-lg flex items-start gap-2">
-              <span class="text-teal-300 font-bold text-[11px] shrink-0">1.</span>
-              <p class="text-[11px] leading-tight opacity-90"><strong class="text-teal-200">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
+          <div class="space-y-1.5 text-xs text-sky-50">
+            <div class="bg-sky-900/60 border border-sky-700/60 p-2 rounded-lg flex items-start gap-2">
+              <span class="text-sky-300 font-bold text-[11px] shrink-0">1.</span>
+              <p class="text-[11px] leading-tight opacity-90"><strong class="text-sky-200">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
             </div>
-            <div class="bg-teal-800/60 border border-teal-700/60 p-2 rounded-lg flex items-start gap-2">
-              <span class="text-teal-300 font-bold text-[11px] shrink-0">2.</span>
-              <p class="text-[11px] leading-tight opacity-90"><strong class="text-teal-200">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
+            <div class="bg-sky-900/60 border border-sky-700/60 p-2 rounded-lg flex items-start gap-2">
+              <span class="text-sky-300 font-bold text-[11px] shrink-0">2.</span>
+              <p class="text-[11px] leading-tight opacity-90"><strong class="text-sky-200">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
             </div>
           </div>
 
-          <button onclick="askBotAboutPrescription()" class="w-full py-2 rounded-xl bg-teal-800 hover:bg-teal-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-teal-700 cursor-pointer">
-            <svg class="w-3.5 h-3.5 text-teal-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <button onclick="askBotAboutPrescription()" class="w-full py-2 rounded-xl bg-sky-900 hover:bg-sky-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-sky-700 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
             <span>Hỏi Bác sĩ AI</span>
@@ -1952,34 +2878,34 @@ function renderPrescriptionResult(data) {
       </div>
 
       <!-- 3. GỘP CHUNG 1 BẢN GỒM 2 TAB: "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC TRONG NGÀY" -->
-      <div class="bg-white border border-teal-100 rounded-2xl shadow-sm overflow-hidden">
+      <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
         
         <!-- HEADER VỚI 2 TABS NẰM TRONG CÙNG 1 BẢN -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50/80 border-b border-slate-200/80 gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-white/[0.04]/80 border-b border-slate-200/80 gap-3">
           
           <div class="flex items-center gap-2 p-1 bg-slate-200/70 rounded-xl w-full sm:w-auto">
             <!-- TAB 1: THUỐC TRONG TOA (MẶC ĐỊNH HIỆN ĐẦU TIÊN) -->
-            <button id="btn-subtab-meds" onclick="switchPrescriptionDossierTab('meds')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-teal-900 shadow-sm cursor-pointer">
-              <svg class="w-4 h-4 text-teal-800" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <button id="btn-subtab-meds" onclick="switchPrescriptionDossierTab('meds')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer">
+              <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
               <span>Danh mục thuốc trong toa</span>
-              <span class="px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 font-mono text-[10px]">
+              <span class="px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 font-mono text-[10px]">
                 0${meds.length}
               </span>
             </button>
 
             <!-- TAB 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
-            <button id="btn-subtab-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50 cursor-pointer">
-              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <button id="btn-subtab-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer">
+              <svg class="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span>Lịch uống &amp; Cữ thuốc trong ngày</span>
-              <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-mono text-[10px]">
+              <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 dark:text-slate-200 font-mono text-[10px]">
                 0${activeDoseSlotsCount} cữ
               </span>
             </button>
           </div>
 
-          <div class="text-[11px] text-slate-500 font-medium px-2 flex items-center gap-2">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium px-2 flex items-center gap-2">
             <span>⏱️ Điều trị: <strong>${duration}</strong> liên tục</span>
-            <span class="text-teal-800 font-bold bg-teal-50 border border-teal-200 px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
+            <span class="text-sky-900 font-bold bg-sky-50 dark:bg-sky-500/10 border border-sky-200 px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
               ✓ Khớp chuẩn ICD-10
             </span>
           </div>
@@ -1990,7 +2916,7 @@ function renderPrescriptionResult(data) {
         <!-- TAB NỘI DUNG 1: BẢNG KÊ CHI TIẾT THUỐC TRONG TOA -->
         <!-- ========================================== -->
         <div id="pane-prescription-meds" class="p-5 space-y-3.5">
-          <div class="text-xs text-slate-500 pb-1">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
             Danh mục gồm <strong>${meds.length} loại thuốc đặc hiệu</strong> được bác sĩ chỉ định, kèm hàm lượng và cơ chế an toàn dược lý:
           </div>
 
@@ -2004,40 +2930,40 @@ function renderPrescriptionResult(data) {
               const strength = m.strength ? `(${m.strength})` : '';
 
               return `
-                <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50/40 hover:bg-slate-50 transition-all space-y-2.5">
+                <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3.5">
-                      <div class="w-8 h-8 rounded-lg bg-teal-850 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-2xs">
+                      <div class="w-8 h-8 rounded-lg bg-sky-900 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-2xs">
                         ${numStr}
                       </div>
                       <div>
                         <div class="flex flex-wrap items-center gap-2">
-                          <h5 class="text-sm font-black text-slate-900">${m.standard_name || m.name} <span class="font-normal text-slate-500 text-xs">${strength}</span></h5>
-                          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-teal-100 text-teal-900 border border-teal-300 shadow-2xs">
+                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${m.standard_name || m.name} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
+                          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-sky-100 text-sky-950 border border-sky-300 shadow-2xs">
                             ${m.purpose || m.category || 'Thuốc đặc trị'}
                           </span>
                         </div>
                         
-                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1 font-medium">
-                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 font-bold">${m.strength || 'Theo liều'}</strong> / viên</span>
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength || 'Theo liều'}</strong> / viên</span>
                           <span>•</span>
-                          <span>Tổng cấp: <strong class="text-slate-800 font-bold">${days}</strong></span>
+                          <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
                         </div>
                       </div>
                     </div>
 
                     <div class="text-right shrink-0">
-                      <span class="text-xs font-black text-teal-950 block">${dose} / lần</span>
-                      <span class="text-[11px] text-slate-500 font-medium">${freq}</span>
+                      <span class="text-xs font-black text-slate-950 block">${dose} / lần</span>
+                      <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${freq}</span>
                     </div>
                   </div>
 
-                  <div class="bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-700 leading-relaxed flex items-start justify-between gap-2">
+                  <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-700 dark:text-slate-200 leading-relaxed flex items-start justify-between gap-2">
                     <div class="flex items-start gap-2">
-                      <span class="text-teal-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-teal-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
-                      <p class="font-medium text-slate-600">${usage}</p>
+                      <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
+                      <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-teal-700 hover:text-teal-900 underline font-bold shrink-0 cursor-pointer">
+                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-700 hover:text-sky-950 underline font-bold shrink-0 cursor-pointer">
                       Hỏi AI →
                     </button>
                   </div>
@@ -2051,36 +2977,36 @@ function renderPrescriptionResult(data) {
         <!-- TAB NỘI DUNG 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
         <!-- ========================================== -->
         <div id="pane-prescription-schedule" class="hidden p-5 space-y-4">
-          <div class="text-xs text-slate-500 pb-1">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
             Lộ trình phân bổ <strong>${activeDoseSlotsCount} cữ thuốc trong ngày</strong> theo chuẩn dược động học, đảm bảo hấp thu tối ưu:
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${activeSlots.map(s => `
-              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/50 space-y-3">
+              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/50 space-y-3">
                 <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
                   <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs">
+                    <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">
                       ${s.iconSvg}
                     </div>
                     <div>
-                      <h5 class="text-xs font-black text-slate-900 uppercase tracking-wide">${s.label}</h5>
-                      <span class="text-[11px] font-mono text-slate-500 font-semibold">${s.time}</span>
+                      <h5 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide">${s.label}</h5>
+                      <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-semibold">${s.time}</span>
                     </div>
                   </div>
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white border border-slate-200 text-teal-900 font-mono">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-sky-950 font-mono">
                     ${s.items.length} loại
                   </span>
                 </div>
 
                 <div class="space-y-2">
                   ${s.items.map(it => `
-                    <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
+                    <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
                       <div>
-                        <strong class="font-bold text-slate-900">${it.name}</strong>
-                        <p class="text-[11px] text-slate-500 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
+                        <strong class="font-bold text-slate-900 dark:text-white">${it.name}</strong>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
                       </div>
-                      <span class="font-mono font-bold text-teal-900 bg-teal-50 px-2 py-0.5 rounded text-[11px] shrink-0 border border-teal-200">
+                      <span class="font-mono font-bold text-sky-950 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 border border-sky-200">
                         ${it.dose || '1 viên'}
                       </span>
                     </div>
@@ -2096,13 +3022,13 @@ function renderPrescriptionResult(data) {
       <!-- 4. BOTTOM BAR ACTIONS -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div class="flex items-center gap-2">
-          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 text-teal-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-sky-900 hover:bg-sky-950 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             <span>Bật nhắc nhở uống thuốc định kỳ</span>
           </button>
         </div>
 
-        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs">
+        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs">
           <span>← Quét đơn thuốc khác</span>
         </button>
       </div>
@@ -2125,18 +3051,20 @@ function switchPrescriptionDossierTab(tabKey) {
 
   if (tabKey === 'meds') {
     // Active meds
-    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-teal-900 shadow-sm cursor-pointer";
-    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50 cursor-pointer";
+    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
+    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
     paneMeds.classList.remove('hidden');
     paneSched.classList.add('hidden');
   } else {
     // Active schedule
-    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-teal-900 shadow-sm cursor-pointer";
-    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-white/50 cursor-pointer";
+    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
+    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
     paneSched.classList.remove('hidden');
     paneMeds.classList.add('hidden');
   }
 }
+
+
 
 // Render the checklist inside the Smart Hero card
 function renderSlotPillChecklist(slot) {
@@ -2394,25 +3322,25 @@ function askBotAboutSpecificMedicine(medName) {
 const medicalWallpapers = [
   { 
     id: 'minimal_midnight', 
-    name: 'Tối giản Midnight Aurora (Chuẩn VisionOS - Mặc định)', 
+    name: 'Tối giản Midnight Aurora (Chuẩn VisionOS - Mặc định)', name_en: 'Midnight Aurora (VisionOS Default)', 
     dark: 'radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.16) 0%, transparent 45%), radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.14) 0%, transparent 40%), radial-gradient(circle at 50% 60%, rgba(245, 158, 11, 0.05) 0%, transparent 50%), radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.10) 0%, transparent 45%), radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 40%), linear-gradient(180deg, #090D16 0%, #06080F 50%, #030408 100%)',
     light: 'radial-gradient(ellipse at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), linear-gradient(180deg, #F8FAFC 0%, #EEF2F6 100%)'
   },
   { 
     id: 'minimal_cyan', 
-    name: 'Ánh sáng Lâm sàng Cyan (Clinical Cyan Glow)', 
+    name: 'Ánh sáng Lâm sàng Cyan (Clinical Cyan Glow)', name_en: 'Clinical Cyan Glow', 
     dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)',
     light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)'
   },
   { 
     id: 'minimal_sapphire', 
-    name: 'Không gian Sapphire Y tế (Sapphire Twilight)', 
+    name: 'Không gian Sapphire Y tế (Sapphire Twilight)', name_en: 'Sapphire Twilight Ambient', 
     dark: 'radial-gradient(circle at 75% 15%, rgba(99, 102, 241, 0.18) 0%, transparent 50%), radial-gradient(circle at 20% 85%, rgba(14, 165, 233, 0.12) 0%, transparent 45%), linear-gradient(180deg, #080A18 0%, #0D1226 50%, #05060E 100%)',
     light: 'radial-gradient(ellipse at 80% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), linear-gradient(180deg, #EEF2FF 0%, #E0E7FF 100%)'
   },
   { 
     id: 'minimal_slate', 
-    name: 'Kính Khói Neutral Studio (Minimal Dark Slate)', 
+    name: 'Kính Khói Neutral Studio (Minimal Dark Slate)', name_en: 'Minimal Dark Slate', 
     dark: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 60%), linear-gradient(180deg, #0F172A 0%, #090E1A 50%, #030712 100%)',
     light: 'radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.04) 0%, transparent 60%), linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%)'
   }
@@ -2420,31 +3348,104 @@ const medicalWallpapers = [
 
 let currentWallpaperIndex = 0;
 
-function cycleMedicalWallpaper() {
-  currentWallpaperIndex = (currentWallpaperIndex + 1) % medicalWallpapers.length;
-  const wp = medicalWallpapers[currentWallpaperIndex];
-  const isLight = document.body.classList.contains('light-glass');
-  
-  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
-  showMedicalToast("Đã chuyển không gian: " + wp.name, "info");
-  playMedicalChime();
+const CLINICAL_CYAN_GLOW = {
+  light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)',
+  dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)'
+};
+
+function initThemeMode() {
+  const savedTheme = localStorage.getItem('medimind_theme') || 'light';
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-glass');
+    document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.light;
+  } else {
+    document.body.classList.remove('light-glass');
+    document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
+  }
+  document.body.style.backgroundAttachment = 'fixed';
+  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+  document.querySelectorAll('.dock-btn').forEach(btn => btn.removeAttribute('title'));
 }
 
 function toggleGlassThemeMode() {
   document.body.classList.toggle('light-glass');
   const isLight = document.body.classList.contains('light-glass');
-  const wp = medicalWallpapers[currentWallpaperIndex];
-  
-  document.body.style.backgroundImage = isLight ? wp.light : wp.dark;
-  if (isLight) {
-    showMedicalToast("Đã kích hoạt: Kính Sáng Y Tế Lâm Sàng (Daylight Minimal)", "success");
-  } else {
-    showMedicalToast("Đã kích hoạt: Kính Trong Suốt Spatial VisionOS (Dark Minimal)", "info");
-  }
-  playMedicalChime();
+  document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
+  document.body.style.backgroundAttachment = 'fixed';
+  localStorage.setItem('medimind_theme', isLight ? 'light' : 'dark');
+  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
 }
 
-// ==========================================
+function cycleMedicalWallpaper() {
+  // Medical space switching removed as per request #1, locked to Clinical Cyan Glow
+  showMedicalToast(currentLang === 'en' ? "Theme locked: Clinical Cyan Glow" : "Không gian cố định: Ánh sáng Lâm sàng Cyan", "info");
+}
+
+// Notification Dropdown Logic (Requirement 3)
+function toggleNotificationDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (!menu) return;
+  menu.classList.toggle('hidden');
+  closeUserDropdown();
+  closeLanguageDropdown();
+}
+
+function closeNotificationDropdown() {
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (menu && !menu.classList.contains('hidden')) {
+    menu.classList.add('hidden');
+  }
+}
+
+function renderNotifications(notifs) {
+  const badge = document.getElementById('notif-badge');
+  const countEl = document.getElementById('notif-unread-count');
+  const markReadBtn = document.getElementById('notif-mark-read-btn');
+  const listEl = document.getElementById('notif-items-list');
+  if (!listEl) return;
+
+  const items = notifs || [];
+  if (items.length === 0) {
+    if (badge) badge.classList.add('hidden');
+    if (countEl) countEl.classList.add('hidden');
+    if (markReadBtn) markReadBtn.classList.add('hidden');
+    listEl.innerHTML = `
+      <div id="notif-empty-state" class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
+        <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+        <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">${currentLang === 'en' ? 'No new notifications' : 'Không có thông báo mới'}</p>
+      </div>`;
+  } else {
+    if (badge) {
+      badge.innerText = items.length;
+      badge.classList.remove('hidden');
+    }
+    if (countEl) {
+      countEl.innerText = `${items.length} ${currentLang === 'en' ? 'new' : 'mới'}`;
+      countEl.classList.remove('hidden');
+    }
+    if (markReadBtn) markReadBtn.classList.remove('hidden');
+  }
+}
+
+function markAllNotificationsAsRead() {
+  const badge = document.getElementById('notif-badge');
+  const countEl = document.getElementById('notif-unread-count');
+  if (badge) badge.classList.add('hidden');
+  if (countEl) {
+    countEl.innerText = (currentLang === 'vi' ? 'Đã đọc hết' : 'All read');
+    countEl.classList.remove('bg-orange-500/20', 'text-orange-400');
+    countEl.classList.add('bg-slate-500/20', 'text-slate-400');
+  }
+  const items = document.querySelectorAll('.notif-item');
+  items.forEach(it => {
+    it.classList.add('opacity-60');
+  });
+}
+
+
 // User Interaction Helpers (Export, GPS, Demo)
 // ==========================================
 const loadPresetPrescription = loadPrescriptionPreset;
@@ -2628,4 +3629,206 @@ function initHistorySearch() {
       noMatchNotice.classList.add('hidden');
     }
   });
+}
+
+
+// ==========================================
+// Image 1 Personal Information Logic
+// ==========================================
+function handleProfileAvatarUpload(e) {
+  const file = e.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const dataUrl = evt.target.result;
+    const avatarDisplay = document.getElementById('profile-avatar-display');
+    const topAvatarImg = document.getElementById('user-avatar-img');
+    if (avatarDisplay) avatarDisplay.src = dataUrl;
+    if (topAvatarImg) topAvatarImg.src = dataUrl;
+    if (currentUser) {
+      currentUser.hasCustomAvatar = true;
+      currentUser.avatar = dataUrl;
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+    }
+    showMedicalToast('Đã cập nhật ảnh đại diện thành công!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSaveImage1Profile(e) {
+  if (e) e.preventDefault();
+  const birthDate = document.getElementById('p-birthdate')?.value.trim();
+  const gender = document.getElementById('p-gender')?.value || 'Nam';
+  
+  const getFieldValue = (fieldId, fallback = '') => {
+    if (fieldMaskState[fieldId] && fieldRealValues[fieldId] !== undefined) {
+      return fieldRealValues[fieldId];
+    }
+    const val = document.getElementById(fieldId)?.value.trim();
+    if (val !== undefined && val !== null) {
+      fieldRealValues[fieldId] = val;
+      return val;
+    }
+    return fallback;
+  };
+
+  const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
+  const email = getFieldValue('p-email', currentUser?.email || '');
+  const cccd = getFieldValue('p-cccd');
+  const issueDate = getFieldValue('p-issue-date');
+  const bhyt = getFieldValue('p-bhyt');
+  const facility = document.getElementById('p-facility')?.value.trim() || '';
+  const validFrom = getFieldValue('p-valid-from');
+  const validTo = getFieldValue('p-valid-to');
+  const issuePlace = document.getElementById('p-issue-place')?.value.trim() || '';
+  const nationality = document.getElementById('p-nationality')?.value.trim() || 'VN';
+  const ethnicity = document.getElementById('p-ethnicity')?.value || '';
+  const religion = document.getElementById('p-religion')?.value || '';
+  const province = document.getElementById('p-province')?.value || '';
+  const ward = document.getElementById('p-ward')?.value.trim() || '';
+  const address = document.getElementById('p-address')?.value.trim() || '';
+
+  if (!currentUser) {
+    currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
+  }
+
+  currentUser.dob = birthDate;
+  currentUser.gender = gender;
+  currentUser.phone_number = phone || currentUser.phone_number;
+  currentUser.email = email || currentUser.email;
+  currentUser.cccd = cccd;
+  currentUser.issue_date = issueDate;
+  currentUser.bhyt = bhyt;
+  currentUser.facility = facility;
+  currentUser.valid_from = validFrom;
+  currentUser.valid_to = validTo;
+  currentUser.issue_place = issuePlace;
+  currentUser.nationality = nationality;
+  currentUser.ethnicity = ethnicity;
+  currentUser.religion = religion;
+  currentUser.province = province;
+  currentUser.ward = ward;
+  currentUser.address = address;
+
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+
+  // Sync Left Card
+  const cPhone = document.getElementById('profile-card-phone');
+  const cEmail = document.getElementById('profile-card-email');
+  if (cPhone) cPhone.innerText = fieldMaskState['p-phone'] ? maskFieldValue(currentUser.phone_number, 'p-phone') : (currentUser.phone_number || '');
+  if (cEmail) cEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(currentUser.email, 'p-email') : (currentUser.email || '');
+
+  updateAuthUI();
+
+  const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin thành công!';
+  showMedicalToast(msg, 'success');
+}
+
+
+// ==============================================================
+// FLOATING CHATBOX WIDGET HANDLERS (Image 2)
+// ==============================================================
+let isFloatingChatOpen = false;
+
+function toggleFloatingChat(forceState) {
+  const win = document.getElementById('floating-chat-window');
+  if (!win) return;
+  
+  if (typeof forceState === 'boolean') {
+    isFloatingChatOpen = forceState;
+  } else {
+    isFloatingChatOpen = !isFloatingChatOpen;
+  }
+
+  if (isFloatingChatOpen) {
+    win.classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('floating-user-input')?.focus();
+    }, 100);
+  } else {
+    win.classList.add('hidden');
+  }
+}
+
+function expandFloatingChatToFull() {
+  toggleFloatingChat(false);
+  switchTab('chat-tab');
+}
+
+function sendQuickFloatingPrompt(text) {
+  const input = document.getElementById('floating-user-input');
+  if (input) {
+    input.value = text;
+    sendFloatingChatMessage();
+  }
+}
+
+async function sendFloatingChatMessage() {
+  const input = document.getElementById('floating-user-input');
+  const msgContainer = document.getElementById('floating-chat-messages');
+  if (!input || !msgContainer) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Render user bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'flex justify-end';
+  userBubble.innerHTML = `
+    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md text-xs leading-relaxed font-medium">
+      ${escapeHtml(text)}
+    </div>
+  `;
+  msgContainer.appendChild(userBubble);
+  input.value = '';
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  // Add typing indicator
+  const typingId = 'floating-typing-' + Date.now();
+  const typingIndicator = document.createElement('div');
+  typingIndicator.className = 'flex justify-start';
+  typingIndicator.id = typingId;
+  typingIndicator.innerHTML = `
+    <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs glass-card border border-white/10 text-xs text-sky-400 flex items-center space-x-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+      <span class="text-[11px] font-medium text-slate-300">MediMind đang đối chiếu dữ liệu...</span>
+    </div>
+  `;
+  msgContainer.appendChild(typingIndicator);
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        user_name: currentUser ? (currentUser.first_name || currentUser.name || 'Bệnh nhân') : 'Bệnh nhân'
+      })
+    });
+    const data = await res.json();
+    document.getElementById(typingId)?.remove();
+
+    const isLightMode = document.body.classList.contains('light-glass');
+    const botBubble = document.createElement('div');
+    botBubble.className = 'flex justify-start';
+    botBubble.innerHTML = `
+      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs ${isLightMode ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-white/10 text-slate-200 border border-white/10'} text-xs leading-relaxed shadow-xs">
+        ${data.reply || data.response || 'Hệ thống đã ghi nhận thông tin của bạn.'}
+      </div>
+    `;
+    msgContainer.appendChild(botBubble);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  } catch (err) {
+    document.getElementById(typingId)?.remove();
+    const errBubble = document.createElement('div');
+    errBubble.className = 'flex justify-start';
+    errBubble.innerHTML = `
+      <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs">
+        Không thể kết nối đến máy chủ lâm sàng. Vui lòng thử lại.
+      </div>
+    `;
+    msgContainer.appendChild(errBubble);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
 }
