@@ -81,6 +81,13 @@ class MedicalDocument(db.Model):
     file_size = db.Column(db.Integer, nullable=False)
     file_type = db.Column(db.String(20), nullable=False)
     mime_type = db.Column(db.String(100), nullable=True)
+    doc_type = db.Column(db.String(50), nullable=True, default="prescription")  # 'prescription' hoặc 'lab_test'
+    diagnosis = db.Column(db.Text, nullable=True)  # Chẩn đoán bệnh (mắc bệnh gì)
+    facility = db.Column(db.String(255), nullable=True)  # Bệnh viện / Phòng khám
+    doctor = db.Column(db.String(255), nullable=True)  # Bác sĩ điều trị
+    patient_name = db.Column(db.String(255), nullable=True)  # Tên bệnh nhân ghi trên đơn
+    summary = db.Column(db.Text, nullable=True)  # Tóm tắt nhanh danh mục thuốc / chỉ số
+    parsed_data = db.Column(db.Text, nullable=True)  # Toàn bộ JSON kết quả phân tích để xem lại ngay
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -102,7 +109,15 @@ class MedicalDocument(db.Model):
             "size": format_size(self.file_size),
             "size_bytes": self.file_size,
             "type": self.file_type.upper(),
+            "doc_type": self.doc_type or "prescription",
+            "diagnosis": self.diagnosis or "Chưa phân loại bệnh",
+            "facility": self.facility or "Cơ sở Y tế",
+            "doctor": self.doctor or "",
+            "patient_name": self.patient_name or "",
+            "summary": self.summary or "",
+            "has_parsed_data": bool(self.parsed_data),
             "uploaded_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else "",
+            "created_at_iso": self.created_at.isoformat() if self.created_at else "",
             "owner_id": self.owner_id
         }
 

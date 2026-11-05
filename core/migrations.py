@@ -57,6 +57,11 @@ MIGRATIONS = [
             FOREIGN KEY (user_id) REFERENCES users (id)
         );
         """
+    ),
+    (
+        "2026_01_05_medical_documents_clinical_fields",
+        "Bổ sung các cột lâm sàng (chẩn đoán, tóm tắt, json kết quả) cho medical_documents",
+        None
     )
 ]
 
@@ -105,6 +110,21 @@ def run_migrations(engine):
                         for col_name, col_type in columns_to_add:
                             if col_name not in existing_cols:
                                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
+                elif version == "2026_01_05_medical_documents_clinical_fields":
+                    if "medical_documents" in inspector.get_table_names():
+                        existing_cols = {col["name"] for col in inspector.get_columns("medical_documents")}
+                        doc_columns_to_add = [
+                            ("doc_type", "VARCHAR(50) DEFAULT 'prescription'"),
+                            ("diagnosis", "TEXT"),
+                            ("facility", "VARCHAR(255)"),
+                            ("doctor", "VARCHAR(255)"),
+                            ("patient_name", "VARCHAR(255)"),
+                            ("summary", "TEXT"),
+                            ("parsed_data", "TEXT")
+                        ]
+                        for col_name, col_type in doc_columns_to_add:
+                            if col_name not in existing_cols:
+                                conn.execute(text(f"ALTER TABLE medical_documents ADD COLUMN {col_name} {col_type};"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     # SQLite có thể yêu cầu chạy từng câu lệnh riêng lẻ
