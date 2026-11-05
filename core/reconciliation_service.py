@@ -30,6 +30,27 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     fields_review = []
     overall_confidence = 1.0
 
+    # Đối soát & phục hồi thông tin hành chính từ OCR nếu thiếu
+    if not reconciled.get("dob"):
+        dob_match = re.search(r"(?:ngày\s*sinh|sinh\s*ngày|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", ocr_raw_text, re.IGNORECASE)
+        if dob_match:
+            reconciled["dob"] = dob_match.group(1).replace("-", "/").replace(".", "/")
+        else:
+            year_match = re.search(r"(?:năm\s*sinh|sinh\s*năm|sn)[\s:.\-]*(19\d{2}|20\d{2})", ocr_raw_text, re.IGNORECASE)
+            if year_match:
+                reconciled["dob"] = year_match.group(1)
+
+    if not reconciled.get("age"):
+        age_match = re.search(r"(?:tuổi|age)[\s:.\-]*(\d{1,3})", ocr_raw_text, re.IGNORECASE)
+        if age_match:
+            reconciled["age"] = age_match.group(1)
+
+    if not reconciled.get("gender"):
+        gender_match = re.search(r"(?:giới\s*tính|phái)[\s:.\-]*(nam|nữ|nu)", ocr_raw_text, re.IGNORECASE)
+        if gender_match:
+            g_raw = gender_match.group(1).lower()
+            reconciled["gender"] = "Nam" if "nam" in g_raw else "Nữ"
+
     if doc_type == "prescription":
         meds = reconciled.get("medications", [])
         verified_meds = []

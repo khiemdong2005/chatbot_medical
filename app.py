@@ -504,8 +504,40 @@ def create_app(test_config=None):
                 original_filename=meta["original_filename"],
                 mask_pii=mask_pii
             )
+
             if doc_id:
                 res["document_id"] = doc_id
+
+                # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
+                if res and res.get("status") == "success":
+                    try:
+                        doc = MedicalDocument.query.get(doc_id)
+                        if doc:
+                            doc.doc_type = res.get("doc_type", "prescription")
+                            doc.diagnosis = res.get("diagnosis", "")
+                            doc.facility = res.get("facility", "")
+                            doc.doctor = res.get("doctor", "")
+                            doc.patient_name = res.get("patient_name", "")
+
+                            meds = res.get("medications", [])
+                            metrics = res.get("metrics", [])
+                            if doc.doc_type == "prescription":
+                                med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                                sum_text = f"{len(meds)} loại thuốc"
+                                if med_names:
+                                    sum_text += f": {', '.join(med_names)}"
+                                    if len(meds) > 3:
+                                        sum_text += f" và {len(meds) - 3} thuốc khác"
+                            else:
+                                sum_text = f"{len(metrics)} chỉ số xét nghiệm"
+
+                            doc.summary = sum_text
+                            doc.parsed_data = json.dumps(res, ensure_ascii=False)
+                            db.session.commit()
+                    except Exception as commit_err:
+                        logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
+                        db.session.rollback()
+
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -517,6 +549,82 @@ def create_app(test_config=None):
             "status": "error",
             "message": "Vui lòng đính kèm tệp đơn thuốc/xét nghiệm hoặc chỉ định kịch bản mẫu thử nghiệm hợp lệ."
         }), 400
+
+
+    # ==============================================================
+    # QUẢN LÝ LỊCH SỬ TOA THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT
+    # ==============================================================
+
+    @app.route("/api/prescription/history", methods=["GET"])
+    def get_prescription_history():
+        """
+        Lấy danh sách lịch sử các đơn thuốc và phiếu xét nghiệm mà user đã import:
+        Bao gồm thời gian import, chẩn đoán bệnh, tóm tắt thuốc/chỉ số, cơ sở y tế.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch sử hồ sơ."}), 401
+
+        docs = MedicalDocument.query.filter_by(owner_id=user_id).order_by(MedicalDocument.created_at.desc()).all()
+        history = [d.to_dict() for d in docs]
+        return jsonify({"status": "success", "history": history, "total": len(history)})
+
+
+    @app.route("/api/prescription/history/<int:doc_id>", methods=["GET"])
+    def get_prescription_history_detail(doc_id):
+        """
+        Xem lại chi tiết toàn bộ dữ liệu đơn thuốc / xét nghiệm đã được bóc tách trước đó.
+        Cho phép người dùng xem lại ngay kết quả phân tích mà không cần chụp/quét lại ảnh.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem chi tiết."}), 401
+
+        doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+        if not doc:
+            return jsonify({"status": "error", "message": "Không tìm thấy hồ sơ hoặc bạn không có quyền xem."}), 404
+
+        if doc.parsed_data:
+            try:
+                parsed_json = json.loads(doc.parsed_data)
+                parsed_json["document_id"] = doc.id
+                parsed_json["uploaded_filename"] = doc.original_filename
+                parsed_json["uploaded_at"] = doc.created_at.strftime("%H:%M %d/%m/%Y") if doc.created_at else ""
+                return jsonify({"status": "success", "data": parsed_json})
+            except Exception as json_err:
+                logger.warning(f"Lỗi parse JSON doc {doc_id}: {json_err}")
+
+        return jsonify({
+            "status": "partial",
+            "message": "Đơn thuốc này chưa có dữ liệu bóc tách chi tiết.",
+            "doc": doc.to_dict()
+        })
+
+
+    @app.route("/api/prescription/history/<int:doc_id>", methods=["DELETE"])
+    def delete_prescription_history_item(doc_id):
+        """
+        Xóa một đơn thuốc/phiếu xét nghiệm khỏi lịch sử hồ sơ của người dùng.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để thực hiện thao tác."}), 401
+
+        doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+        if not doc:
+            return jsonify({"status": "error", "message": "Tài liệu không tồn tại hoặc bạn không có quyền xóa."}), 404
+
+        upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
+        file_disk_path = Path(upload_folder) / doc.storage_filename
+        if is_safe_path(file_disk_path, Path(upload_folder)) and file_disk_path.exists():
+            try:
+                os.remove(file_disk_path)
+            except Exception as e:
+                logger.warning(f"Lỗi xóa file vật lý: {e}")
+
+        db.session.delete(doc)
+        db.session.commit()
+        return jsonify({"status": "success", "message": f"Đã xóa thành công '{doc.original_filename}' khỏi lịch sử."})
 
 
     # ==============================================================
