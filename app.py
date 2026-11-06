@@ -99,6 +99,14 @@ def create_app(test_config=None):
         if not raw_identifier or not password:
             return jsonify({"success": False, "error": "Vui lòng nhập định danh tài khoản và mật khẩu."}), 400
 
+        from core.security_patch import check_otp_attempts, reset_otp_attempts
+        rate_key = f"login:{raw_identifier.lower()}"
+        if not check_otp_attempts(rate_key, max_attempts=5):
+            return jsonify({
+                "success": False,
+                "error": "Tài khoản tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần liên tiếp. Vui lòng thử lại sau."
+            }), 429
+
         clean_phone = "".join(filter(str.isdigit, raw_identifier))
         user = User.query.filter(
             (User.email == raw_identifier) | 
@@ -120,6 +128,9 @@ def create_app(test_config=None):
         # Xác thực mật khẩu
         if not user.check_password(password):
             return jsonify({"success": False, "error": "Mật khẩu không chính xác. Vui lòng kiểm tra lại."}), 401
+
+        # Xóa bộ đếm sai mật khẩu sau khi đăng nhập thành công
+        reset_otp_attempts(rate_key)
 
         # Khởi tạo phiên làm việc (Session)
         session["user_id"] = user.id
@@ -245,12 +256,21 @@ def create_app(test_config=None):
         if phone_number:
             clean_phone = "".join(filter(str.isdigit, phone_number))
             if clean_phone:
+                dup_phone = User.query.filter(
+                    (User.id != user.id) &
+                    ((User.phone_number == clean_phone) | (User.email == f"{clean_phone}@phone.medimind"))
+                ).first()
+                if dup_phone:
+                    return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
                 user.phone_number = clean_phone
         if address:
             user.address = address
         if bhyt:
             user.bhyt = bhyt
-        if email and "@" in email and not user.email.endswith("@phone.medimind"):
+        if email and "@" in email and not email.endswith("@phone.medimind"):
+            dup_email = User.query.filter((User.id != user.id) & (User.email == email)).first()
+            if dup_email:
+                return jsonify({"success": False, "error": "Địa chỉ Email này đã được sử dụng bởi một tài khoản khác."}), 409
             user.email = email
 
         # Luu toan bo ho so mo rong vao JSON clinical_profile
@@ -270,13 +290,48 @@ def create_app(test_config=None):
         }
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Lỗi lưu hồ sơ cá nhân: {e}")
+            return jsonify({"success": False, "error": "Không thể cập nhật thông tin do xung đột dữ liệu."}), 409
 
         return jsonify({
             "success": True,
             "message": "Cập nhật thông tin cá nhân thành công!",
             "user": user.to_dict()
         })
+
+
+    @app.route("/api/auth/change-password", methods=["POST"])
+    def auth_change_password():
+        """Đổi mật khẩu tài khoản đang đăng nhập."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"success": False, "error": "Vui lòng đăng nhập để đổi mật khẩu."}), 401
+
+        user = db.session.get(User, user_id)
+        if not user:
+            session.clear()
+            return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+
+        data = request.get_json(silent=True) or {}
+        current_password = (data.get("current_password") or "").strip()
+        new_password = (data.get("new_password") or "").strip()
+
+        if not current_password or not new_password:
+            return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới."}), 400
+
+        if len(new_password) < 6:
+            return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 6 ký tự."}), 400
+
+        if not user.check_password(current_password):
+            return jsonify({"success": False, "error": "Mật khẩu hiện tại không chính xác."}), 401
+
+        user.set_password(new_password)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Đã thay đổi mật khẩu thành công!"})
 
 
     @app.route("/api/auth/logout", methods=["POST"])
@@ -682,6 +737,9 @@ def create_app(test_config=None):
 
         if not doc:
             doc = MedicalDocument.query.filter_by(storage_filename=doc_identifier, owner_id=user_id).first()
+
+        if not doc:
+            doc = MedicalDocument.query.filter_by(original_filename=doc_identifier, owner_id=user_id).first()
 
         if not doc:
             return jsonify({"status": "error", "message": "Tài liệu không tồn tại hoặc bạn không có quyền xóa."}), 404

@@ -67,7 +67,8 @@ class User(db.Model):
             "gender": self.gender or "",
             "address": self.address or "",
             "bhyt": self.bhyt or "",
-            "avatar_url": self.avatar_url or ""
+            "avatar_url": self.avatar_url or "",
+            "joined_date": self.created_at.strftime("%d/%m/%Y") if self.created_at else ""
         }
         if self.clinical_profile:
             try:

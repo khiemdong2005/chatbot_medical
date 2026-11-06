@@ -4,6 +4,7 @@
 # ==============================================================
 
 import os
+import html
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -58,7 +59,8 @@ class EmailService:
 
     def send_verification_otp(self, to_email: str, otp_code: str, full_name: Optional[str] = None, purpose: str = "register") -> bool:
         """Gửi mã OTP 6 số xác thực 2 lớp / Đăng ký qua Email với giao diện y tế cao cấp."""
-        name = full_name or "Quý bệnh nhân"
+        raw_name = full_name or "Quý bệnh nhân"
+        name = html.escape(str(raw_name), quote=True)
         purpose_title = "Xác thực tài khoản mới" if purpose == "register" else ("Đăng nhập thiết bị mới (2FA)" if purpose == "login_2fa" else "Xác nhận danh tính y tế")
         subject = f"[{otp_code}] Mã xác thực {purpose_title} - MediMind Clinical AI"
 
@@ -115,15 +117,16 @@ class EmailService:
         return self.send_email(to_email, subject, html, text)
 
     def send_welcome_email(self, to_email: str, full_name: str) -> bool:
+        safe_name = html.escape(str(full_name or "Quý bệnh nhân"), quote=True)
         subject = "Chào mừng bạn đến với MediMind Clinical AI"
-        html = f"""
+        html_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
             <div style="background-color: #0284C7; padding: 20px; text-align: center; border-radius: 12px; color: white;">
                 <h2 style="margin: 0;">MediMind Clinical AI</h2>
                 <p style="margin: 5px 0 0 0; font-size: 13px;">Trợ lý Y tế Sàng lọc Thông minh</p>
             </div>
             <div style="padding: 24px 0; color: #334155; line-height: 1.6;">
-                <p>Xin chào <strong>{full_name}</strong>,</p>
+                <p>Xin chào <strong>{safe_name}</strong>,</p>
                 <p>Tài khoản hồ sơ sức khỏe của bạn đã được khởi tạo thành công trên hệ thống <strong>MediMind</strong>.</p>
                 <p>Bạn có thể sử dụng các tính năng:</p>
                 <ul>
@@ -136,7 +139,7 @@ class EmailService:
         </div>
         """
         text = f"Xin chào {full_name},\nTài khoản của bạn đã được khởi tạo thành công trên MediMind Clinical AI."
-        return self.send_email(to_email, subject, html, text)
+        return self.send_email(to_email, subject, html_body, text)
 
     def send_password_reset_otp(self, to_email: str, otp_code: str) -> bool:
         return self.send_verification_otp(to_email, otp_code, purpose="reset_pwd")

@@ -66,12 +66,30 @@ async function handleChangePasswordSubmit() {
     return;
   }
 
-  document.getElementById('set-curr-pass').value = '';
-  document.getElementById('set-new-pass').value = '';
-  document.getElementById('set-confirm-pass').value = '';
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password: currPass, new_password: newPass })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      const errMsg = data.error || (currentLang === 'en' ? 'Failed to change password.' : 'Không thể đổi mật khẩu.');
+      if (typeof showMedicalToast === 'function') showMedicalToast(errMsg, 'error');
+      else alert(errMsg);
+      return;
+    }
+    document.getElementById('set-curr-pass').value = '';
+    document.getElementById('set-new-pass').value = '';
+    document.getElementById('set-confirm-pass').value = '';
 
-  const msg = currentLang === 'en' ? 'Password changed successfully!' : 'Đã thay đổi mật khẩu thành công!';
-  showMedicalToast(msg, 'success');
+    const msg = data.message || (currentLang === 'en' ? 'Password changed successfully!' : 'Đã thay đổi mật khẩu thành công!');
+    if (typeof showMedicalToast === 'function') showMedicalToast(msg, 'success');
+    else alert(msg);
+  } catch (err) {
+    console.error('Lỗi đổi mật khẩu:', err);
+    if (typeof showMedicalToast === 'function') showMedicalToast('Không thể kết nối máy chủ để đổi mật khẩu.', 'error');
+  }
 }
 
 function handleSaveAllSettings() {
@@ -197,17 +215,19 @@ function syncLeftCardPhoneEmail() {
 }
 
 function toggleFieldMask(fieldId) {
-  fieldMaskState[fieldId] = !fieldMaskState[fieldId];
-  const isMasked = fieldMaskState[fieldId];
   const input = document.getElementById(fieldId);
+  const wasMasked = !!fieldMaskState[fieldId];
+  if (input && !wasMasked) {
+    fieldRealValues[fieldId] = input.value;
+  }
+  fieldMaskState[fieldId] = !wasMasked;
+  const isMasked = fieldMaskState[fieldId];
   const eyeIcon = document.getElementById(fieldId + '-eye');
   
   if (input) {
+    input.readOnly = isMasked;
     if (isMasked) {
-      if (!fieldRealValues[fieldId]) {
-        fieldRealValues[fieldId] = input.value;
-      }
-      input.value = maskFieldValue(fieldRealValues[fieldId], fieldId);
+      input.value = maskFieldValue(fieldRealValues[fieldId] || '', fieldId);
     } else {
       input.value = fieldRealValues[fieldId] !== undefined ? fieldRealValues[fieldId] : input.value;
     }
@@ -1360,7 +1380,7 @@ async function loadScanFiles() {
               <td class="py-3 px-3 text-slate-600 font-mono text-[10px]">${escapeHtml(f.size)}</td>
               <td class="py-3 px-3 text-slate-500 text-[10px]">${escapeHtml(f.uploaded_at)}</td>
               <td class="py-3 px-3 text-right">
-                <button type="button" onclick="deleteScanFile('${encodeURIComponent(f.name)}')" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg transition-colors cursor-pointer" title="Xóa tệp khỏi tập huấn luyện">
+                <button type="button" onclick="deleteScanFile('${encodeURIComponent(f.id || f.filename || f.name)}')" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 p-1.5 rounded-lg transition-colors cursor-pointer" title="Xóa tệp khỏi tập huấn luyện">
                   <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>
@@ -1789,8 +1809,16 @@ function handleCrossTabMessage(data) {
     }
   } else if (data.type === 'AUTH_LOGOUT') {
     currentUser = null;
+    Object.keys(fieldRealValues).forEach(k => delete fieldRealValues[k]);
+    Object.keys(fieldMaskState).forEach(k => {
+      fieldMaskState[k] = false;
+      const el = document.getElementById(k);
+      if (el) el.readOnly = false;
+    });
+    document.getElementById('profile-form-img1')?.reset();
     localStorage.removeItem('medimind_user');
     sessionStorage.removeItem('medimind_active_tab');
+    sessionStorage.removeItem('medimind_profile_draft');
     try {
       history.replaceState(null, '', window.location.pathname);
     } catch (e) {
@@ -1843,7 +1871,8 @@ let pendingOtpFlow = {
 
 function setupOtpDigitInputs() {
   const container = document.getElementById('otp-inputs-container');
-  if (!container) return;
+  if (!container || container._otpInitialized) return;
+  container._otpInitialized = true;
   const digits = container.querySelectorAll('.otp-digit');
 
   digits.forEach((input, index) => {
@@ -2329,8 +2358,16 @@ async function handleLogout() {
     console.error('Lỗi đăng xuất:', err);
   }
   currentUser = null;
+  Object.keys(fieldRealValues).forEach(k => delete fieldRealValues[k]);
+  Object.keys(fieldMaskState).forEach(k => {
+    fieldMaskState[k] = false;
+    const el = document.getElementById(k);
+    if (el) el.readOnly = false;
+  });
+  document.getElementById('profile-form-img1')?.reset();
   localStorage.removeItem('medimind_user');
   sessionStorage.removeItem('medimind_active_tab');
+  sessionStorage.removeItem('medimind_profile_draft');
   try {
     history.replaceState(null, '', window.location.pathname);
   } catch (e) {
@@ -2480,15 +2517,15 @@ function updateAuthUI() {
     const cardEmail = document.getElementById('profile-card-email');
     const cardPhone = document.getElementById('profile-card-phone');
 
-    // 1. Preserved from Registration
-    if (pBirthDate) pBirthDate.value = currentUser.dob || '04/10/2005';
-    if (pGender && currentUser.gender) pGender.value = currentUser.gender;
+    // 1. Preserved from Registration (Zero fake fallback data leak)
+    if (pBirthDate) pBirthDate.value = currentUser.dob || '';
+    if (pGender) pGender.value = currentUser.gender || 'Nam';
     
-    const phoneVal = currentUser.phone_number || pPhone?.value || '0347047101';
+    const phoneVal = currentUser.phone_number || '';
     fieldRealValues['p-phone'] = phoneVal;
     if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
 
-    const emailVal = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : (pEmail?.value || 'nguyenvana@gmail.com');
+    const emailVal = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
     fieldRealValues['p-email'] = emailVal;
     if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
 
@@ -2556,31 +2593,25 @@ function updateAuthUI() {
       }
     }
 
-    // Attach real-time sync listeners
-    if (pPhone && !pPhone._hasSyncListener) {
-      pPhone._hasSyncListener = true;
-      pPhone.addEventListener('input', () => {
-        if (!fieldMaskState['p-phone']) {
-          fieldRealValues['p-phone'] = pPhone.value;
-        }
-        syncLeftCardPhoneEmail();
-        updateProfileCompletion();
-      });
-    }
-
-    if (pEmail && !pEmail._hasSyncListener) {
-      pEmail._hasSyncListener = true;
-      pEmail.addEventListener('input', () => {
-        if (!fieldMaskState['p-email']) {
-          fieldRealValues['p-email'] = pEmail.value;
-        }
-        syncLeftCardPhoneEmail();
-        updateProfileCompletion();
-      });
-    }
+    // Attach real-time sync listeners to ALL 7 eye-masked fields
+    ['p-phone', 'p-email', 'p-cccd', 'p-issue-date', 'p-bhyt', 'p-valid-from', 'p-valid-to'].forEach(fId => {
+      const el = document.getElementById(fId);
+      if (el && !el._hasSyncListener) {
+        el._hasSyncListener = true;
+        el.addEventListener('input', () => {
+          if (!fieldMaskState[fId]) {
+            fieldRealValues[fId] = el.value;
+          }
+          if (fId === 'p-phone' || fId === 'p-email') {
+            syncLeftCardPhoneEmail();
+          }
+          updateProfileCompletion();
+        });
+      }
+    });
 
     if (cardJoined) {
-      cardJoined.innerText = currentUser.created_at_fmt || currentUser.joined_date || (displayName ? '11/09/2026' : 'Chưa lưu');
+      cardJoined.innerText = currentUser.joined_date || currentUser.created_at_fmt || (displayName ? new Date().toLocaleDateString('vi-VN') : 'Chưa lưu');
     }
 
     if (currentUser.hasCustomAvatar && currentUser.avatar) {
@@ -2702,10 +2733,25 @@ document.addEventListener('DOMContentLoaded', () => {
   initThemeMode();
   populateDobDropdowns();
   updateAuthUI();
+  attachProfileDraftListeners();
+  restoreProfileDraftFromSession();
   applyLanguage();
   initHistorySearch();
   switchTab(resolveInitialTab(), false);
-  fetch('/api/auth/me').then(r => r.json()).then(data => { if (!data.authenticated) { if (currentUser) { currentUser = null; localStorage.removeItem('medimind_user'); updateAuthUI(); } } else if (data.user) { currentUser = { ...(currentUser || {}), ...data.user }; localStorage.setItem('medimind_user', JSON.stringify(currentUser)); updateAuthUI(); } }).catch(() => {});
+  fetch('/api/auth/me').then(r => r.json()).then(data => {
+    if (!data.authenticated) {
+      if (currentUser) {
+        currentUser = null;
+        localStorage.removeItem('medimind_user');
+        updateAuthUI();
+      }
+    } else if (data.user) {
+      currentUser = { ...(currentUser || {}), ...data.user };
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      updateAuthUI();
+      restoreProfileDraftFromSession();
+    }
+  }).catch(() => {});
 
   const input = document.getElementById('user-input');
   if (input) {
@@ -2841,7 +2887,7 @@ async function handlePrescriptionFileSelected(e) {
       return;
     }
 
-    if (data.status === 'failed') {
+    if (data.status === 'failed' || data.status === 'rejected' || data.status === 'error') {
       renderPrescriptionError(data);
       showMedicalToast(data.message || 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.', 'error', 5000);
       return;
@@ -3082,16 +3128,16 @@ function renderPrescriptionResult(data) {
   if (!resSec) return;
 
   const isLab = data.type === 'lab_test' || data.doc_type === 'lab_test';
-  const diag = data.diagnosis || 'Chăm sóc & Điều trị';
-  const doctor = data.doctor || 'BS. Chuyên khoa';
-  const patient = data.patient_name || 'Bệnh nhân';
-  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
-  const dateStr = data.date || 'Hôm nay';
-  const duration = data.duration || '30 ngày';
-  const dob = data.dob || data.age || '45 tuổi';
-  const bhyt = data.bhyt || 'GD47902158829';
-  const medId = data.document_id ? `#MED-${data.document_id}` : `#MED-8841`;
-  const fileName = data.uploaded_filename || 'ToaThuoc_KhamDinhKy.jpg';
+  const diag = escapeHtml(String(data.diagnosis || 'Chăm sóc & Điều trị'));
+  const doctor = escapeHtml(String(data.doctor || 'BS. Chuyên khoa'));
+  const patient = escapeHtml(String(data.patient_name || 'Bệnh nhân'));
+  const facility = escapeHtml(String(data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế'));
+  const dateStr = escapeHtml(String(data.date || 'Hôm nay'));
+  const duration = escapeHtml(String(data.duration || '30 ngày'));
+  const dob = escapeHtml(String(data.dob || data.age || '45 tuổi'));
+  const bhyt = escapeHtml(String(data.bhyt || 'GD47902158829'));
+  const medId = escapeHtml(String(data.document_id ? `#MED-${data.document_id}` : `#MED-8841`));
+  const fileName = escapeHtml(String(data.uploaded_filename || 'ToaThuoc_KhamDinhKy.jpg'));
   const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
 
   if (isLab) {
@@ -4276,13 +4322,14 @@ async function handleSaveImage1Profile(e) {
 
   // TẦNG 2: BÓC LỚP MẶT NẠ (UNMASKING) & KIỂM TRA RÀO CHẮN (VALIDATION)
   const getFieldValue = (fieldId, fallback = '') => {
+    const el = document.getElementById(fieldId);
+    if (el && !fieldMaskState[fieldId]) {
+      const liveVal = el.value.trim();
+      fieldRealValues[fieldId] = liveVal;
+      return liveVal !== '' ? liveVal : fallback;
+    }
     if (fieldRealValues[fieldId] !== undefined && fieldRealValues[fieldId] !== '') {
       return fieldRealValues[fieldId];
-    }
-    const val = document.getElementById(fieldId)?.value.trim();
-    if (val !== undefined && val !== null && val !== '') {
-      fieldRealValues[fieldId] = val;
-      return val;
     }
     return fallback;
   };
@@ -4521,18 +4568,24 @@ async function sendFloatingChatMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: text,
+        lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
         user_name: currentUser ? (currentUser.first_name || currentUser.name || 'Bệnh nhân') : 'Bệnh nhân'
       })
     });
     const data = await res.json();
     document.getElementById(typingId)?.remove();
 
+    const rawReply = data.answer || data.reply || data.response || data.error || 'Hệ thống đã ghi nhận thông tin của bạn.';
+    const safeReply = escapeHtml(String(rawReply))
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+
     const isLightMode = document.body.classList.contains('light-glass');
     const botBubble = document.createElement('div');
     botBubble.className = 'flex justify-start';
     botBubble.innerHTML = `
       <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs ${isLightMode ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-white/10 text-slate-200 border border-white/10'} text-xs leading-relaxed shadow-xs">
-        ${data.reply || data.response || 'Hệ thống đã ghi nhận thông tin của bạn.'}
+        ${safeReply}
       </div>
     `;
     msgContainer.appendChild(botBubble);
