@@ -3357,22 +3357,30 @@ function initThemeMode() {
   const savedTheme = localStorage.getItem('medimind_theme') || 'light';
   if (savedTheme === 'light') {
     document.body.classList.add('light-glass');
+    document.body.classList.remove('dark');
+    document.documentElement.classList.remove('dark');
     document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.light;
   } else {
     document.body.classList.remove('light-glass');
+    document.body.classList.add('dark');
+    document.documentElement.classList.add('dark');
     document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
   }
   document.body.style.backgroundAttachment = 'fixed';
   if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+  if (typeof window.syncDrawerTheme === 'function') window.syncDrawerTheme();
   document.querySelectorAll('.dock-btn').forEach(btn => btn.removeAttribute('title'));
 }
 
 function toggleGlassThemeMode() {
   document.body.classList.toggle('light-glass');
   const isLight = document.body.classList.contains('light-glass');
+  document.body.classList.toggle('dark', !isLight);
+  document.documentElement.classList.toggle('dark', !isLight);
   document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
   document.body.style.backgroundAttachment = 'fixed';
   localStorage.setItem('medimind_theme', isLight ? 'light' : 'dark');
+  if (typeof syncDrawerTheme === 'function') syncDrawerTheme();
   if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
 }
 
