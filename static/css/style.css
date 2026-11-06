@@ -1220,17 +1220,24 @@ body.light-glass .relative > svg.text-white\/40 {
   color: #64748B !important;
 }
 
-/* New chat button */
+/* New chat button (+ Hội thoại mới - Solid Sky Blue) */
 body.light-glass #chat-tab button[onclick="resetChat()"] {
-  background: #F1F5F9 !important;
-  border: 1px solid #CBD5E1 !important;
-  color: #0284C7 !important;
+  background: #0284C7 !important;
+  border: 1px solid #0284C7 !important;
+  color: #FFFFFF !important;
   font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
 }
 
 body.light-glass #chat-tab button[onclick="resetChat()"]:hover {
-  background: #E0F2FE !important;
-  border-color: #0284C7 !important;
+  background: #0369A1 !important;
+  border-color: #0369A1 !important;
+  color: #FFFFFF !important;
+}
+
+body.light-glass #chat-tab button[onclick="resetChat()"] * {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
 /* Chat history items */
@@ -1242,14 +1249,14 @@ body.light-glass .chat-history-item {
 
 body.light-glass .chat-history-item:hover {
   background: #F8FAFC !important;
-  border-color: #0D9488 !important;
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1) !important;
+  border-color: #0284C7 !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1) !important;
 }
 
 body.light-glass .chat-history-item.bg-sky-500\/20 {
-  background: #F0FDFA !important;
-  border-color: #0D9488 !important;
-  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15) !important;
+  background: #F0F9FF !important;
+  border-color: #0284C7 !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15) !important;
 }
 
 body.light-glass .chat-history-item span.text-white {
@@ -1262,7 +1269,7 @@ body.light-glass .chat-history-item p.text-white\/60 {
 }
 
 body.light-glass .chat-history-item span.text-sky-300 {
-  color: #0D9488 !important;
+  color: #0284C7 !important;
   font-weight: 700 !important;
 }
 
@@ -1271,11 +1278,11 @@ body.light-glass .chat-history-item span.text-white\/40 {
   font-weight: 600 !important;
 }
 
-/* Live Intake Card */
+/* Live Intake Card - Pure Crisp White matching Card 1 */
 body.light-glass #live-intake-card {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%) !important;
-  border: 1.5px solid #99F6E4 !important;
-  box-shadow: 0 8px 25px -5px rgba(13, 148, 136, 0.12) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
 }
 
 body.light-glass #live-intake-card #intake-card-title {
@@ -1291,9 +1298,10 @@ body.light-glass #live-intake-card #intake-status-badge {
 }
 
 body.light-glass #live-intake-card .intake-fact-label,
-body.light-glass #live-intake-card span.text-white\/50 {
+body.light-glass #live-intake-card span.text-white\/50,
+body.light-glass #live-intake-card .text-slate-500 {
   color: #475569 !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
 }
 
 body.light-glass #live-intake-card #intake-chief-complaint {
@@ -1302,13 +1310,13 @@ body.light-glass #live-intake-card #intake-chief-complaint {
 }
 
 body.light-glass #live-intake-card #intake-present-symptoms {
-  color: #0D9488 !important;
+  color: #0284C7 !important;
   font-weight: 800 !important;
 }
 
 body.light-glass #live-intake-card #intake-denied-symptoms {
-  color: #059669 !important;
-  font-weight: 700 !important;
+  color: #64748B !important;
+  font-weight: 500 !important;
   font-style: italic !important;
 }
 
@@ -1322,30 +1330,26 @@ body.light-glass #live-intake-card #intake-vitals {
   font-weight: 800 !important;
 }
 
-body.light-glass #live-intake-card #btn-pre-visit-summary {
-  background: #E0F2FE !important;
-  border: 1.5px solid #7DD3FC !important;
-  color: #0369A1 !important;
-  font-weight: 800 !important;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
-}
-
-body.light-glass #live-intake-card #btn-pre-visit-summary:hover {
-  background: #BAE6FD !important;
-  color: #0284C7 !important;
-}
-
+/* Card 2 action buttons - High contrast slate buttons */
+body.light-glass #live-intake-card #btn-pre-visit-summary,
 body.light-glass #live-intake-card #btn-confirm-intake {
-  background: #D1FAE5 !important;
-  border: 1.5px solid #6EE7B7 !important;
-  color: #065F46 !important;
-  font-weight: 800 !important;
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15) !important;
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #1E293B !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
 }
 
+body.light-glass #live-intake-card #btn-pre-visit-summary:hover,
 body.light-glass #live-intake-card #btn-confirm-intake:hover {
-  background: #A7F3D0 !important;
-  color: #047857 !important;
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+body.light-glass #live-intake-card #btn-pre-visit-summary *,
+body.light-glass #live-intake-card #btn-confirm-intake * {
+  color: #1E293B !important;
+  stroke: #1E293B !important;
 }
 
 /* Chat Messages & Bubbles in Light Mode */
@@ -1372,65 +1376,33 @@ body.light-glass #chat-messages strong {
   font-weight: 800 !important;
 }
 
-/* Header button: Hồ sơ & Tóm tắt */
-body.light-glass #chat-tab button[onclick="switchTab('doctor-tab')"] {
+body.light-glass #chat-tab [data-i18n="assistant_greeting_desc"] {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #1E293B !important;
+  font-weight: 500 !important;
+}
+
+/* Quick Prompt Suggestion Pills - Crisp White with high-contrast text */
+body.light-glass #chat-tab button[onclick^="insertQuickPrompt"] {
   background: #FFFFFF !important;
   border: 1px solid #CBD5E1 !important;
-  color: #0F172A !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
-}
-
-body.light-glass #chat-tab button[onclick="switchTab('doctor-tab')"]:hover {
-  background: #F0FDFA !important;
-  border-color: #0D9488 !important;
-  color: #0D9488 !important;
-}
-
-/* Quick Prompt Suggestion Pills */
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(1)"] {
-  background: #E0F2FE !important;
-  border: 1.5px solid #7DD3FC !important;
-  color: #0369A1 !important;
-  font-weight: 700 !important;
-}
-
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(1)"]:hover {
-  background: #BAE6FD !important;
-}
-
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(2)"] {
-  background: #FEE2E2 !important;
-  border: 1.5px solid #FCA5A5 !important;
-  color: #991B1B !important;
-  font-weight: 700 !important;
-}
-
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(2)"]:hover {
-  background: #FECACA !important;
-}
-
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(3)"],
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(4)"] {
-  background: #F1F5F9 !important;
-  border: 1.5px solid #CBD5E1 !important;
   color: #334155 !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(3)"]:hover,
-body.light-glass #chat-tab button[onclick="insertQuickPrompt(4)"]:hover {
-  background: #E2E8F0 !important;
-  color: #0F172A !important;
+body.light-glass #chat-tab button[onclick^="insertQuickPrompt"]:hover {
+  background: #F0F9FF !important;
+  border-color: #38BDF8 !important;
+  color: #0284C7 !important;
 }
 
-/* Input dock capsule */
-body.light-glass #chat-tab .glass-dock {
-  background: #FFFFFF !important;
-  border: 1.5px solid #CBD5E1 !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08) !important;
+body.light-glass #chat-tab button[onclick^="insertQuickPrompt"] * {
+  color: inherit !important;
 }
 
+/* Input dock capsule & Send button */
 body.light-glass #chat-tab #user-input {
   color: #0F172A !important;
   font-weight: 500 !important;
@@ -1447,6 +1419,22 @@ body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"] {
 body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"]:hover {
   color: #0284C7 !important;
   background-color: #F1F5F9 !important;
+}
+
+body.light-glass #chat-tab #send-btn {
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3) !important;
+}
+
+body.light-glass #chat-tab #send-btn:hover {
+  background: #0369A1 !important;
+}
+
+body.light-glass #chat-tab #send-btn * {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }
 
 /* ==============================================================

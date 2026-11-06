@@ -639,7 +639,7 @@ background: #94A3B8;
   <div class="lg:col-span-4 space-y-5">
 
     <!-- CARD 1: LỊCH SỬ TƯ VẤN (Matching Screenshot) -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
       
       <!-- Card Header: Title & "+ Hội thoại mới" Button -->
       <div class="flex items-start justify-between gap-3">
@@ -647,9 +647,9 @@ background: #94A3B8;
           <h3 data-i18n="history_title" class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Lịch sử tư vấn</h3>
           <p data-i18n="history_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Các phiên sàng lọc và phân tích triệu chứng</p>
         </div>
-        <button type="button" onclick="resetChat()" class="text-xs font-bold px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white flex items-center space-x-1.5 transition-all shadow-md shadow-sky-600/25 shrink-0 cursor-pointer" title="Cuộc trò chuyện mới">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-          <span data-i18n="history_btn_new">Hội thoại mới</span>
+        <button type="button" onclick="resetChat()" class="text-xs font-bold px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center space-x-1.5 transition-all shadow-md shadow-sky-600/30 shrink-0 cursor-pointer" title="Cuộc trò chuyện mới">
+          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <span data-i18n="history_btn_new" class="text-white font-bold">Hội thoại mới</span>
         </button>
       </div>
 
@@ -662,12 +662,12 @@ background: #94A3B8;
       <!-- History Container -->
       <div id="chat-history-container" class="space-y-2 pt-1">
         <!-- Empty State Default -->
-        <div id="chat-history-empty" class="p-8 text-center rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800/30 space-y-2.5">
+        <div id="chat-history-empty" class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-800/30 space-y-2.5">
           <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
             <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           </div>
           <div>
-            <h4 data-i18n="history_empty_title" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">Chưa có phiên tư vấn nào</h4>
+            <h4 data-i18n="history_empty_title" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-200">Chưa có phiên tư vấn nào</h4>
             <p data-i18n="history_empty_desc" class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">Bắt đầu hội thoại để lưu lại lịch sử tại đây.</p>
           </div>
         </div>
@@ -678,7 +678,7 @@ background: #94A3B8;
     </div>
 
     <!-- CARD 2: THÔNG TIN ĐÃ GHI NHẬN (Matching Screenshot) -->
-    <div id="live-intake-card" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+    <div id="live-intake-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
       <!-- Card Header -->
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
         <div class="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white" id="intake-card-title">
@@ -687,7 +687,7 @@ background: #94A3B8;
           </span>
           <span class="text-sm font-bold text-slate-900 dark:text-white">Thông tin đã ghi nhận</span>
         </div>
-        <span id="intake-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+        <span id="intake-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
           Chờ khởi tạo
         </span>
       </div>
@@ -718,13 +718,13 @@ background: #94A3B8;
 
       <!-- Action Buttons matching screenshot -->
       <div class="pt-2 flex items-center gap-3">
-        <button type="button" id="btn-pre-visit-summary" onclick="openPreVisitSummaryModal()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
-          <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span>Tóm tắt trước khám</span>
+        <button type="button" id="btn-pre-visit-summary" onclick="openPreVisitSummaryModal()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
+          <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="text-slate-800 dark:text-slate-200 font-bold">Tóm tắt trước khám</span>
         </button>
-        <button type="button" id="btn-confirm-intake" onclick="confirmCurrentIntake()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-200 hover:text-sky-700 dark:hover:text-sky-300 text-xs font-bold transition-all border border-slate-200 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs" title="Xác nhận lời khai đúng thực tế">
-          <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>Xác nhận</span>
+        <button type="button" id="btn-confirm-intake" onclick="confirmCurrentIntake()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs" title="Xác nhận lời khai đúng thực tế">
+          <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="text-slate-800 dark:text-slate-200 font-bold">Xác nhận</span>
         </button>
       </div>
 
@@ -737,13 +737,13 @@ background: #94A3B8;
   <!-- ============================================================== -->
   <!-- RIGHT COLUMN (8/12): MAIN CHAT PANEL                           -->
   <!-- ============================================================== -->
-  <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[660px] lg:min-h-[720px]">
+  <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[660px] lg:min-h-[720px]">
     
     <!-- Header: Avatar + MediMind Title + Subtitle -->
     <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
       <div class="flex items-center space-x-3.5">
-        <!-- Avatar Badge with Sky-Blue / Indigo Theme -->
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0 border border-white/20">
+        <!-- Avatar Badge with Sky-Blue Theme -->
+        <div class="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/30 shrink-0 border border-sky-400/30">
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
         </div>
         <div>
@@ -761,9 +761,9 @@ background: #94A3B8;
       <!-- Default Greeting Bubble matching screenshot -->
       <div class="flex items-start gap-3">
         <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
         </div>
-        <div data-i18n="assistant_greeting_desc" class="max-w-[85%] bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+        <div data-i18n="assistant_greeting_desc" class="max-w-[85%] bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
           Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?
         </div>
       </div>
@@ -774,16 +774,16 @@ background: #94A3B8;
       
       <!-- Quick Prompt Suggestion Chips -->
       <div class="flex flex-wrap items-center gap-2">
-        <button type="button" onclick="insertQuickPrompt(1)" class="py-1.5 px-3.5 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 hover:text-sky-600 dark:hover:text-sky-300 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium transition-all shadow-2xs cursor-pointer">
+        <button type="button" onclick="insertQuickPrompt(1)" class="py-2 px-4 rounded-full bg-white hover:bg-sky-50 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-sky-700 dark:hover:text-sky-300 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all shadow-xs cursor-pointer">
           <span data-i18n="quick_1">Sốt 38.5°C và đau cổ họng</span>
         </button>
-        <button type="button" onclick="insertQuickPrompt(2)" class="py-1.5 px-3.5 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 hover:text-sky-600 dark:hover:text-sky-300 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium transition-all shadow-2xs cursor-pointer">
+        <button type="button" onclick="insertQuickPrompt(2)" class="py-2 px-4 rounded-full bg-white hover:bg-sky-50 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-sky-700 dark:hover:text-sky-300 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all shadow-xs cursor-pointer">
           <span data-i18n="quick_2">Đau tức ngực, khó thở</span>
         </button>
-        <button type="button" onclick="insertQuickPrompt(3)" class="py-1.5 px-3.5 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 hover:text-sky-600 dark:hover:text-sky-300 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium transition-all shadow-2xs cursor-pointer">
+        <button type="button" onclick="insertQuickPrompt(3)" class="py-2 px-4 rounded-full bg-white hover:bg-sky-50 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-sky-700 dark:hover:text-sky-300 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all shadow-xs cursor-pointer">
           <span data-i18n="quick_3">Lịch uống đơn thuốc sau ăn?</span>
         </button>
-        <button type="button" onclick="insertQuickPrompt(4)" class="py-1.5 px-3.5 rounded-full bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-slate-700 hover:text-sky-600 dark:hover:text-sky-300 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-medium transition-all shadow-2xs cursor-pointer">
+        <button type="button" onclick="insertQuickPrompt(4)" class="py-2 px-4 rounded-full bg-white hover:bg-sky-50 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-sky-700 dark:hover:text-sky-300 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all shadow-xs cursor-pointer">
           <span data-i18n="quick_4">Gợi ý chuyên khoa khám</span>
         </button>
       </div>
@@ -801,23 +801,23 @@ background: #94A3B8;
       </div>
 
       <!-- Capsule Input Bar matching screenshot -->
-      <div class="flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 rounded-2xl sm:rounded-full p-2 pl-3 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all shadow-xs">
+      <div class="flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-2xl p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
         <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleChatImageSelected(event)">
         
-        <button type="button" onclick="document.getElementById('chat-image-input').click()" title="Đính kèm ảnh lâm sàng" class="p-2 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 rounded-full transition-colors shrink-0 cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <button type="button" onclick="document.getElementById('chat-image-input').click()" title="Đính kèm ảnh lâm sàng" class="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 rounded-full transition-colors shrink-0 cursor-pointer">
+          <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
 
         <input id="user-input" type="text" data-i18n-placeholder="chat_input_placeholder" placeholder="Mô tả triệu chứng (ví dụ: đau tức ngực, sốt) hoặc gửi ảnh đơn thuốc..." class="flex-1 bg-transparent text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 border-0 focus:outline-none px-2 font-normal" onkeydown="if(event.key==='Enter') sendChatMessage()">
 
         <!-- Send Button with Up Arrow matching screenshot -->
-        <button type="button" id="send-btn" onclick="sendChatMessage()" class="w-9 h-9 rounded-xl bg-slate-200/90 hover:bg-sky-600 hover:text-white text-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-sky-600 dark:hover:text-white flex items-center justify-center transition-all shrink-0 cursor-pointer" title="Gửi tin nhắn">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+        <button type="button" id="send-btn" onclick="sendChatMessage()" class="w-10 h-10 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center transition-all shrink-0 shadow-md shadow-sky-600/30 cursor-pointer" title="Gửi tin nhắn">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
         </button>
       </div>
 
       <!-- Footer Disclaimer matching screenshot -->
-      <p class="text-[11px] text-slate-400 dark:text-slate-500 text-center font-normal">
+      <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center font-normal">
         Thông tin chỉ mang tính tham khảo, không thay thế chẩn đoán của bác sĩ.
       </p>
 

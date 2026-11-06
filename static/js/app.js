@@ -1333,15 +1333,15 @@ function updateLiveIntakeCard(facts, status, summary) {
   if (statusBadge) {
     if (status === 'confirmed') {
       statusBadge.innerText = '✓ Đã xác nhận';
-      statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+      statusBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-500/40';
       if (btnConfirm) btnConfirm.classList.add('hidden');
     } else if (status === 'ready_for_review') {
       statusBadge.innerText = 'Chờ xác nhận';
-      statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30';
+      statusBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/40';
       if (btnConfirm) btnConfirm.classList.remove('hidden');
     } else {
       statusBadge.innerText = 'Đang thu thập';
-      statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30';
+      statusBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-300 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-500/40';
       if (btnConfirm) btnConfirm.classList.remove('hidden');
     }
   }
