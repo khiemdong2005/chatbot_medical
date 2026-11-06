@@ -39,7 +39,9 @@ YÊU CẦU SCHEMA TRẢ VỀ:
 {{
   "doc_type": "prescription",
   "patient_name": "Tên bệnh nhân hoặc để trống",
-  "dob": "Ngày sinh hoặc tuổi",
+  "dob": "Ngày tháng năm sinh (ví dụ: 12/08/1982 hoặc 1982 nếu chỉ có năm sinh, hoặc để trống)",
+  "age": "Tuổi bệnh nhân nếu ghi trên đơn (ví dụ: 45 hoặc để trống)",
+  "gender": "Giới tính (Nam hoặc Nữ nếu có trên đơn, hoặc để trống)",
   "diagnosis": "Chẩn đoán bệnh",
   "facility": "Tên bệnh viện / phòng khám",
   "doctor": "Tên bác sĩ kê đơn",

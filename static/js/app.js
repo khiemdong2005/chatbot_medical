@@ -2162,6 +2162,7 @@ function updateAuthUI() {
     loadScanFiles();
     syncServerConsultations();
     renderChatHistoryList();
+    loadPrescriptionHistory();
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
@@ -2181,6 +2182,7 @@ function updateAuthUI() {
       exportBtn.title = 'Chưa có bản tóm tắt trước khám để kết xuất PDF';
     }
     loadScanFiles();
+    loadPrescriptionHistory();
   }
 }
 
@@ -2431,6 +2433,7 @@ document.addEventListener('DOMContentLoaded', () => {
   selectPatientProfile('current_patient');
   renderMedicalFacilities();
   updateHomeGreeting();
+  loadPrescriptionHistory();
 
   const input = document.getElementById('user-input');
   if (input) {
@@ -2583,12 +2586,13 @@ async function handlePrescriptionFileSelected(e) {
     }
 
     renderPrescriptionResult(data);
+    loadPrescriptionHistory();
     if (data.is_demo) {
       showMedicalToast('Đang hiển thị đơn thuốc mẫu thử nghiệm (Demo).', 'info', 4000);
     } else if (data.needs_review) {
-      showMedicalToast('Đã đọc tài liệu: Vui lòng đối chiếu với ảnh gốc để xác nhận các mục chưa chắc chắn.', 'warning', 5000);
+      showMedicalToast('Đã đọc tài liệu & lưu vào Lịch sử: Vui lòng đối chiếu với ảnh gốc để xác nhận các mục chưa chắc chắn.', 'warning', 5000);
     } else {
-      showMedicalToast(`Đã nhận dạng thành công đơn thuốc: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
+      showMedicalToast(`Đã nhận dạng thành công & tự động lưu vào Lịch sử: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
     }
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
@@ -2755,6 +2759,7 @@ async function loadPrescriptionPreset(presetKey) {
 
 function showPrescriptionLoading(show, stepText, substepText) {
   const inputSec = document.getElementById('prescription-input-section');
+  const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
   const resSec = document.getElementById('prescription-result-section');
   const stepEl = document.getElementById('scan-step-text');
@@ -2762,6 +2767,7 @@ function showPrescriptionLoading(show, stepText, substepText) {
 
   if (show) {
     if (inputSec) inputSec.classList.add('hidden');
+    if (histSec) histSec.classList.add('hidden');
     if (resSec) resSec.classList.add('hidden');
     if (loadSec) loadSec.classList.remove('hidden');
     if (stepEl && stepText) stepEl.innerText = stepText;
@@ -2773,6 +2779,7 @@ function showPrescriptionLoading(show, stepText, substepText) {
 
 function resetPrescriptionScan() {
   const inputSec = document.getElementById('prescription-input-section');
+  const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
   const resSec = document.getElementById('prescription-result-section');
   const preview = document.getElementById('file-chosen-preview');
@@ -2786,9 +2793,202 @@ function resetPrescriptionScan() {
     resSec.innerHTML = '';
   }
   if (inputSec) inputSec.classList.remove('hidden');
+  if (histSec) histSec.classList.remove('hidden');
   adherenceSlotState = {};
   currentPrescriptionData = null;
+  loadPrescriptionHistory();
   inputSec?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ==============================================================================
+// LỊCH SỬ ĐƠN THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT (DATA NGƯỜI DÙNG)
+// ==============================================================================
+let cachedPrescriptionHistory = [];
+
+async function loadPrescriptionHistory() {
+  const listEl = document.getElementById('prescription-history-list');
+  const emptyEl = document.getElementById('prescription-history-empty');
+  const countBadge = document.getElementById('history-count-badge');
+  const ehrPrescriptionList = document.getElementById('ehr-prescription-list');
+
+  try {
+    const res = await fetch('/api/prescription/history');
+    if (!res.ok) {
+      if (res.status === 401) {
+        if (listEl) listEl.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.</p>';
+        if (countBadge) countBadge.innerText = '0 hồ sơ';
+      }
+      return;
+    }
+
+    const data = await res.json();
+    const history = data.history || [];
+    cachedPrescriptionHistory = history;
+
+    if (countBadge) countBadge.innerText = `${history.length} hồ sơ`;
+
+    // 1. Cập nhật trong tab OCR (Đọc đơn thuốc & xét nghiệm)
+    if (history.length === 0) {
+      if (listEl) listEl.innerHTML = '';
+      if (emptyEl) emptyEl.classList.remove('hidden');
+    } else {
+      if (emptyEl) emptyEl.classList.add('hidden');
+      if (listEl) {
+        listEl.innerHTML = history.map(item => {
+          const isLab = item.doc_type === 'lab_test';
+          const badgeType = isLab 
+            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">🔬 Phiếu Xét Nghiệm</span>'
+            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">💊 Đơn Thuốc</span>';
+
+          const iconSvg = isLab
+            ? `<svg class="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
+            : `<svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+
+          const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Theo dõi & Điều trị theo chỉ định';
+          const facility = item.facility && item.facility !== 'Cơ sở Y tế' ? item.facility : 'Cơ sở Y tế';
+
+          return `
+            <div class="glass-card p-4 rounded-2xl border border-white/10 hover:border-teal-400/40 bg-white/[0.04] transition-all space-y-2.5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-500/20 border-purple-400/30' : 'bg-teal-500/20 border-teal-400/30'} border flex items-center justify-center shrink-0 mt-0.5">
+                    ${iconSvg}
+                  </div>
+                  <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      ${badgeType}
+                      <span class="text-[11px] text-slate-300 font-mono flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        ${escapeHtml(item.uploaded_at || 'Vừa xong')}
+                      </span>
+                      <span class="text-[10px] text-slate-400 font-mono">#MED-${item.id}</span>
+                    </div>
+                    
+                    <h4 class="text-sm font-bold text-white leading-snug">
+                      <span class="text-slate-400 font-normal">Chẩn đoán / Bệnh:</span> 
+                      <span class="text-emerald-300 font-bold">${escapeHtml(diag)}</span>
+                    </h4>
+
+                    <div class="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span class="flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        ${escapeHtml(facility)}
+                      </span>
+                      ${item.doctor ? `<span class="text-slate-400">• BS: <strong class="text-slate-200">${escapeHtml(item.doctor)}</strong></span>` : ''}
+                      ${item.patient_name ? `<span class="text-slate-400">• BN: <strong class="text-slate-200">${escapeHtml(item.patient_name)}</strong></span>` : ''}
+                    </div>
+
+                    ${item.summary ? `
+                      <div class="pt-1">
+                        <span class="text-[11px] px-2.5 py-1 rounded-lg bg-teal-950/40 text-teal-200 border border-teal-500/25 inline-flex items-center gap-1.5 font-medium">
+                          <span>📋</span> ${escapeHtml(item.summary)}
+                        </span>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0">
+                  <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-sky-600 hover:from-teal-400 hover:to-sky-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:scale-102">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    <span>Xem lại đơn</span>
+                  </button>
+                  <button type="button" onclick="deletePrescriptionHistoryItem(${item.id}, event)" class="p-2 rounded-xl glass-pill text-slate-400 hover:text-rose-400 hover:border-rose-400/40 transition-all cursor-pointer" title="Xóa khỏi lịch sử">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // 2. Cập nhật trong tab Doctor (Hồ sơ của tôi)
+    if (ehrPrescriptionList) {
+      if (history.length === 0) {
+        ehrPrescriptionList.innerHTML = '<p class="text-slate-400 text-[11px] italic">Chưa có đơn thuốc nào được lưu. Bạn có thể import đơn thuốc mới bất kỳ lúc nào.</p>';
+      } else {
+        ehrPrescriptionList.innerHTML = history.slice(0, 5).map(item => {
+          const isLab = item.doc_type === 'lab_test';
+          const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Đơn thuốc khám bệnh';
+          return `
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/30 transition-all flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${isLab ? 'bg-purple-500/20 text-purple-300' : 'bg-teal-500/20 text-teal-300'}">${isLab ? 'XÉT NGHIỆM' : 'ĐƠN THUỐC'}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(item.uploaded_at || '')}</span>
+                </div>
+                <h5 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(diag)}">${escapeHtml(diag)}</h5>
+                <p class="text-[10px] text-slate-400 truncate">${escapeHtml(item.facility || 'Cơ sở Y tế')}${item.summary ? ` • ${escapeHtml(item.summary)}` : ''}</p>
+              </div>
+              <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-400/30 text-[11px] font-bold shrink-0 transition-colors cursor-pointer">
+                Xem lại →
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+  } catch (err) {
+    console.error('Lỗi khi tải lịch sử đơn thuốc:', err);
+  }
+}
+
+async function viewPrescriptionHistoryItem(docId) {
+  try {
+    showPrescriptionLoading(true, "Đang nạp lại dữ liệu đơn thuốc từ hồ sơ cá nhân...", "Khôi phục danh mục thuốc, cữ uống và hướng dẫn điều trị...");
+    const res = await fetch(`/api/prescription/history/${docId}`);
+    const resJson = await res.json();
+    showPrescriptionLoading(false);
+
+    if (resJson.status === 'success' && resJson.data) {
+      // Ẩn upload section và history section để người dùng xem kết quả
+      const inputSec = document.getElementById('prescription-input-section');
+      const histSec = document.getElementById('prescription-history-section');
+      if (inputSec) inputSec.classList.add('hidden');
+      if (histSec) histSec.classList.add('hidden');
+
+      // Chuyển tab sang ocr-tab nếu đang ở tab khác
+      switchTab('ocr-tab');
+
+      // Render kết quả chi tiết
+      renderPrescriptionResult(resJson.data);
+      showMedicalToast(`Đang hiển thị đơn thuốc lưu trữ: ${resJson.data.diagnosis || 'Đơn thuốc'}`, 'info', 4000);
+
+      // Cuộn lên kết quả
+      const resSec = document.getElementById('prescription-result-section');
+      if (resSec) {
+        resSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      showMedicalToast(resJson.message || 'Không thể đọc dữ liệu chi tiết của đơn thuốc này.', 'warning');
+    }
+  } catch (err) {
+    console.error('Lỗi khi xem lại đơn thuốc:', err);
+    showPrescriptionLoading(false);
+    showMedicalToast('Không thể kết nối đến máy chủ để tải đơn thuốc.', 'error');
+  }
+}
+
+async function deletePrescriptionHistoryItem(docId, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đơn thuốc này khỏi lịch sử hồ sơ của mình không?')) return;
+
+  try {
+    const res = await fetch(`/api/prescription/history/${docId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.status === 'success') {
+      showMedicalToast('Đã xóa thành công đơn thuốc khỏi lịch sử hồ sơ.', 'success', 3000);
+      await loadPrescriptionHistory();
+    } else {
+      showMedicalToast(data.message || 'Không thể xóa đơn thuốc.', 'error');
+    }
+  } catch (err) {
+    console.error('Lỗi xóa đơn thuốc:', err);
+    showMedicalToast('Lỗi kết nối khi xóa đơn thuốc.', 'error');
+  }
 }
 
 // Helper to determine the smart active slot based on real-world time
@@ -2813,6 +3013,11 @@ function detectSmartDoseSlot(slots) {
 // ==============================================================================
 function renderPrescriptionResult(data) {
   currentPrescriptionData = data;
+  const inputSec = document.getElementById('prescription-input-section');
+  const histSec = document.getElementById('prescription-history-section');
+  if (inputSec) inputSec.classList.add('hidden');
+  if (histSec) histSec.classList.add('hidden');
+
   const resSec = document.getElementById('prescription-result-section');
   if (!resSec) return;
 
@@ -2823,8 +3028,40 @@ function renderPrescriptionResult(data) {
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
   const dateStr = data.date || 'Hôm nay';
   const duration = data.duration || '30 ngày';
-  const dob = data.dob || data.age || '45 tuổi';
-  const bhyt = data.bhyt || 'GD47902158829';
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const rawAge = (data.age || data.data?.age || '').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nữ').toString().trim();
+  const currentYear = new Date().getFullYear();
+
+  // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
+  let displayBirthInfo = '';
+  let displayAge = '';
+
+  // Tìm năm 4 chữ số (19xx hoặc 20xx)
+  const yearMatch = rawDob.match(/(19\d{2}|20\d{2})/);
+  if (yearMatch) {
+    const birthYear = parseInt(yearMatch[1], 10);
+    const calculatedAge = currentYear - birthYear;
+    
+    // Nếu có dạng ngày đầy đủ dd/mm/yyyy
+    const fullDateMatch = rawDob.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/);
+    if (fullDateMatch) {
+      displayBirthInfo = fullDateMatch[1];
+    } else {
+      displayBirthInfo = birthYear.toString();
+    }
+    displayAge = `${calculatedAge} tuổi`;
+  } else if (rawAge && !isNaN(parseInt(rawAge, 10))) {
+    const parsedAge = parseInt(rawAge, 10);
+    displayAge = `${parsedAge} tuổi`;
+    displayBirthInfo = `${currentYear - parsedAge}`;
+  } else if (rawDob) {
+    displayBirthInfo = rawDob;
+    displayAge = '';
+  } else {
+    displayBirthInfo = 'Chưa xác định';
+    displayAge = '';
+  }
   const medId = data.document_id ? `#MED-${data.document_id}` : `#MED-8841`;
   const fileName = data.uploaded_filename || 'ToaThuoc_KhamDinhKy.jpg';
   const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
@@ -2997,8 +3234,8 @@ function renderPrescriptionResult(data) {
           <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs cursor-pointer">
             Export Summary PDF
           </button>
-          <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-900 hover:bg-sky-950 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-            <span>💾 Lưu vào Hồ sơ</span>
+<button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
+            <span>📋 Xem Lịch sử / Quét thêm</span>
           </button>
         </div>
       </div>
@@ -3019,21 +3256,18 @@ function renderPrescriptionResult(data) {
               <div>
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
-                  <span class="bg-sky-900 text-white text-[9px] font-bold px-2 py-0.5 rounded">BHYT Đúng tuyến</span>
+
                 </div>
                 <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${patient}</h3>
                 
-                <div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1 flex flex-wrap items-center gap-2">
+<div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
                   <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Tuổi:</span> <strong>${dob}</strong>
+                    <span class="text-slate-400 font-normal">Ngày/Năm sinh:</span> <strong class="text-slate-900 font-bold">${displayBirthInfo}</strong>
+                    ${displayAge ? `<span class="px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-bold">(${displayAge})</span>` : ''}
                   </span>
                   <span class="text-slate-300">•</span>
                   <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Giới tính:</span> <strong>${data.gender || 'Nữ'}</strong>
-                  </span>
-                  <span class="text-slate-300">•</span>
-                  <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Mã BHYT:</span> <strong class="font-mono text-sky-950">${bhyt}</strong>
+<span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 dark:text-white font-bold">${rawGender}</strong>
                   </span>
                 </div>
               </div>
