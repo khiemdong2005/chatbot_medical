@@ -20,7 +20,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from dotenv import load_dotenv
 
 # Tải cấu hình môi trường (.env)
@@ -507,6 +507,216 @@ def create_app(test_config=None):
             "message": "Xác thực mã OTP thành công."
         })
 
+
+    def _create_google_oauth_state(intent: str = "login") -> str:
+        import base64
+        import hashlib
+        import hmac
+        import secrets
+        import time
+
+        clean_intent = "register" if intent == "register" else "login"
+        payload = json.dumps({
+            "n": secrets.token_urlsafe(12),
+            "i": clean_intent,
+            "t": int(time.time())
+        }, separators=(",", ":")).encode("utf-8")
+        b64_payload = base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+        secret = (app.secret_key or "medimind-oauth-secret").encode("utf-8")
+        sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).hexdigest()
+        return f"{b64_payload}.{sig}"
+
+    def _verify_google_oauth_state(state_token: str):
+        import base64
+        import hashlib
+        import hmac
+        import time
+
+        if not state_token or "." not in state_token:
+            return None
+        try:
+            b64_payload, sig = state_token.rsplit(".", 1)
+            secret = (app.secret_key or "medimind-oauth-secret").encode("utf-8")
+            expected_sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(sig, expected_sig):
+                return None
+            padded = b64_payload + "=" * ((4 - len(b64_payload) % 4) % 4)
+            data = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+            if abs(int(time.time()) - int(data.get("t", 0))) > 600:
+                return None
+            return data.get("i", "login")
+        except Exception:
+            return None
+
+    @app.route("/api/auth/google/login", methods=["GET"])
+    def auth_google_login():
+        """
+        Khởi tạo luồng Google OAuth 2.0 Authorization Code (PKCE/State) chuẩn giống ForumFlash:
+          - Nhận intent ('login' hoặc 'register')
+          - Buộc hiển thị bảng chọn tài khoản thật của Google (prompt=select_account)
+          - Hỗ trợ trả JSON (?format=json) cho pre-flight check hoặc Redirect 302 trực tiếp.
+        """
+        from urllib.parse import urlencode
+
+        intent = (request.args.get("intent") or "login").strip().lower()
+        if intent not in ("login", "register"):
+            intent = "login"
+
+        client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
+        client_secret = (os.getenv("GOOGLE_CLIENT_SECRET") or "").strip()
+        redirect_uri = (os.getenv("GOOGLE_REDIRECT_URI") or url_for("auth_google_callback", _external=True)).strip()
+
+        if not client_id or not client_secret:
+            if request.args.get("format") == "json":
+                return jsonify({
+                    "success": False,
+                    "configured": False,
+                    "error": "Chưa cấu hình GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET trong .env."
+                }), 503
+            return redirect("/?google_auth=error&error_reason=unconfigured")
+
+        state_token = _create_google_oauth_state(intent)
+        session["google_oauth_state"] = state_token
+
+        params = {
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "prompt": "select_account",
+            "access_type": "online",
+            "include_granted_scopes": "true",
+            "state": state_token,
+        }
+        google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+
+        if request.args.get("format") == "json":
+            return jsonify({
+                "success": True,
+                "configured": True,
+                "intent": intent,
+                "auth_url": google_auth_url
+            })
+        return redirect(google_auth_url)
+
+    @app.route("/api/auth/google/callback", methods=["GET"])
+    def auth_google_callback():
+        """
+        Callback nhận Authorization Code từ Google OAuth 2.0:
+          - Xác thực chữ ký HMAC state chống CSRF
+          - Đổi code lấy access_token & id_token (tự động retry 1 lần nếu mạng chập chờn)
+          - Lấy hồ sơ xác thực từ Google UserInfo API
+          - Phân nhánh Đăng nhập vs Đăng ký & kiểm tra hoàn tất hồ sơ (Onboarding)
+        """
+        import secrets
+        import urllib.request
+        import urllib.parse
+        import urllib.error
+
+        error = (request.args.get("error") or "").strip()
+        if error:
+            logger.warning(f"Google OAuth trả về lỗi hoặc người dùng hủy: {error}")
+            return redirect(f"/?google_auth=error&error_reason={urllib.parse.quote(error)}")
+
+        code = (request.args.get("code") or "").strip()
+        state_token = (request.args.get("state") or "").strip()
+
+        intent = _verify_google_oauth_state(state_token)
+        if not intent or not code:
+            logger.warning("Google OAuth callback thất bại: state không hợp lệ hoặc thiếu code.")
+            return redirect("/?google_auth=error&error_reason=invalid_state")
+
+        session.pop("google_oauth_state", None)
+
+        client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
+        client_secret = (os.getenv("GOOGLE_CLIENT_SECRET") or "").strip()
+        redirect_uri = (os.getenv("GOOGLE_REDIRECT_URI") or url_for("auth_google_callback", _external=True)).strip()
+
+        token_payload = urllib.parse.urlencode({
+            "code": code,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+        }).encode("utf-8")
+
+        token_data = None
+        for attempt in range(2):
+            try:
+                req = urllib.request.Request(
+                    "https://oauth2.googleapis.com/token",
+                    data=token_payload,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                )
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    token_data = json.loads(resp.read().decode("utf-8"))
+                break
+            except Exception as ex:
+                logger.warning(f"Lỗi đổi mã Google OAuth (lần {attempt + 1}): {ex}")
+                if attempt == 1:
+                    return redirect("/?google_auth=error&error_reason=token_exchange_failed")
+
+        access_token = (token_data or {}).get("access_token")
+        if not access_token:
+            return redirect("/?google_auth=error&error_reason=no_access_token")
+
+        try:
+            userinfo_req = urllib.request.Request(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            with urllib.request.urlopen(userinfo_req, timeout=10) as resp:
+                user_info = json.loads(resp.read().decode("utf-8"))
+        except Exception as ex:
+            logger.error(f"Không thể lấy thông tin người dùng từ Google: {ex}")
+            return redirect("/?google_auth=error&error_reason=userinfo_failed")
+
+        email = (user_info.get("email") or "").strip().lower()
+        full_name = (user_info.get("name") or "").strip()
+        avatar_url = (user_info.get("picture") or "").strip()
+
+        if not email or "@" not in email:
+            return redirect("/?google_auth=error&error_reason=invalid_email")
+
+        if not full_name:
+            full_name = email.split("@")[0].capitalize()
+
+        user = User.query.filter_by(email=email).first()
+        is_new_user = False
+        already_existed = False
+
+        if user:
+            already_existed = True
+            if avatar_url:
+                user.avatar_url = avatar_url
+            if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
+                user.full_name = full_name
+            db.session.commit()
+        else:
+            is_new_user = True
+            user = User(
+                email=email,
+                full_name=full_name,
+                role="patient",
+                avatar_url=avatar_url or None
+            )
+            user.set_password(secrets.token_urlsafe(24))
+            db.session.add(user)
+            db.session.commit()
+
+        session["user_id"] = user.id
+        session["user_role"] = user.role
+
+        needs_onboarding = is_new_user or not (user.phone_number and user.dob)
+
+        query_out = {
+            "google_auth": "success",
+            "intent": intent,
+            "onboarding": "1" if needs_onboarding else "0",
+            "new_user": "1" if is_new_user else "0",
+            "existing": "1" if (intent == "register" and already_existed and not needs_onboarding) else "0",
+        }
+        return redirect(f"/?{urllib.parse.urlencode(query_out)}")
 
     @app.route("/api/auth/google", methods=["POST"])
     def auth_google():

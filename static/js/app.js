@@ -1491,16 +1491,17 @@ async function handleSaveProfile(e) {
     });
     const data = await res.json();
     if (data.success && data.user) {
-      currentUser = data.user;
-      // Set Facebook-style default avatar based on gender (Nam, Nữ, Khác)
-      currentUser.hasCustomAvatar = false;
-      currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || gender);
+      currentUser = { ...(currentUser || {}), ...data.user };
+      if (!currentUser.hasCustomAvatar) {
+        currentUser.avatar = currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || gender);
+      }
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
       broadcastTabEvent('PROFILE_UPDATE', { user: currentUser });
-      openProfileModal();
-      toggleProfileEdit(false);
-      alert('Cập nhật thông tin cá nhân thành công!');
+      closeProfileModal();
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast('Đã hoàn tất và lưu hồ sơ y tế thành công!', 'success', 4000);
+      }
     } else {
       alert(data.error || 'Cập nhật thông tin thất bại.');
     }
@@ -1513,6 +1514,32 @@ async function handleSaveProfile(e) {
 function openProfileModal() {
   closeUserDropdown();
   switchTab('profile-tab');
+}
+
+function openGoogleOnboardingModal(user) {
+  const u = user || currentUser;
+  if (!u) return;
+  const modal = document.getElementById('profile-modal');
+  const nameHeader = document.getElementById('profile-name');
+  const badgeHeader = document.getElementById('profile-badge');
+  const avatarHeader = document.getElementById('profile-avatar');
+  if (nameHeader) nameHeader.innerText = u.full_name || u.name || 'Bệnh nhân mới';
+  if (badgeHeader) badgeHeader.innerText = 'Xác thực Google thành công • Bổ sung thông tin còn thiếu để hoàn tất hồ sơ';
+  if (avatarHeader) {
+    if (u.avatar_url) {
+      avatarHeader.innerHTML = `<img src="${escapeHtml(u.avatar_url)}" alt="Avatar" class="w-full h-full rounded-2xl object-cover">`;
+    } else {
+      avatarHeader.innerText = u.badge || 'BN';
+    }
+  }
+  toggleProfileEdit(true);
+  if (modal) modal.classList.remove('hidden');
+  setTimeout(() => {
+    const dobEl = document.getElementById('edit-profile-dob');
+    const phoneEl = document.getElementById('edit-profile-phone');
+    if (dobEl && !dobEl.value) dobEl.focus();
+    else if (phoneEl && !phoneEl.value) phoneEl.focus();
+  }, 80);
 }
 
 async function handleTabSaveProfile(e) {
@@ -1699,6 +1726,12 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
+    const googleSpan = document.querySelector('#btn-google-signin span');
+    if (googleSpan) {
+      googleSpan.innerText = mode === 'register'
+        ? (currentLang === 'en' ? 'Sign up with Google' : 'Đăng ký nhanh bằng Google')
+        : (dict.btn_google_signin || 'Tiếp tục với Google');
+    }
 
     if (tabLogin) {
       if (isLight) {
@@ -1719,9 +1752,15 @@ function toggleAuthMode(mode) {
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.remove('hidden');
     if (otpForm) otpForm.classList.add('hidden');
-    if (googleContainer) googleContainer.classList.add('hidden');
-    if (socialDivider) socialDivider.classList.add('hidden');
+    if (googleContainer) googleContainer.classList.remove('hidden');
+    if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
+    const googleSpan = document.querySelector('#btn-google-signin span');
+    if (googleSpan) {
+      googleSpan.innerText = mode === 'register'
+        ? (currentLang === 'en' ? 'Sign up with Google' : 'Đăng ký nhanh bằng Google')
+        : (dict.btn_google_signin || 'Tiếp tục với Google');
+    }
 
     if (tabReg) {
       if (isLight) {
@@ -2100,12 +2139,69 @@ async function startOtpLoginFlow() {
 // ==============================================================
 let currentGoogleState = 'select'; // 'select' | 'custom' | 'loading' | 'success'
 
-function handleGoogleSignIn() {
-  const modal = document.getElementById('google-account-modal');
-  if (modal) {
-    if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
-    setGoogleModalState('select');
-    modal.classList.remove('hidden');
+function detectInAppWebView() {
+  const ua = (window.navigator && window.navigator.userAgent) || '';
+  if (/Zalo/i.test(ua)) return 'Zalo';
+  if (/FBAN|FBAV|FB_IAB|FBIOS/i.test(ua)) return 'Facebook / Messenger';
+  if (/TikTok|BytedanceWebview/i.test(ua)) return 'TikTok';
+  if (/Instagram/i.test(ua)) return 'Instagram';
+  if (/MicroMessenger/i.test(ua)) return 'WeChat';
+  return null;
+}
+
+async function handleGoogleSignIn(intentOverride) {
+  const inAppName = detectInAppWebView();
+  if (inAppName) {
+    const warnMsg = `Bạn đang mở trang trong ứng dụng ${inAppName}, nơi Google chặn đăng nhập bảo mật. Hãy mở MediMind bằng Chrome hoặc Safari rồi đăng nhập lại.`;
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast(warnMsg, 'warning', 6000);
+    } else {
+      alert(warnMsg);
+    }
+    return;
+  }
+
+  const intent = intentOverride || (currentAuthMode === 'register' ? 'register' : 'login');
+  const btn = document.getElementById('btn-google-signin');
+  const originalHtml = btn ? btn.innerHTML : '';
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(`/api/auth/google/login?intent=${encodeURIComponent(intent)}&format=json`, {
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    const data = await res.json();
+
+    if (data.success && data.auth_url) {
+      window.location.assign(data.auth_url);
+      return;
+    }
+
+    if (data.configured === false) {
+      if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+      const modal = document.getElementById('google-account-modal');
+      if (modal) {
+        if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+        setGoogleModalState('select');
+        modal.classList.remove('hidden');
+      }
+      return;
+    }
+
+    throw new Error(data.error || 'Không thể khởi tạo phiên Google OAuth.');
+  } catch (err) {
+    console.error('Lỗi khởi tạo Google OAuth:', err);
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast('Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.', 'error', 4500);
+    }
   }
 }
 
@@ -2614,9 +2710,10 @@ function updateAuthUI() {
       cardJoined.innerText = currentUser.joined_date || currentUser.created_at_fmt || (displayName ? new Date().toLocaleDateString('vi-VN') : 'Chưa lưu');
     }
 
-    if (currentUser.hasCustomAvatar && currentUser.avatar) {
+    const activeProfilePhoto = (currentUser.hasCustomAvatar && currentUser.avatar) ? currentUser.avatar : currentUser.avatar_url;
+    if (activeProfilePhoto) {
       if (dispAvatar) {
-        dispAvatar.src = currentUser.avatar;
+        dispAvatar.src = activeProfilePhoto;
         dispAvatar.classList.remove('hidden');
       }
       if (fallbackAvatar) fallbackAvatar.classList.add('hidden');
@@ -2738,6 +2835,32 @@ document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
   initHistorySearch();
   switchTab(resolveInitialTab(), false);
+  const urlParams = new URLSearchParams(window.location.search);
+  const googleAuthStatus = urlParams.get('google_auth');
+  const googleIntent = urlParams.get('intent') || 'login';
+  const googleOnboarding = urlParams.get('onboarding') === '1';
+  const googleExisting = urlParams.get('existing') === '1';
+  const googleErrorReason = urlParams.get('error_reason') || '';
+
+  if (googleAuthStatus) {
+    try {
+      const cleanUrl = window.location.pathname + (window.location.hash || '');
+      window.history.replaceState({}, document.title, cleanUrl);
+    } catch (_) {}
+  }
+
+  if (googleAuthStatus === 'error') {
+    let errMsg = 'Đăng nhập Google không thành công. Vui lòng thử lại.';
+    if (googleErrorReason === 'access_denied') {
+      errMsg = 'Đã hủy đăng nhập Google (hoặc email này chưa được thêm vào mục Audience -> Test users trên Google Cloud).';
+    } else if (googleErrorReason === 'redirect_uri_mismatch') {
+      errMsg = 'Lỗi cấu hình Redirect URI trên Google Cloud Console.';
+    }
+    setTimeout(() => {
+      if (typeof showMedicalToast === 'function') showMedicalToast(errMsg, 'warning', 6000);
+    }, 250);
+  }
+
   fetch('/api/auth/me').then(r => r.json()).then(data => {
     if (!data.authenticated) {
       if (currentUser) {
@@ -2750,6 +2873,19 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
       restoreProfileDraftFromSession();
+
+      if (googleAuthStatus === 'success') {
+        broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
+        closeLoginModal();
+        if (googleExisting && googleIntent === 'register') {
+          showMedicalToast(`Tài khoản Google (${currentUser.email}) đã có hồ sơ MediMind. Bạn đã được đưa về trang chủ!`, 'info', 5000);
+        } else if (googleOnboarding) {
+          showMedicalToast(`Xác thực Google thành công! Hãy hoàn tất thông tin cơ bản để lưu hồ sơ y tế.`, 'success', 5500);
+          setTimeout(() => openGoogleOnboardingModal(currentUser), 350);
+        } else {
+          showMedicalToast(`Đăng nhập Google thành công! Chào mừng ${currentUser.name || currentUser.email}.`, 'success', 4000);
+        }
+      }
     }
   }).catch(() => {});
 
