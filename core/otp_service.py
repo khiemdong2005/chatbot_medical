@@ -19,6 +19,7 @@ class OtpManager:
         self.cooldown = cooldown_seconds
         self.max_attempts = max_attempts
         self._store: Dict[str, Dict[str, Any]] = {}
+        self._verified_store: Dict[str, float] = {}
         self._lock = threading.Lock()
 
     def _cleanup_expired(self):
@@ -105,8 +106,8 @@ class OtpManager:
                 remaining_attempts = self.max_attempts - entry["attempts"]
                 return False, f"Mã xác thực không chính xác. Bạn còn {remaining_attempts} lần thử."
 
-            # Đánh dấu đã xác thực thành công và xóa mã
-            entry["verified"] = True
+            # Đánh dấu đã xác thực thành công (lưu dấu 5 phút) và xóa mã OTP một lần
+            self._verified_store[key] = now + self.ttl
             del self._store[key]
             return True, "Xác thực danh tính thành công."
 
@@ -119,11 +120,18 @@ class OtpManager:
                 return entry["code"]
             return None
 
-    def is_verified(self, identifier: str, channel: str) -> bool:
+    def is_verified(self, identifier: str, channel: str, consume: bool = True) -> bool:
         """Kiểm tra xem định danh đã vượt qua kiểm tra OTP gần đây hay chưa."""
         with self._lock:
             key = f"{channel}:{identifier.strip().lower()}"
-            return self._store.get(key, {}).get("verified", False)
+            exp = self._verified_store.get(key)
+            if exp and time.time() <= exp:
+                if consume:
+                    del self._verified_store[key]
+                return True
+            if key in self._verified_store:
+                del self._verified_store[key]
+            return False
 
 
 otp_manager = OtpManager()

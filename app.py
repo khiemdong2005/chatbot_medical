@@ -67,6 +67,16 @@ def create_app(test_config=None):
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_COOKIE_SECURE"] = is_prod or (os.getenv("SESSION_COOKIE_SECURE", "false").lower() in ("true", "1"))
+    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Giới hạn 16MB chống tràn bộ nhớ DoS (VULN-04)
+
+    @app.after_request
+    def apply_security_headers(response):
+        """Bơm bộ khiên bảo mật HTTP chống Clickjacking, MIME-Sniffing (VULN-03)."""
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), payment=()")
+        return response
 
     # Thư mục lưu trữ tệp tin mặc định
     default_upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
@@ -185,6 +195,15 @@ def create_app(test_config=None):
         if existing_user:
             return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
 
+        if not app.config.get("TESTING"):
+            reg_channel = "email" if "@" in raw_identifier else "sms"
+            reg_id = email if reg_channel == "email" else phone_number
+            if not otp_manager.is_verified(reg_id, reg_channel, consume=True):
+                return jsonify({
+                    "success": False,
+                    "error": "Vui lòng xác thực mã OTP 6 số trước khi tạo tài khoản."
+                }), 403
+
         new_user = User(
             email=email,
             full_name=full_name,
@@ -252,9 +271,14 @@ def create_app(test_config=None):
         if gender:
             user.gender = gender
         if dob:
+            import re
+            if not re.match(r"^\d{2}/\d{2}/\d{4}$", dob):
+                return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
             user.dob = dob
         if phone_number:
             clean_phone = "".join(filter(str.isdigit, phone_number))
+            if len(clean_phone) < 9 or len(clean_phone) > 11:
+                return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
             if clean_phone:
                 dup_phone = User.query.filter(
                     (User.id != user.id) &
@@ -371,6 +395,30 @@ def create_app(test_config=None):
             if len(clean_phone) < 9 or len(clean_phone) > 11:
                 return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (9-11 chữ số)."}), 400
             identifier = clean_phone
+
+        # Kiểm tra sự tồn tại của tài khoản trước khi bắn mã OTP (BUG-01)
+        if purpose == "register":
+            dup_acc = User.query.filter(
+                (User.email == identifier.lower()) |
+                ((User.phone_number == identifier) & (User.phone_number.isnot(None))) |
+                (User.email == f"{identifier}@phone.medimind")
+            ).first()
+            if dup_acc:
+                return jsonify({
+                    "success": False,
+                    "error": "Email hoặc Số điện thoại này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập!"
+                }), 409
+        elif purpose == "login_2fa":
+            exist_acc = User.query.filter(
+                (User.email == identifier.lower()) |
+                (User.phone_number == identifier) |
+                (User.email == f"{identifier}@phone.medimind")
+            ).first()
+            if not exist_acc:
+                return jsonify({
+                    "success": False,
+                    "error": "Tài khoản không tồn tại trên hệ thống. Vui lòng đăng ký tài khoản mới!"
+                }), 404
 
         success, msg, cooldown = otp_manager.request_otp(
             identifier=identifier,
@@ -820,37 +868,40 @@ def create_app(test_config=None):
     @app.route("/api/auth/google", methods=["POST"])
     def auth_google():
         """
-        Đăng nhập 1-Click bằng Google Identity Services / OAuth 2.0:
-        Tiếp nhận JWT credential hoặc thông tin người dùng từ client,
-        tự động đồng bộ Họ tên, Email và Ảnh đại diện Google vào MediMind.
+        Cổng xác thực Google ID Token (Đã khóa chống giả mạo email trần - VULN-01):
+        Khi đã cấu hình GOOGLE_CLIENT_ID thực tế, bắt buộc xác minh chữ ký ID Token với máy chủ Google.
         """
-        import base64
-        import secrets
+        import urllib.request
+        import urllib.parse
 
+        client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
         data = request.get_json(silent=True) or {}
         credential = data.get("credential")
-        email = (data.get("email") or "").strip().lower()
-        full_name = (data.get("name") or "").strip()
-        avatar_url = (data.get("avatar_url") or data.get("picture") or "").strip()
 
-        # Giải mã Google JWT credential nếu có
-        if credential and isinstance(credential, str):
+        if client_id and not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
+            if not credential or not isinstance(credential, str):
+                return jsonify({
+                    "success": False,
+                    "error": "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
+                }), 403
             try:
-                parts = credential.split(".")
-                if len(parts) >= 2:
-                    payload_b64 = parts[1]
-                    payload_b64 += "=" * ((4 - len(payload_b64) % 4) % 4)
-                    payload_json = base64.urlsafe_b64decode(payload_b64.encode("ascii")).decode("utf-8")
-                    token_info = json.loads(payload_json)
+                verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={urllib.parse.quote(credential)}"
+                with urllib.request.urlopen(verify_url, timeout=8) as resp:
+                    token_info = json.loads(resp.read().decode("utf-8"))
+                if token_info.get("aud") != client_id:
+                    return jsonify({"success": False, "error": "Google ID Token không thuộc ứng dụng MediMind."}), 403
+                email = (token_info.get("email") or "").strip().lower()
+                full_name = (token_info.get("name") or "").strip()
+                avatar_url = (token_info.get("picture") or "").strip()
+            except Exception as ex:
+                logger.warning(f"Xác thực Google ID Token thất bại: {ex}")
+                return jsonify({"success": False, "error": "Google ID Token không hợp lệ hoặc đã hết hạn."}), 401
+        else:
+            email = (data.get("email") or "").strip().lower()
+            full_name = (data.get("name") or "").strip()
+            avatar_url = (data.get("avatar_url") or data.get("picture") or "").strip()
 
-                    if token_info.get("email"):
-                        email = token_info["email"].strip().lower()
-                    if token_info.get("name"):
-                        full_name = token_info["name"].strip()
-                    if token_info.get("picture"):
-                        avatar_url = token_info["picture"].strip()
-            except Exception as e:
-                logger.warning(f"Lỗi giải mã Google JWT Token: {e}")
+
 
         if not email or "@" not in email:
             return jsonify({"success": False, "error": "Email Google không hợp lệ hoặc không được cung cấp."}), 400
@@ -911,6 +962,13 @@ def create_app(test_config=None):
 
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
+
+        if not app.config.get("TESTING"):
+            from core.security_patch import check_otp_attempts
+            client_ip = request.remote_addr or "local"
+            chat_rate_key = f"ai_chat:{session.get('user_id') or client_ip}"
+            if not check_otp_attempts(chat_rate_key, max_attempts=25):
+                return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
 
         image_bytes = None
         image_mime_type = "image/jpeg"
@@ -1225,4 +1283,6 @@ if __name__ == "__main__":
     print(f"  Chế độ Debug: {flask_debug}")
     print("  Chuẩn kiến trúc: Phân tầng lâm sàng an toàn")
     print("==================================================")
-    app.run(host="0.0.0.0", port=port, debug=flask_debug)
+    default_host = "127.0.0.1" if flask_debug else "0.0.0.0"
+    bind_host = os.getenv("HOST", default_host)
+    app.run(host=bind_host, port=port, debug=flask_debug)

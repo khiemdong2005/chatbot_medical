@@ -1481,6 +1481,29 @@ async function handleSaveProfile(e) {
     return;
   }
 
+  if (dob && !/^\d{2}\/\d{2}\/\d{4}$/.test(dob)) {
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast('Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995).', 'warning', 4500);
+    } else {
+      alert('Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995).');
+    }
+    document.getElementById('edit-profile-dob')?.focus();
+    return;
+  }
+
+  if (phone) {
+    const cleanDigits = phone.replace(/\D/g, '');
+    if (cleanDigits.length < 9 || cleanDigits.length > 11) {
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast('Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số).', 'warning', 4500);
+      } else {
+        alert('Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số).');
+      }
+      document.getElementById('edit-profile-phone')?.focus();
+      return;
+    }
+  }
+
   if (isPendingGoogleRegistration) {
     if (!dob || !phone) {
       if (typeof showMedicalToast === 'function') {
