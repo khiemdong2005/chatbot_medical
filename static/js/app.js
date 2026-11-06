@@ -446,6 +446,7 @@ const translations = {
     link_forgot_pwd: "Quên mật khẩu?",
     btn_create_account: "Tạo tài khoản mới",
     btn_demo_login: "Đăng nhập tài khoản mẫu thử nghiệm",
+    btn_google_signin: "Tiếp tục với Google",
     lbl_name: "Tên",
     ph_last_name: "Họ",
     ph_first_name: "Tên",
@@ -707,6 +708,7 @@ const translations = {
     link_forgot_pwd: "Forgot Password?",
     btn_create_account: "Create New Account",
     btn_demo_login: "Quick Demo Patient Sign-in",
+    btn_google_signin: "Continue with Google",
     lbl_name: "Name",
     ph_last_name: "Last Name",
     ph_first_name: "First Name",
@@ -2607,7 +2609,7 @@ function updateAuthUI() {
     // Facebook Style Avatar Sync
     const avatarUrl = (currentUser.hasCustomAvatar && currentUser.avatar) 
       ? currentUser.avatar 
-      : getDefaultAvatarByGender(currentUser.gender || 'Nam');
+      : (currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || 'Nam'));
     
     if (!currentUser.hasCustomAvatar) {
       currentUser.avatar = avatarUrl;
