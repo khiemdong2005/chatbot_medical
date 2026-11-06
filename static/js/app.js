@@ -2694,7 +2694,7 @@ function triggerCelebration(btnEl) {
   playMedicalChime();
   if (!btnEl) return;
   const rect = btnEl.getBoundingClientRect();
-  const emojis = ['💊', '✨', '🎉', '🟢', '⭐'];
+  const emojis = ['💊', '💙', '🎉', '🟢', '⭐'];
   for (let i = 0; i < 12; i++) {
     const p = document.createElement('div');
     p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
@@ -3140,9 +3140,11 @@ function renderPrescriptionResult(data) {
             <div class="bg-sky-950 text-white rounded-2xl p-5 shadow-sm space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-lg bg-sky-900 flex items-center justify-center font-bold">🤖</div>
+                  <div class="w-8 h-8 rounded-lg bg-sky-900 flex items-center justify-center text-sky-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  </div>
                   <div>
-                    <h4 class="text-xs font-bold leading-tight">MedAssist AI Copilot</h4>
+                    <h4 class="text-xs font-bold leading-tight">Cố vấn Lâm sàng MediMind</h4>
                     <span class="text-[10px] text-sky-300">Chuyên trách Hướng dẫn Lâm sàng</span>
                   </div>
                 </div>
