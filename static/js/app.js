@@ -3310,17 +3310,17 @@ function renderPrescriptionResult(data) {
 
         </div>
 
-        <!-- CỘT PHẢI (4/12): MEDASSIST AI COPILOT THIẾT KẾ COMPACT TIẾT KIỆM KHÔNG GIAN -->
+        <!-- CỘT PHẢI (4/12): CỐ VẤN LÂM SÀNG MEDIMIND THIẾT KẾ COMPACT TIẾT KIỆM KHÔNG GIAN -->
         <div class="lg:col-span-4 bg-sky-950 text-white rounded-2xl p-4 shadow-sm space-y-3">
           <div class="flex items-center justify-between pb-2 border-b border-sky-900">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-sky-900 flex items-center justify-center text-sky-200 border border-sky-700">
                 <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
               </div>
               <div>
-                <h4 class="text-xs font-black tracking-tight leading-tight">MedAssist AI Copilot</h4>
+                <h4 class="text-xs font-black tracking-tight leading-tight">Cố vấn Lâm sàng MediMind</h4>
                 <p class="text-[9px] text-sky-300">Hướng dẫn đơn thuốc</p>
               </div>
             </div>
