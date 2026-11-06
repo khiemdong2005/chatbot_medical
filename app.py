@@ -682,41 +682,140 @@ def create_app(test_config=None):
             full_name = email.split("@")[0].capitalize()
 
         user = User.query.filter_by(email=email).first()
-        is_new_user = False
-        already_existed = False
 
-        if user:
-            already_existed = True
+        # NHÁNH 1: Người dùng chọn ĐĂNG NHẬP (intent == 'login')
+        if intent == "login":
+            if not user:
+                # Chưa có hồ sơ trong CSDL -> Không tự tạo, yêu cầu chuyển sang Đăng ký giống ForumFlash
+                session.pop("pending_google_register", None)
+                query_unreg = {
+                    "google_auth": "unregistered",
+                    "email": email,
+                }
+                return redirect(f"/?{urllib.parse.urlencode(query_unreg)}")
+
             if avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
             db.session.commit()
-        else:
-            is_new_user = True
-            user = User(
-                email=email,
-                full_name=full_name,
-                role="patient",
-                avatar_url=avatar_url or None
-            )
-            user.set_password(secrets.token_urlsafe(24))
-            db.session.add(user)
-            db.session.commit()
 
+            session.pop("pending_google_register", None)
+            session["user_id"] = user.id
+            session["user_role"] = user.role
+
+            needs_onboarding = not (user.phone_number and user.dob)
+            query_out = {
+                "google_auth": "success",
+                "intent": "login",
+                "onboarding": "1" if needs_onboarding else "0",
+                "existing": "0",
+            }
+            return redirect(f"/?{urllib.parse.urlencode(query_out)}")
+
+        # NHÁNH 2: Người dùng chọn ĐĂNG KÝ (intent == 'register')
+        if user:
+            # Đã có hồ sơ từ trước -> Đăng nhập luôn và báo đã có hồ sơ giống ForumFlash
+            if avatar_url:
+                user.avatar_url = avatar_url
+            db.session.commit()
+            session.pop("pending_google_register", None)
+            session["user_id"] = user.id
+            session["user_role"] = user.role
+
+            needs_onboarding = not (user.phone_number and user.dob)
+            query_out = {
+                "google_auth": "success",
+                "intent": "register",
+                "onboarding": "1" if needs_onboarding else "0",
+                "existing": "1" if not needs_onboarding else "0",
+            }
+            return redirect(f"/?{urllib.parse.urlencode(query_out)}")
+
+        # Chưa có trong CSDL -> Lưu tạm vào session, CHƯA ghi xuống DB cho tới khi bấm Lưu thông tin
+        session["pending_google_register"] = {
+            "email": email,
+            "full_name": full_name,
+            "avatar_url": avatar_url or "",
+        }
+        return redirect("/?google_auth=pending_register")
+
+    @app.route("/api/auth/google/pending", methods=["GET"])
+    def auth_google_pending():
+        """Lấy thông tin Google đang chờ hoàn tất đăng ký hồ sơ mới."""
+        pending = session.get("pending_google_register")
+        if not pending:
+            return jsonify({"success": False, "pending": False}), 200
+        return jsonify({"success": True, "pending": True, "profile": pending}), 200
+
+    @app.route("/api/auth/google/cancel-registration", methods=["POST"])
+    def auth_google_cancel_registration():
+        """Hủy bỏ quá trình đăng ký Google (không lưu vào CSDL)."""
+        session.pop("pending_google_register", None)
+        return jsonify({"success": True, "message": "Đã hủy đăng ký hồ sơ Google."})
+
+    @app.route("/api/auth/google/complete-registration", methods=["POST"])
+    def auth_google_complete_registration():
+        """Hoàn tất thông tin đăng ký Google và chính thức INSERT vào CSDL."""
+        import secrets
+
+        pending = session.get("pending_google_register")
+        if not pending or not pending.get("email"):
+            return jsonify({
+                "success": False,
+                "error": "Phiên đăng ký Google đã hết hạn. Vui lòng bấm Đăng ký bằng Google lại."
+            }), 400
+
+        data = request.get_json(silent=True) or {}
+        full_name = (data.get("name") or data.get("full_name") or pending.get("full_name") or "").strip()
+        gender = (data.get("gender") or "Nam").strip()
+        dob = (data.get("dob") or "").strip()
+        raw_phone = (data.get("phone_number") or "").strip()
+        clean_phone = "".join(filter(str.isdigit, raw_phone))
+
+        if not full_name:
+            return jsonify({"success": False, "error": "Vui lòng nhập Họ và tên."}), 400
+        if not dob:
+            return jsonify({"success": False, "error": "Vui lòng nhập Ngày sinh (DD/MM/YYYY) để hoàn tất đăng ký."}), 400
+        if len(clean_phone) < 9 or len(clean_phone) > 11:
+            return jsonify({"success": False, "error": "Vui lòng nhập Số điện thoại hợp lệ (9-11 chữ số) để hoàn tất đăng ký."}), 400
+
+        email = pending["email"].strip().lower()
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            session.pop("pending_google_register", None)
+            session["user_id"] = existing_user.id
+            session["user_role"] = existing_user.role
+            return jsonify({"success": True, "user": existing_user.to_dict()})
+
+        dup_phone = User.query.filter(
+            (User.phone_number == clean_phone) | (User.email == f"{clean_phone}@phone.medimind")
+        ).first()
+        if dup_phone:
+            return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
+
+        user = User(
+            email=email,
+            full_name=full_name,
+            role="patient",
+            gender=gender,
+            dob=dob,
+            phone_number=clean_phone,
+            avatar_url=pending.get("avatar_url") or None
+        )
+        user.set_password(secrets.token_urlsafe(24))
+        db.session.add(user)
+        db.session.commit()
+
+        session.pop("pending_google_register", None)
         session["user_id"] = user.id
         session["user_role"] = user.role
 
-        needs_onboarding = is_new_user or not (user.phone_number and user.dob)
-
-        query_out = {
-            "google_auth": "success",
-            "intent": intent,
-            "onboarding": "1" if needs_onboarding else "0",
-            "new_user": "1" if is_new_user else "0",
-            "existing": "1" if (intent == "register" and already_existed and not needs_onboarding) else "0",
-        }
-        return redirect(f"/?{urllib.parse.urlencode(query_out)}")
+        return jsonify({
+            "success": True,
+            "message": "Hoàn tất đăng ký tài khoản Google thành công!",
+            "user": user.to_dict()
+        })
 
     @app.route("/api/auth/google", methods=["POST"])
     def auth_google():

@@ -1465,6 +1465,9 @@ function toggleProfileEdit(isEdit) {
   }
 }
 
+let isPendingGoogleRegistration = false;
+let pendingGoogleProfile = null;
+
 async function handleSaveProfile(e) {
   if (e) e.preventDefault();
   const name = document.getElementById('edit-profile-name')?.value.trim();
@@ -1473,12 +1476,26 @@ async function handleSaveProfile(e) {
   const phone = document.getElementById('edit-profile-phone')?.value.trim();
 
   if (!name) {
-    alert('Vui lòng nhập họ và tên.');
+    if (typeof showMedicalToast === 'function') showMedicalToast('Vui lòng nhập họ và tên.', 'warning');
+    else alert('Vui lòng nhập họ và tên.');
     return;
   }
 
+  if (isPendingGoogleRegistration) {
+    if (!dob || !phone) {
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast('Vui lòng điền đầy đủ Ngày sinh và Số điện thoại để hoàn tất đăng ký hồ sơ Google.', 'warning', 4500);
+      } else {
+        alert('Vui lòng điền đầy đủ Ngày sinh và Số điện thoại để hoàn tất đăng ký.');
+      }
+      return;
+    }
+  }
+
+  const endpoint = isPendingGoogleRegistration ? '/api/auth/google/complete-registration' : '/api/auth/profile';
+
   try {
-    const res = await fetch('/api/auth/profile', {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1491,23 +1508,33 @@ async function handleSaveProfile(e) {
     });
     const data = await res.json();
     if (data.success && data.user) {
+      const wasNewReg = isPendingGoogleRegistration;
+      isPendingGoogleRegistration = false;
+      pendingGoogleProfile = null;
       currentUser = { ...(currentUser || {}), ...data.user };
       if (!currentUser.hasCustomAvatar) {
         currentUser.avatar = currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || gender);
       }
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
-      broadcastTabEvent('PROFILE_UPDATE', { user: currentUser });
+      broadcastTabEvent(wasNewReg ? 'AUTH_LOGIN' : 'PROFILE_UPDATE', { user: currentUser });
       closeProfileModal();
       if (typeof showMedicalToast === 'function') {
-        showMedicalToast('Đã hoàn tất và lưu hồ sơ y tế thành công!', 'success', 4000);
+        showMedicalToast(
+          wasNewReg
+            ? `Đăng ký hồ sơ Google thành công! Chào mừng ${currentUser.name}.`
+            : 'Đã hoàn tất và lưu hồ sơ y tế thành công!',
+          'success',
+          4500
+        );
       }
     } else {
-      alert(data.error || 'Cập nhật thông tin thất bại.');
+      if (typeof showMedicalToast === 'function') showMedicalToast(data.error || 'Lưu thông tin thất bại.', 'error', 4500);
+      else alert(data.error || 'Cập nhật thông tin thất bại.');
     }
   } catch (err) {
     console.error('Lỗi cập nhật thông tin:', err);
-    alert('Không thể kết nối đến máy chủ.');
+    if (typeof showMedicalToast === 'function') showMedicalToast('Không thể kết nối đến máy chủ.', 'error');
   }
 }
 
@@ -1516,15 +1543,20 @@ function openProfileModal() {
   switchTab('profile-tab');
 }
 
-function openGoogleOnboardingModal(user) {
-  const u = user || currentUser;
+function openGoogleOnboardingModal(user, isNewRegistration = false) {
+  const u = user || pendingGoogleProfile || currentUser;
   if (!u) return;
+  isPendingGoogleRegistration = Boolean(isNewRegistration);
   const modal = document.getElementById('profile-modal');
   const nameHeader = document.getElementById('profile-name');
   const badgeHeader = document.getElementById('profile-badge');
   const avatarHeader = document.getElementById('profile-avatar');
   if (nameHeader) nameHeader.innerText = u.full_name || u.name || 'Bệnh nhân mới';
-  if (badgeHeader) badgeHeader.innerText = 'Xác thực Google thành công • Bổ sung thông tin còn thiếu để hoàn tất hồ sơ';
+  if (badgeHeader) {
+    badgeHeader.innerText = isPendingGoogleRegistration
+      ? `Xác thực Google (${u.email || ''}) • Hoàn tất đăng ký để tạo hồ sơ`
+      : 'Xác thực Google thành công • Bổ sung thông tin còn thiếu để hoàn tất hồ sơ';
+  }
   if (avatarHeader) {
     if (u.avatar_url) {
       avatarHeader.innerHTML = `<img src="${escapeHtml(u.avatar_url)}" alt="Avatar" class="w-full h-full rounded-2xl object-cover">`;
@@ -1533,12 +1565,19 @@ function openGoogleOnboardingModal(user) {
     }
   }
   toggleProfileEdit(true);
+  const nameInput = document.getElementById('edit-profile-name');
+  const genderSelect = document.getElementById('edit-profile-gender');
+  const dobInput = document.getElementById('edit-profile-dob');
+  const phoneInput = document.getElementById('edit-profile-phone');
+  if (nameInput) nameInput.value = u.full_name || u.name || '';
+  if (genderSelect) genderSelect.value = u.gender || 'Nam';
+  if (dobInput) dobInput.value = u.dob || '';
+  if (phoneInput) phoneInput.value = u.phone_number || '';
+
   if (modal) modal.classList.remove('hidden');
   setTimeout(() => {
-    const dobEl = document.getElementById('edit-profile-dob');
-    const phoneEl = document.getElementById('edit-profile-phone');
-    if (dobEl && !dobEl.value) dobEl.focus();
-    else if (phoneEl && !phoneEl.value) phoneEl.focus();
+    if (dobInput && !dobInput.value) dobInput.focus();
+    else if (phoneInput && !phoneInput.value) phoneInput.focus();
   }, 80);
 }
 
@@ -1592,6 +1631,14 @@ async function handleTabSaveProfile(e) {
 }
 
 function closeProfileModal() {
+  if (isPendingGoogleRegistration) {
+    isPendingGoogleRegistration = false;
+    pendingGoogleProfile = null;
+    fetch('/api/auth/google/cancel-registration', { method: 'POST' }).catch(() => {});
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast('Đã hủy hoàn tất đăng ký Google (hồ sơ chưa được tạo).', 'info', 4000);
+    }
+  }
   toggleProfileEdit(false);
   const modal = document.getElementById('profile-modal');
   if (modal) modal.classList.add('hidden');
@@ -2841,6 +2888,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const googleOnboarding = urlParams.get('onboarding') === '1';
   const googleExisting = urlParams.get('existing') === '1';
   const googleErrorReason = urlParams.get('error_reason') || '';
+  const googleUnregEmail = urlParams.get('email') || '';
 
   if (googleAuthStatus) {
     try {
@@ -2859,6 +2907,34 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       if (typeof showMedicalToast === 'function') showMedicalToast(errMsg, 'warning', 6000);
     }, 250);
+  } else if (googleAuthStatus === 'unregistered') {
+    // Giống ForumFlash: Bấm Đăng nhập nhưng Google chưa có hồ sơ trong CSDL -> Báo lỗi và chuyển qua tab Đăng ký
+    currentUser = null;
+    localStorage.removeItem('medimind_user');
+    updateAuthUI();
+    setTimeout(() => {
+      openLoginModal();
+      toggleAuthMode('register');
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast(
+          `Tài khoản Google (${googleUnregEmail || 'này'}) chưa có hồ sơ trên MediMind. Vui lòng bấm "Đăng ký nhanh bằng Google" ở tab Tạo tài khoản mới!`,
+          'warning',
+          6500
+        );
+      }
+    }, 250);
+  } else if (googleAuthStatus === 'pending_register') {
+    // Giống ForumFlash: Bấm Đăng ký bằng Google lần đầu -> Hiện form hoàn tất thông tin trước khi lưu vào CSDL
+    fetch('/api/auth/google/pending').then(r => r.json()).then(pData => {
+      if (pData && pData.pending && pData.profile) {
+        pendingGoogleProfile = pData.profile;
+        isPendingGoogleRegistration = true;
+        if (typeof showMedicalToast === 'function') {
+          showMedicalToast('Xác thực Google thành công! Hãy hoàn tất thông tin đăng ký để lưu hồ sơ.', 'info', 5500);
+        }
+        setTimeout(() => openGoogleOnboardingModal(pData.profile, true), 250);
+      }
+    }).catch(() => {});
   }
 
   fetch('/api/auth/me').then(r => r.json()).then(data => {
