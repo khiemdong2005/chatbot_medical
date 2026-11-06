@@ -70,7 +70,7 @@ body.light-glass {
   color: #0F172A;
 }
 
-body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not(#floating-chat-btn):not(#floating-chat-btn *) {
+body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not(.bg-sky-500):not(.bg-sky-600):not(.bg-sky-700):not(.bg-sky-800):not(.bg-sky-900):not(.bg-sky-950):not(.bg-blue-500):not(.bg-blue-600):not(.bg-indigo-600):not(.bg-emerald-500):not(.bg-emerald-600):not(.bg-teal-500):not(.bg-teal-600):not(.bg-orange-500):not(.bg-orange-600):not(.bg-rose-500):not(.bg-rose-600):not(.from-sky-500):not(.from-rose-500):not(.from-emerald-500):not(#floating-chat-btn):not(#floating-chat-btn *):not(#profile-avatar-fallback):not(#profile-avatar-fallback *):not(#user-avatar-badge):not(#dropdown-user-avatar):not(#profile-avatar):not(#ehr-avatar-badge) {
   color: #0F172A !important;
 }
 
@@ -453,40 +453,57 @@ body.light-glass .dock-btn.bg-white svg {
 }
 
 /* ==============================================================================
-   Color Protection for Buttons, Badges, Chat Bubbles in Light Glass
+   Color Protection for Solid/Gradient Buttons & Badges in Light Glass
+   (ponytail: exact class matches instead of [class*="bg-sky-500"] so /10 /15 /20
+    pastel badges do NOT get forced to white text on light pastel backgrounds)
    ============================================================================== */
 body.light-glass .from-sky-500,
-body.light-glass [class*="from-sky-500"],
-body.light-glass [class*="bg-sky-500"],
-body.light-glass [class*="bg-sky-600"],
-body.light-glass [class*="bg-blue-600"],
-body.light-glass [class*="bg-blue-500"],
-body.light-glass [class*="bg-emerald-500"],
-body.light-glass [class*="bg-teal-600"],
-body.light-glass [class*="bg-orange-500"],
-body.light-glass [class*="bg-amber-500"],
-body.light-glass button[class*="bg-orange-"],
-body.light-glass button[class*="bg-amber-"],
-body.light-glass button[class*="bg-blue-"],
-body.light-glass button[class*="bg-sky-"],
-body.light-glass .btn-primary {
+body.light-glass .from-rose-500,
+body.light-glass .from-emerald-500,
+body.light-glass .from-\[\#2185d0\],
+body.light-glass .bg-sky-500,
+body.light-glass .bg-sky-600,
+body.light-glass .bg-sky-700,
+body.light-glass .bg-sky-800,
+body.light-glass .bg-sky-900,
+body.light-glass .bg-sky-950,
+body.light-glass .bg-blue-500,
+body.light-glass .bg-blue-600,
+body.light-glass .bg-indigo-600,
+body.light-glass .bg-emerald-500,
+body.light-glass .bg-emerald-600,
+body.light-glass .bg-teal-500,
+body.light-glass .bg-teal-600,
+body.light-glass .bg-orange-500,
+body.light-glass .bg-orange-600,
+body.light-glass .bg-rose-500,
+body.light-glass .bg-rose-600,
+body.light-glass .btn-primary,
+body.light-glass #profile-avatar-fallback,
+body.light-glass #profile-avatar-fallback * {
   color: #FFFFFF !important;
 }
 
 body.light-glass .from-sky-500 *,
-body.light-glass [class*="from-sky-500"] *,
-body.light-glass [class*="bg-sky-500"] *,
-body.light-glass [class*="bg-sky-600"] *,
-body.light-glass [class*="bg-blue-600"] *,
-body.light-glass [class*="bg-blue-500"] *,
-body.light-glass [class*="bg-emerald-500"] *,
-body.light-glass [class*="bg-teal-600"] *,
-body.light-glass [class*="bg-orange-500"] *,
-body.light-glass [class*="bg-amber-500"] *,
-body.light-glass button[class*="bg-orange-"] *,
-body.light-glass button[class*="bg-amber-"] *,
-body.light-glass button[class*="bg-blue-"] *,
-body.light-glass button[class*="bg-sky-"] *,
+body.light-glass .from-rose-500 *,
+body.light-glass .from-emerald-500 *,
+body.light-glass .from-\[\#2185d0\] *,
+body.light-glass .bg-sky-500 *,
+body.light-glass .bg-sky-600 *,
+body.light-glass .bg-sky-700 *,
+body.light-glass .bg-sky-800 *,
+body.light-glass .bg-sky-900 *,
+body.light-glass .bg-blue-500 *,
+body.light-glass .bg-blue-600 *,
+body.light-glass .bg-indigo-600 *,
+body.light-glass .bg-emerald-500 *,
+body.light-glass .bg-emerald-600 *,
+body.light-glass .bg-teal-500 *,
+body.light-glass .bg-teal-600 *,
+body.light-glass .bg-orange-500 *,
+body.light-glass .bg-orange-600 *,
+body.light-glass .bg-rose-500 *,
+body.light-glass .bg-rose-600 *,
 body.light-glass .btn-primary * {
   color: #FFFFFF !important;
 }
@@ -1030,4 +1047,102 @@ body:not(.light-glass) #auth-modal-title {
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
   font-weight: 800 !important;
+}
+
+/* ==============================================================================
+   UI AUDIT v16.6.0: COMPREHENSIVE CONTRAST, TYPOGRAPHY & BACKGROUND FIXES
+   ============================================================================== */
+
+/* 1. Protect Google Account Modal (Always Google Dark #131314) & Medical Toasts */
+body.light-glass #google-account-modal .text-white,
+body.light-glass #google-account-modal input.text-white,
+body.light-glass #medical-toast-container .text-white,
+body.light-glass #medical-toast-container div {
+  color: #FFFFFF !important;
+}
+body.light-glass #google-account-modal .text-\[\#e3e3e3\] {
+  color: #E3E3E3 !important;
+}
+body.light-glass #google-account-modal .text-\[\#8e918f\] {
+  color: #8E918F !important;
+}
+
+/* 2. Protect Copilot Dark Card (.bg-sky-950) in Light Mode */
+body.light-glass .bg-sky-950,
+body.light-glass .bg-sky-950 h4,
+body.light-glass .bg-sky-950 p,
+body.light-glass .bg-sky-950 div,
+body.light-glass .bg-sky-950 button {
+  color: #F8FAFC !important;
+}
+body.light-glass .bg-sky-950 .text-sky-200,
+body.light-glass .bg-sky-950 .text-sky-300 {
+  color: #BAE6FD !important;
+}
+
+/* 3. Fix <select> and <option> contrast in both Light and Dark Mode (Zero Black-on-Black) */
+body.light-glass select,
+body.light-glass select option {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+body:not(.light-glass) select option {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+}
+
+/* 4. Fix Allergy Alert Card (.bg-rose-950/25) & Empty History Box in Light Mode */
+body.light-glass .bg-rose-950\/25,
+body.light-glass .bg-rose-950\/20 {
+  background-color: #FFF1F2 !important;
+  border-color: #FECDD3 !important;
+  box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.08) !important;
+}
+body.light-glass .text-rose-200,
+body.light-glass .text-rose-200\/90 {
+  color: #881337 !important;
+}
+body.light-glass #chat-history-empty {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+body.light-glass #chat-history-empty p.text-white\/80 {
+  color: #0F172A !important;
+}
+body.light-glass #chat-history-empty p.text-white\/45 {
+  color: #64748B !important;
+}
+
+/* 5. Fix Footer Typography & Borders in Dark Mode (body:not(.light-glass)) */
+body:not(.light-glass) footer {
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94A3B8 !important;
+}
+body:not(.light-glass) footer .border-t {
+  border-top-color: rgba(255, 255, 255, 0.10) !important;
+}
+body:not(.light-glass) footer .text-slate-800,
+body:not(.light-glass) footer .text-slate-900 {
+  color: #F8FAFC !important;
+}
+body:not(.light-glass) footer .text-slate-600,
+body:not(.light-glass) footer .text-slate-500 {
+  color: #94A3B8 !important;
+}
+
+/* 6. Fix OCR Prescription & Lab Result Dark Mode Contrast (.text-sky-950 / .text-slate-950) */
+body:not(.light-glass) #prescription-result-section .text-sky-950,
+body:not(.light-glass) #prescription-result-section .text-sky-900 {
+  color: #38BDF8 !important;
+}
+body:not(.light-glass) #prescription-result-section .text-slate-950 {
+  color: #F8FAFC !important;
+}
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds {
+  background-color: #0284C7 !important;
+  color: #FFFFFF !important;
+}
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds svg,
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds span {
+  color: #FFFFFF !important;
 }

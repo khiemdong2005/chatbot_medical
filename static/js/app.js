@@ -1010,15 +1010,20 @@ const TAB_HASH_MAP = {
   'home-tab': 'home',
   'chat-tab': 'chat',
   'ocr-tab': 'ocr',
-  'facilities-tab': 'facilities',
-  'profile-tab': 'profile'
+  'booking-tab': 'booking',
+  'doctor-tab': 'doctor',
+  'profile-tab': 'profile',
+  'settings-tab': 'settings'
 };
 const HASH_TAB_MAP = {
   'home': 'home-tab',
   'chat': 'chat-tab',
   'ocr': 'ocr-tab',
-  'facilities': 'facilities-tab',
-  'profile': 'profile-tab'
+  'booking': 'booking-tab',
+  'facilities': 'booking-tab',
+  'doctor': 'doctor-tab',
+  'profile': 'profile-tab',
+  'settings': 'settings-tab'
 };
 
 function resolveInitialTab() {
@@ -1121,7 +1126,18 @@ function resetChat() {
   clearChatImagePreview();
   chatHistory.length = 0;
   const container = document.getElementById('chat-messages');
-  if (container) container.innerHTML = '';
+  const dict = translations[currentLang] || translations.vi;
+  if (container) {
+    container.innerHTML = `
+      <div class="glass-card p-4 rounded-2xl space-y-2 border border-white/10 bg-white/[0.06] backdrop-blur-md">
+        <div class="flex items-center space-x-2 text-sky-400 font-bold text-xs">
+          <span>🩺</span>
+          <span data-i18n="assistant_greeting_title">${dict.assistant_greeting_title || 'Chào bạn, tôi là Trợ lý sức khỏe AI MediMind!'}</span>
+        </div>
+        <p data-i18n="assistant_greeting_desc" class="text-xs text-slate-300 leading-relaxed font-normal">${dict.assistant_greeting_desc || 'Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?'}</p>
+      </div>
+    `;
+  }
 
   const historyList = document.getElementById('chat-history-list');
   const historyEmpty = document.getElementById('chat-history-empty');
@@ -4815,11 +4831,10 @@ async function sendFloatingChatMessage() {
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
 
-    const isLightMode = document.body.classList.contains('light-glass');
     const botBubble = document.createElement('div');
     botBubble.className = 'flex justify-start';
     botBubble.innerHTML = `
-      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs ${isLightMode ? 'bg-slate-100 text-slate-800 border border-slate-200' : 'bg-white/10 text-slate-200 border border-white/10'} text-xs leading-relaxed shadow-xs">
+      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs border floating-welcome-bubble text-xs leading-relaxed shadow-xs">
         ${safeReply}
       </div>
     `;
