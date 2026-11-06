@@ -1056,7 +1056,18 @@ function resetChat() {
   currentIntakeSummary = null;
 
   const container = document.getElementById('chat-messages');
-  if (container) container.innerHTML = '';
+  if (container) {
+    container.innerHTML = `
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        </div>
+        <div class="max-w-[85%] bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+          Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?
+        </div>
+      </div>
+    `;
+  }
 
   const searchInput = document.getElementById('history-search-input');
   if (searchInput) searchInput.value = '';
@@ -1158,10 +1169,13 @@ async function sendChatMessage() {
   // 2. Typing Indicator
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
-    <div id="${typingId}" class="flex justify-start max-w-md">
-      <div class="glass-card border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-300 flex items-center space-x-2 shadow-lg backdrop-blur-xl bg-white/[0.05]">
-        <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-        <span class="pl-1.5 text-xs font-medium text-slate-300">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
+    <div id="${typingId}" class="flex items-start gap-3 max-w-md my-1">
+      <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+      </div>
+      <div class="bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex items-center space-x-2 shadow-xs">
+        <span class="w-2 h-2 rounded-full bg-sky-500 animate-ping"></span>
+        <span class="pl-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">${currentImage ? dict.typing_vision : dict.typing_guideline}</span>
       </div>
     </div>
   `;
@@ -1246,11 +1260,14 @@ async function sendChatMessage() {
     }
 
     const botHtml = `
-      <div class="flex justify-start max-w-[95%] sm:max-w-xl">
-        <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
+      <div class="flex items-start gap-3 max-w-[95%] sm:max-w-2xl my-1">
+        <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        </div>
+        <div class="bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-800 dark:text-slate-100 space-y-3 leading-relaxed shadow-xs w-full">
           ${emergencyBadge}
           ${visualFindingsHtml}
-          <div class="text-slate-200 font-normal leading-relaxed">${formattedAnswer}</div>
+          <div class="text-slate-800 dark:text-slate-100 font-normal leading-relaxed">${formattedAnswer}</div>
         </div>
       </div>
     `;
