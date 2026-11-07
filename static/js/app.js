@@ -6191,8 +6191,6 @@ function syncCurrentPatientProfile() {
   }
 }
 
-let isViewingEhrDemo = false;
-
 function updateEhrTabUI() {
   const heroName = document.getElementById('ehr-hero-name');
   const heroDemo = document.getElementById('ehr-hero-demographics');
@@ -6208,7 +6206,6 @@ function updateEhrTabUI() {
 
   // TRƯỜNG HỢP 1: NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP (Hiển thị hồ sơ thật)
   if (currentUser) {
-    isViewingEhrDemo = false;
     const displayName = currentUser.full_name || currentUser.name || (currentLang === 'en' ? 'Patient' : 'Bệnh nhân');
     const gender = currentUser.gender || (currentLang === 'en' ? 'Not specified' : 'Chưa rõ');
     let ageStr = '';
@@ -6262,37 +6259,7 @@ function updateEhrTabUI() {
     return;
   }
 
-  // TRƯỜNG HỢP 2: CHƯA ĐĂNG NHẬP NHƯNG ĐANG BẤM XEM DEMO MINH HỌA
-  if (isViewingEhrDemo) {
-    const demoPatient = medicalPatientsData.minh_anh;
-    if (heroName) heroName.innerText = currentLang === 'en' ? 'Demo Patient Profile' : 'Bệnh nhân Mẫu (Minh họa Demo)';
-    if (heroDemo) heroDemo.innerText = `${demoPatient.gender} · ${demoPatient.age} ${currentLang === 'en' ? 'years old' : 'tuổi'} (Sandbox)`;
-    if (avatarLarge) avatarLarge.innerText = 'DEMO';
-    if (visitCount) visitCount.innerText = demoPatient.visitCount;
-    if (lastVisit) lastVisit.innerText = demoPatient.lastVisitDate;
-    if (dobVal) dobVal.innerText = demoPatient.dob;
-    if (bloodVal) bloodVal.innerText = demoPatient.blood;
-    if (phoneVal) phoneVal.innerText = demoPatient.phone;
-    if (allergiesContainer) {
-      allergiesContainer.innerHTML = demoPatient.allergies.map(alg => `
-        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30">
-          <span>⚠️</span>
-          <span>${alg} (Mẫu)</span>
-        </span>
-      `).join('');
-    }
-
-    if (exportBtn) {
-      exportBtn.classList.remove('opacity-40', 'cursor-not-allowed');
-      exportBtn.removeAttribute('disabled');
-      exportBtn.title = currentLang === 'en' ? 'Export demo summary (PDF)' : 'In bản tóm tắt mẫu (PDF)';
-    }
-
-    renderPatientTimelineWithNotice(demoPatient.records || []);
-    return;
-  }
-
-  // TRƯỜNG HỢP 3: CHƯA ĐĂNG NHẬP VÀ MẶC ĐỊNH (KỊCH BẢN 1 - PRIVACY EMPTY STATE)
+  // TRƯỜNG HỢP 2: CHƯA ĐĂNG NHẬP (KHÁCH VÃNG LAI - BẢO MẬT TUYỆT ĐỐI)
   if (heroName) heroName.innerText = currentLang === 'en' ? 'Guest Visitor' : 'Chưa đăng nhập';
   if (heroDemo) heroDemo.innerText = currentLang === 'en' ? 'Guest Account • Not Synchronized' : 'Tài khoản khách · Chưa đồng bộ hồ sơ';
   if (avatarLarge) avatarLarge.innerText = '👤';
@@ -6330,11 +6297,9 @@ function updateEhrTabUI() {
           </p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-3 pt-3">
-          <button type="button" onclick="openLoginModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer">
-            ${currentLang === 'en' ? 'Sign In / Register Now' : 'Đăng nhập / Đăng ký ngay'}
-          </button>
-          <button type="button" onclick="loadDemoPatientRecords()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer">
-            ${currentLang === 'en' ? 'View Demo Clinical Case' : 'Xem ca bệnh mẫu minh họa'}
+          <button type="button" onclick="openLoginModal()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            <span>${currentLang === 'en' ? 'Sign In / Register Now' : 'Đăng nhập / Đăng ký ngay'}</span>
           </button>
         </div>
       </div>
@@ -6342,61 +6307,8 @@ function updateEhrTabUI() {
   }
 }
 
-function loadDemoPatientRecords() {
-  isViewingEhrDemo = true;
-  updateEhrTabUI();
-  if (typeof showMedicalToast === 'function') {
-    showMedicalToast(currentLang === 'en' ? 'Viewing Demo Medical Record.' : 'Đang xem ca bệnh mẫu minh họa.', 'info');
-  }
-}
-
-function exitDemoPatientRecords() {
-  isViewingEhrDemo = false;
-  updateEhrTabUI();
-}
-
-function renderPatientTimelineWithNotice(records) {
-  const container = document.getElementById('ehr-timeline-list');
-  if (!container) return;
-
-  const noticeHtml = `
-    <div class="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-700 dark:text-amber-300">
-      <div class="flex items-center gap-2">
-        <span class="text-base">⚠️</span>
-        <span class="font-bold">${currentLang === 'en' ? 'Displaying sandbox demo case. Sign in to create your personal medical record.' : 'Đang hiển thị ca bệnh lâm sàng mẫu (Minh họa Demo). Hãy đăng nhập để lưu hồ sơ thật của bạn.'}</span>
-      </div>
-      <button type="button" onclick="exitDemoPatientRecords()" class="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 font-bold transition-colors cursor-pointer shrink-0">
-        ${currentLang === 'en' ? 'Close Demo' : 'Đóng chế độ mẫu'}
-      </button>
-    </div>
-  `;
-
-  const timelineHtml = records.map(rec => `
-    <div onclick="openMedicalRecordDetail('${rec.id}')" class="relative group cursor-pointer">
-      <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-sky-500 dark:bg-sky-400 border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
-      <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-sky-500/40 hover:shadow-sky-500/10 backdrop-blur-xl transition-all">
-        <div class="flex items-start justify-between gap-2">
-          <div class="space-y-1.5">
-            <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">${rec.date}</span>
-            <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">${rec.title}</h4>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${rec.doctor}</p>
-            <div class="pt-2">
-              <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">${rec.icd}</span>
-            </div>
-          </div>
-          <div class="flex items-center self-center pl-2">
-            <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  `).join('');
-
-  container.innerHTML = noticeHtml + timelineHtml;
-}
-
 function selectPatientProfile(patientKey = 'current_patient') {
-  if (!currentUser && !isViewingEhrDemo) {
+  if (!currentUser) {
     updateEhrTabUI();
     return;
   }
@@ -6462,23 +6374,22 @@ function switchEhrSubTab(subTab) {
   const btnAi = document.getElementById('ehr-subtab-ai');
   const btnHosp = document.getElementById('ehr-subtab-hospital');
 
+  if (!currentUser) {
+    if (btnAi) btnAi.className = subTab === 'ai' ? 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer' : 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+    if (btnHosp) btnHosp.className = subTab === 'hospital' ? 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer' : 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+    updateEhrTabUI();
+    return;
+  }
+
   if (subTab === 'ai') {
     if (btnAi) btnAi.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer';
     if (btnHosp) btnHosp.className = 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
-    if (!currentUser && !isViewingEhrDemo) {
-      updateEhrTabUI();
-    } else {
-      loadAndRenderAiConsultations();
-    }
+    loadAndRenderAiConsultations();
   } else {
     if (btnAi) btnAi.className = 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
     if (btnHosp) btnHosp.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer';
-    if (!currentUser) {
-      loadDemoPatientRecords();
-    } else {
-      const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
-      renderPatientTimeline(patient.records || []);
-    }
+    const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
+    renderPatientTimeline(patient.records || []);
   }
 }
 

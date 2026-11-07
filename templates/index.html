@@ -25,7 +25,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.1">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.2">
 
 <style>
 
@@ -1426,11 +1426,9 @@ background: #94A3B8;
             </p>
           </div>
           <div class="flex flex-wrap items-center justify-center gap-3 pt-3">
-            <button type="button" onclick="openLoginModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer">
-              Đăng nhập / Đăng ký ngay
-            </button>
-            <button type="button" onclick="loadDemoPatientRecords()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer">
-              Xem ca bệnh mẫu minh họa
+            <button type="button" onclick="openLoginModal()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+              <span>Đăng nhập / Đăng ký ngay</span>
             </button>
           </div>
         </div>
@@ -3063,7 +3061,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.1"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.2"></script>
 
 
 <!-- ============================================================== -->
