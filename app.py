@@ -18,6 +18,7 @@ if hasattr(sys.stderr, 'reconfigure'):
 import os
 import json
 import logging
+import uuid
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, session
@@ -289,6 +290,9 @@ def create_app(test_config=None):
         lang = data.get("lang", "vi")
         conversation_id = data.get("conversation_id")
         user_id = session.get("user_id")
+        if "guest_token" not in session:
+            session["guest_token"] = f"gst_{uuid.uuid4().hex[:12]}"
+        guest_token = session.get("guest_token")
 
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
@@ -307,13 +311,18 @@ def create_app(test_config=None):
             intake_res = None
             clinical_hint = None
             if conversation_id:
-                intake_res = intake_service.process_message(
-                    conversation_id=conversation_id,
-                    message=user_message,
-                    image_bytes=image_bytes
-                )
-                if intake_res.get("next_question"):
-                    clinical_hint = intake_res["next_question"]
+                try:
+                    intake_res = intake_service.process_message(
+                        conversation_id=conversation_id,
+                        message=user_message,
+                        image_bytes=image_bytes,
+                        user_id=user_id,
+                        guest_token=guest_token
+                    )
+                    if intake_res.get("next_question"):
+                        clinical_hint = intake_res["next_question"]
+                except PermissionError as pe:
+                    return jsonify({"error": str(pe)}), 403
 
             res = process_clinical_chat(
                 message=user_message,
@@ -341,7 +350,7 @@ def create_app(test_config=None):
                         message=user_message,
                         answer=res.get("answer", ""),
                         risk_level=res.get("risk_level", ""),
-                        risk_score=res.get("risk_score", 30),
+                        risk_score=res.get("risk_score") if res.get("risk_score") is not None else 30,
                         symptoms=json.dumps(res.get("symptoms", []), ensure_ascii=False),
                         specialist=res.get("specialist", ""),
                         is_emergency=res.get("is_emergency", False)
@@ -364,13 +373,23 @@ def create_app(test_config=None):
     # HỆ THỐNG HỎI BỆNH CÓ CẤU TRÚC & TÓM TẮT TRƯỚC KHÁM (MỤC 8 & 9)
     # ==============================================================
 
+    def _get_request_identity():
+        user_id = session.get("user_id")
+        if "guest_token" not in session:
+            session["guest_token"] = f"gst_{uuid.uuid4().hex[:12]}"
+        return user_id, session.get("guest_token")
+
     @app.route("/api/intake/session", methods=["POST"])
     def intake_get_or_create_session():
         """Khởi tạo hoặc tải lại phiên hỏi bệnh lâm sàng có cấu trúc."""
         data = request.get_json(silent=True) or {}
         conversation_id = data.get("conversation_id")
-        user_id = session.get("user_id")
-        s = intake_service.get_or_create_session(conversation_id, user_id=user_id)
+        user_id, guest_token = _get_request_identity()
+        try:
+            s = intake_service.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
+
         return jsonify({
             "success": True,
             "conversation_id": s["conversation_id"],
@@ -402,12 +421,17 @@ def create_app(test_config=None):
             if not err:
                 image_bytes = img_bytes
 
-        s = intake_service.get_or_create_session(conversation_id, user_id=session.get("user_id"))
-        result = intake_service.process_message(
-            conversation_id=s["conversation_id"],
-            message=user_message,
-            image_bytes=image_bytes
-        )
+        user_id, guest_token = _get_request_identity()
+        try:
+            result = intake_service.process_message(
+                conversation_id=conversation_id,
+                message=user_message,
+                image_bytes=image_bytes,
+                user_id=user_id,
+                guest_token=guest_token
+            )
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
 
         return jsonify(result)
 
@@ -422,7 +446,18 @@ def create_app(test_config=None):
         if not conversation_id or not field:
             return jsonify({"error": "Thiếu conversation_id hoặc trường cần cập nhật."}), 400
 
-        res = intake_service.update_fact(conversation_id, field, value)
+        user_id, guest_token = _get_request_identity()
+        try:
+            res = intake_service.update_fact(
+                conversation_id,
+                field,
+                value,
+                user_id=user_id,
+                guest_token=guest_token
+            )
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
+
         return jsonify(res)
 
     @app.route("/api/intake/confirm-summary", methods=["POST"])
@@ -433,13 +468,34 @@ def create_app(test_config=None):
         if not conversation_id:
             return jsonify({"error": "Thiếu conversation_id."}), 400
 
-        res = intake_service.confirm_summary(conversation_id)
+        user_id, guest_token = _get_request_identity()
+        try:
+            res = intake_service.confirm_summary(
+                conversation_id,
+                user_id=user_id,
+                guest_token=guest_token
+            )
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
+
+        if not res.get("success", True):
+            return jsonify(res), 500
+
         return jsonify(res)
 
     @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
     def intake_get_summary(conversation_id):
         """Lấy bản tóm tắt trước khám 2 phần của phiên."""
-        summary = intake_service.get_summary(conversation_id)
+        user_id, guest_token = _get_request_identity()
+        try:
+            summary = intake_service.get_summary(
+                conversation_id,
+                user_id=user_id,
+                guest_token=guest_token
+            )
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
+
         return jsonify({
             "conversation_id": conversation_id,
             "summary": summary

@@ -73,6 +73,49 @@ def is_greeting_only(text: str) -> bool:
         return False
     return len(words) <= 6 and all(w in greetings for w in words)
 
+
+def is_informational_query(text: str) -> bool:
+    """
+    Kiểm tra xem câu người dùng là câu hỏi tra cứu thông tin / định nghĩa y khoa thuần túy,
+    chứ không phải lời khai báo triệu chứng bản thân.
+    Ví dụ: 'Đau đầu là gì?', 'Sốt xuất huyết có lây không?', 'Nguyên nhân gây ho?'
+    """
+    if not text:
+        return False
+    lower = text.strip().lower()
+    cleaned = remove_accents(lower)
+
+    # Nếu có lời khẳng định ngôi thứ nhất rõ ràng của bệnh nhân -> không phải tra cứu thuần túy
+    first_person_patterns = [
+        "tôi bị", "toi bi", "em bị", "em bi", "mình bị", "minh bi",
+        "con bị", "con bi", "cháu bị", "chau bi", "bác bị", "bac bi",
+        "tôi thấy", "toi thay", "em thấy", "em thay", "mình thấy", "minh thay",
+        "tôi đau", "toi dau", "em đau", "em dau", "mình đau", "minh dau",
+        "tôi sốt", "toi sot", "em sốt", "em sot", "mình sốt", "minh sot",
+        "tôi ho", "toi ho", "em ho", "em ho", "mình ho", "minh ho",
+        "tôi muốn khám", "toi muon kham", "em muốn khám", "em muon kham",
+        "mình muốn khám", "minh muon kham", "cho tôi khám", "cho em khám",
+        "cứu tôi", "cuu toi", "khó chịu mấy hôm", "kho chiu may hom",
+        "bị đau mấy", "bi dau may", "bị sốt mấy", "bi sot may"
+    ]
+    if any(p in lower or p in cleaned for p in first_person_patterns):
+        return False
+
+    info_patterns = [
+        "là gì", "la gi", "là bệnh gì", "la benh gi", "là cái gì", "la cai gi",
+        "thế nào là", "the nao la", "như thế nào", "nhu the nao",
+        "nguyên nhân", "nguyen nhan", "tại sao lại", "tai sao lai", "vì sao lại", "vi sao lai",
+        "có nguy hiểm không", "co nguy hiem khong", "có lây không", "co lay khong", "lây qua đường nào",
+        "cách phòng ngừa", "cach phong ngua", "cách phòng tránh", "cach phong tranh",
+        "cách điều trị", "cach dieu tri", "chữa như thế nào", "chua nhu the nao",
+        "dấu hiệu của", "dau hieu cua", "triệu chứng của", "trieu chung cua",
+        "tìm hiểu về", "tim hieu ve", "cho tôi hỏi về", "cho em hỏi về", "cho mình hỏi về",
+        "định nghĩa", "dinh nghia", "phân biệt giữa", "phan biet giua",
+        "uống thuốc gì khi", "uong thuoc gi khi", "uống gì khi", "uong gi khi",
+        "what is", "what are", "how to treat", "how to prevent", "causes of", "symptoms of"
+    ]
+    return any(p in lower or p in cleaned for p in info_patterns)
+
 # Các triệu chứng cờ đỏ hoặc triệu chứng quan trọng thường được rà soát
 CANONICAL_SYMPTOMS = {
     "kho_tho": {
@@ -82,6 +125,10 @@ CANONICAL_SYMPTOMS = {
     "tuc_nguc": {
         "label": "Đau tức ngực",
         "patterns": ["tức ngực", "tuc nguc", "đau ngực", "dau nguc", "đau thắt ngực", "chest pain"]
+    },
+    "dau_dau": {
+        "label": "Đau đầu / Nặng đầu",
+        "patterns": ["đau đầu", "dau dau", "nhức đầu", "nhuc dau", "nặng đầu", "nang dau", "đau nửa đầu", "dau nua dau", "headache", "migraine"]
     },
     "sot": {
         "label": "Sốt / Thân nhiệt tăng",
@@ -143,6 +190,17 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
     raw_text = text.strip()
     lower_text = raw_text.lower()
     no_accent_text = remove_accents(lower_text)
+
+    # Nếu câu hỏi là tra cứu định nghĩa / kiến thức thuần túy, không bóc tách triệu chứng thành lời khai bản thân
+    if is_informational_query(raw_text):
+        return {
+            "present_symptoms": [],
+            "denied_symptoms": [],
+            "duration": None,
+            "vitals": {},
+            "allergies": [],
+            "medications": []
+        }
 
     present_symptoms = []
     denied_symptoms = []
@@ -454,12 +512,12 @@ class IntakeSessionManager:
     def __init__(self):
         self._sessions: Dict[str, Dict[str, Any]] = {}
 
-    def _save_to_db(self, session_data: Dict[str, Any]) -> None:
+    def _save_to_db(self, session_data: Dict[str, Any], raise_on_error: bool = False) -> bool:
         """Đồng bộ phiên vào CSDL bền vững khi có Flask App Context."""
         try:
             from flask import has_app_context
             if not has_app_context():
-                return
+                return True
             from core.models import db, IntakeSessionRecord
             import json
             cid = session_data["conversation_id"]
@@ -468,6 +526,7 @@ class IntakeSessionManager:
                 rec = IntakeSessionRecord(conversation_id=cid)
                 db.session.add(rec)
             rec.user_id = session_data.get("user_id")
+            rec.guest_token = session_data.get("guest_token")
             rec.status = session_data.get("status", "collecting")
             rec.turn_count = session_data.get("turn_count", 0)
             rec.facts_json = json.dumps(session_data.get("facts", {}), ensure_ascii=False)
@@ -478,8 +537,18 @@ class IntakeSessionManager:
             rec.version = session_data.get("version", 1)
             rec.created_at = session_data.get("created_at")
             db.session.commit()
-        except Exception:
-            pass
+            return True
+        except Exception as e:
+            try:
+                from core.models import db
+                db.session.rollback()
+            except Exception:
+                pass
+            import logging
+            logging.getLogger("IntakeService").error(f"Lỗi ghi hồ sơ phiên {session_data.get('conversation_id')} vào CSDL: {e}")
+            if raise_on_error:
+                raise RuntimeError(f"Lỗi ghi hồ sơ vào CSDL bền vững: {e}") from e
+            return False
 
     def _load_from_db(self, conversation_id: str) -> Optional[Dict[str, Any]]:
         """Nạp phiên từ CSDL nếu chưa có trong RAM cache."""
@@ -495,22 +564,59 @@ class IntakeSessionManager:
             d["visual_observations"] = []
             d["sources"] = []
             return d
-        except Exception:
+        except Exception as e:
+            import logging
+            logging.getLogger("IntakeService").error(f"Lỗi nạp phiên {conversation_id} từ CSDL: {e}")
             return None
 
-    def get_or_create_session(self, conversation_id: Optional[str] = None, user_id: Optional[int] = None) -> Dict[str, Any]:
-        """Tạo mới hoặc lấy lại phiên tư vấn hiện có (Kiểm tra RAM trước, rồi DB)."""
+    def check_access(self, session_data: Dict[str, Any], user_id: Optional[int] = None, guest_token: Optional[str] = None) -> bool:
+        """
+        Đối soát bảo mật quyền truy cập phiên (Authorization & Tenant Isolation):
+        - Nếu phiên thuộc tài khoản đã đăng nhập (owner_id is not None): Chỉ tài khoản đó được phép truy cập.
+        - Nếu phiên tạo lúc chưa đăng nhập (owner_id is None):
+            + Nếu có guest_token trùng khớp: Cho phép truy cập.
+            + Nếu người dùng vừa đăng nhập (user_id có giá trị) và có guest_token trùng khớp: Liên kết tài khoản.
+        - Mọi trường hợp truy cập chéo tài khoản hoặc không có quyền: Từ chối (False).
+        """
+        owner_id = session_data.get("user_id")
+        owner_guest = session_data.get("guest_token")
+
+        if owner_id is not None:
+            return user_id is not None and user_id == owner_id
+
+        if owner_guest:
+            if guest_token and guest_token == owner_guest:
+                if user_id is not None:
+                    session_data["user_id"] = user_id
+                    self._save_to_db(session_data)
+                return True
+            return False
+
+        # Phiên legacy không có token hoặc tạo trước đó
+        if user_id is not None and not owner_id:
+            session_data["user_id"] = user_id
+            self._save_to_db(session_data)
+            return True
+        return True
+
+    def get_or_create_session(
+        self,
+        conversation_id: Optional[str] = None,
+        user_id: Optional[int] = None,
+        guest_token: Optional[str] = None,
+        enforce_access: bool = True
+    ) -> Dict[str, Any]:
+        """Tạo mới hoặc lấy lại phiên tư vấn hiện có (Kiểm tra RAM trước, rồi DB, kèm đối soát quyền truy cập)."""
         cid = conversation_id or f"conv_{uuid.uuid4().hex[:10]}"
         if cid not in self._sessions:
             loaded = self._load_from_db(cid)
             if loaded:
                 self._sessions[cid] = loaded
-                if user_id and not self._sessions[cid].get("user_id"):
-                    self._sessions[cid]["user_id"] = user_id
             else:
                 self._sessions[cid] = {
                     "conversation_id": cid,
                     "user_id": user_id,
+                    "guest_token": guest_token,
                     "status": "collecting",  # collecting | partially_collected | ready_for_review | confirmed
                     "turn_count": 0,
                     "facts": {
@@ -532,14 +638,22 @@ class IntakeSessionManager:
                     "created_at": datetime.datetime.now().strftime("%H:%M %d/%m/%Y")
                 }
                 self._save_to_db(self._sessions[cid])
-        return self._sessions[cid]
+
+        session = self._sessions[cid]
+        if enforce_access and conversation_id:
+            if not self.check_access(session, user_id=user_id, guest_token=guest_token):
+                raise PermissionError("Bạn không có quyền truy cập hoặc thao tác trên phiên tư vấn y tế này.")
+
+        return session
 
     def process_message(
         self,
         conversation_id: str,
         message: str,
         image_bytes: Optional[bytes] = None,
-        image_name: Optional[str] = None
+        image_name: Optional[str] = None,
+        user_id: Optional[int] = None,
+        guest_token: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Xử lý 1 lượt tin nhắn trong quy trình hỏi bệnh:
@@ -548,7 +662,7 @@ class IntakeSessionManager:
           3. Kiểm tra thông tin còn thiếu.
           4. Đánh giá trạng thái thu thập chính xác (không nhảy sớm sang ready_for_review nếu còn thiếu).
         """
-        session = self.get_or_create_session(conversation_id)
+        session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
         session["turn_count"] += 1
         user_text = message.strip()
 
@@ -587,14 +701,21 @@ class IntakeSessionManager:
         current_facts = session["facts"]
         facts_changed = False
 
-        # Nếu chưa có lý do khám chính thì chỉ gán khi KHÔNG PHẢI là lời chào đơn thuần
+        # Nếu chưa có lý do khám chính thì chỉ gán khi:
+        # - Không phải là lời chào đơn thuần
+        # - Không phải là câu hỏi tra cứu thông tin / định nghĩa kiến thức y khoa thuần túy
+        # - Có triệu chứng xác nhận hoặc có phát ngôn ý định khám bệnh
         if not current_facts["chief_complaint"] and user_text:
-            if not is_greeting_only(user_text):
+            if not is_greeting_only(user_text) and not is_informational_query(user_text):
                 if extracted["present_symptoms"]:
                     current_facts["chief_complaint"] = ", ".join(extracted["present_symptoms"])
+                    facts_changed = True
                 else:
-                    current_facts["chief_complaint"] = user_text[:120]
-                facts_changed = True
+                    patient_intent_kw = ["khám", "kham", "bệnh", "benh", "đau", "dau", "sốt", "sot", "mệt", "met", "khó chịu", "kho chiu", "bị", "bi"]
+                    cleaned_no_acc = remove_accents(user_text.lower())
+                    if any(k in user_text.lower() or k in cleaned_no_acc for k in patient_intent_kw):
+                        current_facts["chief_complaint"] = user_text[:120]
+                        facts_changed = True
 
         # Hợp nhất triệu chứng khẳng định
         for s in extracted["present_symptoms"]:
@@ -687,12 +808,19 @@ class IntakeSessionManager:
             "sources": summary["part_b_system_assessment"].get("sources", [])
         }
 
-    def update_fact(self, conversation_id: str, field: str, value: Any) -> Dict[str, Any]:
+    def update_fact(
+        self,
+        conversation_id: str,
+        field: str,
+        value: Any,
+        user_id: Optional[int] = None,
+        guest_token: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Cho phép người bệnh sửa một dữ kiện (vd: sửa duration, sửa thân nhiệt).
         Khi sửa, đánh dấu phiên bản mới (version += 1) và đặt lại trạng thái cần xác nhận.
         """
-        session = self.get_or_create_session(conversation_id)
+        session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
         facts = session["facts"]
 
         if field in facts:
@@ -711,14 +839,37 @@ class IntakeSessionManager:
             "message": "Đã cập nhật dữ kiện thành công. Vui lòng xác nhận lại bản tóm tắt mới."
         }
 
-    def confirm_summary(self, conversation_id: str) -> Dict[str, Any]:
+    def confirm_summary(
+        self,
+        conversation_id: str,
+        user_id: Optional[int] = None,
+        guest_token: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Bệnh nhân xác nhận: Lời khai đã phản ánh đúng thực tế tình trạng sức khỏe."""
-        session = self.get_or_create_session(conversation_id)
+        session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
+        prev_confirmed = session.get("is_confirmed", False)
+        prev_status = session.get("status", "ready_for_review")
+
         session["is_confirmed"] = True
         session["status"] = "confirmed"
-        self._save_to_db(session)
+
+        # Bắt buộc lưu thành công vào CSDL bền vững thì mới trả về thành công
+        saved = self._save_to_db(session)
+        if not saved:
+            # Rollback in-memory status nếu ghi CSDL thất bại
+            session["is_confirmed"] = prev_confirmed
+            session["status"] = prev_status
+            return {
+                "success": False,
+                "error": "Không thể ghi nhận trạng thái xác nhận vào cơ sở dữ liệu bền vững. Vui lòng thử lại sau.",
+                "conversation_id": conversation_id,
+                "status": prev_status,
+                "is_confirmed": prev_confirmed
+            }
+
         summary = generate_pre_visit_summary(session)
         return {
+            "success": True,
             "conversation_id": conversation_id,
             "status": "confirmed",
             "is_confirmed": True,
@@ -726,9 +877,14 @@ class IntakeSessionManager:
             "message": "Đã xác nhận lời khai thành công. Bản tóm tắt sẵn sàng gửi tới Bác sĩ."
         }
 
-    def get_summary(self, conversation_id: str) -> Dict[str, Any]:
+    def get_summary(
+        self,
+        conversation_id: str,
+        user_id: Optional[int] = None,
+        guest_token: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Lấy bản tóm tắt trước khám của phiên."""
-        session = self.get_or_create_session(conversation_id)
+        session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
         return generate_pre_visit_summary(session)
 
 

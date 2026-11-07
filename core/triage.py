@@ -288,7 +288,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
             "visual_findings": [],
             "differential_diagnosis": [],
             "is_emergency": False,
-            "sources": [{"title": "Hệ thống Tư vấn Sức khỏe Ban đầu MediMind", "url": "https://medlineplus.gov"}]
+            "sources": []
         }
 
     # Nếu người dùng hỏi mà chưa thấy triệu chứng rõ
@@ -313,7 +313,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
             "visual_findings": [],
             "differential_diagnosis": [],
             "is_emergency": False,
-            "sources": [{"title": "MedlinePlus Medical Encyclopedia", "url": "https://medlineplus.gov"}]
+            "sources": []
         }
 
     # Xây dựng phản hồi lâm sàng tự nhiên & thấu cảm

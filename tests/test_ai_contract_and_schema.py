@@ -66,3 +66,21 @@ def test_chat_service_fallback_marks_degraded():
     assert isinstance(result["sources"], list)
     assert len(result["sources"]) > 0
 
+
+def test_chat_service_does_not_invent_fake_medlineplus_when_no_sources():
+    """Kiểm thử: Khi không có tài liệu trích dẫn thực tế, không tự bịa nguồn MedlinePlus hay gán nguy cơ Thấp."""
+    from unittest.mock import MagicMock
+    mock_gemini = GeminiMedicalService(api_key="mock_key_1234567890")
+    # Giả lập Gemini trả về kết quả không có sources và không có risk_level
+    mock_gemini.generate_clinical_response = MagicMock(return_value={
+        "answer": "Đây là tư vấn chung về dinh dưỡng.",
+        "sources": []
+    })
+    result = process_clinical_chat(
+        message="Tôi muốn hỏi về dinh dưỡng khi chơi thể thao",
+        history=[],
+        gemini_service=mock_gemini
+    )
+    assert result["sources"] == []
+    assert "Chưa xác định" in result["risk_level"]
+

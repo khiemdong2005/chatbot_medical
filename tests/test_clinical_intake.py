@@ -191,3 +191,45 @@ def test_new_message_invalidates_old_confirmation():
     res2 = manager.process_message(cid, "Ngoài ra tôi có sốt 38 độ C nữa")
     assert res2["summary"]["is_confirmed"] is False  # ĐÃ TỰ ĐỘNG HỦY XÁC NHẬN CŨ
     assert res2["summary"]["version"] == 2  # ĐÃ TĂNG PHIÊN BẢN
+
+
+def test_informational_query_does_not_pollute_complaint():
+    """Kiểm thử: Câu hỏi tra cứu định nghĩa 'Đau đầu là gì?' không bị gán nhầm thành lý do khám của người dùng."""
+    manager = IntakeSessionManager()
+    cid = "test_info_query_001"
+
+    # Người dùng hỏi câu hỏi tra cứu kiến thức
+    res1 = manager.process_message(cid, "Đau đầu là gì?")
+    assert "Đau đầu / Nặng đầu" not in res1["facts"]["present_symptoms"]
+    assert res1["facts"]["chief_complaint"] == ""
+
+    # Hỏi câu tra cứu khác
+    res2 = manager.process_message(cid, "Sốt xuất huyết có lây không?")
+    assert "Sốt / Thân nhiệt tăng" not in res2["facts"]["present_symptoms"]
+    assert res2["facts"]["chief_complaint"] == ""
+
+    # Chỉ khi người dùng khai báo triệu chứng bản thân
+    res3 = manager.process_message(cid, "Tôi bị đau đầu 2 ngày nay")
+    assert "Đau đầu / Nặng đầu" in res3["facts"]["present_symptoms"]
+    assert "Đau đầu" in res3["facts"]["chief_complaint"]
+
+
+def test_confirm_summary_failure_on_db_error():
+    """Kiểm thử: Khi ghi DB thất bại, confirm_summary không được trả trạng thái thành công và phải rollback RAM state."""
+    manager = IntakeSessionManager()
+    cid = "test_db_fail_001"
+
+    # Tạo phiên và chuẩn bị dữ kiện
+    manager.process_message(cid, "Tôi bị ho và đau họng 3 ngày")
+
+    # Giả lập lỗi ghi database
+    def faulty_save(session_data, raise_on_error=False):
+        return False
+
+    manager._save_to_db = faulty_save
+
+    res = manager.confirm_summary(cid)
+    assert res["success"] is False
+    assert res["status"] != "confirmed"
+    assert res["is_confirmed"] is False
+    assert manager._sessions[cid]["is_confirmed"] is False
