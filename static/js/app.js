@@ -267,24 +267,7 @@ if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes
   currentUser.hasCustomAvatar = false;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 }
-if (!currentUser) {
-  currentUser = {
-    id: 8429,
-    clinical_id: "84291908",
-    name: 'Nguyễn Thành Khiêm',
-    full_name: 'Nguyễn Thành Khiêm',
-    badge: 'BN',
-    role: 'Bệnh nhân',
-    personal_info: 'Nữ • 24/10/1997 • 0971221306',
-    phone: '0971221306',
-    phone_number: '0971221306',
-    dob: '1997-10-24',
-    gender: 'Nữ',
-    blood_type: 'O+',
-    avatar: getDefaultAvatarByGender('Nữ')
-  };
-  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-}
+
 let pendingTabAfterLogin = null;
 let selectedChatImageBase64 = null;
 
@@ -296,14 +279,77 @@ function getChatStorageKey() {
 function loadSessionsFromStorage() {
   const key = getChatStorageKey();
   let raw = localStorage.getItem(key);
-  if (!raw && localStorage.getItem('medimind_chat_sessions_v2')) {
+  // Khóa chung cũ 'medimind_chat_sessions_v2' chỉ chuyển đổi một lần duy nhất cho 'guest', sau đó xóa ngay để tránh rò rỉ sang tài khoản khác
+  if (!raw && key === 'medimind_chat_sessions_v2_guest' && localStorage.getItem('medimind_chat_sessions_v2')) {
     raw = localStorage.getItem('medimind_chat_sessions_v2');
-    try { localStorage.setItem(key, raw); } catch (e) {}
+    try {
+      localStorage.setItem(key, raw);
+      localStorage.removeItem('medimind_chat_sessions_v2');
+    } catch (e) {}
   }
   return JSON.parse(raw || '[]');
 }
 
 let chatSessions = loadSessionsFromStorage();
+
+// Hàm kiểm tra và đồng bộ trạng thái đăng nhập thực tế từ server
+async function checkAuthSessionWithServer() {
+  try {
+    const res = await fetch('/api/auth/me');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated && data.user) {
+        currentUser = {
+          id: data.user.id,
+          name: data.user.full_name || data.user.name || 'Người dùng',
+          full_name: data.user.full_name || data.user.name,
+          role: data.user.role || 'patient',
+          gender: data.user.gender || 'Nam',
+          dob: data.user.dob || '',
+          phone_number: data.user.phone_number || '',
+          email: data.user.email || '',
+          address: data.user.address || '',
+          bhyt: data.user.bhyt || '',
+          avatar: data.user.avatar || getDefaultAvatarByGender(data.user.gender || 'Nam')
+        };
+        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      } else {
+        // Server coi người dùng là khách -> Làm sạch tài khoản trên trình duyệt (trừ khi cố ý xem demo)
+        if (currentUser && !currentUser.isDemo) {
+          currentUser = null;
+          localStorage.removeItem('medimind_user');
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Auth] Không thể xác thực session với server:', err);
+  }
+  chatSessions = loadSessionsFromStorage();
+  updateAuthUI();
+}
+
+// Hàm kích hoạt hồ sơ mẫu khi người dùng chủ động chọn "Xem demo"
+function loadDemoPatientProfile() {
+  currentUser = {
+    id: 8429,
+    clinical_id: "84291908",
+    name: 'Nguyễn Thành Khiêm',
+    full_name: 'Nguyễn Thành Khiêm',
+    badge: 'BN',
+    role: 'Bệnh nhân (Mẫu trải nghiệm)',
+    personal_info: 'Nam • 24/10/1997 • 0971221306',
+    phone: '0971221306',
+    phone_number: '0971221306',
+    dob: '1997-10-24',
+    gender: 'Nam',
+    blood_type: 'O+',
+    isDemo: true,
+    avatar: getDefaultAvatarByGender('Nam')
+  };
+  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+  updateAuthUI();
+  showMedicalToast('Đã mở hồ sơ bệnh nhân mẫu (Chế độ trải nghiệm)', 'info');
+}
 
 // ==========================================
 // Bilingual i18n Dictionary (VI / EN)
@@ -1224,14 +1270,24 @@ async function sendChatMessage() {
 
     // KIỂM TRA ĐỐI SOÁT CUỘC TRÒ CHUYỆN (Tránh Race Condition khi người dùng chuyển cuộc chat)
     if (sentConvId && currentConversationId !== sentConvId) {
-      console.warn(`[Chat] Bỏ qua cập nhật giao diện vì người dùng đã chuyển từ phiên '${sentConvId}' sang '${currentConversationId}'`);
+      console.warn(`[Chat] Bỏ qua cập nhật giao diện trực tiếp vì người dùng đã chuyển từ phiên '${sentConvId}' sang '${currentConversationId}'`);
       const targetId = data.conversation_id || sentConvId;
       let targetSession = chatSessions.find(s => s.id === targetId);
       if (targetSession) {
+        if (!targetSession.messages) targetSession.messages = [];
+        if (data.answer) {
+          targetSession.messages.push({ role: 'assistant', content: data.answer });
+          targetSession.lastMessage = data.answer.slice(0, 75).replace(/\n/g, ' ');
+          targetSession.messageCount = targetSession.messages.length;
+        }
         if (data.intake?.facts) targetSession.facts = data.intake.facts;
         if (data.intake?.summary) targetSession.summary = data.intake.summary;
         if (data.intake?.status) targetSession.status = data.intake.status;
+        if (data.risk_level) targetSession.riskLevel = data.risk_level;
+        if (data.risk_score !== undefined) targetSession.riskScore = data.risk_score;
+        if (data.is_emergency !== undefined) targetSession.isEmergency = data.is_emergency;
         saveSessionsToStorage();
+        renderChatHistoryList();
       }
       return;
     }
@@ -1556,8 +1612,19 @@ async function handleFileSelected(e) {
 }
 
 async function loadScanFiles() {
+  if (!currentUser || currentUser.isDemo) {
+    const ocrEmpty = document.getElementById('ocr-table-empty');
+    const ocrFilled = document.getElementById('ocr-table-filled');
+    const countBadge = document.getElementById('scan-files-count');
+    if (countBadge) countBadge.innerText = '0 tệp';
+    if (ocrEmpty) ocrEmpty.classList.remove('hidden');
+    if (ocrFilled) ocrFilled.classList.add('hidden');
+    return;
+  }
+
   try {
     const res = await fetch('/api/scan-files');
+    if (!res.ok) return;
     const data = await res.json();
     const files = data.files || [];
 
@@ -2493,6 +2560,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initThemeMode();
   populateDobDropdowns();
   updateAuthUI();
+  checkAuthSessionWithServer();
   applyLanguage();
   initHistorySearch();
   selectPatientProfile('current_patient');
@@ -2878,6 +2946,13 @@ async function loadPrescriptionHistory() {
   const emptyEl = document.getElementById('prescription-history-empty');
   const countBadge = document.getElementById('history-count-badge');
   const ehrPrescriptionList = document.getElementById('ehr-prescription-list');
+
+  if (!currentUser || currentUser.isDemo) {
+    if (listEl) listEl.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.</p>';
+    if (countBadge) countBadge.innerText = '0 hồ sơ';
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    return;
+  }
 
   try {
     const res = await fetch('/api/prescription/history');
@@ -4860,9 +4935,9 @@ function renderMedicalFacilities() {
           </div>
         </div>
 
-        <!-- Bottom Action Buttons: Đặt lịch khám & Chi tiết -->
+        <!-- Bottom Action Buttons: Đặt lịch khám & Chi tiết (Khớp 100% Ảnh 1 & 2) -->
         <div class="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-white/5">
-          <button type="button" onclick="openFacilityBookingModal('${fac.id}')" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs shadow-xs text-center transition-all cursor-pointer">
+          <button type="button" onclick="openFacilityBookingModal('${fac.id}')" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium text-xs shadow-xs text-center transition-all cursor-pointer">
             Đặt lịch khám
           </button>
           <button type="button" onclick="openFacilityDetailModal('${fac.id}')" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium text-xs transition-all cursor-pointer">
@@ -4982,18 +5057,11 @@ function openFacilityBookingModal(facId) {
   const nameEl = document.getElementById('book-modal-facility-name');
   const addrEl = document.getElementById('book-modal-facility-address');
   const idEl = document.getElementById('book-modal-facility-id');
-  const patNameEl = document.getElementById('book-modal-name');
-  const patPhoneEl = document.getElementById('book-modal-phone');
   const dateEl = document.getElementById('book-modal-date');
 
   if (nameEl) nameEl.innerText = fac.name;
   if (addrEl) addrEl.innerText = fac.address;
   if (idEl) idEl.value = fac.id;
-
-  if (currentUser) {
-    if (patNameEl) patNameEl.value = currentUser.name || currentUser.full_name || '';
-    if (patPhoneEl) patPhoneEl.value = currentUser.phone_number || currentUser.phone || '';
-  }
 
   if (dateEl) {
     const tmr = new Date();
@@ -5017,8 +5085,6 @@ function handleFacilityBookingSubmit(e) {
   const spec = document.getElementById('book-modal-spec')?.value;
   const date = document.getElementById('book-modal-date')?.value;
   const time = document.getElementById('book-modal-time')?.value;
-  const patName = document.getElementById('book-modal-name')?.value;
-  const patPhone = document.getElementById('book-modal-phone')?.value;
   const note = document.getElementById('book-modal-note')?.value;
 
   const appointment = {
@@ -5027,8 +5093,6 @@ function handleFacilityBookingSubmit(e) {
     specialty: spec,
     date: date,
     time: time,
-    patientName: patName,
-    patientPhone: patPhone,
     note: note,
     status: 'Đã lưu lịch nhắc trên thiết bị',
     created_at: new Date().toISOString()
@@ -5039,7 +5103,7 @@ function handleFacilityBookingSubmit(e) {
   localStorage.setItem('medimind_appointments', JSON.stringify(stored));
 
   closeFacilityBookingModal();
-  showMedicalToast('Đã lưu lịch nhắc trên thiết bị. Để hoàn tất đăng ký chính thức, vui lòng liên hệ cơ sở y tế.', 'success', 5000);
+  showMedicalToast('Đã lưu lịch nhắc đi khám trên thiết bị thành công!', 'success', 4000);
 }
 
 function openFacilityDetailModal(facId) {
@@ -5668,7 +5732,7 @@ function resetProfileForm() {
   showMedicalToast(msg, 'info');
 }
 
-function handleSaveImage1Profile(e) {
+async function handleSaveImage1Profile(e) {
   if (e) e.preventDefault();
   const name = document.getElementById('p-name')?.value.trim();
   const birthDate = document.getElementById('p-birthdate')?.value.trim();
@@ -5687,41 +5751,70 @@ function handleSaveImage1Profile(e) {
   const weight = document.getElementById('p-weight')?.value.trim() || '';
   const address = document.getElementById('p-address')?.value.trim() || '';
 
-  if (!currentUser) {
-    currentUser = { id: 84291908, role: 'patient', badge: 'BN' };
+  if (!currentUser || currentUser.isDemo) {
+    showMedicalToast('Vui lòng đăng nhập để lưu và đồng bộ hồ sơ lên hệ thống.', 'warning');
+    if (typeof openLoginModal === 'function') openLoginModal();
+    return;
   }
 
-  if (name) currentUser.name = name;
-  currentUser.dob = birthDate;
-  currentUser.gender = gender;
-  if (phone) {
-    currentUser.phone = phone;
-    currentUser.phone_number = phone;
+  try {
+    const res = await fetch('/api/auth/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: currentUser.id,
+        name: name,
+        full_name: name,
+        gender: gender,
+        dob: birthDate,
+        phone_number: phone,
+        email: email,
+        address: address,
+        blood_type: blood,
+        allergies: allergies,
+        height: height,
+        weight: weight
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      currentUser = {
+        ...currentUser,
+        ...(data.user || {}),
+        name: name || currentUser.name,
+        full_name: name || currentUser.full_name,
+        dob: birthDate,
+        gender: gender,
+        phone: phone,
+        phone_number: phone,
+        email: email,
+        address: address,
+        blood_type: blood,
+        allergies: allergies,
+        height: height,
+        weight: weight
+      };
+      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+
+      calculateProfileCompletion();
+      syncCurrentPatientProfile();
+      updateHomeGreeting();
+      updateAuthUI();
+
+      showMedicalToast('Đã lưu thông tin hồ sơ lên hệ thống thành công!', 'success');
+    } else {
+      if (res.status === 401) {
+        showMedicalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'warning');
+        if (typeof openLoginModal === 'function') openLoginModal();
+      } else {
+        showMedicalToast(data.error || 'Không thể lưu hồ sơ, vui lòng thử lại.', 'error');
+      }
+    }
+  } catch (err) {
+    console.error('Lỗi khi lưu hồ sơ lên server:', err);
+    showMedicalToast('Lỗi kết nối máy chủ khi lưu hồ sơ.', 'error');
   }
-  if (email) currentUser.email = email;
-  currentUser.blood_type = blood;
-  currentUser.allergies = allergies;
-  currentUser.height = height;
-  currentUser.weight = weight;
-  currentUser.address = address;
-
-  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-
-  // Sync Left Card
-  const cName = document.getElementById('profile-card-name');
-  const cPhone = document.getElementById('profile-card-phone');
-  const cEmail = document.getElementById('profile-card-email');
-  if (cName) cName.innerText = currentUser.name || 'Chưa có họ và tên';
-  if (cPhone) cPhone.innerText = currentUser.phone_number || currentUser.phone || 'Chưa có số điện thoại';
-  if (cEmail) cEmail.innerText = currentUser.email || 'Chưa có email';
-
-  calculateProfileCompletion();
-  syncCurrentPatientProfile();
-  updateHomeGreeting();
-  updateAuthUI();
-
-  const msg = currentLang === 'en' ? 'Information saved successfully!' : 'Đã lưu thông tin hồ sơ thành công!';
-  showMedicalToast(msg, 'success');
 }
 
 // ==============================================================
