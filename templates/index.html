@@ -24,7 +24,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.6.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.7.0">
 
 <!-- Leaflet CSS & JS for Interactive Hospital Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -949,82 +949,22 @@ background: #94A3B8;
       </div>
     </div>
 
-    <!-- RIGHT MAIN CONTENT: Banner, Search bar, Subheader, Facility Card Grid (Col 8.5 / 12) -->
+    <!-- RIGHT MAIN CONTENT: Search bar, Collapsible Map, Subheader, Facility Card Grid (Col 8.5 / 12) -->
     <div class="lg:col-span-8 xl:col-span-9 space-y-4">
       
-      <!-- Top Banner: Clinical Ocean Hub với Radar Pulse & Live GPS (Sáng sủa, Tương phản cao, Đẹp mắt) -->
-      <div id="hospital-hero-banner" class="relative overflow-hidden rounded-3xl p-5 sm:p-6 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all">
-        <!-- Đồ họa bản đồ sóng radar trang trí chìm phía sau -->
-        <div class="absolute right-0 top-0 bottom-0 w-2/5 pointer-events-none opacity-20 overflow-hidden flex items-center justify-center">
-          <div class="w-64 h-64 rounded-full border border-sky-400/40 absolute animate-ping" style="animation-duration: 3s;"></div>
-          <div class="w-48 h-48 rounded-full border border-sky-400/50 absolute animate-pulse"></div>
-          <div class="w-28 h-28 rounded-full border border-sky-400/60 absolute"></div>
-          <div class="w-2 h-2 rounded-full bg-sky-400 absolute"></div>
-        </div>
-
-        <div class="relative z-10 flex items-start sm:items-center space-x-4">
-          <div class="hero-icon w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 border border-white/30 shadow-lg shadow-sky-500/35 flex items-center justify-center text-white shrink-0">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-          </div>
-          <div class="space-y-1">
-            <div class="flex items-center gap-2.5">
-              <h4 class="hero-title text-base sm:text-lg font-extrabold tracking-tight">Tìm cơ sở gần bạn nhất</h4>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shrink-0 shadow-xs">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                <span>Live GPS</span>
-              </span>
-            </div>
-            <p class="hero-desc text-xs leading-relaxed max-w-xl">Xem vị trí trực quan 6 cơ sở y tế tuyến đầu trên bản đồ tương tác, tự động đo khoảng cách và chọn nơi khám thuận tiện nhất.</p>
-          </div>
-        </div>
-
-        <!-- Banner Action Buttons -->
-        <div class="relative z-10 flex items-center gap-2.5 shrink-0">
-          <button type="button" onclick="getCurrentLocationForHospitals()" class="btn-locate-me px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs" title="Định vị theo tọa độ GPS thật của bạn">
-            <svg class="w-4 h-4 text-emerald-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>Vị trí của tôi</span>
-          </button>
-          <button type="button" onclick="toggleHospitalMapSection()" class="btn-toggle-map px-4 py-2.5 rounded-xl font-bold text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-            <span data-role="map-toggle-text">Thu gọn bản đồ</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Collapsible Interactive Map Panel (Leaflet - Mở sẵn trực quan nổi bật ngay khi vào trang) -->
-      <div id="hospital-map-collapsible" class="overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/15 bg-white dark:bg-slate-900 shadow-2xl transition-all">
-        <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200/80 dark:border-white/10 flex justify-between items-center text-xs">
-          <div class="flex items-center gap-2.5 font-bold text-slate-800 dark:text-white">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Bản đồ tương tác 6 cơ sở y tế TP. Hồ Chí Minh (OpenStreetMap trực quan)</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <button type="button" onclick="getCurrentLocationForHospitals()" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span>Vị trí của tôi</span>
-            </button>
-            <button type="button" onclick="toggleHospitalMapSection()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer font-bold" title="Thu gọn bản đồ">✕</button>
-          </div>
-        </div>
-        <div id="hospital-interactive-map" class="w-full h-[380px] sm:h-[420px] z-0"></div>
-      </div>
-
-      <!-- Enhanced Medical Search & Map Toolbar (Làm nổi bật tối đa chức năng Mở bản đồ theo ảnh người dùng) -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-2xl p-2.5 sm:p-3 shadow-md hover:shadow-lg transition-all flex flex-col md:flex-row items-stretch md:items-center gap-2.5">
+      <!-- 1. Thanh tìm kiếm & Điều khiển Bản đồ - Đồng bộ 100% Nền Sáng, Nổi bật Tinh tế -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 rounded-2xl p-2.5 sm:p-3 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-stretch md:items-center gap-2.5">
         
-        <!-- 1. Ô tìm kiếm chính -->
+        <!-- Ô tìm kiếm chính -->
         <div class="relative flex-1 flex items-center">
           <div class="absolute left-3.5 flex items-center pointer-events-none text-blue-600 dark:text-blue-400">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
-          <input type="text" id="facility-main-search" oninput="handleFacilitySearchInput(this.value)" placeholder="Nhập tên bệnh viện, triệu chứng, bác sĩ chuyên khoa..." class="w-full bg-slate-50/90 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium">
+          <input type="text" id="facility-main-search" oninput="handleFacilitySearchInput(this.value)" placeholder="Tìm tên cơ sở, chuyên khoa, địa chỉ..." class="w-full bg-slate-50/90 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all font-medium">
         </div>
 
-        <!-- 2. Dropdown Khu vực / Quận (TP.HCM) -->
-        <div class="md:w-56 shrink-0">
+        <!-- Dropdown Khu vực / Quận (TP.HCM) -->
+        <div class="md:w-52 shrink-0">
           <div class="relative flex items-center">
             <select id="facility-district-filter" onchange="handleFacilityDistrictChange(this.value)" class="w-full appearance-none bg-slate-50/90 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl pl-3.5 pr-8 py-2.5 text-xs text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 cursor-pointer transition-all">
               <option value="all">Tất cả quận/huyện (TP.HCM)</option>
@@ -1039,7 +979,7 @@ background: #94A3B8;
           </div>
         </div>
 
-        <!-- 3. Sắp xếp -->
+        <!-- Sắp xếp -->
         <div class="md:w-44 shrink-0">
           <div class="relative flex items-center">
             <select id="facility-sort-select" onchange="handleFacilitySortChange(this.value)" class="w-full appearance-none bg-slate-50/90 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl pl-3.5 pr-8 py-2.5 text-xs text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 cursor-pointer transition-all">
@@ -1053,23 +993,35 @@ background: #94A3B8;
           </div>
         </div>
 
-        <!-- 4. HERO CTA BUTTON: NÚT "MỞ BẢN ĐỒ" SIÊU NỔI BẬT & ĐẬM CHẤT CÔNG NGHỆ -->
-        <button type="button" onclick="toggleHospitalMapSection()" id="btn-toggle-hospital-map" class="group relative overflow-hidden px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-blue-500/35 hover:shadow-xl hover:shadow-blue-500/50 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 border border-white/25">
-          <!-- Hiệu ứng quét sáng phản quang (shimmer light effect) -->
-          <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></span>
+        <!-- NÚT "MỞ BẢN ĐỒ" NỔI BẬT NHẤT TRÊN THANH ĐIỀU KHIỂN (Đúng chuẩn màu xanh dương nhận diện) -->
+        <button type="button" onclick="toggleHospitalMapSection()" id="btn-toggle-hospital-map" class="group relative overflow-hidden px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs shadow-md shadow-blue-500/30 flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 border border-blue-500/30">
+          <!-- Hiệu ứng quét sáng shimmer phản quang -->
+          <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></span>
           
-          <!-- Icon Bản đồ & Pulsing Indicator -->
-          <span class="relative flex items-center justify-center">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping absolute -top-1 -right-1"></span>
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute -top-1 -right-1"></span>
-            <svg class="w-4 h-4 text-white group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-            </svg>
-          </span>
-
-          <span id="hospital-map-toggle-text" data-role="map-toggle-text" class="tracking-wide">Thu gọn bản đồ</span>
+          <svg class="w-4 h-4 text-white group-hover:scale-110 transition-transform shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+          <span id="hospital-map-toggle-text" data-role="map-toggle-text" class="tracking-wide text-white">Mở bản đồ</span>
         </button>
 
+      </div>
+
+      <!-- 2. Khung Bản đồ Tương tác Leaflet (Thu gọn / Mở ra mượt mà theo nút bấm) -->
+      <div id="hospital-map-collapsible" class="hidden overflow-hidden rounded-2xl border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-900 shadow-xl transition-all">
+        <div class="p-3 bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200 dark:border-white/10 flex justify-between items-center text-xs">
+          <div class="flex items-center gap-2.5 font-bold text-slate-800 dark:text-white">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Bản đồ 6 cơ sở y tế TP. Hồ Chí Minh (OpenStreetMap trực quan)</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="getCurrentLocationForHospitals()" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Vị trí của tôi (GPS)</span>
+            </button>
+            <button type="button" onclick="toggleHospitalMapSection()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 cursor-pointer font-bold" title="Thu gọn bản đồ">✕ Thu gọn</button>
+          </div>
+        </div>
+        <div id="hospital-interactive-map" class="w-full h-[360px] sm:h-[400px] z-0"></div>
       </div>
 
       <!-- Subheader Status: Results Count -->
@@ -3108,7 +3060,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.6.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.7.0"></script>
 
 
 <!-- ============================================================== -->
