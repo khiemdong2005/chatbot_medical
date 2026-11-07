@@ -952,8 +952,8 @@ background: #94A3B8;
     <!-- RIGHT MAIN CONTENT: Banner, Search bar, Subheader, Facility Card Grid (Col 8.5 / 12) -->
     <div class="lg:col-span-8 xl:col-span-9 space-y-4">
       
-      <!-- Top Banner: Dark Navy Tech Hub với Radar Pulse & Live GPS -->
-      <div class="relative overflow-hidden bg-gradient-to-r from-[#070e24] via-[#0b173b] to-[#111f4d] border border-blue-500/25 rounded-3xl p-5 sm:p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <!-- Top Banner: Clinical Ocean Hub với Radar Pulse & Live GPS (Sáng sủa, Tương phản cao, Đẹp mắt) -->
+      <div id="hospital-hero-banner" class="relative overflow-hidden rounded-3xl p-5 sm:p-6 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-5 transition-all">
         <!-- Đồ họa bản đồ sóng radar trang trí chìm phía sau -->
         <div class="absolute right-0 top-0 bottom-0 w-2/5 pointer-events-none opacity-20 overflow-hidden flex items-center justify-center">
           <div class="w-64 h-64 rounded-full border border-sky-400/40 absolute animate-ping" style="animation-duration: 3s;"></div>
@@ -963,7 +963,7 @@ background: #94A3B8;
         </div>
 
         <div class="relative z-10 flex items-start sm:items-center space-x-4">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 border border-white/20 shadow-lg shadow-blue-500/40 flex items-center justify-center text-white shrink-0">
+          <div class="hero-icon w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-500 border border-white/30 shadow-lg shadow-sky-500/35 flex items-center justify-center text-white shrink-0">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -971,24 +971,24 @@ background: #94A3B8;
           </div>
           <div class="space-y-1">
             <div class="flex items-center gap-2.5">
-              <h4 class="text-base sm:text-lg font-bold text-white tracking-tight">Tìm cơ sở gần bạn nhất</h4>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shrink-0 shadow-xs">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <h4 class="hero-title text-base sm:text-lg font-extrabold tracking-tight">Tìm cơ sở gần bạn nhất</h4>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shrink-0 shadow-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                 <span>Live GPS</span>
               </span>
             </div>
-            <p class="text-xs text-slate-300 leading-relaxed max-w-xl">Xem vị trí trực quan 6 cơ sở y tế tuyến đầu trên bản đồ tương tác, tự động đo khoảng cách và chọn nơi khám thuận tiện nhất.</p>
+            <p class="hero-desc text-xs leading-relaxed max-w-xl">Xem vị trí trực quan 6 cơ sở y tế tuyến đầu trên bản đồ tương tác, tự động đo khoảng cách và chọn nơi khám thuận tiện nhất.</p>
           </div>
         </div>
 
         <!-- Banner Action Buttons -->
         <div class="relative z-10 flex items-center gap-2.5 shrink-0">
-          <button type="button" onclick="getCurrentLocationForHospitals()" class="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 border border-white/20 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs" title="Định vị theo tọa độ GPS thật của bạn">
-            <svg class="w-4 h-4 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <button type="button" onclick="getCurrentLocationForHospitals()" class="btn-locate-me px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs" title="Định vị theo tọa độ GPS thật của bạn">
+            <svg class="w-4 h-4 text-emerald-500 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>Vị trí của tôi</span>
           </button>
-          <button type="button" onclick="toggleHospitalMapSection()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-blue-500/35 flex items-center gap-2 transition-all cursor-pointer border border-white/25">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+          <button type="button" onclick="toggleHospitalMapSection()" class="btn-toggle-map px-4 py-2.5 rounded-xl font-bold text-xs shadow-md flex items-center gap-2 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
             <span data-role="map-toggle-text">Thu gọn bản đồ</span>
           </button>
         </div>
