@@ -989,17 +989,17 @@ background: #94A3B8;
           </button>
           <button type="button" onclick="toggleHospitalMapSection()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-blue-500/35 flex items-center gap-2 transition-all cursor-pointer border border-white/25">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-            <span data-role="map-toggle-text">Mở bản đồ</span>
+            <span data-role="map-toggle-text">Thu gọn bản đồ</span>
           </button>
         </div>
       </div>
 
-      <!-- Collapsible Interactive Map Panel (Leaflet) -->
-      <div id="hospital-map-collapsible" class="hidden overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/15 bg-white dark:bg-slate-900 shadow-2xl transition-all">
+      <!-- Collapsible Interactive Map Panel (Leaflet - Mở sẵn trực quan nổi bật ngay khi vào trang) -->
+      <div id="hospital-map-collapsible" class="overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/15 bg-white dark:bg-slate-900 shadow-2xl transition-all">
         <div class="p-3.5 bg-slate-50 dark:bg-slate-800/90 border-b border-slate-200/80 dark:border-white/10 flex justify-between items-center text-xs">
           <div class="flex items-center gap-2.5 font-bold text-slate-800 dark:text-white">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Bản đồ tương tác 6 cơ sở y tế TP. Hồ Chí Minh (OpenStreetMap)</span>
+            <span>Bản đồ tương tác 6 cơ sở y tế TP. Hồ Chí Minh (OpenStreetMap trực quan)</span>
           </div>
           <div class="flex items-center gap-3">
             <button type="button" onclick="getCurrentLocationForHospitals()" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer">
@@ -1067,7 +1067,7 @@ background: #94A3B8;
             </svg>
           </span>
 
-          <span id="hospital-map-toggle-text" data-role="map-toggle-text" class="tracking-wide">Mở bản đồ</span>
+          <span id="hospital-map-toggle-text" data-role="map-toggle-text" class="tracking-wide">Thu gọn bản đồ</span>
         </button>
 
       </div>

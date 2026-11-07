@@ -1020,9 +1020,12 @@ function switchTab(tabId) {
 
   if (tabId === 'booking-tab') {
     renderMedicalFacilities();
-    if (hospitalLeafletMap) {
-      setTimeout(() => hospitalLeafletMap.invalidateSize(), 150);
-    }
+    setTimeout(() => {
+      initHospitalInteractiveMap();
+      if (hospitalLeafletMap) {
+        hospitalLeafletMap.invalidateSize();
+      }
+    }, 150);
   }
   if (tabId === 'doctor-tab') {
     syncCurrentPatientProfile();
@@ -2494,6 +2497,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initHistorySearch();
   selectPatientProfile('current_patient');
   renderMedicalFacilities();
+  setTimeout(() => {
+    initHospitalInteractiveMap();
+  }, 300);
   updateHomeGreeting();
   loadPrescriptionHistory();
 
