@@ -36,6 +36,7 @@ from core.storage_service import (
 from core.chat_service import process_clinical_chat
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.intake_service import intake_service
 from core.pipeline_orchestrator import process_medical_document_pipeline
 
 logger = logging.getLogger("MediMindApp")
@@ -286,6 +287,8 @@ def create_app(test_config=None):
         history = data.get("history", [])
         image_str = data.get("image")
         lang = data.get("lang", "vi")
+        conversation_id = data.get("conversation_id")
+        user_id = session.get("user_id")
 
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
@@ -300,17 +303,37 @@ def create_app(test_config=None):
             image_mime_type = mime
 
         try:
+            # 1. ĐỒNG BỘ INTAKE SERVICE: Cập nhật dữ kiện lâm sàng và tìm câu hỏi tiếp theo
+            intake_res = None
+            clinical_hint = None
+            if conversation_id:
+                intake_res = intake_service.process_message(
+                    conversation_id=conversation_id,
+                    message=user_message,
+                    image_bytes=image_bytes
+                )
+                if intake_res.get("next_question"):
+                    clinical_hint = intake_res["next_question"]
+
             res = process_clinical_chat(
                 message=user_message,
                 history=history,
                 image_bytes=image_bytes,
                 image_mime_type=image_mime_type,
                 lang=lang,
-                gemini_service=gemini_service
+                gemini_service=gemini_service,
+                clinical_hint=clinical_hint
             )
 
+            # 2. HỢP NHẤT DỮ LIỆU ĐÁNH GIÁ (TRÁNH LỆCH PHA GIỮA CHAT VÀ TÓM TẮT)
+            if intake_res:
+                res["conversation_id"] = conversation_id
+                res["intake"] = intake_res
+                res["intake_facts"] = intake_res.get("facts")
+                res["intake_summary"] = intake_res.get("summary")
+                res["intake_status"] = intake_res.get("status")
+
             # Lưu lịch sử tư vấn nếu người dùng đã đăng nhập để phục vụ Pre-visit Summary
-            user_id = session.get("user_id")
             if user_id:
                 try:
                     consultation = ClinicalConsultation(
@@ -336,6 +359,91 @@ def create_app(test_config=None):
         except Exception as e:
             logger.error(f"Lỗi xử lý tư vấn y tế: {e}")
             return jsonify({"error": "Đã xảy ra sự cố trong quá trình xử lý yêu cầu y tế."}), 500
+
+    # ==============================================================
+    # HỆ THỐNG HỎI BỆNH CÓ CẤU TRÚC & TÓM TẮT TRƯỚC KHÁM (MỤC 8 & 9)
+    # ==============================================================
+
+    @app.route("/api/intake/session", methods=["POST"])
+    def intake_get_or_create_session():
+        """Khởi tạo hoặc tải lại phiên hỏi bệnh lâm sàng có cấu trúc."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        user_id = session.get("user_id")
+        s = intake_service.get_or_create_session(conversation_id, user_id=user_id)
+        return jsonify({
+            "success": True,
+            "conversation_id": s["conversation_id"],
+            "status": s["status"],
+            "facts": s["facts"],
+            "version": s["version"],
+            "is_confirmed": s["is_confirmed"]
+        })
+
+    @app.route("/api/intake/message", methods=["POST"])
+    def intake_send_message():
+        """
+        Tiếp nhận tin nhắn trong phiên hỏi bệnh:
+          - Trích xuất dữ kiện (triệu chứng có, triệu chứng ĐÃ PHỦ NHẬN, thời gian, thân nhiệt)
+          - Chọn câu hỏi tiếp theo từ dữ kiện còn thiếu (không hỏi lặp)
+          - Cập nhật Tóm tắt trước khám 2 phần (Phần A & Phần B)
+        """
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        user_message = (data.get("message") or "").strip()
+        image_str = data.get("image")
+
+        if not user_message and not image_str:
+            return jsonify({"error": "Vui lòng nhập nội dung mô tả hoặc đính kèm ảnh."}), 400
+
+        image_bytes = None
+        if image_str:
+            img_bytes, mime, err = decode_and_validate_base64_image(image_str)
+            if not err:
+                image_bytes = img_bytes
+
+        s = intake_service.get_or_create_session(conversation_id, user_id=session.get("user_id"))
+        result = intake_service.process_message(
+            conversation_id=s["conversation_id"],
+            message=user_message,
+            image_bytes=image_bytes
+        )
+
+        return jsonify(result)
+
+    @app.route("/api/intake/update-fact", methods=["POST"])
+    def intake_update_fact():
+        """Chỉnh sửa 1 dữ kiện lâm sàng (tăng version và yêu cầu xác nhận lại)."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        field = data.get("field")
+        value = data.get("value")
+
+        if not conversation_id or not field:
+            return jsonify({"error": "Thiếu conversation_id hoặc trường cần cập nhật."}), 400
+
+        res = intake_service.update_fact(conversation_id, field, value)
+        return jsonify(res)
+
+    @app.route("/api/intake/confirm-summary", methods=["POST"])
+    def intake_confirm_summary():
+        """Bệnh nhân xác nhận: Bản tóm tắt phản ánh đúng lời khai thực tế."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        if not conversation_id:
+            return jsonify({"error": "Thiếu conversation_id."}), 400
+
+        res = intake_service.confirm_summary(conversation_id)
+        return jsonify(res)
+
+    @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
+    def intake_get_summary(conversation_id):
+        """Lấy bản tóm tắt trước khám 2 phần của phiên."""
+        summary = intake_service.get_summary(conversation_id)
+        return jsonify({
+            "conversation_id": conversation_id,
+            "summary": summary
+        })
 
 
     # ==============================================================
@@ -499,10 +607,16 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
+            user_allergies = []
+            req_allergies = request.form.get("allergies")
+            if req_allergies:
+                user_allergies.extend([a.strip() for a in req_allergies.split(",") if a.strip()])
+
             res = process_medical_document_pipeline(
                 file_path=meta["absolute_path"],
                 original_filename=meta["original_filename"],
-                mask_pii=mask_pii
+                mask_pii=mask_pii,
+                user_allergies=user_allergies
             )
 
             if doc_id:
@@ -634,20 +748,41 @@ def create_app(test_config=None):
     @app.route("/api/clinical-summary", methods=["GET"])
     def clinical_summary():
         """
-        Bản tóm tắt trước khám:
-        - Bắt buộc đăng nhập.
-        - Trích xuất từ ca tư vấn thực tế của tài khoản hiện tại.
-        - Trả 'no_data' nếu người dùng chưa có lượt tư vấn nào.
+        Bản tóm tắt trước khám chuẩn 2 phần:
+        - Đồng bộ với quy trình Intake Session theo tiêu chí y tế.
+        - Trích xuất từ phiên tư vấn thực tế của tài khoản hiện tại.
         """
+        conversation_id = request.args.get("conversation_id")
         user_id = session.get("user_id")
+
+        if conversation_id:
+            summary = intake_service.get_summary(conversation_id)
+            if summary and not summary.get("error"):
+                return jsonify({
+                    "status": "success",
+                    "summary": summary
+                }), 200
+
         if not user_id:
             return jsonify({
-                "error": "Vui lòng đăng nhập để xem bản tóm tắt hồ sơ sức khỏe."
+                "error": "Vui lòng đăng nhập hoặc cung cấp mã phiên tư vấn hợp lệ."
             }), 401
 
         user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "Không tìm thấy thông tin tài khoản."}), 404
+
+        # Tìm phiên intake gần nhất của user trong CSDL
+        from core.models import IntakeSessionRecord
+        latest_rec = IntakeSessionRecord.query.filter_by(user_id=user_id).order_by(IntakeSessionRecord.updated_at.desc()).first()
+        if latest_rec:
+            summary = intake_service.get_summary(latest_rec.conversation_id)
+            return jsonify({
+                "status": "success",
+                "patient_name": user.full_name,
+                "patient_id": f"BN-2026-{user.id:04d}",
+                "summary": summary
+            }), 200
 
         latest_consultation = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).first()
 
@@ -683,6 +818,28 @@ def create_app(test_config=None):
             ]
         })
 
+
+    @app.route("/api/consultations", methods=["GET"])
+    def get_consultations():
+        """Lấy danh sách các phiên tư vấn đã lưu của tài khoản hiện tại."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"consultations": []}), 200
+        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
+        return jsonify({"consultations": [c.to_dict() for c in consultations]}), 200
+
+    @app.route("/api/consultations/<int:cid>", methods=["DELETE"])
+    def delete_consultation(cid):
+        """Xóa một phiên tư vấn theo ID của người dùng."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"error": "Vui lòng đăng nhập."}), 401
+        c = ClinicalConsultation.query.filter_by(id=cid, user_id=user_id).first()
+        if c:
+            db.session.delete(c)
+            db.session.commit()
+            return jsonify({"message": "Đã xóa phiên tư vấn thành công."}), 200
+        return jsonify({"error": "Không tìm thấy phiên tư vấn."}), 404
 
     # ==============================================================
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)

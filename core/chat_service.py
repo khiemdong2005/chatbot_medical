@@ -19,7 +19,8 @@ def process_clinical_chat(
     image_mime_type: str = "image/jpeg",
     lang: str = "vi",
     gemini_service: Optional[GeminiMedicalService] = None,
-    request_id: Optional[str] = None
+    request_id: Optional[str] = None,
+    clinical_hint: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Dịch vụ điều phối tư vấn lâm sàng 4 tầng dùng chung (Shared Application Service):
@@ -71,6 +72,37 @@ def process_clinical_chat(
         }
 
     # -------------------------------------------------------------
+    # FAST-PATH CHÀO HỎI & KHỞI TẠO (Phản hồi tức thì < 0.01 giây)
+    # -------------------------------------------------------------
+    import re
+    msg_clean = user_message.lower().strip()
+    greeting_patterns = [
+        r"^hello\b", r"^hi\b", r"^hey\b", r"^alo\b",
+        r"^xin ch[àa]o\b", r"^ch[àa]o\b", r"^ch[àa]o b[ạa]n\b", r"^b[áa]c s[ĩi]\s*ơi\b"
+    ]
+    is_greeting = any(re.search(pat, msg_clean) for pat in greeting_patterns) or msg_clean in ["hello", "hi", "chào", "xin chào"]
+    has_medical_keywords = any(w in msg_clean for w in [
+        "sốt", "sot", "đau", "dau", "ho", "rát", "rat", "nghẹt", "nghet", "mệt", "met",
+        "nôn", "non", "bụng", "bung", "ngứa", "ngua", "thuốc", "thuoc", "bệnh", "benh",
+        "fever", "pain", "cough", "ache", "rash", "vomit"
+    ])
+    if is_greeting and not has_medical_keywords and not has_image:
+        logger.info(f"[REQ-{req_id}] Kích hoạt Fast-path chào hỏi ban đầu (<0.01s)")
+        triage_result = analyze_symptoms(user_message, history, lang=lang, has_image=False)
+        return {
+            "answer": triage_result["answer"],
+            "risk_level": triage_result["risk_level"],
+            "risk_score": 10,
+            "symptoms": triage_result.get("symptoms", []),
+            "specialist": triage_result.get("specialist", "Y học gia đình"),
+            "visual_findings": [],
+            "differential_diagnosis": [],
+            "is_emergency": False,
+            "degraded": False,
+            "sources": triage_result.get("sources", [])
+        }
+
+    # -------------------------------------------------------------
     # TẦNG 2: TRUY VẤN TRI THỨC Y KHOA RAG TỪ CHROMADB
     # -------------------------------------------------------------
     rag_docs = []
@@ -93,7 +125,8 @@ def process_clinical_chat(
             image_bytes=image_bytes,
             image_mime_type=image_mime_type,
             lang=lang,
-            request_id=req_id
+            request_id=req_id,
+            clinical_hint=clinical_hint
         )
     except Exception as err:
         logger.warning(f"[REQ-{req_id}] Gemini service exception: {err}")
@@ -106,6 +139,8 @@ def process_clinical_chat(
         degraded = True
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
         triage_result = analyze_symptoms(user_message, history, lang=lang, has_image=has_image)
+        if clinical_hint and triage_result.get("answer"):
+            triage_result["answer"] += f"\n\n💡 *Lưu ý y tế:* {clinical_hint}"
         if rag_docs:
             triage_result["sources"] = [
                 {

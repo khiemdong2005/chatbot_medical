@@ -38,13 +38,21 @@
       background: #cbd5e1;
       border-radius: 9999px;
     }
+    .capsule-item {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .capsule-item:hover {
+      background: #f1f5f9;
+      color: #059669;
+      transform: translateY(-1px);
+    }
   </style>
 </helmet>
 
 <!-- Luminous Fresh Daylight OCR View -->
 <div style="width: 100%; min-height: 900px; display: flex; flex-direction: column; background: linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 15%, #f8fafc 40%, #f1f5f9 100%); padding: 14px 24px; gap: 14px;">
-  <!-- Consistent Top Navigation -->
-  <header style="height: 68px; background: #ffffff; border: 1px solid #d1fae5; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.06);">
+  <!-- TOP NAVIGATION BAR: Integrated Horizontal Capsule Dock -->
+  <header style="height: 72px; background: #ffffff; border: 1.5px solid #d1fae5; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 24px -2px rgba(16, 185, 129, 0.08);">
     <div style="display: flex; align-items: center; gap: 12px;">
       <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #059669 0%, #0d9488 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -56,48 +64,70 @@
       <div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #0f172a;">Medi<span style="color: #059669;">Mind</span> Clinic</span>
-          <span style="font-size: 10px; font-weight: 800; background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 6px;">OCR QUANG HỌC</span>
+          <span style="font-size: 10px; font-weight: 800; background: #ccfbf1; color: #0f766e; padding: 2px 7px; border-radius: 6px;">OCR QUANG HỌC</span>
         </div>
-        <p style="margin: 0; font-size: 11px; color: #64748b; font-weight: 500;">Phân tích đơn thuốc & Phiếu xét nghiệm</p>
+        <p style="margin: 0; font-size: 11px; color: #64748b; font-weight: 500;">Phân tích đơn thuốc & Xét nghiệm</p>
       </div>
     </div>
 
-    <!-- Nav Links -->
-    <nav style="display: flex; align-items: center; gap: 4px; background: #f8fafc; padding: 4px; border-radius: 14px; border: 1px solid #e2e8f0;">
-      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #475569;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
-        Tư vấn lâm sàng
+    <!-- CENTER CAPSULE DOCK -->
+    <nav style="display: flex; align-items: center; gap: 4px; background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 5px 8px; border-radius: 9999px; box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);" aria-label="Thanh điều hướng Capsule">
+      <a href="Main.dc.html" class="capsule-item" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; color: #475569;" title="Tư vấn sức khỏe">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Tư vấn</span>
       </a>
 
-      <button type="button" style="display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; background: #ffffff; color: #059669; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08); cursor: pointer;">
-        <span style="width: 7px; height: 7px; border-radius: 9999px; background: #10b981;"></span>
-        Đọc đơn thuốc & xét nghiệm
+      <!-- Active: Prescription Tab -->
+      <button type="button" class="capsule-item" style="display: flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 9999px; font-size: 13px; font-weight: 700; background: #ffffff; color: #059669; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15); cursor: pointer;" title="Đọc đơn thuốc & xét nghiệm">
+        <div style="width: 24px; height: 24px; border-radius: 9999px; background: #059669; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <span>Đọc đơn thuốc</span>
       </button>
 
-      <a href="Patient_Portal.dc.html" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #475569;">
-        Sổ y bạ của tôi
+      <button type="button" class="capsule-item" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; color: #475569; background: transparent; border: none; cursor: pointer;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"/><path d="M2 20h20"/></svg>
+        <span>Cơ sở y tế</span>
+      </button>
+
+      <a href="Patient_Portal.dc.html" class="capsule-item" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+        <span>Sổ y bạ</span>
       </a>
 
-      <a href="Mobile_Triage.dc.html" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #6366f1; background: #eef2ff;">
-        📱 Bản Mobile
+      <div style="width: 1px; height: 22px; background: #cbd5e1; margin: 0 4px;"></div>
+
+      <button type="button" class="capsule-item" style="width: 32px; height: 32px; border-radius: 9999px; background: #fef3c7; border: 1px solid #fde68a; color: #b45309; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Giao diện sáng (Daylight Mode)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/></svg>
+      </button>
+
+      <a href="Main.dc.html" class="capsule-item" style="width: 32px; height: 32px; border-radius: 9999px; background: #059669; color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);" title="Tạo phiên tư vấn mới">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </a>
     </nav>
 
-    <!-- Profile -->
-    <a href="Patient_Portal.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 5px 14px 5px 6px; border-radius: 14px; border: 1.5px solid #a7f3d0; background: #ffffff;">
-      <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800;">
-        BN
+    <!-- RIGHT: Language & Profile -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="padding: 6px 14px; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 9999px; font-size: 13px; font-weight: 800; color: #334155; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        <span>EN</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div>
-        <div style="font-size: 13px; font-weight: 800; color: #0f172a;">Nguyễn Thành Khiêm</div>
-        <div style="font-size: 11px; color: #64748b;">Mã BN: #MK-9724</div>
-      </div>
-    </a>
+
+      <a href="Patient_Portal.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 4px 16px 4px 6px; border-radius: 9999px; border: 1.5px solid #94a3b8; background: #ffffff;">
+        <div style="width: 38px; height: 38px; border-radius: 9999px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800;">
+          BN
+        </div>
+        <div style="text-align: left;">
+          <div style="font-size: 13px; font-weight: 800; color: #0f172a; line-height: 1.2;">Nguyễn Thành Khiêm</div>
+          <div style="font-size: 11px; color: #0284c7; font-weight: 700; line-height: 1.2;">Nữ • 24/10/1997 • 0971221306</div>
+        </div>
+      </a>
+    </div>
   </header>
 
-  <!-- Split View (Hero Dropzone on Left / Extracted Results on Right) -->
+  <!-- Split View -->
   <main style="display: flex; flex: 1; gap: 18px;">
-    <!-- LEFT PANEL: Upload Zone -->
+    <!-- LEFT PANEL: Hero Dropzone -->
     <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
       <div style="background: #ffffff; border: 2px dashed #059669; border-radius: 20px; padding: 36px 32px; text-align: center; box-shadow: 0 4px 20px rgba(5, 150, 105, 0.05); display: flex; flex-direction: column; align-items: center;">
         <div style="width: 60px; height: 60px; border-radius: 18px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.12);">
@@ -110,7 +140,7 @@
         </p>
 
         <div style="display: flex; gap: 12px; align-items: center;">
-          <button type="button" style="padding: 11px 22px; background: #059669; color: #ffffff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);">
+          <button type="button" style="padding: 11px 22px; background: #059669; color: #ffffff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: gap: 8px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             Chọn ảnh hoặc PDF
           </button>
@@ -216,6 +246,46 @@
           <div style="margin-top: 6px; font-size: 12px; color: #475569;">
             Hòa tan 1 viên vào 150ml nước ấm khi sốt ≥ 38.5°C hoặc đau rát họng nhiều.
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Mini Chatbot Widget (Góc dưới bên phải khi ở tab khác) -->
+    <div style="position: fixed; bottom: 24px; right: 28px; z-index: 50; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+      <!-- Mini Chat Window -->
+      <div style="width: 340px; height: 380px; background: #ffffff; border-radius: 20px; box-shadow: 0 20px 40px rgba(15,23,42,0.18); border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Header -->
+        <div style="padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 9999px; background: #059669; color: #ffffff; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center;">
+              AI
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #0f172a;">Trợ lý MediMind AI</div>
+              <div style="font-size: 10px; color: #059669; font-weight: 600;">• Đang trực tuyến</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button style="border: none; background: #f1f5f9; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; color: #64748b; font-size: 11px;">—</button>
+            <button style="border: none; background: #fee2e2; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; color: #dc2626; font-size: 11px; font-weight: 700;" title="Tắt hoàn toàn">✕</button>
+          </div>
+        </div>
+        <!-- Messages -->
+        <div style="flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #fafafa;">
+          <div style="align-self: flex-start; max-width: 85%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; font-size: 11px; color: #334155; line-height: 1.5;">
+            Chào bạn! Mình có thể giải thích cách uống 2 loại thuốc trong đơn này giúp bạn nhé.
+          </div>
+          <div style="align-self: flex-end; max-width: 80%; background: #059669; color: #ffffff; border-radius: 12px; padding: 8px 12px; font-size: 11px; line-height: 1.4;">
+            Thuốc số 1 uống trước hay sau ăn vậy?
+          </div>
+          <div style="align-self: flex-start; max-width: 85%; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; font-size: 11px; color: #334155; line-height: 1.5;">
+            Thuốc <strong>Augmentin 1g</strong> nên uống ngay trước bữa ăn để hạn chế tối đa kích ứng đường tiêu hóa bạn nhé.
+          </div>
+        </div>
+        <!-- Input Footer -->
+        <div style="padding: 10px 12px; border-top: 1px solid #e2e8f0; background: #ffffff; display: flex; gap: 6px;">
+          <input type="text" placeholder="Hỏi nhanh trợ lý AI..." style="flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 10px; font-size: 11px; outline: none;">
+          <button style="background: #059669; color: #ffffff; border: none; border-radius: 8px; padding: 0 12px; font-weight: 700; font-size: 11px; cursor: pointer;">Gửi</button>
         </div>
       </div>
     </div>
