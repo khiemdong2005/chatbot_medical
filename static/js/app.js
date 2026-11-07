@@ -1801,14 +1801,7 @@ async function handleSaveProfile(e) {
   }
 
   if (isPendingGoogleRegistration) {
-    if (!dob || !phone) {
-      if (typeof showMedicalToast === 'function') {
-        showMedicalToast('Vui lòng điền đầy đủ Ngày sinh và Số điện thoại để hoàn tất đăng ký hồ sơ Google.', 'warning', 4500);
-      } else {
-        alert('Vui lòng điền đầy đủ Ngày sinh và Số điện thoại để hoàn tất đăng ký.');
-      }
-      return;
-    }
+    // Cho phép người dùng xác nhận vào ngay lập tức (ngày sinh / SĐT tùy chọn)
   }
 
   const endpoint = isPendingGoogleRegistration ? '/api/auth/google/complete-registration' : '/api/auth/profile';
@@ -1873,8 +1866,12 @@ function openGoogleOnboardingModal(user, isNewRegistration = false) {
   if (nameHeader) nameHeader.innerText = u.full_name || u.name || 'Bệnh nhân mới';
   if (badgeHeader) {
     badgeHeader.innerText = isPendingGoogleRegistration
-      ? `Xác thực Google (${u.email || ''}) • Hoàn tất đăng ký để tạo hồ sơ`
-      : 'Xác thực Google thành công • Bổ sung thông tin còn thiếu để hoàn tất hồ sơ';
+      ? `Tài khoản Google mới: ${u.email || ''} • Xác nhận thông tin để vào ứng dụng`
+      : 'Xác thực Google thành công • Thông tin hồ sơ cá nhân';
+    const saveBtnSpan = document.querySelector('#profile-edit-mode button[type="submit"] span');
+    if (saveBtnSpan) {
+      saveBtnSpan.innerText = isPendingGoogleRegistration ? 'Xác nhận & Vào ứng dụng' : 'Lưu thông tin';
+    }
   }
   if (avatarHeader) {
     if (u.avatar_url) {
@@ -2523,7 +2520,7 @@ async function handleGoogleSignIn(intentOverride) {
     return;
   }
 
-  const intent = intentOverride || (currentAuthMode === 'register' ? 'register' : 'login');
+  const intent = intentOverride || 'continue';
   const btn = document.getElementById('btn-google-signin');
   const originalHtml = btn ? btn.innerHTML : '';
 
@@ -3397,30 +3394,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       if (typeof showMedicalToast === 'function') showMedicalToast(errMsg, 'warning', 6000);
     }, 250);
-  } else if (googleAuthStatus === 'unregistered') {
-    // Giống ForumFlash: Bấm Đăng nhập nhưng Google chưa có hồ sơ trong CSDL -> Báo lỗi và chuyển qua tab Đăng ký
-    currentUser = null;
-    localStorage.removeItem('medimind_user');
-    updateAuthUI();
-    setTimeout(() => {
-      openLoginModal();
-      toggleAuthMode('register');
-      if (typeof showMedicalToast === 'function') {
-        showMedicalToast(
-          `Tài khoản Google (${googleUnregEmail || 'này'}) chưa có hồ sơ trên MediMind. Vui lòng bấm "Tiếp tục với Google" ở tab Tạo tài khoản mới!`,
-          'warning',
-          6500
-        );
-      }
-    }, 250);
-  } else if (googleAuthStatus === 'pending_register') {
-    // Giống ForumFlash: Bấm Đăng ký bằng Google lần đầu -> Hiện form hoàn tất thông tin trước khi lưu vào CSDL
+  } else if (googleAuthStatus === 'pending_register' || googleAuthStatus === 'unregistered') {
+    // Lần đầu tiên sử dụng tài khoản Google: Mở popup xác nhận để vào ứng dụng ngay
+    closeLoginModal();
     fetch('/api/auth/google/pending').then(r => r.json()).then(pData => {
       if (pData && pData.pending && pData.profile) {
         pendingGoogleProfile = pData.profile;
         isPendingGoogleRegistration = true;
         if (typeof showMedicalToast === 'function') {
-          showMedicalToast('Xác thực Google thành công! Hãy hoàn tất thông tin đăng ký để lưu hồ sơ.', 'info', 5500);
+          showMedicalToast('Xác thực Google thành công! Vui lòng xác nhận thông tin để bắt đầu sử dụng.', 'info', 5000);
         }
         setTimeout(() => openGoogleOnboardingModal(pData.profile, true), 250);
       }

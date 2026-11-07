@@ -736,17 +736,8 @@ def create_app(test_config=None):
 
         user = User.query.filter_by(email=email).first()
 
-        # NHÁNH 1: Người dùng chọn ĐĂNG NHẬP (intent == 'login')
-        if intent == "login":
-            if not user:
-                # Chưa có hồ sơ trong CSDL -> Không tự tạo, yêu cầu chuyển sang Đăng ký giống ForumFlash
-                session.pop("pending_google_register", None)
-                query_unreg = {
-                    "google_auth": "unregistered",
-                    "email": email,
-                }
-                return redirect(f"/?{urllib.parse.urlencode(query_unreg)}")
-
+        # TRƯỜNG HỢP 1: TỪ LẦN THỨ 2 TRỞ ĐI (Tài khoản Google đã có trong CSDL -> Vào luôn ngay lập tức)
+        if user:
             if avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
@@ -757,35 +748,13 @@ def create_app(test_config=None):
             session["user_id"] = user.id
             session["user_role"] = user.role
 
-            needs_onboarding = not (user.phone_number and user.dob)
             query_out = {
                 "google_auth": "success",
-                "intent": "login",
-                "onboarding": "1" if needs_onboarding else "0",
-                "existing": "0",
+                "existing": "1",
             }
             return redirect(f"/?{urllib.parse.urlencode(query_out)}")
 
-        # NHÁNH 2: Người dùng chọn ĐĂNG KÝ (intent == 'register')
-        if user:
-            # Đã có hồ sơ từ trước -> Đăng nhập luôn và báo đã có hồ sơ giống ForumFlash
-            if avatar_url:
-                user.avatar_url = avatar_url
-            db.session.commit()
-            session.pop("pending_google_register", None)
-            session["user_id"] = user.id
-            session["user_role"] = user.role
-
-            needs_onboarding = not (user.phone_number and user.dob)
-            query_out = {
-                "google_auth": "success",
-                "intent": "register",
-                "onboarding": "1" if needs_onboarding else "0",
-                "existing": "1" if not needs_onboarding else "0",
-            }
-            return redirect(f"/?{urllib.parse.urlencode(query_out)}")
-
-        # Chưa có trong CSDL -> Lưu tạm vào session, CHƯA ghi xuống DB cho tới khi bấm Lưu thông tin
+        # TRƯỜNG HỢP 2: LẦN ĐẦU TIÊN SỬ DỤNG GOOGLE (Chưa có trong CSDL -> Chuyển vào bước xác nhận thông tin)
         session["pending_google_register"] = {
             "email": email,
             "full_name": full_name,
@@ -827,11 +796,9 @@ def create_app(test_config=None):
         clean_phone = "".join(filter(str.isdigit, raw_phone))
 
         if not full_name:
-            return jsonify({"success": False, "error": "Vui lòng nhập Họ và tên."}), 400
-        if not dob:
-            return jsonify({"success": False, "error": "Vui lòng nhập Ngày sinh (DD/MM/YYYY) để hoàn tất đăng ký."}), 400
-        if len(clean_phone) < 9 or len(clean_phone) > 11:
-            return jsonify({"success": False, "error": "Vui lòng nhập Số điện thoại hợp lệ (9-11 chữ số) để hoàn tất đăng ký."}), 400
+            full_name = pending.get("full_name") or pending["email"].split("@")[0].capitalize()
+        if clean_phone and (len(clean_phone) < 9 or len(clean_phone) > 11):
+            return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
 
         email = pending["email"].strip().lower()
         existing_user = User.query.filter_by(email=email).first()
@@ -852,8 +819,8 @@ def create_app(test_config=None):
             full_name=full_name,
             role="patient",
             gender=gender,
-            dob=dob,
-            phone_number=clean_phone,
+            dob=dob or None,
+            phone_number=clean_phone or None,
             avatar_url=pending.get("avatar_url") or None
         )
         user.set_password(secrets.token_urlsafe(24))
