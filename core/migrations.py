@@ -62,6 +62,11 @@ MIGRATIONS = [
         "2026_01_05_medical_documents_clinical_fields",
         "Bổ sung các cột lâm sàng (chẩn đoán, tóm tắt, json kết quả) cho medical_documents",
         None
+    ),
+    (
+        "2026_01_06_intake_sessions_guest_token",
+        "Bổ sung cột guest_token cho intake_sessions để kiểm soát quyền phiên khách",
+        None
     )
 ]
 
@@ -125,6 +130,11 @@ def run_migrations(engine):
                         for col_name, col_type in doc_columns_to_add:
                             if col_name not in existing_cols:
                                 conn.execute(text(f"ALTER TABLE medical_documents ADD COLUMN {col_name} {col_type};"))
+                elif version == "2026_01_06_intake_sessions_guest_token":
+                    if "intake_sessions" in inspector.get_table_names():
+                        existing_cols = {col["name"] for col in inspector.get_columns("intake_sessions")}
+                        if "guest_token" not in existing_cols:
+                            conn.execute(text("ALTER TABLE intake_sessions ADD COLUMN guest_token VARCHAR(100);"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     # SQLite có thể yêu cầu chạy từng câu lệnh riêng lẻ
