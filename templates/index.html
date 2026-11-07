@@ -25,7 +25,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.8.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.0">
 
 <style>
 
@@ -1282,7 +1282,7 @@ background: #94A3B8;
       </div>
     </div>
     <div class="flex items-center space-x-2.5">
-      <button id="ehr-export-pdf-btn" onclick="exportPdfSummary()" class="text-xs font-bold px-4 py-2.5 rounded-xl glass-pill text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
+      <button id="ehr-export-pdf-btn" onclick="exportPdfSummary()" disabled class="opacity-40 cursor-not-allowed text-xs font-bold px-4 py-2.5 rounded-xl glass-pill text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 shadow-sm" title="Vui lòng đăng nhập để xuất bản tóm tắt trước khám">
         <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
@@ -1300,15 +1300,15 @@ background: #94A3B8;
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
     <!-- LEFT COLUMN: Patient Info Cards (Col 4/12) -->
     <div class="lg:col-span-4 space-y-4">
-      <!-- Header Profile Card -->
+      <!-- Header Profile Card (Tự động thích ứng Guest vs User) -->
       <div id="ehr-hero-card" class="glass-card border border-sky-500/20 dark:border-white/10 rounded-2xl p-6 text-slate-900 dark:text-white shadow-xl space-y-5 relative overflow-hidden bg-white/90 dark:bg-gradient-to-br dark:from-sky-950/40 dark:via-slate-900/60 dark:to-indigo-950/30 backdrop-blur-xl">
         <div class="flex items-center space-x-3.5">
           <div id="ehr-avatar-large" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-black text-lg flex items-center justify-center border border-sky-400/40 shadow-lg shadow-sky-500/20">
-            BN
+            👤
           </div>
           <div>
-            <h3 id="ehr-hero-name" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Nguyễn Thành Khiêm</h3>
-            <p id="ehr-hero-demographics" class="text-xs text-sky-600 dark:text-sky-400 font-bold mt-0.5">Nữ · 29 tuổi</p>
+            <h3 id="ehr-hero-name" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Chưa đăng nhập</h3>
+            <p id="ehr-hero-demographics" class="text-xs text-sky-600 dark:text-sky-400 font-bold mt-0.5">Tài khoản khách · Chưa đồng bộ hồ sơ</p>
           </div>
         </div>
 
@@ -1316,11 +1316,11 @@ background: #94A3B8;
         <div class="grid grid-cols-2 gap-3 pt-2">
           <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-white/[0.04] border border-sky-200/60 dark:border-white/10">
             <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Số lần khám</span>
-            <span id="ehr-visit-count" class="text-xl font-black text-sky-600 dark:text-sky-400 mt-1 block">3</span>
+            <span id="ehr-visit-count" class="text-xl font-black text-sky-600 dark:text-sky-400 mt-1 block">0</span>
           </div>
           <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-white/[0.04] border border-sky-200/60 dark:border-white/10">
             <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Lần khám gần nhất</span>
-            <span id="ehr-last-visit-date" class="text-sm font-black text-sky-600 dark:text-sky-400 mt-2 block">18/10/2026</span>
+            <span id="ehr-last-visit-date" class="text-sm font-black text-sky-600 dark:text-sky-400 mt-2 block">--</span>
           </div>
         </div>
       </div>
@@ -1334,7 +1334,7 @@ background: #94A3B8;
               <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
               <span>NGÀY SINH</span>
             </span>
-            <span id="ehr-dob-val" class="font-extrabold text-slate-900 dark:text-white font-mono">24/10/1997</span>
+            <span id="ehr-dob-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
 
           <!-- NHÓM MÁU -->
@@ -1343,7 +1343,7 @@ background: #94A3B8;
               <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
               <span>NHÓM MÁU</span>
             </span>
-            <span id="ehr-blood-val" class="font-extrabold text-slate-900 dark:text-white font-mono">O+</span>
+            <span id="ehr-blood-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
 
           <!-- ĐIỆN THOẠI -->
@@ -1352,7 +1352,7 @@ background: #94A3B8;
               <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
               <span>ĐIỆN THOẠI</span>
             </span>
-            <span id="ehr-phone-val" class="font-extrabold text-slate-900 dark:text-white font-mono">0971 221 306</span>
+            <span id="ehr-phone-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
 
           <!-- DỊ ỨNG -->
@@ -1362,14 +1362,7 @@ background: #94A3B8;
               <span>DỊ ỨNG</span>
             </span>
             <div id="ehr-allergies-container" class="flex flex-wrap gap-2 pt-1">
-              <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
-                <span>⚠️</span>
-                <span>Penicillin</span>
-              </span>
-              <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
-                <span>⚠️</span>
-                <span>Hải sản</span>
-              </span>
+              <span class="text-xs text-slate-400 italic">Chưa ghi nhận</span>
             </div>
           </div>
         </div>
@@ -1417,75 +1410,28 @@ background: #94A3B8;
 
       <!-- Timeline Cards Container -->
       <div id="ehr-timeline-list" class="relative pl-6 space-y-4 border-l-2 border-sky-500/30">
-        <!-- Record 1 (Viêm họng cấp - 18/10/2026) -->
-        <div onclick="openMedicalRecordDetail('rec_1')" class="relative group cursor-pointer">
-          <!-- Timeline Indicator Dot -->
-          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-sky-500 dark:bg-sky-400 border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
-
-          <!-- Card Content -->
-          <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-sky-500/40 hover:shadow-sky-500/10 backdrop-blur-xl transition-all">
-            <div class="flex items-start justify-between gap-2">
-              <div class="space-y-1.5">
-                <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">18/10/2026</span>
-                <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Viêm họng cấp & Sốt nhẹ</h4>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">BS. Lê Thu Hà · Nội tổng quát</p>
-                <div class="pt-2">
-                  <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">ICD-10: J02.9</span>
-                </div>
-              </div>
-
-              <div class="flex items-center self-center pl-2">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </div>
-            </div>
+        <!-- Privacy-First Empty State Card (Kịch bản 1) -->
+        <div id="ehr-privacy-empty-card" class="p-8 sm:p-10 text-center rounded-2xl border border-dashed border-sky-300/60 dark:border-white/10 space-y-4 bg-white/70 dark:bg-white/[0.02] backdrop-blur-xl shadow-xs">
+          <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 flex items-center justify-center mx-auto text-2xl shadow-sm">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
           </div>
-        </div>
-
-        <!-- Record 2 (Rối loạn nhịp xoang - 02/06/2026) -->
-        <div onclick="openMedicalRecordDetail('rec_2')" class="relative group cursor-pointer">
-          <!-- Timeline Indicator Dot -->
-          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-sky-500 dark:bg-sky-400 border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
-
-          <!-- Card Content -->
-          <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-sky-500/40 hover:shadow-sky-500/10 backdrop-blur-xl transition-all">
-            <div class="flex items-start justify-between gap-2">
-              <div class="space-y-1.5">
-                <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">02/06/2026</span>
-                <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Rối loạn nhịp xoang & Hồi hộp</h4>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">BS. Phạm Đức Long · Tim mạch</p>
-                <div class="pt-2">
-                  <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">ICD-10: I49.5</span>
-                </div>
-              </div>
-
-              <div class="flex items-center self-center pl-2">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </div>
-            </div>
+          <div class="space-y-1.5">
+            <h4 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+              Chưa có hồ sơ bệnh án được đồng bộ
+            </h4>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-normal">
+              Hồ sơ bệnh án cá nhân được mã hóa an toàn theo tiêu chuẩn bảo vệ dữ liệu y tế. Vui lòng đăng nhập để lưu trữ lịch sử tư vấn AI, quản lý đơn thuốc và phác đồ điều trị.
+            </p>
           </div>
-        </div>
-
-        <!-- Record 3 (Khám sức khỏe tổng quát - 20/11/2025) -->
-        <div onclick="openMedicalRecordDetail('rec_3')" class="relative group cursor-pointer">
-          <!-- Timeline Indicator Dot -->
-          <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-sky-500 dark:bg-sky-400 border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
-
-          <!-- Card Content -->
-          <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-sky-500/40 hover:shadow-sky-500/10 backdrop-blur-xl transition-all">
-            <div class="flex items-start justify-between gap-2">
-              <div class="space-y-1.5">
-                <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">20/11/2025</span>
-                <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Kiểm tra sức khỏe định kỳ & Thiếu máu nhẹ</h4>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">BS. Lê Thu Hà · Nội tổng quát</p>
-                <div class="pt-2">
-                  <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">ICD-10: D50.9</span>
-                </div>
-              </div>
-
-              <div class="flex items-center self-center pl-2">
-                <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </div>
-            </div>
+          <div class="flex flex-wrap items-center justify-center gap-3 pt-3">
+            <button type="button" onclick="openLoginModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer">
+              Đăng nhập / Đăng ký ngay
+            </button>
+            <button type="button" onclick="loadDemoPatientRecords()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer">
+              Xem ca bệnh mẫu minh họa
+            </button>
           </div>
         </div>
       </div>
@@ -3117,7 +3063,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.8.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.0"></script>
 
 
 <!-- ============================================================== -->
@@ -3172,11 +3118,11 @@ Hủy bỏ
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Họ và tên bệnh nhân</label>
-          <input type="text" id="book-modal-name" required placeholder="Nguyễn Thành Khiêm" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+          <input type="text" id="book-modal-name" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
         </div>
         <div>
           <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Số điện thoại liên hệ</label>
-          <input type="tel" id="book-modal-phone" required placeholder="0971221306" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+          <input type="tel" id="book-modal-phone" required placeholder="Ví dụ: 0912 345 678" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
         </div>
       </div>
 

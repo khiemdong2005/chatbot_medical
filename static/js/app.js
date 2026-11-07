@@ -1107,7 +1107,7 @@ function switchTab(tabId, updateHistory = true) {
   }
   if (tabId === 'doctor-tab') {
     syncCurrentPatientProfile();
-    selectPatientProfile('current_patient');
+    updateEhrTabUI();
   renderMedicalFacilities();
   }
 
@@ -3125,6 +3125,7 @@ function updateAuthUI() {
     loadPrescriptionHistory();
   }
   updateHomeGreeting();
+  updateEhrTabUI();
 }
 
 function openDisclaimerModal() {
@@ -6247,6 +6248,210 @@ function syncCurrentPatientProfile() {
   }
 }
 
+let isViewingEhrDemo = false;
+
+function updateEhrTabUI() {
+  const heroName = document.getElementById('ehr-hero-name');
+  const heroDemo = document.getElementById('ehr-hero-demographics');
+  const avatarLarge = document.getElementById('ehr-avatar-large');
+  const visitCount = document.getElementById('ehr-visit-count');
+  const lastVisit = document.getElementById('ehr-last-visit-date');
+  const dobVal = document.getElementById('ehr-dob-val');
+  const bloodVal = document.getElementById('ehr-blood-val');
+  const phoneVal = document.getElementById('ehr-phone-val');
+  const allergiesContainer = document.getElementById('ehr-allergies-container');
+  const timelineContainer = document.getElementById('ehr-timeline-list');
+  const exportBtn = document.getElementById('ehr-export-pdf-btn');
+
+  // TRƯỜNG HỢP 1: NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP (Hiển thị hồ sơ thật)
+  if (currentUser) {
+    isViewingEhrDemo = false;
+    const displayName = currentUser.full_name || currentUser.name || (currentLang === 'en' ? 'Patient' : 'Bệnh nhân');
+    const gender = currentUser.gender || (currentLang === 'en' ? 'Not specified' : 'Chưa rõ');
+    let ageStr = '';
+    if (currentUser.dob) {
+      const yearMatch = currentUser.dob.match(/(19\d{2}|20\d{2})/);
+      if (yearMatch) {
+        const age = new Date().getFullYear() - parseInt(yearMatch[1], 10);
+        ageStr = ` · ${age} ${currentLang === 'en' ? 'years old' : 'tuổi'}`;
+      }
+    }
+
+    if (heroName) heroName.innerText = displayName;
+    if (heroDemo) heroDemo.innerText = `${gender}${ageStr}`;
+    
+    if (avatarLarge) {
+      const initials = displayName.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() || 'BN';
+      avatarLarge.innerText = initials;
+    }
+
+    if (dobVal) dobVal.innerText = currentUser.dob || (currentLang === 'en' ? 'Not updated' : 'Chưa cập nhật');
+    if (bloodVal) bloodVal.innerText = currentUser.blood_type || (currentLang === 'en' ? 'Not updated' : 'Chưa cập nhật');
+    
+    const phone = (typeof fieldRealValues !== 'undefined' && fieldRealValues['p-phone']) || currentUser.phone_number || currentUser.phone || '';
+    if (phoneVal) phoneVal.innerText = phone || (currentLang === 'en' ? 'Not updated' : 'Chưa cập nhật');
+
+    if (allergiesContainer) {
+      const rawAllergies = currentUser.allergies || '';
+      if (rawAllergies && rawAllergies.trim()) {
+        const list = rawAllergies.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+        allergiesContainer.innerHTML = list.map(alg => `
+          <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
+            <span>⚠️</span>
+            <span>${escapeHtml(alg)}</span>
+          </span>
+        `).join('');
+      } else {
+        allergiesContainer.innerHTML = `<span class="text-xs text-slate-400 italic">${currentLang === 'en' ? 'No allergies reported' : 'Chưa ghi nhận dị ứng'}</span>`;
+      }
+    }
+
+    if (visitCount) visitCount.innerText = String(chatHistory.length > 0 ? 1 : 0);
+    if (lastVisit) lastVisit.innerText = currentUser.joined_date || (currentLang === 'en' ? 'Today' : 'Hôm nay');
+
+    if (exportBtn) {
+      exportBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      exportBtn.removeAttribute('disabled');
+      exportBtn.title = currentLang === 'en' ? 'Export pre-visit summary (PDF)' : 'In hoặc tải bản tóm tắt trước khám (PDF)';
+    }
+
+    switchEhrSubTab(currentEhrSubTab || 'ai');
+    return;
+  }
+
+  // TRƯỜNG HỢP 2: CHƯA ĐĂNG NHẬP NHƯNG ĐANG BẤM XEM DEMO MINH HỌA
+  if (isViewingEhrDemo) {
+    const demoPatient = medicalPatientsData.minh_anh;
+    if (heroName) heroName.innerText = currentLang === 'en' ? 'Demo Patient Profile' : 'Bệnh nhân Mẫu (Minh họa Demo)';
+    if (heroDemo) heroDemo.innerText = `${demoPatient.gender} · ${demoPatient.age} ${currentLang === 'en' ? 'years old' : 'tuổi'} (Sandbox)`;
+    if (avatarLarge) avatarLarge.innerText = 'DEMO';
+    if (visitCount) visitCount.innerText = demoPatient.visitCount;
+    if (lastVisit) lastVisit.innerText = demoPatient.lastVisitDate;
+    if (dobVal) dobVal.innerText = demoPatient.dob;
+    if (bloodVal) bloodVal.innerText = demoPatient.blood;
+    if (phoneVal) phoneVal.innerText = demoPatient.phone;
+    if (allergiesContainer) {
+      allergiesContainer.innerHTML = demoPatient.allergies.map(alg => `
+        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30">
+          <span>⚠️</span>
+          <span>${alg} (Mẫu)</span>
+        </span>
+      `).join('');
+    }
+
+    if (exportBtn) {
+      exportBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+      exportBtn.removeAttribute('disabled');
+      exportBtn.title = currentLang === 'en' ? 'Export demo summary (PDF)' : 'In bản tóm tắt mẫu (PDF)';
+    }
+
+    renderPatientTimelineWithNotice(demoPatient.records || []);
+    return;
+  }
+
+  // TRƯỜNG HỢP 3: CHƯA ĐĂNG NHẬP VÀ MẶC ĐỊNH (KỊCH BẢN 1 - PRIVACY EMPTY STATE)
+  if (heroName) heroName.innerText = currentLang === 'en' ? 'Guest Visitor' : 'Chưa đăng nhập';
+  if (heroDemo) heroDemo.innerText = currentLang === 'en' ? 'Guest Account • Not Synchronized' : 'Tài khoản khách · Chưa đồng bộ hồ sơ';
+  if (avatarLarge) avatarLarge.innerText = '👤';
+  if (visitCount) visitCount.innerText = '0';
+  if (lastVisit) lastVisit.innerText = '--';
+  if (dobVal) dobVal.innerText = '--';
+  if (bloodVal) bloodVal.innerText = '--';
+  if (phoneVal) phoneVal.innerText = '--';
+  if (allergiesContainer) {
+    allergiesContainer.innerHTML = `<span class="text-xs text-slate-400 italic">${currentLang === 'en' ? 'No records yet' : 'Chưa ghi nhận'}</span>`;
+  }
+
+  if (exportBtn) {
+    exportBtn.classList.add('opacity-40', 'cursor-not-allowed');
+    exportBtn.setAttribute('disabled', 'disabled');
+    exportBtn.title = currentLang === 'en' ? 'Please sign in to export medical summary' : 'Vui lòng đăng nhập để xuất bản tóm tắt trước khám';
+  }
+
+  if (timelineContainer) {
+    timelineContainer.innerHTML = `
+      <div id="ehr-privacy-empty-card" class="p-8 sm:p-10 text-center rounded-2xl border border-dashed border-sky-300/60 dark:border-white/10 space-y-4 bg-white/70 dark:bg-white/[0.02] backdrop-blur-xl shadow-xs">
+        <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 flex items-center justify-center mx-auto text-2xl shadow-sm">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div class="space-y-1.5">
+          <h4 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+            ${currentLang === 'en' ? 'No Medical Records Synchronized' : 'Chưa có hồ sơ bệnh án được đồng bộ'}
+          </h4>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-normal">
+            ${currentLang === 'en'
+              ? 'Personal health records are encrypted and protected by medical privacy standards. Please sign in to save your AI consultation history, lab tests, and clinical treatment plans.'
+              : 'Hồ sơ bệnh án cá nhân được mã hóa an toàn theo tiêu chuẩn bảo vệ dữ liệu y tế. Vui lòng đăng nhập để lưu trữ lịch sử tư vấn AI, quản lý đơn thuốc và phác đồ điều trị.'}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-3">
+          <button type="button" onclick="openLoginModal()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer">
+            ${currentLang === 'en' ? 'Sign In / Register Now' : 'Đăng nhập / Đăng ký ngay'}
+          </button>
+          <button type="button" onclick="loadDemoPatientRecords()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer">
+            ${currentLang === 'en' ? 'View Demo Clinical Case' : 'Xem ca bệnh mẫu minh họa'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function loadDemoPatientRecords() {
+  isViewingEhrDemo = true;
+  updateEhrTabUI();
+  if (typeof showMedicalToast === 'function') {
+    showMedicalToast(currentLang === 'en' ? 'Viewing Demo Medical Record.' : 'Đang xem ca bệnh mẫu minh họa.', 'info');
+  }
+}
+
+function exitDemoPatientRecords() {
+  isViewingEhrDemo = false;
+  updateEhrTabUI();
+}
+
+function renderPatientTimelineWithNotice(records) {
+  const container = document.getElementById('ehr-timeline-list');
+  if (!container) return;
+
+  const noticeHtml = `
+    <div class="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-700 dark:text-amber-300">
+      <div class="flex items-center gap-2">
+        <span class="text-base">⚠️</span>
+        <span class="font-bold">${currentLang === 'en' ? 'Displaying sandbox demo case. Sign in to create your personal medical record.' : 'Đang hiển thị ca bệnh lâm sàng mẫu (Minh họa Demo). Hãy đăng nhập để lưu hồ sơ thật của bạn.'}</span>
+      </div>
+      <button type="button" onclick="exitDemoPatientRecords()" class="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 font-bold transition-colors cursor-pointer shrink-0">
+        ${currentLang === 'en' ? 'Close Demo' : 'Đóng chế độ mẫu'}
+      </button>
+    </div>
+  `;
+
+  const timelineHtml = records.map(rec => `
+    <div onclick="openMedicalRecordDetail('${rec.id}')" class="relative group cursor-pointer">
+      <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full bg-sky-500 dark:bg-sky-400 border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
+      <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] hover:border-sky-500/40 hover:shadow-sky-500/10 backdrop-blur-xl transition-all">
+        <div class="flex items-start justify-between gap-2">
+          <div class="space-y-1.5">
+            <span class="text-xs font-bold text-sky-600 dark:text-sky-400 font-mono">${rec.date}</span>
+            <h4 class="text-base font-black text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">${rec.title}</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">${rec.doctor}</p>
+            <div class="pt-2">
+              <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[11px] font-mono border border-slate-200 dark:border-white/10">${rec.icd}</span>
+            </div>
+          </div>
+          <div class="flex items-center self-center pl-2">
+            <svg class="w-5 h-5 text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = noticeHtml + timelineHtml;
+}
+
 function selectPatientProfile(patientKey = 'current_patient') {
   syncCurrentPatientProfile();
   activeMedicalPatientKey = patientKey || 'current_patient';
@@ -6313,12 +6518,20 @@ function switchEhrSubTab(subTab) {
   if (subTab === 'ai') {
     if (btnAi) btnAi.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer';
     if (btnHosp) btnHosp.className = 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
-    loadAndRenderAiConsultations();
+    if (!currentUser && !isViewingEhrDemo) {
+      updateEhrTabUI();
+    } else {
+      loadAndRenderAiConsultations();
+    }
   } else {
     if (btnAi) btnAi.className = 'px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
     if (btnHosp) btnHosp.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer';
-    const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
-    renderPatientTimeline(patient.records || []);
+    if (!currentUser) {
+      loadDemoPatientRecords();
+    } else {
+      const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
+      renderPatientTimeline(patient.records || []);
+    }
   }
 }
 
