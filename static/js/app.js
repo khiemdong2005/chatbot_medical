@@ -3124,6 +3124,7 @@ function updateAuthUI() {
     loadScanFiles();
     loadPrescriptionHistory();
   }
+  updateHomeGreeting();
 }
 
 function openDisclaimerModal() {
@@ -6161,14 +6162,40 @@ const medicalPatientsData = {
 let activeMedicalPatientKey = 'current_patient';
 
 function updateHomeGreeting() {
+  const badge = document.getElementById('home-greeting-badge');
   const greetingEl = document.getElementById('home-greeting-text');
-  if (!greetingEl) return;
+  if (!badge && !greetingEl) return;
+
+  const rawName = (currentUser && (currentUser.name || currentUser.full_name)) ? (currentUser.name || currentUser.full_name).trim() : '';
+
+  // Khi chưa đăng nhập (hoặc tên trống): KHÔNG hiển thị lời chào
+  if (!currentUser || !rawName) {
+    if (badge) badge.classList.add('hidden');
+    if (greetingEl) greetingEl.innerText = '';
+    return;
+  }
+
+  // Khi user đã đăng nhập: Hiển thị lời chào theo thời gian thực (Real-time Sáng / Chiều / Tối) + Tên User
   const hour = new Date().getHours();
   let timeGreeting = "CHÀO BUỔI SÁNG";
-  if (hour >= 12 && hour < 18) timeGreeting = "CHÀO BUỔI CHIỀU";
-  else if (hour >= 18) timeGreeting = "CHÀO BUỔI TỐI";
-  const name = (currentUser && (currentUser.name || currentUser.full_name)) ? (currentUser.name || currentUser.full_name).toUpperCase() : "NGUYỄN THÀNH KHIÊM";
-  greetingEl.innerText = `${timeGreeting}, ${name}`;
+  if (hour >= 12 && hour < 18) {
+    timeGreeting = "CHÀO BUỔI CHIỀU";
+  } else if (hour >= 18 || hour < 5) {
+    timeGreeting = "CHÀO BUỔI TỐI";
+  }
+
+  if (typeof currentLang !== 'undefined' && currentLang === 'en') {
+    if (hour >= 5 && hour < 12) timeGreeting = "GOOD MORNING";
+    else if (hour >= 12 && hour < 18) timeGreeting = "GOOD AFTERNOON";
+    else timeGreeting = "GOOD EVENING";
+  }
+
+  if (greetingEl) {
+    greetingEl.innerText = `${timeGreeting}, ${rawName.toUpperCase()}`;
+  }
+  if (badge) {
+    badge.classList.remove('hidden');
+  }
 }
 
 function syncCurrentPatientProfile() {

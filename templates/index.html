@@ -25,7 +25,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.7.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.8.0">
 
 <style>
 
@@ -455,10 +455,10 @@ background: #94A3B8;
       <!-- LEFT COLUMN: Greeting, Big Headline, Description, Actions & Trust Badges -->
       <div class="lg:col-span-7 space-y-4 sm:space-y-5">
 
-        <!-- Greeting Pill with pulsating orange dot -->
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-md border border-sky-200/90 dark:border-white/15 text-[11px] font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-200 shadow-2xs">
+        <!-- Greeting Pill with pulsating orange dot (Chỉ hiển thị khi đã đăng nhập) -->
+        <div id="home-greeting-badge" class="hidden inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-white/10 backdrop-blur-md border border-sky-200/90 dark:border-white/15 text-[11px] font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-200 shadow-2xs">
           <span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#F59E0B] animate-pulse"></span>
-          <span id="home-greeting-text">CHÀO BUỔI SÁNG, NGUYỄN THÀNH KHIÊM</span>
+          <span id="home-greeting-text"></span>
         </div>
 
         <!-- Big Headline -->
@@ -3117,7 +3117,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.7.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.8.0"></script>
 
 
 <!-- ============================================================== -->
