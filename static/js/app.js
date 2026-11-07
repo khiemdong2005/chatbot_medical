@@ -2094,9 +2094,7 @@ function toggleAuthMode(mode) {
     if (tabsContainer) tabsContainer.classList.remove('hidden');
     const googleSpan = document.querySelector('#btn-google-signin span');
     if (googleSpan) {
-      googleSpan.innerText = mode === 'register'
-        ? (currentLang === 'en' ? 'Sign up with Google' : 'Đăng ký nhanh bằng Google')
-        : (dict.btn_google_signin || 'Tiếp tục với Google');
+      googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
 
     if (tabLogin) {
@@ -2123,9 +2121,7 @@ function toggleAuthMode(mode) {
     if (tabsContainer) tabsContainer.classList.remove('hidden');
     const googleSpan = document.querySelector('#btn-google-signin span');
     if (googleSpan) {
-      googleSpan.innerText = mode === 'register'
-        ? (currentLang === 'en' ? 'Sign up with Google' : 'Đăng ký nhanh bằng Google')
-        : (dict.btn_google_signin || 'Tiếp tục với Google');
+      googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
 
     if (tabReg) {
@@ -3411,7 +3407,7 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleAuthMode('register');
       if (typeof showMedicalToast === 'function') {
         showMedicalToast(
-          `Tài khoản Google (${googleUnregEmail || 'này'}) chưa có hồ sơ trên MediMind. Vui lòng bấm "Đăng ký nhanh bằng Google" ở tab Tạo tài khoản mới!`,
+          `Tài khoản Google (${googleUnregEmail || 'này'}) chưa có hồ sơ trên MediMind. Vui lòng bấm "Tiếp tục với Google" ở tab Tạo tài khoản mới!`,
           'warning',
           6500
         );
