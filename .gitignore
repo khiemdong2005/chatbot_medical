@@ -47,3 +47,6 @@ scratch/
 .artifact-server.json
 .artifact-server.log
 .sharing.json
+
+instance/
+

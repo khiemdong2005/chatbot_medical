@@ -462,13 +462,13 @@ background: #94A3B8;
         </div>
 
         <!-- Big Headline -->
-        <h1 class="text-3xl sm:text-4xl lg:text-[42px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.18]">
+        <h1 data-i18n="home_hero_headline" class="text-3xl sm:text-4xl lg:text-[42px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.18]">
           Chăm sóc sức khỏe<br>
           thông minh hơn mỗi ngày.
         </h1>
 
         <!-- Subtitle -->
-        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl font-normal">
+        <p data-i18n="home_hero_desc" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl font-normal">
           Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.
         </p>
 
@@ -477,14 +477,14 @@ background: #94A3B8;
           <!-- Primary: Trò chuyện với trợ lý > (Original Sky-Indigo Gradient) -->
           <button onclick="switchTab('chat-tab')" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-sky-500/30 flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            <span>Trò chuyện với trợ lý</span>
+            <span data-i18n="home_btn_chat">Trò chuyện với trợ lý</span>
             <svg class="w-3.5 h-3.5 ml-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
           </button>
 
           <!-- Secondary: Mở hồ sơ sức khỏe -->
           <button onclick="switchTab('doctor-tab')" class="px-6 py-3.5 rounded-2xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/20 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/15 font-bold text-sm shadow-xs flex items-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
             <svg class="w-4 h-4 text-sky-500 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span>Mở hồ sơ sức khỏe</span>
+            <span data-i18n="home_btn_record">Mở hồ sơ sức khỏe</span>
           </button>
         </div>
 
@@ -492,11 +492,11 @@ background: #94A3B8;
         <div class="flex flex-wrap items-center gap-6 pt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
           <span class="flex items-center gap-2">
             <svg class="w-4 h-4 text-sky-500 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span>Thông tin được bảo mật</span>
+            <span data-i18n="home_badge_security">Thông tin được bảo mật</span>
           </span>
           <span class="flex items-center gap-2">
             <svg class="w-4 h-4 text-sky-500 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>Hỗ trợ dựa trên dữ liệu</span>
+            <span data-i18n="home_badge_data">Hỗ trợ dựa trên dữ liệu</span>
           </span>
         </div>
 
@@ -553,8 +553,8 @@ background: #94A3B8;
           </div>
 
           <div>
-            <div class="text-xs font-black text-slate-900 dark:text-white leading-tight">Khỏe mạnh</div>
-            <div class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Chỉ số hôm nay</div>
+            <div data-i18n="home_metric_status" class="text-xs font-black text-slate-900 dark:text-white leading-tight">Khỏe mạnh</div>
+            <div data-i18n="home_metric_sub" class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Chỉ số hôm nay</div>
           </div>
           <div class="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 leading-none pl-1">
             92%
@@ -572,17 +572,17 @@ background: #94A3B8;
     <!-- Section Header (Left title, Right description & link) -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
-        <span class="text-[11px] font-extrabold tracking-widest uppercase text-amber-600 dark:text-amber-400 block mb-1">KHÁM PHÁ</span>
-        <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+        <span data-i18n="home_disc_tag" class="text-[11px] font-extrabold tracking-widest uppercase text-amber-600 dark:text-amber-400 block mb-1">KHÁM PHÁ</span>
+        <h2 data-i18n="home_disc_title" class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
           Mọi thứ bạn cần<br class="hidden sm:inline"> để sống khỏe hơn.
         </h2>
       </div>
       <div class="text-left md:text-right max-w-md">
-        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal">
+        <p data-i18n="home_disc_desc" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal">
           Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.
         </p>
         <button onclick="switchTab('doctor-tab')" class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer">
-          <span>Khám phá tất cả</span>
+          <span data-i18n="home_disc_more">Khám phá tất cả</span>
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </button>
 
@@ -599,9 +599,9 @@ background: #94A3B8;
           <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
           </div>
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">HỖ TRỢ 24/7</span>
-          <h3 class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Trò chuyện cùng AI</h3>
-          <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Giải đáp các thắc mắc sức khỏe thường gặp bằng ngôn ngữ dễ hiểu.</p>
+          <span data-i18n="home_c1_tag" class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">HỖ TRỢ 24/7</span>
+          <h3 data-i18n="home_c1_title" class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">Trò chuyện cùng AI</h3>
+          <p data-i18n="home_c1_desc" class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Giải đáp các thắc mắc sức khỏe thường gặp bằng ngôn ngữ dễ hiểu.</p>
         </div>
       </div>
 
@@ -611,9 +611,9 @@ background: #94A3B8;
           <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           </div>
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">THÔNG TIN CỦA BẠN</span>
-          <h3 class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Hồ sơ sức khỏe</h3>
-          <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Quản lý chỉ số, lịch sử khám và những thông tin quan trọng của gia đình.</p>
+          <span data-i18n="home_c2_tag" class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">THÔNG TIN CỦA BẠN</span>
+          <h3 data-i18n="home_c2_title" class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Hồ sơ sức khỏe</h3>
+          <p data-i18n="home_c2_desc" class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Quản lý chỉ số, lịch sử khám và những thông tin quan trọng của gia đình.</p>
         </div>
       </div>
 
@@ -623,9 +623,9 @@ background: #94A3B8;
           <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           </div>
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">ĐỒNG HÀNH CÙNG BẠN</span>
-          <h3 class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Lịch hẹn sắp tới</h3>
-          <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Theo dõi lịch khám và nhận nhắc nhở để không bỏ lỡ những cuộc hẹn quan trọng.</p>
+          <span data-i18n="home_c3_tag" class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">ĐỒNG HÀNH CÙNG BẠN</span>
+          <h3 data-i18n="home_c3_title" class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Lịch hẹn sắp tới</h3>
+          <p data-i18n="home_c3_desc" class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Theo dõi lịch khám và nhận nhắc nhở để không bỏ lỡ những cuộc hẹn quan trọng.</p>
         </div>
       </div>
 
@@ -688,9 +688,9 @@ background: #94A3B8;
           <span class="w-6 h-6 rounded-lg bg-sky-50 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xs">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           </span>
-          <span class="text-sm font-bold text-slate-900 dark:text-white">Thông tin đã ghi nhận</span>
+          <span data-i18n="intake_card_title" class="text-sm font-bold text-slate-900 dark:text-white">Thông tin đã ghi nhận</span>
         </div>
-        <span id="intake-status-badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
+        <span id="intake-status-badge" data-i18n="intake_status_init" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
           Chờ khởi tạo
         </span>
       </div>
@@ -698,23 +698,23 @@ background: #94A3B8;
       <!-- Key-Value Table matching screenshot -->
       <div class="divide-y divide-slate-100 dark:divide-white/5 text-xs">
         <div class="flex items-center justify-between py-2.5">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">Lý do</span>
+          <span data-i18n="intake_lbl_chief" class="text-slate-500 dark:text-slate-400 font-medium">Lý do</span>
           <span id="intake-chief-complaint" class="font-bold text-slate-900 dark:text-white truncate max-w-[60%] text-right">Chưa có thông tin</span>
         </div>
         <div class="flex items-center justify-between py-2.5">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">Triệu chứng</span>
+          <span data-i18n="intake_lbl_symptoms" class="text-slate-500 dark:text-slate-400 font-medium">Triệu chứng</span>
           <span id="intake-present-symptoms" class="font-bold text-sky-600 dark:text-sky-400">--</span>
         </div>
         <div class="flex items-center justify-between py-2.5">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">Đã phủ nhận</span>
+          <span data-i18n="intake_lbl_denied" class="text-slate-500 dark:text-slate-400 font-medium">Đã phủ nhận</span>
           <span id="intake-denied-symptoms" class="text-slate-400 dark:text-slate-500 italic">Chưa ghi nhận</span>
         </div>
         <div class="flex items-center justify-between py-2.5">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">Thời gian</span>
+          <span data-i18n="intake_lbl_duration" class="text-slate-500 dark:text-slate-400 font-medium">Thời gian</span>
           <span id="intake-duration" class="font-bold text-slate-700 dark:text-slate-300">--</span>
         </div>
         <div class="flex items-center justify-between py-2.5">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">Thân nhiệt</span>
+          <span data-i18n="intake_lbl_vitals" class="text-slate-500 dark:text-slate-400 font-medium">Thân nhiệt</span>
           <span id="intake-vitals" class="font-bold text-slate-700 dark:text-slate-300">--</span>
         </div>
       </div>
@@ -723,11 +723,11 @@ background: #94A3B8;
       <div class="pt-2 flex items-center gap-3">
         <button type="button" id="btn-pre-visit-summary" onclick="openPreVisitSummaryModal()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
           <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span class="text-slate-800 dark:text-slate-200 font-bold">Tóm tắt trước khám</span>
+          <span data-i18n="intake_btn_summary" class="text-slate-800 dark:text-slate-200 font-bold">Tóm tắt trước khám</span>
         </button>
         <button type="button" id="btn-confirm-intake" onclick="confirmCurrentIntake()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs" title="Xác nhận lời khai đúng thực tế">
           <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span class="text-slate-800 dark:text-slate-200 font-bold">Xác nhận</span>
+          <span data-i18n="intake_btn_confirm" class="text-slate-800 dark:text-slate-200 font-bold">Xác nhận</span>
         </button>
       </div>
 
@@ -884,62 +884,62 @@ background: #94A3B8;
         
         <!-- Sidebar Title & Search -->
         <div class="space-y-3">
-          <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Cơ Sở Y Tế</h3>
+          <h3 data-i18n="facility_sidebar_title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Cơ Sở Y Tế</h3>
           <div class="relative flex items-center">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input type="text" id="facility-sidebar-search" oninput="handleFacilitySearchInput(this.value)" placeholder="Tìm bệnh viện, phòng khám, quận/huyện..." class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+            <input type="text" id="facility-sidebar-search" oninput="handleFacilitySearchInput(this.value)" data-i18n-placeholder="facility_sidebar_search_ph" placeholder="Tìm bệnh viện, phòng khám, quận/huyện..." class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
           </div>
         </div>
 
         <!-- Section 1: LOẠI HÌNH CƠ SỞ -->
         <div class="space-y-2 pt-2 border-t border-slate-200/80 dark:border-white/10">
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">LOẠI HÌNH CƠ SỞ</span>
+          <span data-i18n="facility_sec_type" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">LOẠI HÌNH CƠ SỞ</span>
           <div class="space-y-1" id="facility-type-list">
             <button type="button" onclick="selectFacilityType('all', this)" class="facility-type-btn active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-600 text-white border border-sky-500 shadow-md shadow-sky-600/25 text-xs font-bold transition-all cursor-pointer">
               <span class="flex items-center gap-2">
                 <span>🏥</span>
-                <span>Tất cả cơ sở</span>
+                <span data-i18n="facility_type_all">Tất cả cơ sở</span>
               </span>
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/25 text-white" id="badge-count-all">148</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/25 text-white" id="badge-count-all">12</span>
             </button>
 
             <button type="button" onclick="selectFacilityType('general', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
               <span class="flex items-center gap-2">
                 <span>🏥</span>
-                <span>Bệnh viện Đa khoa</span>
+                <span data-i18n="facility_type_general">Bệnh viện Đa khoa</span>
               </span>
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-general">52</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-general">6</span>
             </button>
 
             <button type="button" onclick="selectFacilityType('clinic', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
               <span class="flex items-center gap-2">
                 <span>🏢</span>
-                <span>Phòng khám Quốc tế</span>
+                <span data-i18n="facility_type_clinic">Phòng khám Quốc tế</span>
               </span>
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-clinic">36</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-clinic">3</span>
             </button>
 
             <button type="button" onclick="selectFacilityType('specialized', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
               <span class="flex items-center gap-2">
                 <span>🏥</span>
-                <span>Bệnh viện Chuyên khoa</span>
+                <span data-i18n="facility_type_specialized">Bệnh viện Chuyên khoa</span>
               </span>
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-specialized">41</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-specialized">4</span>
             </button>
 
             <button type="button" onclick="selectFacilityType('testing', this)" class="facility-type-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 border border-transparent text-xs font-medium transition-all cursor-pointer">
               <span class="flex items-center gap-2">
                 <span>🧪</span>
-                <span>Trung tâm Xét nghiệm</span>
+                <span data-i18n="facility_type_testing">Trung tâm Xét nghiệm</span>
               </span>
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-testing">19</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400" id="badge-count-testing">1</span>
             </button>
           </div>
         </div>
 
         <!-- Section 2: KHU VỰC ĐỊA LÝ -->
         <div class="space-y-2 pt-2 border-t border-slate-200/80 dark:border-white/10">
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">KHU VỰC ĐỊA LÝ</span>
+          <span data-i18n="facility_sec_region" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">KHU VỰC ĐỊA LÝ</span>
           <div class="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10" id="facility-region-group">
             <button type="button" onclick="selectFacilityRegion('hcm', this)" class="facility-region-btn active py-2 text-center rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 shadow-sm border border-slate-200/60 dark:border-transparent transition-all cursor-pointer">TP. HCM</button>
             <button type="button" onclick="selectFacilityRegion('hanoi', this)" class="facility-region-btn py-2 text-center rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">Hà Nội</button>
@@ -949,15 +949,18 @@ background: #94A3B8;
 
         <!-- Section 3: CHUYÊN KHOA NỔI BẬT -->
         <div class="space-y-2.5 pt-2 border-t border-slate-200/80 dark:border-white/10">
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">CHUYÊN KHOA NỔI BẬT</span>
+          <span data-i18n="facility_sec_specialty" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">CHUYÊN KHOA NỔI BẬT</span>
           <div class="flex flex-wrap gap-1.5" id="facility-specialty-tags">
-            <button type="button" onclick="toggleFacilitySpecialty('Tim mạch', this)" class="facility-spec-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white border border-sky-500 shadow-xs transition-all cursor-pointer">Tim mạch</button>
-            <button type="button" onclick="toggleFacilitySpecialty('Nhi khoa', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Nhi khoa</button>
-            <button type="button" onclick="toggleFacilitySpecialty('Tai Mũi Họng', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Tai Mũi Họng</button>
-            <button type="button" onclick="toggleFacilitySpecialty('Nội tiết & Tiểu đường', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Nội tiết &amp; Tiểu đường</button>
-            <button type="button" onclick="toggleFacilitySpecialty('Tiêu hóa & Gan mật', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Tiêu hóa &amp; Gan mật</button>
-            <button type="button" onclick="toggleFacilitySpecialty('Chấn thương chỉnh hình', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Chấn thương chỉnh hình</button>
-            <button type="button" onclick="toggleFacilitySpecialty('Thần kinh', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer">Thần kinh</button>
+            <button type="button" onclick="toggleFacilitySpecialty('Tim mạch', this)" class="facility-spec-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600 text-white border border-sky-500 shadow-xs transition-all cursor-pointer"><span data-i18n="spec_cardiology">Tim mạch</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Nhi khoa', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_pediatrics">Nhi khoa</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Tai Mũi Họng', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_ent">Tai Mũi Họng</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Nội tiết & Tiểu đường', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_endocrine">Nội tiết &amp; Tiểu đường</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Tiêu hóa & Gan mật', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_gastro">Tiêu hóa &amp; Gan mật</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Chấn thương chỉnh hình', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_orthopedics">Chấn thương chỉnh hình</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Thần kinh', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_neurology">Thần kinh</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Sản phụ khoa', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_obgyn">Sản phụ khoa</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Ung bướu', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_oncology">Ung bướu</span></button>
+            <button type="button" onclick="toggleFacilitySpecialty('Mắt', this)" class="facility-spec-btn px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 hover:border-sky-400/40 transition-all cursor-pointer"><span data-i18n="spec_eye">Mắt</span></button>
           </div>
         </div>
 
@@ -972,7 +975,7 @@ background: #94A3B8;
         <!-- Main Search Input -->
         <div class="relative flex-1 flex items-center">
           <svg class="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" id="facility-main-search" oninput="handleFacilitySearchInput(this.value)" placeholder="Nhập tên bệnh viện, triệu chứng, bác sĩ chuyên khoa..." class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
+          <input type="text" id="facility-main-search" oninput="handleFacilitySearchInput(this.value)" data-i18n-placeholder="facility_main_search_ph" placeholder="Nhập tên bệnh viện, triệu chứng, bác sĩ chuyên khoa..." class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors">
         </div>
 
         <!-- District Filter Dropdown -->
@@ -992,7 +995,7 @@ background: #94A3B8;
         <!-- Map Toggle Button -->
         <button type="button" onclick="toggleHospitalMapSection()" id="btn-toggle-hospital-map" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0">
           <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-          <span id="hospital-map-toggle-text">Bản đồ</span>
+          <span id="hospital-map-toggle-text" data-i18n="facility_btn_map">Bản đồ</span>
         </button>
       </div>
 
@@ -1001,7 +1004,7 @@ background: #94A3B8;
         <div class="p-3 bg-slate-50 dark:bg-white/5 border-b border-slate-200/80 dark:border-white/10 flex justify-between items-center text-xs">
           <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Bản đồ trực tiếp (Google Maps)</span>
+            <span data-i18n="facility_map_live_title">Bản đồ trực tiếp (Google Maps)</span>
           </span>
           <div class="flex items-center gap-3">
             <a href="https://www.google.com/maps/search/bệnh+viện+gần+nhất" target="_blank" class="text-sky-600 dark:text-sky-400 font-semibold hover:underline flex items-center gap-1">
@@ -1023,11 +1026,11 @@ background: #94A3B8;
           <span id="facility-results-count" class="font-semibold text-slate-700 dark:text-slate-300">Hiển thị 6 cơ sở y tế uy tín đạt chuẩn Bộ Y tế &amp; MedlinePlus</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-slate-400">Sắp xếp:</span>
+          <span class="text-slate-400" data-i18n="facility_lbl_sort">Sắp xếp:</span>
           <select id="facility-sort-select" onchange="handleFacilitySortChange(this.value)" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 border-0 focus:outline-none cursor-pointer">
-            <option value="default">Gần nhất &amp; Đánh giá cao</option>
-            <option value="rating">Đánh giá cao nhất</option>
-            <option value="distance">Khoảng cách gần nhất</option>
+            <option value="default" data-i18n="facility_sort_default">Gần nhất & Đánh giá cao</option>
+            <option value="rating" data-i18n="facility_sort_rating">Đánh giá cao nhất</option>
+            <option value="distance" data-i18n="facility_sort_distance">Khoảng cách gần nhất</option>
           </select>
         </div>
       </div>
@@ -1277,8 +1280,8 @@ background: #94A3B8;
         </svg>
       </div>
       <div>
-        <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight" id="ehr-title">Hồ sơ bệnh án của tôi</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="ehr-subtitle">Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân</p>
+        <h2 data-i18n="ehr_header_title" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight" id="ehr-title">Hồ sơ bệnh án của tôi</h2>
+        <p data-i18n="ehr_header_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="ehr-subtitle">Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân</p>
       </div>
     </div>
     <div class="flex items-center space-x-2.5">
@@ -1286,11 +1289,11 @@ background: #94A3B8;
         <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
-        <span id="ehr-export-text">Xuất Tóm Tắt (PDF)</span>
+        <span id="ehr-export-text" data-i18n="ehr_export_text">Xuất Tóm Tắt (PDF)</span>
       </button>
-      <button onclick="switchTab('chat-tab')" class="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white px-4 py-2.5 rounded-xl glass-pill border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
+      <button onclick="switchTab('home-tab')" class="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white px-4 py-2.5 rounded-xl glass-pill border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        <span>Trang chủ</span>
+        <span data-i18n="btn_home">Trang chủ</span>
       </button>
     </div>
 
@@ -1312,15 +1315,11 @@ background: #94A3B8;
           </div>
         </div>
 
-        <!-- 2 Stat Tiles -->
-        <div class="grid grid-cols-2 gap-3 pt-2">
-          <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-white/[0.04] border border-sky-200/60 dark:border-white/10">
-            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Số lần khám</span>
-            <span id="ehr-visit-count" class="text-xl font-black text-sky-600 dark:text-sky-400 mt-1 block">0</span>
-          </div>
-          <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-white/[0.04] border border-sky-200/60 dark:border-white/10">
-            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Lần khám gần nhất</span>
-            <span id="ehr-last-visit-date" class="text-sm font-black text-sky-600 dark:text-sky-400 mt-2 block">--</span>
+        <!-- Stat Tile: Số lần khám -->
+        <div class="pt-2">
+          <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-white/[0.04] border border-sky-200/60 dark:border-white/10 flex items-center justify-between">
+            <span data-i18n="ehr_stat_visits" class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Số lần khám</span>
+            <span id="ehr-visit-count" class="text-xl font-black text-sky-600 dark:text-sky-400">0</span>
           </div>
         </div>
       </div>
@@ -1332,7 +1331,7 @@ background: #94A3B8;
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
             <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
               <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              <span>NGÀY SINH</span>
+              <span data-i18n="ehr_lbl_dob">NGÀY SINH</span>
             </span>
             <span id="ehr-dob-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
@@ -1341,7 +1340,7 @@ background: #94A3B8;
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
             <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
               <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-              <span>NHÓM MÁU</span>
+              <span data-i18n="ehr_lbl_blood">NHÓM MÁU</span>
             </span>
             <span id="ehr-blood-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
@@ -1350,7 +1349,7 @@ background: #94A3B8;
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
             <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
               <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-              <span>ĐIỆN THOẠI</span>
+              <span data-i18n="ehr_lbl_phone">ĐIỆN THOẠI</span>
             </span>
             <span id="ehr-phone-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
@@ -1359,7 +1358,7 @@ background: #94A3B8;
           <div class="space-y-2 pt-1">
             <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
               <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-              <span>DỊ ỨNG</span>
+              <span data-i18n="ehr_lbl_allergy">DỊ ỨNG</span>
             </span>
             <div id="ehr-allergies-container" class="flex flex-wrap gap-2 pt-1">
               <span class="text-xs text-slate-400 italic">Chưa ghi nhận</span>
@@ -1374,9 +1373,9 @@ background: #94A3B8;
         <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-white/10">
           <div class="flex items-center space-x-2">
             <span class="text-base">💊</span>
-            <h4 class="text-xs font-bold text-slate-900 dark:text-white">Toa thuốc &amp; Bệnh án đã Import</h4>
+            <h4 data-i18n="ehr_sec_prescriptions" class="text-xs font-bold text-slate-900 dark:text-white">Toa thuốc &amp; Bệnh án đã Import</h4>
           </div>
-          <button type="button" onclick="switchTab('ocr-tab')" class="text-[11px] text-teal-600 dark:text-teal-300 hover:text-teal-700 dark:hover:text-white font-bold transition-colors cursor-pointer">
+          <button type="button" onclick="switchTab('ocr-tab')" data-i18n="ehr_btn_add_rx" class="text-[11px] text-teal-600 dark:text-teal-300 hover:text-teal-700 dark:hover:text-white font-bold transition-colors cursor-pointer">
             + Thêm đơn mới →
           </button>
         </div>
@@ -1393,16 +1392,16 @@ background: #94A3B8;
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
         <div>
           <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>Lịch sử khám & tư vấn</span>
+            <span data-i18n="ehr_sec_history_title">Lịch sử khám & tư vấn</span>
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tách bạch rõ giữa phiên tư vấn AI thực tế và hồ sơ bệnh viện liên kết</p>
+          <p data-i18n="ehr_sec_history_sub" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tách bạch rõ giữa phiên tư vấn AI thực tế và hồ sơ bệnh viện liên kết</p>
         </div>
 
         <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 shrink-0">
-          <button type="button" id="ehr-subtab-ai" onclick="switchEhrSubTab('ai')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer">
+          <button type="button" id="ehr-subtab-ai" onclick="switchEhrSubTab('ai')" data-i18n="ehr_subtab_ai" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer">
             💬 Tư vấn AI (Thực tế)
           </button>
-          <button type="button" id="ehr-subtab-hospital" onclick="switchEhrSubTab('hospital')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+          <button type="button" id="ehr-subtab-hospital" onclick="switchEhrSubTab('hospital')" data-i18n="ehr_subtab_hospital" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
             🏥 Bệnh viện (Mẫu minh họa)
           </button>
         </div>
@@ -2098,7 +2097,7 @@ background: #94A3B8;
 
 <span class="text-slate-400">•</span>
 
-<span class="text-slate-600">Hỗ trợ phân tích triệu chứng & tham chiếu MedlinePlus</span>
+<span class="text-slate-600" data-i18n="footer_subtitle">Hỗ trợ phân tích triệu chứng & tham chiếu MedlinePlus</span>
 
 </div>
 
@@ -2172,6 +2171,15 @@ background: #94A3B8;
 
 <p data-i18n="modal_auth_subtitle" class="text-xs text-slate-400 font-medium">Hệ thống Trợ lý Y tế &amp; Phân tầng Lâm sàng</p>
 
+</div>
+
+<!-- Contextual Prompt Banner (Hiển thị lý do bật popup đăng nhập/đăng ký ở giữa màn hình) -->
+<div id="auth-context-banner" class="hidden flex items-start gap-3 p-3.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold leading-relaxed shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
+  <span class="text-lg shrink-0">⚠️</span>
+  <div class="flex-1 text-left">
+    <p data-i18n="facility_auth_banner_title" class="font-bold text-amber-300 tracking-wide text-xs">YÊU CẦU XÁC THỰC TÀI KHOẢN</p>
+    <p id="auth-context-banner-text" data-i18n="facility_auth_banner_text" class="text-slate-200 font-medium mt-0.5 leading-snug">Vui lòng đăng nhập hoặc tạo tài khoản mới để tiếp tục đặt lịch khám!</p>
+  </div>
 </div>
 
 <!-- Mode Switcher: Đăng nhập vs Đăng ký (Segmented Control matching Image 3) -->
@@ -3026,7 +3034,7 @@ Hủy bỏ
     <!-- Quick tooltip prompt -->
     <div class="px-3.5 py-2 rounded-full text-xs font-semibold shadow-xl border border-sky-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-white flex items-center gap-2 hover:bg-sky-50 dark:hover:bg-slate-800 transition-all">
       <span class="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
-      <span>Trợ lý y tế MediMind</span>
+      <span data-i18n="assistant_pill_title">Trợ lý y tế MediMind</span>
       <button type="button" onclick="event.stopPropagation(); closeFloatingChatCompletely()" class="ml-1 p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-rose-500 transition-colors" title="Tắt hoàn toàn">
         <svg class="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
@@ -3059,7 +3067,7 @@ Hủy bỏ
     </button>
 
     <div class="space-y-1">
-      <span class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block font-mono">ĐẶT LỊCH KHÁM BỆNH</span>
+      <span data-i18n="book_modal_tag" class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block font-mono">ĐẶT LỊCH KHÁM BỆNH</span>
       <h3 id="book-modal-facility-name" class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">BVĐK Quốc Tế Vinmec Central Park</h3>
       <p id="book-modal-facility-address" class="text-xs text-slate-500 dark:text-slate-400">208 Nguyễn Hữu Cảnh, Q. Bình Thạnh, TP.HCM</p>
     </div>
@@ -3068,7 +3076,7 @@ Hủy bỏ
       <input type="hidden" id="book-modal-facility-id">
       <!-- Specialty Selection -->
       <div>
-        <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Chuyên khoa khám</label>
+        <label data-i18n="book_modal_lbl_spec" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Chuyên khoa khám</label>
         <select id="book-modal-spec" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
           <option value="Tim mạch">Tim mạch</option>
           <option value="Nhi khoa">Nhi khoa</option>
@@ -3083,11 +3091,11 @@ Hủy bỏ
       <!-- Date & Time -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Ngày khám mong muốn</label>
+          <label data-i18n="book_modal_lbl_date" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Ngày khám mong muốn</label>
           <input type="date" id="book-modal-date" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
         </div>
         <div>
-          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Khung giờ</label>
+          <label data-i18n="book_modal_lbl_time" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Khung giờ</label>
           <select id="book-modal-time" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
             <option value="08:00 - 09:30">Sáng (08:00 - 09:30)</option>
             <option value="09:30 - 11:00">Sáng (09:30 - 11:00)</option>
@@ -3100,24 +3108,24 @@ Hủy bỏ
       <!-- Patient Info -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Họ và tên bệnh nhân</label>
-          <input type="text" id="book-modal-name" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+          <label data-i18n="book_modal_lbl_name" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Họ và tên bệnh nhân</label>
+          <input type="text" id="book-modal-name" required data-i18n-placeholder="book_modal_ph_name" placeholder="Ví dụ: Nguyễn Văn A" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
         </div>
         <div>
-          <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Số điện thoại liên hệ</label>
-          <input type="tel" id="book-modal-phone" required placeholder="Ví dụ: 0912 345 678" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+          <label data-i18n="book_modal_lbl_phone" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Số điện thoại liên hệ</label>
+          <input type="tel" id="book-modal-phone" required data-i18n-placeholder="book_modal_ph_phone" placeholder="Ví dụ: 0912 345 678" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
         </div>
       </div>
 
       <!-- Symptoms / Note -->
       <div>
-        <label class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Lý do khám / Triệu chứng sơ bộ</label>
-        <textarea id="book-modal-note" rows="2" placeholder="Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"></textarea>
+        <label data-i18n="book_modal_lbl_note" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Lý do khám / Triệu chứng sơ bộ</label>
+        <textarea id="book-modal-note" rows="2" data-i18n-placeholder="book_modal_ph_note" placeholder="Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"></textarea>
       </div>
 
       <div class="pt-2 flex items-center justify-end space-x-2.5">
-        <button type="button" onclick="closeFacilityBookingModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold transition-all cursor-pointer">Hủy</button>
-        <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold shadow-md shadow-sky-500/20 transition-all cursor-pointer">Xác nhận đặt lịch</button>
+        <button type="button" onclick="closeFacilityBookingModal()" data-i18n="book_modal_btn_cancel" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold transition-all cursor-pointer">Hủy</button>
+        <button type="submit" data-i18n="book_modal_btn_submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold shadow-md shadow-sky-500/20 transition-all cursor-pointer">Xác nhận đặt lịch</button>
       </div>
     </form>
   </div>
@@ -3149,7 +3157,7 @@ Hủy bỏ
       <div class="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
         <svg class="w-4 h-4 text-sky-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         <div>
-          <span class="font-bold text-slate-800 dark:text-slate-200 block">Địa chỉ:</span>
+          <span data-i18n="detail_modal_lbl_address" class="font-bold text-slate-800 dark:text-slate-200 block">Địa chỉ:</span>
           <span id="detail-modal-address">208 Nguyễn Hữu Cảnh, Phường 22, Q. Bình Thạnh, TP.HCM</span>
         </div>
       </div>
@@ -3157,7 +3165,7 @@ Hủy bỏ
       <div class="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
         <svg class="w-4 h-4 text-sky-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <div>
-          <span class="font-bold text-slate-800 dark:text-slate-200 block">Thời gian hoạt động:</span>
+          <span data-i18n="detail_modal_lbl_hours" class="font-bold text-slate-800 dark:text-slate-200 block">Thời gian hoạt động:</span>
           <span id="detail-modal-hours">07:30 - 17:00 • Trực cấp cứu 24/7</span>
         </div>
       </div>
@@ -3165,7 +3173,7 @@ Hủy bỏ
       <div class="flex items-start gap-2.5 text-slate-600 dark:text-slate-300">
         <svg class="w-4 h-4 text-sky-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
         <div>
-          <span class="font-bold text-slate-800 dark:text-slate-200 block">Hotline liên hệ:</span>
+          <span data-i18n="detail_modal_lbl_phone" class="font-bold text-slate-800 dark:text-slate-200 block">Hotline liên hệ:</span>
           <a id="detail-modal-phone" href="tel:02836221166" class="text-sky-600 dark:text-sky-400 font-bold hover:underline">028 3622 1166</a>
         </div>
       </div>

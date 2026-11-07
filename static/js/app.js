@@ -1,3 +1,38 @@
+
+// Global Alias and Context Banner Helpers
+window.openAuthModal = function(mode = 'login') {
+  if (typeof openLoginModal === 'function') openLoginModal(mode);
+};
+
+let pendingBookingFacilityId = null;
+
+function showAuthContextBanner(title, message) {
+  const banner = document.getElementById('auth-context-banner');
+  const bannerText = document.getElementById('auth-context-banner-text');
+  if (banner) {
+    if (bannerText && message) {
+      bannerText.innerText = message;
+    }
+    banner.classList.remove('hidden');
+  }
+}
+
+function hideAuthContextBanner() {
+  const banner = document.getElementById('auth-context-banner');
+  if (banner) banner.classList.add('hidden');
+}
+
+function checkPendingBookingAfterAuth() {
+  if (pendingBookingFacilityId) {
+    const fid = pendingBookingFacilityId;
+    pendingBookingFacilityId = null;
+    hideAuthContextBanner();
+    setTimeout(() => {
+      openFacilityBookingModal(fid);
+    }, 450);
+  }
+}
+
 let currentEhrSubTab = 'ai';
 // ==========================================
 // Facebook-Style Default Avatars by Gender (Nam, Nữ, Khác)
@@ -606,6 +641,116 @@ const translations = {
     risk_safe: "An toàn",
     risk_moderate: "Theo dõi",
     risk_emergency: "Cần Cấp cứu",
+        // Home Page Redesign Discovery & Hero
+    home_hero_headline: "Chăm sóc sức khỏe<br>thông minh hơn mỗi ngày.",
+    home_hero_desc: "Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.",
+    home_btn_chat: "Trò chuyện với trợ lý",
+    home_btn_record: "Mở hồ sơ sức khỏe",
+    home_badge_security: "Thông tin được bảo mật",
+    home_badge_data: "Hỗ trợ dựa trên dữ liệu",
+    home_metric_status: "Khỏe mạnh",
+    home_metric_sub: "Chỉ số hôm nay",
+    home_disc_tag: "KHÁM PHÁ",
+    home_disc_title: "Mọi thứ bạn cần<br class=\"hidden sm:inline\"> để sống khỏe hơn.",
+    home_disc_desc: "Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.",
+    home_disc_more: "Khám phá tất cả",
+    home_c1_tag: "HỖ TRỢ 24/7",
+    home_c1_title: "Trò chuyện cùng AI",
+    home_c1_desc: "Giải đáp các thắc mắc sức khỏe thường gặp bằng ngôn ngữ dễ hiểu.",
+    home_c2_tag: "THÔNG TIN CỦA BẠN",
+    home_c2_title: "Hồ sơ sức khỏe",
+    home_c2_desc: "Quản lý chỉ số, lịch sử khám và những thông tin quan trọng của gia đình.",
+    home_c3_tag: "ĐỒNG HÀNH CÙNG BẠN",
+    home_c3_title: "Lịch hẹn sắp tới",
+    home_c3_desc: "Theo dõi lịch khám và nhận nhắc nhở để không bỏ lỡ những cuộc hẹn quan trọng.",
+
+    // Facility & Booking
+    facility_sidebar_title: "Cơ Sở Y Tế",
+    facility_sidebar_search_ph: "Tìm bệnh viện, phòng khám, quận/huyện...",
+    facility_sec_type: "LOẠI HÌNH CƠ SỞ",
+    facility_type_all: "Tất cả cơ sở",
+    facility_type_general: "Bệnh viện Đa khoa",
+    facility_type_clinic: "Phòng khám Quốc tế",
+    facility_type_specialized: "Bệnh viện Chuyên khoa",
+    facility_type_testing: "Trung tâm Xét nghiệm",
+    facility_sec_region: "KHU VỰC ĐỊA LÝ",
+    facility_sec_specialty: "CHUYÊN KHOA NỔI BẬT",
+    facility_main_search_ph: "Nhập tên bệnh viện, triệu chứng, bác sĩ chuyên khoa...",
+    facility_btn_map: "Bản đồ",
+    facility_btn_book: "Đặt lịch khám",
+    facility_btn_detail: "Chi tiết",
+    facility_map_live_title: "Bản đồ trực tiếp (Google Maps)",
+    facility_lbl_sort: "Sắp xếp:",
+    facility_sort_default: "Gần nhất & Đánh giá cao",
+    facility_sort_rating: "Đánh giá cao nhất",
+    facility_sort_distance: "Khoảng cách gần nhất",
+    facility_auth_banner_title: "YÊU CẦU XÁC THỰC TÀI KHOẢN",
+    facility_auth_banner_text: "Vui lòng đăng nhập hoặc tạo tài khoản mới để tiếp tục đặt lịch khám!",
+
+    // Booking Modal
+    book_modal_tag: "ĐẶT LỊCH KHÁM BỆNH",
+    book_modal_lbl_spec: "Chuyên khoa khám",
+    book_modal_lbl_date: "Ngày khám mong muốn",
+    book_modal_lbl_time: "Khung giờ",
+    book_modal_lbl_name: "Họ và tên bệnh nhân",
+    book_modal_ph_name: "Ví dụ: Nguyễn Văn A",
+    book_modal_lbl_phone: "Số điện thoại liên hệ",
+    book_modal_ph_phone: "Ví dụ: 0912 345 678",
+    book_modal_lbl_note: "Lý do khám / Triệu chứng sơ bộ",
+    book_modal_ph_note: "Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc...",
+    book_modal_btn_cancel: "Hủy",
+    book_modal_btn_submit: "Xác nhận đặt lịch",
+
+    // Facility Detail Modal
+    detail_modal_lbl_address: "Địa chỉ:",
+    detail_modal_lbl_hours: "Thời gian hoạt động:",
+    detail_modal_lbl_phone: "Hotline liên hệ:",
+    detail_modal_btn_book: "Đặt lịch khám tại đây",
+
+    // EHR Profile Page
+    ehr_header_title: "Hồ sơ bệnh án của tôi",
+    ehr_header_subtitle: "Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân",
+    ehr_stat_visits: "Số lần khám",
+    ehr_lbl_dob: "NGÀY SINH",
+    ehr_lbl_blood: "NHÓM MÁU",
+    ehr_lbl_phone: "ĐIỆN THOẠI",
+    ehr_lbl_allergy: "DỊ ỨNG",
+    ehr_lbl_no_allergy: "Chưa ghi nhận",
+    ehr_sec_prescriptions: "Toa thuốc & Bệnh án đã Import",
+    ehr_btn_add_rx: "+ Thêm đơn mới →",
+    ehr_no_rx: "Chưa có đơn thuốc nào được lưu.",
+    ehr_sec_history_title: "Lịch sử khám & tư vấn",
+    ehr_sec_history_sub: "Tách bạch rõ giữa phiên tư vấn AI thực tế và hồ sơ bệnh viện liên kết",
+    ehr_subtab_ai: "💬 Tư vấn AI (Thực tế)",
+    ehr_subtab_hospital: "🏥 Bệnh viện (Mẫu minh họa)",
+
+    // Live Intake Card
+    intake_card_title: "Thông tin đã ghi nhận",
+    intake_status_init: "Chờ khởi tạo",
+    intake_lbl_chief: "Lý do",
+    intake_lbl_symptoms: "Triệu chứng",
+    intake_lbl_denied: "Đã phủ nhận",
+    intake_lbl_duration: "Thời gian",
+    intake_lbl_vitals: "Thân nhiệt",
+    intake_btn_summary: "Tóm tắt trước khám",
+    intake_btn_confirm: "Xác nhận",
+    spec_cardiology: "Tim mạch",
+    spec_pediatrics: "Nhi khoa",
+    spec_ent: "Tai Mũi Họng",
+    spec_endocrine: "Nội tiết & Tiểu đường",
+    spec_gastro: "Tiêu hóa & Gan mật",
+    spec_orthopedics: "Chấn thương chỉnh hình",
+    spec_neurology: "Thần kinh",
+    spec_obgyn: "Sản phụ khoa",
+    spec_oncology: "Ung bướu",
+    spec_eye: "Mắt",
+    assistant_pill_title: "Trợ lý y tế MediMind",
+    footer_subtitle: "Hỗ trợ phân tích triệu chứng & tham chiếu MedlinePlus",
+    ehr_export_text: "Xuất Tóm Tắt (PDF)",
+    facility_toast_login_required: "Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám!",
+    facility_auth_banner_title: "YÊU CẦU XÁC THỰC TÀI KHOẢN",
+    facility_auth_banner_text: "Vui lòng đăng nhập hoặc tạo tài khoản mới để tiếp tục đặt lịch khám!",
+
     default_image_prompt: "Xin bác sĩ quan sát bức ảnh và phân tích giúp tôi dấu hiệu tổn thương trên da."
   },
   en: {
@@ -868,6 +1013,116 @@ const translations = {
     risk_safe: "Safe",
     risk_moderate: "Monitor",
     risk_emergency: "Emergency",
+        // Home Page Redesign Discovery & Hero
+    home_hero_headline: "Smarter healthcare,<br>every single day.",
+    home_hero_desc: "A trusted companion to understand your body, manage your health, and make informed choices.",
+    home_btn_chat: "Chat with Assistant",
+    home_btn_record: "Open Health Record",
+    home_badge_security: "Data Encrypted & Secure",
+    home_badge_data: "Data-Driven Clinical AI",
+    home_metric_status: "Optimal",
+    home_metric_sub: "Daily Health Index",
+    home_disc_tag: "DISCOVERY",
+    home_disc_title: "Everything you need<br class=\"hidden sm:inline\"> to live healthier.",
+    home_disc_desc: "Simple, intelligent tools designed to turn health management into a seamless daily habit.",
+    home_disc_more: "Explore All",
+    home_c1_tag: "24/7 SUPPORT",
+    home_c1_title: "AI Health Chat",
+    home_c1_desc: "Get preliminary answers to common health concerns in clear, accessible language.",
+    home_c2_tag: "YOUR CLINICAL DATA",
+    home_c2_title: "Health Records",
+    home_c2_desc: "Manage vital signs, consultation history, and important family health data.",
+    home_c3_tag: "WITH YOU ALWAYS",
+    home_c3_title: "Upcoming Visits",
+    home_c3_desc: "Keep track of hospital visits and get timely reminders for appointments.",
+
+    // Facility & Booking
+    facility_sidebar_title: "Healthcare Facilities",
+    facility_sidebar_search_ph: "Search hospital, clinic, district...",
+    facility_sec_type: "FACILITY CATEGORY",
+    facility_type_all: "All Facilities",
+    facility_type_general: "General Hospital",
+    facility_type_clinic: "International Clinic",
+    facility_type_specialized: "Specialized Hospital",
+    facility_type_testing: "Diagnostic Lab",
+    facility_sec_region: "GEOGRAPHIC REGION",
+    facility_sec_specialty: "FEATURED SPECIALTIES",
+    facility_main_search_ph: "Enter hospital name, symptom, or specialist...",
+    facility_btn_map: "Map",
+    facility_btn_book: "Book Appointment",
+    facility_btn_detail: "Details",
+    facility_map_live_title: "Live Map (Google Maps)",
+    facility_lbl_sort: "Sort by:",
+    facility_sort_default: "Nearest & Top Rated",
+    facility_sort_rating: "Highest Rated",
+    facility_sort_distance: "Closest Distance",
+    facility_auth_banner_title: "AUTHENTICATION REQUIRED",
+    facility_auth_banner_text: "Please sign in or create a new account to proceed with your booking!",
+
+    // Booking Modal
+    book_modal_tag: "SCHEDULE AN APPOINTMENT",
+    book_modal_lbl_spec: "Medical Specialty",
+    book_modal_lbl_date: "Preferred Date",
+    book_modal_lbl_time: "Time Slot",
+    book_modal_lbl_name: "Patient Full Name",
+    book_modal_ph_name: "e.g. John Doe",
+    book_modal_lbl_phone: "Contact Phone",
+    book_modal_ph_phone: "e.g. +84 912 345 678",
+    book_modal_lbl_note: "Reason for Visit / Preliminary Symptoms",
+    book_modal_ph_note: "e.g. Sore throat, mild fever for 2 days...",
+    book_modal_btn_cancel: "Cancel",
+    book_modal_btn_submit: "Confirm Appointment",
+
+    // Facility Detail Modal
+    detail_modal_lbl_address: "Address:",
+    detail_modal_lbl_hours: "Operating Hours:",
+    detail_modal_lbl_phone: "Contact Hotline:",
+    detail_modal_btn_book: "Book Appointment Here",
+
+    // EHR Profile Page
+    ehr_header_title: "My Electronic Health Record",
+    ehr_header_subtitle: "Clinical consultation history, triage summaries, and personal care plan",
+    ehr_stat_visits: "Total Visits",
+    ehr_lbl_dob: "DATE OF BIRTH",
+    ehr_lbl_blood: "BLOOD TYPE",
+    ehr_lbl_phone: "PHONE NUMBER",
+    ehr_lbl_allergy: "ALLERGIES",
+    ehr_lbl_no_allergy: "None reported",
+    ehr_sec_prescriptions: "Imported Prescriptions & Reports",
+    ehr_btn_add_rx: "+ Add New →",
+    ehr_no_rx: "No prescriptions saved yet.",
+    ehr_sec_history_title: "Consultations & Clinical Visits",
+    ehr_sec_history_sub: "Clearly distinguishing verified AI consultations from linked hospital records",
+    ehr_subtab_ai: "💬 AI Consultations (Live)",
+    ehr_subtab_hospital: "🏥 Hospital Records (Demo)",
+
+    // Live Intake Card
+    intake_card_title: "Recorded Clinical Intake",
+    intake_status_init: "Awaiting Intake",
+    intake_lbl_chief: "Chief Complaint",
+    intake_lbl_symptoms: "Symptoms",
+    intake_lbl_denied: "Pertinent Negatives",
+    intake_lbl_duration: "Duration",
+    intake_lbl_vitals: "Temperature",
+    intake_btn_summary: "Pre-visit Summary",
+    intake_btn_confirm: "Confirm",
+    spec_cardiology: "Cardiology",
+    spec_pediatrics: "Pediatrics",
+    spec_ent: "ENT",
+    spec_endocrine: "Endocrinology & Diabetes",
+    spec_gastro: "Gastroenterology",
+    spec_orthopedics: "Orthopedics",
+    spec_neurology: "Neurology",
+    spec_obgyn: "OB/GYN",
+    spec_oncology: "Oncology",
+    spec_eye: "Ophthalmology",
+    assistant_pill_title: "MediMind Assistant",
+    footer_subtitle: "AI Symptom Analysis & MedlinePlus Protocols",
+    ehr_export_text: "Export Summary (PDF)",
+    facility_toast_login_required: "Please log in or create an account to book an appointment!",
+    facility_auth_banner_title: "ACCOUNT AUTHENTICATION REQUIRED",
+    facility_auth_banner_text: "Please log in or create an account to proceed with booking!",
+
     default_image_prompt: "Please analyze this clinical image and assess the lesion characteristics on the skin."
   }
 };
@@ -897,6 +1152,7 @@ function setLanguage(lang) {
   populateDobDropdowns();
   applyLanguage();
   updateAuthUI();
+  if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
 }
 
 function applyLanguage() {
@@ -929,7 +1185,13 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (dict[key]) {
-      el.innerHTML = dict[key];
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.value = dict[key];
+      } else if (el.tagName === 'OPTION') {
+        el.text = dict[key];
+      } else {
+        el.innerHTML = dict[key];
+      }
     }
   });
 
@@ -939,6 +1201,14 @@ function applyLanguage() {
       el.setAttribute('placeholder', dict[key]);
     }
   });
+
+  // Re-sync all dynamic view components across tabs
+  if (typeof updateHomeGreeting === 'function') updateHomeGreeting();
+  if (typeof updateEhrTabUI === 'function') updateEhrTabUI();
+  if (typeof updateFacilityDistrictDropdown === 'function') updateFacilityDistrictDropdown(facilityCurrentRegion || 'hcm');
+  if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
+  if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
+  if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
 }
 
 function insertQuickPrompt(num) {
@@ -1104,7 +1374,7 @@ function switchTab(tabId, updateHistory = true) {
   if (activeTab) activeTab.classList.add('active');
 
   if (tabId === 'booking-tab') {
-    renderMedicalFacilities();
+  renderMedicalFacilities();
   }
   if (tabId === 'doctor-tab') {
     syncCurrentPatientProfile();
@@ -1529,7 +1799,7 @@ function renderPreVisitSummaryInModal(summary) {
   if (bAppr) bAppr.innerText = partB.care_approach || '--';
   if (bSources) {
     const sList = partB.sources || [];
-    bSources.innerHTML = sList.map(s => `• Nguồn: <a href="${s.url}" target="_blank" class="underline hover:text-white">${escapeHtml(s.title || s.source)}</a>`).join('<br>');
+    bSources.innerHTML = sList.map(s => `• Nguồn: <a href="${sanitizeUrl(s.url)}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">${escapeHtml(s.title || s.source || 'Tài liệu tham khảo')}</a>`).join('<br>');
   }
 
   const modalConfirmBtn = document.getElementById('modal-btn-confirm');
@@ -1712,9 +1982,19 @@ function simulateUploadLab() {
 }
 
 function escapeHtml(string) {
+  if (string === null || string === undefined) return '';
   const div = document.createElement('div');
-  div.innerText = string;
+  div.innerText = String(string);
   return div.innerHTML;
+}
+
+function sanitizeUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return '#';
+  const trimmed = rawUrl.trim();
+  if (/^(?:https?:\/\/|\/)/i.test(trimmed)) {
+    return encodeURI(trimmed).replace(/["']/g, '');
+  }
+  return '#';
 }
 
 // ==========================================
@@ -3237,6 +3517,9 @@ function updateAuthUI() {
     syncServerConsultations();
     renderChatHistoryList();
     loadPrescriptionHistory();
+    if (typeof checkPendingBookingAfterAuth === 'function') {
+      checkPendingBookingAfterAuth();
+    }
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
@@ -3590,6 +3873,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }).catch(() => {});
   updateEhrTabUI();
+  updateFacilityDistrictDropdown('hcm');
   renderMedicalFacilities();
   updateHomeGreeting();
   loadPrescriptionHistory();
@@ -3812,10 +4096,11 @@ function showMedicalToast(message, type = 'info', duration = 3500) {
     info: `<svg class="w-5 h-5 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
   };
 
+  const safeMessage = typeof message === 'string' ? escapeHtml(message) : escapeHtml(String(message ?? ''));
   toast.className = `pointer-events-auto transform transition-all duration-300 ease-out translate-y-[-10px] opacity-0 flex items-start gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-xl text-xs font-semibold leading-relaxed ${typeStyles[type] || typeStyles.info}`;
   toast.innerHTML = `
     ${icons[type] || icons.info}
-    <div class="flex-1">${message}</div>
+    <div class="flex-1">${safeMessage}</div>
     <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white transition-colors ml-1 cursor-pointer">✕</button>
   `;
 
@@ -3974,7 +4259,9 @@ async function loadPrescriptionHistory() {
     const res = await fetch('/api/prescription/history');
     if (!res.ok) {
       if (res.status === 401) {
-        if (listEl) listEl.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.</p>';
+        const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+        if (listEl) listEl.innerHTML = `<p class="text-xs text-slate-400 p-4 text-center">${isEn ? 'Please sign in to view your prescription history.' : 'Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.'}</p>`;
+        if (ehrPrescriptionList) ehrPrescriptionList.innerHTML = `<p class="text-slate-400 text-[11px] italic">${isEn ? 'Please sign in to view saved prescriptions.' : 'Vui lòng đăng nhập để xem đơn thuốc.'}</p>`;
         if (countBadge) countBadge.innerText = '0 hồ sơ';
       }
       return;
@@ -3984,7 +4271,7 @@ async function loadPrescriptionHistory() {
     const history = data.history || [];
     cachedPrescriptionHistory = history;
 
-    if (countBadge) countBadge.innerText = `${history.length} hồ sơ`;
+    if (countBadge) countBadge.innerText = (typeof currentLang !== 'undefined' && currentLang === 'en') ? `${history.length} records` : `${history.length} hồ sơ`;
 
     // 1. Cập nhật trong tab OCR (Đọc đơn thuốc & xét nghiệm)
     if (history.length === 0) {
@@ -4066,7 +4353,8 @@ async function loadPrescriptionHistory() {
     // 2. Cập nhật trong tab Doctor (Hồ sơ của tôi)
     if (ehrPrescriptionList) {
       if (history.length === 0) {
-        ehrPrescriptionList.innerHTML = '<p class="text-slate-400 text-[11px] italic">Chưa có đơn thuốc nào được lưu. Bạn có thể import đơn thuốc mới bất kỳ lúc nào.</p>';
+        const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+        ehrPrescriptionList.innerHTML = `<p class="text-slate-400 text-[11px] italic">${isEn ? 'No prescriptions saved yet. You can import a new prescription anytime.' : 'Chưa có đơn thuốc nào được lưu. Bạn có thể import đơn thuốc mới bất kỳ lúc nào.'}</p>`;
       } else {
         ehrPrescriptionList.innerHTML = history.slice(0, 5).map(item => {
           const isLab = item.doc_type === 'lab_test';
@@ -5448,8 +5736,10 @@ function deleteSession(sessionId) {
 async function syncServerConsultations() {
   if (!currentUser) return;
   try {
-    const res = await fetch('/api/consultations').then(r => r.json());
-    if (res && res.consultations && res.consultations.length > 0) {
+    const res = await fetch('/api/consultations');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.consultations && data.consultations.length > 0) {
       let hasNew = false;
       res.consultations.forEach(c => {
         const id = 'db_conv_' + c.id;
@@ -5494,164 +5784,824 @@ function openNewPrescriptionUpload() {
 // ==========================================
 const medicalFacilitiesData = [
   {
-    id: 'fac_vinmec',
-    name: 'BVĐK Quốc Tế Vinmec Central Park',
-    type: 'clinic',
-    types: ['all', 'clinic', 'general'],
-    region: 'hcm',
-    district: 'Q. Bình Thạnh',
-    rating: 4.9,
-    reviews: '1.4k',
-    qualityBadge: 'Chuẩn JCI Quốc tế',
-    badgeType: 'sky',
-    address: '208 Nguyễn Hữu Cảnh, Phường 22, Q. Bình Thạnh',
-    distanceKm: 2.4,
-    distanceDisplay: '• 2.4 km',
-    specialties: ['Tim mạch', 'Ung bướu', 'Sản phụ khoa', 'Nhi khoa'],
-    hours: '07:30 - 17:00 • Cấp cứu 24/7',
-    phone: '028 3622 1166',
-    mapUrl: 'https://maps.google.com/?q=Vinmec+Central+Park+Hospital',
-    description: 'Bệnh viện đa khoa quốc tế hàng đầu tại TP.HCM đạt chứng nhận tiêu chuẩn vàng JCI về an toàn và chất lượng điều trị y tế.'
+    "id": "fac_vinmec",
+    "name": "BVĐK Quốc Tế Vinmec Central Park",
+    "type": "clinic",
+    "types": [
+      "all",
+      "clinic",
+      "general"
+    ],
+    "region": "hcm",
+    "district": "Q. Bình Thạnh",
+    "rating": 4.9,
+    "reviews": "1.4k",
+    "qualityBadge": "Chuẩn JCI Quốc Tế",
+    "badgeType": "sky",
+    "address": "208 Nguyễn Hữu Cảnh, Phường 22, Q. Bình Thạnh, TP.HCM",
+    "distanceKm": 2.4,
+    "distanceDisplay": "• 2.4 km",
+    "specialties": [
+      "Tim mạch",
+      "Ung bướu",
+      "Sản phụ khoa",
+      "Nhi khoa"
+    ],
+    "hours": "07:30 - 17:00 • Cấp cứu 24/7",
+    "phone": "028 3622 1166",
+    "mapUrl": "https://maps.google.com/?q=Vinmec+Central+Park+Hospital",
+    "description": "Bệnh viện đa khoa quốc tế đạt chứng chỉ vàng JCI với cơ sở vật chất 5 sao và trang thiết bị chẩn đoán hình ảnh tiên tiến."
   },
   {
-    id: 'fac_umc',
-    name: 'Bệnh viện Đại học Y Dược TP.HCM',
-    type: 'general',
-    types: ['all', 'general'],
-    region: 'hcm',
-    district: 'Quận 5',
-    rating: 4.8,
-    reviews: '2.8k',
-    qualityBadge: 'Tuyến Trung Ương',
-    badgeType: 'emerald',
-    address: '215 Hồng Bàng, Phường 11, Quận 5',
-    distanceKm: 5.1,
-    distanceDisplay: '• 5.1 km',
-    specialties: ['Tiêu hóa & Gan mật', 'Nội tiết & Tiểu đường', 'Tai Mũi Họng', 'Tim mạch'],
-    hours: '06:30 - 16:30 • Có khám theo yêu cầu',
-    phone: '028 3855 4269',
-    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Đại+học+Y+Dược+TPHCM',
-    description: 'Bệnh viện thực hành kiểu mẫu tuyến Trung Ương với đội ngũ giáo sư, tiến sĩ đầu ngành và trang thiết bị hiện đại bậc nhất.'
+    "id": "fac_umc",
+    "name": "Bệnh viện Đại học Y Dược TP.HCM",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hcm",
+    "district": "Quận 5",
+    "rating": 4.8,
+    "reviews": "2.8k",
+    "qualityBadge": "Tuyến Trung Ương",
+    "badgeType": "emerald",
+    "address": "215 Hồng Bàng, Phường 11, Quận 5, TP.HCM",
+    "distanceKm": 5.1,
+    "distanceDisplay": "• 5.1 km",
+    "specialties": [
+      "Tiêu hóa & Gan mật",
+      "Nội tiết & Tiểu đường",
+      "Tai Mũi Họng",
+      "Tim mạch"
+    ],
+    "hours": "06:30 - 16:30 • Có khám theo yêu cầu",
+    "phone": "028 3855 4269",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Đại+học+Y+Dược+TPHCM",
+    "description": "Bệnh viện thực hành kiểu mẫu tuyến Trung Ương với đội ngũ giáo sư, tiến sĩ đầu ngành và kỹ thuật chẩn đoán hàng đầu."
   },
   {
-    id: 'fac_choray',
-    name: 'Bệnh viện Chợ Rẫy',
-    type: 'general',
-    types: ['all', 'general'],
-    region: 'hcm',
-    district: 'Quận 5',
-    rating: 4.7,
-    reviews: '3.5k',
-    qualityBadge: 'Hạng Đặc Biệt',
-    badgeType: 'rose',
-    address: '201B Nguyễn Chí Thanh, Phường 12, Quận 5',
-    distanceKm: 5.8,
-    distanceDisplay: '• 5.8 km',
-    specialties: ['Chấn thương chỉnh hình', 'Thần kinh', 'Tiêu hóa & Gan mật', 'Tim mạch'],
-    hours: '07:00 - 16:00 • Trực cấp cứu 24/24',
-    phone: '028 3855 4137',
-    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Chợ+Rẫy',
-    description: 'Bệnh viện tuyến cuối hạng đặc biệt khu vực phía Nam chuyên tiếp nhận các ca bệnh phức tạp và cấp cứu đa chấn thương.'
+    "id": "fac_choray",
+    "name": "Bệnh viện Chợ Rẫy",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hcm",
+    "district": "Quận 5",
+    "rating": 4.7,
+    "reviews": "3.5k",
+    "qualityBadge": "Hạng Đặc Biệt",
+    "badgeType": "rose",
+    "address": "201B Nguyễn Chí Thanh, Phường 12, Quận 5, TP.HCM",
+    "distanceKm": 5.8,
+    "distanceDisplay": "• 5.8 km",
+    "specialties": [
+      "Chấn thương chỉnh hình",
+      "Thần kinh",
+      "Tiêu hóa & Gan mật",
+      "Tim mạch"
+    ],
+    "hours": "07:00 - 16:00 • Trực cấp cứu 24/24",
+    "phone": "028 3855 4137",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Chợ+Rẫy",
+    "description": "Bệnh viện đa khoa tuyến cuối hạng đặc biệt lớn nhất phía Nam, trung tâm tiếp nhận các ca bệnh nặng, cấp cứu đa chấn thương."
   },
   {
-    id: 'fac_careplus',
-    name: 'Phòng khám Quốc tế CarePlus',
-    type: 'clinic',
-    types: ['all', 'clinic'],
-    region: 'hcm',
-    district: 'Quận 3',
-    rating: 4.9,
-    reviews: '840',
-    qualityBadge: 'Bảo Hiểm Quốc Tế',
-    badgeType: 'purple',
-    address: '167A Nam Kỳ Khởi Nghĩa, Phường 7, Quận 3',
-    distanceKm: 1.8,
-    distanceDisplay: '• 1.8 km',
-    specialties: ['Nhi khoa', 'Tim mạch', 'Tai Mũi Họng', 'Nội tiết & Tiểu đường'],
-    hours: '08:00 - 20:00 • Tiếp nhận nhanh',
-    phone: '1800 6116',
-    mapUrl: 'https://maps.google.com/?q=CarePlus+Clinic+Nam+Ky+Khoi+Nghia',
-    description: 'Hệ thống phòng khám ngoại trú chuẩn quốc tế với dịch vụ nhanh chóng, bảo lãnh viện phí trực tiếp và bác sĩ tận tâm.'
+    "id": "fac_nhandan115",
+    "name": "Bệnh viện Nhân Dân 115",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hcm",
+    "district": "Quận 10",
+    "rating": 4.7,
+    "reviews": "2.2k",
+    "qualityBadge": "Tuyến Đầu Cấp Cứu",
+    "badgeType": "indigo",
+    "address": "527 Sư Vạn Hạnh, Phường 12, Quận 10, TP.HCM",
+    "distanceKm": 4.2,
+    "distanceDisplay": "• 4.2 km",
+    "specialties": [
+      "Thần kinh",
+      "Tim mạch",
+      "Tiêu hóa & Gan mật",
+      "Nội tiết & Tiểu đường"
+    ],
+    "hours": "07:00 - 16:30 • Cấp cứu đột quỵ 24/7",
+    "phone": "028 3865 2368",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Nhân+Dân+115",
+    "description": "Trung tâm điều trị đột quỵ, can thiệp mạch vành và phẫu thuật thần kinh sọ não hàng đầu tại khu vực Đông Nam Á."
   },
   {
-    id: 'fac_vientim',
-    name: 'Viện Tim TP. Hồ Chí Minh',
-    type: 'specialized',
-    types: ['all', 'specialized'],
-    region: 'hcm',
-    district: 'Quận 10',
-    rating: 4.8,
-    reviews: '1.1k',
-    qualityBadge: 'Chuyên Khoa Sâu',
-    badgeType: 'sky',
-    address: '04 Dương Quang Trung, Phường 12, Quận 10',
-    distanceKm: 3.6,
-    distanceDisplay: '• 3.6 km',
-    specialties: ['Tim mạch', 'Nhi khoa', 'Chấn thương chỉnh hình'],
-    hours: '07:00 - 16:30 • Đặt lịch trực tuyến',
-    phone: '028 3865 1586',
-    mapUrl: 'https://maps.google.com/?q=Viện+Tim+TPHCM',
-    description: 'Trung tâm phẫu thuật và can thiệp tim mạch hàng đầu cả nước do GS. Alain Carpentier đồng sáng lập.'
+    "id": "fac_thongnhat",
+    "name": "Bệnh viện Thống Nhất",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hcm",
+    "district": "Tân Bình",
+    "rating": 4.6,
+    "reviews": "1.5k",
+    "qualityBadge": "Tuyến Trung Ương",
+    "badgeType": "emerald",
+    "address": "01 Lý Thường Kiệt, Phường 7, Quận Tân Bình, TP.HCM",
+    "distanceKm": 6.3,
+    "distanceDisplay": "• 6.3 km",
+    "specialties": [
+      "Nội tiết & Tiểu đường",
+      "Tim mạch",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "07:00 - 16:30 • Khám BHYT & Dịch vụ",
+    "phone": "028 3869 0277",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Thống+Nhất",
+    "description": "Bệnh viện đa khoa lớn trực thuộc Bộ Y Tế, thế mạnh chuyên sâu về lão khoa, tim mạch và điều trị bệnh mạn tính."
   },
   {
-    id: 'fac_bachmai',
-    name: 'Bệnh viện Bạch Mai',
-    type: 'general',
-    types: ['all', 'general'],
-    region: 'hanoi',
-    district: 'Đống Đa',
-    rating: 4.7,
-    reviews: '2.1k',
-    qualityBadge: 'Chuyên Gia Đầu Ngành',
-    badgeType: 'indigo',
-    address: '78 Giải Phóng, Phương Mai, Đống Đa, Hà Nội',
-    distanceKm: 999,
-    distanceDisplay: '• Hà Nội',
-    specialties: ['Tai Mũi Họng', 'Nội tiết & Tiểu đường', 'Thần kinh', 'Tim mạch'],
-    hours: '06:30 - 17:00 • Thứ 2 - Thứ 7',
-    phone: '024 3869 3731',
-    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Bạch+Mai',
-    description: 'Bệnh viện đa khoa tuyến cuối đầu ngành miền Bắc với bề dày lịch sử và các trung tâm chuyên khoa sâu kỹ thuật cao.'
+    "id": "fac_tudu",
+    "name": "Bệnh viện Từ Dũ",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hcm",
+    "district": "Quận 1",
+    "rating": 4.8,
+    "reviews": "4.1k",
+    "qualityBadge": "Sản Phụ Khoa Đầu Ngành",
+    "badgeType": "rose",
+    "address": "284 Cống Quỳnh, Phường Phạm Ngũ Lão, Quận 1, TP.HCM",
+    "distanceKm": 3.8,
+    "distanceDisplay": "• 3.8 km",
+    "specialties": [
+      "Sản phụ khoa",
+      "Nhi khoa"
+    ],
+    "hours": "07:00 - 16:30 • Cấp cứu sản 24/24",
+    "phone": "028 5404 2829",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Từ+Dũ",
+    "description": "Bệnh viện chuyên khoa sản phụ khoa và hiếm muộn hàng đầu Việt Nam, tiên phong kỹ thuật thụ tinh trong ống nghiệm (IVF)."
   },
   {
-    id: 'fac_diag',
-    name: 'Trung tâm Xét nghiệm Diag Laboratories',
-    type: 'testing',
-    types: ['all', 'testing'],
-    region: 'hcm',
-    district: 'Quận 10',
-    rating: 4.8,
-    reviews: '920',
-    qualityBadge: 'Chuẩn ISO 15189',
-    badgeType: 'emerald',
-    address: '414 Cao Thắng, Phường 12, Quận 10',
-    distanceKm: 3.2,
-    distanceDisplay: '• 3.2 km',
-    specialties: ['Tiêu hóa & Gan mật', 'Nội tiết & Tiểu đường', 'Thần kinh'],
-    hours: '06:00 - 19:00 • Lấy mẫu tại nhà',
-    phone: '1900 1717',
-    mapUrl: 'https://maps.google.com/?q=Diag+Laboratories+Cao+Thang',
-    description: 'Trung tâm xét nghiệm y khoa tự động hóa hiện đại với hơn 20 năm kinh nghiệm phục vụ hàng triệu lượt xét nghiệm.'
+    "id": "fac_nhidong1",
+    "name": "Bệnh viện Nhi Đồng 1",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hcm",
+    "district": "Quận 10",
+    "rating": 4.8,
+    "reviews": "3.2k",
+    "qualityBadge": "Nhi Khoa Tuyến Cuối",
+    "badgeType": "sky",
+    "address": "341 Sư Vạn Hạnh, Phường 10, Quận 10, TP.HCM",
+    "distanceKm": 4.5,
+    "distanceDisplay": "• 4.5 km",
+    "specialties": [
+      "Nhi khoa",
+      "Tim mạch",
+      "Tai Mũi Họng"
+    ],
+    "hours": "07:00 - 16:00 • Cấp cứu nhi 24/7",
+    "phone": "028 3927 1119",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Nhi+Đồng+1",
+    "description": "Trung tâm y tế nhi khoa chuyên sâu kỹ thuật cao phục vụ các tỉnh phía Nam, mũi nhọn phẫu thuật tim hở và sơ sinh."
   },
   {
-    id: 'fac_hoanmy_dn',
-    name: 'Bệnh viện Hoàn Mỹ Đà Nẵng',
-    type: 'general',
-    types: ['all', 'general'],
-    region: 'danang',
-    district: 'Thanh Khê',
-    rating: 4.7,
-    reviews: '1.3k',
-    qualityBadge: 'Tiêu Chuẩn Quốc Tế',
-    badgeType: 'sky',
-    address: '291 Nguyễn Văn Linh, Quận Thanh Khê, Đà Nẵng',
-    distanceKm: 999,
-    distanceDisplay: '• Đà Nẵng',
-    specialties: ['Tim mạch', 'Chấn thương chỉnh hình', 'Nhi khoa'],
-    hours: '07:00 - 17:00 • Cấp cứu 24/7',
-    phone: '0236 3650 676',
-    mapUrl: 'https://maps.google.com/?q=Bệnh+viện+Hoàn+Mỹ+Đà+Nẵng',
-    description: 'Bệnh viện tư nhân uy tín hàng đầu miền Trung với dịch vụ y tế chuẩn mực và đội ngũ chuyên gia tận tụy.'
+    "id": "fac_vientim",
+    "name": "Viện Tim TP. Hồ Chí Minh",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hcm",
+    "district": "Quận 10",
+    "rating": 4.8,
+    "reviews": "1.1k",
+    "qualityBadge": "Chuyên Khoa Tim Mạch",
+    "badgeType": "rose",
+    "address": "04 Dương Quang Trung, Phường 12, Quận 10, TP.HCM",
+    "distanceKm": 3.6,
+    "distanceDisplay": "• 3.6 km",
+    "specialties": [
+      "Tim mạch",
+      "Nhi khoa"
+    ],
+    "hours": "07:00 - 16:30 • Đặt lịch trực tuyến",
+    "phone": "028 3865 1586",
+    "mapUrl": "https://maps.google.com/?q=Viện+Tim+TPHCM",
+    "description": "Trung tâm phẫu thuật và can thiệp tim mạch hàng đầu cả nước do GS. Alain Carpentier đồng sáng lập."
+  },
+  {
+    "id": "fac_ungbuou_hcm",
+    "name": "Bệnh viện Ung Bướu TP.HCM (Cơ sở 2)",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hcm",
+    "district": "TP. Thủ Đức",
+    "rating": 4.7,
+    "reviews": "1.9k",
+    "qualityBadge": "Ung Bướu Tuyến Đầu",
+    "badgeType": "indigo",
+    "address": "Đường 400, Phường Tân Phú, TP. Thủ Đức, TP.HCM",
+    "distanceKm": 14.5,
+    "distanceDisplay": "• TP. Thủ Đức",
+    "specialties": [
+      "Ung bướu",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "07:00 - 16:30 • Hóa trị & Xạ trị",
+    "phone": "028 3843 3021",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Ung+Bướu+TPHCM+Cơ+sở+2",
+    "description": "Cơ sở điều trị ung thư hiện đại quy mô 1.000 giường với hệ thống máy xạ trị gia tốc kỹ thuật số thế hệ mới."
+  },
+  {
+    "id": "fac_fv",
+    "name": "Bệnh viện FV (Pháp Việt)",
+    "type": "general",
+    "types": [
+      "all",
+      "general",
+      "clinic"
+    ],
+    "region": "hcm",
+    "district": "Quận 7",
+    "rating": 4.9,
+    "reviews": "1.6k",
+    "qualityBadge": "Chuẩn JCI Quốc Tế",
+    "badgeType": "sky",
+    "address": "06 Nguyễn Lương Bằng, Tân Phú, Quận 7, TP.HCM",
+    "distanceKm": 7.2,
+    "distanceDisplay": "• 7.2 km",
+    "specialties": [
+      "Tim mạch",
+      "Chấn thương chỉnh hình",
+      "Sản phụ khoa",
+      "Ung bướu"
+    ],
+    "hours": "07:30 - 17:00 • Cấp cứu 24/7",
+    "phone": "028 5411 3333",
+    "mapUrl": "https://maps.google.com/?q=FV+Hospital+Quan+7",
+    "description": "Bệnh viện quốc tế toàn diện đạt chứng nhận JCI 3 lần liên tiếp, điều trị chuẩn mực y khoa Pháp và thế giới."
+  },
+  {
+    "id": "fac_careplus",
+    "name": "Phòng khám Quốc tế CarePlus",
+    "type": "clinic",
+    "types": [
+      "all",
+      "clinic"
+    ],
+    "region": "hcm",
+    "district": "Quận 3",
+    "rating": 4.9,
+    "reviews": "840",
+    "qualityBadge": "Bảo Hiểm Quốc Tế",
+    "badgeType": "purple",
+    "address": "167A Nam Kỳ Khởi Nghĩa, Phường 7, Quận 3, TP.HCM",
+    "distanceKm": 1.8,
+    "distanceDisplay": "• 1.8 km",
+    "specialties": [
+      "Nhi khoa",
+      "Tim mạch",
+      "Tai Mũi Họng",
+      "Nội tiết & Tiểu đường"
+    ],
+    "hours": "08:00 - 20:00 • Tiếp nhận nhanh",
+    "phone": "1800 6116",
+    "mapUrl": "https://maps.google.com/?q=CarePlus+Clinic+Nam+Ky+Khoi+Nghia",
+    "description": "Hệ thống phòng khám ngoại trú chuẩn Singapore với bảo lãnh viện phí trực tiếp và thăm khám tận tình."
+  },
+  {
+    "id": "fac_diag",
+    "name": "Trung tâm Xét nghiệm Diag Laboratories",
+    "type": "testing",
+    "types": [
+      "all",
+      "testing"
+    ],
+    "region": "hcm",
+    "district": "Quận 10",
+    "rating": 4.8,
+    "reviews": "920",
+    "qualityBadge": "Chuẩn ISO 15189",
+    "badgeType": "emerald",
+    "address": "414 Cao Thắng, Phường 12, Quận 10, TP.HCM",
+    "distanceKm": 3.2,
+    "distanceDisplay": "• 3.2 km",
+    "specialties": [
+      "Tiêu hóa & Gan mật",
+      "Nội tiết & Tiểu đường",
+      "Thần kinh"
+    ],
+    "hours": "06:00 - 19:00 • Lấy mẫu tại nhà",
+    "phone": "1900 1717",
+    "mapUrl": "https://maps.google.com/?q=Diag+Laboratories+Cao+Thang",
+    "description": "Trung tâm xét nghiệm y khoa tự động hóa hiện đại với hơn 20 năm kinh nghiệm phục vụ hàng triệu lượt xét nghiệm."
+  },
+  {
+    "id": "fac_bachmai",
+    "name": "Bệnh viện Bạch Mai",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hanoi",
+    "district": "Đống Đa",
+    "rating": 4.8,
+    "reviews": "4.2k",
+    "qualityBadge": "Hạng Đặc Biệt Tuyến Cuối",
+    "badgeType": "rose",
+    "address": "78 Giải Phóng, Phương Mai, Đống Đa, Hà Nội",
+    "distanceKm": 2.5,
+    "distanceDisplay": "• Q. Đống Đa",
+    "specialties": [
+      "Tim mạch",
+      "Nội tiết & Tiểu đường",
+      "Tiêu hóa & Gan mật",
+      "Thần kinh"
+    ],
+    "hours": "06:30 - 17:00 • Trực cấp cứu 24/24",
+    "phone": "024 3869 3731",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Bạch+Mai",
+    "description": "Bệnh viện đa khoa hoàn chỉnh hạng đặc biệt đầu tiên của Việt Nam với các viện tim mạch, trung tâm hô hấp và chống độc đầu ngành."
+  },
+  {
+    "id": "fac_vietduc",
+    "name": "Bệnh viện Hữu nghị Việt Đức",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hanoi",
+    "district": "Hoàn Kiếm",
+    "rating": 4.8,
+    "reviews": "3.8k",
+    "qualityBadge": "Ngoại Khoa Đầu Ngành",
+    "badgeType": "rose",
+    "address": "40 Tràng Thi, Hàng Bông, Hoàn Kiếm, Hà Nội",
+    "distanceKm": 1.2,
+    "distanceDisplay": "• Q. Hoàn Kiếm",
+    "specialties": [
+      "Chấn thương chỉnh hình",
+      "Thần kinh",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "07:00 - 16:30 • Cấp cứu ngoại khoa 24/7",
+    "phone": "024 3825 3531",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Việt+Đức",
+    "description": "Trung tâm phẫu thuật ngoại khoa và ghép tạng lớn nhất cả nước, chiếc nôi của ngành phẫu thuật Việt Nam."
+  },
+  {
+    "id": "fac_bv108",
+    "name": "Bệnh viện Trung ương Quân đội 108",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hanoi",
+    "district": "Hai Bà Trưng",
+    "rating": 4.9,
+    "reviews": "3.6k",
+    "qualityBadge": "Hạng Đặc Biệt Quốc Gia",
+    "badgeType": "emerald",
+    "address": "01 Trần Hưng Đạo, Bạch Đằng, Hai Bà Trưng, Hà Nội",
+    "distanceKm": 2.1,
+    "distanceDisplay": "• Q. Hai Bà Trưng",
+    "specialties": [
+      "Tim mạch",
+      "Chấn thương chỉnh hình",
+      "Tiêu hóa & Gan mật",
+      "Thần kinh"
+    ],
+    "hours": "06:30 - 17:00 • Thứ 2 - Thứ 7",
+    "phone": "024 6278 4118",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Trung+ương+Quân+đội+108",
+    "description": "Bệnh viện đa khoa, chuyên khoa sâu tuyến cuối của Quân đội, sở hữu cụm tòa nhà thông minh và kỹ thuật ghép mô tạng đỉnh cao."
+  },
+  {
+    "id": "fac_hanoi_med",
+    "name": "Bệnh viện Đại học Y Hà Nội",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "hanoi",
+    "district": "Đống Đa",
+    "rating": 4.8,
+    "reviews": "2.9k",
+    "qualityBadge": "Tuyến Trung Ương",
+    "badgeType": "indigo",
+    "address": "01 Tôn Thất Tùng, Trung Tự, Đống Đa, Hà Nội",
+    "distanceKm": 3.1,
+    "distanceDisplay": "• Q. Đống Đa",
+    "specialties": [
+      "Tiêu hóa & Gan mật",
+      "Nội tiết & Tiểu đường",
+      "Tai Mũi Họng",
+      "Tim mạch"
+    ],
+    "hours": "07:00 - 16:30 • Khám chuyên gia",
+    "phone": "024 3574 7788",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Đại+học+Y+Hà+Nội",
+    "description": "Bệnh viện uy tín phát huy tinh hoa của Đại học Y Hà Nội với mô hình khám chữa bệnh chất lượng cao và nội soi can thiệp tiên tiến."
+  },
+  {
+    "id": "fac_nhitw",
+    "name": "Bệnh viện Nhi Trung ương",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hanoi",
+    "district": "Đống Đa",
+    "rating": 4.8,
+    "reviews": "3.1k",
+    "qualityBadge": "Nhi Khoa Tuyến Cuối",
+    "badgeType": "sky",
+    "address": "18/879 La Thành, Láng Thượng, Đống Đa, Hà Nội",
+    "distanceKm": 4.0,
+    "distanceDisplay": "• Q. Đống Đa",
+    "specialties": [
+      "Nhi khoa",
+      "Tai Mũi Họng",
+      "Tim mạch"
+    ],
+    "hours": "07:00 - 16:30 • Cấp cứu nhi khoa 24/7",
+    "phone": "024 6273 8532",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Nhi+Trung+ương",
+    "description": "Bệnh viện nhi khoa hàng đầu miền Bắc chuyên điều trị các ca bệnh nhi hiểm nghèo, dị tật bẩm sinh và hồi sức sơ sinh."
+  },
+  {
+    "id": "fac_phusantw",
+    "name": "Bệnh viện Phụ sản Trung ương",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hanoi",
+    "district": "Hoàn Kiếm",
+    "rating": 4.7,
+    "reviews": "2.4k",
+    "qualityBadge": "Sản Phụ Khoa Đầu Ngành",
+    "badgeType": "rose",
+    "address": "43 Tràng Thi, Hàng Bông, Hoàn Kiếm, Hà Nội",
+    "distanceKm": 1.1,
+    "distanceDisplay": "• Q. Hoàn Kiếm",
+    "specialties": [
+      "Sản phụ khoa",
+      "Nhi khoa"
+    ],
+    "hours": "06:30 - 16:30 • Cấp cứu sản khoa 24/24",
+    "phone": "024 3825 2161",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Phụ+sản+Trung+ương",
+    "description": "Cơ sở đầu ngành về sản khoa, phụ khoa, kế hoạch hóa gia đình và hỗ trợ sinh sản lớn nhất miền Bắc."
+  },
+  {
+    "id": "fac_ktw",
+    "name": "Bệnh viện K Trung ương (Cơ sở Quán Sứ)",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hanoi",
+    "district": "Hoàn Kiếm",
+    "rating": 4.7,
+    "reviews": "2.7k",
+    "qualityBadge": "Ung Bướu Đầu Ngành",
+    "badgeType": "indigo",
+    "address": "43 Quán Sứ, Hàng Bông, Hoàn Kiếm, Hà Nội",
+    "distanceKm": 1.0,
+    "distanceDisplay": "• Q. Hoàn Kiếm",
+    "specialties": [
+      "Ung bướu",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "07:00 - 17:00 • Khám tầm soát ung thư",
+    "phone": "0904 748 808",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+K+Quán+Sứ",
+    "description": "Trung tâm phòng chống và điều trị ung thư tuyến cuối quốc gia với bề dày kinh nghiệm và phác đồ quốc tế cập nhật liên tục."
+  },
+  {
+    "id": "fac_tmhtw",
+    "name": "Bệnh viện Tai Mũi Họng Trung ương",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "hanoi",
+    "district": "Đống Đa",
+    "rating": 4.7,
+    "reviews": "1.7k",
+    "qualityBadge": "Chuyên Khoa Sâu",
+    "badgeType": "sky",
+    "address": "78 Giải Phóng, Phương Mai, Đống Đa, Hà Nội",
+    "distanceKm": 2.6,
+    "distanceDisplay": "• Q. Đống Đa",
+    "specialties": [
+      "Tai Mũi Họng",
+      "Nhi khoa"
+    ],
+    "hours": "07:00 - 16:30 • Cấp cứu TMH 24/7",
+    "phone": "024 3868 6050",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Tai+Mũi+Họng+Trung+ương",
+    "description": "Bệnh viện đầu ngành chuyên khoa Tai Mũi Họng, thính học, phẫu thuật thanh quản và phục hồi chức năng phát âm."
+  },
+  {
+    "id": "fac_vinmec_timescity",
+    "name": "BVĐK Quốc Tế Vinmec Times City",
+    "type": "general",
+    "types": [
+      "all",
+      "general",
+      "clinic"
+    ],
+    "region": "hanoi",
+    "district": "Hai Bà Trưng",
+    "rating": 4.9,
+    "reviews": "2.2k",
+    "qualityBadge": "Chuẩn JCI Quốc Tế",
+    "badgeType": "sky",
+    "address": "458 Minh Khai, Vĩnh Tuy, Hai Bà Trưng, Hà Nội",
+    "distanceKm": 4.8,
+    "distanceDisplay": "• Q. Hai Bà Trưng",
+    "specialties": [
+      "Tim mạch",
+      "Ung bướu",
+      "Sản phụ khoa",
+      "Nhi khoa"
+    ],
+    "hours": "07:30 - 17:00 • Cấp cứu 24/7",
+    "phone": "024 3974 3556",
+    "mapUrl": "https://maps.google.com/?q=Vinmec+Times+City",
+    "description": "Bệnh viện đa khoa quốc tế tiên phong tại miền Bắc đạt chứng chỉ JCI, sở hữu trung tâm tim mạch can thiệp và trị liệu tế bào gốc."
+  },
+  {
+    "id": "fac_medlatec",
+    "name": "Bệnh viện Đa khoa Medlatec",
+    "type": "testing",
+    "types": [
+      "all",
+      "testing",
+      "general"
+    ],
+    "region": "hanoi",
+    "district": "Ba Đình",
+    "rating": 4.8,
+    "reviews": "1.8k",
+    "qualityBadge": "Chuẩn CAP & ISO 15189",
+    "badgeType": "emerald",
+    "address": "42 Nghĩa Dũng, Phúc Xá, Ba Đình, Hà Nội",
+    "distanceKm": 3.4,
+    "distanceDisplay": "• Q. Ba Đình",
+    "specialties": [
+      "Tiêu hóa & Gan mật",
+      "Nội tiết & Tiểu đường",
+      "Thần kinh"
+    ],
+    "hours": "06:00 - 22:00 • Lấy mẫu tại nhà 24/7",
+    "phone": "1900 565656",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Đa+khoa+Medlatec",
+    "description": "Hệ thống y tế tư nhân hàng đầu về xét nghiệm và chẩn đoán tại Việt Nam đạt song hành hai tiêu chuẩn quốc tế CAP và ISO 15189."
+  },
+  {
+    "id": "fac_bvdn",
+    "name": "Bệnh viện Đà Nẵng",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "danang",
+    "district": "Hải Châu",
+    "rating": 4.8,
+    "reviews": "3.3k",
+    "qualityBadge": "Hạng 1 Tuyến Cuối Miền Trung",
+    "badgeType": "rose",
+    "address": "124 Hải Phòng, Thạch Thang, Hải Châu, Đà Nẵng",
+    "distanceKm": 1.5,
+    "distanceDisplay": "• Q. Hải Châu",
+    "specialties": [
+      "Tim mạch",
+      "Chấn thương chỉnh hình",
+      "Thần kinh",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "06:30 - 16:30 • Trực cấp cứu 24/24",
+    "phone": "0236 3821 118",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Đà+Nẵng",
+    "description": "Bệnh viện đa khoa hạng 1 lớn nhất khu vực miền Trung - Tây Nguyên, trung tâm tim mạch can thiệp và ghép tạng kỹ thuật cao."
+  },
+  {
+    "id": "fac_bvc_dn",
+    "name": "Bệnh viện C Đà Nẵng",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "danang",
+    "district": "Hải Châu",
+    "rating": 4.7,
+    "reviews": "1.6k",
+    "qualityBadge": "Trực Thuộc Bộ Y Tế",
+    "badgeType": "emerald",
+    "address": "122 Hải Phòng, Thạch Thang, Hải Châu, Đà Nẵng",
+    "distanceKm": 1.4,
+    "distanceDisplay": "• Q. Hải Châu",
+    "specialties": [
+      "Nội tiết & Tiểu đường",
+      "Tim mạch",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "07:00 - 16:30 • Khám BHYT & Chuyên gia",
+    "phone": "0236 3821 480",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+C+Đà+Nẵng",
+    "description": "Bệnh viện đa khoa trung ương trực thuộc Bộ Y Tế đóng tại Đà Nẵng, uy tín trong điều trị bệnh nội khoa mạn tính và phục hồi chức năng."
+  },
+  {
+    "id": "fac_psn_dn",
+    "name": "Bệnh viện Phụ sản - Nhi Đà Nẵng",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "danang",
+    "district": "Ngũ Hành Sơn",
+    "rating": 4.8,
+    "reviews": "2.5k",
+    "qualityBadge": "Sản Nhi Lớn Nhất Miền Trung",
+    "badgeType": "rose",
+    "address": "402 Lê Văn Hiến, Khuê Mỹ, Ngũ Hành Sơn, Đà Nẵng",
+    "distanceKm": 6.8,
+    "distanceDisplay": "• Q. Ngũ Hành Sơn",
+    "specialties": [
+      "Sản phụ khoa",
+      "Nhi khoa"
+    ],
+    "hours": "07:00 - 16:30 • Cấp cứu sản nhi 24/7",
+    "phone": "0236 3957 777",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Phụ+sản+Nhi+Đà+Nẵng",
+    "description": "Bệnh viện chuyên khoa sản - nhi quy mô 1.200 giường lớn nhất miền Trung, điều trị vô sinh hiếm muộn và chăm sóc sơ sinh non tháng."
+  },
+  {
+    "id": "fac_ungbuou_dn",
+    "name": "Bệnh viện Ung bướu Đà Nẵng",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "danang",
+    "district": "Liên Chiểu",
+    "rating": 4.8,
+    "reviews": "1.4k",
+    "qualityBadge": "Ung Bướu Kỹ Thuật Cao",
+    "badgeType": "indigo",
+    "address": "Tổ 78, Hòa Minh, Liên Chiểu, Đà Nẵng",
+    "distanceKm": 7.5,
+    "distanceDisplay": "• Q. Liên Chiểu",
+    "specialties": [
+      "Ung bướu",
+      "Tiêu hóa & Gan mật"
+    ],
+    "hours": "07:00 - 16:30 • Xạ trị & Hóa trị hiện đại",
+    "phone": "0236 3717 717",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Ung+bướu+Đà+Nẵng",
+    "description": "Bệnh viện ung bướu khang trang hiện đại hàng đầu miền Trung với hệ thống máy gia tốc xạ trị và phòng mổ vô khuẩn chuẩn quốc tế."
+  },
+  {
+    "id": "fac_vinmec_dn",
+    "name": "BVĐK Quốc Tế Vinmec Đà Nẵng",
+    "type": "general",
+    "types": [
+      "all",
+      "general",
+      "clinic"
+    ],
+    "region": "danang",
+    "district": "Hải Châu",
+    "rating": 4.9,
+    "reviews": "1.5k",
+    "qualityBadge": "Chuẩn JCI Quốc Tế",
+    "badgeType": "sky",
+    "address": "Đường 30 Tháng 4, Khu dân cư số 4 Nguyễn Tri Phương, Hải Châu, Đà Nẵng",
+    "distanceKm": 3.8,
+    "distanceDisplay": "• Q. Hải Châu",
+    "specialties": [
+      "Tim mạch",
+      "Chấn thương chỉnh hình",
+      "Sản phụ khoa",
+      "Nhi khoa"
+    ],
+    "hours": "07:30 - 17:00 • Cấp cứu 24/7",
+    "phone": "0236 3711 111",
+    "mapUrl": "https://maps.google.com/?q=Vinmec+Đà+Nẵng",
+    "description": "Bệnh viện đạt chuẩn JCI tại miền Trung với dịch vụ y tế 5 sao, tiếp nhận bảo lãnh viện phí cho bệnh nhân trong và ngoài nước."
+  },
+  {
+    "id": "fac_hoanmy_dn",
+    "name": "Bệnh viện Hoàn Mỹ Đà Nẵng",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "danang",
+    "district": "Thanh Khê",
+    "rating": 4.7,
+    "reviews": "2.1k",
+    "qualityBadge": "Tiêu Chuẩn Quốc Tế",
+    "badgeType": "sky",
+    "address": "291 Nguyễn Văn Linh, Thạc Gián, Thanh Khê, Đà Nẵng",
+    "distanceKm": 2.2,
+    "distanceDisplay": "• Q. Thanh Khê",
+    "specialties": [
+      "Tim mạch",
+      "Chấn thương chỉnh hình",
+      "Tiêu hóa & Gan mật",
+      "Sản phụ khoa"
+    ],
+    "hours": "07:00 - 17:00 • Cấp cứu 24/7",
+    "phone": "0236 3650 676",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Hoàn+Mỹ+Đà+Nẵng",
+    "description": "Bệnh viện tư nhân uy tín lâu đời tại miền Trung, thành viên Tập đoàn Y khoa Hoàn Mỹ với dịch vụ y tế chất lượng cao."
+  },
+  {
+    "id": "fac_family_dn",
+    "name": "Bệnh viện Đa khoa Gia Đình (Family Hospital)",
+    "type": "general",
+    "types": [
+      "all",
+      "general"
+    ],
+    "region": "danang",
+    "district": "Hải Châu",
+    "rating": 4.7,
+    "reviews": "1.7k",
+    "qualityBadge": "Thân Thiện & Kỹ Thuật Cao",
+    "badgeType": "emerald",
+    "address": "73 Nguyễn Hữu Thọ, Hòa Thuận Nam, Hải Châu, Đà Nẵng",
+    "distanceKm": 2.8,
+    "distanceDisplay": "• Q. Hải Châu",
+    "specialties": [
+      "Tiêu hóa & Gan mật",
+      "Tai Mũi Họng",
+      "Nhi khoa",
+      "Sản phụ khoa"
+    ],
+    "hours": "07:00 - 17:00 • Cấp cứu 24/7",
+    "phone": "1900 2250",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Gia+Đình+Đà+Nẵng",
+    "description": "Bệnh viện đa khoa với triết lý chăm sóc y tế gia đình thân thiện, trang bị đầy đủ máy chụp cộng hưởng từ MRI và CT đa lát cắt."
+  },
+  {
+    "id": "fac_mat_dn",
+    "name": "Bệnh viện Mắt Đà Nẵng",
+    "type": "specialized",
+    "types": [
+      "all",
+      "specialized"
+    ],
+    "region": "danang",
+    "district": "Hải Châu",
+    "rating": 4.7,
+    "reviews": "1.1k",
+    "qualityBadge": "Chuyên Khoa Mắt Miền Trung",
+    "badgeType": "indigo",
+    "address": "68 Phan Đăng Lưu, Hòa Cường Bắc, Hải Châu, Đà Nẵng",
+    "distanceKm": 3.5,
+    "distanceDisplay": "• Q. Hải Châu",
+    "specialties": [
+      "Mắt",
+      "Nhi khoa"
+    ],
+    "hours": "07:00 - 16:30 • Phẫu thuật Phaco & Lasik",
+    "phone": "0236 3624 283",
+    "mapUrl": "https://maps.google.com/?q=Bệnh+viện+Mắt+Đà+Nẵng",
+    "description": "Bệnh viện chuyên khoa mắt đầu ngành khu vực miền Trung, làm chủ các kỹ thuật mổ đục thủy tinh thể Phaco, Femto-Lasik và ghép giác mạc."
   }
 ];
 
@@ -5720,8 +6670,64 @@ function getFacilityBadgeColor(badgeType) {
   }
 }
 
+
+function localizeQualityBadge(badge, isEn) {
+  if (!isEn || !badge) return badge;
+  const m = {
+    'Chuẩn JCI Quốc tế': 'JCI Accredited',
+    'Chuẩn JCI Quốc Tế': 'JCI Accredited',
+    'Tuyến Trung Ương': 'Central Referral',
+    'Hạng Đặc Biệt': 'Special Grade',
+    'Tuyến Đầu Cấp Cứu': 'Top Emergency',
+    'Sản Phụ Khoa Đầu Ngành': 'Leading OB/GYN',
+    'Nhi Khoa Tuyến Cuối': 'Top Pediatric Referral',
+    'Chuyên Khoa Tim Mạch': 'Cardiology Specialist',
+    'Ung Bướu Tuyến Đầu': 'Top Oncology Center',
+    'Bảo Hiểm Quốc Tế': 'Direct Billing Insurance',
+    'Chuyên Khoa Sâu': 'Tertiary Specialist',
+    'Chuẩn ISO 15189': 'ISO 15189 Certified'
+  };
+  return m[badge] || badge;
+}
+
+function localizeSpecialty(spec, isEn) {
+  if (!isEn || !spec) return spec;
+  const m = {
+    'Tim mạch': 'Cardiology',
+    'Ung bướu': 'Oncology',
+    'Sản phụ khoa': 'OB/GYN',
+    'Nhi khoa': 'Pediatrics',
+    'Nội tiết & Tiểu đường': 'Endocrinology',
+    'Tiêu hóa & Gan mật': 'Gastroenterology',
+    'Chấn thương chỉnh hình': 'Orthopedics',
+    'Thần kinh': 'Neurology',
+    'Tai Mũi Họng': 'ENT',
+    'Mắt': 'Ophthalmology',
+    'Khám tổng quát': 'General Practice'
+  };
+  return m[spec] || spec;
+}
+
+function localizeHours(hours, isEn) {
+  if (!isEn || !hours) return hours;
+  return hours
+    .replace(/Cấp cứu 24\/7/g, '24/7 Emergency')
+    .replace(/Có khám theo yêu cầu/g, 'On-demand clinic')
+    .replace(/Trực cấp cứu 24\/24/g, '24/7 Emergency')
+    .replace(/Khám BHYT & Dịch vụ/g, 'Insurance & Private')
+    .replace(/Cấp cứu đột quỵ 24\/7/g, '24/7 Stroke Emergency')
+    .replace(/Cấp cứu sản 24\/24/g, '24/7 OB Emergency')
+    .replace(/Khám theo yêu cầu & BHYT/g, 'On-demand & Insurance')
+    .replace(/Đặt lịch trực tuyến/g, 'Online booking')
+    .replace(/Lấy mẫu tại nhà/g, 'Home sample collection')
+    .replace(/Khám chuyên khoa mắt/g, 'Eye clinic')
+    .replace(/Chuyên khoa Tai Mũi Họng/g, 'ENT clinic');
+}
+
 function renderMedicalFacilities() {
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
   const container = document.getElementById('facility-cards-grid');
+  updateFacilitySidebarCounts();
   if (!container) return;
 
   const countEl = document.getElementById('facility-results-count');
@@ -5770,7 +6776,9 @@ function renderMedicalFacilities() {
 
   // Update Count
   if (countEl) {
-    countEl.innerText = `Hiển thị ${list.length} cơ sở y tế uy tín đạt chuẩn Bộ Y tế & MedlinePlus`;
+    countEl.innerText = isEn
+      ? `Displaying ${list.length} certified healthcare facilities (MoH & MedlinePlus)`
+      : `Hiển thị ${list.length} cơ sở y tế uy tín đạt chuẩn Bộ Y tế & MedlinePlus`;
   }
 
   if (list.length === 0) {
@@ -5795,7 +6803,7 @@ function renderMedicalFacilities() {
                 <span class="text-[10px] font-bold text-amber-700/80 dark:text-amber-400/80">(${fac.reviews})</span>
               </span>
               <span class="text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-xl border shadow-xs ${getFacilityBadgeColor(fac.badgeType)}">
-                ${fac.qualityBadge}
+                ${localizeQualityBadge(fac.qualityBadge, isEn)}
               </span>
             </div>
           </div>
@@ -5818,7 +6826,7 @@ function renderMedicalFacilities() {
           <div class="flex flex-wrap gap-1 pt-1">
             ${fac.specialties.slice(0, 4).map(s => `
               <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                ${s}
+                ${localizeSpecialty(s, isEn)}
               </span>
             `).join('')}
           </div>
@@ -5826,17 +6834,17 @@ function renderMedicalFacilities() {
           <!-- Status & Operating Hours -->
           <div class="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-300 pt-1 font-medium">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-            <span class="truncate">${fac.hours}</span>
+            <span class="truncate">${localizeHours(fac.hours, isEn)}</span>
           </div>
         </div>
 
         <!-- Bottom Action Buttons -->
         <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
           <button type="button" onclick="openFacilityBookingModal('${fac.id}')" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-sky-500/20 text-center transition-all cursor-pointer">
-            Đặt lịch khám
+            ${(typeof currentLang !== 'undefined' && currentLang === 'en') ? 'Book Appointment' : 'Đặt lịch khám'}
           </button>
           <button type="button" onclick="openFacilityDetailModal('${fac.id}')" class="px-3.5 py-2 rounded-xl glass-pill border border-slate-200 dark:border-white/10 hover:border-sky-400/40 text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white font-bold text-xs transition-all cursor-pointer">
-            Chi tiết
+            ${(typeof currentLang !== 'undefined' && currentLang === 'en') ? 'Details' : 'Chi tiết'}
           </button>
           <a href="${fac.mapUrl}" target="_blank" class="p-2 rounded-xl glass-pill border border-slate-200 dark:border-white/10 hover:border-sky-400/40 text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-white transition-all cursor-pointer" title="Chỉ đường trên Google Maps">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -5866,6 +6874,67 @@ function selectFacilityType(type, btn) {
   renderMedicalFacilities();
 }
 
+
+const regionDistrictsMap = {
+  hcm: [
+    { val: 'all', vi: 'Tất cả quận/huyện (TP.HCM)', en: 'All Districts (HCMC)' },
+    { val: 'Quận 1', vi: 'Quận 1', en: 'District 1' },
+    { val: 'Quận 3', vi: 'Quận 3', en: 'District 3' },
+    { val: 'Quận 5', vi: 'Quận 5', en: 'District 5' },
+    { val: 'Quận 7', vi: 'Quận 7', en: 'District 7' },
+    { val: 'Quận 10', vi: 'Quận 10', en: 'District 10' },
+    { val: 'Q. Bình Thạnh', vi: 'Q. Bình Thạnh', en: 'Binh Thanh Dist.' },
+    { val: 'Tân Bình', vi: 'Quận Tân Bình', en: 'Tan Binh Dist.' },
+    { val: 'TP. Thủ Đức', vi: 'TP. Thủ Đức', en: 'Thu Duc City' }
+  ],
+  hanoi: [
+    { val: 'all', vi: 'Tất cả quận/huyện (Hà Nội)', en: 'All Districts (Hanoi)' },
+    { val: 'Đống Đa', vi: 'Quận Đống Đa', en: 'Dong Da Dist.' },
+    { val: 'Hoàn Kiếm', vi: 'Quận Hoàn Kiếm', en: 'Hoan Kiem Dist.' },
+    { val: 'Hai Bà Trưng', vi: 'Quận Hai Bà Trưng', en: 'Hai Ba Trung Dist.' },
+    { val: 'Ba Đình', vi: 'Quận Ba Đình', en: 'Ba Dinh Dist.' }
+  ],
+  danang: [
+    { val: 'all', vi: 'Tất cả quận/huyện (Đà Nẵng)', en: 'All Districts (Da Nang)' },
+    { val: 'Hải Châu', vi: 'Quận Hải Châu', en: 'Hai Chau Dist.' },
+    { val: 'Thanh Khê', vi: 'Quận Thanh Khê', en: 'Thanh Khe Dist.' },
+    { val: 'Ngũ Hành Sơn', vi: 'Quận Ngũ Hành Sơn', en: 'Ngu Hanh Son Dist.' },
+    { val: 'Liên Chiểu', vi: 'Quận Liên Chiểu', en: 'Lien Chieu Dist.' }
+  ]
+};
+
+function updateFacilityDistrictDropdown(region) {
+  const distSelect = document.getElementById('facility-district-filter');
+  if (!distSelect) return;
+  const list = regionDistrictsMap[region] || regionDistrictsMap['hcm'];
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  const currVal = facilityDistrict || 'all';
+  distSelect.innerHTML = list.map(d => `<option value="${d.val}">${(isEn ? d.en : d.vi) || d.label || d.val}</option>`).join('');
+  distSelect.value = currVal;
+}
+
+function updateFacilitySidebarCounts() {
+  // Update sidebar type badges for the active region
+  const activeRegionFacs = medicalFacilitiesData.filter(fac => facilityCurrentRegion === 'all' || fac.region === facilityCurrentRegion);
+  const countAll = activeRegionFacs.length;
+  const countGeneral = activeRegionFacs.filter(f => f.types && f.types.includes('general')).length;
+  const countClinic = activeRegionFacs.filter(f => f.types && f.types.includes('clinic')).length;
+  const countSpecialized = activeRegionFacs.filter(f => f.types && f.types.includes('specialized')).length;
+  const countTesting = activeRegionFacs.filter(f => f.types && f.types.includes('testing')).length;
+
+  const bAll = document.getElementById('badge-count-all');
+  const bGen = document.getElementById('badge-count-general');
+  const bCli = document.getElementById('badge-count-clinic');
+  const bSpe = document.getElementById('badge-count-specialized');
+  const bTes = document.getElementById('badge-count-testing');
+
+  if (bAll) bAll.innerText = countAll;
+  if (bGen) bGen.innerText = countGeneral;
+  if (bCli) bCli.innerText = countClinic;
+  if (bSpe) bSpe.innerText = countSpecialized;
+  if (bTes) bTes.innerText = countTesting;
+}
+
 function selectFacilityRegion(region, btn) {
   facilityCurrentRegion = region;
   document.querySelectorAll('.facility-region-btn').forEach(b => {
@@ -5874,6 +6943,8 @@ function selectFacilityRegion(region, btn) {
   if (btn) {
     btn.className = 'facility-region-btn active py-2 text-center rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 shadow-sm border border-slate-200/60 dark:border-transparent transition-all cursor-pointer';
   }
+  updateFacilityDistrictDropdown(region);
+  updateFacilitySidebarCounts();
   renderMedicalFacilities();
 }
 
@@ -5952,6 +7023,20 @@ function toggleHospitalMapSection() {
 }
 
 function openFacilityBookingModal(facId) {
+  if (!currentUser) {
+    pendingBookingFacilityId = facId;
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+    const fac = medicalFacilitiesData.find(f => f.id === facId);
+    const facName = fac ? fac.name : (isEn ? 'healthcare facility' : 'cơ sở y tế');
+    const bannerTitle = isEn ? 'ACCOUNT AUTHENTICATION REQUIRED' : 'YÊU CẦU XÁC THỰC TÀI KHOẢN';
+    const bannerText = isEn 
+      ? `Please log in or create an account to book an appointment at ${facName}!`
+      : `Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám tại ${facName}!`;
+    showAuthContextBanner(bannerTitle, bannerText);
+    openLoginModal('login');
+    return;
+  }
+
   const fac = medicalFacilitiesData.find(f => f.id === facId) || medicalFacilitiesData[0];
   if (!fac) return;
 
@@ -5987,8 +7072,16 @@ function closeFacilityBookingModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function handleFacilityBookingSubmit(e) {
+async function handleFacilityBookingSubmit(e) {
   if (e) e.preventDefault();
+  if (!currentUser) {
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+    showMedicalToast(isEn ? 'Please log in or create an account to book an appointment!' : 'Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám!', 'warning');
+    closeFacilityBookingModal();
+    openAuthModal('login');
+    return;
+  }
+
   const facId = document.getElementById('book-modal-facility-id')?.value;
   const fac = medicalFacilitiesData.find(f => f.id === facId);
   const spec = document.getElementById('book-modal-spec')?.value;
@@ -5998,24 +7091,39 @@ function handleFacilityBookingSubmit(e) {
   const patPhone = document.getElementById('book-modal-phone')?.value;
   const note = document.getElementById('book-modal-note')?.value;
 
-  const appointment = {
-    id: 'apt_' + Date.now(),
-    facilityName: fac ? fac.name : 'Cơ sở Y tế',
-    specialty: spec,
-    date: date,
-    time: time,
-    patientName: patName,
-    patientPhone: patPhone,
-    note: note,
-    created_at: new Date().toISOString()
-  };
+  if (!patName || !patPhone || !date || !time) {
+    showMedicalToast('Vui lòng điền đầy đủ ngày khám, khung giờ, họ tên và số điện thoại!', 'warning');
+    return;
+  }
 
-  const stored = JSON.parse(localStorage.getItem('medimind_appointments') || '[]');
-  stored.unshift(appointment);
-  localStorage.setItem('medimind_appointments', JSON.stringify(stored));
+  try {
+    const res = await fetch('/api/appointments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        facility_id: facId || 'fac_unknown',
+        facility_name: fac ? fac.name : 'Cơ sở Y tế',
+        facility_address: fac ? fac.address : '',
+        specialty: spec || 'Đa khoa',
+        appointment_date: date,
+        appointment_time: time,
+        patient_name: patName,
+        patient_phone: patPhone,
+        note: note || ''
+      })
+    });
 
-  closeFacilityBookingModal();
-  showMedicalToast(`Đặt lịch hẹn thành công tại ${fac ? fac.name : 'bệnh viện'}!`, 'success');
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closeFacilityBookingModal();
+      showMedicalToast(data.message || `Đặt lịch khám thành công tại ${fac ? fac.name : 'cơ sở y tế'}!`, 'success');
+    } else {
+      showMedicalToast(data.error || 'Không thể đặt lịch khám lúc này. Vui lòng thử lại.', 'error');
+    }
+  } catch (err) {
+    console.error('Lỗi khi gửi lịch hẹn khám:', err);
+    showMedicalToast('Lỗi kết nối máy chủ khi gửi lịch hẹn.', 'error');
+  }
 }
 
 function openFacilityDetailModal(facId) {
@@ -6036,12 +7144,13 @@ function openFacilityDetailModal(facId) {
 
   if (title) title.innerText = fac.name;
   if (rating) rating.innerHTML = `⭐ ${fac.rating} <span class="text-[10px] font-normal text-slate-400">(${fac.reviews})</span>`;
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
   if (quality) {
-    quality.innerText = fac.qualityBadge;
+    quality.innerText = localizeQualityBadge(fac.qualityBadge, isEn);
     quality.className = `text-[11px] font-bold px-2 py-0.5 rounded-md border ${getFacilityBadgeColor(fac.badgeType)}`;
   }
   if (address) address.innerText = fac.address;
-  if (hours) hours.innerText = fac.hours;
+  if (hours) hours.innerText = localizeHours(fac.hours, isEn);
   if (phone) {
     phone.innerText = fac.phone;
     phone.href = `tel:${fac.phone.replace(/\s/g, '')}`;
@@ -6052,7 +7161,7 @@ function openFacilityDetailModal(facId) {
   if (specs) {
     specs.innerHTML = fac.specialties.map(s => `
       <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
-        ${s}
+        ${localizeSpecialty(s, isEn)}
       </span>
     `).join('');
   }
@@ -6066,9 +7175,23 @@ function closeFacilityDetailModal() {
 }
 
 function openBookingFromDetail() {
+  const targetId = activeDetailFacilityId;
   closeFacilityDetailModal();
-  if (activeDetailFacilityId) {
-    openFacilityBookingModal(activeDetailFacilityId);
+  if (!currentUser) {
+    pendingBookingFacilityId = targetId;
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+    const fac = medicalFacilitiesData.find(f => f.id === targetId);
+    const facName = fac ? fac.name : (isEn ? 'healthcare facility' : 'cơ sở y tế');
+    const bannerTitle = isEn ? 'ACCOUNT AUTHENTICATION REQUIRED' : 'YÊU CẦU XÁC THỰC TÀI KHOẢN';
+    const bannerText = isEn 
+      ? `Please log in or create an account to book an appointment at ${facName}!`
+      : `Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám tại ${facName}!`;
+    showAuthContextBanner(bannerTitle, bannerText);
+    openLoginModal('login');
+    return;
+  }
+  if (targetId) {
+    openFacilityBookingModal(targetId);
   }
 }
 
@@ -6315,7 +7438,7 @@ function syncCurrentPatientProfile() {
       allergiesContainer.innerHTML = cp.allergies.map(alg => `
         <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
           <span>⚠️</span>
-          <span>${alg}</span>
+          <span>${escapeHtml(alg)}</span>
         </span>
       `).join('');
     }
@@ -6377,13 +7500,18 @@ function updateEhrTabUI() {
       }
     }
 
-    if (visitCount) visitCount.innerText = String(chatHistory.length > 0 ? 1 : 0);
-    if (lastVisit) lastVisit.innerText = currentUser.joined_date || (currentLang === 'en' ? 'Today' : 'Hôm nay');
+    if (visitCount) {
+      const badgeText = document.getElementById('ehr-records-count-badge')?.innerText || '';
+      const match = badgeText.match(/^\d+/);
+      visitCount.innerText = match ? match[0] : '0';
+    }
 
     if (exportBtn) {
       exportBtn.classList.remove('opacity-40', 'cursor-not-allowed');
       exportBtn.removeAttribute('disabled');
       exportBtn.title = currentLang === 'en' ? 'Export pre-visit summary (PDF)' : 'In hoặc tải bản tóm tắt trước khám (PDF)';
+      const exportText = document.getElementById('ehr-export-text');
+      if (exportText) exportText.innerText = currentLang === 'en' ? 'Export Summary (PDF)' : 'Xuất Tóm Tắt (PDF)';
     }
 
     switchEhrSubTab(currentEhrSubTab || 'ai');
@@ -6395,7 +7523,6 @@ function updateEhrTabUI() {
   if (heroDemo) heroDemo.innerText = currentLang === 'en' ? 'Guest Account • Not Synchronized' : 'Tài khoản khách · Chưa đồng bộ hồ sơ';
   if (avatarLarge) avatarLarge.innerText = '👤';
   if (visitCount) visitCount.innerText = '0';
-  if (lastVisit) lastVisit.innerText = '--';
   if (dobVal) dobVal.innerText = '--';
   if (bloodVal) bloodVal.innerText = '--';
   if (phoneVal) phoneVal.innerText = '--';
@@ -6476,7 +7603,6 @@ function selectPatientProfile(patientKey = 'current_patient') {
   if (heroDemo) heroDemo.innerText = `${patient.gender} · ${patient.age} tuổi`;
   if (avatarLarge) avatarLarge.innerText = patient.badge;
   if (visitCount) visitCount.innerText = patient.visitCount;
-  if (lastVisit) lastVisit.innerText = patient.lastVisitDate;
   if (dobVal) dobVal.innerText = patient.dob;
   if (bloodVal) bloodVal.innerText = patient.blood;
   if (phoneVal) phoneVal.innerText = patient.phone;
@@ -6487,7 +7613,7 @@ function selectPatientProfile(patientKey = 'current_patient') {
       allergiesContainer.innerHTML = patient.allergies.map(alg => `
         <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
           <span>⚠️</span>
-          <span>${alg}</span>
+          <span>${escapeHtml(alg)}</span>
         </span>
       `).join('');
     } else {
@@ -6531,22 +7657,37 @@ async function loadAndRenderAiConsultations() {
   if (!container) return;
 
   try {
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
     const res = await fetch('/api/consultations');
+    if (res.status === 401) {
+      if (countBadge) countBadge.innerText = isEn ? '0 AI consultations' : '0 phiên tư vấn AI';
+      container.innerHTML = `
+        <div class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 space-y-3 bg-white/50 dark:bg-white/[0.02]">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto text-xl">🔒</div>
+          <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">${isEn ? 'Authentication Required' : 'Yêu cầu đăng nhập'}</p>
+          <p class="text-xs text-slate-400">${isEn ? 'Please sign in to synchronize and access your clinical consultation history.' : 'Vui lòng đăng nhập để đồng bộ và xem lịch sử tư vấn lâm sàng của bạn.'}</p>
+        </div>`;
+      return;
+    }
     const data = await res.json();
     const list = data.consultations || [];
 
     if (countBadge) {
-      countBadge.innerText = `${list.length} phiên tư vấn AI`;
+      countBadge.innerText = isEn ? `${list.length} AI consultations` : `${list.length} phiên tư vấn AI`;
+    }
+    const ehrVisitCountEl = document.getElementById('ehr-visit-count');
+    if (ehrVisitCountEl) {
+      ehrVisitCountEl.innerText = String(list.length);
     }
 
     if (list.length === 0) {
       container.innerHTML = `
         <div class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 space-y-3 bg-white/50 dark:bg-white/[0.02]">
           <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center mx-auto text-xl">💬</div>
-          <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Chưa có phiên tư vấn nào được lưu</p>
-          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">Các phiên tư vấn trước khám với Trợ lý AI sẽ tự động xuất hiện ở đây để bạn dễ dàng theo dõi và xuất phiếu trước khám.</p>
+          <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${isEn ? 'No consultation sessions saved yet' : 'Chưa có phiên tư vấn nào được lưu'}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">${isEn ? 'Pre-visit AI screening sessions will automatically appear here for easy tracking and export.' : 'Các phiên tư vấn trước khám với Trợ lý AI sẽ tự động xuất hiện ở đây để bạn dễ dàng theo dõi và xuất phiếu trước khám.'}</p>
           <button type="button" onclick="switchTab('chat-tab')" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 transition-all cursor-pointer shadow-sm">
-            Bắt đầu trò chuyện ngay
+            ${isEn ? 'Start Chatting Now' : 'Bắt đầu trò chuyện ngay'}
           </button>
         </div>
       `;

@@ -5,6 +5,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    """Tự động kích hoạt chế độ WAL Mode và timeout 5000ms để triệt tiêu lỗi 'database is locked'."""
+    if "sqlite" in str(type(dbapi_connection)).lower() or hasattr(dbapi_connection, "cursor"):
+        try:
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL;")
+            cursor.execute("PRAGMA synchronous=NORMAL;")
+            cursor.execute("PRAGMA busy_timeout=5000;")
+            cursor.close()
+        except Exception:
+            pass
+
+
 class User(db.Model):
     """
     Mô hình Người dùng (User Model) tuân thủ kiến trúc SQLAlchemy ORM.
@@ -225,6 +242,45 @@ class IntakeSessionRecord(db.Model):
             "is_confirmed": bool(self.is_confirmed),
             "version": self.version,
             "created_at": self.created_at or ""
+        }
+
+
+
+class MedicalAppointment(db.Model):
+    """Bảng lưu trữ lịch hẹn khám chữa bệnh tại các cơ sở y tế / bệnh viện."""
+    __tablename__ = "medical_appointments"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    facility_id = db.Column(db.String(50), nullable=False)
+    facility_name = db.Column(db.String(255), nullable=False)
+    facility_address = db.Column(db.String(255), nullable=True)
+    specialty = db.Column(db.String(100), nullable=True)
+    appointment_date = db.Column(db.String(20), nullable=False)
+    appointment_time = db.Column(db.String(20), nullable=False)
+    patient_name = db.Column(db.String(120), nullable=False)
+    patient_phone = db.Column(db.String(20), nullable=False)
+    note = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(30), default="pending", nullable=False)  # pending | confirmed | cancelled
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("appointments", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "facility_id": self.facility_id,
+            "facility_name": self.facility_name,
+            "facility_address": self.facility_address or "",
+            "specialty": self.specialty or "",
+            "appointment_date": self.appointment_date,
+            "appointment_time": self.appointment_time,
+            "patient_name": self.patient_name,
+            "patient_phone": self.patient_phone,
+            "note": self.note or "",
+            "status": self.status,
+            "created_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else ""
         }
 
 

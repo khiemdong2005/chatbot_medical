@@ -16,7 +16,7 @@ if not db_path.exists():
 conn = sqlite3.connect(str(db_path))
 cur = conn.cursor()
 
-tables_to_wipe = ["users", "medical_documents", "clinical_consultations", "intake_sessions"]
+tables_to_wipe = ["users", "medical_documents", "clinical_consultations", "intake_sessions", "medical_appointments"]
 
 print("⚡ [Bắt đầu dọn sạch kho quân lương - Truncate All Data Tables]")
 for tbl in tables_to_wipe:
