@@ -444,9 +444,7 @@ def create_app(test_config=None):
             "expires_in": otp_manager.ttl
         }
 
-        # Trả về dev_otp nếu đang trong môi trường dev cục bộ
-        if not is_prod:
-            res_data["dev_otp"] = otp_manager.get_active_code(identifier, channel)
+
 
         return jsonify(res_data)
 

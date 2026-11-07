@@ -2122,12 +2122,74 @@ function syncAuthModalTheme() {
   }
 }
 
-function openLoginModal() {
+function resetAuthModal() {
+  if (otpCountdownTimer) {
+    clearInterval(otpCountdownTimer);
+    otpCountdownTimer = null;
+  }
+  currentOtpRemaining = 59;
+  pendingOtpFlow = {
+    identifier: '',
+    channel: 'sms',
+    purpose: 'register',
+    userData: null,
+    previousMode: 'register'
+  };
+
+  // Reset forms
+  const loginForm = document.getElementById('login-form');
+  const regForm = document.getElementById('register-form');
+  const otpForm = document.getElementById('otp-form');
+  if (loginForm) loginForm.reset();
+  if (regForm) regForm.reset();
+  if (otpForm) otpForm.reset();
+
+  // Clear inputs explicitly to prevent lingering state on logout / new account
+  const regLastName = document.getElementById('register-last-name');
+  const regFirstName = document.getElementById('register-first-name');
+  const regName = document.getElementById('register-name');
+  const regIdent = document.getElementById('register-identifier');
+  const regEmail = document.getElementById('register-email');
+  const regPass = document.getElementById('register-password');
+  const regDob = document.getElementById('register-dob');
+  const regGender = document.getElementById('register-gender');
+
+  if (regLastName) regLastName.value = '';
+  if (regFirstName) regFirstName.value = '';
+  if (regName) regName.value = '';
+  if (regIdent) regIdent.value = '';
+  if (regEmail) regEmail.value = '';
+  if (regPass) regPass.value = '';
+  if (regDob) regDob.value = '';
+  if (regGender) regGender.value = 'Nam';
+
+  const loginIdent = document.getElementById('login-identifier');
+  const loginPass = document.getElementById('login-password');
+  if (loginIdent) loginIdent.value = '';
+  if (loginPass) loginPass.value = '';
+
+  clearOtpInputs();
+  const timerWrap = document.getElementById('otp-timer-wrap');
+  const resendBtn = document.getElementById('btn-otp-resend');
+  const targetDisplay = document.getElementById('otp-target-display');
+  if (timerWrap) timerWrap.classList.remove('hidden');
+  if (resendBtn) resendBtn.classList.add('hidden');
+  if (targetDisplay) targetDisplay.innerText = '...';
+
+  populateDobDropdowns();
+}
+
+function openLoginModal(mode = 'login') {
   syncAuthModalTheme();
   const modal = document.getElementById('login-modal');
   if (modal) {
+    toggleAuthMode(mode || 'login');
     modal.classList.remove('hidden');
-    document.getElementById('login-identifier')?.focus();
+    if (mode === 'register') {
+      document.getElementById('register-last-name')?.focus();
+    } else {
+      document.getElementById('login-identifier')?.focus();
+    }
   }
   if (typeof setupOtpDigitInputs === 'function') setupOtpDigitInputs();
 }
@@ -2135,6 +2197,7 @@ function openLoginModal() {
 function closeLoginModal() {
   const modal = document.getElementById('login-modal');
   if (modal) modal.classList.add('hidden');
+  resetAuthModal();
 }
 
 function populateDobDropdowns() {
@@ -2482,15 +2545,7 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
       targetDisplay.innerText = identifier;
     }
 
-    const devHint = document.getElementById('otp-dev-hint');
-    if (devHint) {
-      if (data.dev_otp) {
-        devHint.innerText = `🔑 [Mã thử nghiệm Dev]: ${data.dev_otp}`;
-        devHint.classList.remove('hidden');
-      } else {
-        devHint.classList.add('hidden');
-      }
-    }
+
 
     clearOtpInputs();
     startOtpCountdown(data.cooldown || 59);
@@ -2910,6 +2965,7 @@ async function handleLogout() {
     console.error('Lỗi đăng xuất:', err);
   }
   currentUser = null;
+  resetAuthModal();
   Object.keys(fieldRealValues).forEach(k => delete fieldRealValues[k]);
   Object.keys(fieldMaskState).forEach(k => {
     fieldMaskState[k] = false;
