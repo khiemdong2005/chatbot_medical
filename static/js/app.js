@@ -1741,6 +1741,7 @@ function toggleProfileEdit(isEdit) {
   if (!viewMode || !editMode) return;
 
   if (isEdit) {
+    const curDob = currentUser?.dob || document.getElementById('edit-profile-dob')?.value || '';
     if (currentUser) {
       const nameInput = document.getElementById('edit-profile-name');
       const genderSelect = document.getElementById('edit-profile-gender');
@@ -1749,9 +1750,11 @@ function toggleProfileEdit(isEdit) {
 
       if (nameInput) nameInput.value = currentUser.name || '';
       if (genderSelect) genderSelect.value = currentUser.gender || 'Nam';
-      if (dobInput) dobInput.value = currentUser.dob || '';
+      if (dobInput) dobInput.value = curDob;
       if (phoneInput) phoneInput.value = currentUser.phone_number || '';
     }
+    populateModalDobDropdowns('edit-profile-dob-day', 'edit-profile-dob-month', 'edit-profile-dob-year', curDob);
+    syncEditProfileDobFromDropdowns();
     viewMode.classList.add('hidden');
     editMode.classList.remove('hidden');
     document.getElementById('edit-profile-name')?.focus();
@@ -1766,6 +1769,7 @@ let pendingGoogleProfile = null;
 
 async function handleSaveProfile(e) {
   if (e) e.preventDefault();
+  syncEditProfileDobFromDropdowns();
   const name = document.getElementById('edit-profile-name')?.value.trim();
   const gender = document.getElementById('edit-profile-gender')?.value;
   const dob = document.getElementById('edit-profile-dob')?.value.trim();
@@ -1855,6 +1859,57 @@ function openProfileModal() {
   switchTab('profile-tab');
 }
 
+function populateModalDobDropdowns(dayId, monthId, yearId, currentDobStr) {
+  const daySelect = document.getElementById(dayId);
+  const monthSelect = document.getElementById(monthId);
+  const yearSelect = document.getElementById(yearId);
+  if (!daySelect || !monthSelect || !yearSelect) return;
+
+  let selDay = '', selMonth = '', selYear = '';
+  if (currentDobStr && typeof currentDobStr === 'string' && currentDobStr.trim()) {
+    const parts = currentDobStr.trim().split(/[\/\-]/);
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        selYear = parts[0];
+        selMonth = String(parseInt(parts[1], 10));
+        selDay = String(parseInt(parts[2], 10));
+      } else {
+        selDay = String(parseInt(parts[0], 10));
+        selMonth = String(parseInt(parts[1], 10));
+        selYear = parts[2];
+      }
+    }
+  }
+
+  const dayText = currentLang === 'en' ? 'Day' : 'Ngày';
+  const monthText = currentLang === 'en' ? 'Month' : 'Tháng';
+  const yearText = currentLang === 'en' ? 'Year' : 'Năm';
+
+  daySelect.innerHTML = `<option value="" disabled ${!selDay ? 'selected' : ''}>${dayText}</option>` + 
+    Array.from({length: 31}, (_, i) => `<option value="${i+1}" ${selDay == (i+1) ? 'selected' : ''}>${i+1}</option>`).join('');
+
+  monthSelect.innerHTML = `<option value="" disabled ${!selMonth ? 'selected' : ''}>${monthText}</option>` + 
+    Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${selMonth == (i+1) ? 'selected' : ''}>${currentLang === 'en' ? `Month ${i+1}` : `Tháng ${i+1}`}</option>`).join('');
+
+  const currentYear = new Date().getFullYear();
+  yearSelect.innerHTML = `<option value="" disabled ${!selYear ? 'selected' : ''}>${yearText}</option>` + 
+    Array.from({length: 90}, (_, i) => `<option value="${currentYear - i}" ${selYear == (currentYear - i) ? 'selected' : ''}>${currentYear - i}</option>`).join('');
+}
+
+function syncEditProfileDobFromDropdowns() {
+  const d = document.getElementById('edit-profile-dob-day')?.value;
+  const m = document.getElementById('edit-profile-dob-month')?.value;
+  const y = document.getElementById('edit-profile-dob-year')?.value;
+  const hiddenInput = document.getElementById('edit-profile-dob');
+  if (hiddenInput) {
+    if (d && m && y) {
+      hiddenInput.value = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+    } else {
+      hiddenInput.value = '';
+    }
+  }
+}
+
 function openGoogleOnboardingModal(user, isNewRegistration = false) {
   const u = user || pendingGoogleProfile || currentUser;
   if (!u) return;
@@ -1863,38 +1918,59 @@ function openGoogleOnboardingModal(user, isNewRegistration = false) {
   const nameHeader = document.getElementById('profile-name');
   const badgeHeader = document.getElementById('profile-badge');
   const avatarHeader = document.getElementById('profile-avatar');
-  if (nameHeader) nameHeader.innerText = u.full_name || u.name || 'Bệnh nhân mới';
+  const displayName = u.full_name || u.name || 'Bệnh nhân mới';
+
+  if (nameHeader) nameHeader.innerText = displayName;
   if (badgeHeader) {
     badgeHeader.innerText = isPendingGoogleRegistration
       ? `Tài khoản Google mới: ${u.email || ''} • Xác nhận thông tin để vào ứng dụng`
       : 'Xác thực Google thành công • Thông tin hồ sơ cá nhân';
-    const saveBtnSpan = document.querySelector('#profile-edit-mode button[type="submit"] span');
-    if (saveBtnSpan) {
-      saveBtnSpan.innerText = isPendingGoogleRegistration ? 'Xác nhận & Vào ứng dụng' : 'Lưu thông tin';
-    }
   }
+
+  const saveBtnSpan = document.getElementById('profile-save-btn-text') || document.querySelector('#profile-edit-mode button[type="submit"] span');
+  if (saveBtnSpan) {
+    saveBtnSpan.innerText = isPendingGoogleRegistration ? 'Xác nhận & Vào ứng dụng' : 'Lưu thông tin';
+  }
+
+  // Cải tiến hiển thị Avatar chống vỡ ảnh (Graceful Fallback với Gradient Initial Badge)
   if (avatarHeader) {
-    if (u.avatar_url) {
-      avatarHeader.innerHTML = `<img src="${escapeHtml(u.avatar_url)}" alt="Avatar" class="w-full h-full rounded-2xl object-cover">`;
+    const initial = displayName.trim().split(/\s+/).pop().charAt(0).toUpperCase() || 'G';
+    const bgGradient = 'bg-gradient-to-tr from-sky-500 to-indigo-600';
+    avatarHeader.className = `w-13 h-13 rounded-2xl ${bgGradient} text-white font-black text-lg flex items-center justify-center border border-sky-400/40 shadow-md shadow-sky-500/20 shrink-0 overflow-hidden relative`;
+
+    if (u.avatar_url && typeof u.avatar_url === 'string' && u.avatar_url.startsWith('http')) {
+      avatarHeader.innerHTML = `
+        <img src="${escapeHtml(u.avatar_url)}" alt="" class="w-full h-full object-cover rounded-2xl" 
+             referrerpolicy="no-referrer"
+             onerror="this.style.display='none'; const fb = this.nextElementSibling; if(fb) fb.classList.remove('hidden');" />
+        <div class="hidden w-full h-full ${bgGradient} text-white font-black text-lg flex items-center justify-center">
+          ${escapeHtml(initial)}
+        </div>
+      `;
     } else {
-      avatarHeader.innerText = u.badge || 'BN';
+      avatarHeader.innerHTML = `<span>${escapeHtml(initial)}</span>`;
     }
   }
+
   toggleProfileEdit(true);
   const nameInput = document.getElementById('edit-profile-name');
   const genderSelect = document.getElementById('edit-profile-gender');
   const dobInput = document.getElementById('edit-profile-dob');
   const phoneInput = document.getElementById('edit-profile-phone');
-  if (nameInput) nameInput.value = u.full_name || u.name || '';
+
+  if (nameInput) nameInput.value = displayName;
   if (genderSelect) genderSelect.value = u.gender || 'Nam';
   if (dobInput) dobInput.value = u.dob || '';
   if (phoneInput) phoneInput.value = u.phone_number || '';
 
+  // Nạp 3 dropdowns Ngày / Tháng / Năm
+  populateModalDobDropdowns('edit-profile-dob-day', 'edit-profile-dob-month', 'edit-profile-dob-year', u.dob || '');
+  syncEditProfileDobFromDropdowns();
+
   if (modal) modal.classList.remove('hidden');
   setTimeout(() => {
-    if (dobInput && !dobInput.value) dobInput.focus();
-    else if (phoneInput && !phoneInput.value) phoneInput.focus();
-  }, 80);
+    if (phoneInput && !phoneInput.value) phoneInput.focus();
+  }, 100);
 }
 
 async function handleTabSaveProfile(e) {
