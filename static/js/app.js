@@ -1,3 +1,4 @@
+let currentEhrSubTab = 'ai';
 // ==========================================
 // Facebook-Style Default Avatars by Gender (Nam, Nữ, Khác)
 // ==========================================
@@ -3457,7 +3458,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }).catch(() => {});
-  selectPatientProfile('current_patient');
+  updateEhrTabUI();
   renderMedicalFacilities();
   updateHomeGreeting();
   loadPrescriptionHistory();
@@ -5959,77 +5960,19 @@ function initHistorySearch() {
 // ==========================================
 const medicalPatientsData = {
   current_patient: {
-    id: 'BN-2026-8429',
-    name: 'Nguyễn Thành Khiêm',
-    gender: 'Nữ',
-    age: 29,
-    dob: '24/10/1997',
-    blood: 'O+',
-    phone: '0971 221 306',
-    allergies: ['Penicillin', 'Hải sản'],
-    visitCount: 3,
-    lastVisitDate: '18/10/2026',
-    badge: 'BN',
-    roleText: 'Hồ sơ chính (Tôi)',
-    records: [
-      {
-        id: 'rec_1',
-        date: '18/10/2026',
-        title: 'Viêm họng cấp & Sốt nhẹ',
-        doctor: 'BS. Lê Thu Hà · Nội tổng quát',
-        status: 'Đã khám',
-        statusType: 'success',
-        icd: 'ICD-10: J02.9',
-        vitals: {
-          bp: '118/76 mmHg',
-          hr: '88 lần/phút',
-          temp: '38.2 °C',
-          weight: '52.5 kg'
-        },
-        symptoms: 'Đau rát họng, sốt 38.2°C, nuốt đau 3 ngày',
-        labs: 'Xét nghiệm nhanh kháng nguyên liên cầu: âm tính. Bạch cầu 11.2 G/L, tăng nhẹ.',
-        doctorNotes: 'Nghỉ ngơi, uống nhiều nước ấm, súc họng nước muối sinh lý, theo dõi thân nhiệt.',
-        followUp: 'Tái khám sau 3 ngày nếu sốt không giảm'
-      },
-      {
-        id: 'rec_2',
-        date: '02/06/2026',
-        title: 'Rối loạn nhịp xoang & Hồi hộp',
-        doctor: 'BS. Phạm Đức Long · Tim mạch',
-        status: 'Đã khám',
-        statusType: 'info',
-        icd: 'ICD-10: I49.5',
-        vitals: {
-          bp: '120/80 mmHg',
-          hr: '94 lần/phút',
-          temp: '37.0 °C',
-          weight: '52.0 kg'
-        },
-        symptoms: 'Hồi hộp, tim đập nhanh từng cơn khi làm việc căng thẳng',
-        labs: 'Điện tâm đồ (ECG): Nhịp xoang nhanh 94 bpm, không thiếu máu cơ tim.',
-        doctorNotes: 'Hạn chế cà phê, điều hòa giấc ngủ, tập thể dục nhẹ nhàng.',
-        followUp: 'Tái khám khi có triệu chứng hồi hộp tái phát'
-      },
-      {
-        id: 'rec_3',
-        date: '20/11/2025',
-        title: 'Kiểm tra sức khỏe định kỳ & Thiếu máu nhẹ',
-        doctor: 'BS. Lê Thu Hà · Nội tổng quát',
-        status: 'Đã hồi phục',
-        statusType: 'success',
-        icd: 'ICD-10: D50.9',
-        vitals: {
-          bp: '112/72 mmHg',
-          hr: '76 lần/phút',
-          temp: '36.8 °C',
-          weight: '51.5 kg'
-        },
-        symptoms: 'Thỉnh thoảng chóng mặt nhẹ khi thay đổi tư thế đột ngột',
-        labs: 'Tổng phân tích tế bào máu: Hb 11.5 g/dL, Ferritin huyết thanh trong giới hạn.',
-        doctorNotes: 'Bổ sung dinh dưỡng, tăng cường thực phẩm giàu sắt và vitamin C.',
-        followUp: 'Khám sức khỏe định kỳ mỗi 6 tháng'
-      }
-    ]
+    id: 'BN-GUEST',
+    name: 'Chưa đăng nhập',
+    gender: 'Chưa rõ',
+    age: '--',
+    dob: '--',
+    blood: '--',
+    phone: '--',
+    allergies: [],
+    visitCount: 0,
+    lastVisitDate: '--',
+    badge: '👤',
+    roleText: 'Tài khoản khách',
+    records: []
   },
   minh_anh: {
     id: 'BN-8429',
@@ -6453,6 +6396,10 @@ function renderPatientTimelineWithNotice(records) {
 }
 
 function selectPatientProfile(patientKey = 'current_patient') {
+  if (!currentUser && !isViewingEhrDemo) {
+    updateEhrTabUI();
+    return;
+  }
   syncCurrentPatientProfile();
   activeMedicalPatientKey = patientKey || 'current_patient';
   const patient = medicalPatientsData[activeMedicalPatientKey] || medicalPatientsData.current_patient;
@@ -6508,7 +6455,7 @@ function selectPatientProfile(patientKey = 'current_patient') {
   // Render Right Timeline theo phân hệ đã chọn (Tư vấn AI thực tế vs Bệnh viện minh họa)
   switchEhrSubTab(currentEhrSubTab || 'ai');
 
-let currentEhrSubTab = 'ai';
+// currentEhrSubTab moved up
 
 function switchEhrSubTab(subTab) {
   currentEhrSubTab = subTab;
