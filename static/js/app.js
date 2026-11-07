@@ -4668,13 +4668,12 @@ function updateHospitalMapMarkers(customList) {
 
 function toggleHospitalMapSection() {
   const panel = document.getElementById('hospital-map-collapsible');
-  const text = document.getElementById('hospital-map-toggle-text');
   if (!panel) return;
   panel.classList.toggle('hidden');
   const isHidden = panel.classList.contains('hidden');
-  if (text) {
-    text.innerText = isHidden ? 'Mở bản đồ' : 'Thu gọn bản đồ';
-  }
+  document.querySelectorAll('[data-role="map-toggle-text"]').forEach(el => {
+    el.innerText = isHidden ? 'Mở bản đồ' : 'Thu gọn bản đồ';
+  });
   if (!isHidden) {
     setTimeout(() => {
       initHospitalInteractiveMap();
@@ -4896,6 +4895,23 @@ function selectFacilityDistrictPill(district, btn) {
   if (btn) {
     btn.className = 'facility-district-pill active px-3.5 py-1.5 rounded-full text-xs font-medium bg-blue-600 text-white cursor-pointer transition-all';
   }
+  const distSelect = document.getElementById('facility-district-filter');
+  if (distSelect && distSelect.value !== district) {
+    distSelect.value = district;
+  }
+  renderMedicalFacilities();
+}
+
+function handleFacilityDistrictChange(val) {
+  facilityDistrict = val;
+  document.querySelectorAll('.facility-district-pill').forEach(b => {
+    const text = b.innerText.trim();
+    if ((val === 'all' && text === 'Tất cả') || text === val) {
+      b.className = 'facility-district-pill active px-3.5 py-1.5 rounded-full text-xs font-medium bg-blue-600 text-white cursor-pointer transition-all';
+    } else {
+      b.className = 'facility-district-pill px-3.5 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:border-blue-500 cursor-pointer transition-all';
+    }
+  });
   renderMedicalFacilities();
 }
 
@@ -4930,8 +4946,10 @@ function resetAllFacilityFilters() {
   facilitySort = 'distance';
 
   const mainSearch = document.getElementById('facility-main-search');
+  const distSelect = document.getElementById('facility-district-filter');
   const sortSelect = document.getElementById('facility-sort-select');
   if (mainSearch) mainSearch.value = '';
+  if (distSelect) distSelect.value = 'all';
   if (sortSelect) sortSelect.value = 'distance';
 
   const firstTypeBtn = document.querySelector('.facility-type-btn');
