@@ -95,6 +95,13 @@ class MedicalDocument(db.Model):
     file_size = db.Column(db.Integer, nullable=False)
     file_type = db.Column(db.String(20), nullable=False)
     mime_type = db.Column(db.String(100), nullable=True)
+    doc_type = db.Column(db.String(50), nullable=True, default="prescription")  # 'prescription' hoặc 'lab_test'
+    diagnosis = db.Column(db.Text, nullable=True)  # Chẩn đoán bệnh (mắc bệnh gì)
+    facility = db.Column(db.String(255), nullable=True)  # Bệnh viện / Phòng khám
+    doctor = db.Column(db.String(255), nullable=True)  # Bác sĩ điều trị
+    patient_name = db.Column(db.String(255), nullable=True)  # Tên bệnh nhân ghi trên đơn
+    summary = db.Column(db.Text, nullable=True)  # Tóm tắt nhanh danh mục thuốc / chỉ số
+    parsed_data = db.Column(db.Text, nullable=True)  # Toàn bộ JSON kết quả phân tích để xem lại ngay
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -116,7 +123,15 @@ class MedicalDocument(db.Model):
             "size": format_size(self.file_size),
             "size_bytes": self.file_size,
             "type": self.file_type.upper(),
+            "doc_type": self.doc_type or "prescription",
+            "diagnosis": self.diagnosis or "Chưa phân loại bệnh",
+            "facility": self.facility or "Cơ sở Y tế",
+            "doctor": self.doctor or "",
+            "patient_name": self.patient_name or "",
+            "summary": self.summary or "",
+            "has_parsed_data": bool(self.parsed_data),
             "uploaded_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else "",
+            "created_at_iso": self.created_at.isoformat() if self.created_at else "",
             "owner_id": self.owner_id
         }
 
@@ -140,6 +155,77 @@ class ClinicalConsultation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     user = db.relationship("User", backref=db.backref("consultations", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        import json
+        symptoms_list = []
+        try:
+            symptoms_list = json.loads(self.symptoms or "[]")
+        except Exception:
+            symptoms_list = []
+        return {
+            "id": self.id,
+            "message": self.message,
+            "answer": self.answer,
+            "risk_level": self.risk_level or "Theo dõi tại nhà",
+            "risk_score": self.risk_score,
+            "symptoms": symptoms_list,
+            "specialist": self.specialist or "Y học gia đình",
+            "is_emergency": bool(self.is_emergency),
+            "created_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else ""
+        }
+
+
+class IntakeSessionRecord(db.Model):
+    """
+    Mô hình lưu trữ bền vững các phiên hỏi bệnh lâm sàng (Intake Session) có cấu trúc.
+    Giữ toàn vẹn dữ liệu khi khởi động lại server hoặc chạy multi-worker.
+    """
+    __tablename__ = "intake_sessions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    conversation_id = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    status = db.Column(db.String(50), default="collecting")
+    turn_count = db.Column(db.Integer, default=0)
+    facts_json = db.Column(db.Text, nullable=False, default="{}")
+    messages_json = db.Column(db.Text, nullable=False, default="[]")
+    attachments_json = db.Column(db.Text, nullable=False, default="[]")
+    is_emergency = db.Column(db.Boolean, default=False)
+    is_confirmed = db.Column(db.Boolean, default=False)
+    version = db.Column(db.Integer, default=1)
+    created_at = db.Column(db.String(50), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = db.relationship("User", backref=db.backref("intake_sessions", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        import json
+        try:
+            facts = json.loads(self.facts_json or "{}")
+        except Exception:
+            facts = {}
+        try:
+            messages = json.loads(self.messages_json or "[]")
+        except Exception:
+            messages = []
+        try:
+            attachments = json.loads(self.attachments_json or "[]")
+        except Exception:
+            attachments = []
+        return {
+            "conversation_id": self.conversation_id,
+            "user_id": self.user_id,
+            "status": self.status,
+            "turn_count": self.turn_count,
+            "facts": facts,
+            "messages": messages,
+            "attachments": attachments,
+            "is_emergency": bool(self.is_emergency),
+            "is_confirmed": bool(self.is_confirmed),
+            "version": self.version,
+            "created_at": self.created_at or ""
+        }
 
 
 def init_db(app):

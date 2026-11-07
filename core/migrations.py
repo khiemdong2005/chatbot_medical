@@ -59,13 +59,19 @@ MIGRATIONS = [
         """
     ),
     (
-        "2026_01_06_clinical_profile_json",
-        "Bổ sung cột clinical_profile lưu hồ sơ y tế mở rộng (Dân tộc, Tôn giáo, Tỉnh thành, CCCD...)",
+        "2026_01_05_auth_enhancements",
+        "Bổ sung cột avatar_url cho đăng nhập Google và OTP",
         None
     ),
     (
-        "2026_01_05_auth_enhancements",
-        "Bổ sung cột avatar_url cho đăng nhập Google và OTP",
+        "2026_01_05_medical_documents_clinical_fields",
+        "Bổ sung các cột lâm sàng (chẩn đoán, tóm tắt, json kết quả) cho medical_documents",
+        None
+    ),
+    (
+        "2026_01_06_clinical_profile_json",
+        "Bổ sung cột clinical_profile lưu hồ sơ y tế mở rộng (Dân tộc, Tôn giáo, Tỉnh thành, CCCD...)",
+
         None
     )
 ]
@@ -115,16 +121,31 @@ def run_migrations(engine):
                         for col_name, col_type in columns_to_add:
                             if col_name not in existing_cols:
                                 conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
-                elif version == "2026_01_06_clinical_profile_json":
-                    if "users" in inspector.get_table_names():
-                        existing_cols = {col["name"] for col in inspector.get_columns("users")}
-                        if "clinical_profile" not in existing_cols:
-                            conn.execute(text("ALTER TABLE users ADD COLUMN clinical_profile TEXT;"))
                 elif version == "2026_01_05_auth_enhancements":
                     if "users" in inspector.get_table_names():
                         existing_cols = {col["name"] for col in inspector.get_columns("users")}
                         if "avatar_url" not in existing_cols:
                             conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
+                elif version == "2026_01_05_medical_documents_clinical_fields":
+                    if "medical_documents" in inspector.get_table_names():
+                        existing_cols = {col["name"] for col in inspector.get_columns("medical_documents")}
+                        doc_columns_to_add = [
+                            ("doc_type", "VARCHAR(50) DEFAULT 'prescription'"),
+                            ("diagnosis", "TEXT"),
+                            ("facility", "VARCHAR(255)"),
+                            ("doctor", "VARCHAR(255)"),
+                            ("patient_name", "VARCHAR(255)"),
+                            ("summary", "TEXT"),
+                            ("parsed_data", "TEXT")
+                        ]
+                        for col_name, col_type in doc_columns_to_add:
+                            if col_name not in existing_cols:
+                                conn.execute(text(f"ALTER TABLE medical_documents ADD COLUMN {col_name} {col_type};"))
+                elif version == "2026_01_06_clinical_profile_json":
+                    if "users" in inspector.get_table_names():
+                        existing_cols = {col["name"] for col in inspector.get_columns("users")}
+                        if "clinical_profile" not in existing_cols:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN clinical_profile TEXT;"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     for stmt in sql.strip().split(";"):

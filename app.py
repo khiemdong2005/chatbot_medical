@@ -37,6 +37,7 @@ from core.storage_service import (
 from core.chat_service import process_clinical_chat
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.intake_service import intake_service
 from core.pipeline_orchestrator import process_medical_document_pipeline
 
 logger = logging.getLogger("MediMindApp")
@@ -310,7 +311,11 @@ def create_app(test_config=None):
             "facility": data.get("facility", "").strip(),
             "valid_from": data.get("valid_from", "").strip(),
             "valid_to": data.get("valid_to", "").strip(),
-            "nationality": data.get("nationality", "").strip() or "VN"
+            "nationality": data.get("nationality", "").strip() or "VN",
+            "blood_type": data.get("blood_type", "").strip(),
+            "allergies": data.get("allergies", "").strip(),
+            "height": data.get("height", "").strip(),
+            "weight": data.get("weight", "").strip()
         }
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
@@ -959,6 +964,8 @@ def create_app(test_config=None):
         history = data.get("history", [])
         image_str = data.get("image")
         lang = data.get("lang", "vi")
+        conversation_id = data.get("conversation_id")
+        user_id = session.get("user_id")
 
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
@@ -980,17 +987,37 @@ def create_app(test_config=None):
             image_mime_type = mime
 
         try:
+            # 1. ĐỒNG BỘ INTAKE SERVICE: Cập nhật dữ kiện lâm sàng và tìm câu hỏi tiếp theo
+            intake_res = None
+            clinical_hint = None
+            if conversation_id:
+                intake_res = intake_service.process_message(
+                    conversation_id=conversation_id,
+                    message=user_message,
+                    image_bytes=image_bytes
+                )
+                if intake_res.get("next_question"):
+                    clinical_hint = intake_res["next_question"]
+
             res = process_clinical_chat(
                 message=user_message,
                 history=history,
                 image_bytes=image_bytes,
                 image_mime_type=image_mime_type,
                 lang=lang,
-                gemini_service=gemini_service
+                gemini_service=gemini_service,
+                clinical_hint=clinical_hint
             )
 
+            # 2. HỢP NHẤT DỮ LIỆU ĐÁNH GIÁ (TRÁNH LỆCH PHA GIỮA CHAT VÀ TÓM TẮT)
+            if intake_res:
+                res["conversation_id"] = conversation_id
+                res["intake"] = intake_res
+                res["intake_facts"] = intake_res.get("facts")
+                res["intake_summary"] = intake_res.get("summary")
+                res["intake_status"] = intake_res.get("status")
+
             # Lưu lịch sử tư vấn nếu người dùng đã đăng nhập để phục vụ Pre-visit Summary
-            user_id = session.get("user_id")
             if user_id:
                 try:
                     consultation = ClinicalConsultation(
@@ -1016,6 +1043,91 @@ def create_app(test_config=None):
         except Exception as e:
             logger.error(f"Lỗi xử lý tư vấn y tế: {e}")
             return jsonify({"error": "Đã xảy ra sự cố trong quá trình xử lý yêu cầu y tế."}), 500
+
+    # ==============================================================
+    # HỆ THỐNG HỎI BỆNH CÓ CẤU TRÚC & TÓM TẮT TRƯỚC KHÁM (MỤC 8 & 9)
+    # ==============================================================
+
+    @app.route("/api/intake/session", methods=["POST"])
+    def intake_get_or_create_session():
+        """Khởi tạo hoặc tải lại phiên hỏi bệnh lâm sàng có cấu trúc."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        user_id = session.get("user_id")
+        s = intake_service.get_or_create_session(conversation_id, user_id=user_id)
+        return jsonify({
+            "success": True,
+            "conversation_id": s["conversation_id"],
+            "status": s["status"],
+            "facts": s["facts"],
+            "version": s["version"],
+            "is_confirmed": s["is_confirmed"]
+        })
+
+    @app.route("/api/intake/message", methods=["POST"])
+    def intake_send_message():
+        """
+        Tiếp nhận tin nhắn trong phiên hỏi bệnh:
+          - Trích xuất dữ kiện (triệu chứng có, triệu chứng ĐÃ PHỦ NHẬN, thời gian, thân nhiệt)
+          - Chọn câu hỏi tiếp theo từ dữ kiện còn thiếu (không hỏi lặp)
+          - Cập nhật Tóm tắt trước khám 2 phần (Phần A & Phần B)
+        """
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        user_message = (data.get("message") or "").strip()
+        image_str = data.get("image")
+
+        if not user_message and not image_str:
+            return jsonify({"error": "Vui lòng nhập nội dung mô tả hoặc đính kèm ảnh."}), 400
+
+        image_bytes = None
+        if image_str:
+            img_bytes, mime, err = decode_and_validate_base64_image(image_str)
+            if not err:
+                image_bytes = img_bytes
+
+        s = intake_service.get_or_create_session(conversation_id, user_id=session.get("user_id"))
+        result = intake_service.process_message(
+            conversation_id=s["conversation_id"],
+            message=user_message,
+            image_bytes=image_bytes
+        )
+
+        return jsonify(result)
+
+    @app.route("/api/intake/update-fact", methods=["POST"])
+    def intake_update_fact():
+        """Chỉnh sửa 1 dữ kiện lâm sàng (tăng version và yêu cầu xác nhận lại)."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        field = data.get("field")
+        value = data.get("value")
+
+        if not conversation_id or not field:
+            return jsonify({"error": "Thiếu conversation_id hoặc trường cần cập nhật."}), 400
+
+        res = intake_service.update_fact(conversation_id, field, value)
+        return jsonify(res)
+
+    @app.route("/api/intake/confirm-summary", methods=["POST"])
+    def intake_confirm_summary():
+        """Bệnh nhân xác nhận: Bản tóm tắt phản ánh đúng lời khai thực tế."""
+        data = request.get_json(silent=True) or {}
+        conversation_id = data.get("conversation_id")
+        if not conversation_id:
+            return jsonify({"error": "Thiếu conversation_id."}), 400
+
+        res = intake_service.confirm_summary(conversation_id)
+        return jsonify(res)
+
+    @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
+    def intake_get_summary(conversation_id):
+        """Lấy bản tóm tắt trước khám 2 phần của phiên."""
+        summary = intake_service.get_summary(conversation_id)
+        return jsonify({
+            "conversation_id": conversation_id,
+            "summary": summary
+        })
 
 
     # ==============================================================
@@ -1182,13 +1294,51 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
+            user_allergies = []
+            req_allergies = request.form.get("allergies")
+            if req_allergies:
+                user_allergies.extend([a.strip() for a in req_allergies.split(",") if a.strip()])
+
             res = process_medical_document_pipeline(
                 file_path=meta["absolute_path"],
                 original_filename=meta["original_filename"],
-                mask_pii=mask_pii
+                mask_pii=mask_pii,
+                user_allergies=user_allergies
             )
+
             if doc_id:
                 res["document_id"] = doc_id
+
+                # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
+                if res and res.get("status") == "success":
+                    try:
+                        doc = MedicalDocument.query.get(doc_id)
+                        if doc:
+                            doc.doc_type = res.get("doc_type", "prescription")
+                            doc.diagnosis = res.get("diagnosis", "")
+                            doc.facility = res.get("facility", "")
+                            doc.doctor = res.get("doctor", "")
+                            doc.patient_name = res.get("patient_name", "")
+
+                            meds = res.get("medications", [])
+                            metrics = res.get("metrics", [])
+                            if doc.doc_type == "prescription":
+                                med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                                sum_text = f"{len(meds)} loại thuốc"
+                                if med_names:
+                                    sum_text += f": {', '.join(med_names)}"
+                                    if len(meds) > 3:
+                                        sum_text += f" và {len(meds) - 3} thuốc khác"
+                            else:
+                                sum_text = f"{len(metrics)} chỉ số xét nghiệm"
+
+                            doc.summary = sum_text
+                            doc.parsed_data = json.dumps(res, ensure_ascii=False)
+                            db.session.commit()
+                    except Exception as commit_err:
+                        logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
+                        db.session.rollback()
+
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -1203,26 +1353,123 @@ def create_app(test_config=None):
 
 
     # ==============================================================
+    # QUẢN LÝ LỊCH SỬ TOA THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT
+    # ==============================================================
+
+    @app.route("/api/prescription/history", methods=["GET"])
+    def get_prescription_history():
+        """
+        Lấy danh sách lịch sử các đơn thuốc và phiếu xét nghiệm mà user đã import:
+        Bao gồm thời gian import, chẩn đoán bệnh, tóm tắt thuốc/chỉ số, cơ sở y tế.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch sử hồ sơ."}), 401
+
+        docs = MedicalDocument.query.filter_by(owner_id=user_id).order_by(MedicalDocument.created_at.desc()).all()
+        history = [d.to_dict() for d in docs]
+        return jsonify({"status": "success", "history": history, "total": len(history)})
+
+
+    @app.route("/api/prescription/history/<int:doc_id>", methods=["GET"])
+    def get_prescription_history_detail(doc_id):
+        """
+        Xem lại chi tiết toàn bộ dữ liệu đơn thuốc / xét nghiệm đã được bóc tách trước đó.
+        Cho phép người dùng xem lại ngay kết quả phân tích mà không cần chụp/quét lại ảnh.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem chi tiết."}), 401
+
+        doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+        if not doc:
+            return jsonify({"status": "error", "message": "Không tìm thấy hồ sơ hoặc bạn không có quyền xem."}), 404
+
+        if doc.parsed_data:
+            try:
+                parsed_json = json.loads(doc.parsed_data)
+                parsed_json["document_id"] = doc.id
+                parsed_json["uploaded_filename"] = doc.original_filename
+                parsed_json["uploaded_at"] = doc.created_at.strftime("%H:%M %d/%m/%Y") if doc.created_at else ""
+                return jsonify({"status": "success", "data": parsed_json})
+            except Exception as json_err:
+                logger.warning(f"Lỗi parse JSON doc {doc_id}: {json_err}")
+
+        return jsonify({
+            "status": "partial",
+            "message": "Đơn thuốc này chưa có dữ liệu bóc tách chi tiết.",
+            "doc": doc.to_dict()
+        })
+
+
+    @app.route("/api/prescription/history/<int:doc_id>", methods=["DELETE"])
+    def delete_prescription_history_item(doc_id):
+        """
+        Xóa một đơn thuốc/phiếu xét nghiệm khỏi lịch sử hồ sơ của người dùng.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để thực hiện thao tác."}), 401
+
+        doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+        if not doc:
+            return jsonify({"status": "error", "message": "Tài liệu không tồn tại hoặc bạn không có quyền xóa."}), 404
+
+        upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
+        file_disk_path = Path(upload_folder) / doc.storage_filename
+        if is_safe_path(file_disk_path, Path(upload_folder)) and file_disk_path.exists():
+            try:
+                os.remove(file_disk_path)
+            except Exception as e:
+                logger.warning(f"Lỗi xóa file vật lý: {e}")
+
+        db.session.delete(doc)
+        db.session.commit()
+        return jsonify({"status": "success", "message": f"Đã xóa thành công '{doc.original_filename}' khỏi lịch sử."})
+
+
+    # ==============================================================
     # PHIẾU CHUẨN BỊ TRƯỚC KHÁM CHO NGƯỜI DÂN (PRE-VISIT SUMMARY)
     # ==============================================================
 
     @app.route("/api/clinical-summary", methods=["GET"])
     def clinical_summary():
         """
-        Bản tóm tắt trước khám:
-        - Bắt buộc đăng nhập.
-        - Trích xuất từ ca tư vấn thực tế của tài khoản hiện tại.
-        - Trả 'no_data' nếu người dùng chưa có lượt tư vấn nào.
+        Bản tóm tắt trước khám chuẩn 2 phần:
+        - Đồng bộ với quy trình Intake Session theo tiêu chí y tế.
+        - Trích xuất từ phiên tư vấn thực tế của tài khoản hiện tại.
         """
+        conversation_id = request.args.get("conversation_id")
         user_id = session.get("user_id")
+
+        if conversation_id:
+            summary = intake_service.get_summary(conversation_id)
+            if summary and not summary.get("error"):
+                return jsonify({
+                    "status": "success",
+                    "summary": summary
+                }), 200
+
         if not user_id:
             return jsonify({
-                "error": "Vui lòng đăng nhập để xem bản tóm tắt hồ sơ sức khỏe."
+                "error": "Vui lòng đăng nhập hoặc cung cấp mã phiên tư vấn hợp lệ."
             }), 401
 
         user = db.session.get(User, user_id)
         if not user:
             return jsonify({"error": "Không tìm thấy thông tin tài khoản."}), 404
+
+        # Tìm phiên intake gần nhất của user trong CSDL
+        from core.models import IntakeSessionRecord
+        latest_rec = IntakeSessionRecord.query.filter_by(user_id=user_id).order_by(IntakeSessionRecord.updated_at.desc()).first()
+        if latest_rec:
+            summary = intake_service.get_summary(latest_rec.conversation_id)
+            return jsonify({
+                "status": "success",
+                "patient_name": user.full_name,
+                "patient_id": f"BN-2026-{user.id:04d}",
+                "summary": summary
+            }), 200
 
         latest_consultation = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).first()
 
@@ -1259,6 +1506,28 @@ def create_app(test_config=None):
         })
 
 
+    @app.route("/api/consultations", methods=["GET"])
+    def get_consultations():
+        """Lấy danh sách các phiên tư vấn đã lưu của tài khoản hiện tại."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"consultations": []}), 200
+        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
+        return jsonify({"consultations": [c.to_dict() for c in consultations]}), 200
+
+    @app.route("/api/consultations/<int:cid>", methods=["DELETE"])
+    def delete_consultation(cid):
+        """Xóa một phiên tư vấn theo ID của người dùng."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"error": "Vui lòng đăng nhập."}), 401
+        c = ClinicalConsultation.query.filter_by(id=cid, user_id=user_id).first()
+        if c:
+            db.session.delete(c)
+            db.session.commit()
+            return jsonify({"message": "Đã xóa phiên tư vấn thành công."}), 200
+        return jsonify({"error": "Không tìm thấy phiên tư vấn."}), 404
+
     # ==============================================================
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)
     # ==============================================================
@@ -1283,6 +1552,8 @@ if __name__ == "__main__":
     print(f"  Chế độ Debug: {flask_debug}")
     print("  Chuẩn kiến trúc: Phân tầng lâm sàng an toàn")
     print("==================================================")
-    default_host = "127.0.0.1" if flask_debug else "0.0.0.0"
-    bind_host = os.getenv("HOST", default_host)
+    default_host = "127.0.0.1" if flask_debug else "0.0.0.0"
+
+    bind_host = os.getenv("HOST", default_host)
+
     app.run(host=bind_host, port=port, debug=flask_debug)
