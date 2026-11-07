@@ -1809,7 +1809,13 @@ async function handleSaveProfile(e) {
   }
 
   const endpoint = isPendingGoogleRegistration ? '/api/auth/google/complete-registration' : '/api/auth/profile';
+  const submitBtn = document.querySelector('#profile-edit-mode button[type="submit"]');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+  }
 
+  let data = null;
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
@@ -1822,35 +1828,50 @@ async function handleSaveProfile(e) {
         phone_number: phone
       })
     });
-    const data = await res.json();
-    if (data.success && data.user) {
-      const wasNewReg = isPendingGoogleRegistration;
-      isPendingGoogleRegistration = false;
-      pendingGoogleProfile = null;
-      currentUser = { ...(currentUser || {}), ...data.user };
-      if (!currentUser.hasCustomAvatar) {
-        currentUser.avatar = currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || gender);
-      }
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+    data = await res.json();
+  } catch (netErr) {
+    console.error('Lỗi kết nối máy chủ:', netErr);
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
+    if (typeof showMedicalToast === 'function') showMedicalToast('Không thể kết nối đến máy chủ.', 'error');
+    return;
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
+  }
+
+  if (data && data.success && data.user) {
+    const wasNewReg = isPendingGoogleRegistration;
+    isPendingGoogleRegistration = false;
+    pendingGoogleProfile = null;
+    currentUser = { ...(currentUser || {}), ...data.user };
+    if (!currentUser.hasCustomAvatar) {
+      currentUser.avatar = currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || gender);
+    }
+    localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+    try {
       updateAuthUI();
       broadcastTabEvent(wasNewReg ? 'AUTH_LOGIN' : 'PROFILE_UPDATE', { user: currentUser });
-      closeProfileModal();
-      if (typeof showMedicalToast === 'function') {
-        showMedicalToast(
-          wasNewReg
-            ? `Đăng ký hồ sơ Google thành công! Chào mừng ${currentUser.name}.`
-            : 'Đã hoàn tất và lưu hồ sơ y tế thành công!',
-          'success',
-          4500
-        );
-      }
-    } else {
-      if (typeof showMedicalToast === 'function') showMedicalToast(data.error || 'Lưu thông tin thất bại.', 'error', 4500);
-      else alert(data.error || 'Cập nhật thông tin thất bại.');
+    } catch (uiErr) {
+      console.warn('Lỗi cập nhật DOM UI sau lưu thông tin:', uiErr);
     }
-  } catch (err) {
-    console.error('Lỗi cập nhật thông tin:', err);
-    if (typeof showMedicalToast === 'function') showMedicalToast('Không thể kết nối đến máy chủ.', 'error');
+    closeProfileModal();
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast(
+        wasNewReg
+          ? `Đăng ký hồ sơ Google thành công! Chào mừng ${currentUser.name}.`
+          : 'Đã hoàn tất và lưu hồ sơ y tế thành công!',
+        'success',
+        4500
+      );
+    }
+  } else {
+    if (typeof showMedicalToast === 'function') showMedicalToast(data?.error || 'Lưu thông tin thất bại.', 'error', 4500);
+    else alert(data?.error || 'Cập nhật thông tin thất bại.');
   }
 }
 
@@ -6420,6 +6441,7 @@ function selectPatientProfile(patientKey = 'current_patient') {
 
   // Render Right Timeline theo phân hệ đã chọn (Tư vấn AI thực tế vs Bệnh viện minh họa)
   switchEhrSubTab(currentEhrSubTab || 'ai');
+}
 
 // currentEhrSubTab moved up
 
@@ -6518,9 +6540,6 @@ async function loadAndRenderAiConsultations() {
 
 function openConsultationSummaryDetail(consultationId) {
   openPreVisitSummaryModal();
-}
-
-
 }
 
 function renderPatientTimeline(records) {
