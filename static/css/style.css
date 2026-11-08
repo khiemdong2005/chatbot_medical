@@ -888,8 +888,21 @@ body.light-glass .floating-chat-footer {
 body.light-glass .floating-quick-pill {
   background-color: #F0F9FF !important;
   border: 1.5px solid #BAE6FD !important;
-  color: #0284C7 !important;
+  color: #075985 !important;
   font-weight: 700 !important;
+}
+
+#floating-chat-window .floating-quick-pill svg {
+  color: inherit;
+}
+
+#floating-chat-window .floating-quick-pill:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+body.light-glass #floating-user-input::placeholder {
+  color: #475569;
 }
 
 body.light-glass .floating-quick-pill:hover {
