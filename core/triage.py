@@ -74,41 +74,43 @@ EMERGENCY_SIGNS_EN = [
 # 2. BƯỚC TIỀN KIỂM: PHÁT HIỆN CỜ ĐỎ CẤP CỨU & XỬ LÝ PHỦ ĐỊNH
 # ------------------------------------------------------------------------------
 
-def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
+def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str = "") -> Dict[str, Any]:
     """
     Tiền kiểm an toàn: Quét xem tin nhắn người dân có dấu hiệu nguy kịch hay không.
     Có cơ chế phân tích cụm phủ định để không báo nhầm (ví dụ: 'sốt nhưng không khó thở').
     """
-    text_lower = message.lower()
-    text_no_accent = remove_accents(message)
-    matched_flags = []
-
-    for sign in EMERGENCY_SIGNS:
-        vi_kw = sign["vi"]
-        no_kw = sign["no_accent"]
-
-        is_matched = (vi_kw in text_lower) or (no_kw in text_no_accent)
-
-        if is_matched:
-            # KIỂM TRA BẪY PHỦ ĐỊNH: Quét xem ngay phía trước từ khóa có từ phủ định không
-            is_negated = False
-            for neg in NEGATION_WORDS:
-                pattern_vi = rf"\b{neg}\s+(?:(?:hề|có|thấy|bị|cảm thấy)\s+)?{re.escape(vi_kw)}"
-                pattern_no = rf"\b{neg}\s+(?:(?:he|co|thay|bi|cam thay)\s+)?{re.escape(no_kw)}"
-                if re.search(pattern_vi, text_lower) or re.search(pattern_no, text_no_accent):
-                    is_negated = True
-                    break
-
-            if not is_negated:
-                matched_flags.append(vi_kw.capitalize())
-
+    text = remove_accents(message).replace("đ", "d")
+    if text.strip(" .!") in {"co", "dung", "yes"}:
+        for prefix in ("Hiện bạn hoặc người bạn đang hỏi giúp có đang bị ", "Are you or the person you are asking about experiencing "):
+            if previous_question.startswith(prefix):
+                text = remove_accents(previous_question[len(prefix):]).replace("đ", "d")
+                break
+    signs = {sign["no_accent"]: sign["vi"] for sign in EMERGENCY_SIGNS}
     if lang == "en":
-        for en_sign in EMERGENCY_SIGNS_EN:
-            if en_sign in text_lower:
-                # English negation check
-                pattern_en = rf"\b(no|not|without|neither)\s+({re.escape(en_sign)})"
-                if not re.search(pattern_en, text_lower):
-                    matched_flags.append(en_sign.title())
+        signs.update({name: name for name in EMERGENCY_SIGNS_EN})
+    matched_flags = []
+    uncertain = []
+    # Evaluate each mention in its own clause so a past denial cannot cancel a new symptom.
+    clauses = re.split(r"[.;!?\n]|\b(?:nhung|tuy nhien|but|however)\b|(?=\b(?:bay gio|hien tai|luc nay|now)\b)", text)
+    for clause in clauses:
+        for phrase, label in signs.items():
+            for match in re.finditer(r"\b" + re.escape(phrase) + r"\b", clause):
+                before = clause[:match.start()]
+                after = clause[match.end():]
+                history_scope = re.split(r",|\b(?:con toi|toi dang|bo toi dang|me toi dang)\b", before)[-1]
+                if re.search(r"\b(?:nam ngoai|nhieu nam truoc|tien su gia dinh|last year|family history of)\b", history_scope):
+                    continue
+                # A new subject/affirmation starts a new scope; coordinated negative lists share one.
+                scope = re.split(r"[,;]|\b(?:con toi|gio toi|i now)\b", before)[-1]
+                negative = re.search(r"\b(?:khong|chua|chang|no|not|without|neither)\s+(?:(?:he|bi|co|thay|con|cam thay|have|having)\s+)*$", scope)
+                coordinated = re.search(r"\b(?:khong|chua|chang|no|without|neither)\b[^,;]{0,45}\b(?:hay|hoac|or|nor)\s*$", scope)
+                if negative or coordinated or re.match(r"\s+(?:da het|het roi|nam ngoai|last year)\b", after):
+                    continue
+                if re.search(r"\b(?:khong nho ro|khong chac co|not sure (?:if|whether))\s+(?:(?:toi|minh|bi|i|have)\s+)*$", scope):
+                    uncertain.append(label)
+                    continue
+                if label.capitalize() not in matched_flags:
+                    matched_flags.append(label.capitalize())
 
     if matched_flags:
         if lang == "en":
@@ -137,6 +139,11 @@ def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
             "message": emergency_text
         }
 
+    if uncertain:
+        symptom = uncertain[0]
+        question = (f"Are you or the person you are asking about experiencing {symptom} right now?"
+                    if lang == "en" else f"Hiện bạn hoặc người bạn đang hỏi giúp có đang bị {symptom} không?")
+        return {"is_emergency": False, "symptoms": [], "clarification": question}
     return {"is_emergency": False, "symptoms": []}
 
 

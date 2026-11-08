@@ -10,6 +10,12 @@ logger = logging.getLogger("ChatService")
 MAX_MESSAGE_LENGTH = 2000
 MAX_HISTORY_ITEMS = 20
 ALLOWED_LANGUAGES = {"vi", "en"}
+OUT_OF_SCOPE_PATTERNS = (
+    r"\b(?:giải|làm)\s+(?:(?:giúp\s+)?(?:mình|tôi)\s+)?(?:bài\s+toán|phương trình|bài tập toán)\b",
+    r"\b(?:bài\s+toán|phương trình toán|thời tiết|dự báo thời tiết)\b",
+    r"\b(?:lập trình|viết code|debug code|chính trị|tôn giáo)\b",
+    r"\b(?:solve|math problem|weather forecast|write code|debug code|politics)\b",
+)
 
 
 def process_clinical_chat(
@@ -50,7 +56,12 @@ def process_clinical_chat(
     # -------------------------------------------------------------
     # TẦNG 1: TIỀN KIỂM AN TOÀN (Pre-check Guardrail)
     # -------------------------------------------------------------
-    emergency = assess_emergency_risk(user_message, lang=lang)
+    previous = history[-1].get("content", "") if history and history[-1].get("role") == "assistant" else ""
+    emergency = assess_emergency_risk(user_message, lang=lang, previous_question=previous)
+    if emergency.get("clarification"):
+        return {"answer": emergency["clarification"], "needs_red_flag_confirmation": True, "risk_level": "Chưa đủ thông tin" if lang == "vi" else "Unclear",
+                "risk_score": None, "symptoms": [], "specialist": "", "is_emergency": False,
+                "visual_findings": [], "differential_diagnosis": [], "degraded": False, "sources": []}
     if emergency.get("is_emergency"):
         logger.warning(f"[REQ-{req_id}] Phát hiện cờ đỏ cấp cứu: {emergency.get('symptoms')}")
         return {
@@ -72,11 +83,35 @@ def process_clinical_chat(
             ]
         }
 
+    import re
+    msg_clean = user_message.lower().strip()
+    if not has_image and any(re.search(pattern, msg_clean) for pattern in OUT_OF_SCOPE_PATTERNS):
+        reported = (intake_facts or {}).get("present_symptoms", [])
+        if lang == "en":
+            answer = "I focus on health questions, so I can't help solve that. We can continue with your symptoms whenever you're ready."
+            risk_level = "Outside health scope"
+        elif reported:
+            answer = f"Mình tập trung hỗ trợ sức khỏe nên không giải bài toán được. Nếu muốn, mình có thể tiếp tục với chuyện {reported[0].lower()}."
+            risk_level = "Ngoài phạm vi tư vấn sức khỏe"
+        else:
+            answer = "Mình tập trung hỗ trợ sức khỏe nên không giải bài toán được. Bạn muốn hỏi gì về triệu chứng, thuốc hoặc kết quả xét nghiệm?"
+            risk_level = "Ngoài phạm vi tư vấn sức khỏe"
+        return {
+            "answer": answer,
+            "risk_level": risk_level,
+            "risk_score": None,
+            "symptoms": reported,
+            "specialist": "",
+            "visual_findings": [],
+            "differential_diagnosis": [],
+            "is_emergency": False,
+            "degraded": False,
+            "sources": [],
+        }
+
     # -------------------------------------------------------------
     # FAST-PATH CHÀO HỎI & KHỞI TẠO (Phản hồi tức thì < 0.01 giây)
     # -------------------------------------------------------------
-    import re
-    msg_clean = user_message.lower().strip()
     greeting_patterns = [
         r"^hello\b", r"^hi\b", r"^hey\b", r"^alo\b",
         r"^xin ch[àa]o\b", r"^ch[àa]o\b", r"^ch[àa]o b[ạa]n\b", r"^b[áa]c s[ĩi]\s*ơi\b"
@@ -145,15 +180,19 @@ def process_clinical_chat(
             recap = ", ".join(present).lower()
             question = clinical_hint or ""
             if re.search(r"kê (?:toa|đơn)|(?:uống|dùng|ún) thuốc (?:gì|nào)", msg_clean):
-                answer = "Mình không thể kê đơn qua chat."
-                if recap:
-                    answer += f" Bạn đã kể có {recap}."
-                question = "Hiện bạn có khó thở hoặc đau ngực không?" if not intake_facts.get("denied_symptoms") else ""
+                answer = "Mình không thể chọn thuốc an toàn chỉ từ những thông tin này."
+                if "tay" in msg_clean and "sưng" in msg_clean:
+                    answer += " Tay sưng đau nên được nhân viên y tế đánh giá trước khi dùng thuốc."
+                question = ""
             elif "sốt" in msg_clean and present and not (intake_facts.get("vitals") or {}).get("temperature"):
-                answer = f"Mình đã ghi nhận {recap}."
-                question = "Bạn đã đo nhiệt độ lúc thấy sốt chưa?"
+                answer = "Nếu có nhiệt kế, bạn đo được khoảng bao nhiêu độ?"
+                question = ""
+            elif any(token in msg_clean for token in ("tay", "cổ tay", "bàn tay", "cánh tay")) and "sưng" in msg_clean and "đau" in msg_clean:
+                answer = "Tay vừa đau vừa sưng thì nên làm rõ nguyên nhân trước. Bạn có bị va đập hoặc chấn thương gần đây không?"
+                question = ""
             else:
-                answer = f"Bạn có nói đến {recap}." if recap else "Mình chưa rõ bạn đang gặp triệu chứng gì."
+                answer = ("Bạn muốn mình hỗ trợ điều gì về triệu chứng này?" if recap else
+                          "Mình chưa rõ điều bạn muốn hỏi. Bạn nói thêm một chút được không?") if not question else ""
             if question and any(question in str(turn.get("content", "")) for turn in history if turn.get("role") == "assistant"):
                 question = ""
             triage_result.update(answer=" ".join(filter(None, [answer, question])), symptoms=present,
@@ -182,7 +221,35 @@ def process_clinical_chat(
             and any(s in reported for s in ("Ho", "Ho khan", "Ho có đờm"))
             and not (facts.get("vitals") or {}).get("temperature")
             and re.fullmatch(r"(?:lâu lâu|thỉnh thoảng|đôi lúc)\s+(?:có\s+)?sốt(?:\s+nữa)?[.! ]*", msg_clean)):
-        raw_answer = "Bạn có nói mình bị ho, và thỉnh thoảng còn bị sốt. Bạn đã đo nhiệt độ lúc sốt chưa?"
+        raw_answer = "Lúc sốt, bạn có đo được nhiệt độ khoảng bao nhiêu không?"
+    if any(turn.get("role") == "assistant" for turn in history):
+        body = re.sub(r"^\s*(?:xin chào(?: bạn)?|chào bạn|hello(?: there)?|hi there)[!,.:;–—\s]+",
+                      "", raw_answer, count=1, flags=re.IGNORECASE)
+        if body and body != raw_answer:
+            raw_answer = body[:1].upper() + body[1:]
+    from core.intake_service import abdominal_pain, pain_ready
+    if (lang == "vi" and not has_image and abdominal_pain(facts) and not pain_ready(facts)
+            and not triage_result.get("is_emergency")):
+        triage_result.update(risk_level="Chưa đủ thông tin", risk_score=None,
+                             specialist="Chưa xác định", differential_diagnosis=[])
+        if clinical_hint and "?" not in user_message and not re.search(r"thuốc|kê đơn", msg_clean):
+            raw_answer = clinical_hint
+    # Khi người bệnh vừa trả lời câu hỏi khai thác, tiếp tục hỏi dữ kiện kế tiếp
+    # thay vì để mô hình chuyển đột ngột sang checklist chăm sóc chung.
+    previous_assistant = next(
+        (turn.get("content", "") for turn in reversed(history) if turn.get("role") == "assistant"),
+        ""
+    )
+    is_answering_intake = bool(
+        clinical_hint
+        and "?" in previous_assistant
+        and not re.search(
+            r"\?|\b(?:thuốc|uống|dùng|nên|làm sao|vì sao|bao nhiêu|có cần|có phải|là gì|kê đơn|tư vấn)\b",
+            msg_clean,
+        )
+    )
+    if is_answering_intake:
+        raw_answer = clinical_hint
     cleaned_answer = apply_safety_guardrails(raw_answer, lang=lang)
 
     # Chuẩn hóa cấu trúc đầu ra theo hợp đồng y tế

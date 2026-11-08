@@ -399,6 +399,7 @@ let chatSessions = loadSessionsFromStorage();
 
 // Hàm kiểm tra và đồng bộ trạng thái đăng nhập thực tế từ server
 async function checkAuthSessionWithServer() {
+  const previousUserId = currentUser?.id;
   try {
     const res = await fetch('/api/auth/me');
     if (res.ok) {
@@ -430,6 +431,11 @@ async function checkAuthSessionWithServer() {
     console.warn('[Auth] Không thể xác thực session với server:', err);
   }
   chatSessions = loadSessionsFromStorage();
+  if (String(previousUserId || '') !== String(currentUser?.id || '')) {
+    resetChat();
+  } else {
+    renderChatHistoryList();
+  }
   updateAuthUI();
 }
 
@@ -1584,6 +1590,8 @@ function resetChat() {
 
   // Cập nhật lại thanh lịch sử: giữ nguyên các phiên trước đó, bỏ đánh dấu active
   renderChatHistoryList();
+  // Khung chat nổi dùng cùng hội thoại trong bộ nhớ; xóa nội dung cũ ngay khi đổi tài khoản/phiên.
+  if (typeof syncFloatingChatMessages === 'function') syncFloatingChatMessages();
 }
 
 // ==========================================
@@ -1787,6 +1795,24 @@ async function sendChatMessage() {
     `;
 
     container.insertAdjacentHTML('beforeend', botHtml);
+    if (data.needs_red_flag_confirmation) {
+      const choices = document.createElement('div');
+      choices.className = 'flex gap-2';
+      for (const reply of (currentLang === 'en' ? ['Yes', 'No'] : ['Có', 'Không'])) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = reply;
+        btn.className = 'rounded-lg border px-3 py-1.5 text-sm';
+        btn.onclick = () => {
+          if (currentConversationId !== sentConvId || chatHistory.at(-1)?.content !== data.answer) return;
+          input.value = reply;
+          choices.remove();
+          sendChatMessage();
+        };
+        choices.append(btn);
+      }
+      container.append(choices);
+    }
     container.scrollTop = container.scrollHeight;
 
     chatHistory.push({ role: 'user', content: text, image: currentImage });
@@ -1864,23 +1890,23 @@ function updateLiveIntakeCard(facts, status, summary) {
   }
 }
 
-function openPreVisitSummaryModal() {
-  document.getElementById('modal-btn-confirm')?.classList.remove('hidden');
-  const modal = document.getElementById('previsit-summary-modal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-
-  if (currentIntakeSummary) {
-    renderPreVisitSummaryInModal(currentIntakeSummary);
-  } else if (currentConversationId) {
-    fetch(`/api/intake/summary/${currentConversationId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.summary) {
-          currentIntakeSummary = data.summary;
-          renderPreVisitSummaryInModal(data.summary);
-        }
-      });
+async function openPreVisitSummaryModal() {
+  const id = currentConversationId;
+  if (!id) return showMedicalToast("Hãy bắt đầu hội thoại trước khi xem bản nháp.", "info");
+  try {
+    let summary = currentIntakeSummary;
+    if (!summary) {
+      const response = await fetch('/api/intake/summary/' + encodeURIComponent(id));
+      const data = await response.json();
+      if (!response.ok || !data.summary?.part_a_patient_facts) throw new Error(data.error || "Chưa có bản nháp để xem.");
+      summary = data.summary;
+    }
+    if (id !== currentConversationId) return;
+    currentIntakeSummary = summary;
+    renderPreVisitSummaryInModal(summary);
+    document.getElementById('previsit-summary-modal').classList.remove('hidden');
+  } catch (error) {
+    showMedicalToast(error.message || "Không mở được bản nháp.", "error");
   }
 }
 
@@ -1890,8 +1916,8 @@ function closePreVisitSummaryModal() {
 }
 
 let reviewedIntakeSummary = null;
-function renderPreVisitSummaryInModal(summary) {
-  reviewedIntakeSummary = { id: currentConversationId, summary };
+function renderPreVisitSummaryInModal(summary, id = currentConversationId) {
+  reviewedIntakeSummary = { id, summary };
   const partA = summary.part_a_patient_facts || {};
   const partB = summary.part_b_system_assessment || {};
 
@@ -1909,7 +1935,7 @@ function renderPreVisitSummaryInModal(summary) {
   const attEl = document.getElementById('summary-a-attachments');
   const mEl = document.getElementById('summary-a-missing');
 
-  if (cEl) cEl.innerText = partA.chief_complaint || '--';
+  if (cEl) cEl.innerText = [partA.chief_complaint, ...Object.values(partA.pain || {})].filter(Boolean).join(' · ') || '--';
   if (dEl) dEl.innerText = partA.duration || '--';
   if (pEl) pEl.innerText = (partA.symptoms_present && partA.symptoms_present.length) ? partA.symptoms_present.join(', ') : '--';
   if (dnEl) dnEl.innerText = (partA.symptoms_denied && partA.symptoms_denied.length) ? partA.symptoms_denied.join(', ') : 'Chưa có triệu chứng phủ nhận';
@@ -1936,22 +1962,24 @@ function renderPreVisitSummaryInModal(summary) {
     bSources.innerHTML = sList.map(s => `• Nguồn: <a href="${sanitizeUrl(s.url)}" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">${escapeHtml(s.title || s.source || 'Tài liệu tham khảo')}</a>`).join('<br>');
   }
 
-  const modalConfirmBtn = document.getElementById('modal-btn-confirm');
-  if (modalConfirmBtn) {
-    if (summary.is_confirmed) {
-      modalConfirmBtn.innerHTML = '<span>✓ Đã xác nhận lời khai</span>';
-      modalConfirmBtn.disabled = true;
-      modalConfirmBtn.classList.add('opacity-60', 'cursor-not-allowed');
-    } else {
-      modalConfirmBtn.innerHTML = '<span>Xác nhận và lưu vào hồ sơ</span>';
-      modalConfirmBtn.disabled = false;
-      modalConfirmBtn.classList.remove('opacity-60', 'cursor-not-allowed');
-    }
-  }
+  const incomplete = summary.ready_to_finalize === false;
+  document.getElementById('summary-pain-incomplete').classList.toggle('hidden', !incomplete);
+  const readOnly = incomplete || summary.is_confirmed || !reviewedIntakeSummary.id;
+  document.getElementById('summary-consent').classList.toggle('hidden', readOnly);
+  document.getElementById('summary-consent-check').checked = false;
+  document.getElementById('modal-btn-confirm').classList.toggle('hidden', readOnly);
+  updateSummarySaveButton();
+}
+
+function updateSummarySaveButton() {
+  const button = document.getElementById('modal-btn-confirm');
+  button.disabled = !document.getElementById('summary-consent-check').checked;
+  button.classList.toggle('opacity-50', button.disabled);
 }
 
 async function confirmCurrentIntake() {
-  if (!currentConversationId || reviewedIntakeSummary?.id !== currentConversationId) return;
+  if (!document.getElementById('summary-consent-check').checked ||
+      !currentConversationId || reviewedIntakeSummary?.id !== currentConversationId) return;
   try {
     const res = await fetch('/api/intake/confirm-summary', {
       method: 'POST',
@@ -2795,8 +2823,12 @@ function handleCrossTabMessage(data) {
     }
   } else if (data.type === 'AUTH_LOGIN' || data.type === 'PROFILE_UPDATE' || data.type === 'AUTH_PROFILE_UPDATE') {
     if (data.payload?.user) {
+      const previousUserId = currentUser?.id;
       currentUser = data.payload.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      if (data.type === 'AUTH_LOGIN' && String(previousUserId || '') !== String(currentUser.id || '')) {
+        startFreshChatForCurrentUser();
+      }
       updateAuthUI();
       if (typeof closeLoginModal === 'function') closeLoginModal();
     }
@@ -2810,6 +2842,7 @@ function handleCrossTabMessage(data) {
     });
     document.getElementById('profile-form-img1')?.reset();
     localStorage.removeItem('medimind_user');
+    if (typeof resetChat === 'function') resetChat();
     sessionStorage.removeItem('medimind_active_tab');
     sessionStorage.removeItem('medimind_profile_draft');
     try {
@@ -3019,6 +3052,7 @@ async function handleOtpSubmit(e) {
       if (data.user) {
         currentUser = data.user;
         localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+        startFreshChatForCurrentUser();
         updateAuthUI();
         broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
       }
@@ -3228,6 +3262,7 @@ async function startGoogleAccountSelection(email, name, initial, bgColor) {
       setTimeout(() => {
         currentUser = data.user;
         localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+        startFreshChatForCurrentUser();
         updateAuthUI();
         closeGoogleAccountModal();
         closeLoginModal();
@@ -3345,6 +3380,7 @@ async function quickLogin(type) {
     if (data.success && data.user) {
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      startFreshChatForCurrentUser();
       updateAuthUI();
       broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
       closeLoginModal();
@@ -3375,7 +3411,7 @@ async function handleLoginSubmit(e) {
     if (data.success && data.user) {
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      chatSessions = loadSessionsFromStorage();
+      startFreshChatForCurrentUser();
       if (typeof renderChatHistoryList === 'function') renderChatHistoryList();
       updateAuthUI();
       broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
@@ -4016,11 +4052,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentUser) {
         currentUser = null;
         localStorage.removeItem('medimind_user');
+        chatSessions = loadSessionsFromStorage();
+        resetChat();
         updateAuthUI();
       }
     } else if (data.user) {
+      const previousUserId = currentUser?.id;
       currentUser = { ...(currentUser || {}), ...data.user };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      if (googleAuthStatus === 'success' || String(previousUserId || '') !== String(currentUser.id || '')) {
+        startFreshChatForCurrentUser();
+      } else {
+        chatSessions = loadSessionsFromStorage();
+        renderChatHistoryList();
+      }
       updateAuthUI();
       restoreProfileDraftFromSession();
 
@@ -4197,20 +4242,113 @@ async function handlePrescriptionFileSelected(e) {
       return;
     }
 
-    renderPrescriptionResult(data);
-    loadPrescriptionHistory();
-    if (data.is_demo) {
-      showMedicalToast('Đang hiển thị đơn thuốc mẫu thử nghiệm (Demo).', 'info', 4000);
-    } else if (data.needs_review) {
-      showMedicalToast('Đã đọc tài liệu & lưu vào Lịch sử: Vui lòng đối chiếu với ảnh gốc để xác nhận các mục chưa chắc chắn.', 'warning', 5000);
-    } else {
-      showMedicalToast(`Đã nhận dạng thành công & tự động lưu vào Lịch sử: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
-    }
+    if (data.status === 'review') renderOcrReview(data, file);
+    else renderPrescriptionError(data);
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
     showMedicalToast('Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.', 'error');
   }
+}
+
+function renderOcrReview(draft, file) {
+  const section = document.getElementById('prescription-result-section');
+  section.replaceChildren();
+  section.classList.remove('hidden');
+  const layout = document.createElement('div');
+  layout.className = 'grid gap-5 lg:grid-cols-2';
+  section.append(layout);
+  const canvas = document.createElement('canvas');
+  canvas.className = 'w-full h-auto self-start border rounded-xl';
+  canvas.setAttribute('aria-label', 'Ảnh gốc và vùng chữ OCR nhận diện');
+  layout.append(canvas);
+  const image = new Image();
+  const url = URL.createObjectURL(file);
+  function draw(value = '') {
+    if (!image.naturalWidth) return;
+    canvas.width = Math.min(image.naturalWidth, 1400);
+    canvas.height = canvas.width * image.naturalHeight / image.naturalWidth;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const matches = value ? draft.boxes.filter(box => box.text.toLowerCase().includes(value.toLowerCase())) : [];
+    for (const box of (matches.length === 1 ? matches : draft.boxes)) {
+      ctx.beginPath();
+      box.points.forEach(([x,y], i) => i ? ctx.lineTo(x * canvas.width, y * canvas.height) : ctx.moveTo(x * canvas.width, y * canvas.height));
+      ctx.closePath();
+      ctx.strokeStyle = matches.length === 1 ? '#b45309' : 'rgba(3,105,161,.45)';
+      ctx.lineWidth = matches.length === 1 ? 4 : 1;
+      ctx.stroke();
+    }
+  }
+  image.onload = () => { draw(); URL.revokeObjectURL(url); };
+  image.onerror = () => { URL.revokeObjectURL(url); canvas.replaceWith(document.createTextNode('Đối chiếu với tệp gốc trên thiết bị.')); };
+  image.src = url;
+  const form = document.createElement('form');
+  form.className = 'space-y-3';
+  layout.append(form);
+  const heading = document.createElement('h3');
+  heading.textContent = 'Đối chiếu với phiếu gốc trước khi lưu';
+  form.append(heading);
+  const labels = {patient_name:'Người bệnh', dob:'Ngày sinh', doctor:'Bác sĩ', facility:'Cơ sở', date:'Ngày trên phiếu', diagnosis:'Chẩn đoán ghi trên phiếu', name:'Tên thuốc', strength:'Hàm lượng', dose:'Liều mỗi lần', frequency:'Tần suất', days:'Thời gian / số lượng', usage:'Cách dùng', test_name:'Tên xét nghiệm', result:'Kết quả', unit:'Đơn vị', reference_range:'Khoảng tham chiếu', flag_on_paper:'Cờ trên phiếu'};
+  function field(parent, key, value, required = false) {
+    const label = document.createElement('label');
+    label.className = 'block text-sm';
+    label.textContent = labels[key];
+    const input = document.createElement('input');
+    input.name = key;
+    input.value = value || '';
+    input.required = required;
+    input.maxLength = 2000;
+    input.className = 'block w-full rounded border px-2 py-1 text-slate-900 bg-white';
+    input.onfocus = () => draw(input.value);
+    label.append(input);
+    parent.append(label);
+  }
+  const header = document.createElement('fieldset');
+  form.append(header);
+  for (const key of ['patient_name','dob','doctor','facility','date','diagnosis']) field(header,key,draft.data[key]);
+  const key = draft.doc_type === 'lab_test' ? 'metrics' : 'medications';
+  const keys = key === 'metrics' ? ['test_name','result','unit','reference_range','flag_on_paper'] : ['name','strength','dose','frequency','days','usage'];
+  const rows = document.createElement('div');
+  form.append(rows);
+  function button(parent, text, action) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rounded border px-3 py-2 text-sm';
+    btn.textContent = text;
+    btn.onclick = action;
+    parent.append(btn);
+    return btn;
+  }
+  function addRow(data) {
+    const row = document.createElement('fieldset');
+    row.className = 'my-3 rounded-xl border p-3';
+    rows.append(row);
+    for (const k of keys) field(row,k,data[k],k === keys[0]);
+    button(row,'Xóa dòng',() => row.remove());
+  }
+  (draft.data[key].length ? draft.data[key] : [{}]).forEach(addRow);
+  button(form,'Thêm dòng',() => addRow({}));
+  button(form,'Hủy',resetPrescriptionScan);
+  const save = button(form,'Xác nhận đúng thông tin trên phiếu và lưu',null);
+  save.type = 'submit';
+  const values = group => Object.fromEntries(Array.from(group.querySelectorAll('input'), input => [input.name,input.value]));
+  form.onsubmit = async event => {
+    event.preventDefault();
+    save.disabled = true;
+    try {
+      const response = await fetch('/api/prescription/' + draft.document_id + '/confirm', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({...values(header), confirmed:true, [key]:Array.from(rows.children,values)})
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Chưa lưu được phiếu.');
+      renderPrescriptionResult(result);
+      loadPrescriptionHistory();
+    } catch (error) { showMedicalToast(error.message,'error'); }
+    finally { save.disabled = false; }
+  };
+  section.scrollIntoView({block:'start'});
 }
 
 function renderPrescriptionError(data) {
@@ -5540,6 +5678,46 @@ function markAllNotificationsAsRead() {
 // ==========================================
 const loadPresetPrescription = loadPrescriptionPreset;
 
+function exportChatPdf() {
+  const turns = chatHistory.filter(turn => ['user', 'assistant'].includes(turn.role));
+  if (!turns.length) return showMedicalToast("Hội thoại chưa có tin nhắn để xuất.", "info");
+  const doc = document;
+  doc.getElementById('chat-print-copy')?.remove();
+  const copy = doc.createElement('article');
+  copy.id = 'chat-print-copy';
+  doc.body.append(copy);
+  const heading = doc.createElement('h1');
+  heading.textContent = 'Hội thoại với MediMind';
+  copy.append(heading);
+  const images = [];
+  for (const turn of turns) {
+    const speaker = doc.createElement('h2');
+    speaker.textContent = turn.role === 'user' ? 'Bạn' : 'MediMind';
+    const text = doc.createElement('p');
+    text.textContent = turn.content || '';
+    copy.append(speaker, text);
+    if (/^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(turn.image || '')) {
+      const img = doc.createElement('img');
+      img.alt = 'Ảnh đính kèm trong hội thoại';
+      img.src = turn.image;
+      copy.append(img);
+      images.push(img.decode().catch(() => {}));
+    }
+  }
+  Promise.all(images).then(() => {
+    if (!copy.isConnected) return;
+    const originalTitle = doc.title;
+    doc.title = 'MediMind - Hội thoại';
+    doc.body.classList.add('printing-chat');
+    window.addEventListener('afterprint', () => {
+      doc.title = originalTitle;
+      doc.body.classList.remove('printing-chat');
+      copy.remove();
+    }, {once: true});
+    window.print();
+  });
+}
+
 function exportPdfSummary() {
   showMedicalToast('Đang tạo bản in / kết xuất PDF hồ sơ bệnh án...', 'info', 2000);
   setTimeout(() => {
@@ -5914,6 +6092,13 @@ function loadSession(sessionId) {
   });
 
   renderChatHistoryList();
+}
+
+// Mở hội thoại mới sau khi đăng nhập; các phiên cũ vẫn nằm trong lịch sử để chọn thủ công.
+function startFreshChatForCurrentUser() {
+  if (!currentUser) return;
+  chatSessions = loadSessionsFromStorage();
+  resetChat();
 }
 
 function deleteSession(sessionId) {
@@ -7510,12 +7695,12 @@ async function openConsultationSummaryDetail(sessionId) {
   try {
     const response = await fetch('/api/clinical-summary?conversation_id=' + encodeURIComponent(sessionId));
     const data = await response.json();
-    if (!response.ok || !data.summary) throw new Error();
-    renderPreVisitSummaryInModal(data.summary);
+    if (!response.ok || !data.summary) throw new Error(data.error || data.message || "Không tìm thấy bản tóm tắt đã lưu.");
+    renderPreVisitSummaryInModal(data.summary, null);
     document.getElementById('modal-btn-confirm')?.classList.add('hidden');
     document.getElementById('previsit-summary-modal')?.classList.remove('hidden');
-  } catch {
-    showMedicalToast("Không tải được bản tóm tắt của phiên này.", "error");
+  } catch (error) {
+    showMedicalToast(error.message || "Không tải được bản tóm tắt của phiên này.", "error");
   }
 }
 

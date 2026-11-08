@@ -106,8 +106,9 @@ class GeminiMedicalService:
         if clinical_hint:
             hint_block = (
                 f"\n\nLƯU Ý THU THẬP BỆNH SỬ LÂM SÀNG BỔ SUNG:\n"
-                f"- Hệ thống ghi nhận còn thiếu thông tin sau: '{clinical_hint}'.\n"
-                f"- Chỉ hỏi nếu phù hợp với câu hỏi hiện tại và chưa hỏi trước đó.\n\n"
+                f"- Một dữ kiện có thể còn thiếu là: '{clinical_hint}'.\n"
+                f"- Đây chỉ là gợi ý, không phải câu hỏi bắt buộc. Hãy ưu tiên ý định người dùng và câu hỏi an toàn nhất.\n"
+                f"- Nếu hỏi nội dung này, hãy diễn đạt tự nhiên theo mạch chat, không thêm câu dẫn kiểu ghi hồ sơ.\n\n"
             )
 
         instruction_prompt = (
@@ -165,7 +166,7 @@ class GeminiMedicalService:
         try:
             config = types.GenerateContentConfig(
                 system_instruction=instruction_prompt,
-                temperature=0.3,
+                temperature=0.55,
                 response_mime_type="application/json"
             )
 

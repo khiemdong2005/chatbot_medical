@@ -25,7 +25,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.7">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.10">
 
 <!-- Leaflet CSS & JS for Interactive Hospital Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -723,10 +723,6 @@ background: #94A3B8;
 
       <!-- Action Buttons matching screenshot -->
       <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-        <button type="button" id="btn-pre-visit-summary" onclick="openPreVisitSummaryModal()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
-          <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span data-i18n="intake_btn_summary" class="text-slate-800 dark:text-slate-200 font-bold">Tóm tắt trước khám</span>
-        </button>
         <button type="button" id="btn-confirm-intake" onclick="openPreVisitSummaryModal()" class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs" title="Xác nhận lời khai đúng thực tế">
           <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span data-i18n="intake_btn_confirm" class="text-slate-800 dark:text-slate-200 font-bold">Xem lại để lưu</span>
@@ -760,6 +756,8 @@ background: #94A3B8;
         </div>
       </div>
     </div>
+
+    <button type="button" onclick="exportChatPdf()" class="self-end px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200">Xuất PDF hội thoại</button>
 
     <!-- Chat Messages Stream Container -->
     <div id="chat-messages" class="flex-1 overflow-y-auto py-4 space-y-4 px-1 sm:px-2 my-2 min-h-[380px] max-h-[480px] custom-scrollbar">
@@ -2834,6 +2832,11 @@ Hủy bỏ
       </div>
     </div>
 
+    <p id="summary-pain-incomplete" class="hidden text-sm">Để hoàn tất phiếu, hãy bổ sung vị trí đau, thời gian và tính chất hoặc mức độ đau trong cuộc trò chuyện.</p>
+    <label id="summary-consent" class="flex items-start gap-2 text-sm font-semibold">
+      <input id="summary-consent-check" type="checkbox" onchange="updateSummarySaveButton()">
+      Tôi đồng ý lưu bản tóm tắt đang xem vào hồ sơ bệnh án của mình.
+    </label>
     <!-- Footer Actions -->
     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/80 dark:border-white/10">
       <button type="button" id="modal-btn-confirm" onclick="confirmIntakeSummaryModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-sky-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
@@ -3042,7 +3045,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.9"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.11"></script>
 
 <!-- ============================================================== -->
 <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->

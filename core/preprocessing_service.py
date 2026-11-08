@@ -37,6 +37,7 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
         h, w = img.shape[:2]
 
+    transform = np.diag([w / orig_shape[0], h / orig_shape[1], 1.0])
     perspective_corrected = False
 
     # 2. Phát hiện khung viền 4 điểm và căn phối cảnh (Perspective Transform)
@@ -83,6 +84,7 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
 
             M = cv2.getPerspectiveTransform(rect, dst)
             warped = cv2.warpPerspective(img, M, (maxWidth, maxHeight))
+            transform = M @ transform
             img = warped
             h, w = img.shape[:2]
             perspective_corrected = True
@@ -109,6 +111,7 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
                 (cX, cY) = (w // 2, h // 2)
                 M = cv2.getRotationMatrix2D((cX, cY), deskew_angle, 1.0)
                 img = cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+                transform = np.vstack([M, [0, 0, 1]]) @ transform
     except Exception as e:
         print(f"[DESKEW LOG] Bỏ qua deskew: {e}")
 
@@ -141,6 +144,7 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
 
     return {
         "processed_path": processed_path,
+        "to_original": (np.linalg.pinv(transform) if is_success else np.eye(3)).tolist(),
         "original_path": image_path,
         "orig_shape": orig_shape,
         "current_shape": (w, h),

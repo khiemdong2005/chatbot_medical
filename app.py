@@ -39,7 +39,7 @@ from core.chat_service import process_clinical_chat
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
 from core.intake_service import intake_service
-from core.pipeline_orchestrator import process_medical_document_pipeline
+from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
 
 logger = logging.getLogger("MediMindApp")
 
@@ -1193,6 +1193,8 @@ def create_app(test_config=None):
         if (not draft or data.get("version") != draft.get("version")
                 or data.get("reviewed_facts") != draft.get("part_a_patient_facts")):
             return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
+        if draft.get("ready_to_finalize") is False:
+            return jsonify({"error": "Phiếu đang là bản nháp. Hãy bổ sung vị trí đau, thời gian và tính chất hoặc mức độ đau."}), 422
         res = intake_service.confirm_summary(conversation_id, user_id=user_id, guest_token=guest_token)
         if not res.get("success"):
             return jsonify(res), 500
@@ -1391,6 +1393,7 @@ def create_app(test_config=None):
                     file_size=meta["file_size"],
                     file_type=meta["file_type"],
                     mime_type=meta["mime_type"],
+                    doc_type="ocr_draft",
                     owner_id=user_id
                 )
                 db.session.add(doc)
@@ -1401,7 +1404,8 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
-            user_allergies = []
+            profile_allergies = db.session.get(User, user_id).to_dict().get("allergies") or ""
+            user_allergies = [s.strip() for s in profile_allergies.split(",") if s.strip()] if isinstance(profile_allergies, str) else list(profile_allergies)
             req_allergies = request.form.get("allergies")
             if req_allergies:
                 user_allergies.extend([a.strip() for a in req_allergies.split(",") if a.strip()])
@@ -1413,39 +1417,12 @@ def create_app(test_config=None):
                 user_allergies=user_allergies
             )
 
-            if doc_id:
-                res["document_id"] = doc_id
-
-                # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
-                if res and res.get("status") == "success":
-                    try:
-                        doc = MedicalDocument.query.get(doc_id)
-                        if doc:
-                            doc.doc_type = res.get("doc_type", "prescription")
-                            doc.diagnosis = res.get("diagnosis", "")
-                            doc.facility = res.get("facility", "")
-                            doc.doctor = res.get("doctor", "")
-                            doc.patient_name = res.get("patient_name", "")
-
-                            meds = res.get("medications", [])
-                            metrics = res.get("metrics", [])
-                            if doc.doc_type == "prescription":
-                                med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
-                                sum_text = f"{len(meds)} loại thuốc"
-                                if med_names:
-                                    sum_text += f": {', '.join(med_names)}"
-                                    if len(meds) > 3:
-                                        sum_text += f" và {len(meds) - 3} thuốc khác"
-                            else:
-                                sum_text = f"{len(metrics)} chỉ số xét nghiệm"
-
-                            doc.summary = sum_text
-                            doc.parsed_data = json.dumps(res, ensure_ascii=False)
-                            db.session.commit()
-                    except Exception as commit_err:
-                        logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
-                        db.session.rollback()
-
+            if not doc_id:
+                return jsonify({"status": "error", "message": "Không tạo được bản nháp."}), 500
+            res["document_id"] = doc_id
+            if res.get("status") == "review":
+                doc.parsed_data = json.dumps({"type": res["doc_type"], "allergies": user_allergies}, ensure_ascii=False)
+                db.session.commit()
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -1463,6 +1440,48 @@ def create_app(test_config=None):
     # QUẢN LÝ LỊCH SỬ TOA THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT
     # ==============================================================
 
+    @app.post("/api/prescription/<int:doc_id>/confirm")
+    def confirm_reviewed_document(doc_id):
+        owner = session.get("user_id")
+        if not owner:
+            return jsonify({"message": "Vui lòng đăng nhập."}), 401
+        doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=owner).first_or_404()
+        payload = request.get_json(silent=True) or {}
+        if not isinstance(payload, dict) or payload.get("confirmed") is not True:
+            return jsonify({"message": "Cần xác nhận dữ liệu đã đối chiếu."}), 400
+        if doc.doc_type != "ocr_draft" or not doc.parsed_data:
+            return jsonify({"message": "Tài liệu không còn chờ xác nhận."}), 409
+        draft = json.loads(doc.parsed_data)
+        kind = draft["type"]
+        key = "medications" if kind == "prescription" else "metrics"
+        fields = REVIEW_FIELDS[key]
+        rows = payload.get(key)
+        if not isinstance(rows, list) or not 1 <= len(rows) <= 200:
+            return jsonify({"message": "Cần ít nhất một dòng dữ liệu đã kiểm tra."}), 400
+        def clean(row, keys):
+            if not isinstance(row, dict) or any(not isinstance(row.get(k, ""), str) or len(row.get(k, "")) > 2000 for k in keys):
+                raise ValueError
+            return {k: row.get(k, "").strip() for k in keys}
+        try:
+            reviewed = clean(payload, HEADER_FIELDS)
+            reviewed[key] = [clean(row, fields) for row in rows]
+            if any(not row[fields[0]] for row in reviewed[key]):
+                raise ValueError
+        except ValueError:
+            return jsonify({"message": "Hãy kiểm tra tên và dữ liệu từng dòng."}), 400
+        result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft["allergies"])
+        result["document_id"] = doc.id
+        changed = MedicalDocument.query.filter_by(id=doc.id, owner_id=owner, doc_type="ocr_draft").update({
+            "doc_type": kind, "diagnosis": reviewed["diagnosis"], "facility": reviewed["facility"],
+            "doctor": reviewed["doctor"], "patient_name": reviewed["patient_name"],
+            "summary": ", ".join(row[fields[0]] for row in reviewed[key][:3]),
+            "parsed_data": json.dumps(result, ensure_ascii=False)})
+        if not changed:
+            db.session.rollback()
+            return jsonify({"message": "Tài liệu đã được xác nhận."}), 409
+        db.session.commit()
+        return jsonify(result)
+
     @app.route("/api/prescription/history", methods=["GET"])
     def get_prescription_history():
         """
@@ -1473,7 +1492,7 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch sử hồ sơ."}), 401
 
-        docs = MedicalDocument.query.filter_by(owner_id=user_id).order_by(MedicalDocument.created_at.desc()).all()
+        docs = MedicalDocument.query.filter_by(owner_id=user_id).filter(MedicalDocument.doc_type != "ocr_draft").order_by(MedicalDocument.created_at.desc()).all()
         history = [d.to_dict() for d in docs]
         return jsonify({"status": "success", "history": history, "total": len(history)})
 
@@ -1489,7 +1508,7 @@ def create_app(test_config=None):
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem chi tiết."}), 401
 
         doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
-        if not doc:
+        if not doc or doc.doc_type == "ocr_draft":
             return jsonify({"status": "error", "message": "Không tìm thấy hồ sơ hoặc bạn không có quyền xem."}), 404
 
         if doc.parsed_data:

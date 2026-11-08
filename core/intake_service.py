@@ -322,6 +322,32 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
 # 3. QUẢN LÝ THÔNG TIN CÒN THIẾU & CHỌN CÂU HỎI TIẾP THEO
 # ==============================================================================
 
+PAIN_QUESTIONS = {
+    "location": "Bạn đau ở vị trí nào rõ nhất?",
+    "quality": "Cơn đau có cảm giác như thế nào, chẳng hạn đau âm ỉ hay đau quặn?",
+    "radiation": "Đau ở nguyên một chỗ hay lan sang vùng nào khác?",
+    "modifiers": "Điều gì làm cơn đau tăng hoặc giảm?",
+    "severity": "Trên thang 0 đến 10, bạn thấy đau khoảng mấy điểm?",
+}
+PAIN_PATTERNS = {
+    "location": r"(?:thượng vị|chấn thủy|quanh rốn|hạ sườn (?:trái|phải)|hố chậu (?:trái|phải)|(?:bụng|rốn) (?:trên|dưới|bên trái|bên phải|trái|phải))",
+    "quality": r"(?:âm ỉ|quặn(?: thắt)?|đau nhói|đau rát|như dao đâm)",
+    "radiation": r"(?:không lan|ở nguyên một chỗ|lan (?:ra |sang |xuống |lên )?(?:sau )?(?:lưng|vai|ngực|tay|chân))",
+    "modifiers": r"(?:tăng|giảm|đỡ|nặng hơn) (?:khi |sau |lúc )?(?:ăn|đói|vận động|nghỉ ngơi|nằm|đi lại)",
+    "severity": r"\b(?:10|[0-9])\s*/\s*10\b",
+}
+
+
+def abdominal_pain(facts):
+    return any("Đau bụng" in label for label in facts.get("present_symptoms", []))
+
+
+def pain_ready(facts):
+    pain = facts.get("pain", {})
+    return bool(pain.get("location") and facts.get("duration")
+                and (pain.get("quality") or pain.get("severity")))
+
+
 def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     """
     Xác định những dữ kiện quan trọng còn thiếu theo phác đồ sàng lọc ban đầu:
@@ -335,6 +361,11 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     denied = facts.get("denied_symptoms", [])
     duration = facts.get("duration")
     vitals = facts.get("vitals", {})
+
+    if abdominal_pain(facts):
+        pain = facts.get("pain", {})
+        if not pain.get("location"):
+            missing.append(PAIN_QUESTIONS["location"])
 
     # 1. Nếu chưa có thời gian diễn tiến
     if not duration:
@@ -362,6 +393,9 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     if has_sore_throat and not has_checked_swallow:
         missing.append("Cảm giác đau họng có cản trở việc nuốt thức ăn hoặc uống nước nhiều không?")
 
+    if abdominal_pain(facts):
+        missing.extend(question for key, question in PAIN_QUESTIONS.items()
+                       if key != "location" and not facts.get("pain", {}).get(key))
     return missing
 
 
@@ -377,8 +411,10 @@ def select_next_question(missing_list: List[str], turn_count: int = 1) -> Option
     top_missing = missing_list[0]
 
     # Định dạng câu hỏi tự nhiên, thấu cảm
+    if top_missing in PAIN_QUESTIONS.values():
+        return top_missing
     if "Thời gian" in top_missing:
-        return "Để mình ghi nhận bệnh sử rõ ràng cho bác sĩ, bạn đã cảm thấy các triệu chứng này xuất hiện từ khi nào (khoảng mấy ngày rồi)?"
+        return "Bạn bị như vậy từ khi nào—mới hôm nay hay đã vài ngày rồi?"
     elif "Nhiệt độ" in top_missing:
         return "Bạn có cặp nhiệt độ tại nhà không? Nếu có thì nhiệt độ cao nhất ghi nhận được là khoảng bao nhiêu độ C?"
     elif "khó thở" in top_missing:
@@ -434,6 +470,7 @@ def generate_pre_visit_summary(
     part_a = {
         "title": "Phần A — Thông tin đã thu thập từ người bệnh",
         "chief_complaint": chief_complaint,
+        "pain": facts.get("pain", {}),
         "symptoms_present": present_syms,
         "symptoms_denied": denied_syms,  # Dữ kiện phủ định cực kỳ quan trọng
         "duration": duration,
@@ -451,7 +488,7 @@ def generate_pre_visit_summary(
         triage_badge = "emergency"
         specialist = "Khoa Cấp cứu / Gọi 115"
         care_approach = "Người bệnh có dấu hiệu nguy kịch. Cần ngừng tự điều trị tại nhà và liên hệ cấp cứu 115 hoặc đến ngay bệnh viện gần nhất."
-    elif not facts.get("duration") and not vitals and session_data.get("status") == "collecting":
+    elif (abdominal_pain(facts) and not pain_ready(facts)) or (not facts.get("duration") and not vitals and session_data.get("status") == "collecting"):
         triage_status = "Chưa đủ thông tin để phân tầng"
         triage_badge = "collecting"
         specialist = "Chưa xác định"
@@ -510,6 +547,7 @@ def generate_pre_visit_summary(
         "part_a_patient_facts": part_a,
         "part_b_system_assessment": part_b,
         "is_confirmed": is_confirmed,
+        "ready_to_finalize": is_emergency or not abdominal_pain(facts) or pain_ready(facts),
         "version": version
     }
 
@@ -693,7 +731,16 @@ class IntakeSessionManager:
             session["visual_observations"].append("Đã đính kèm ảnh lâm sàng phục vụ đối chiếu")
 
         # 1. Tiền kiểm cờ đỏ cấp cứu
-        emergency_res = assess_emergency_risk(user_text)
+        previous = session["messages"][-2] if len(session["messages"]) > 1 else {}
+        previous_question = previous.get("content", "") if previous.get("sender") == "assistant" else ""
+        emergency_res = assess_emergency_risk(user_text, previous_question=previous_question)
+        if emergency_res.get("clarification"):
+            question = emergency_res["clarification"]
+            session["messages"].append({"sender": "assistant", "content": question})
+            session["status"] = "collecting"
+            self._save_to_db(session)
+            return {"conversation_id": conversation_id, "status": "collecting", "facts": session["facts"],
+                    "answer": question, "next_question": question, "summary": generate_pre_visit_summary(session)}
         if emergency_res.get("is_emergency"):
             session["is_emergency"] = True
             session["status"] = "emergency"
@@ -748,6 +795,14 @@ class IntakeSessionManager:
             current_facts["duration"] = extracted["duration"]
             facts_changed = True
 
+        if abdominal_pain(current_facts) and not is_informational_query(user_text):
+            slots = current_facts.setdefault("pain", {})
+            for field, pattern in PAIN_PATTERNS.items():
+                match = re.search(pattern, user_text, re.IGNORECASE)
+                if match and slots.get(field) != match.group():
+                    slots[field] = match.group()
+                    facts_changed = True
+
         if extracted["vitals"]:
             for vk, vv in extracted["vitals"].items():
                 if current_facts["vitals"].get(vk) != vv:
@@ -771,12 +826,15 @@ class IntakeSessionManager:
 
         # 3. Rà soát thông tin còn thiếu
         missing_info = identify_missing_information(current_facts)
+        if abdominal_pain(current_facts):
+            asked = [m.get("content", "") for m in session["messages"] if m.get("sender") == "assistant"]
+            missing_info.sort(key=lambda item: sum((select_next_question([item]) or item) in reply for reply in asked))
         next_q = select_next_question(missing_info, turn_count=session["turn_count"])
 
         # 4. Xác định trạng thái và phản hồi
         if next_q:
             session["status"] = "collecting"
-            answer = f"Mình đã ghi nhận thông tin từ bạn. {next_q}"
+            answer = next_q
         else:
             if missing_info:
                 # Dừng hỏi do quá số lượt nhưng vẫn còn thông tin thiếu trọng yếu

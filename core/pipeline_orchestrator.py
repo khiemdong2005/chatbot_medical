@@ -110,6 +110,38 @@ def process_medical_document_pipeline(
     # ==============================================================
     reconciled = reconcile_parallel_results(ocr_result, gemini_data, doc_type=doc_type)
 
+    key = "metrics" if doc_type == "lab_test" else "medications"
+    fields = REVIEW_FIELDS[key]
+    draft = {field: reconciled.get(field) or "" for field in HEADER_FIELDS}
+    draft[key] = [{field: str(row.get(field) or "") for field in fields}
+                  for row in reconciled.get(key, [])]
+    boxes = []
+    if prep_res.get("to_original") and prep_res.get("orig_shape"):
+        import numpy as np
+        width, height = prep_res["orig_shape"]
+        inverse = np.asarray(prep_res["to_original"])
+        for line in ocr_result.get("lines", []):
+            points = []
+            for x, y in line["box"]:
+                px, py, scale = inverse @ [x, y, 1]
+                if abs(scale) < 1e-8:
+                    break
+                points.append([float(px / scale / width), float(py / scale / height)])
+            if len(points) == 4:
+                boxes.append({"text": line["text"], "points": points})
+    return {"status": "review", "doc_type": doc_type, "data": draft, "boxes": boxes,
+            "requires_user_confirmation": True}
+
+
+HEADER_FIELDS = ("patient_name", "dob", "doctor", "facility", "date", "diagnosis")
+REVIEW_FIELDS = {
+    "medications": ("name", "strength", "dose", "frequency", "days", "usage"),
+    "metrics": ("test_name", "result", "unit", "reference_range", "flag_on_paper")
+}
+
+
+def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allergies):
+    start_all = time.time()
     # ==============================================================
     # [4] CHUẨN HÓA & GROUNDING (RULE + CSDL - KHÔNG DÙNG LLM)
     # ==============================================================
@@ -220,18 +252,10 @@ def process_medical_document_pipeline(
         "metrics": metrics_list,
         "timeline": ui_timeline,
         "warnings": clinical_warnings,
-        "requires_user_confirmation": True,
+        "requires_user_confirmation": False,
         "pipeline_version": "2.0-parallel-reconciled",
         "processing_time_sec": total_time,
         "uploaded_filename": filename_clean,
-        "quality_metrics": quality_check,
-        "preprocessing_info": prep_res,
-        "ocr_metrics": {
-            "engine": "EasyOCR + Row Grouping (Parallel)",
-            "duration_sec": ocr_result.get("duration_sec", 0.0),
-            "total_lines": ocr_result.get("total_lines", 0),
-            "avg_confidence": ocr_result.get("avg_confidence", 0.0)
-        },
         "reconciliation": reconciled.get("reconciliation_review", {}),
         "data": reconciled,
         "interpretation": interp_res.get("interpretation_md", ""),

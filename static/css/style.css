@@ -1847,3 +1847,14 @@ header, main, footer, .tab-content {
 
 
 
+
+#chat-print-copy { display: none; }
+@media print {
+  body.printing-chat { display: block !important; background: white !important; color: black !important; }
+  body.printing-chat > :not(#chat-print-copy) { display: none !important; }
+  body.printing-chat #chat-print-copy { display: block !important; font: 12pt/1.5 Arial, sans-serif; margin: 1cm; }
+  #chat-print-copy h1 { font-size: 20pt; }
+  #chat-print-copy h2 { font-size: 12pt; margin-top: 1em; break-after: avoid; }
+  #chat-print-copy p { white-space: pre-wrap; overflow-wrap: anywhere; orphans: 3; widows: 3; }
+  #chat-print-copy img { max-width: 100%; max-height: 95mm; }
+}

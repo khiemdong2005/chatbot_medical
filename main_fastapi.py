@@ -4,8 +4,7 @@
 ================================================================================
 Mục đích:
   - Máy chủ Backend xây dựng bằng FastAPI & Uvicorn.
-  - Sử dụng chung hoàn toàn Application Services (core/chat_service, core/storage_service, core/auth_service)
-    để đảm bảo tính tương đương và nhất quán 100% với Flask backend chính.
+  - Chat dùng chung dịch vụ xử lý lâm sàng; xác thực và đơn thuốc dùng chung luồng Flask.
   - Không chặn event loop: Đưa các tác vụ nặng (OCR, LLM, RAG) sang worker thread pool bằng run_in_threadpool.
   - Tự động sinh tài liệu API tương tác trực quan (Swagger UI tại /docs, ReDoc tại /redoc).
 ================================================================================
@@ -13,7 +12,6 @@ Mục đích:
 
 import os
 import sys
-import uuid
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
@@ -28,32 +26,24 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.concurrency import run_in_threadpool
+from starlette.middleware.wsgi import WSGIMiddleware
+from starlette.routing import Route
 
 from core.chat_service import process_clinical_chat
-from core.storage_service import (
-    decode_and_validate_base64_image,
-    validate_file_content,
-    ALLOWED_EXTENSIONS,
-    MAX_FILE_SIZE_BYTES,
-    is_safe_path
-)
-from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.storage_service import decode_and_validate_base64_image
 from core.gemini_service import GeminiMedicalService
-from core.auth_service import register_user, authenticate_user
 from app import app as flask_app_instance
 
 # Đường dẫn thư mục
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
-UPLOAD_FOLDER = BASE_DIR / "uploads"
-UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 # Khởi tạo FastAPI App
 app = FastAPI(
@@ -127,30 +117,6 @@ class ChatMessageRequest(BaseModel):
     )
 
 
-class AuthLoginRequest(BaseModel):
-    identifier: str = Field(
-        ...,
-        description="Email hoặc số điện thoại của người dân",
-        json_schema_extra={"example": "benhnhan.an@gmail.com"}
-    )
-    password: str = Field(
-        ...,
-        description="Mật khẩu đăng nhập",
-        json_schema_extra={"example": "MatKhau123@"}
-    )
-
-
-class AuthRegisterRequest(BaseModel):
-    name: Optional[str] = Field(None, description="Họ và tên người dân", json_schema_extra={"example": "Nguyễn Văn An"})
-    full_name: Optional[str] = None
-    email: Optional[str] = None
-    identifier: Optional[str] = None
-    password: str = Field(..., description="Mật khẩu (tối thiểu 6 ký tự)", json_schema_extra={"example": "MatKhau123@"})
-    dob: Optional[str] = None
-    gender: Optional[str] = None
-    role: Optional[str] = Field("patient", description="Vai trò luôn mặc định là patient")
-
-
 # ==============================================================================
 # 1. GIAO DIỆN NGƯỜI DÙNG (FRONTEND ROUTE)
 # ==============================================================================
@@ -210,150 +176,11 @@ async def chat_endpoint(req: ChatMessageRequest):
 # 3. ĐỌC KẾT QUẢ XÉT NGHIỆM & QUÉT ĐƠN THUỐC
 # ==============================================================================
 
-@app.post("/api/prescription/scan", summary="Quét & Phân tích Đơn thuốc / Xét nghiệm AI", tags=["2. Đọc Đơn thuốc & Xét nghiệm"])
-async def scan_prescription_endpoint(request: Request):
-    """
-    Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm:
-    BẢO MẬT & HIỆU NĂNG:
-      - Giới hạn Content-Length (10MB) trước khi đọc dữ liệu.
-      - Kiểm tra magic bytes và chống Path Traversal bằng UUID ngẫu nhiên.
-      - Offload tác vụ OCR/AI nặng sang run_in_threadpool.
-    """
-    content_type = request.headers.get("content-type", "")
-    preset = request.query_params.get("preset")
-
-    # Giới hạn kích thước request trước khi đọc
-    content_len = request.headers.get("content-length")
-    if content_len:
-        try:
-            if int(content_len) > MAX_FILE_SIZE_BYTES:
-                return JSONResponse(
-                    status_code=413,
-                    content={"status": "failed", "message": "Dung lượng tệp vượt quá giới hạn cho phép (10 MB)."}
-                )
-        except ValueError:
-            pass
-
-    # 1. Xử lý tải tệp lên (FormData)
-    if "multipart/form-data" in content_type:
-        try:
-            form = await request.form()
-            uploaded_file = form.get("file")
-            if uploaded_file and hasattr(uploaded_file, "filename") and uploaded_file.filename:
-                orig_filename = Path(uploaded_file.filename).name
-                ext = orig_filename.rsplit(".", 1)[-1].lower() if "." in orig_filename else "bin"
-                if ext not in ALLOWED_EXTENSIONS:
-                    return JSONResponse(
-                        status_code=400,
-                        content={"status": "failed", "message": f"Định dạng '.{ext}' không được hỗ trợ. Vui lòng chọn JPG, PNG, PDF hoặc DOCX."}
-                    )
-
-                # Đọc dữ liệu có giới hạn kích thước
-                file_bytes = await uploaded_file.read()
-                if len(file_bytes) > MAX_FILE_SIZE_BYTES:
-                    return JSONResponse(
-                        status_code=413,
-                        content={"status": "failed", "message": "Dung lượng tệp vượt quá giới hạn 10 MB."}
-                    )
-
-                # Kiểm tra magic bytes
-                if not validate_file_content(file_bytes, ext):
-                    return JSONResponse(
-                        status_code=400,
-                        content={"status": "failed", "message": f"Nội dung tệp không khớp với định dạng .{ext}."}
-                    )
-
-                # Lưu với tên UUID ngẫu nhiên để chống path traversal và ghi đè
-                safe_name = f"{uuid.uuid4().hex}.{ext}"
-                save_path = (UPLOAD_FOLDER / safe_name).resolve()
-                if not is_safe_path(save_path, UPLOAD_FOLDER):
-                    return JSONResponse(status_code=400, content={"status": "failed", "message": "Đường dẫn không an toàn."})
-
-                with open(save_path, "wb") as f:
-                    f.write(file_bytes)
-
-                # Offload phân tích tài liệu nặng sang worker thread
-                result = await run_in_threadpool(analyze_uploaded_document, str(save_path), orig_filename)
-                return JSONResponse(content=result)
-
-            form_preset = form.get("preset")
-            if form_preset:
-                preset = form_preset
-        except Exception as e:
-            return JSONResponse(status_code=400, content={"status": "failed", "message": f"Lỗi xử lý tệp: {e}"})
-
-    # 2. Xử lý JSON Body chọn Preset
-    elif "application/json" in content_type:
-        try:
-            data = await request.json()
-            if isinstance(data, dict) and "preset" in data:
-                preset = data["preset"]
-        except Exception:
-            pass
-
-    if preset:
-        return JSONResponse(content=get_preset_data(preset))
-
-    return JSONResponse(
-        status_code=400,
-        content={"status": "error", "message": "Vui lòng đính kèm tệp đơn thuốc hoặc chỉ định tham số preset."}
-    )
-
-
-# ==============================================================================
-# 4. HỆ THỐNG XÁC THỰC NGƯỜI DÙNG (KẾT NỐI DỊCH VỤ TÀI KHOẢN THẬT)
-# ==============================================================================
-
-@app.post("/api/auth/login", summary="Đăng nhập Tài khoản Người Dân", tags=["4. Xác thực & Tài khoản"])
-async def auth_login_endpoint(req: AuthLoginRequest):
-    """Đăng nhập bằng Email hoặc Số điện thoại với CSDL thật."""
-    with flask_app_instance.app_context():
-        success, res_data, status_code = authenticate_user(
-            raw_identifier=req.identifier,
-            password=req.password
-        )
-        if success:
-            return JSONResponse(
-                status_code=status_code,
-                content={"success": True, "message": "Đăng nhập thành công!", "user": res_data}
-            )
-        return JSONResponse(status_code=status_code, content={"success": False, "error": res_data.get("error")})
-
-
-@app.post("/api/auth/register", summary="Đăng ký Tài khoản Sức khỏe Mới", tags=["4. Xác thực & Tài khoản"])
-async def auth_register_endpoint(req: AuthRegisterRequest):
-    """
-    Đăng ký tài khoản mới:
-    Lưu vào CSDL thật, luôn gán role patient, từ chối tự cấp quyền doctor/admin.
-    """
-    with flask_app_instance.app_context():
-        identifier = req.identifier or req.email or ""
-        name = req.full_name or req.name or "Bệnh nhân mới"
-        success, res_data, status_code = register_user(
-            raw_identifier=identifier,
-            password=req.password,
-            full_name=name,
-            dob=req.dob,
-            gender=req.gender
-        )
-        if success:
-            return JSONResponse(
-                status_code=status_code,
-                content={"success": True, "message": "Đăng ký tài khoản thành công!", "user": res_data}
-            )
-        return JSONResponse(status_code=status_code, content={"success": False, "error": res_data.get("error")})
-
-
-@app.get("/api/auth/me", summary="Kiểm tra Trạng thái Đăng nhập", tags=["4. Xác thực & Tài khoản"])
-async def auth_me_endpoint():
-    """Kiểm tra phiên đăng nhập (Không giả lập authenticated=True)."""
-    return JSONResponse(content={"authenticated": False, "user": None})
-
-
-@app.post("/api/auth/logout", summary="Đăng xuất", tags=["4. Xác thực & Tài khoản"])
-async def auth_logout_endpoint():
-    """Đăng xuất tài khoản."""
-    return JSONResponse(content={"success": True, "message": "Đã đăng xuất thành công."})
+# The OCR review and its login share Flask's owner-bound session cookie.
+flask_gateway = WSGIMiddleware(flask_app_instance)
+for prefix in ("auth", "prescription"):
+    app.router.routes.append(Route(f"/api/{prefix}/{{rest:path}}", flask_gateway,
+                                   methods=["GET", "POST", "PUT", "DELETE"]))
 
 
 if __name__ == "__main__":
