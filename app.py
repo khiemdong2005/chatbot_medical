@@ -1065,38 +1065,6 @@ def create_app(test_config=None):
                 res["intake_summary"] = intake_res.get("summary")
                 res["intake_status"] = intake_res.get("status")
 
-            # Lưu lịch sử tư vấn nếu người dùng đã đăng nhập để phục vụ Pre-visit Summary
-            if user_id:
-                try:
-                    consultation = None
-                    if conversation_id:
-                        consultation = ClinicalConsultation.query.filter_by(
-                            user_id=user_id, conversation_id=conversation_id
-                        ).with_for_update().first()
-                    if consultation is None:
-                        consultation = ClinicalConsultation(user_id=user_id, conversation_id=conversation_id, message=user_message)
-                    facts = (intake_res or {}).get("facts") or {}
-                    symptoms = facts.get("present_symptoms", res.get("symptoms", []))
-                    if symptoms:
-                        consultation.message = ", ".join(symptoms)
-                    turns = json.loads(consultation.turns_json or "[]")
-                    turns.extend([{"role": "user", "content": user_message},
-                                  {"role": "assistant", "content": res["answer"]}])
-                    consultation.turns_json = json.dumps(turns, ensure_ascii=False)
-                    consultation.answer = res["answer"]
-                    if not consultation.is_emergency:
-                        consultation.risk_level = res.get("risk_level")
-                        consultation.risk_score = res.get("risk_score")
-                        consultation.specialist = res.get("specialist")
-                        consultation.is_emergency = res.get("is_emergency", False)
-                    consultation.symptoms = json.dumps(symptoms, ensure_ascii=False)
-                    db.session.add(consultation)
-                    db.session.commit()
-                except Exception as db_err:
-                    db.session.rollback()
-                    res["history_saved"] = False
-                    logger.warning(f"Lỗi lưu lịch sử tư vấn: {db_err}")
-
             return jsonify(res)
 
         except ValueError as ve:
@@ -1154,14 +1122,6 @@ def create_app(test_config=None):
 
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung mô tả hoặc đính kèm ảnh."}), 400
-
-        # Kiểm tra quyền nếu phiên đã tồn tại
-        if conversation_id:
-            s_exist = intake_service._sessions.get(conversation_id) or intake_service._load_from_db(conversation_id)
-            if s_exist:
-                _, auth_err = _verify_intake_ownership(conversation_id)
-                if auth_err:
-                    return auth_err
 
         image_bytes = None
         if image_str:
@@ -1223,18 +1183,37 @@ def create_app(test_config=None):
 
         user_id, guest_token = _get_request_identity()
         try:
-            res = intake_service.confirm_summary(
-                conversation_id,
-                user_id=user_id,
-                guest_token=guest_token
-            )
+            draft = intake_service.get_summary(conversation_id, user_id=user_id, guest_token=guest_token)
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
-
-        if not res.get("success", True):
+        if not user_id:
+            return jsonify({"error": "Vui lòng đăng nhập để lưu vào hồ sơ."}), 401
+        if data.get("save_to_record") is not True:
+            return jsonify({"error": "Cần xác nhận lưu bản tóm tắt vào hồ sơ."}), 400
+        if (not draft or data.get("version") != draft.get("version")
+                or data.get("reviewed_facts") != draft.get("part_a_patient_facts")):
+            return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
+        res = intake_service.confirm_summary(conversation_id, user_id=user_id, guest_token=guest_token)
+        if not res.get("success"):
             return jsonify(res), 500
-
-
+        snapshot = res["summary"]
+        if snapshot["version"] != data["version"] or snapshot["part_a_patient_facts"] != data["reviewed_facts"]:
+            return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
+        facts = snapshot["part_a_patient_facts"]
+        assessment = snapshot["part_b_system_assessment"]
+        row = ClinicalConsultation.query.filter_by(user_id=user_id, conversation_id=conversation_id).first()
+        if row is None:
+            row = ClinicalConsultation(user_id=user_id, conversation_id=conversation_id)
+            db.session.add(row)
+        row.message = facts["chief_complaint"]
+        row.answer = assessment["care_approach"]
+        row.symptoms = json.dumps(facts["symptoms_present"], ensure_ascii=False)
+        row.specialist = assessment["recommended_specialist"]
+        row.risk_level = assessment["triage_status"]
+        row.is_emergency = assessment["triage_badge"] == "emergency"
+        row.confirmed_summary = json.dumps(snapshot, ensure_ascii=False)
+        row.turns_json = None
+        db.session.commit()
         return jsonify(res)
 
     @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
@@ -1570,69 +1549,18 @@ def create_app(test_config=None):
         conversation_id = request.args.get("conversation_id")
         user_id = session.get("user_id")
 
-        if conversation_id:
-            summary = intake_service.get_summary(conversation_id)
-            if summary and not summary.get("error"):
-                return jsonify({
-                    "status": "success",
-                    "summary": summary
-                }), 200
-
         if not user_id:
-            return jsonify({
-                "error": "Vui lòng đăng nhập hoặc cung cấp mã phiên tư vấn hợp lệ."
-            }), 401
-
-        user = db.session.get(User, user_id)
-        if not user:
-            return jsonify({"error": "Không tìm thấy thông tin tài khoản."}), 404
-
-        # Tìm phiên intake gần nhất của user trong CSDL
-        from core.models import IntakeSessionRecord
-        latest_rec = IntakeSessionRecord.query.filter_by(user_id=user_id).order_by(IntakeSessionRecord.updated_at.desc()).first()
-        if latest_rec:
-            summary = intake_service.get_summary(latest_rec.conversation_id)
-            return jsonify({
-                "status": "success",
-                "patient_name": user.full_name,
-                "patient_id": f"BN-2026-{user.id:04d}",
-                "summary": summary
-            }), 200
-
-        latest_consultation = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).first()
-
-        if not latest_consultation:
-            return jsonify({
-                "status": "no_data",
-                "message": "Chưa có dữ liệu tư vấn hoặc bệnh án gần đây cho tài khoản này. "
-                           "Vui lòng thực hiện tư vấn triệu chứng với trợ lý AI trước khi xuất phiếu trước khám."
-            }), 200
-
-        symptoms_list = []
-        try:
-            symptoms_list = json.loads(latest_consultation.symptoms or "[]")
-        except Exception:
-            symptoms_list = []
-
-        symptoms_text = ", ".join(symptoms_list) if symptoms_list else "Triệu chứng chung"
-
-        return jsonify({
-            "status": "success",
-            "patient_name": user.full_name,
-            "patient_id": f"BN-2026-{user.id:04d}",
-            "chief_complaint": f"{latest_consultation.message[:120]} (Dấu hiệu: {symptoms_text})",
-            "hpi": f"Người bệnh ghi nhận: '{latest_consultation.message}'. Mức độ rủi ro đánh giá: {latest_consultation.risk_level}.",
-            "red_flags": "DƯƠNG TÍNH (Cần cấp cứu khẩn cấp)" if latest_consultation.is_emergency else "ÂM TÍNH (Không phát hiện dấu hiệu nguy kịch tức thời)",
-            "provisional_diagnosis": f"Định hướng ban đầu: {latest_consultation.specialist}",
-            "triage_recommendation": f"Khuyến nghị chuyên khoa: {latest_consultation.specialist}. "
-                                     f"{'Cần thăm khám sớm tại cơ sở y tế.' if latest_consultation.risk_score >= 40 else 'Theo dõi sức khỏe và chăm sóc tại nhà an toàn.'}",
-            "prep_for_patient": [
-                "Ghi lại nhật ký nhiệt độ và diễn biến triệu chứng sáng - chiều",
-                "Mang theo danh sách các thuốc đang uống hằng ngày hoặc tiền sử dị ứng (nếu có)",
-                "Thông báo cho bác sĩ thời điểm chính xác triệu chứng bắt đầu xuất hiện"
-            ]
-        })
-
+            return jsonify({"error": "Vui lòng đăng nhập để xem hồ sơ."}), 401
+        records = ClinicalConsultation.query.filter_by(user_id=user_id).filter(
+            ClinicalConsultation.confirmed_summary.isnot(None))
+        if conversation_id:
+            records = records.filter_by(conversation_id=conversation_id)
+        record = records.order_by(ClinicalConsultation.id.desc()).first()
+        if record is None:
+            return jsonify({"status": "no_data", "message": "Chưa có dữ liệu tư vấn đã xác nhận để hiển thị trong hồ sơ."})
+        return jsonify({"status": "success", "summary": json.loads(record.confirmed_summary),
+                        "patient_name": db.session.get(User, user_id).full_name,
+                        "patient_id": f"BN-2026-{user_id:04d}"})
 
     @app.route("/api/consultations", methods=["GET"])
     def get_consultations():
@@ -1640,7 +1568,7 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách phiên tư vấn.", "consultations": []}), 401
-        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
+        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).filter(ClinicalConsultation.confirmed_summary.isnot(None)).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
         return jsonify({"status": "success", "consultations": [c.to_dict() for c in consultations]}), 200
 
     @app.route("/api/consultations/<int:cid>", methods=["DELETE"])

@@ -163,6 +163,7 @@ class ClinicalConsultation(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
     conversation_id = db.Column(db.String(100), nullable=True)
+    confirmed_summary = db.Column(db.Text, nullable=True)
     turns_json = db.Column(db.Text, nullable=True)
     __table_args__ = (db.UniqueConstraint("user_id", "conversation_id", name="uq_consultation_session"),)
     message = db.Column(db.Text, nullable=False)

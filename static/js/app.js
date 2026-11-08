@@ -803,7 +803,8 @@ const translations = {
     ehr_subtab_hospital: "🏥 Bệnh viện (Mẫu minh họa)",
 
     // Live Intake Card
-    intake_card_title: "Thông tin đã ghi nhận",
+    intake_card_title: "Bản nháp trong hội thoại",
+    intake_draft_notice: "Lời kể được lưu trong lịch sử chat. Chỉ bản tóm tắt bạn xác nhận mới xuất hiện trong hồ sơ.",
     intake_status_init: "Chờ khởi tạo",
     intake_lbl_chief: "Lý do",
     intake_lbl_symptoms: "Triệu chứng",
@@ -811,7 +812,7 @@ const translations = {
     intake_lbl_duration: "Thời gian",
     intake_lbl_vitals: "Thân nhiệt",
     intake_btn_summary: "Tóm tắt trước khám",
-    intake_btn_confirm: "Xác nhận",
+    intake_btn_confirm: "Xem lại để lưu",
     spec_cardiology: "Tim mạch",
     spec_pediatrics: "Nhi khoa",
     spec_ent: "Tai Mũi Họng",
@@ -1175,7 +1176,8 @@ const translations = {
     ehr_subtab_hospital: "🏥 Hospital Records (Demo)",
 
     // Live Intake Card
-    intake_card_title: "Recorded Clinical Intake",
+    intake_card_title: "Conversation draft",
+    intake_draft_notice: "Your conversation is saved in chat history. Only a summary you approve appears in your health record.",
     intake_status_init: "Awaiting Intake",
     intake_lbl_chief: "Chief Complaint",
     intake_lbl_symptoms: "Symptoms",
@@ -1183,7 +1185,7 @@ const translations = {
     intake_lbl_duration: "Duration",
     intake_lbl_vitals: "Temperature",
     intake_btn_summary: "Pre-visit Summary",
-    intake_btn_confirm: "Confirm",
+    intake_btn_confirm: "Review before saving",
     spec_cardiology: "Cardiology",
     spec_pediatrics: "Pediatrics",
     spec_ent: "ENT",
@@ -1887,7 +1889,9 @@ function closePreVisitSummaryModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+let reviewedIntakeSummary = null;
 function renderPreVisitSummaryInModal(summary) {
+  reviewedIntakeSummary = { id: currentConversationId, summary };
   const partA = summary.part_a_patient_facts || {};
   const partB = summary.part_b_system_assessment || {};
 
@@ -1939,7 +1943,7 @@ function renderPreVisitSummaryInModal(summary) {
       modalConfirmBtn.disabled = true;
       modalConfirmBtn.classList.add('opacity-60', 'cursor-not-allowed');
     } else {
-      modalConfirmBtn.innerHTML = '<span>✓ Tôi xác nhận lời khai đúng thực tế</span>';
+      modalConfirmBtn.innerHTML = '<span>Xác nhận và lưu vào hồ sơ</span>';
       modalConfirmBtn.disabled = false;
       modalConfirmBtn.classList.remove('opacity-60', 'cursor-not-allowed');
     }
@@ -1947,18 +1951,28 @@ function renderPreVisitSummaryInModal(summary) {
 }
 
 async function confirmCurrentIntake() {
-  if (!currentConversationId) return;
+  if (!currentConversationId || reviewedIntakeSummary?.id !== currentConversationId) return;
   try {
     const res = await fetch('/api/intake/confirm-summary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversation_id: currentConversationId })
+      body: JSON.stringify({ conversation_id: currentConversationId, version: reviewedIntakeSummary?.summary.version, reviewed_facts: reviewedIntakeSummary?.summary.part_a_patient_facts, save_to_record: true })
     });
     const data = await res.json();
+    if (!res.ok) {
+      showMedicalToast(data.error || "Chưa lưu được bản tóm tắt.", "error");
+      return;
+    }
     if (data.summary) {
       currentIntakeSummary = data.summary;
-      updateLiveIntakeCard(data.summary.part_a_patient_facts, 'confirmed', data.summary);
-      showMedicalToast("Đã xác nhận lời khai bệnh sử thành công!", "success");
+      const saved = chatSessions.find(item => item.id === currentConversationId);
+      if (saved) {
+        saved.status = 'confirmed';
+        saved.summary = data.summary;
+        saveSessionsToStorage();
+        updateLiveIntakeCard(saved.facts, 'confirmed', data.summary);
+      }
+      showMedicalToast("Đã lưu bản tóm tắt vào hồ sơ.", "success");
       return data.summary;
     }
   } catch (e) {
@@ -7494,7 +7508,7 @@ async function openConsultationSummaryDetail(sessionId) {
     return;
   }
   try {
-    const response = await fetch('/api/intake/summary/' + encodeURIComponent(sessionId));
+    const response = await fetch('/api/clinical-summary?conversation_id=' + encodeURIComponent(sessionId));
     const data = await response.json();
     if (!response.ok || !data.summary) throw new Error();
     renderPreVisitSummaryInModal(data.summary);

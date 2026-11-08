@@ -78,7 +78,8 @@ MIGRATIONS = [
         "Bổ sung cột guest_token cho intake_sessions để kiểm soát quyền phiên khách",
         None
     ),
-    ("2026_11_08_consultation_sessions", "Group chat turns by session", None)
+    ("2026_11_08_consultation_sessions", "Group chat turns by session", None),
+    ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None)
 ]
 
 
@@ -163,6 +164,9 @@ def run_migrations(engine):
                         conn.execute(text("CREATE UNIQUE INDEX uq_consultation_session ON clinical_consultations(user_id, conversation_id)"))
                     if "turns_json" not in cols:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN turns_json TEXT"))
+                elif version == "2026_11_08_confirmed_summary":
+                    if "confirmed_summary" not in {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}:
+                        conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN confirmed_summary TEXT"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     for stmt in sql.strip().split(";"):

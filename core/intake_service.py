@@ -124,7 +124,7 @@ CANONICAL_SYMPTOMS = {
     },
     "tuc_nguc": {
         "label": "Đau tức ngực",
-        "patterns": ["tức ngực", "tuc nguc", "đau ngực", "dau nguc", "đau thắt ngực", "chest pain"]
+        "patterns": ["đau nhói ngực", "nhói ngực", "đau ở ngực", "đau vùng ngực", "tức ngực", "tuc nguc", "đau ngực", "dau nguc", "đau thắt ngực", "chest pain"]
     },
     "dau_dau": {
         "label": "Đau đầu / Nặng đầu",
@@ -263,6 +263,8 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
                 break
 
         if matched:
+            if sym_key == "tuc_nguc" and "nhoi" in no_accent_text:
+                label = "Đau nhói ngực"
             if sym_key == "ho":
                 label = "Ho"
                 if re.search(r"\bho khang?\b", no_accent_text):
@@ -346,9 +348,10 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     has_denied_dyspnea = any("Khó thở" in s for s in denied)
     has_denied_chest_pain = any("Đau tức ngực" in s for s in denied)
 
-    if is_respiratory and not has_denied_dyspnea:
+    chest_pain = any("ngực" in symptom.lower() for symptom in present)
+    if (is_respiratory or chest_pain) and not has_denied_dyspnea and not any("Khó thở" in s for s in present):
         missing.append("Bạn có cảm thấy khó thở, thở dốc hay hụt hơi khi nghỉ ngơi không?")
-    if is_respiratory and not has_denied_chest_pain:
+    if is_respiratory and not chest_pain and not has_denied_chest_pain:
         missing.append("Bạn có bị đau thắt ngực hoặc tức nặng vùng ngực không?")
 
     # 4. Nếu có đau họng, kiểm tra khả năng nuốt
@@ -720,13 +723,6 @@ class IntakeSessionManager:
                 if extracted["present_symptoms"]:
                     current_facts["chief_complaint"] = ", ".join(extracted["present_symptoms"])
                     facts_changed = True
-                else:
-                    patient_intent_kw = ["khám", "kham", "bệnh", "benh", "đau", "dau", "sốt", "sot", "mệt", "met", "khó chịu", "kho chiu", "bị", "bi"]
-                    cleaned_no_acc = remove_accents(user_text.lower())
-                    if any(k in user_text.lower() or k in cleaned_no_acc for k in patient_intent_kw):
-                        current_facts["chief_complaint"] = user_text[:120]
-                        facts_changed = True
-
         # Hợp nhất triệu chứng khẳng định
         for s in extracted["present_symptoms"]:
             if s not in current_facts["present_symptoms"]:

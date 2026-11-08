@@ -72,7 +72,7 @@ def test_clinical_summary_handles_no_data(client, test_users):
     assert "Đau rát họng kèm sốt nhẹ về chiều" not in str(data)
 
 
-def test_clinical_summary_uses_real_consultation(client, test_users):
+def test_unconfirmed_legacy_consultation_is_private(client, test_users):
     """Kiểm thử 4e: /api/clinical-summary xuất dữ liệu thật từ lượt tư vấn gần nhất của chính người dùng."""
     user_a_id = test_users["user_a_id"]
 
@@ -97,8 +97,26 @@ def test_clinical_summary_uses_real_consultation(client, test_users):
     res = client.get("/api/clinical-summary")
     assert res.status_code == 200
     data = res.get_json()
-    assert data["status"] == "success"
-    assert data["patient_name"] == "Nguyễn Văn A"
-    assert "đau lưng" in data["chief_complaint"].lower()
-    assert "Cơ Xương Khớp" in data["provisional_diagnosis"]
+    assert data["status"] == "no_data"
+    assert client.get("/api/consultations").get_json()["consultations"] == []
 
+
+def test_only_reviewed_snapshot_is_published(client, test_users):
+    with client.session_transaction() as sess:
+        sess["user_id"] = test_users["user_a_id"]
+    cid = "qa-reviewed-snapshot"
+    def say(message):
+        return client.post("/api/intake/message", json={"conversation_id": cid, "message": message}).get_json()
+    draft = say("tôi thấy cảm giác hơi đau nhói ngực xí")["summary"]
+    facts = draft["part_a_patient_facts"]
+    assert facts["chief_complaint"] == "Đau nhói ngực"
+    assert facts["chief_complaint"] in facts["symptoms_present"]
+    assert client.get("/api/consultations").get_json()["consultations"] == []
+    payload = {"conversation_id": cid, "version": draft["version"], "reviewed_facts": facts}
+    assert client.post("/api/intake/confirm-summary", json=payload).status_code == 400
+    payload["save_to_record"] = True
+    assert client.post("/api/intake/confirm-summary", json=payload).status_code == 200
+    say("tôi còn bị sốt nữa")
+    assert client.post("/api/intake/confirm-summary", json=payload).status_code == 409
+    assert client.get("/api/clinical-summary").get_json()["summary"]["part_a_patient_facts"] == facts
+    assert len(client.get("/api/consultations").get_json()["consultations"]) == 1
