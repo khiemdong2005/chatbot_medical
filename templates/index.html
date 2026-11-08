@@ -25,7 +25,7 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.5">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.7">
 
 <!-- Leaflet CSS & JS for Interactive Hospital Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -1275,16 +1275,9 @@ background: #94A3B8;
 <div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-6">
   <!-- Top Action & Title Bar (Đồng bộ Dark/Light Glass Theme) -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-200/80 dark:border-white/10">
-    <div class="flex items-center space-x-3.5">
-      <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/25 flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/10">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-      </div>
-      <div>
-        <h2 data-i18n="ehr_header_title" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight" id="ehr-title">Hồ sơ bệnh án của tôi</h2>
-        <p data-i18n="ehr_header_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="ehr-subtitle">Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân</p>
-      </div>
+    <div class="space-y-1">
+      <h2 data-i18n="ehr_header_title" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight" id="ehr-title">Hồ sơ bệnh án của tôi</h2>
+      <p data-i18n="ehr_header_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="ehr-subtitle">Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân</p>
     </div>
     <div class="flex items-center space-x-2.5">
       <button id="ehr-export-pdf-btn" onclick="exportPdfSummary()" disabled class="opacity-40 cursor-not-allowed text-xs font-bold px-4 py-2.5 rounded-xl glass-pill text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 shadow-sm" title="Vui lòng đăng nhập để xuất bản tóm tắt trước khám">
@@ -1331,39 +1324,32 @@ background: #94A3B8;
         <div class="space-y-3 text-xs">
           <!-- NGÀY SINH -->
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
-            <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
-              <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              <span data-i18n="ehr_lbl_dob">NGÀY SINH</span>
-            </span>
+            <span data-i18n="ehr_lbl_dob" class="text-slate-500 dark:text-slate-400 font-bold">NGÀY SINH</span>
             <span id="ehr-dob-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
 
           <!-- NHÓM MÁU -->
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
-            <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
-              <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-              <span data-i18n="ehr_lbl_blood">NHÓM MÁU</span>
-            </span>
+            <span data-i18n="ehr_lbl_blood" class="text-slate-500 dark:text-slate-400 font-bold">NHÓM MÁU</span>
             <span id="ehr-blood-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
 
           <!-- ĐIỆN THOẠI -->
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
-            <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
-              <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-              <span data-i18n="ehr_lbl_phone">ĐIỆN THOẠI</span>
-            </span>
+            <span data-i18n="ehr_lbl_phone" class="text-slate-500 dark:text-slate-400 font-bold">ĐIỆN THOẠI</span>
             <span id="ehr-phone-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
           </div>
 
           <!-- DỊ ỨNG -->
           <div class="space-y-2 pt-1">
-            <span class="text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2">
-              <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-              <span data-i18n="ehr_lbl_allergy">DỊ ỨNG</span>
-            </span>
+            <span data-i18n="ehr_lbl_allergy" class="text-slate-500 dark:text-slate-400 font-bold block">DỊ ỨNG</span>
             <div id="ehr-allergies-container" class="flex flex-wrap gap-2 pt-1">
-              <span class="text-xs text-slate-400 italic">Chưa ghi nhận</span>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
+                <span>Penicillin</span>
+              </span>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
+                <span>Hải sản</span>
+              </span>
             </div>
           </div>
         </div>
@@ -1374,7 +1360,6 @@ background: #94A3B8;
       <div id="ehr-prescription-history-card" class="glass-card border border-teal-500/30 dark:border-teal-400/30 rounded-2xl p-5 space-y-3 shadow-lg bg-white/90 dark:bg-teal-950/20 text-slate-900 dark:text-white backdrop-blur-xl">
         <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-white/10">
           <div class="flex items-center space-x-2">
-            <span class="text-base">💊</span>
             <h4 data-i18n="ehr_sec_prescriptions" class="text-xs font-bold text-slate-900 dark:text-white">Toa thuốc &amp; Bệnh án đã Import</h4>
           </div>
           <button type="button" onclick="switchTab('ocr-tab')" data-i18n="ehr_btn_add_rx" class="text-[11px] text-teal-600 dark:text-teal-300 hover:text-teal-700 dark:hover:text-white font-bold transition-colors cursor-pointer">
@@ -1396,15 +1381,15 @@ background: #94A3B8;
           <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span data-i18n="ehr_sec_history_title">Lịch sử khám & tư vấn</span>
           </h3>
-          <p data-i18n="ehr_sec_history_sub" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tách bạch rõ giữa phiên tư vấn AI thực tế và hồ sơ bệnh viện liên kết</p>
+          <p data-i18n="ehr_sec_history_sub" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tách bạch rõ giữa phiên tư vấn trực tuyến và hồ sơ bệnh viện liên kết</p>
         </div>
 
         <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 shrink-0">
-          <button type="button" id="ehr-subtab-ai" onclick="switchEhrSubTab('ai')" data-i18n="ehr_subtab_ai" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer">
-            💬 Tư vấn AI (Thực tế)
+          <button type="button" id="ehr-subtab-ai" data-i18n="ehr_subtab_ai" onclick="switchEhrSubTab('ai')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer">
+            Tư vấn trực tuyến
           </button>
-          <button type="button" id="ehr-subtab-hospital" onclick="switchEhrSubTab('hospital')" data-i18n="ehr_subtab_hospital" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
-            🏥 Bệnh viện (Mẫu minh họa)
+          <button type="button" id="ehr-subtab-hospital" data-i18n="ehr_subtab_hospital" onclick="switchEhrSubTab('hospital')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+            Bệnh viện (Mẫu)
           </button>
         </div>
       </div>
@@ -3010,11 +2995,11 @@ Hủy bỏ
 
     <!-- Quick Prompts Chips (Exact match to screenshot) -->
     <div class="px-4 py-2 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-      <button type="button" onclick="insertFloatingPrompt('Thuốc này uống trước hay sau ăn?')" class="px-3.5 py-1.5 rounded-full border border-sky-200 dark:border-sky-800/60 bg-[#F0F7FF] dark:bg-sky-950/40 text-[#0284C7] dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/40 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
+      <button type="button" onclick="insertFloatingPrompt('Thuốc này uống trước hay sau ăn?')" class="px-3.5 py-1.5 rounded-full floating-quick-pill text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
         <svg class="w-3.5 h-3.5 text-slate-700 dark:text-slate-300 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.2-.5-2.4-1.4-3.3l-2.8-2.8c-1.8-1.8-4.8-1.8-6.6 0L4.4 10.2c-1.8 1.8-1.8 4.8 0 6.6l2.8 2.8c.9.9 2.1 1.4 3.3 1.4s2.4-.5 3.3-1.4l4.3-4.3c.9-.9 1.4-2.1 1.4-3.3zM8.5 14.5l7-7"/></svg>
         <span>Cách uống thuốc?</span>
       </button>
-      <button type="button" onclick="insertFloatingPrompt('Gợi ý chuyên khoa khám phù hợp với triệu chứng')" class="px-3.5 py-1.5 rounded-full border border-sky-200 dark:border-sky-800/60 bg-[#F0F7FF] dark:bg-sky-950/40 text-[#0284C7] dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/40 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
+      <button type="button" onclick="insertFloatingPrompt('Gợi ý chuyên khoa khám phù hợp với triệu chứng')" class="px-3.5 py-1.5 rounded-full floating-quick-pill text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0">
         <svg class="w-3.5 h-3.5 text-slate-700 dark:text-slate-300 shrink-0 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
         <span>Khám khoa nào?</span>
       </button>
@@ -3056,7 +3041,7 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.6"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.7"></script>
 
 <!-- ============================================================== -->
 <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->

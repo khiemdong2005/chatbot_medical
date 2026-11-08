@@ -5428,29 +5428,24 @@ const CLINICAL_CYAN_GLOW = {
   dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)'
 };
 
-function initThemeMode() {
-  const savedTheme = localStorage.getItem('medimind_theme') || 'light';
-  if (savedTheme === 'light') {
-    document.body.classList.add('light-glass');
-    document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.light;
-  } else {
-    document.body.classList.remove('light-glass');
-    document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
-  }
+function applyThemeMode(theme) {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  document.body.classList.toggle('light-glass', theme === 'light');
+  document.body.style.backgroundImage = CLINICAL_CYAN_GLOW[theme];
   document.body.style.backgroundAttachment = 'fixed';
   if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+}
+
+function initThemeMode() {
+  applyThemeMode(localStorage.getItem('medimind_theme') === 'dark' ? 'dark' : 'light');
   document.querySelectorAll('.dock-btn').forEach(btn => btn.removeAttribute('title'));
 }
 
 function toggleGlassThemeMode() {
-  document.body.classList.toggle('light-glass');
-  const isLight = document.body.classList.contains('light-glass');
-  document.body.style.backgroundImage = isLight ? CLINICAL_CYAN_GLOW.light : CLINICAL_CYAN_GLOW.dark;
-  document.body.style.backgroundAttachment = 'fixed';
-  const newTheme = isLight ? 'light' : 'dark';
-  localStorage.setItem('medimind_theme', newTheme);
-  if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
-  broadcastTabEvent('THEME_CHANGE', { theme: newTheme });
+  const theme = document.body.classList.contains('light-glass') ? 'dark' : 'light';
+  applyThemeMode(theme);
+  localStorage.setItem('medimind_theme', theme);
+  broadcastTabEvent('THEME_CHANGE', { theme });
 }
 
 function cycleMedicalWallpaper() {
@@ -7190,8 +7185,7 @@ function syncCurrentPatientProfile() {
     if (phoneVal) phoneVal.innerText = cp.phone;
     if (allergiesContainer && cp.allergies && cp.allergies.length > 0) {
       allergiesContainer.innerHTML = cp.allergies.map(alg => `
-        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
-          <span>⚠️</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
           <span>${escapeHtml(alg)}</span>
         </span>
       `).join('');
@@ -7365,8 +7359,7 @@ function selectPatientProfile(patientKey = 'current_patient') {
   if (allergiesContainer) {
     if (patient.allergies && patient.allergies.length > 0) {
       allergiesContainer.innerHTML = patient.allergies.map(alg => `
-        <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
-          <span>⚠️</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
           <span>${escapeHtml(alg)}</span>
         </span>
       `).join('');
@@ -7437,7 +7430,9 @@ async function loadAndRenderAiConsultations() {
     if (list.length === 0) {
       container.innerHTML = `
         <div class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 space-y-3 bg-white/50 dark:bg-white/[0.02]">
-          <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center mx-auto text-xl">💬</div>
+          <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-500 flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+          </div>
           <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${isEn ? 'No consultation sessions saved yet' : 'Chưa có phiên tư vấn nào được lưu'}</p>
           <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">${isEn ? 'Pre-visit AI screening sessions will automatically appear here for easy tracking and export.' : 'Các phiên tư vấn trước khám với Trợ lý AI sẽ tự động xuất hiện ở đây để bạn dễ dàng theo dõi và xuất phiếu trước khám.'}</p>
           <button type="button" onclick="switchTab('chat-tab')" class="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 transition-all cursor-pointer shadow-sm">
@@ -7466,13 +7461,13 @@ async function loadAndRenderAiConsultations() {
                   ${escapeHtml(item.message || 'Tư vấn triệu chứng')}
                 </h4>
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-                  <span>Trợ lý Y tế MediMind AI</span>
+                  <span>Trợ lý Y tế</span>
                   <span>•</span>
                   <span>Định hướng: ${escapeHtml(item.specialist || 'Nội tổng quát')}</span>
                 </p>
                 <div class="pt-1.5">
                   <span class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-white/10">
-                    📋 Bấm để xem Bản Tóm Tắt Trước Khám (Pre-visit Summary)
+                    Bấm để xem Bản Tóm Tắt Trước Khám (Pre-visit Summary)
                   </span>
                 </div>
               </div>
