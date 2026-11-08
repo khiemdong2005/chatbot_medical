@@ -265,6 +265,8 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
         if matched:
             if sym_key == "tuc_nguc" and "nhoi" in no_accent_text:
                 label = "Đau nhói ngực"
+            elif sym_key == "tuc_nguc" and "tuc" not in no_accent_text and "that" not in no_accent_text:
+                label = "Đau vùng ngực"
             if sym_key == "ho":
                 label = "Ho"
                 if re.search(r"\bho khang?\b", no_accent_text):
