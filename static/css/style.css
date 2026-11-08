@@ -70,16 +70,16 @@ body.light-glass {
   color: #0F172A;
 }
 
-body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not(.bg-sky-500):not(.bg-sky-600):not(.bg-sky-700):not(.bg-sky-800):not(.bg-sky-900):not(.bg-sky-950):not(.bg-blue-500):not(.bg-blue-600):not(.bg-indigo-600):not(.bg-emerald-500):not(.bg-emerald-600):not(.bg-teal-500):not(.bg-teal-600):not(.bg-orange-500):not(.bg-orange-600):not(.bg-rose-500):not(.bg-rose-600):not(.from-sky-500):not(.from-rose-500):not(.from-emerald-500):not(#floating-chat-btn):not(#floating-chat-btn *):not(#profile-avatar-fallback):not(#profile-avatar-fallback *):not(#user-avatar-badge):not(#dropdown-user-avatar):not(#profile-avatar):not(#ehr-avatar-badge) {
+body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-teal-"]):not([class*="bg-orange-"]):not([class*="bg-rose-"]):not(#floating-chat-btn):not(#floating-chat-btn *):not(.hospital-hero-banner):not(.hospital-hero-banner *):not(#btn-toggle-hospital-map):not(#btn-toggle-hospital-map *):not(#profile-avatar-fallback):not(#profile-avatar-fallback *):not(#user-avatar-badge):not(#dropdown-user-avatar):not(#profile-avatar):not(#ehr-avatar-badge) {
   color: #0F172A !important;
 }
 
-body.light-glass .text-slate-200,
-body.light-glass .text-slate-300 {
+body.light-glass .text-slate-200:not(.hospital-hero-banner *),
+body.light-glass .text-slate-300:not(.hospital-hero-banner *) {
   color: #334155 !important;
 }
 
-body.light-glass .text-slate-400 {
+body.light-glass .text-slate-400:not(.hospital-hero-banner *) {
   color: #64748B !important;
 }
 
@@ -1722,3 +1722,103 @@ body.light-glass #facility-detail-modal .glass-panel-elevated {
   color: #0F172A !important;
   box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25) !important;
 }
+
+/* ==========================================================================
+   HOSPITAL HERO BANNER & MAP CONTROLS - THEO ĐÚNG MOCKUP GIAO DIỆN CHUẨN
+   Banner màu dark navy sâu thẳm, chữ trắng sáng tương phản cao 100%
+   ========================================================================== */
+
+.hospital-hero-banner {
+  background-color: #0f172a !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.hospital-hero-banner h3,
+.hospital-hero-banner .banner-title,
+body.light-glass .hospital-hero-banner h3,
+body.light-glass .hospital-hero-banner .banner-title,
+body:not(.light-glass) .hospital-hero-banner h3,
+body:not(.light-glass) .hospital-hero-banner .banner-title {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+.hospital-hero-banner p,
+.hospital-hero-banner .banner-desc,
+body.light-glass .hospital-hero-banner p,
+body.light-glass .hospital-hero-banner .banner-desc,
+body:not(.light-glass) .hospital-hero-banner p,
+body:not(.light-glass) .hospital-hero-banner .banner-desc {
+  color: #CBD5E1 !important;
+}
+
+#btn-toggle-hospital-map {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+#btn-toggle-hospital-map:hover {
+  background: #1D4ED8 !important;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
+}
+
+#btn-toggle-hospital-map,
+#btn-toggle-hospital-map *,
+#btn-toggle-hospital-map span,
+#btn-toggle-hospital-map [data-role="map-toggle-text"] {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+}
+
+#btn-toggle-hospital-map svg {
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
+}
+
+/* Khung bản đồ tương tác viền mỏng thanh lịch */
+#hospital-map-collapsible {
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* ==========================================================================
+   RESPONSIVE MOBILE VIEWPORT (<= 640px) - CHỐNG TRÀN NGANG TUYỆT ĐỐI
+   Khắc phục triệt để hiện tượng scrollWidth 543px trên viewport 390px
+   ========================================================================== */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+}
+
+header, main, footer, .tab-content {
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+  overflow-x: clip !important;
+}
+
+@media (max-width: 640px) {
+  header, main, footer {
+    padding-left: 3.25rem !important; /* 52px vừa vặn cho dock capsule bên trái */
+    padding-right: 0.75rem !important;
+    max-width: 100vw !important;
+  }
+
+  .home-hero-banner {
+    padding: 1.25rem 1rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  .grid {
+    max-width: 100% !important;
+  }
+
+  .glass-card, .home-discovery-card, .facility-card {
+    max-width: 100% !important;
+  }
+}
+
+
+

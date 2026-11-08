@@ -158,15 +158,18 @@ def process_clinical_chat(
     cleaned_answer = apply_safety_guardrails(raw_answer, lang=lang)
 
     # Chuẩn hóa cấu trúc đầu ra theo hợp đồng y tế
-    default_risk = "Thấp (Tự chăm sóc & Theo dõi)" if lang == "vi" else "Low (Self-care & Monitor)"
+    default_risk = "Chưa xác định (Cần thêm thông tin)" if lang == "vi" else "Undetermined (Needs more information)"
     default_spec = "Nội tổng quát" if lang == "vi" else "General Internal Medicine"
 
-    # Clamp risk_score 0..100
-    try:
-        raw_score = int(triage_result.get("risk_score", 30))
-        risk_score = max(0, min(100, raw_score))
-    except (ValueError, TypeError):
-        risk_score = 30
+    # Clamp risk_score 0..100 nếu có; không tự gán mặc định để tránh tạo cảm giác an toàn giả
+    raw_score = triage_result.get("risk_score")
+    if raw_score is not None:
+        try:
+            risk_score = max(0, min(100, int(raw_score)))
+        except (ValueError, TypeError):
+            risk_score = None
+    else:
+        risk_score = None
 
     # Đảm bảo visual_findings không bị bịa nếu không có ảnh
     visual_findings = triage_result.get("visual_findings", [])
@@ -178,14 +181,8 @@ def process_clinical_chat(
         diff_diag = []
 
     sources = triage_result.get("sources", [])
-    if not isinstance(sources, list) or len(sources) == 0:
-        sources = [
-            {
-                "title": "Hướng dẫn Chăm sóc Ban đầu",
-                "source": "MedlinePlus (NIH)",
-                "url": "https://medlineplus.gov"
-            }
-        ]
+    if not isinstance(sources, list):
+        sources = []
 
     return {
         "answer": cleaned_answer,
