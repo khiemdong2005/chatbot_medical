@@ -96,9 +96,10 @@ class GeminiMedicalService:
             if is_en else ""
         )
         answer_desc = (
-            "Medical consultation response for patient (STRICT LIMIT: 60 - 100 words. Format: 1 short acknowledgment sentence (<15 words); 2-3 bullet points of immediate actions (<15 words each); 1 warning sign bullet point (<15 words). Direct, focused, no verbose filler)."
+            "Answer the current question using the conversation. Ask at most one relevant follow-up. Do not infer unreported symptoms or prescribe."
             if is_en else
-            "Nội dung phản hồi tư vấn y tế cho người bệnh (BẮT BUỘC NGẮN GỌN: 60 - 100 TỪ. Cấu trúc 3 phần: 1 câu ngắn ghi nhận (<15 từ); 2-3 gạch đầu dòng việc cần làm ngay (<15 từ/dòng); 1 gạch đầu dòng dấu hiệu cảnh báo đi khám (<15 từ). Đi thẳng vào trọng tâm, không giải thích lý thuyết y khoa lan man)."
+            "Trả lời trực tiếp ý người dùng trong ngữ cảnh cuộc trò chuyện. Có thể hỏi thêm một câu liên quan. Không suy diễn triệu chứng, không kê đơn và không lặp lại lời khuyên ở lượt trước."
+
         )
 
         hint_block = ""
@@ -106,7 +107,7 @@ class GeminiMedicalService:
             hint_block = (
                 f"\n\nLƯU Ý THU THẬP BỆNH SỬ LÂM SÀNG BỔ SUNG:\n"
                 f"- Hệ thống ghi nhận còn thiếu thông tin sau: '{clinical_hint}'.\n"
-                f"- Ở cuối câu trả lời, hãy ân cần hỏi thêm thông tin này một cách tự nhiên để hoàn tất bản tóm tắt trước khám cho người bệnh.\n\n"
+                f"- Chỉ hỏi nếu phù hợp với câu hỏi hiện tại và chưa hỏi trước đó.\n\n"
             )
 
         instruction_prompt = (
@@ -114,10 +115,10 @@ class GeminiMedicalService:
             f"{rag_context_block}\n"
             f"{hint_block}"
             f"{lang_directive}"
-            "NGUYÊN TẮC BẮT BUỘC VỀ ĐỘ DÀI & ĐỊNH DẠNG (STRICT CONCISENESS):\n"
-            "- ĐỘ DÀI TRƯỜNG 'answer' BẮT BUỘC TRONG KHOẢNG 60 - 100 TỪ. KHÔNG VIẾT DÀI HƠN.\n"
-            "- KHÔNG VIẾT ĐOẠN VĂN LÊ THÊ. Dùng đúng 1 câu mở đầu, sau đó là 2-3 gạch đầu dòng ngắn, kết bằng 1 cảnh báo đi khám.\n"
-            "- Người dùng rất bận và lười đọc, hãy tập trung vào 'Tôi cần làm gì ngay bây giờ?'.\n\n"
+            "Continue the conversation directly. For a symptom update, acknowledge the new fact and "
+            "ask at most one pertinent unanswered question. Do not greet again or repeat a care checklist. "
+            "Self-reported intermittent fever does not establish its severity or a measured temperature. "
+            "If asked for a prescription, answer that request first. Prioritize urgent concerns when present.\n"
             "NGUYÊN TẮC Y ĐỨC BẮT BUỘC / MEDICAL ETHICS:\n"
             "- DO NOT PRESCRIBE MEDICATIONS or specific dosages. Recommend safe non-pharmacological care (hydration, rest, cooling compresses, hygiene).\n"
             "- Advise patient to consult a licensed physician or pharmacist if symptoms persist.\n\n"
@@ -126,8 +127,8 @@ class GeminiMedicalService:
             f'  "answer": "{answer_desc}",\n'
             '  "visual_findings": ["Visual observation 1", "Visual observation 2"],\n'
             '  "differential_diagnosis": ["Suspected condition 1", "Condition 2"],\n'
-            '  "risk_level": "Low (Self-care & Monitor) | Medium (Doctor visit recommended) | High (Hospital visit)",\n'
-            '  "risk_score": 35,\n'
+            '  "risk_level": "Localized assessment, or insufficient information",\n'
+            '  "risk_score": null,\n'
             '  "symptoms": ["Symptom 1", "Symptom 2"],\n'
             '  "specialist": "Recommended clinical specialty (e.g. Dermatology, ENT, Internal Medicine)",\n'
             '  "home_care_tips": ["Safe home care tip 1", "Tip 2"],\n'

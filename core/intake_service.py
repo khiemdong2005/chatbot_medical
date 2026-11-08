@@ -215,9 +215,8 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
 
         for pat in patterns:
             pat_no_accent = remove_accents(pat)
-            idx = lower_text.find(pat)
-            if idx == -1:
-                idx = no_accent_text.find(pat_no_accent)
+            match = re.search(r"\b" + re.escape(pat_no_accent) + r"\b", no_accent_text)
+            idx = match.start() if match else -1
 
             if idx != -1:
                 matched = True
@@ -264,6 +263,12 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
                 break
 
         if matched:
+            if sym_key == "ho":
+                label = "Ho"
+                if re.search(r"\bho khang?\b", no_accent_text):
+                    label = "Ho khan"
+                elif re.search(r"\bho (co )?dom\b", no_accent_text):
+                    label = "Ho có đờm"
             if is_denied:
                 if label not in denied_symptoms:
                     denied_symptoms.append(label)
@@ -337,7 +342,7 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
         missing.append("Nhiệt độ cơ thể cao nhất bạn tự đo được (khoảng bao nhiêu độ C?)")
 
     # 3. Rà soát cờ đỏ cấp cứu tim mạch / hô hấp nếu chưa được phủ nhận
-    is_respiratory = any(s in ["Đau rát họng / Nuốt đau", "Ho khan / Ho có đờm", "Sốt / Thân nhiệt tăng"] for s in present)
+    is_respiratory = any(s in ["Đau rát họng / Nuốt đau", "Ho", "Ho khan", "Ho có đờm", "Ho khan / Ho có đờm", "Sốt / Thân nhiệt tăng"] for s in present)
     has_denied_dyspnea = any("Khó thở" in s for s in denied)
     has_denied_chest_pain = any("Đau tức ngực" in s for s in denied)
 
@@ -441,6 +446,11 @@ def generate_pre_visit_summary(
         triage_badge = "emergency"
         specialist = "Khoa Cấp cứu / Gọi 115"
         care_approach = "Người bệnh có dấu hiệu nguy kịch. Cần ngừng tự điều trị tại nhà và liên hệ cấp cứu 115 hoặc đến ngay bệnh viện gần nhất."
+    elif not facts.get("duration") and not vitals and session_data.get("status") == "collecting":
+        triage_status = "Chưa đủ thông tin để phân tầng"
+        triage_badge = "collecting"
+        specialist = "Chưa xác định"
+        care_approach = "Bổ sung các thông tin còn thiếu trong phần lời kể của người bệnh."
     elif len(present_syms) >= 2 or duration in ["vài ngày nay", "mấy ngày nay", "3 ngày", "4 ngày", "1 tuần"]:
         triage_status = "Khuyến nghị thăm khám bác sĩ chuyên khoa"
         triage_badge = "recommended_visit"

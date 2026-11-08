@@ -162,6 +162,9 @@ class ClinicalConsultation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    conversation_id = db.Column(db.String(100), nullable=True)
+    turns_json = db.Column(db.Text, nullable=True)
+    __table_args__ = (db.UniqueConstraint("user_id", "conversation_id", name="uq_consultation_session"),)
     message = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
     risk_level = db.Column(db.String(100), nullable=True)
@@ -182,6 +185,8 @@ class ClinicalConsultation(db.Model):
             symptoms_list = []
         return {
             "id": self.id,
+            "conversation_id": self.conversation_id,
+            "messages": json.loads(self.turns_json or "[]"),
             "message": self.message,
             "answer": self.answer,
             "risk_level": self.risk_level or "Theo dõi tại nhà",

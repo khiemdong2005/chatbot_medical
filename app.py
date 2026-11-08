@@ -57,6 +57,33 @@ class ServerMaskMiddleware:
 
 
 
+def valid_birth_date(value, formats=("%d/%m/%Y",)):
+    for fmt in formats:
+        try:
+            if datetime.strptime(value, fmt).strftime(fmt) == value:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def find_login_user(identifier):
+    if "@" in identifier:
+        # Prefer the exact spelling for legacy accounts that differ only by case.
+        exact = User.query.filter_by(email=identifier).first()
+        if exact:
+            return exact
+        matches = User.query.filter(db.func.lower(User.email) == identifier.lower()).limit(2).all()
+        return matches[0] if len(matches) == 1 else None
+    phone = "".join(filter(str.isdigit, identifier))
+    if not phone:
+        return None
+    return User.query.filter(
+        (User.phone_number == identifier) | (User.phone_number == phone) |
+        (User.email == f"{phone}@phone.medimind")
+    ).first()
+
+
 def create_app(test_config=None):
     """
     Application Factory Pattern:
@@ -168,13 +195,7 @@ def create_app(test_config=None):
                 "error": "Tài khoản tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần liên tiếp. Vui lòng thử lại sau."
             }), 429
 
-        clean_phone = "".join(filter(str.isdigit, raw_identifier))
-        user = User.query.filter(
-            (User.email == raw_identifier) | 
-            (User.phone_number == raw_identifier) |
-            (User.phone_number == clean_phone) |
-            (User.email == f"{clean_phone}@phone.medimind")
-        ).first()
+        user = find_login_user(raw_identifier)
 
         if not user:
             return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
@@ -227,6 +248,8 @@ def create_app(test_config=None):
         full_name = data.get("full_name", "").strip() or data.get("name", "").strip()
         phone_number = data.get("phone_number", "").strip()
         dob = data.get("dob", "").strip()
+        if dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
+            return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
         gender = data.get("gender", "").strip() or "Nam"
 
         # Bắt buộc vai trò là patient
@@ -239,7 +262,7 @@ def create_app(test_config=None):
             full_name = "Bệnh nhân mới"
 
         if "@" in raw_identifier:
-            email = raw_identifier
+            email = raw_identifier.lower()
             if not phone_number:
                 phone_number = None
         else:
@@ -250,7 +273,7 @@ def create_app(test_config=None):
             email = f"{clean_phone}@phone.medimind"
 
         existing_user = User.query.filter(
-            (User.email == email) | 
+            (db.func.lower(User.email) == email.lower()) |
             ((User.phone_number == phone_number) & (User.phone_number.isnot(None)))
         ).first()
         if existing_user:
@@ -332,8 +355,7 @@ def create_app(test_config=None):
         if gender:
             user.gender = gender
         if dob:
-            import re
-            if not re.match(r"^\d{2}/\d{2}/\d{4}$", dob):
+            if not valid_birth_date(dob):
                 return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
             user.dob = dob
         if phone_number:
@@ -348,35 +370,28 @@ def create_app(test_config=None):
                 if dup_phone:
                     return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
                 user.phone_number = clean_phone
-        if address:
+        if "address" in data:
             user.address = address
         if bhyt:
             user.bhyt = bhyt
         if email and "@" in email and not email.endswith("@phone.medimind"):
-            dup_email = User.query.filter((User.id != user.id) & (User.email == email)).first()
+            dup_email = User.query.filter((User.id != user.id) & (db.func.lower(User.email) == email.lower())).first()
             if dup_email:
                 return jsonify({"success": False, "error": "Địa chỉ Email này đã được sử dụng bởi một tài khoản khác."}), 409
             user.email = email
 
         # Luu toan bo ho so mo rong vao JSON clinical_profile
-        extra_profile = {
-            "ethnicity": data.get("ethnicity", "").strip(),
-            "religion": data.get("religion", "").strip(),
-            "province": data.get("province", "").strip(),
-            "ward": data.get("ward", "").strip(),
-            "address": address,
-            "cccd": data.get("cccd", "").strip(),
-            "issue_date": data.get("issue_date", "").strip(),
-            "issue_place": data.get("issue_place", "").strip(),
-            "facility": data.get("facility", "").strip(),
-            "valid_from": data.get("valid_from", "").strip(),
-            "valid_to": data.get("valid_to", "").strip(),
-            "nationality": data.get("nationality", "").strip() or "VN",
-            "blood_type": data.get("blood_type", "").strip(),
-            "allergies": data.get("allergies", "").strip(),
-            "height": data.get("height", "").strip(),
-            "weight": data.get("weight", "").strip()
-        }
+        extra_profile = json.loads(user.clinical_profile or "{}")
+        profile_fields = (
+            "ethnicity", "religion", "province", "ward", "address", "cccd",
+            "issue_date", "issue_place", "facility", "valid_from", "valid_to",
+            "nationality", "blood_type", "allergies", "height", "weight",
+        )
+        for field in profile_fields:
+            if field in data:
+                extra_profile[field] = data[field].strip()
+        if not extra_profile.get("nationality"):
+            extra_profile["nationality"] = "VN"
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
         try:
@@ -464,7 +479,7 @@ def create_app(test_config=None):
         # Kiểm tra sự tồn tại của tài khoản trước khi bắn mã OTP (BUG-01)
         if purpose == "register":
             dup_acc = User.query.filter(
-                (User.email == identifier.lower()) |
+                (db.func.lower(User.email) == identifier.lower()) |
                 ((User.phone_number == identifier) & (User.phone_number.isnot(None))) |
                 (User.email == f"{identifier}@phone.medimind")
             ).first()
@@ -475,7 +490,7 @@ def create_app(test_config=None):
                 }), 409
         elif purpose == "login_2fa":
             exist_acc = User.query.filter(
-                (User.email == identifier.lower()) |
+                (db.func.lower(User.email) == identifier.lower()) |
                 (User.phone_number == identifier) |
                 (User.email == f"{identifier}@phone.medimind")
             ).first()
@@ -534,6 +549,10 @@ def create_app(test_config=None):
         if channel == "sms":
             identifier = "".join(filter(str.isdigit, identifier))
 
+        dob = (user_data.get("dob") or "").strip()
+        if purpose == "register" and dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
+            return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
+
         success, err_msg = otp_manager.verify_otp(
             identifier=identifier,
             channel=channel,
@@ -548,11 +567,10 @@ def create_app(test_config=None):
         if purpose == "register" and user_data:
             full_name = (user_data.get("full_name") or user_data.get("name") or "Bệnh nhân mới").strip()
             password = (user_data.get("password") or "").strip()
-            dob = (user_data.get("dob") or "").strip()
             gender = (user_data.get("gender") or "Nam").strip()
 
             if channel == "email":
-                email = identifier
+                email = identifier.lower()
                 phone_number = (user_data.get("phone_number") or "").strip() or None
             else:
                 phone_number = identifier
@@ -560,7 +578,7 @@ def create_app(test_config=None):
 
             # Kiểm tra tài khoản đã tồn tại chưa
             existing = User.query.filter(
-                (User.email == email) |
+                (db.func.lower(User.email) == email.lower()) |
                 ((User.phone_number == phone_number) & (User.phone_number.isnot(None)))
             ).first()
             if existing:
@@ -593,13 +611,7 @@ def create_app(test_config=None):
 
         # Nếu là kịch bản Đăng nhập 2FA (2FA Login)
         if purpose == "login_2fa":
-            clean_phone = "".join(filter(str.isdigit, identifier))
-            user = User.query.filter(
-                (User.email == identifier) |
-                (User.phone_number == identifier) |
-                (User.phone_number == clean_phone) |
-                (User.email == f"{clean_phone}@phone.medimind")
-            ).first()
+            user = find_login_user(identifier)
 
             if not user:
                 return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
@@ -850,6 +862,8 @@ def create_app(test_config=None):
         full_name = (data.get("name") or data.get("full_name") or pending.get("full_name") or "").strip()
         gender = (data.get("gender") or "Nam").strip()
         dob = (data.get("dob") or "").strip()
+        if dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
+            return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
         raw_phone = (data.get("phone_number") or "").strip()
         clean_phone = "".join(filter(str.isdigit, raw_phone))
 
@@ -1039,7 +1053,8 @@ def create_app(test_config=None):
                 image_mime_type=image_mime_type,
                 lang=lang,
                 gemini_service=gemini_service,
-                clinical_hint=clinical_hint
+                clinical_hint=clinical_hint,
+                intake_facts=(intake_res or {}).get("facts")
             )
 
             # 2. HỢP NHẤT DỮ LIỆU ĐÁNH GIÁ (TRÁNH LỆCH PHA GIỮA CHAT VÀ TÓM TẮT)
@@ -1053,20 +1068,33 @@ def create_app(test_config=None):
             # Lưu lịch sử tư vấn nếu người dùng đã đăng nhập để phục vụ Pre-visit Summary
             if user_id:
                 try:
-                    consultation = ClinicalConsultation(
-                        user_id=user_id,
-                        message=user_message,
-                        answer=res.get("answer", ""),
-                        risk_level=res.get("risk_level", ""),
-                        risk_score=res.get("risk_score") if res.get("risk_score") is not None else 30,
-                        symptoms=json.dumps(res.get("symptoms", []), ensure_ascii=False),
-                        specialist=res.get("specialist", ""),
-                        is_emergency=res.get("is_emergency", False)
-                    )
+                    consultation = None
+                    if conversation_id:
+                        consultation = ClinicalConsultation.query.filter_by(
+                            user_id=user_id, conversation_id=conversation_id
+                        ).with_for_update().first()
+                    if consultation is None:
+                        consultation = ClinicalConsultation(user_id=user_id, conversation_id=conversation_id, message=user_message)
+                    facts = (intake_res or {}).get("facts") or {}
+                    symptoms = facts.get("present_symptoms", res.get("symptoms", []))
+                    if symptoms:
+                        consultation.message = ", ".join(symptoms)
+                    turns = json.loads(consultation.turns_json or "[]")
+                    turns.extend([{"role": "user", "content": user_message},
+                                  {"role": "assistant", "content": res["answer"]}])
+                    consultation.turns_json = json.dumps(turns, ensure_ascii=False)
+                    consultation.answer = res["answer"]
+                    if not consultation.is_emergency:
+                        consultation.risk_level = res.get("risk_level")
+                        consultation.risk_score = res.get("risk_score")
+                        consultation.specialist = res.get("specialist")
+                        consultation.is_emergency = res.get("is_emergency", False)
+                    consultation.symptoms = json.dumps(symptoms, ensure_ascii=False)
                     db.session.add(consultation)
                     db.session.commit()
                 except Exception as db_err:
                     db.session.rollback()
+                    res["history_saved"] = False
                     logger.warning(f"Lỗi lưu lịch sử tư vấn: {db_err}")
 
             return jsonify(res)

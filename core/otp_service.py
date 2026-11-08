@@ -56,7 +56,7 @@ class OtpManager:
             # Tạo mã OTP 6 chữ số ngẫu nhiên chuẩn mật mã (CSPRNG)
             otp_code = f"{secrets.randbelow(900000) + 100000}"
 
-            self._store[key] = {
+            pending = {
                 "code": otp_code,
                 "created_at": now,
                 "expires_at": now + self.ttl,
@@ -65,17 +65,23 @@ class OtpManager:
                 "full_name": full_name,
                 "verified": False
             }
+            self._store[key] = pending
 
         # Tiến hành gửi qua kênh tương ứng ngoài Lock
-        if channel == "email":
-            sent = email_service.send_verification_otp(identifier, otp_code, full_name=full_name, purpose=purpose)
-        else:
-            sent = sms_service.send_otp_sms(identifier, otp_code)
+        try:
+            if channel == "email":
+                sent = email_service.send_verification_otp(identifier, otp_code, full_name=full_name, purpose=purpose)
+            else:
+                sent = sms_service.send_otp_sms(identifier, otp_code)
+        except Exception:
+            sent = False
 
         if sent:
             return True, f"Mã xác thực đã được gửi tới {identifier}.", self.cooldown
-        else:
-            return False, "Không thể gửi mã xác thực. Vui lòng thử lại sau.", 0
+        with self._lock:
+            if self._store.get(key) is pending:
+                del self._store[key]
+        return False, "Không thể gửi mã xác thực. Vui lòng thử lại sau.", 0
 
     def verify_otp(self, identifier: str, channel: str, code: str, purpose: Optional[str] = None) -> Tuple[bool, str]:
         """

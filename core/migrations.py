@@ -77,7 +77,8 @@ MIGRATIONS = [
         "2026_01_06_intake_sessions_guest_token",
         "Bổ sung cột guest_token cho intake_sessions để kiểm soát quyền phiên khách",
         None
-    )
+    ),
+    ("2026_11_08_consultation_sessions", "Group chat turns by session", None)
 ]
 
 
@@ -155,6 +156,13 @@ def run_migrations(engine):
                         existing_cols = {col["name"] for col in inspector.get_columns("intake_sessions")}
                         if "guest_token" not in existing_cols:
                             conn.execute(text("ALTER TABLE intake_sessions ADD COLUMN guest_token VARCHAR(100);"))
+                elif version == "2026_11_08_consultation_sessions":
+                    cols = {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}
+                    if "conversation_id" not in cols:
+                        conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN conversation_id VARCHAR(100)"))
+                        conn.execute(text("CREATE UNIQUE INDEX uq_consultation_session ON clinical_consultations(user_id, conversation_id)"))
+                    if "turns_json" not in cols:
+                        conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN turns_json TEXT"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     for stmt in sql.strip().split(";"):

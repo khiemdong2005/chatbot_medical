@@ -20,7 +20,8 @@ def process_clinical_chat(
     lang: str = "vi",
     gemini_service: Optional[GeminiMedicalService] = None,
     request_id: Optional[str] = None,
-    clinical_hint: Optional[str] = None
+    clinical_hint: Optional[str] = None,
+    intake_facts: Optional[dict] = None
 ) -> Dict[str, Any]:
     """
     Dịch vụ điều phối tư vấn lâm sàng 4 tầng dùng chung (Shared Application Service):
@@ -139,7 +140,26 @@ def process_clinical_chat(
         degraded = True
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
         triage_result = analyze_symptoms(user_message, history, lang=lang, has_image=has_image)
-        if clinical_hint and triage_result.get("answer"):
+        present = (intake_facts or {}).get("present_symptoms", [])
+        if intake_facts and lang == "vi" and not has_image and not triage_result.get("is_emergency"):
+            recap = ", ".join(present).lower()
+            question = clinical_hint or ""
+            if re.search(r"kê (?:toa|đơn)|(?:uống|dùng|ún) thuốc (?:gì|nào)", msg_clean):
+                answer = "Mình không thể kê đơn qua chat."
+                if recap:
+                    answer += f" Bạn đã kể có {recap}."
+                question = "Hiện bạn có khó thở hoặc đau ngực không?" if not intake_facts.get("denied_symptoms") else ""
+            elif "sốt" in msg_clean and present and not (intake_facts.get("vitals") or {}).get("temperature"):
+                answer = f"Mình đã ghi nhận {recap}."
+                question = "Bạn đã đo nhiệt độ lúc thấy sốt chưa?"
+            else:
+                answer = f"Bạn có nói đến {recap}." if recap else "Mình chưa rõ bạn đang gặp triệu chứng gì."
+            if question and any(question in str(turn.get("content", "")) for turn in history if turn.get("role") == "assistant"):
+                question = ""
+            triage_result.update(answer=" ".join(filter(None, [answer, question])), symptoms=present,
+                                 differential_diagnosis=[], specialist="Chưa xác định",
+                                 risk_level="Chưa đủ thông tin", risk_score=None)
+        elif clinical_hint and triage_result.get("answer"):
             triage_result["answer"] += f"\n\n💡 *Lưu ý y tế:* {clinical_hint}"
         if rag_docs:
             triage_result["sources"] = [
@@ -155,6 +175,14 @@ def process_clinical_chat(
     # TẦNG 4: HẬU KIỂM AN TOÀN (Post-check Guardrail)
     # -------------------------------------------------------------
     raw_answer = triage_result.get("answer", "")
+    # A brief update to an existing cough history only needs a clarification.
+    facts = intake_facts or {}
+    reported = facts.get("present_symptoms", [])
+    if (lang == "vi" and not has_image and not triage_result.get("is_emergency")
+            and any(s in reported for s in ("Ho", "Ho khan", "Ho có đờm"))
+            and not (facts.get("vitals") or {}).get("temperature")
+            and re.fullmatch(r"(?:lâu lâu|thỉnh thoảng|đôi lúc)\s+(?:có\s+)?sốt(?:\s+nữa)?[.! ]*", msg_clean)):
+        raw_answer = "Bạn có nói mình bị ho, và thỉnh thoảng còn bị sốt. Bạn đã đo nhiệt độ lúc sốt chưa?"
     cleaned_answer = apply_safety_guardrails(raw_answer, lang=lang)
 
     # Chuẩn hóa cấu trúc đầu ra theo hợp đồng y tế

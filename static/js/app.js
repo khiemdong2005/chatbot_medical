@@ -788,7 +788,7 @@ const translations = {
     // EHR Profile Page
     ehr_header_title: "Hồ sơ bệnh án của tôi",
     ehr_header_subtitle: "Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân",
-    ehr_stat_visits: "Số lần khám",
+    ehr_stat_visits: "Phiên tư vấn AI",
     ehr_lbl_dob: "NGÀY SINH",
     ehr_lbl_blood: "NHÓM MÁU",
     ehr_lbl_phone: "ĐIỆN THOẠI",
@@ -1160,7 +1160,7 @@ const translations = {
     // EHR Profile Page
     ehr_header_title: "My Electronic Health Record",
     ehr_header_subtitle: "Clinical consultation history, triage summaries, and personal care plan",
-    ehr_stat_visits: "Total Visits",
+    ehr_stat_visits: "AI consultations",
     ehr_lbl_dob: "DATE OF BIRTH",
     ehr_lbl_blood: "BLOOD TYPE",
     ehr_lbl_phone: "PHONE NUMBER",
@@ -1790,8 +1790,8 @@ async function sendChatMessage() {
     chatHistory.push({ role: 'user', content: text, image: currentImage });
     chatHistory.push({ role: 'assistant', content: data.answer });
 
-    const intakeVal = (intakeResponse.status === 'fulfilled') ? intakeResponse.value : null;
-    saveOrUpdateCurrentSession(text, data, intakeVal);
+    saveOrUpdateCurrentSession(text, data, data.intake);
+    if (data.history_saved === false) appendErrorMessage("Chưa lưu được lượt tư vấn này vào hồ sơ.");
 
   } catch (err) {
     document.getElementById(typingId)?.remove();
@@ -1802,11 +1802,14 @@ async function sendChatMessage() {
 // Cập nhật phân tầng lâm sàng định tính (Tuyệt đối KHÔNG hiển thị điểm xác suất 0-100 giả lập)
 function updateTriagePanel(data) {
   const floatingRisk = document.getElementById('floating-risk-score');
-  const score = data.risk_score || 25;
+  const score = data.risk_score;
   if (floatingRisk) {
     if (data.is_emergency || score >= 70) {
       floatingRisk.innerText = `Cảnh báo cấp cứu khẩn cấp`;
       floatingRisk.className = 'text-xs font-bold text-rose-400';
+    } else if (score == null) {
+      floatingRisk.innerText = 'Chưa đủ thông tin';
+      floatingRisk.className = 'text-xs font-bold text-slate-500';
     } else if (score >= 35) {
       floatingRisk.innerText = `Khuyến nghị khám chuyên khoa`;
       floatingRisk.className = 'text-xs font-bold text-amber-300';
@@ -1860,6 +1863,7 @@ function updateLiveIntakeCard(facts, status, summary) {
 }
 
 function openPreVisitSummaryModal() {
+  document.getElementById('modal-btn-confirm')?.classList.remove('hidden');
   const modal = document.getElementById('previsit-summary-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
@@ -5728,7 +5732,7 @@ function saveOrUpdateCurrentSession(lastUserText, triageData, intakeData) {
   }
 
   let session = chatSessions.find(s => s.id === currentConversationId);
-  const title = (session && session.title) ? session.title : (lastUserText.length > 30 ? lastUserText.slice(0, 30) + '...' : lastUserText);
+  const title = intakeData?.facts?.present_symptoms?.join(", ") || ((session && session.title) ? session.title : (lastUserText.length > 30 ? lastUserText.slice(0, 30) + '...' : lastUserText));
 
   const facts = intakeData?.facts || session?.facts || {};
   const summary = intakeData?.summary || session?.summary || currentIntakeSummary || null;
@@ -5749,7 +5753,7 @@ function saveOrUpdateCurrentSession(lastUserText, triageData, intakeData) {
     title: title,
     lastMessage: triageData?.answer ? triageData.answer.slice(0, 75).replace(/\n/g, ' ') : lastUserText,
     timestamp: Date.now(),
-    messageCount: chatHistory.length,
+    messageCount: chatHistory.filter(turn => turn.role === "user").length,
     messages: JSON.parse(JSON.stringify(chatHistory)),
     facts: facts,
     summary: summary,
@@ -5920,17 +5924,17 @@ async function syncServerConsultations() {
     const data = await res.json();
     if (data && data.consultations && data.consultations.length > 0) {
       let hasNew = false;
-      res.consultations.forEach(c => {
-        const id = 'db_conv_' + c.id;
-        if (!chatSessions.some(s => s.id === id || s.title === c.message.slice(0, 30))) {
+      data.consultations.forEach(c => {
+        const id = c.conversation_id || 'db_conv_' + c.id;
+        if (!chatSessions.some(s => s.id === id)) {
           hasNew = true;
           chatSessions.push({
             id: id,
             title: c.message.length > 30 ? c.message.slice(0, 30) + '...' : c.message,
             lastMessage: c.answer ? c.answer.slice(0, 75).replace(/\n/g, ' ') : c.message,
             timestamp: Date.now() - 3600000,
-            messageCount: 2,
-            messages: [
+            messageCount: c.messages?.filter(turn => turn.role === "user").length || 1,
+            messages: c.messages?.length ? c.messages : [
               { role: 'user', content: c.message },
               { role: 'assistant', content: c.answer }
             ],
@@ -7448,7 +7452,7 @@ async function loadAndRenderAiConsultations() {
       const statusClass = isEmg ? 'bg-rose-500/15 text-rose-500 border-rose-500/30' : 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30';
       const statusText = isEmg ? 'Cảnh báo cấp cứu' : (item.risk_level || 'Tư vấn ban đầu');
       return `
-        <div onclick="openConsultationSummaryDetail(${item.id})" class="relative group cursor-pointer">
+        <div data-session="${escapeHtml(item.conversation_id || '')}" onclick="openConsultationSummaryDetail(this.dataset.session)" class="relative group cursor-pointer">
           <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full ${isEmg ? 'bg-rose-500' : 'bg-sky-500'} border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
           <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-lg bg-white/90 dark:bg-white/[0.03] hover:border-sky-500/40 transition-all">
             <div class="flex items-start justify-between gap-3">
@@ -7484,8 +7488,21 @@ async function loadAndRenderAiConsultations() {
   }
 }
 
-function openConsultationSummaryDetail(consultationId) {
-  openPreVisitSummaryModal();
+async function openConsultationSummaryDetail(sessionId) {
+  if (!sessionId) {
+    showMedicalToast("Phiên cũ chưa có bản tóm tắt theo hội thoại.", "info");
+    return;
+  }
+  try {
+    const response = await fetch('/api/intake/summary/' + encodeURIComponent(sessionId));
+    const data = await response.json();
+    if (!response.ok || !data.summary) throw new Error();
+    renderPreVisitSummaryInModal(data.summary);
+    document.getElementById('modal-btn-confirm')?.classList.add('hidden');
+    document.getElementById('previsit-summary-modal')?.classList.remove('hidden');
+  } catch {
+    showMedicalToast("Không tải được bản tóm tắt của phiên này.", "error");
+  }
 }
 
 function renderPatientTimeline(records) {
@@ -7829,10 +7846,13 @@ async function sendFloatingChatMessage() {
   msgContainer.scrollTop = msgContainer.scrollHeight;
 
   try {
+    currentConversationId ||= crypto.randomUUID();
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        conversation_id: currentConversationId,
+        history: chatHistory,
         message: text,
         lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
         user_name: currentUser ? (currentUser.first_name || currentUser.name || 'Bệnh nhân') : 'Bệnh nhân'
@@ -7841,6 +7861,11 @@ async function sendFloatingChatMessage() {
     const data = await res.json();
     document.getElementById(typingId)?.remove();
 
+    if (res.ok && data.answer) {
+      chatHistory.push({role: 'user', content: text}, {role: 'assistant', content: data.answer});
+      saveOrUpdateCurrentSession(text, data, data.intake);
+      if (data.intake) updateLiveIntakeCard(data.intake.facts, data.intake.status, data.intake.summary);
+    }
     const rawReply = data.answer || data.reply || data.response || data.error || 'Hệ thống đã ghi nhận thông tin của bạn.';
     const safeReply = escapeHtml(String(rawReply))
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
