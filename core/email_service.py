@@ -66,7 +66,7 @@ class EmailService:
 
         formatted_otp = " ".join(list(otp_code))
 
-        html = f"""
+        html_body = f"""
         <!DOCTYPE html>
         <html>
         <head>
@@ -114,7 +114,7 @@ class EmailService:
         </html>
         """
         text = f"Kính chào {name},\nMã xác thực {purpose_title} của bạn là: {otp_code}.\nMã có hiệu lực trong 5 phút. Tuyệt đối không chia sẻ mã này cho ai."
-        return self.send_email(to_email, subject, html, text)
+        return self.send_email(to_email, subject, html_body, text)
 
     def send_welcome_email(self, to_email: str, full_name: str) -> bool:
         safe_name = html.escape(str(full_name or "Quý bệnh nhân"), quote=True)
