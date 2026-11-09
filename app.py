@@ -543,6 +543,13 @@ def create_app(test_config=None):
             "expires_in": otp_manager.ttl
         }
 
+        # Nếu chưa cấu hình cổng Email/SMS thật và đang ở chế độ Dev, trả kèm dev_otp để trải nghiệm mượt mà
+        from core.email_service import email_service
+        from core.sms_service import sms_service
+        is_real_channel = email_service.is_configured() if channel == "email" else sms_service.is_configured()
+        if not is_real_channel and (app.debug or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")):
+            res_data["dev_otp"] = otp_manager.get_active_code(identifier, channel)
+
 
 
         return jsonify(res_data)
