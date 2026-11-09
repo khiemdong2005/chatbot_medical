@@ -3020,17 +3020,18 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
 
     if (data.dev_otp) {
       console.log('🔑 [DEV TEST OTP]:', data.dev_otp);
-      const digitInputs = document.querySelectorAll('.otp-digit-input');
+      const digitInputs = document.querySelectorAll('.otp-digit');
       if (digitInputs && digitInputs.length === 6) {
         data.dev_otp.split('').forEach((d, i) => {
           if (digitInputs[i]) digitInputs[i].value = d;
         });
+        if (typeof checkOtpComplete === 'function') checkOtpComplete();
       }
     }
 
     if (typeof showMedicalToast === 'function') {
       const toastMsg = data.dev_otp 
-        ? `[DEV TEST] Mã OTP xác thực là: ${data.dev_otp}` 
+        ? `[DEV TEST] Mã OTP xác thực: ${data.dev_otp} (Đã tự động điền)` 
         : `Mã OTP đã được gửi tới ${identifier}!`;
       showMedicalToast(toastMsg, 'success');
     }
