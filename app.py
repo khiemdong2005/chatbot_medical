@@ -21,6 +21,7 @@ import json
 import logging
 import uuid
 from datetime import datetime
+from functools import wraps
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from dotenv import load_dotenv
@@ -1745,6 +1746,59 @@ def create_app(test_config=None):
     # HỆ THỐNG GIÁM SÁT TOÀN DIỆN (OBSERVABILITY & MONITORING SUITE)
     # ==============================================================
 
+    def admin_required(f):
+        """
+        Ổ khóa phân quyền tối cao (Admin & DevOps Guard):
+        Bảo vệ toàn bộ tài nguyên SRE Cockpit và API giám sát.
+        Cho phép truy cập nếu thỏa mãn ít nhất 1 trong các điều kiện:
+          1. Header X-Admin-Key hoặc Query param admin_key trùng khớp với ADMIN_MONITORING_KEY.
+          2. Session hiện tại có cờ 'is_monitoring_admin' = True.
+          3. Người dùng đã đăng nhập có vai trò 'admin' hoặc 'doctor'.
+          4. Gửi kèm Bearer JWT Token hợp lệ với vai trò 'admin' hoặc 'doctor'.
+        Nếu xác thực thành công qua key bí mật, tự động lưu cờ session để duy trì quyền cho các yêu cầu polling tiếp theo.
+        Nếu từ chối:
+          - Endpoint API: trả về HTTP 403 Forbidden dạng JSON.
+          - Giao diện HTML: chuyển hướng về trang chủ kèm thông báo yêu cầu quyền quản trị viên.
+        """
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # 1. Khóa bí mật SRE qua Header hoặc Query Params
+            expected_key = os.getenv("ADMIN_MONITORING_KEY", "medimind-sre-secret-key-2026")
+            req_key = request.headers.get("X-Admin-Key") or request.args.get("admin_key")
+            if req_key and req_key == expected_key:
+                session["is_monitoring_admin"] = True
+                return f(*args, **kwargs)
+
+            # 2. Cờ phiên làm việc Admin đã được cấp quyền trước đó
+            if session.get("is_monitoring_admin"):
+                return f(*args, **kwargs)
+
+            # 3. Phiên đăng nhập người dùng (Flask Session)
+            user_id = session.get("user_id")
+            if user_id:
+                user = db.session.get(User, user_id)
+                if user and user.role in ("admin", "doctor"):
+                    return f(*args, **kwargs)
+
+            # 4. JWT Bearer Token
+            from core.jwt_auth import get_token_from_request, decode_token
+            token = get_token_from_request()
+            if token:
+                payload = decode_token(token, expected_type="access")
+                if payload and payload.get("role") in ("admin", "doctor"):
+                    return f(*args, **kwargs)
+
+            # Từ chối truy cập (403 Forbidden)
+            if request.path.startswith("/api/"):
+                return jsonify({
+                    "success": False,
+                    "error": "Truy cập bị từ chối: Yêu cầu quyền Quản trị viên (Admin) hoặc khóa bí mật SRE để truy cập tài nguyên này.",
+                    "code": "FORBIDDEN_ADMIN_REQUIRED"
+                }), 403
+
+            return redirect("/?auth=login&notice=admin_required")
+        return decorated_function
+
     @app.errorhandler(500)
     def internal_server_error_handler(e):
         """Tự động tóm bắt ngoại lệ 500 và bắn còi báo động SRE qua Telegram."""
@@ -1757,9 +1811,19 @@ def create_app(test_config=None):
     @app.route("/metrics", methods=["GET"])
     def prometheus_metrics():
         """Cổng Scraping chuẩn Prometheus TSDB (Google SRE 4 Golden Signals)."""
+        client_ip = request.remote_addr or ""
+        expected_key = os.getenv("ADMIN_MONITORING_KEY", "medimind-sre-secret-key-2026")
+        req_key = request.headers.get("X-Admin-Key") or request.args.get("admin_key")
+        is_loopback = client_ip in ("127.0.0.1", "::1", "localhost", "testclient") or bool(app.config.get("TESTING"))
+        is_auth = (req_key == expected_key) or session.get("is_monitoring_admin")
+        if not is_loopback and not is_auth:
+            return jsonify({
+                "error": "Forbidden: Metrics endpoint is restricted to internal scrapers or authorized administrators."
+            }), 403
         return get_prometheus_metrics_response()
 
     @app.route("/api/monitoring/status", methods=["GET"])
+    @admin_required
     def monitoring_api_status():
         """API thời gian thực cung cấp dữ liệu hiệu năng cho SRE Cockpit Dashboard."""
         snapshot = metrics_tracker.get_snapshot()
@@ -1784,6 +1848,7 @@ def create_app(test_config=None):
         })
 
     @app.route("/api/monitoring/alert/test", methods=["POST"])
+    @admin_required
     def monitoring_test_alert():
         """Kích hoạt thử nghiệm còi báo động SRE Telegram Alert."""
         sent = telegram_alerter.send_alert(
@@ -1798,6 +1863,7 @@ def create_app(test_config=None):
         })
 
     @app.route("/monitoring", methods=["GET"])
+    @admin_required
     def monitoring_cockpit_view():
         """Bảng điều khiển trực quan hóa SRE Cockpit Dashboard (Liquid Glass Theme)."""
         return render_template("monitoring.html")
