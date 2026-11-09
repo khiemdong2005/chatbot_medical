@@ -1131,6 +1131,13 @@ def create_app(test_config=None):
 
 
         user_id, guest_token = _get_request_identity()
+        if not app.config.get("TESTING"):
+            from core.security_patch import check_otp_attempts
+            client_ip = request.remote_addr or "local"
+            intake_rate_key = f"intake_msg:{user_id or guest_token or client_ip}"
+            if not check_otp_attempts(intake_rate_key, max_attempts=30):
+                return jsonify({"error": "Bạn đang gửi thông tin quá nhanh. Vui lòng thử lại sau ít phút."}), 429
+
         try:
             result = intake_service.process_message(
                 conversation_id=conversation_id,
@@ -1253,6 +1260,16 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để tải lên tài liệu y tế."}), 401
 
+        if not app.config.get("TESTING"):
+            from core.security_patch import check_otp_attempts
+            client_ip = request.remote_addr or "local"
+            upload_rate_key = f"upload_rate:{user_id or client_ip}"
+            if not check_otp_attempts(upload_rate_key, max_attempts=15):
+                return jsonify({
+                    "status": "error",
+                    "message": "Bạn đã gửi yêu cầu tải lên quá nhiều lần liên tiếp. Vui lòng thử lại sau 5 phút."
+                }), 429
+
         if "file" not in request.files:
             return jsonify({"status": "error", "message": "Không tìm thấy tệp đính kèm."}), 400
 
@@ -1373,6 +1390,16 @@ def create_app(test_config=None):
                     "status": "error",
                     "message": "Vui lòng đăng nhập để tải lên và phân tích tài liệu y tế."
                 }), 401
+
+            if not app.config.get("TESTING"):
+                from core.security_patch import check_otp_attempts
+                client_ip = request.remote_addr or "local"
+                scan_rate_key = f"scan_rate:{user_id or client_ip}"
+                if not check_otp_attempts(scan_rate_key, max_attempts=10):
+                    return jsonify({
+                        "status": "error",
+                        "message": "Bạn đã gửi yêu cầu phân tích tài liệu quá nhiều lần liên tiếp. Vui lòng thử lại sau 5 phút."
+                    }), 429
 
             file = request.files["file"]
             if not file or file.filename == "":
@@ -1698,7 +1725,7 @@ app = create_app()
 if __name__ == "__main__":
     try:
         from werkzeug.serving import WSGIRequestHandler
-        WSGIRequestHandler.server_version = "MediMind-Clinical-Engine"
+        WSGIRequestHandler.server_version = ""
         WSGIRequestHandler.sys_version = ""
     except Exception:
         pass
