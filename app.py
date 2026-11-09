@@ -239,11 +239,13 @@ def create_app(test_config=None):
         # Khởi tạo phiên làm việc (Session)
         session["user_id"] = user.id
         session["user_role"] = user.role
+        redirect_url = "/monitoring" if user.role == "admin" else None
 
         return jsonify({
             "success": True,
             "message": f"Chào mừng {user.full_name} đã quay trở lại!",
-            "user": user.to_dict()
+            "user": user.to_dict(),
+            "redirect_url": redirect_url
         })
 
 
@@ -1739,7 +1741,9 @@ def create_app(test_config=None):
 
     @app.route("/")
     def index():
-        """Trang chủ ứng dụng y tế MediMind."""
+        """Trang chủ ứng dụng y tế MediMind (Tự động chuyển hướng Admin sang buồng lái SRE)."""
+        if session.get("user_role") == "admin":
+            return redirect(url_for("monitoring_cockpit_view"))
         return render_template("index.html")
 
     # ==============================================================

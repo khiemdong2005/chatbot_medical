@@ -43,10 +43,10 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <a href="/" class="text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-arrow-left"></i>
-          <span>Về trang chủ</span>
-        </a>
+        <button onclick="adminLogout()" class="text-xs text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 transition flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Đăng xuất SRE</span>
+        </button>
         <a href="/metrics" target="_blank" class="text-xs text-sky-400 hover:text-sky-300 px-3 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 transition flex items-center gap-1.5 font-mono">
           <i class="fa-solid fa-terminal"></i>
           <span>/metrics</span>
@@ -340,6 +340,15 @@
         console.error('Monitoring fetch error:', e);
       } finally {
         if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 300);
+      }
+    }
+
+    async function adminLogout() {
+      if (confirm('Đại Ca có chắc chắn muốn đăng xuất khỏi buồng lái SRE không?')) {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (e) {}
+        window.location.href = '/?auth=login';
       }
     }
 

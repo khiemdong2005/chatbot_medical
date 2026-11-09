@@ -3409,6 +3409,10 @@ async function handleLoginSubmit(e) {
     });
     const data = await res.json();
     if (data.success && data.user) {
+      if (data.user.role === 'admin' || data.redirect_url) {
+        window.location.href = data.redirect_url || '/monitoring';
+        return;
+      }
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       startFreshChatForCurrentUser();
@@ -4057,6 +4061,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAuthUI();
       }
     } else if (data.user) {
+      if (data.user.role === 'admin') {
+        window.location.href = '/monitoring';
+        return;
+      }
       const previousUserId = currentUser?.id;
       currentUser = { ...(currentUser || {}), ...data.user };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
