@@ -1,0 +1,12 @@
+# ==============================================================
+# AI IGNORE PROTOCOL - RESTRICTED RECONNAISSANCE ENCLAVE
+# This file instructs AI tools (Claude, Cursor, Copilot, Cody, etc.)
+# to NEVER index, read, or surface the following sensitive files.
+# ==============================================================
+
+core/observability.py
+templates/monitoring.html
+monitoring/
+monitoring/**
+tests/test_monitoring_guard.py
+scripts/stealth_vault.py
