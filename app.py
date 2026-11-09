@@ -16,6 +16,7 @@ if hasattr(sys.stderr, 'reconfigure'):
 # ==============================================================
 
 import os
+import time
 import json
 import logging
 import uuid
@@ -40,6 +41,16 @@ from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
 from core.intake_service import intake_service
 from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
+from core.observability import (
+    record_http_metrics,
+    record_clinical_triage,
+    record_ai_latency,
+    record_prescription_scan,
+    get_prometheus_metrics_response,
+    get_system_hardware_stats,
+    metrics_tracker,
+    telegram_alerter
+)
 
 logger = logging.getLogger("MediMindApp")
 
@@ -115,6 +126,11 @@ def create_app(test_config=None):
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Giới hạn 16MB chống tràn bộ nhớ DoS (VULN-04)
 
     @app.before_request
+    def record_request_start_time():
+        """Đo đạc chính xác thời gian bắt đầu tiếp nhận gói tin (Latency Tracking)."""
+        request._start_time = time.time()
+
+    @app.before_request
     def validate_csrf_and_origin():
         """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE)."""
         if request.method in ("POST", "PUT", "DELETE", "PATCH"):
@@ -153,6 +169,11 @@ def create_app(test_config=None):
 
         if is_prod or request.is_secure:
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+
+        # Ghi nhận chỉ số RED & SRE Golden Signals
+        if hasattr(request, "_start_time"):
+            duration = time.time() - request._start_time
+            record_http_metrics(request.method, request.path, response.status_code, duration)
 
         return response
 
@@ -1065,6 +1086,11 @@ def create_app(test_config=None):
                 res["intake_summary"] = intake_res.get("summary")
                 res["intake_status"] = intake_res.get("status")
 
+            # Ghi nhận chỉ số lâm sàng & AI vào SRE Monitoring
+            record_clinical_triage(res.get("risk_level", "safe"))
+            if hasattr(request, "_start_time"):
+                record_ai_latency(time.time() - request._start_time)
+
             return jsonify(res)
 
         except ValueError as ve:
@@ -1714,6 +1740,67 @@ def create_app(test_config=None):
     def index():
         """Trang chủ ứng dụng y tế MediMind."""
         return render_template("index.html")
+
+    # ==============================================================
+    # HỆ THỐNG GIÁM SÁT TOÀN DIỆN (OBSERVABILITY & MONITORING SUITE)
+    # ==============================================================
+
+    @app.errorhandler(500)
+    def internal_server_error_handler(e):
+        """Tự động tóm bắt ngoại lệ 500 và bắn còi báo động SRE qua Telegram."""
+        telegram_alerter.notify_server_error(e, request)
+        return jsonify({
+            "status": "error",
+            "error": "Đã xảy ra sự cố nội bộ. Đội ngũ kỹ sư SRE đã nhận được thông báo cứu nạn."
+        }), 500
+
+    @app.route("/metrics", methods=["GET"])
+    def prometheus_metrics():
+        """Cổng Scraping chuẩn Prometheus TSDB (Google SRE 4 Golden Signals)."""
+        return get_prometheus_metrics_response()
+
+    @app.route("/api/monitoring/status", methods=["GET"])
+    def monitoring_api_status():
+        """API thời gian thực cung cấp dữ liệu hiệu năng cho SRE Cockpit Dashboard."""
+        snapshot = metrics_tracker.get_snapshot()
+        hw = get_system_hardware_stats()
+        try:
+            db_stats = {
+                "users_total": User.query.count(),
+                "consultations_total": ClinicalConsultation.query.count(),
+                "documents_total": MedicalDocument.query.count(),
+                "appointments_total": MedicalAppointment.query.count()
+            }
+        except Exception:
+            db_stats = {"users_total": 0, "consultations_total": 0, "documents_total": 0, "appointments_total": 0}
+
+        return jsonify({
+            "status": "healthy",
+            "service": "MediMind Clinical AI Engine",
+            "timestamp": time.time(),
+            "metrics": snapshot,
+            "hardware": hw,
+            "database": db_stats
+        })
+
+    @app.route("/api/monitoring/alert/test", methods=["POST"])
+    def monitoring_test_alert():
+        """Kích hoạt thử nghiệm còi báo động SRE Telegram Alert."""
+        sent = telegram_alerter.send_alert(
+            title="Kiểm tra hệ thống báo động SRE",
+            message="Đây là cảnh báo thử nghiệm được kích hoạt thủ công từ SRE Cockpit Dashboard.",
+            level="WARNING",
+            extra={"TriggeredBy": "SRE_Admin", "Endpoint": "/monitoring"}
+        )
+        return jsonify({
+            "success": sent,
+            "message": "Đã kích hoạt còi báo động SRE Telegram Alert thành công!"
+        })
+
+    @app.route("/monitoring", methods=["GET"])
+    def monitoring_cockpit_view():
+        """Bảng điều khiển trực quan hóa SRE Cockpit Dashboard (Liquid Glass Theme)."""
+        return render_template("monitoring.html")
 
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)
     return app

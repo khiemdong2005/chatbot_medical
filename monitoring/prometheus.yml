@@ -1,0 +1,21 @@
+# ==============================================================
+# PROMETHEUS SCRAPE CONFIGURATION FOR MEDIMIND CLINICAL AI
+# ==============================================================
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  scrape_timeout: 4s
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  - job_name: "medimind_clinical_engine"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["127.0.0.1:8000"]
+        labels:
+          environment: "production"
+          service: "clinical_ai_engine"
+          tier: "backend"
