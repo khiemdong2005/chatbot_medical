@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-labelledby="title desc">
+<title id="title">Nước yến mạch không đường</title><desc id="desc">Minh họa ly nước yến mạch màu kem cùng bông và hạt yến mạch bên cạnh.</desc>
+<defs><linearGradient id="drink" x1="0" x2="1"><stop stop-color="#ede2ca"/><stop offset=".5" stop-color="#f7efd9"/><stop offset="1" stop-color="#d6c5a6"/></linearGradient></defs>
+<rect width="640" height="440" fill="#edf5f4"/><path d="M0 342c202-14 431-16 640 0v98H0Z" fill="#e7eeea"/>
+<ellipse cx="350" cy="350" rx="150" ry="18" fill="#35585b" opacity=".09"/><ellipse cx="350" cy="339" rx="104" ry="17" fill="#fffdf7" stroke="#cbd8d1" stroke-width="2"/>
+<path d="M271 127h158l-13 188c-1 15-27 24-66 24s-65-9-66-24Z" fill="#e0ebe5" fill-opacity=".6" stroke="#35585b" stroke-width="3"/>
+<path d="m279 165 11 147c1 10 23 17 60 17s59-7 60-17l11-147Z" fill="url(#drink)"/><ellipse cx="350" cy="165" rx="71" ry="13" fill="#f7eed9" stroke="#caba9b" stroke-width="2"/>
+<ellipse cx="350" cy="127" rx="79" ry="15" fill="#f4f8f1" stroke="#35585b" stroke-width="3"/><ellipse cx="350" cy="127" rx="68" ry="8" fill="#e9eee2"/>
+<path d="m293 148 10 150" stroke="#fffdf7" stroke-width="8" stroke-linecap="round" opacity=".7"/>
+<g stroke="#947d50" stroke-width="2.5" stroke-linecap="round" fill="#d8bf84"><path d="m189 328 29-155M201 331l-31-125M208 328l38-110" fill="none"/><path d="m213 196-20-21 8-15 17 13Z"/><path d="m214 213 25-16-3-17-20 13Z"/><path d="m208 232-25-18 2-16 26 14Z"/><path d="m180 246-24-12 1-16 21 12Z"/><path d="m185 265 19-21-6-14-17 15Z"/><path d="m231 263 24-11 1-16-20 10Z"/><path d="m225 285-18-21 6-13 17 15Z"/></g>
+<g fill="#e1c993" stroke="#a99465" stroke-width="1.5"><ellipse cx="211" cy="344" rx="12" ry="5" transform="rotate(-18 211 344)"/><ellipse cx="237" cy="351" rx="12" ry="5" transform="rotate(24 237 351)"/><ellipse cx="253" cy="339" rx="11" ry="5" transform="rotate(-28 253 339)"/></g>
+</svg>

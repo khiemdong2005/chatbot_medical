@@ -25,7 +25,8 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=17.9.10">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=19.0.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=5">
 
 <!-- Leaflet CSS & JS for Interactive Hospital Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -54,6 +55,27 @@ display: flex !important;
 display: grid !important;
 
 }
+
+/* Wellness challenges: calm, consistent MediMind palette in both themes. */
+.wellness-tab { color: #183b43; }
+.wellness-tab .wellness-shell { color: #173b43; }
+body.light-glass .wellness-tab h1,
+body.light-glass .wellness-tab h2,
+body.light-glass .wellness-tab h3,
+body.light-glass .wellness-tab header p:first-child { color: #173b43 !important; }
+body.light-glass .wellness-tab p,
+body.light-glass .wellness-tab span { color: #607780; }
+body.light-glass .wellness-tab .wellness-accent { color: #087f78 !important; }
+body.light-glass .wellness-tab .wellness-hero-title span { color: #087f78 !important; background: none !important; }
+body.light-glass .wellness-tab .wellness-card { background: #ffffff !important; border-color: #dce9e8 !important; box-shadow: 0 12px 32px rgba(34, 83, 88, .06); }
+body.light-glass .wellness-tab .wellness-card button { background: #087f78 !important; color: white !important; }
+body.light-glass .wellness-tab .wellness-topline { border-color: #dce9e8 !important; }
+body.dark-glass .wellness-tab { color: #e4f1ef; }
+body.dark-glass .wellness-tab .wellness-card { background: rgba(255,255,255,.045) !important; border-color: rgba(255,255,255,.12) !important; }
+body.dark-glass .wellness-tab .wellness-hero-title span { color: #6ee7cf !important; background: none !important; }
+.wellness-tab .wellness-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.wellness-tab .wellness-card:hover { transform: translateY(-2px); }
+.wellness-tab .wellness-card button { min-height: 44px; }
 
 /* Elegant smooth scrollbar for chat messages */
 
@@ -140,9 +162,12 @@ background: #94A3B8;
 
   <button onclick="switchTab('doctor-tab')" id="dock-doctor-tab" class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
 
-    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+    </svg>
 
-    <span data-i18n="dock_doctor" class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Hồ sơ của tôi</span>
+    <span data-i18n="dock_doctor" class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Thử thách sống khỏe</span>
 
   </button>
 
@@ -211,7 +236,7 @@ background: #94A3B8;
 
   <button onclick="switchTab('booking-tab')" id="nav-booking-tab" data-i18n="nav_booking" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Cơ sở y tế</button>
 
-  <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" data-i18n="nav_doctor" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Hồ sơ của tôi</button>
+  <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" data-i18n="nav_doctor" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Thử thách sống khỏe</button>
 
 </nav>
 
@@ -484,10 +509,13 @@ background: #94A3B8;
             <svg class="w-3.5 h-3.5 ml-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
           </button>
 
-          <!-- Secondary: Mở hồ sơ sức khỏe -->
+          <!-- Secondary: Wellness Challenges -->
           <button onclick="switchTab('doctor-tab')" class="px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/20 text-slate-800 dark:text-white hover:bg-slate-50 dark:hover:bg-white/15 font-bold text-xs sm:text-sm shadow-xs flex items-center gap-2 transition-all transform hover:-translate-y-0.5 cursor-pointer">
-            <svg class="w-4 h-4 text-sky-500 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span data-i18n="home_btn_record">Mở hồ sơ sức khỏe</span>
+            <svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </svg>
+            <span data-i18n="home_btn_record">Thử thách sống khỏe</span>
           </button>
         </div>
 
@@ -606,15 +634,18 @@ background: #94A3B8;
         </div>
       </div>
 
-      <!-- Card 2: Hồ sơ sức khỏe (Indigo / Sky Theme) -->
+      <!-- Card 2: Pha chế Dinh dưỡng (Emerald / Rose Theme) -->
       <div onclick="switchTab('doctor-tab')" class="home-discovery-card home-card-records rounded-3xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between">
         <div>
-          <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </svg>
           </div>
-          <span data-i18n="home_c2_tag" class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1.5">THÔNG TIN CỦA BẠN</span>
-          <h3 data-i18n="home_c2_title" class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Hồ sơ sức khỏe</h3>
-          <p data-i18n="home_c2_desc" class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Quản lý chỉ số, lịch sử khám và những thông tin quan trọng của gia đình.</p>
+          <span data-i18n="home_c2_tag" class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1.5">TRỢ LÝ DINH DƯỠNG</span>
+          <h3 data-i18n="home_c2_title" class="text-slate-900 dark:text-white font-black text-lg mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Thử thách sống khỏe</h3>
+          <p data-i18n="home_c2_desc" class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">Biến những thói quen nhỏ như đi bộ, nghỉ ngơi và uống nước thành chuỗi ngày tích cực của riêng bạn.</p>
         </div>
       </div>
 
@@ -1271,155 +1302,52 @@ background: #94A3B8;
 
   
 
-<div id="doctor-tab" class="tab-content w-full flex-1 flex-col py-4 space-y-6">
-  <!-- Top Action & Title Bar (Đồng bộ Dark/Light Glass Theme) -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-3 border-b border-slate-200/80 dark:border-white/10">
-    <div class="space-y-1">
-      <h2 data-i18n="ehr_header_title" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight" id="ehr-title">Hồ sơ bệnh án của tôi</h2>
-      <p data-i18n="ehr_header_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5" id="ehr-subtitle">Lịch sử khám bệnh, tư vấn và phác đồ điều trị cá nhân</p>
+<div id="doctor-tab" class="tab-content nutrition-flow w-full flex-1">
+  <section id="nf-search" class="nf-search-screen" aria-labelledby="nf-search-title">
+    <div class="nf-logo" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M8 24C3 10 17 5 26 6c1 13-5 22-16 17Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m6 27 15-15M13 20l-1-7m5 3 6 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+    <p class="nf-overline">MEDIMIND · GỢI Ý DINH DƯỠNG</p>
+    <h1 id="nf-search-title">Hôm nay bạn cảm thấy thế nào?</h1>
+    <p class="nf-subtitle">Nhập tâm trạng hoặc tình trạng sức khỏe để xem các công thức tham khảo.</p>
+    <form id="nf-search-form" class="nf-search-box">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.4 4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <label class="sr-only" for="nf-query">Tâm trạng hoặc tình trạng sức khỏe</label>
+      <input id="nf-query" type="search" autocomplete="off" placeholder="Ví dụ: mất ngủ, nhiệt miệng, mệt mỏi…" maxlength="500" required>
+      <button type="submit" aria-label="Tìm gợi ý">→</button>
+    </form>
+    <p class="nf-search-hint">Nhấn Enter để tiếp tục · Nội dung tìm kiếm được gửi tới Google Gemini để gợi ý món.</p>
+  </section>
+  <section id="nf-type" class="nf-stage" hidden>
+    <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
+    <p class="nf-overline">BƯỚC 1 / 3</p>
+    <h1>Bạn muốn xem loại nào?</h1>
+    <div class="nf-condition-banner"><span>TÌNH TRẠNG BẠN ĐÃ NHẬP</span><strong class="nf-query-label"></strong></div>
+    <div class="nf-type-grid">
+      <button type="button" class="nf-type-card" data-nf-type="food"><span class="nf-type-icon nf-type-food" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7"/><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Thức ăn</strong><small>Khám phá những món ăn dễ làm</small></span><span class="nf-arrow">↗</span></button>
+      <button type="button" class="nf-type-card" data-nf-type="drink"><span class="nf-type-icon nf-type-drink" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="m11 9 3 25h13l3-25H11Z" fill="#d9edf2"/><path d="M12 20h16" stroke="#95c6ce" stroke-width="2"/><path d="m11 9 3 25h13l3-25H11Zm11 16 4-21 6-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Nước uống</strong><small>Khám phá những thức uống dễ pha</small></span><span class="nf-arrow">↗</span></button>
     </div>
-    <div class="flex items-center space-x-2.5">
-      <button id="ehr-export-pdf-btn" onclick="exportPdfSummary()" disabled class="opacity-40 cursor-not-allowed text-xs font-bold px-4 py-2.5 rounded-xl glass-pill text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 shadow-sm" title="Vui lòng đăng nhập để xuất bản tóm tắt trước khám">
-        <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <span id="ehr-export-text" data-i18n="ehr_export_text">Xuất Tóm Tắt (PDF)</span>
-      </button>
-      <button onclick="switchTab('home-tab')" class="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-white px-4 py-2.5 rounded-xl glass-pill border border-slate-200 dark:border-white/10 transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-        <span data-i18n="btn_home">Trang chủ</span>
-      </button>
-    </div>
-
-  </div>
-
-  <!-- 2-COLUMN MAIN MEDICAL RECORD GRID (Đồng bộ Dark/Light Glass Theme) -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
-    <!-- LEFT COLUMN: Patient Info Cards (Col 4/12) -->
-    <div class="lg:col-span-4 space-y-4">
-      <!-- Header Profile Card (Tự động thích ứng Guest vs User) -->
-      <div id="ehr-hero-card" class="glass-card border border-sky-500/20 dark:border-white/10 rounded-2xl p-6 text-slate-900 dark:text-white shadow-xl space-y-5 relative overflow-hidden bg-white/90 dark:bg-gradient-to-br dark:from-sky-950/40 dark:via-slate-900/60 dark:to-indigo-950/30 backdrop-blur-xl">
-        <div class="flex items-center space-x-3.5">
-          <div id="ehr-avatar-large" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-black text-lg flex items-center justify-center border border-sky-400/40 shadow-lg shadow-sky-500/20">
-            👤
-          </div>
-          <div>
-            <h3 id="ehr-hero-name" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Chưa đăng nhập</h3>
-            <p id="ehr-hero-demographics" class="text-xs text-sky-600 dark:text-sky-400 font-bold mt-0.5">Tài khoản khách · Chưa đồng bộ hồ sơ</p>
-          </div>
-        </div>
-
-        <!-- Stat Tile: Số lần khám -->
-        <div class="pt-2">
-          <div class="p-3.5 rounded-xl bg-sky-50/70 dark:bg-white/[0.04] border border-sky-200/60 dark:border-white/10 flex items-center justify-between">
-            <span data-i18n="ehr_stat_visits" class="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Phiên tư vấn AI</span>
-            <span id="ehr-visit-count" class="text-xl font-black text-sky-600 dark:text-sky-400">0</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Demographics Information Card -->
-      <div class="glass-card border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 shadow-lg bg-white/90 dark:bg-white/[0.03] backdrop-blur-xl space-y-4">
-        <div class="space-y-3 text-xs">
-          <!-- NGÀY SINH -->
-          <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
-            <span data-i18n="ehr_lbl_dob" class="text-slate-500 dark:text-slate-400 font-bold">NGÀY SINH</span>
-            <span id="ehr-dob-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
-          </div>
-
-          <!-- NHÓM MÁU -->
-          <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
-            <span data-i18n="ehr_lbl_blood" class="text-slate-500 dark:text-slate-400 font-bold">NHÓM MÁU</span>
-            <span id="ehr-blood-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
-          </div>
-
-          <!-- ĐIỆN THOẠI -->
-          <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80 dark:border-white/10">
-            <span data-i18n="ehr_lbl_phone" class="text-slate-500 dark:text-slate-400 font-bold">ĐIỆN THOẠI</span>
-            <span id="ehr-phone-val" class="font-extrabold text-slate-900 dark:text-white font-mono">--</span>
-          </div>
-
-          <!-- DỊ ỨNG -->
-          <div class="space-y-2 pt-1">
-            <span data-i18n="ehr_lbl_allergy" class="text-slate-500 dark:text-slate-400 font-bold block">DỊ ỨNG</span>
-            <div id="ehr-allergies-container" class="flex flex-wrap gap-2 pt-1">
-              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
-                <span>Penicillin</span>
-              </span>
-              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-400/30">
-                <span>Hải sản</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- Card: Lịch sử Đơn thuốc & Xét nghiệm đã Import (Data Người Dùng) -->
-      <div id="ehr-prescription-history-card" class="glass-card border border-teal-500/30 dark:border-teal-400/30 rounded-2xl p-5 space-y-3 shadow-lg bg-white/90 dark:bg-teal-950/20 text-slate-900 dark:text-white backdrop-blur-xl">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-white/10">
-          <div class="flex items-center space-x-2">
-            <h4 data-i18n="ehr_sec_prescriptions" class="text-xs font-bold text-slate-900 dark:text-white">Toa thuốc &amp; Bệnh án đã Import</h4>
-          </div>
-          <button type="button" onclick="switchTab('ocr-tab')" data-i18n="ehr_btn_add_rx" class="text-[11px] text-teal-600 dark:text-teal-300 hover:text-teal-700 dark:hover:text-white font-bold transition-colors cursor-pointer">
-            + Thêm đơn mới →
-          </button>
-        </div>
-        <div id="ehr-prescription-list" class="space-y-2 text-xs">
-          <p class="text-slate-500 dark:text-slate-400 text-[11px] italic">Chưa có đơn thuốc nào được lưu.</p>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RIGHT COLUMN: Examination Timeline (Col 8/12) -->
-    <div class="lg:col-span-8 space-y-4">
-      <!-- Timeline Header with Sub-tab Switcher (AI Consultations vs Hospital Mock) -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/10">
-        <div>
-          <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span data-i18n="ehr_sec_history_title">Lịch sử khám & tư vấn</span>
-          </h3>
-          <p data-i18n="ehr_sec_history_sub" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tách bạch rõ giữa phiên tư vấn trực tuyến và hồ sơ bệnh viện liên kết</p>
-        </div>
-
-        <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 shrink-0">
-          <button type="button" id="ehr-subtab-ai" data-i18n="ehr_subtab_ai" onclick="switchEhrSubTab('ai')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-sky-500/20 text-sky-600 dark:text-white shadow-sm transition-all cursor-pointer">
-            Tư vấn trực tuyến
-          </button>
-          <button type="button" id="ehr-subtab-hospital" data-i18n="ehr_subtab_hospital" onclick="switchEhrSubTab('hospital')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
-            Bệnh viện (Mẫu)
-          </button>
-        </div>
-      </div>
-
-      <!-- Timeline Cards Container -->
-      <div id="ehr-timeline-list" class="relative pl-6 space-y-4 border-l-2 border-sky-500/30">
-        <!-- Privacy-First Empty State Card (Kịch bản 1) -->
-        <div id="ehr-privacy-empty-card" class="p-8 sm:p-10 text-center rounded-2xl border border-dashed border-sky-300/60 dark:border-white/10 space-y-4 bg-white/70 dark:bg-white/[0.02] backdrop-blur-xl shadow-xs">
-          <div class="w-14 h-14 rounded-2xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 flex items-center justify-center mx-auto text-2xl shadow-sm">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-          </div>
-          <div class="space-y-1.5">
-            <h4 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-              Chưa có hồ sơ bệnh án được đồng bộ
-            </h4>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-normal">
-              Hồ sơ bệnh án cá nhân được mã hóa an toàn theo tiêu chuẩn bảo vệ dữ liệu y tế. Vui lòng đăng nhập để lưu trữ lịch sử tư vấn AI, quản lý đơn thuốc và phác đồ điều trị.
-            </p>
-          </div>
-          <div class="flex flex-wrap items-center justify-center gap-3 pt-3">
-            <button type="button" onclick="openLoginModal()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-sky-500/25 transition-all cursor-pointer flex items-center space-x-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-              <span>Đăng nhập / Đăng ký ngay</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
+  <section id="nf-results" class="nf-stage nf-wide" hidden>
+    <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
+    <p class="nf-overline">BƯỚC 2 / 3</p>
+    <h1 id="nf-results-title">Chọn món bạn thích</h1>
+    <div class="nf-condition-banner"><span>TÌNH TRẠNG BẠN ĐÃ NHẬP</span><strong class="nf-query-label"></strong></div>
+    <p class="nf-subtitle">Chọn một món để xem công thức và thông tin dinh dưỡng.</p>
+    <p id="nf-notice" class="nf-notice" hidden></p>
+    <details id="nf-selection-info" class="nf-selection-info" hidden><summary>Các món được chọn như thế nào?</summary><p id="nf-selection-copy"></p></details>
+    <p id="nf-sources" class="nf-source-links" hidden></p>
+    <button id="nf-avoidance-jump" class="nf-limit-jump" type="button" hidden>Xem thực phẩm nên hạn chế / cần tránh ↓</button>
+    <div id="nf-clarification" class="nf-clarification" hidden><p id="nf-question"></p><button type="button" class="nf-back" id="nf-edit-query">Bổ sung mô tả →</button></div>
+    <div id="nf-status" class="nf-status" role="status" aria-live="polite"></div>
+    <div id="nf-cards" class="nf-cards"></div>
+    <section id="nf-avoidance" class="nf-limit-panel" aria-label="Thực phẩm nên hạn chế và cần tránh" hidden></section>
+  </section>
+  <section id="nf-detail" class="nf-stage nf-wide" hidden>
+    <button class="nf-back" type="button" data-nf-back="results">← Xem món khác</button>
+    <p class="nf-overline">BƯỚC 3 / 3 · CHI TIẾT</p>
+    <div class="nf-condition-banner nf-condition-compact"><span>TÌNH TRẠNG BẠN ĐÃ NHẬP</span><strong class="nf-query-label"></strong></div>
+    <div id="nf-detail-content"></div>
+    <p class="nf-disclaimer">Thông tin tham khảo dinh dưỡng, không thay thế tư vấn y tế chuyên khoa.</p>
+  </section>
 </div>
 
 
@@ -2557,9 +2485,9 @@ Tôi đã hiểu và đồng ý
 
 </button>
 
-<button type="button" onclick="switchTab('doctor-tab'); closeProfileModal();" class="py-2.5 px-3 rounded-xl glass-pill text-sky-300 border border-sky-400/30 font-bold text-xs transition-all cursor-pointer">
+<button type="button" onclick="switchTab('doctor-tab'); closeProfileModal();" class="py-2.5 px-3 rounded-xl glass-pill text-emerald-300 border border-emerald-400/30 font-bold text-xs transition-all cursor-pointer">
 
-Xem Bệnh án →
+Pha chế dinh dưỡng →
 
 </button>
 
@@ -3045,7 +2973,8 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=17.9.11"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=19.0.0"></script>
+<script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=19.3.2"></script>
 
 <!-- ============================================================== -->
 <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->

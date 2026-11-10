@@ -475,7 +475,7 @@ const translations = {
     home_hero_title_sub: "thông minh mỗi ngày",
     home_hero_desc: "Trò chuyện với MediMind AI để hiểu sơ bộ về triệu chứng, giải thích thuật ngữ y khoa và tra cứu hồ sơ khám bệnh ở một nơi duy nhất.",
     home_btn_chat: "Trò chuyện với trợ lý",
-    home_btn_record: "Xem hồ sơ bệnh án",
+    home_btn_record: "Thử thách sống khỏe",
     home_badge_security: "Thông tin được bảo mật",
     home_badge_history: "Lưu lịch sử trò chuyện",
     home_feat1_title: "Hỏi đáp triệu chứng",
@@ -578,7 +578,7 @@ const translations = {
     nav_chat: "Trợ lý sức khỏe",
     nav_ocr: "Đọc đơn thuốc & xét nghiệm",
     nav_booking: "Cơ sở y tế",
-    nav_doctor: "Hồ sơ của tôi",
+    nav_doctor: "Pha chế dinh dưỡng",
     nav_admin: "Hạ tầng Cloud",
     nav_login: "Đăng nhập",
     nav_start: "Bắt đầu ngay",
@@ -586,7 +586,7 @@ const translations = {
     dock_chat: "Trợ lý sức khỏe",
     dock_ocr: "Đọc đơn thuốc & xét nghiệm",
     dock_booking: "Cơ sở y tế & Bệnh viện",
-    dock_doctor: "Hồ sơ của tôi",
+    dock_doctor: "Pha chế dinh dưỡng",
     dock_wallpaper: "Đổi không gian Y tế",
     dock_theme: "Kính Sáng / Kính Khói",
     dock_reset: "Cuộc trò chuyện mới",
@@ -729,7 +729,7 @@ const translations = {
     home_hero_headline: "Chăm sóc sức khỏe<br>thông minh hơn mỗi ngày.",
     home_hero_desc: "Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.",
     home_btn_chat: "Trò chuyện với trợ lý",
-    home_btn_record: "Mở hồ sơ sức khỏe",
+    home_btn_record: "Thử thách sống khỏe",
     home_badge_security: "Thông tin được bảo mật",
     home_badge_data: "Hỗ trợ dựa trên dữ liệu",
     home_metric_status: "Khỏe mạnh",
@@ -741,9 +741,9 @@ const translations = {
     home_c1_tag: "HỖ TRỢ 24/7",
     home_c1_title: "Trò chuyện cùng AI",
     home_c1_desc: "Giải đáp các thắc mắc sức khỏe thường gặp bằng ngôn ngữ dễ hiểu.",
-    home_c2_tag: "THÔNG TIN CỦA BẠN",
-    home_c2_title: "Hồ sơ sức khỏe",
-    home_c2_desc: "Quản lý chỉ số, lịch sử khám và những thông tin quan trọng của gia đình.",
+    home_c2_tag: "DINH DƯỠNG THEO THỂ TRẠNG",
+    home_c2_title: "Bàn pha chế dinh dưỡng",
+    home_c2_desc: "Khám phá nguyên liệu nên dùng, món cần tránh và công thức phù hợp với thể trạng.",
     home_c3_tag: "ĐỒNG HÀNH CÙNG BẠN",
     home_c3_title: "Lịch hẹn sắp tới",
     home_c3_desc: "Theo dõi lịch khám và nhận nhắc nhở để không bỏ lỡ những cuộc hẹn quan trọng.",
@@ -848,7 +848,7 @@ const translations = {
     home_hero_title_sub: "Assistant",
     home_hero_desc: "Chat with MediMind AI for preliminary symptom assessment, medical terminology explanations, and clinical records all in one place.",
     home_btn_chat: "Chat with Assistant",
-    home_btn_record: "View Health Record",
+    home_btn_record: "Nutrition Studio",
     home_badge_security: "Data Encrypted & Secure",
     home_badge_history: "Chat History Saved",
     home_feat1_title: "Symptom Q&A",
@@ -951,7 +951,7 @@ const translations = {
     nav_chat: "Health Assistant",
     nav_ocr: "Prescriptions & Labs",
     nav_booking: "Hospitals & Clinics",
-    nav_doctor: "My Health Record",
+    nav_doctor: "Nutrition Studio",
     nav_admin: "Cloud Infrastructure",
     nav_login: "Sign In",
     nav_start: "Get Started",
@@ -959,7 +959,7 @@ const translations = {
     dock_chat: "Health Assistant",
     dock_ocr: "Prescriptions & Labs",
     dock_booking: "Hospitals & Clinics",
-    dock_doctor: "My Health Record",
+    dock_doctor: "Nutrition Studio",
     dock_wallpaper: "Change Wallpaper",
     dock_theme: "Light / Dark Glass",
     dock_reset: "New Conversation",
@@ -1102,7 +1102,7 @@ const translations = {
     home_hero_headline: "Smarter healthcare,<br>every single day.",
     home_hero_desc: "A trusted companion to understand your body, manage your health, and make informed choices.",
     home_btn_chat: "Chat with Assistant",
-    home_btn_record: "Open Health Record",
+    home_btn_record: "Nutrition Studio",
     home_badge_security: "Data Encrypted & Secure",
     home_badge_data: "Data-Driven Clinical AI",
     home_metric_status: "Optimal",
@@ -1114,9 +1114,9 @@ const translations = {
     home_c1_tag: "24/7 SUPPORT",
     home_c1_title: "AI Health Chat",
     home_c1_desc: "Get preliminary answers to common health concerns in clear, accessible language.",
-    home_c2_tag: "YOUR CLINICAL DATA",
-    home_c2_title: "Health Records",
-    home_c2_desc: "Manage vital signs, consultation history, and important family health data.",
+    home_c2_tag: "PERSONAL NUTRITION",
+    home_c2_title: "Nutrition Studio",
+    home_c2_desc: "Explore helpful ingredients, foods to avoid, and recipes matched to a health condition.",
     home_c3_tag: "WITH YOU ALWAYS",
     home_c3_title: "Upcoming Visits",
     home_c3_desc: "Keep track of hospital visits and get timely reminders for appointments.",
@@ -1508,8 +1508,7 @@ function switchTab(tabId, updateHistory = true) {
         }
       }, 150);
     } else if (tabId === 'doctor-tab') {
-      syncCurrentPatientProfile();
-      updateEhrTabUI();
+      if (typeof initNutritionStudio === 'function') initNutritionStudio();
     } else if (tabId === 'ocr-tab') {
       if (typeof loadScanFiles === 'function') loadScanFiles();
       if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
@@ -3517,7 +3516,7 @@ function updateAuthUI() {
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? 'Hồ sơ của tôi' : 'My Health Record');
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? 'Pha chế dinh dưỡng' : 'Nutrition Studio');
   if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Hồ sơ của tôi →' : 'View My Record →');
 
   if (currentUser) {
@@ -8113,4 +8112,388 @@ function toggleFloatingChat(forceState) {
 function sendQuickFloatingPrompt(text) {
   insertFloatingPrompt(text);
   sendFloatingChatMessage();
+}
+
+
+/* ============================================================== */
+/* NUTRITION STUDIO - PHA CHẾ BỮA ĂN THEO THỂ TRẠNG               */
+/* ============================================================== */
+
+const NUTRITION_PRESETS = [
+  {
+    id: "nhiet_mieng",
+    name: "Nhiệt miệng",
+    desc: "Nóng trong người",
+    iconSvg: `<svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/></svg>`,
+    color: "amber"
+  },
+  {
+    id: "day_hoi",
+    name: "Đầy hơi",
+    desc: "Khó tiêu sau tiệc",
+    iconSvg: `<svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`,
+    color: "yellow"
+  },
+  {
+    id: "cam_cum",
+    name: "Cảm cúm",
+    desc: "Đau rát họng",
+    iconSvg: `<svg class="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`,
+    color: "sky"
+  },
+  {
+    id: "mat_ngu",
+    name: "Mất ngủ",
+    desc: "Căng thẳng, cần thư giãn",
+    iconSvg: `<svg class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`,
+    color: "indigo"
+  },
+  {
+    id: "dau_bung_kinh",
+    name: "Đau bụng kinh",
+    desc: "Mệt mỏi, uể oải",
+    iconSvg: `<svg class="w-5 h-5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>`,
+    color: "rose"
+  }
+];
+
+let activeNutritionData = null;
+let nutritionServingsCount = 1;
+let currentSelectedPresetId = "dau_bung_kinh";
+let currentNutritionType = 'food';
+
+async function setNutritionType(type) {
+  currentNutritionType = type === 'drink' ? 'drink' : 'food';
+  document.getElementById('nutrition-type-food')?.classList.toggle('active', currentNutritionType === 'food');
+  document.getElementById('nutrition-type-drink')?.classList.toggle('active', currentNutritionType === 'drink');
+  if (!activeNutritionData) return;
+  const query = document.getElementById('nutrition-condition-input')?.value.trim();
+  if (query) await searchCustomCondition();
+  else if (currentSelectedPresetId) await loadNutritionCondition(currentSelectedPresetId);
+}
+
+function completeWellnessChallenge(button) {
+  const key = 'medimind_wellness_challenge_days';
+  let days = Number(localStorage.getItem(key) || 0);
+  const joined = button.dataset.joined === 'true';
+  if (!joined) {
+    button.dataset.joined = 'true';
+    button.innerText = 'Đã tham gia ✓';
+    button.classList.add('opacity-80');
+    localStorage.setItem('medimind_wellness_challenge_days', String(days));
+    return;
+  }
+  days += 1;
+  localStorage.setItem(key, String(days));
+  const progress = document.getElementById('wellness-progress');
+  if (progress) progress.innerText = String(days);
+  button.innerText = 'Hôm nay đã hoàn thành ✓';
+  button.disabled = true;
+}
+
+function initWellnessChallenges() {
+  const progress = document.getElementById('wellness-progress');
+  if (progress) progress.innerText = localStorage.getItem('medimind_wellness_challenge_days') || '0';
+}
+
+function initNutritionStudio() {
+  renderNutritionPresets();
+  if (!activeNutritionData) {
+    loadNutritionCondition("dau_bung_kinh");
+  } else {
+    renderDishPlate();
+    renderRecipe();
+  }
+}
+
+function renderNutritionPresets() {
+  const container = document.getElementById('nutrition-presets-container');
+  if (!container) return;
+
+  container.innerHTML = NUTRITION_PRESETS.map(p => {
+    const isActive = p.id === currentSelectedPresetId;
+    return `
+      <button type="button" id="preset-card-${p.id}" aria-pressed="${isActive}"
+        onclick="selectPresetCondition('${p.id}')" class="nutrition-preset-chip ${isActive ? 'active' : ''}">
+        <span class="nutrition-preset-icon">${p.iconSvg}</span><span>${escapeHtml(p.name)}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+async function selectPresetCondition(presetId) {
+  currentSelectedPresetId = presetId;
+  renderNutritionPresets();
+
+  const input = document.getElementById('nutrition-condition-input');
+  const clearBtn = document.getElementById('btn-clear-condition');
+  const matched = NUTRITION_PRESETS.find(p => p.id === presetId);
+  if (input && matched) {
+    input.value = matched.name;
+    if (clearBtn) clearBtn.classList.remove('hidden');
+  }
+
+  await loadNutritionCondition(presetId);
+}
+
+function clearNutritionInput() {
+  const input = document.getElementById('nutrition-condition-input');
+  const clearBtn = document.getElementById('btn-clear-condition');
+  if (input) input.value = '';
+  if (clearBtn) clearBtn.classList.add('hidden');
+  selectPresetCondition('dau_bung_kinh');
+}
+
+async function searchCustomCondition() {
+  const input = document.getElementById('nutrition-condition-input');
+  const query = (input?.value || '').trim();
+  if (!query) {
+    showMedicalToast("Vui lòng nhập tên bệnh lý hoặc thể trạng để pha chế.", "info");
+    input?.focus();
+    return;
+  }
+
+  // Cập nhật nút xóa
+  const clearBtn = document.getElementById('btn-clear-condition');
+  if (clearBtn) clearBtn.classList.remove('hidden');
+
+  // Kiểm tra xem có khớp preset nào không
+  const normalized = query.toLowerCase();
+  const matched = NUTRITION_PRESETS.find(p => p.name.toLowerCase() === normalized || p.desc.toLowerCase().includes(normalized));
+  if (matched) {
+    selectPresetCondition(matched.id);
+    return;
+  }
+
+  // Tắt highlight của preset
+  currentSelectedPresetId = null;
+  renderNutritionPresets();
+
+  await loadNutritionCondition(query, true);
+}
+
+async function loadNutritionCondition(conditionOrId, isCustomSearch = false) {
+  const spinner = document.getElementById('nutrition-btn-spinner');
+  const btnText = document.getElementById('nutrition-btn-text');
+  const bubblesContainer = document.getElementById('nutrition-bubbles-container');
+
+  if (spinner && btnText) {
+    spinner.classList.remove('hidden');
+    btnText.innerText = 'Đang phân tích...';
+  }
+
+  if (bubblesContainer) {
+    bubblesContainer.classList.add('opacity-40', 'pointer-events-none');
+  }
+
+  try {
+    const res = await fetch('/api/nutrition/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ condition: conditionOrId, recipe_type: currentNutritionType })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success || !data.data) {
+      throw new Error(data.error || "Không thể tải phác đồ dinh dưỡng");
+    }
+
+    activeNutritionData = data.data;
+
+    // Cập nhật tiêu đề thể trạng đang hoạt động trên đĩa
+    const plateTitle = document.getElementById('nutrition-plate-active-title');
+    if (plateTitle) {
+      plateTitle.innerText = activeNutritionData.condition_name || conditionOrId;
+    }
+
+    renderDishPlate();
+    renderRecipe();
+
+  } catch (err) {
+    console.error("[Nutrition] Lỗi nạp phác đồ:", err);
+    showMedicalToast("Lỗi phân tích dinh dưỡng: " + (err.message || "Vui lòng thử lại."), "error");
+  } finally {
+    if (spinner && btnText) {
+      spinner.classList.add('hidden');
+      btnText.innerText = 'Pha chế ngay';
+    }
+    if (bubblesContainer) {
+      bubblesContainer.classList.remove('opacity-40', 'pointer-events-none');
+    }
+  }
+}
+
+function renderDishPlate() {
+  if (!activeNutritionData) return;
+
+  const countEat = document.getElementById('nutrition-count-eat');
+  const countAvoid = document.getElementById('nutrition-count-avoid');
+  const bubblesContainer = document.getElementById('nutrition-bubbles-container');
+
+  const foodsEat = activeNutritionData.foods_to_eat || [];
+  const foodsAvoid = activeNutritionData.foods_to_avoid || [];
+
+  if (countEat) {
+    countEat.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Nên nạp · ${foodsEat.length}</span>`;
+  }
+  if (countAvoid) {
+    countAvoid.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Nên né · ${foodsAvoid.length}</span>`;
+  }
+
+  if (!bubblesContainer) return;
+
+  bubblesContainer.innerHTML = foodsEat.map(item => `
+    <button type="button" class="nutrition-ingredient" onclick="showFoodDetailFromButton(this)"
+      data-kind="eat" data-name="${escapeHtml(item.name)}" data-desc="${escapeHtml(item.desc || '')}" data-icon="${escapeHtml(item.icon || '🥣')}">
+      <span class="nutrition-ingredient-icon">${item.icon || '🥣'}</span><span>${escapeHtml(item.name)}</span><span class="nutrition-info-mark">i</span>
+    </button>`).join('');
+
+  const avoidList = document.getElementById('nutrition-avoid-list');
+  if (avoidList) {
+    avoidList.innerHTML = foodsAvoid.map(item => `
+      <button type="button" class="nutrition-avoid-item" onclick="showFoodDetailFromButton(this)"
+        data-kind="avoid" data-name="${escapeHtml(item.name)}" data-desc="${escapeHtml(item.desc || '')}" data-icon="${escapeHtml(item.icon || '🚫')}">
+        <span aria-hidden="true">${item.icon || '🚫'}</span><span>${escapeHtml(item.name)}</span><span aria-hidden="true">✕</span>
+      </button>`).join('');
+  }
+
+  const vessel = document.getElementById('nutrition-vessel-icon');
+  if (vessel) vessel.innerText = /trà|nước|sữa|sinh tố|nước ép/i.test(activeNutritionData.recipe?.title || '') ? '🍵' : '🥣';
+  const detail = document.getElementById('nutrition-ingredient-detail');
+  if (detail) detail.classList.add('hidden');
+}
+
+function showFoodDetailFromButton(button) {
+  const detail = document.getElementById('nutrition-ingredient-detail');
+  const icon = document.getElementById('nutrition-detail-icon');
+  const name = document.getElementById('nutrition-detail-name');
+  const copy = document.getElementById('nutrition-detail-copy');
+  if (!detail || !button) return;
+  if (icon) icon.innerText = button.dataset.icon || '✦';
+  if (name) name.innerText = button.dataset.name || '';
+  if (copy) copy.innerText = button.dataset.desc || '';
+  detail.classList.remove('hidden');
+}
+
+function renderRecipe() {
+  if (!activeNutritionData || !activeNutritionData.recipe) return;
+
+  const r = activeNutritionData.recipe;
+  const iconBox = document.getElementById('recipe-icon-box');
+  const badge = document.getElementById('recipe-badge');
+  const title = document.getElementById('recipe-title');
+  const subtitle = document.getElementById('recipe-subtitle');
+  const tipText = document.getElementById('recipe-tip-text');
+  const time = document.getElementById('recipe-time');
+  const heading = document.getElementById('ingredients-heading');
+  const grid = document.getElementById('recipe-ingredients-grid');
+  const stepsList = document.getElementById('recipe-steps-list');
+
+  if (iconBox) iconBox.innerText = (r.ingredients && r.ingredients[0] && r.ingredients[0].icon) ? r.ingredients[0].icon : '🍲';
+  if (badge) badge.innerText = r.badge || '✨ CÔNG THỨC 3 BƯỚC';
+  if (title) title.innerText = r.title || 'Món ăn dưỡng sinh';
+  if (subtitle) subtitle.innerText = r.subtitle || 'Điều hòa thể trạng';
+  if (tipText) tipText.innerText = r.tip || 'Ăn nóng, cả nước lẫn cái';
+  if (time) time.innerHTML = `<span>⏱️</span><span>Hoàn thành trong ${escapeHtml(r.cooking_time || '~20 phút')}</span>`;
+  if (heading) heading.innerText = 'NGUYÊN LIỆU';
+  const servingsUnit = document.getElementById('servings-unit');
+  if (servingsUnit) servingsUnit.innerText = currentNutritionType === 'drink' ? 'người uống' : 'người ăn';
+
+  // Render Nguyên liệu tự động nhân số người
+  if (grid) {
+    const avoidTerms = (activeNutritionData.foods_to_avoid || []).map(item => item.name.toLocaleLowerCase('vi'));
+    const ings = (r.ingredients || []).filter(ingredient => {
+      const name = String(ingredient.name || '').toLocaleLowerCase('vi');
+      return !avoidTerms.some(term => term && (name.includes(term) || term.includes(name)));
+    });
+    grid.innerHTML = ings.map(ing => {
+      const baseAmt = parseFloat(ing.amount) || 1;
+      const totalAmt = (baseAmt * nutritionServingsCount);
+      // Format số nguyên hoặc 1 chữ số thập phân
+      const displayAmt = Number.isInteger(totalAmt) ? totalAmt : totalAmt.toFixed(1);
+      return `
+        <div class="p-3 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center gap-3">
+          <div class="text-xl shrink-0">${ing.icon || '🥣'}</div>
+          <div class="min-w-0">
+            <h5 class="text-xs font-bold text-white truncate">${escapeHtml(ing.name)}</h5>
+          <p class="text-[11px] font-black text-sky-700 font-mono">${displayAmt} ${escapeHtml(ing.unit || '')}</p>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Render 3 Bước cách làm
+  if (stepsList) {
+    const steps = r.steps || [];
+    stepsList.innerHTML = steps.map((s, idx) => `
+      <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5">
+        <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30 flex items-center justify-center text-xs font-black shrink-0 mt-0.5">
+          ${idx + 1}
+        </span>
+        <p class="text-xs text-slate-300 leading-relaxed font-medium">
+          ${escapeHtml(s)}
+        </p>
+      </div>
+    `).join('');
+  }
+}
+
+function adjustServings(delta) {
+  setServings(nutritionServingsCount + delta);
+}
+
+function setServings(val) {
+  const parsed = parseInt(val, 10);
+  if (isNaN(parsed)) return;
+  nutritionServingsCount = Math.max(1, Math.min(6, parsed));
+
+  const display = document.getElementById('servings-display');
+  const slider = document.getElementById('servings-slider');
+
+  if (display) display.innerText = nutritionServingsCount;
+  if (slider) slider.value = nutritionServingsCount;
+
+  renderRecipe();
+}
+
+function showFoodDetail(name, desc, type, icon) {
+  const isEat = type === 'eat';
+  const headerHtml = `
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-10 h-10 rounded-full ${isEat ? 'bg-emerald-500/20 text-emerald-400 border-emerald-400/30' : 'bg-rose-500/20 text-rose-400 border-rose-400/30'} border flex items-center justify-center text-xl">
+        ${icon}
+      </div>
+      <div>
+        <h4 class="text-sm font-black text-white">${name}</h4>
+        <span class="text-[10px] font-bold ${isEat ? 'text-emerald-400' : 'text-rose-400'} uppercase">
+          ${isEat ? '● Thực phẩm nên nạp' : '✕ Thực phẩm nên né'}
+        </span>
+      </div>
+    </div>
+    <p class="text-xs text-slate-300 leading-relaxed">${desc}</p>
+  `;
+  showMedicalToast(name + ": " + desc, isEat ? "success" : "info");
+}
+
+function copyRecipeToClipboard() {
+  if (!activeNutritionData || !activeNutritionData.recipe) return;
+  const r = activeNutritionData.recipe;
+  const ings = (r.ingredients || []).map(ing => {
+    const total = (parseFloat(ing.amount) || 1) * nutritionServingsCount;
+    return `- ${ing.name}: ${Number.isInteger(total) ? total : total.toFixed(1)} ${ing.unit}`;
+  }).join('\n');
+  const steps = (r.steps || []).map((s, i) => `${i + 1}. ${s}`).join('\n');
+
+  const text = `🍲 ${r.title} (${r.subtitle})\n👥 Khẩu phần: ${nutritionServingsCount} người\n\n📌 NGUYÊN LIỆU:\n${ings}\n\n👩‍🍳 CÁCH LÀM:\n${steps}\n\n💡 LƯU Ý: ${r.tip}\n⏱️ Thời gian: ${r.cooking_time}\n(Tham khảo từ MediMind Nutrition Studio)`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showMedicalToast("Đã sao chép công thức 3 bước vào clipboard!", "success");
+    }).catch(() => {
+      showMedicalToast("Không thể sao chép văn bản.", "error");
+    });
+  } else {
+    showMedicalToast("Đã sao chép công thức!", "success");
+  }
 }

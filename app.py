@@ -1683,6 +1683,71 @@ def create_app(test_config=None):
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)
     # ==============================================================
 
+    @app.get("/openapi.json")
+    def api_spec():
+        import re
+
+        paths = {}
+        for rule in app.url_map.iter_rules():
+            if not rule.rule.startswith("/api/"):
+                continue
+            path = re.sub(r"<(?:\w+:)?(\w+)>", r"{\1}", rule.rule)
+            parameters = [
+                {"name": name, "in": "path", "required": True,
+                 "schema": {"type": "integer" if f"<int:{name}>" in rule.rule else "string"}}
+                for name in sorted(rule.arguments)
+            ]
+            for method in sorted(rule.methods - {"HEAD", "OPTIONS"}):
+                paths.setdefault(path, {})[method.lower()] = {
+                    "tags": [path.split("/")[2]],
+                    "summary": (app.view_functions[rule.endpoint].__doc__ or rule.endpoint).strip().splitlines()[0],
+                    "parameters": parameters,
+                    "responses": {"default": {"description": "Phản hồi từ API"}},
+                }
+        return jsonify(openapi="3.0.3", info={"title": "MediMind Flask API", "version": "1"}, paths=paths)
+
+    @app.get("/docs")
+    def api_docs():
+        return render_template("api_docs.html", paths=api_spec().get_json()["paths"])
+
+    @app.route("/api/nutrition/options", methods=["POST"])
+    def nutrition_options():
+        """Trả về danh sách món hoặc thức uống để người dùng tự chọn."""
+        payload = request.get_json(silent=True) or {}
+        condition = str(payload.get("condition") or "").strip()
+        recipe_type = payload.get("recipe_type")
+        if not condition:
+            return jsonify({"success": False, "error": "Vui lòng nhập tâm trạng hoặc tình trạng sức khỏe."}), 400
+        if len(condition) > 500:
+            return jsonify({"success": False, "error": "Vui lòng mô tả tình trạng trong tối đa 500 ký tự."}), 400
+        if recipe_type not in ("food", "drink"):
+            return jsonify({"success": False, "error": "Vui lòng chọn thức ăn hoặc nước uống."}), 400
+        from core.nutrition_options import get_nutrition_options
+        return jsonify({"success": True, "data": get_nutrition_options(condition, recipe_type)}), 200
+
+    @app.route("/api/nutrition/analyze", methods=["POST"])
+    def analyze_nutrition():
+        """
+        API Phân tích Dinh dưỡng Lâm sàng & Pha chế Bữa ăn Trị liệu theo Thể trạng.
+        Nhận vào tên bệnh hoặc thể trạng (từ người dùng nhập) và trả về:
+        - foods_to_eat (Nên nạp)
+        - foods_to_avoid (Nên né)
+        - recipe (Công thức 3 bước)
+        """
+        data = request.get_json(silent=True) or {}
+        condition = (data.get("condition") or data.get("query") or "").strip()
+        recipe_type = "drink" if data.get("recipe_type") == "drink" else "food"
+        if not condition:
+            return jsonify({"success": False, "error": "Vui lòng nhập tên bệnh lý hoặc thể trạng."}), 400
+
+        from core.nutrition_service import get_nutrition_recommendation
+        try:
+            result = get_nutrition_recommendation(condition, recipe_type)
+            return jsonify({"success": True, "data": result}), 200
+        except Exception as e:
+            logger.error(f"Lỗi phân tích dinh dưỡng: {e}")
+            return jsonify({"success": False, "error": "Không thể phân tích dinh dưỡng lúc này."}), 500
+
     @app.route("/")
     def index():
         """Trang chủ ứng dụng y tế MediMind."""
