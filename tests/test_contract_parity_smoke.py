@@ -41,10 +41,8 @@ def test_flask_and_fastapi_chat_contract_parity(client):
         assert k in fastapi_data, f"FastAPI thiếu trường hợp đồng: {k}"
 
     # Kiểm tra loại dữ liệu
-    assert isinstance(flask_data["risk_score"], int)
-    assert isinstance(fastapi_data["risk_score"], int)
-    assert 0 <= flask_data["risk_score"] <= 100
-    assert 0 <= fastapi_data["risk_score"] <= 100
+    for data in (flask_data, fastapi_data):
+        assert data["risk_score"] is None or (type(data["risk_score"]) is int and 0 <= data["risk_score"] <= 100)
     assert isinstance(flask_data["sources"], list)
     assert isinstance(fastapi_data["sources"], list)
 

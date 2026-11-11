@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" role="img" aria-label="Minh họa trứng hấp mềm">
+<rect width="640" height="440" fill="#edf5f4"/>
+<path d="M0 350C128 306 212 368 348 337S533 300 640 332V440H0Z" fill="#e8eeea" opacity=".55"/>
+<ellipse cx="322" cy="343" rx="200" ry="27" fill="#35585b" opacity=".08"/>
+<ellipse cx="320" cy="326" rx="197" ry="30" fill="#fffdf7" stroke="#dfe4dc" stroke-width="2"/>
+<path d="M144 217C151 290 199 340 320 340S489 290 496 217" fill="#eaf2ee" stroke="#35585b" stroke-width="3"/>
+<path d="M164 255C183 290 216 313 252 319" fill="none" stroke="#e1e9e4" stroke-width="8" stroke-linecap="round"/>
+<ellipse cx="320" cy="216" rx="178" ry="79" fill="#fffdf7" stroke="#35585b" stroke-width="3"/>
+<ellipse cx="320" cy="216" rx="162" ry="65" fill="#f6dc92"/>
+<ellipse cx="320" cy="218" rx="147" ry="56" fill="#f2d37d"/>
+<path d="M195 218Q245 187 307 196T444 219" fill="none" stroke="#fae5a5" stroke-width="8" stroke-linecap="round"/>
+<g fill="#d9b869"><ellipse cx="249" cy="231" rx="3" ry="1.7"/><ellipse cx="284" cy="211" rx="2" ry="1.4"/><ellipse cx="348" cy="240" rx="2.5" ry="1.6"/><ellipse cx="400" cy="216" rx="2" ry="1.3"/><ellipse cx="323" cy="192" rx="2.5" ry="1.5"/></g>
+<path d="M166 232C195 271 262 283 320 283S446 271 474 232" fill="none" stroke="#f8fbf3" stroke-width="3"/>
+<g transform="translate(497 299) rotate(23)"><path d="M-20 7C-28 -12 -17 -32 0 -37C18 -29 29 -10 20 8C13 25 -13 25 -20 7Z" fill="#f4e6d0" stroke="#bfae93" stroke-width="2"/><path d="M-15 2q17 -10 31 1" fill="none" stroke="#e1d1b7" stroke-width="2"/></g>
+</svg>

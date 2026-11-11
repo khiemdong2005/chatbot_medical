@@ -70,7 +70,7 @@ body.light-glass {
   color: #0F172A;
 }
 
-body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not(#floating-chat-btn):not(#floating-chat-btn *):not(.hospital-hero-banner):not(.hospital-hero-banner *):not(#btn-toggle-hospital-map):not(#btn-toggle-hospital-map *) {
+body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-teal-"]):not([class*="bg-orange-"]):not([class*="bg-rose-"]):not(#floating-chat-btn):not(#floating-chat-btn *):not(.hospital-hero-banner):not(.hospital-hero-banner *):not(#btn-toggle-hospital-map):not(#btn-toggle-hospital-map *):not(#profile-avatar-fallback):not(#profile-avatar-fallback *):not(#user-avatar-badge):not(#dropdown-user-avatar):not(#profile-avatar):not(#ehr-avatar-badge) {
   color: #0F172A !important;
 }
 
@@ -470,40 +470,57 @@ body.light-glass .dock-btn.bg-white svg {
 }
 
 /* ==============================================================================
-   Color Protection for Buttons, Badges, Chat Bubbles in Light Glass
+   Color Protection for Solid/Gradient Buttons & Badges in Light Glass
+   (ponytail: exact class matches instead of [class*="bg-sky-500"] so /10 /15 /20
+    pastel badges do NOT get forced to white text on light pastel backgrounds)
    ============================================================================== */
 body.light-glass .from-sky-500,
-body.light-glass [class*="from-sky-500"],
-body.light-glass [class*="bg-sky-500"],
-body.light-glass [class*="bg-sky-600"],
-body.light-glass [class*="bg-blue-600"],
-body.light-glass [class*="bg-blue-500"],
-body.light-glass [class*="bg-emerald-500"],
-body.light-glass [class*="bg-teal-600"],
-body.light-glass [class*="bg-orange-500"],
-body.light-glass [class*="bg-amber-500"],
-body.light-glass button[class*="bg-orange-"],
-body.light-glass button[class*="bg-amber-"],
-body.light-glass button[class*="bg-blue-"],
-body.light-glass button[class*="bg-sky-"],
-body.light-glass .btn-primary {
+body.light-glass .from-rose-500,
+body.light-glass .from-emerald-500,
+body.light-glass .from-\[\#2185d0\],
+body.light-glass .bg-sky-500,
+body.light-glass .bg-sky-600,
+body.light-glass .bg-sky-700,
+body.light-glass .bg-sky-800,
+body.light-glass .bg-sky-900,
+body.light-glass .bg-sky-950,
+body.light-glass .bg-blue-500,
+body.light-glass .bg-blue-600,
+body.light-glass .bg-indigo-600,
+body.light-glass .bg-emerald-500,
+body.light-glass .bg-emerald-600,
+body.light-glass .bg-teal-500,
+body.light-glass .bg-teal-600,
+body.light-glass .bg-orange-500,
+body.light-glass .bg-orange-600,
+body.light-glass .bg-rose-500,
+body.light-glass .bg-rose-600,
+body.light-glass .btn-primary,
+body.light-glass #profile-avatar-fallback,
+body.light-glass #profile-avatar-fallback * {
   color: #FFFFFF !important;
 }
 
 body.light-glass .from-sky-500 *,
-body.light-glass [class*="from-sky-500"] *,
-body.light-glass [class*="bg-sky-500"] *,
-body.light-glass [class*="bg-sky-600"] *,
-body.light-glass [class*="bg-blue-600"] *,
-body.light-glass [class*="bg-blue-500"] *,
-body.light-glass [class*="bg-emerald-500"] *,
-body.light-glass [class*="bg-teal-600"] *,
-body.light-glass [class*="bg-orange-500"] *,
-body.light-glass [class*="bg-amber-500"] *,
-body.light-glass button[class*="bg-orange-"] *,
-body.light-glass button[class*="bg-amber-"] *,
-body.light-glass button[class*="bg-blue-"] *,
-body.light-glass button[class*="bg-sky-"] *,
+body.light-glass .from-rose-500 *,
+body.light-glass .from-emerald-500 *,
+body.light-glass .from-\[\#2185d0\] *,
+body.light-glass .bg-sky-500 *,
+body.light-glass .bg-sky-600 *,
+body.light-glass .bg-sky-700 *,
+body.light-glass .bg-sky-800 *,
+body.light-glass .bg-sky-900 *,
+body.light-glass .bg-blue-500 *,
+body.light-glass .bg-blue-600 *,
+body.light-glass .bg-indigo-600 *,
+body.light-glass .bg-emerald-500 *,
+body.light-glass .bg-emerald-600 *,
+body.light-glass .bg-teal-500 *,
+body.light-glass .bg-teal-600 *,
+body.light-glass .bg-orange-500 *,
+body.light-glass .bg-orange-600 *,
+body.light-glass .bg-rose-500 *,
+body.light-glass .bg-rose-600 *,
 body.light-glass .btn-primary * {
   color: #FFFFFF !important;
 }
@@ -888,8 +905,21 @@ body.light-glass .floating-chat-footer {
 body.light-glass .floating-quick-pill {
   background-color: #F0F9FF !important;
   border: 1.5px solid #BAE6FD !important;
-  color: #0284C7 !important;
+  color: #075985 !important;
   font-weight: 700 !important;
+}
+
+#floating-chat-window .floating-quick-pill svg {
+  color: inherit;
+}
+
+#floating-chat-window .floating-quick-pill:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+body.light-glass #floating-user-input::placeholder {
+  color: #475569;
 }
 
 body.light-glass .floating-quick-pill:hover {
@@ -1047,6 +1077,104 @@ body:not(.light-glass) #auth-modal-title {
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
   font-weight: 800 !important;
+}
+
+/* ==============================================================================
+   UI AUDIT v16.6.0: COMPREHENSIVE CONTRAST, TYPOGRAPHY & BACKGROUND FIXES
+   ============================================================================== */
+
+/* 1. Protect Google Account Modal (Always Google Dark #131314) & Medical Toasts */
+body.light-glass #google-account-modal .text-white,
+body.light-glass #google-account-modal input.text-white,
+body.light-glass #medical-toast-container .text-white,
+body.light-glass #medical-toast-container div {
+  color: #FFFFFF !important;
+}
+body.light-glass #google-account-modal .text-\[\#e3e3e3\] {
+  color: #E3E3E3 !important;
+}
+body.light-glass #google-account-modal .text-\[\#8e918f\] {
+  color: #8E918F !important;
+}
+
+/* 2. Protect Copilot Dark Card (.bg-sky-950) in Light Mode */
+body.light-glass .bg-sky-950,
+body.light-glass .bg-sky-950 h4,
+body.light-glass .bg-sky-950 p,
+body.light-glass .bg-sky-950 div,
+body.light-glass .bg-sky-950 button {
+  color: #F8FAFC !important;
+}
+body.light-glass .bg-sky-950 .text-sky-200,
+body.light-glass .bg-sky-950 .text-sky-300 {
+  color: #BAE6FD !important;
+}
+
+/* 3. Fix <select> and <option> contrast in both Light and Dark Mode (Zero Black-on-Black) */
+body.light-glass select,
+body.light-glass select option {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+body:not(.light-glass) select option {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+}
+
+/* 4. Fix Allergy Alert Card (.bg-rose-950/25) & Empty History Box in Light Mode */
+body.light-glass .bg-rose-950\/25,
+body.light-glass .bg-rose-950\/20 {
+  background-color: #FFF1F2 !important;
+  border-color: #FECDD3 !important;
+  box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.08) !important;
+}
+body.light-glass .text-rose-200,
+body.light-glass .text-rose-200\/90 {
+  color: #881337 !important;
+}
+body.light-glass #chat-history-empty {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+}
+body.light-glass #chat-history-empty p.text-white\/80 {
+  color: #0F172A !important;
+}
+body.light-glass #chat-history-empty p.text-white\/45 {
+  color: #64748B !important;
+}
+
+/* 5. Fix Footer Typography & Borders in Dark Mode (body:not(.light-glass)) */
+body:not(.light-glass) footer {
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94A3B8 !important;
+}
+body:not(.light-glass) footer .border-t {
+  border-top-color: rgba(255, 255, 255, 0.10) !important;
+}
+body:not(.light-glass) footer .text-slate-800,
+body:not(.light-glass) footer .text-slate-900 {
+  color: #F8FAFC !important;
+}
+body:not(.light-glass) footer .text-slate-600,
+body:not(.light-glass) footer .text-slate-500 {
+  color: #94A3B8 !important;
+}
+
+/* 6. Fix OCR Prescription & Lab Result Dark Mode Contrast (.text-sky-950 / .text-slate-950) */
+body:not(.light-glass) #prescription-result-section .text-sky-950,
+body:not(.light-glass) #prescription-result-section .text-sky-900 {
+  color: #38BDF8 !important;
+}
+body:not(.light-glass) #prescription-result-section .text-slate-950 {
+  color: #F8FAFC !important;
+}
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds {
+  background-color: #0284C7 !important;
+  color: #FFFFFF !important;
+}
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds svg,
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds span {
+  color: #FFFFFF !important;
 }
 
 
@@ -1477,6 +1605,18 @@ body:not(.light-glass) .home-hero-banner {
 }
 
 /* Light Glass Discovery Cards: Pure White Cards with High Legibility */
+body.light-glass .home-card-chat svg {
+  stroke: #0369a1;
+}
+
+body.light-glass .home-card-records svg {
+  stroke: #4338ca;
+}
+
+body.light-glass .home-card-booking svg {
+  stroke: #92400e;
+}
+
 body.light-glass .home-card-chat {
   background-color: #FFFFFF !important;
   border: 1.5px solid #E2E8F0 !important;
@@ -1707,3 +1847,220 @@ header, main, footer, .tab-content {
 
 
 
+
+#chat-print-copy { display: none; }
+@media print {
+  body.printing-chat { display: block !important; background: white !important; color: black !important; }
+  body.printing-chat > :not(#chat-print-copy) { display: none !important; }
+  body.printing-chat #chat-print-copy { display: block !important; font: 12pt/1.5 Arial, sans-serif; margin: 1cm; }
+  #chat-print-copy h1 { font-size: 20pt; }
+  #chat-print-copy h2 { font-size: 12pt; margin-top: 1em; break-after: avoid; }
+  #chat-print-copy p { white-space: pre-wrap; overflow-wrap: anywhere; orphans: 3; widows: 3; }
+  #chat-print-copy img { max-width: 100%; max-height: 95mm; }
+}
+
+
+/* ============================================================== */
+/* NUTRITION STUDIO - PHA CHẾ BỮA ĂN THEO THỂ TRẠNG               */
+/* ============================================================== */
+
+@keyframes floatBubble {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-5px) scale(1.02); }
+}
+
+@keyframes pulseOrbit {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.015); }
+}
+
+.nutrition-orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 40px rgba(14, 165, 233, 0.04) inset;
+  animation: pulseOrbit 6s ease-in-out infinite;
+}
+
+.nutrition-dish-canvas {
+  background: radial-gradient(ellipse at center, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.95) 55%, rgba(10, 15, 29, 1) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.nutrition-node-bubble {
+  animation: floatBubble 4s ease-in-out infinite;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.nutrition-node-bubble:hover {
+  transform: translateY(-8px) scale(1.08) !important;
+  z-index: 30;
+}
+
+.glow-amber {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.35), inset 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.glow-rose {
+  background: rgba(244, 63, 94, 0.15);
+  border: 1px solid rgba(244, 63, 94, 0.55);
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.4), inset 0 0 10px rgba(244, 63, 94, 0.2);
+}
+
+.glow-red {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.35), inset 0 0 8px rgba(239, 68, 68, 0.15);
+}
+
+.glow-orange {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.35), inset 0 0 10px rgba(249, 115, 22, 0.2);
+}
+
+.glow-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35), inset 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.glow-cyan {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.35), inset 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.glow-indigo {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.35), inset 0 0 10px rgba(99, 102, 241, 0.2);
+}
+
+/* Custom Range Slider for Servings */
+.nutrition-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.nutrition-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f43f5e;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.8);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.nutrition-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.nutrition-preset-card {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nutrition-preset-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.nutrition-preset-card.active {
+  border-color: #1686ad !important;
+  box-shadow: 0 8px 20px rgba(22, 134, 173, 0.16) !important;
+  background: rgba(22, 134, 173, 0.08) !important;
+}
+
+/* Ocean blue palette for the nutrition studio */
+#doctor-tab .nutrition-dish-canvas {
+  background: radial-gradient(ellipse at 50% 38%, #eaf7fc 0%, #d9eff8 55%, #c8e6f3 100%);
+  border-color: #c6e3f0;
+  box-shadow: 0 18px 46px rgba(33, 102, 133, .12);
+}
+#doctor-tab .nutrition-orbit-ring { border-color: rgba(22, 134, 173, .18); }
+#doctor-tab .nutrition-slider::-webkit-slider-thumb {
+  background: #1686ad;
+  box-shadow: 0 0 0 4px rgba(22, 134, 173, .16);
+}
+#doctor-tab .nutrition-slider::-moz-range-thumb {
+  background: #1686ad;
+  box-shadow: 0 0 0 4px rgba(22, 134, 173, .16);
+}
+#doctor-tab #btn-analyze-nutrition { background: #147fa4 !important; box-shadow: 0 6px 16px rgba(20, 127, 164, .2) !important; }
+#doctor-tab #btn-analyze-nutrition:hover { background: #116d8e !important; }
+#doctor-tab #nutrition-recipe-card { border-color: #cde5ef !important; }
+#doctor-tab #recipe-tip-box { background: #e8f5fa !important; border-color: #bfdeeb !important; }
+#doctor-tab #recipe-tip-text { color: #245c74 !important; }
+
+/* Nutrition studio refresh: compact header, recipe prep surface, readable chips. */
+#doctor-tab { gap: 1rem !important; }
+#doctor-tab .nutrition-brandbar { border-color: #d8e9ef !important; }
+#doctor-tab .nutrition-brandbar h3,
+#doctor-tab .nutrition-hero-compact h1,
+#doctor-tab .nutrition-hero-compact h2,
+#doctor-tab .nutrition-tab-heading { color: #173747 !important; }
+#doctor-tab .nutrition-hero-compact span { background-image: none !important; color: #147fa4 !important; }
+#doctor-tab .nutrition-hero-compact { margin: 0; }
+#doctor-tab .nutrition-search { background: #fff !important; border: 1px solid #c9dce5 !important; box-shadow: 0 6px 20px rgba(30, 88, 115, .08); }
+#doctor-tab .nutrition-search input { color: #173747 !important; }
+#doctor-tab .nutrition-search input::placeholder { color: #81939c !important; }
+#doctor-tab .nutrition-search svg { color: #147fa4 !important; }
+#doctor-tab #btn-analyze-nutrition { border-radius: 12px !important; }
+#doctor-tab .nutrition-type-switch { display: flex; gap: 4px; width: fit-content; padding: 4px; border: 1px solid #d5e5eb; border-radius: 14px; background: #f4f9fb; }
+#doctor-tab .nutrition-type-btn { min-height: 40px; padding: 8px 16px; border-radius: 10px; color: #526d7c; font-size: 13px; font-weight: 700; }
+#doctor-tab .nutrition-type-btn.active { background: #147fa4; color: #fff; box-shadow: 0 3px 8px rgba(20,127,164,.2); }
+#doctor-tab #nutrition-presets-container .nutrition-preset-card { min-height: 44px; padding: 9px 14px !important; border: 1px solid #d9e7ed !important; border-radius: 999px !important; background: #fff !important; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-card > div:first-child > div:first-child { display: none; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-card.active { border-color: #1686ad !important; background: #e7f5fa !important; box-shadow: none !important; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 7px 13px; border: 1px solid #d7e7ed; border-radius: 999px; background: #fff; color: #345461; font-size: 12px; font-weight: 700; white-space: nowrap; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-chip.active { border-color: #1686ad; background: #e7f5fa; color: #126b8a; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-icon { display: inline-flex; align-items: center; color: #1686ad; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-icon svg { width: 16px; height: 16px; }
+#doctor-tab #nutrition-presets-container .nutrition-preset-chip[aria-pressed="true"]::after { content: "✓"; font-size: 11px; }
+#doctor-tab .nutrition-dish-canvas { display: block !important; min-height: 0 !important; padding: 18px !important; background: #f3fafc !important; border: 1px solid #d4e8ef !important; box-shadow: 0 10px 28px rgba(33,102,133,.08) !important; }
+#doctor-tab .nutrition-vessel { display: grid; place-items: center; gap: 3px; width: 92px; height: 92px; margin: 14px auto; border: 1px solid #d8ebf0; border-radius: 28px 28px 34px 34px; background: linear-gradient(145deg,#fff,#e5f4f8); box-shadow: 0 8px 22px rgba(41,111,135,.1); }
+#doctor-tab .nutrition-vessel span { font-size: 35px; line-height: 1; }
+#doctor-tab .nutrition-vessel small { color: #718792; font-size: 8px; font-weight: 800; letter-spacing: .08em; }
+#doctor-tab .nutrition-ingredients-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+#doctor-tab .nutrition-ingredient { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 8px 12px; border: 1px solid #c9e4ec; border-radius: 999px; background: #fff; color: #21485a; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(38,92,112,.05); }
+#doctor-tab .nutrition-ingredient:hover { border-color: #1686ad; background: #edf8fb; }
+#doctor-tab .nutrition-ingredient-icon { font-size: 17px; }
+#doctor-tab .nutrition-info-mark { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: #e5f2f6; color: #147fa4; font-size: 10px; }
+#doctor-tab .nutrition-detail { display: flex; gap: 12px; margin-top: 14px; padding: 12px 14px; border: 1px solid #cfe5ed; border-radius: 14px; background: #fff; color: #24495a; }
+#doctor-tab .nutrition-detail > span { font-size: 22px; }
+#doctor-tab .nutrition-detail strong { display: block; margin-bottom: 3px; font-size: 12px; }
+#doctor-tab .nutrition-detail p { margin: 0; color: #607985; font-size: 12px; line-height: 1.5; }
+#doctor-tab .nutrition-avoid-strip { margin-top: 10px; padding: 12px 14px; border: 1px solid #f0d7d5; border-radius: 16px; background: #fff8f7; }
+#doctor-tab .nutrition-avoid-strip > strong { color: #984f4b; font-size: 11px; }
+#doctor-tab #nutrition-avoid-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+#doctor-tab .nutrition-avoid-item { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 5px 10px; border: 1px solid #f1d5d3; border-radius: 999px; background: #fff; color: #88524f; font-size: 11px; text-decoration: line-through; text-decoration-color: #cc8882; }
+#doctor-tab .nutrition-avoid-strip small { display: block; margin-top: 7px; color: #a0726e; font-size: 10px; }
+#doctor-tab .nutrition-serving-controls { display: flex; align-items: center; gap: 8px; padding: 4px; border: 1px solid #d9e7ed; border-radius: 12px; background: #f5fafc; color: #24495a; }
+#doctor-tab .nutrition-serving-controls button { width: 34px; height: 34px; border-radius: 9px; background: #fff; color: #147fa4; font-weight: 800; }
+#doctor-tab .nutrition-serving-controls span:nth-of-type(1) { min-width: 14px; text-align: center; font-weight: 800; }
+#doctor-tab #nutrition-recipe-card { background: #fff !important; box-shadow: 0 10px 28px rgba(33,102,133,.08) !important; }
+#doctor-tab #recipe-ingredients-grid > div { background: #f7fbfc !important; border-color: #e1edf1 !important; }
+#doctor-tab #recipe-ingredients-grid h5 { color: #24495a !important; }
+#doctor-tab #recipe-steps-list > div { background: #f6fbfc !important; border-color: #e0edf1 !important; }
+#doctor-tab #recipe-steps-list p { color: #47616d !important; }
+#doctor-tab #nutrition-recipe-card #recipe-badge { color: #147fa4 !important; background: #e9f5f9 !important; border-color: #cce4ed !important; }
+@media(max-width:640px) {
+  #doctor-tab .nutrition-hero-compact { align-items: flex-start; }
+  #doctor-tab .nutrition-hero-compact h1 { font-size: 21px; }
+  #doctor-tab .nutrition-dish-canvas { padding: 13px !important; }
+  #doctor-tab .nutrition-brandbar .hidden { display: none; }
+}

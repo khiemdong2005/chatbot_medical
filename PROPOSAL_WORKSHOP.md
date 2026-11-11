@@ -54,7 +54,7 @@ Nền tảng cung cấp bộ 4 trụ cột nghiệp vụ cốt lõi:
 #### B. Phạm vi Dự án (Project Scope)
 * **Trong phạm vi (In-Scope)**:
   - Xây dựng Web Single Page Application (SPA) chuẩn Spatial Glassmorphism (VisionOS UI) hỗ trợ người dân và bác sĩ.
-  - Xây dựng Backend Microservices bằng Python (Flask/FastAPI) xử lý nghiệp vụ Triage, RAG, OCR và Quản lý Bệnh án.
+  - Flask phục vụ giao diện, phiên đăng nhập, sàng lọc và hồ sơ. FastAPI là entrypoint thử nghiệm dùng chung dịch vụ chat; tác vụ chat đồng bộ chạy trong thread pool. API đơn thuốc chuyển tiếp sang cùng luồng Flask để dùng chung quyền sở hữu và bước xác nhận.
   - Tích hợp Vector Database (ChromaDB) lưu trữ các vector embeddings tài liệu y khoa chính thống.
   - Thiết kế và triển khai kiến trúc Serverless/Container trên AWS: Amazon S3, AWS App Runner / Amazon ECS Fargate, Amazon ECR, AWS WAF, AWS KMS, Amazon CloudWatch.
   - Xây dựng bộ kịch bản kiểm thử lâm sàng (4 ca bệnh mẫu thực nghiệm: Đau thần kinh tọa, Viêm dạ dày cấp, Viêm amidan cấp, Phiếu sinh hóa máu).
@@ -355,3 +355,36 @@ Bản đề xuất giải pháp **MediMind Clinical AI** đáp ứng toàn diệ
 2. **Dự toán Ngân sách & Tối ưu Chi phí (Cost Estimation)**: Cung cấp đầy đủ bảng tính giá chi tiết từ **AWS Pricing Calculator**, phân tích rõ ràng 2 kịch bản (Thử nghiệm \$20.46/tháng và Mở rộng \$66.60/tháng cho 10.000 người bệnh), bảo đảm tuyệt đối không bị điểm liệt phần trình bày.
 3. **Minh chứng Sản phẩm Chạy Thực tế (Live Demo)**: Ứng dụng đã được lập trình hoàn chỉnh, vận hành ổn định trên nền tảng Web Container và sẵn sàng trình diễn toàn bộ các luồng nghiệp vụ lâm sàng trước hội đồng đánh giá.
 
+
+## Phạm vi đánh giá và hướng chuẩn hóa
+
+| Phần | Tiêu chí kiểm chứng |
+|---|---|
+| Cờ đỏ | Báo cáo riêng ca bỏ sót và báo động giả trên các cặp câu chỉ khác phủ định, thời điểm hoặc người gặp triệu chứng. Phân biệt tiền sử gia đình và cấp cứu đang xảy ra cho người thân. |
+| RAG | Đối chiếu truy xuất vector, mở rộng thuật ngữ và kết hợp BM25 trên cùng tập câu hỏi có tài liệu đích. Báo cáo tỷ lệ tài liệu đích vào top 3 và số truy vấn ngoài kho vẫn trả tài liệu. Cần tập gán nhãn độc lập để kết luận hiệu quả lâm sàng. |
+| Hỏi bệnh | Với đau bụng, kiểm tra vị trí, tính chất hoặc mức độ và thời gian trước khi phân tầng; cho xem lời khai chưa đầy đủ dưới dạng bản nháp. |
+| OCR | Sửa một giá trị trên phiếu thử, xác nhận, đọc lại lịch sử và so với giá trị đã duyệt. Cảnh báo tính từ dữ liệu người dùng đối chiếu. |
+
+**Định hướng FHIR R4.** Bảng sau là ánh xạ dự kiến cho bản tóm tắt đã được duyệt. Việc tuyên bố tương thích cần có Resource thực tế, kiểm tra profile và xác thực bằng validator.
+
+| Dữ liệu nội bộ | Đích dự kiến | Điều kiện |
+|---|---|---|
+| Định danh người bệnh | Patient.identifier | Xác định hệ định danh và quyền xuất. |
+| Nhiệt độ người bệnh tự đo | Observation.valueQuantity | Ghi đơn vị, thời điểm và nguồn tự khai khi có. |
+| Vấn đề sức khỏe đã được ghi nhận | Condition.code, Condition.verificationStatus | Phân biệt triệu chứng tự khai với chẩn đoán do bác sĩ xác nhận. |
+
+Đặc tả tham chiếu: [Patient](https://hl7.org/fhir/R4/patient.html), [Observation](https://hl7.org/fhir/R4/observation.html), [Condition](https://hl7.org/fhir/R4/condition.html).
+
+**Flask và FastAPI.** Parity cần ghi theo từng endpoint và kịch bản đã chạy. Để so sánh thông lượng cần cùng phần cứng, dữ liệu, số người dùng đồng thời và chính sách timeout, đo cả số yêu cầu thành công mỗi giây và độ trễ p95. Hiện chưa có số đo để kết luận FastAPI nhanh hơn.
+
+### Kiểm tra truy xuất trên kho local
+
+Chạy `python -m scripts.evaluate_retrieval` trên collection 414 đoạn. Sáu câu có tiêu đề đích và hai câu ngoài phạm vi được khai báo trong script.
+
+| Cấu hình | Tiêu đề đích trong top 3 | Câu ngoài phạm vi vẫn trả tài liệu |
+|---|---:|---:|
+| Vector với câu gốc | 1/6 | 0/2 |
+| Vector với truy vấn mở rộng | 6/6 | 0/2 |
+| BM25 kết hợp vector với truy vấn mở rộng | 6/6 | 0/2 |
+
+Đây là bộ kiểm tra phát triển có ví dụ dùng lúc chỉnh từ điển. Trong lần chạy này phần cải thiện quan sát được đến từ mở rộng truy vấn; cần tập đánh giá độc lập lớn hơn để đo riêng đóng góp của BM25.

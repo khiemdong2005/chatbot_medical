@@ -45,10 +45,38 @@ def test_antibiotic_guardrails_intervene_and_redact():
 
     for bad_text in prohibited_prescriptions:
         cleaned = apply_safety_guardrails(bad_text, lang="vi")
-        # Phải can thiệp thay thế đoạn kê đơn bằng cảnh báo an toàn của Bộ Y Tế
-        assert "CAN THIỆP AN TOÀN Y TẾ" in cleaned or "KHÁNG SINH KÊ ĐƠN" in cleaned
-        # Không được giữ nguyên lời khuyên uống thuốc bình thường mà không can thiệp
-        assert "tuyệt đối không kê đơn" in cleaned.lower() or "không được tự ý" in cleaned.lower()
+        assert "không được tự ý" in cleaned.lower()
+        assert "500mg" not in cleaned and "250mg" not in cleaned
+
+
+@pytest.mark.parametrize("answer", [
+    "Bạn không nên tự dùng amoxicillin vì đã tự khai dị ứng penicillin. Hãy hỏi bác sĩ.",
+    "Amoxicillin là một kháng sinh. Thông tin này không phải đơn thuốc.",
+    "Tránh dùng amoxicillin khi chưa được bác sĩ kiểm tra thông tin dị ứng.",
+    "Đừng dùng amoxicillin khi chưa hỏi bác sĩ.",
+    "Do not take amoxicillin without speaking to your doctor about the reported penicillin allergy.",
+])
+def test_antibiotic_explanation_and_safe_refusal_are_preserved(answer):
+    assert apply_safety_guardrails(answer) == answer
+
+
+@pytest.mark.parametrize("answer", [
+    "Tôi không kê đơn. Bạn hãy uống amoxicillin 500mg ngày 2 lần.",
+    "Bạn không dị ứng thuốc, hãy uống amoxicillin 500mg ngày 2 lần.",
+    "Không tự dùng penicillin. Bạn nên dùng azithromycin mỗi ngày.",
+    "Amoxicillin 500mg ngày 2 lần trong 5 ngày.",
+    "You should take amoxicillin 500mg twice daily.",
+])
+def test_antibiotic_dosing_is_not_allowed_after_an_unrelated_negation(answer):
+    result = apply_safety_guardrails(answer)
+    assert result != answer
+    assert "500mg" not in result
+
+
+def test_antibiotic_block_preserves_emergency_action():
+    result = apply_safety_guardrails("Hãy gọi 115 ngay. Bạn hãy uống amoxicillin 500mg ngày 2 lần.")
+    assert "115" in result
+    assert "500mg" not in result
 
 
 def test_no_invented_visual_findings_without_image():

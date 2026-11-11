@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>MediMind - Hồ sơ bệnh án & Theo dõi lịch sử điều trị</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input {
+      font-family: inherit;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .record-card {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .record-card:hover {
+      border-color: #0d9488 !important;
+      box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.1) !important;
+      transform: translateY(-2px);
+    }
+    .patient-tab-btn {
+      transition: all 0.2s ease;
+    }
+    .patient-tab-btn:hover {
+      transform: translateY(-1px);
+    }
+  </style>
+</helmet>
+
+<!-- Luminous Daylight Patient Portal Container -->
+<div style="width: 100%; min-height: 900px; display: flex; flex-direction: column; background: #f8fafc; padding: 20px 32px; gap: 20px; position: relative;">
+  
+  <!-- TOP HEADER: Page Branding & Section Title -->
+  <header style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <!-- Teal Rounded Stethoscope Icon Badge -->
+      <div style="width: 44px; height: 44px; border-radius: 14px; background: #0d9488; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(13, 148, 136, 0.28);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4.8 2.4A2.4 2.4 0 0 0 2.4 4.8v4.8a7.2 7.2 0 0 0 14.4 0V4.8a2.4 2.4 0 0 0-2.4-2.4"/>
+          <path d="M9.6 16.8v2.4a4.8 4.8 0 0 0 9.6 0v-4.8"/>
+          <circle cx="19.2" cy="12" r="2.4"/>
+        </svg>
+      </div>
+      <div>
+        <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">Hồ sơ bệnh án</h1>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Theo dõi lịch sử khám và điều trị</p>
+      </div>
+    </div>
+
+    <!-- Navigation Capsule Dock -->
+    <nav style="display: flex; align-items: center; gap: 4px; background: #ffffff; border: 1px solid #e2e8f0; padding: 4px 6px; border-radius: 9999px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
+      <a href="Main.dc.html" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; color: #64748b;">
+        <span>Trang chủ</span>
+      </a>
+      <a href="OCR_Scanner.dc.html" style="display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; color: #64748b;">
+        <span>Đọc đơn thuốc</span>
+      </a>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 9999px; font-size: 12px; font-weight: 700; background: #0d9488; color: #ffffff; box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);">
+        <span>Hồ sơ y bạ</span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- SECTION: BỆNH NHÂN (Patient Switcher Pills) -->
+  <section style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b;">BỆNH NHÂN</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <!-- Active Patient Pill: Nguyễn Minh Anh -->
+      <button type="button" class="patient-tab-btn" style="display: flex; align-items: center; gap: 12px; padding: 8px 20px 8px 10px; border-radius: 16px; background: #0f766e; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(15, 118, 110, 0.28);">
+        <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(255, 255, 255, 0.2); color: #ffffff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center;">
+          NA
+        </div>
+        <div style="text-align: left;">
+          <div style="font-size: 14px; font-weight: 800; line-height: 1.2;">Nguyễn Minh Anh</div>
+          <div style="font-size: 11px; color: rgba(255, 255, 255, 0.8); margin-top: 2px;">Nữ • 38 tuổi</div>
+        </div>
+      </button>
+
+      <!-- Inactive Patient Pill: Trần Quốc Bảo -->
+      <button type="button" class="patient-tab-btn" style="display: flex; align-items: center; gap: 12px; padding: 8px 20px 8px 10px; border-radius: 16px; background: #ffffff; color: #334155; border: 1px solid #e2e8f0; cursor: pointer;">
+        <div style="width: 36px; height: 36px; border-radius: 12px; background: #f1f5f9; color: #64748b; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center;">
+          TB
+        </div>
+        <div style="text-align: left;">
+          <div style="font-size: 14px; font-weight: 700; line-height: 1.2; color: #0f172a;">Trần Quốc Bảo</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Nam • 51 tuổi</div>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- MAIN 2-COLUMN CLINICAL GRID -->
+  <main style="display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start;">
+    
+    <!-- LEFT COLUMN: Patient Identity & Demographic Card -->
+    <div style="display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); background: #ffffff;">
+      <!-- Teal Header Card -->
+      <div style="background: linear-gradient(145deg, #0f766e 0%, #115e59 100%); padding: 24px; color: #ffffff; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: rgba(255, 255, 255, 0.18); color: #ffffff; font-weight: 800; font-size: 18px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.25);">
+            NA
+          </div>
+          <div>
+            <h2 style="margin: 0; font-size: 19px; font-weight: 800; color: #ffffff; letter-spacing: -0.01em;">Nguyễn Minh Anh</h2>
+            <div style="font-size: 13px; color: rgba(255, 255, 255, 0.85); font-weight: 500; margin-top: 3px;">Nữ • 38 tuổi</div>
+          </div>
+        </div>
+
+        <!-- 2 Metric Stat Tiles -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 12px 14px;">
+            <div style="font-size: 11px; color: rgba(255, 255, 255, 0.75); font-weight: 500;">Số lần khám</div>
+            <div style="font-size: 26px; font-weight: 800; color: #ffffff; margin-top: 4px; line-height: 1;">3</div>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 12px 14px;">
+            <div style="font-size: 11px; color: rgba(255, 255, 255, 0.75); font-weight: 500;">Lần khám gần nhất</div>
+            <div style="font-size: 14px; font-weight: 800; color: #ffffff; margin-top: 8px; line-height: 1.2;">18/10/2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- White Demographic Info Card -->
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+        <!-- Ngày sinh -->
+        <div style="display: flex; items-center; gap: 14px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #f1f5f9; display: flex; items-center; justify-content: center; color: #64748b; shrink-0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase;">NGÀY SINH</div>
+            <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 2px;">12/04/1988</div>
+          </div>
+        </div>
+
+        <!-- Nhóm máu -->
+        <div style="display: flex; items-center; gap: 14px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #f1f5f9; display: flex; items-center; justify-content: center; color: #64748b; shrink-0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase;">NHÓM MÁU</div>
+            <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 2px;">O+</div>
+          </div>
+        </div>
+
+        <!-- Điện thoại -->
+        <div style="display: flex; items-center; gap: 14px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #f1f5f9; display: flex; items-center; justify-content: center; color: #64748b; shrink-0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase;">ĐIỆN THOẠI</div>
+            <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-top: 2px;">0901 234 567</div>
+          </div>
+        </div>
+
+        <!-- Dị ứng -->
+        <div style="display: flex; items-start; gap: 14px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #f1f5f9; display: flex; items-center; justify-content: center; color: #64748b; shrink-0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase;">DỊ ỨNG</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+              <span style="font-size: 11px; font-weight: 700; background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                <span>⚠️</span>
+                <span>Penicillin</span>
+              </span>
+              <span style="font-size: 11px; font-weight: 700; background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; padding: 4px 10px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                <span>⚠️</span>
+                <span>Hải sản</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Medical History Timeline -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <!-- Timeline Header -->
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Lịch sử khám bệnh</h2>
+        <span style="font-size: 13px; font-weight: 600; color: #64748b;">3 hồ sơ</span>
+      </div>
+
+      <!-- Timeline Records Container with Connected Dots Line -->
+      <div style="display: flex; flex-direction: column; gap: 16px; position: relative;">
+        <!-- Vertical connector line -->
+        <div style="position: absolute; left: 14px; top: 20px; bottom: 20px; width: 2px; background: #e2e8f0; z-index: 0;"></div>
+
+        <!-- RECORD 1: 18/10/2026 - Viêm họng cấp (Clickable to open Detail Modal) -->
+        <div class="record-card" onclick="document.getElementById('record-detail-modal').style.display='flex'" style="position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 24px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+          <!-- Green Dot Indicator -->
+          <div style="width: 14px; height: 14px; border-radius: 9999px; background: #10b981; border: 3px solid #ffffff; box-shadow: 0 0 0 2px #10b981; margin-top: 4px; shrink-0;"></div>
+
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 13px; font-weight: 600; color: #64748b;">18/10/2026</div>
+            <div style="font-size: 17px; font-weight: 800; color: #0f172a;">Viêm họng cấp</div>
+            <div style="font-size: 13px; color: #475569;">BS. Lê Thu Hà • Nội tổng quát</div>
+            <div style="margin-top: 4px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                ICD-10: J02.9
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; align-self: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <!-- RECORD 2: 02/06/2026 - Rối loạn nhịp xoang -->
+        <div class="record-card" onclick="document.getElementById('record-detail-modal').style.display='flex'" style="position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 24px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+          <!-- Teal Dot Indicator -->
+          <div style="width: 14px; height: 14px; border-radius: 9999px; background: #0284c7; border: 3px solid #ffffff; box-shadow: 0 0 0 2px #0284c7; margin-top: 4px; shrink-0;"></div>
+
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 13px; font-weight: 600; color: #64748b;">02/06/2026</div>
+            <div style="font-size: 17px; font-weight: 800; color: #0f172a;">Rối loạn nhịp xoang</div>
+            <div style="font-size: 13px; color: #475569;">BS. Phạm Đức Long • Tim mạch</div>
+            <div style="margin-top: 4px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                ICD-10: I49.5
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; align-self: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <!-- RECORD 3: 20/11/2025 - Thiếu máu thiếu sắt -->
+        <div class="record-card" onclick="document.getElementById('record-detail-modal').style.display='flex'" style="position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px 24px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+          <!-- Green Dot Indicator -->
+          <div style="width: 14px; height: 14px; border-radius: 9999px; background: #10b981; border: 3px solid #ffffff; box-shadow: 0 0 0 2px #10b981; margin-top: 4px; shrink-0;"></div>
+
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 13px; font-weight: 600; color: #64748b;">20/11/2025</div>
+            <div style="font-size: 17px; font-weight: 800; color: #0f172a;">Thiếu máu thiếu sắt</div>
+            <div style="font-size: 13px; color: #475569;">BS. Lê Thu Hà • Nội tổng quát</div>
+            <div style="margin-top: 4px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                ICD-10: D50.9
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; align-self: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: CHI TIẾT LỊCH SỬ KHÁM BỆNH (Image 2)                    -->
+  <!-- ============================================================== -->
+  <div id="record-detail-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 24px;">
+    <div style="background: #ffffff; width: 100%; max-width: 640px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column; animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+      
+      <!-- Modal Header -->
+      <div style="padding: 24px 28px 20px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 13px; font-weight: 600; color: #64748b;">18/10/2026</span>
+          <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.01em;">Viêm họng cấp</h2>
+          <div style="font-size: 14px; color: #475569; font-weight: 500;">BS. Lê Thu Hà • Nội tổng quát</div>
+          
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; background: #f8fafc; color: #475569; padding: 4px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+              ICD-10: J02.9
+            </span>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <button type="button" onclick="document.getElementById('record-detail-modal').style.display='none'" style="width: 36px; height: 36px; border-radius: 9999px; background: #f1f5f9; border: none; color: #64748b; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body Content -->
+      <div style="padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; max-height: calc(85vh - 140px); overflow-y: auto;" class="custom-scroll">
+        
+        <!-- SECTION 1: CHỈ SỐ SINH TỒN (4 Grid Tiles) -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748b;">CHỈ SỐ SINH TỒN</span>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+            <!-- Huyết áp -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; background: #ffffff;">
+              <span style="font-size: 11px; color: #64748b; display: block;">Huyết áp</span>
+              <span style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 4px; display: block;">118/76 <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">mmHg</span></span>
+            </div>
+            <!-- Nhịp tim -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; background: #ffffff;">
+              <span style="font-size: 11px; color: #64748b; display: block;">Nhịp tim</span>
+              <span style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 4px; display: block;">88 <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">lần/phút</span></span>
+            </div>
+            <!-- Nhiệt độ -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; background: #ffffff;">
+              <span style="font-size: 11px; color: #64748b; display: block;">Nhiệt độ</span>
+              <span style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 4px; display: block;">38.2 <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">°C</span></span>
+            </div>
+            <!-- Cân nặng -->
+            <div style="border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; background: #ffffff;">
+              <span style="font-size: 11px; color: #64748b; display: block;">Cân nặng</span>
+              <span style="font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 4px; display: block;">56.5 <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">kg</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 1px; background: #f1f5f9;"></div>
+
+        <!-- SECTION 2: TRIỆU CHỨNG -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748b;">TRIỆU CHỨNG</span>
+          <p style="margin: 0; font-size: 14px; color: #0f172a; font-weight: 500; line-height: 1.5;">
+            Đau họng, sốt nhẹ 38.2°C, khó nuốt 3 ngày
+          </p>
+        </div>
+
+        <div style="height: 1px; background: #f1f5f9;"></div>
+
+        <!-- SECTION 3: KẾT QUẢ XÉT NGHIỆM -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748b;">KẾT QUẢ XÉT NGHIỆM</span>
+          <p style="margin: 0; font-size: 14px; color: #0f172a; font-weight: 500; line-height: 1.5;">
+            Xét nghiệm nhanh kháng nguyên liên cầu: âm tính. Bạch cầu 11.2 G/L, tăng nhẹ.
+          </p>
+        </div>
+
+        <div style="height: 1px; background: #f1f5f9;"></div>
+
+        <!-- SECTION 4: GHI CHÚ CỦA BÁC SĨ -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748b;">GHI CHÚ CỦA BÁC SĨ</span>
+          <p style="margin: 0; font-size: 14px; color: #0f172a; font-weight: 500; line-height: 1.5;">
+            Uống đủ nước, tái khám nếu sốt kéo dài trên 3 ngày.
+          </p>
+        </div>
+
+        <div style="height: 1px; background: #f1f5f9;"></div>
+
+        <!-- SECTION 5: NGÀY TÁI KHÁM -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #64748b;">NGÀY TÁI KHÁM</span>
+          <p style="margin: 0; font-size: 14px; color: #64748b; font-weight: 500;">
+            Không hẹn tái khám
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FLOATING MINI CHATBOT WIDGET (Bong bóng thu nhỏ góc dưới) -->
+  <div style="position: fixed; bottom: 24px; right: 28px; z-index: 50; display: flex; align-items: center; gap: 8px;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 8px 14px; border-radius: 9999px; font-size: 11px; font-weight: 700; color: #0f172a; box-shadow: 0 10px 25px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 6px;">
+      <span style="width: 7px; height: 7px; border-radius: 9999px; background: #0d9488; display: inline-block;"></span>
+      <span>Hỏi Bác sĩ AI về hồ sơ bệnh án</span>
+      <button style="border: none; background: #fee2e2; width: 16px; height: 16px; border-radius: 9999px; color: #dc2626; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 4px;" title="Tắt hoàn toàn">✕</button>
+    </div>
+    <div style="width: 50px; height: 50px; border-radius: 9999px; background: linear-gradient(135deg, #0d9488, #0284c7); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(13,148,136,0.35); cursor: pointer;">
+      <span style="color: #ffffff; font-weight: 800; font-size: 14px;">AI</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props='{"accentColor":{"editor":"color","default":"#0d9488"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accentColor: this.props.accentColor ?? '#0d9488'
+    };
+  }
+}
+</script>
+</body>
+</html>

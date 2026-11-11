@@ -6,10 +6,19 @@
   },
   "title": "MediMind Healthcare Web Redesign",
   "launch": {
-    "view": "canvas"
+    "view": "focused",
+    "file": "Nutrition_Studio.dc.html"
   },
   "pages": [],
   "boards": {
+    "Habits.dc.html": {
+      "x": 5030,
+      "y": 0,
+      "w": 1100,
+      "h": 850,
+      "expand": "fill",
+      "title": "Thử thách sống khỏe"
+    },
     "Main.dc.html": {
       "x": 0,
       "y": 0,
@@ -44,13 +53,24 @@
       "h": 844,
       "title": "MediMind Mobile Triage App (Phone)",
       "is_interactive": true
+    },
+    "Nutrition_Studio.dc.html": {
+      "x": 6500,
+      "y": 0,
+      "w": 1440,
+      "h": 1100,
+      "expand": "fill",
+      "title": "Gợi ý món ăn & thức uống",
+      "is_interactive": true
     }
   },
   "order": [
     "Main.dc.html",
     "Patient_Portal.dc.html",
     "OCR_Scanner.dc.html",
-    "Mobile_Triage.dc.html"
+    "Mobile_Triage.dc.html",
+    "Habits.dc.html",
+    "Nutrition_Studio.dc.html"
   ],
   "notes": {
     "flow_title": {

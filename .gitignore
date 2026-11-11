@@ -47,3 +47,12 @@ scratch/
 .artifact-server.json
 .artifact-server.log
 .sharing.json
+
+instance/
+
+# Rebuildable Wikimedia HTTP response cache and temporary backups
+data/recipes/wikibooks/api_cache/
+data/recipes/**/image-*
+data/recipes/**/rejected-*
+data/recipes/**/*.bak
+

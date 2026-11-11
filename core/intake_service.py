@@ -124,7 +124,7 @@ CANONICAL_SYMPTOMS = {
     },
     "tuc_nguc": {
         "label": "Đau tức ngực",
-        "patterns": ["tức ngực", "tuc nguc", "đau ngực", "dau nguc", "đau thắt ngực", "chest pain"]
+        "patterns": ["đau nhói ngực", "nhói ngực", "đau ở ngực", "đau vùng ngực", "tức ngực", "tuc nguc", "đau ngực", "dau nguc", "đau thắt ngực", "chest pain"]
     },
     "dau_dau": {
         "label": "Đau đầu / Nặng đầu",
@@ -215,9 +215,8 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
 
         for pat in patterns:
             pat_no_accent = remove_accents(pat)
-            idx = lower_text.find(pat)
-            if idx == -1:
-                idx = no_accent_text.find(pat_no_accent)
+            match = re.search(r"\b" + re.escape(pat_no_accent) + r"\b", no_accent_text)
+            idx = match.start() if match else -1
 
             if idx != -1:
                 matched = True
@@ -264,6 +263,16 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
                 break
 
         if matched:
+            if sym_key == "tuc_nguc" and "nhoi" in no_accent_text:
+                label = "Đau nhói ngực"
+            elif sym_key == "tuc_nguc" and "tuc" not in no_accent_text and "that" not in no_accent_text:
+                label = "Đau vùng ngực"
+            if sym_key == "ho":
+                label = "Ho"
+                if re.search(r"\bho khang?\b", no_accent_text):
+                    label = "Ho khan"
+                elif re.search(r"\bho (co )?dom\b", no_accent_text):
+                    label = "Ho có đờm"
             if is_denied:
                 if label not in denied_symptoms:
                     denied_symptoms.append(label)
@@ -291,13 +300,31 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
         val = temp_match.group(1).replace(",", ".")
         vitals["temperature"] = f"{val}°C"
 
-    # 4. Trích xuất tiền sử / thuốc / dị ứng nếu có từ khóa
+    # 4. Retain only positive self-reports, not a keyword appearing in a denial.
+    # Keep the patient's wording rather than inventing an allergen/drug name.
     allergies = []
     medications = []
-    if "dị ứng" in lower_text or "di ung" in no_accent_text or "allergic" in lower_text:
-        allergies.append("Có ghi nhận tiền sử dị ứng cần lưu ý (chi tiết trong hội thoại)")
-    if any(k in lower_text for k in ["đang uống", "dang uong", "thuốc đang dùng", "thuoc"]):
-        medications.append("Có khai báo đang sử dụng thuốc điều trị")
+    def positive_report(pattern, exclude_drink=False):
+        context_text = no_accent_text.replace("đ", "d")
+        for found in re.finditer(pattern, context_text):
+            preceding = context_text[max(0, found.start() - 55):found.start()]
+            preceding = re.split(r"[,;.!?\n]|\b(?:nhung|tuy nhien|con|hien tai|va)\b", preceding)[-1]
+            if re.search(r"\b(?:khong|chua|chang|khong he|chua tung|no|not)\b", preceding):
+                continue
+            following = context_text[found.end():].lstrip(" :")
+            if exclude_drink and re.match(r"(?:nuoc|sua|tra|ca phe|bia|ruou)\b", following):
+                continue
+            start = max(raw_text.rfind(mark, 0, found.start()) for mark in ",;.!?\n") + 1
+            tail = re.search(r"[,;.!?\n]", raw_text[found.end():])
+            end = found.end() + tail.start() if tail else len(raw_text)
+            return raw_text[start:end].strip()[:500]
+        return None
+    allergy_report = positive_report(r"\b(?:di ung|allergic)\b")
+    medication_report = positive_report(r"\b(?:dang\s+(?:uong|dung|su dung)|thuoc\s+(?:dang|thuong)\s+(?:uong|dung))\b", exclude_drink=True)
+    if allergy_report:
+        allergies.append("Người dùng khai: " + allergy_report)
+    if medication_report:
+        medications.append("Người dùng khai: " + medication_report)
 
     return {
         "present_symptoms": present_symptoms,
@@ -313,6 +340,32 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
 # 3. QUẢN LÝ THÔNG TIN CÒN THIẾU & CHỌN CÂU HỎI TIẾP THEO
 # ==============================================================================
 
+PAIN_QUESTIONS = {
+    "location": "Bạn đau ở vị trí nào rõ nhất?",
+    "quality": "Cơn đau có cảm giác như thế nào, chẳng hạn đau âm ỉ hay đau quặn?",
+    "radiation": "Đau ở nguyên một chỗ hay lan sang vùng nào khác?",
+    "modifiers": "Điều gì làm cơn đau tăng hoặc giảm?",
+    "severity": "Trên thang 0 đến 10, bạn thấy đau khoảng mấy điểm?",
+}
+PAIN_PATTERNS = {
+    "location": r"(?:thượng vị|chấn thủy|quanh rốn|hạ sườn (?:trái|phải)|hố chậu (?:trái|phải)|(?:bụng|rốn) (?:trên|dưới|bên trái|bên phải|trái|phải))",
+    "quality": r"(?:âm ỉ|quặn(?: thắt)?|đau nhói|đau rát|như dao đâm)",
+    "radiation": r"(?:không lan|ở nguyên một chỗ|lan (?:ra |sang |xuống |lên )?(?:sau )?(?:lưng|vai|ngực|tay|chân))",
+    "modifiers": r"(?:tăng|giảm|đỡ|nặng hơn) (?:khi |sau |lúc )?(?:ăn|đói|vận động|nghỉ ngơi|nằm|đi lại)",
+    "severity": r"\b(?:10|[0-9])\s*/\s*10\b",
+}
+
+
+def abdominal_pain(facts):
+    return any("Đau bụng" in label for label in facts.get("present_symptoms", []))
+
+
+def pain_ready(facts):
+    pain = facts.get("pain", {})
+    return bool(pain.get("location") and facts.get("duration")
+                and (pain.get("quality") or pain.get("severity")))
+
+
 def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     """
     Xác định những dữ kiện quan trọng còn thiếu theo phác đồ sàng lọc ban đầu:
@@ -327,6 +380,11 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     duration = facts.get("duration")
     vitals = facts.get("vitals", {})
 
+    if abdominal_pain(facts):
+        pain = facts.get("pain", {})
+        if not pain.get("location"):
+            missing.append(PAIN_QUESTIONS["location"])
+
     # 1. Nếu chưa có thời gian diễn tiến
     if not duration:
         missing.append("Thời gian bắt đầu xuất hiện triệu chứng (bạn bị từ khi nào, kéo dài mấy ngày?)")
@@ -337,13 +395,14 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
         missing.append("Nhiệt độ cơ thể cao nhất bạn tự đo được (khoảng bao nhiêu độ C?)")
 
     # 3. Rà soát cờ đỏ cấp cứu tim mạch / hô hấp nếu chưa được phủ nhận
-    is_respiratory = any(s in ["Đau rát họng / Nuốt đau", "Ho khan / Ho có đờm", "Sốt / Thân nhiệt tăng"] for s in present)
+    is_respiratory = any(s in ["Đau rát họng / Nuốt đau", "Ho", "Ho khan", "Ho có đờm", "Ho khan / Ho có đờm", "Sốt / Thân nhiệt tăng"] for s in present)
     has_denied_dyspnea = any("Khó thở" in s for s in denied)
     has_denied_chest_pain = any("Đau tức ngực" in s for s in denied)
 
-    if is_respiratory and not has_denied_dyspnea:
+    chest_pain = any("ngực" in symptom.lower() for symptom in present)
+    if (is_respiratory or chest_pain) and not has_denied_dyspnea and not any("Khó thở" in s for s in present):
         missing.append("Bạn có cảm thấy khó thở, thở dốc hay hụt hơi khi nghỉ ngơi không?")
-    if is_respiratory and not has_denied_chest_pain:
+    if is_respiratory and not chest_pain and not has_denied_chest_pain:
         missing.append("Bạn có bị đau thắt ngực hoặc tức nặng vùng ngực không?")
 
     # 4. Nếu có đau họng, kiểm tra khả năng nuốt
@@ -352,6 +411,9 @@ def identify_missing_information(facts: Dict[str, Any]) -> List[str]:
     if has_sore_throat and not has_checked_swallow:
         missing.append("Cảm giác đau họng có cản trở việc nuốt thức ăn hoặc uống nước nhiều không?")
 
+    if abdominal_pain(facts):
+        missing.extend(question for key, question in PAIN_QUESTIONS.items()
+                       if key != "location" and not facts.get("pain", {}).get(key))
     return missing
 
 
@@ -367,8 +429,10 @@ def select_next_question(missing_list: List[str], turn_count: int = 1) -> Option
     top_missing = missing_list[0]
 
     # Định dạng câu hỏi tự nhiên, thấu cảm
+    if top_missing in PAIN_QUESTIONS.values():
+        return top_missing
     if "Thời gian" in top_missing:
-        return "Để mình ghi nhận bệnh sử rõ ràng cho bác sĩ, bạn đã cảm thấy các triệu chứng này xuất hiện từ khi nào (khoảng mấy ngày rồi)?"
+        return "Bạn bị như vậy từ khi nào—mới hôm nay hay đã vài ngày rồi?"
     elif "Nhiệt độ" in top_missing:
         return "Bạn có cặp nhiệt độ tại nhà không? Nếu có thì nhiệt độ cao nhất ghi nhận được là khoảng bao nhiêu độ C?"
     elif "khó thở" in top_missing:
@@ -424,6 +488,7 @@ def generate_pre_visit_summary(
     part_a = {
         "title": "Phần A — Thông tin đã thu thập từ người bệnh",
         "chief_complaint": chief_complaint,
+        "pain": facts.get("pain", {}),
         "symptoms_present": present_syms,
         "symptoms_denied": denied_syms,  # Dữ kiện phủ định cực kỳ quan trọng
         "duration": duration,
@@ -441,6 +506,11 @@ def generate_pre_visit_summary(
         triage_badge = "emergency"
         specialist = "Khoa Cấp cứu / Gọi 115"
         care_approach = "Người bệnh có dấu hiệu nguy kịch. Cần ngừng tự điều trị tại nhà và liên hệ cấp cứu 115 hoặc đến ngay bệnh viện gần nhất."
+    elif (abdominal_pain(facts) and not pain_ready(facts)) or (not facts.get("duration") and not vitals and session_data.get("status") == "collecting"):
+        triage_status = "Chưa đủ thông tin để phân tầng"
+        triage_badge = "collecting"
+        specialist = "Chưa xác định"
+        care_approach = "Bổ sung các thông tin còn thiếu trong phần lời kể của người bệnh."
     elif len(present_syms) >= 2 or duration in ["vài ngày nay", "mấy ngày nay", "3 ngày", "4 ngày", "1 tuần"]:
         triage_status = "Khuyến nghị thăm khám bác sĩ chuyên khoa"
         triage_badge = "recommended_visit"
@@ -495,6 +565,7 @@ def generate_pre_visit_summary(
         "part_a_patient_facts": part_a,
         "part_b_system_assessment": part_b,
         "is_confirmed": is_confirmed,
+        "ready_to_finalize": is_emergency or not abdominal_pain(facts) or pain_ready(facts),
         "version": version
     }
 
@@ -545,9 +616,9 @@ class IntakeSessionManager:
             except Exception:
                 pass
             import logging
-            logging.getLogger("IntakeService").error(f"Lỗi ghi hồ sơ phiên {session_data.get('conversation_id')} vào CSDL: {e}")
+            logging.getLogger("IntakeService").error("Không thể ghi phiên tư vấn (%s).", type(e).__name__)
             if raise_on_error:
-                raise RuntimeError(f"Lỗi ghi hồ sơ vào CSDL bền vững: {e}") from e
+                raise RuntimeError("Không thể ghi phiên tư vấn vào cơ sở dữ liệu.") from None
             return False
 
     def _load_from_db(self, conversation_id: str) -> Optional[Dict[str, Any]]:
@@ -566,10 +637,10 @@ class IntakeSessionManager:
             return d
         except Exception as e:
             import logging
-            logging.getLogger("IntakeService").error(f"Lỗi nạp phiên {conversation_id} từ CSDL: {e}")
+            logging.getLogger("IntakeService").error("Không thể nạp phiên tư vấn (%s).", type(e).__name__)
             return None
 
-    def check_access(self, session_data: Dict[str, Any], user_id: Optional[int] = None, guest_token: Optional[str] = None) -> bool:
+    def check_access(self, session_data: Dict[str, Any], user_id: Optional[int] = None, guest_token: Optional[str] = None, *, claim_guest: bool = True) -> bool:
         """
         Đối soát bảo mật quyền truy cập phiên (Authorization & Tenant Isolation):
         - Nếu phiên thuộc tài khoản đã đăng nhập (owner_id is not None): Chỉ tài khoản đó được phép truy cập.
@@ -586,18 +657,80 @@ class IntakeSessionManager:
 
         if owner_guest:
             if guest_token and guest_token == owner_guest:
-                if user_id is not None:
+                if user_id is not None and claim_guest:
                     session_data["user_id"] = user_id
                     self._save_to_db(session_data)
                 return True
             return False
 
-        # Phiên legacy không có token hoặc tạo trước đó
-        if user_id is not None and not owner_id:
-            session_data["user_id"] = user_id
-            self._save_to_db(session_data)
-            return True
+        # A legacy row without either owner cannot prove ownership. Do not
+        # disclose or let an arbitrary signed-in account claim that row.
+        return False
+
+    def _existing_session(self, conversation_id: str) -> Optional[Dict[str, Any]]:
+        session_data = self._sessions.get(conversation_id)
+        if session_data is None:
+            session_data = self._load_from_db(conversation_id)
+            if session_data is not None:
+                self._sessions[conversation_id] = session_data
+        return session_data
+
+    def delete_session(self, conversation_id: str, user_id: Optional[int] = None,
+                       guest_token: Optional[str] = None, *, commit: bool = True) -> bool:
+        """Delete an existing owned draft from persistent storage and RAM.
+
+        ``commit=False`` lets an API combine this deletion with another row in
+        one transaction. An unknown ID never creates a replacement session.
+        """
+        session_data = self._existing_session(conversation_id)
+        if session_data is None:
+            return False
+        if not self.check_access(session_data, user_id, guest_token, claim_guest=False):
+            raise PermissionError("Bạn không có quyền xóa phiên tư vấn này.")
+        from flask import has_app_context
+        if has_app_context():
+            from core.models import db, IntakeSessionRecord
+            row = IntakeSessionRecord.query.populate_existing().filter_by(conversation_id=conversation_id).first()
+            if row is not None:
+                if not self.check_access({"user_id": row.user_id, "guest_token": row.guest_token},
+                                         user_id, guest_token, claim_guest=False):
+                    raise PermissionError("Bạn không có quyền xóa phiên tư vấn này.")
+                db.session.delete(row)
+            if commit:
+                db.session.commit()
+        self._sessions.pop(conversation_id, None)
         return True
+
+    def record_assistant_reply(self, conversation_id: str, answer: str,
+                               user_id: Optional[int] = None,
+                               guest_token: Optional[str] = None) -> Dict[str, Any]:
+        """Store the actual displayed reply instead of the intake placeholder."""
+        if not isinstance(answer, str) or not answer.strip() or len(answer) > 60000:
+            raise ValueError("Nội dung phản hồi không hợp lệ.")
+        session_data = self._existing_session(conversation_id)
+        if session_data is None:
+            raise KeyError(conversation_id)
+        if not self.check_access(session_data, user_id, guest_token, claim_guest=False):
+            raise PermissionError("Bạn không có quyền sửa phiên tư vấn này.")
+        from flask import has_app_context
+        if has_app_context():
+            from core.models import IntakeSessionRecord
+            row = IntakeSessionRecord.query.populate_existing().filter_by(conversation_id=conversation_id).first()
+            if row is None:
+                self._sessions.pop(conversation_id, None)
+                raise KeyError(conversation_id)
+            if row is not None and not self.check_access({"user_id": row.user_id, "guest_token": row.guest_token},
+                                                         user_id, guest_token, claim_guest=False):
+                raise PermissionError("Bạn không có quyền sửa phiên tư vấn này.")
+        reply = {"sender": "assistant", "content": answer,
+                 "timestamp": datetime.datetime.now().strftime("%H:%M:%S")}
+        messages = session_data.setdefault("messages", [])
+        if messages and messages[-1].get("sender") == "assistant":
+            messages[-1] = reply
+        else:
+            messages.append(reply)
+        self._save_to_db(session_data, raise_on_error=True)
+        return session_data
 
     def get_or_create_session(
         self,
@@ -678,7 +811,16 @@ class IntakeSessionManager:
             session["visual_observations"].append("Đã đính kèm ảnh lâm sàng phục vụ đối chiếu")
 
         # 1. Tiền kiểm cờ đỏ cấp cứu
-        emergency_res = assess_emergency_risk(user_text)
+        previous = session["messages"][-2] if len(session["messages"]) > 1 else {}
+        previous_question = previous.get("content", "") if previous.get("sender") == "assistant" else ""
+        emergency_res = assess_emergency_risk(user_text, previous_question=previous_question)
+        if emergency_res.get("clarification"):
+            question = emergency_res["clarification"]
+            session["messages"].append({"sender": "assistant", "content": question})
+            session["status"] = "collecting"
+            self._save_to_db(session)
+            return {"conversation_id": conversation_id, "status": "collecting", "facts": session["facts"],
+                    "answer": question, "next_question": question, "summary": generate_pre_visit_summary(session)}
         if emergency_res.get("is_emergency"):
             session["is_emergency"] = True
             session["status"] = "emergency"
@@ -710,13 +852,6 @@ class IntakeSessionManager:
                 if extracted["present_symptoms"]:
                     current_facts["chief_complaint"] = ", ".join(extracted["present_symptoms"])
                     facts_changed = True
-                else:
-                    patient_intent_kw = ["khám", "kham", "bệnh", "benh", "đau", "dau", "sốt", "sot", "mệt", "met", "khó chịu", "kho chiu", "bị", "bi"]
-                    cleaned_no_acc = remove_accents(user_text.lower())
-                    if any(k in user_text.lower() or k in cleaned_no_acc for k in patient_intent_kw):
-                        current_facts["chief_complaint"] = user_text[:120]
-                        facts_changed = True
-
         # Hợp nhất triệu chứng khẳng định
         for s in extracted["present_symptoms"]:
             if s not in current_facts["present_symptoms"]:
@@ -739,6 +874,14 @@ class IntakeSessionManager:
         if extracted["duration"] and current_facts.get("duration") != extracted["duration"]:
             current_facts["duration"] = extracted["duration"]
             facts_changed = True
+
+        if abdominal_pain(current_facts) and not is_informational_query(user_text):
+            slots = current_facts.setdefault("pain", {})
+            for field, pattern in PAIN_PATTERNS.items():
+                match = re.search(pattern, user_text, re.IGNORECASE)
+                if match and slots.get(field) != match.group():
+                    slots[field] = match.group()
+                    facts_changed = True
 
         if extracted["vitals"]:
             for vk, vv in extracted["vitals"].items():
@@ -763,12 +906,15 @@ class IntakeSessionManager:
 
         # 3. Rà soát thông tin còn thiếu
         missing_info = identify_missing_information(current_facts)
+        if abdominal_pain(current_facts):
+            asked = [m.get("content", "") for m in session["messages"] if m.get("sender") == "assistant"]
+            missing_info.sort(key=lambda item: sum((select_next_question([item]) or item) in reply for reply in asked))
         next_q = select_next_question(missing_info, turn_count=session["turn_count"])
 
         # 4. Xác định trạng thái và phản hồi
         if next_q:
             session["status"] = "collecting"
-            answer = f"Mình đã ghi nhận thông tin từ bạn. {next_q}"
+            answer = next_q
         else:
             if missing_info:
                 # Dừng hỏi do quá số lượt nhưng vẫn còn thông tin thiếu trọng yếu

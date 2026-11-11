@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-labelledby="title desc">
+<title id="title">Nước dưa leo</title><desc id="desc">Minh họa ly nước trong với các lát dưa leo và dưa leo tươi bên cạnh.</desc>
+<defs><linearGradient id="water" x1="0" x2="1"><stop stop-color="#d6eae2"/><stop offset=".5" stop-color="#eef6e9"/><stop offset="1" stop-color="#bfd9d1"/></linearGradient></defs>
+<rect width="640" height="440" fill="#edf5f4"/><path d="M0 342c171-17 440-15 640 0v98H0Z" fill="#e5eeea"/><ellipse cx="329" cy="350" rx="153" ry="20" fill="#35585b" opacity=".09"/>
+<path d="M253 118h157l-12 198c-1 15-27 25-66 25s-65-10-66-25Z" fill="#eef6ef" stroke="#35585b" stroke-width="3"/>
+<path d="m260 165 11 146c1 11 24 19 61 19s59-8 60-19l11-146Z" fill="url(#water)"/><ellipse cx="332" cy="165" rx="72" ry="12" fill="#e7f3e8" stroke="#aac8bb" stroke-width="2"/>
+<g stroke="#688963" stroke-width="3" fill="#b8d99c"><ellipse cx="315" cy="233" rx="33" ry="36" transform="rotate(-18 315 233)"/><ellipse cx="356" cy="284" rx="33" ry="31" transform="rotate(16 356 284)"/></g>
+<g fill="#e3edd1"><ellipse cx="315" cy="233" rx="24" ry="27" transform="rotate(-18 315 233)"/><ellipse cx="356" cy="284" rx="25" ry="23" transform="rotate(16 356 284)"/></g>
+<g fill="#94b47c"><ellipse cx="312" cy="221" rx="2.5" ry="5"/><ellipse cx="305" cy="237" rx="2.5" ry="5" transform="rotate(50 305 237)"/><ellipse cx="325" cy="234" rx="2.5" ry="5" transform="rotate(-50 325 234)"/><ellipse cx="352" cy="273" rx="2.5" ry="5"/><ellipse cx="346" cy="289" rx="2.5" ry="5" transform="rotate(50 346 289)"/><ellipse cx="365" cy="287" rx="2.5" ry="5" transform="rotate(-50 365 287)"/></g>
+<path d="m276 140 10 155" stroke="#fffdf7" stroke-width="8" stroke-linecap="round" opacity=".8"/><ellipse cx="332" cy="118" rx="79" ry="15" fill="#f2f8f2" stroke="#35585b" stroke-width="3"/><ellipse cx="332" cy="118" rx="68" ry="8" fill="#e5f0e5"/>
+<path d="M171 325c-7-12 0-25 14-27l52 14c12 5 17 18 10 28-5 9-16 12-27 7Z" fill="#5d8864" stroke="#35585b" stroke-width="2.5"/>
+<path d="m186 307 44 13m-49-4 45 14" fill="none" stroke="#88aa77" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="233" cy="330" rx="21" ry="25" transform="rotate(-24 233 330)" fill="#bada9c" stroke="#4d7655" stroke-width="3"/><ellipse cx="233" cy="330" rx="14" ry="18" transform="rotate(-24 233 330)" fill="#e3eccf"/>
+</svg>
