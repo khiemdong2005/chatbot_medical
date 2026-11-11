@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MediMind Flask API</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/swagger-ui/swagger-ui.css') }}">
+<div id="swagger-ui">
+  <h1>MediMind Flask API</h1>
+  {% for path, operations in paths|dictsort %}
+    {% for method in operations %}
+      <p><strong>{{ method|upper }}</strong> <code>{{ path }}</code></p>
+    {% endfor %}
+  {% endfor %}
+</div>
+<script src="{{ url_for('static', filename='vendor/swagger-ui/swagger-ui-bundle.js') }}"></script>
+<script>
+  SwaggerUIBundle({url: {{ url_for('api_spec') | tojson }}, dom_id: '#swagger-ui', supportedSubmitMethods: []});
+</script>
+</html>

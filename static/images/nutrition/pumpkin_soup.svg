@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" role="img" aria-label="Minh họa súp bí đỏ">
+<rect width="640" height="440" fill="#edf5f4"/>
+<path d="M0 350C128 306 212 368 348 337S533 300 640 332V440H0Z" fill="#e8eeea" opacity=".55"/>
+<ellipse cx="322" cy="343" rx="200" ry="27" fill="#35585b" opacity=".08"/>
+<ellipse cx="320" cy="326" rx="197" ry="30" fill="#fffdf7" stroke="#dfe4dc" stroke-width="2"/>
+<path d="M144 217C151 290 199 340 320 340S489 290 496 217" fill="#fffdf7" stroke="#35585b" stroke-width="3"/>
+<path d="M164 255C183 290 216 313 252 319" fill="none" stroke="#e1e9e4" stroke-width="8" stroke-linecap="round"/>
+<ellipse cx="320" cy="216" rx="178" ry="79" fill="#fffdf7" stroke="#35585b" stroke-width="3"/>
+<ellipse cx="320" cy="216" rx="162" ry="65" fill="#eaa04e"/>
+<path d="M252 206C284 175 379 183 395 211C406 235 328 254 282 233C247 217 291 201 333 207C363 211 362 224 335 226" fill="none" stroke="#ffe6bb" stroke-width="8" stroke-linecap="round"/><path d="M209 211l7 -2M425 230l6 -2M235 243l8 -1" stroke="#d68e42" stroke-width="3" stroke-linecap="round"/>
+<path d="M166 232C195 271 262 283 320 283S446 271 474 232" fill="none" stroke="#f8fbf3" stroke-width="3"/>
+<g transform="translate(501 282) rotate(12)"><path d="M-30 -14Q-50 13 -29 32Q4 45 39 4L-30 -14Z" fill="#dc9554" stroke="#35585b" stroke-width="2.5"/><path d="M-25 -8Q-38 11 -23 24Q3 33 29 6Z" fill="#f4b76b"/><path d="M-28 -13L39 4" stroke="#d27f39" stroke-width="5"/><ellipse cx="-8" cy="10" rx="11" ry="6" fill="#e6994d"/><path d="M-14 7l5 7m5 -8l2 7" stroke="#ffde9f" stroke-width="2" stroke-linecap="round"/></g>
+</svg>

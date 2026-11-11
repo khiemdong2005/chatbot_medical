@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-labelledby="title desc">
+<title id="title">Nước lúa mạch</title><desc id="desc">Minh họa tách nước lúa mạch màu vàng nhạt, với bông lúa mạch và hạt ngũ cốc.</desc>
+<defs><linearGradient id="tea" x1="0" x2="1"><stop stop-color="#d9bc7e"/><stop offset=".5" stop-color="#e9d59e"/><stop offset="1" stop-color="#c6a76c"/></linearGradient></defs>
+<rect width="640" height="440" fill="#f5f3ec"/><path d="M0 341c186-14 432-15 640 0v99H0Z" fill="#eeede3"/><ellipse cx="341" cy="349" rx="158" ry="20" fill="#35585b" opacity=".09"/>
+<ellipse cx="341" cy="334" rx="121" ry="20" fill="#fffdf7" stroke="#d3d8ca" stroke-width="2"/>
+<path d="M419 181c49-8 70 14 64 49-5 27-27 44-56 39l-2-21c19 1 32-9 33-24 1-17-10-24-36-21Z" fill="#e6ece0" stroke="#35585b" stroke-width="3"/>
+<path d="M259 151h168v117c0 38-29 60-84 60s-84-22-84-60Z" fill="#edf1e5" stroke="#35585b" stroke-width="3"/>
+<path d="M266 193h154v73c0 32-26 51-77 51s-77-19-77-51Z" fill="url(#tea)"/><ellipse cx="343" cy="193" rx="77" ry="16" fill="#ead7a5" stroke="#c8b17b" stroke-width="2"/>
+<path d="M276 171v91c0 22 17 38 43 43" stroke="#fffdf7" stroke-width="8" stroke-linecap="round" opacity=".65" fill="none"/>
+<ellipse cx="343" cy="151" rx="84" ry="20" fill="#f6f7ed" stroke="#35585b" stroke-width="3"/><ellipse cx="343" cy="151" rx="73" ry="12" fill="#e8ebda"/>
+<g stroke="#a08954" stroke-width="2" stroke-linecap="round" fill="#dbc18a"><path d="m183 335 24-157M196 337l-34-134" fill="none" stroke-width="3"/><path d="M205 200c-18-4-22-14-14-25 14 3 20 11 14 25ZM206 217c19-3 24-12 17-25-15 3-21 11-17 25ZM201 235c-18-5-23-14-15-26 14 4 21 13 15 26ZM202 254c19-3 24-14 17-26-14 4-20 13-17 26ZM196 272c-18-4-22-15-13-26 13 4 19 13 13 26Z"/><path d="M168 233c-18-2-25-11-19-24 15 2 22 10 19 24ZM174 252c17-6 21-16 12-27-13 6-18 15-12 27ZM179 271c-18-1-25-10-20-23 14 1 22 9 20 23Z"/>
+<path d="m196 176-6-15m16 17 7-19m-25 52-13-14m47-5 13-12m-53 54-12-13m49 14 13-12m-52 43-12-12m46 1 12-13" fill="none" stroke-width="1.3"/></g>
+<g fill="#dbc38d" stroke="#aa9560" stroke-width="1.5"><ellipse cx="208" cy="348" rx="11" ry="4.5" transform="rotate(-15 208 348)"/><ellipse cx="229" cy="340" rx="11" ry="4.5" transform="rotate(25 229 340)"/><ellipse cx="243" cy="353" rx="11" ry="4.5" transform="rotate(-20 243 353)"/></g>
+</svg>

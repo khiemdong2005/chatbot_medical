@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-labelledby="title desc">
+<title id="title">Sữa ấm</title><desc id="desc">Minh họa tách sứ màu kem chứa sữa ấm, đặt trên đĩa lót.</desc>
+<defs><linearGradient id="cup" x1="0" x2="1"><stop stop-color="#fffdf7"/><stop offset="1" stop-color="#e8e9df"/></linearGradient></defs>
+<rect width="640" height="440" fill="#f5f3ec"/><path d="M0 337c206-16 423-14 640 0v103H0Z" fill="#eeeee5"/><ellipse cx="323" cy="347" rx="152" ry="20" fill="#35585b" opacity=".09"/>
+<ellipse cx="322" cy="331" rx="136" ry="23" fill="#fffdf7" stroke="#ced7cd" stroke-width="2"/><ellipse cx="322" cy="330" rx="107" ry="14" fill="none" stroke="#e2e6da" stroke-width="2"/>
+<path d="M407 176c57-9 79 17 67 60-8 30-35 42-66 35l4-25c20 4 33-6 36-23 5-22-4-31-35-25Z" fill="#e8ebe2" stroke="#35585b" stroke-width="3"/>
+<path d="M225 158h191v108c0 43-35 65-95 65s-96-22-96-65Z" fill="url(#cup)" stroke="#35585b" stroke-width="3"/>
+<path d="M240 183v78c0 32 25 49 63 53" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+<ellipse cx="321" cy="158" rx="96" ry="22" fill="#eceee3" stroke="#35585b" stroke-width="3"/><ellipse cx="321" cy="158" rx="82" ry="15" fill="#fffdf7" stroke="#dadccd" stroke-width="1.5"/>
+<path d="M261 158c26-11 82-11 118-1" fill="none" stroke="#ede9d9" stroke-width="3" stroke-linecap="round"/>
+<g fill="none" stroke="#a3b1a6" stroke-width="3" stroke-linecap="round"><path d="M287 124c-14-22 14-29 0-52"/><path d="M322 115c-16-23 17-31 3-56"/><path d="M359 123c-12-21 15-25 2-45"/></g>
+<path d="M163 289c-15-10-23-23-20-38 17 4 29 13 33 28" fill="#a6b9a2" stroke="#6c8d77" stroke-width="2"/><path d="m153 265 27 30" fill="none" stroke="#6c8d77" stroke-width="2"/>
+</svg>
