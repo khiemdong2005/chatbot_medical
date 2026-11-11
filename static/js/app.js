@@ -181,6 +181,15 @@ const fieldMaskState = {
 
 const fieldRealValues = {};
 
+function sanitizeUserEmail(email) {
+  if (!email || typeof email !== 'string') return '';
+  const trimmed = email.trim();
+  if (!trimmed.includes('@') || trimmed.endsWith('@phone.medimind') || /^\+?[0-9]{9,15}$/.test(trimmed)) {
+    return '';
+  }
+  return trimmed;
+}
+
 function maskFieldValue(val, fieldId) {
   if (!val) return '';
   if (fieldId === 'p-email') {
@@ -239,8 +248,9 @@ function syncLeftCardPhoneEmail() {
   }
 
   if (cardEmail) {
-    if (rawEmail && rawEmail.trim() && !rawEmail.endsWith('@phone.medimind')) {
-      cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(rawEmail, 'p-email') : rawEmail;
+    const validEmail = sanitizeUserEmail(rawEmail);
+    if (validEmail) {
+      cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(validEmail, 'p-email') : validEmail;
     } else {
       cardEmail.innerText = 'Chưa có email';
     }
@@ -367,6 +377,13 @@ const DEFAULT_USER_PROFILE = {
 
 // Default visitor: NO USER LOGGED IN unless explicit valid user exists in localStorage
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
+if (currentUser && currentUser.email) {
+  const sanitizedEmail = sanitizeUserEmail(currentUser.email);
+  if (sanitizedEmail !== currentUser.email) {
+    currentUser.email = sanitizedEmail;
+    localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+  }
+}
 if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png') || currentUser.avatar?.includes('.svg'))) {
   currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
   currentUser.hasCustomAvatar = false;
@@ -3624,7 +3641,7 @@ function updateAuthUI() {
     fieldRealValues['p-phone'] = phoneVal;
     if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
 
-    const emailVal = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
+    const emailVal = sanitizeUserEmail(currentUser.email);
     fieldRealValues['p-email'] = emailVal;
     if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
 
@@ -3704,7 +3721,7 @@ function updateAuthUI() {
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
     if (tabPhone) tabPhone.value = currentUser.phone_number || '';
-    if (tabEmail) tabEmail.value = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
+    if (tabEmail) tabEmail.value = sanitizeUserEmail(currentUser.email);
     if (tabBhyt) tabBhyt.value = currentUser.bhyt || '';
     if (tabCity) tabCity.value = currentUser.city || '';
     if (tabAddress) tabAddress.value = currentUser.address || '';
@@ -7893,7 +7910,8 @@ async function handleSaveImage1Profile(e) {
   const birthDate = document.getElementById('p-birthdate')?.value.trim() || '';
   const gender = document.getElementById('p-gender')?.value || 'Nam';
   const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
-  const email = getFieldValue('p-email', currentUser?.email || '');
+  const rawEmailVal = getFieldValue('p-email', '');
+  const email = sanitizeUserEmail(rawEmailVal);
   const blood = document.getElementById('p-blood')?.value || 'O+';
   const allergies = document.getElementById('p-allergies')?.value.trim() || '';
   const height = document.getElementById('p-height')?.value.trim() || '';

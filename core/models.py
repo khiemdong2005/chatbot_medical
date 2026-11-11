@@ -54,8 +54,9 @@ class User(db.Model):
 
     def to_dict(self) -> dict:
         """Xuất thông tin an toàn và chuẩn hóa vai trò."""
-        is_phone = self.email.endswith("@phone.medimind")
-        display_account = self.phone_number if (is_phone and self.phone_number) else self.email
+        is_phone = bool(self.email and self.email.endswith("@phone.medimind"))
+        real_email = "" if is_phone else (self.email or "")
+        display_account = self.phone_number if (is_phone and self.phone_number) else (self.email or "")
 
         info_parts = []
         if self.gender:
@@ -72,7 +73,9 @@ class User(db.Model):
 
         user_dict = {
             "id": self.id,
-            "email": display_account,
+            "email": real_email,
+            "display_account": display_account,
+            "is_phone_account": is_phone,
             "name": self.full_name,
             "full_name": self.full_name,
             "role": self.role,
