@@ -1,0 +1,36 @@
+{
+  "source": "Wikibooks Cookbook",
+  "api": "https://en.wikibooks.org/w/api.php",
+  "retrieved_at": "2026-11-11T02:14:38.529046+00:00",
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "copyright_policy": "https://en.wikibooks.org/wiki/Wikibooks:Copyrights",
+  "attribution": "Wikibooks contributors; individual page and revision links included in each record.",
+  "counts": {
+    "drink": 151,
+    "food": 749
+  },
+  "total": 900,
+  "rejected": {
+    "fermented_beverage": 7,
+    "egg_beverage": 2,
+    "alcohol_ingredient": 101,
+    "excluded_title": 20,
+    "missing_or_oversized_sections": 35,
+    "raw_animal_ingredient": 2
+  },
+  "images_downloaded": false,
+  "sha256": {
+    "recipes.json": "b076be6a65cb709d36539081845382b9b82bc86c6475e3da87ddc3dd5a5d27b0",
+    "raw_pages.jsonl": "ee4cf033ab7ecd47ccdff20981693b895b70f1878d581906a9174045f8a245ec"
+  },
+  "limitations": [
+    "Community recipes, not medically reviewed.",
+    "Original English, textual quantities, no inferred nutrient values.",
+    "Extraction does not certify cooking safety, allergen absence, or disease suitability."
+  ],
+  "status": "complete",
+  "extraction_version": 2,
+  "reprocessed_at": "2026-11-11T02:23:11.475485+00:00",
+  "records_with_extraction_warnings": 9
+}

@@ -36,6 +36,7 @@ from core.storage_service import (
     is_safe_path
 )
 from core.chat_service import process_clinical_chat
+from core.health_context import validate_chat_request
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data, analyze_uploaded_document
 from core.intake_service import intake_service
@@ -144,7 +145,7 @@ def create_app(test_config=None):
             "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
             "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com; "
+            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com; "
             "connect-src 'self' https://accounts.google.com/gsi/; "
             "frame-src 'self' https://accounts.google.com/gsi/; "
             "base-uri 'self';"
@@ -998,12 +999,15 @@ def create_app(test_config=None):
           3. Suy luận Gemini Flash + Fallback nội bộ
           4. Hậu kiểm can thiệp kháng sinh
         """
-        data = request.get_json(silent=True) or {}
-        user_message = data.get("message", "").strip()
-        history = data.get("history", [])
-        image_str = data.get("image")
-        lang = data.get("lang", "vi")
-        conversation_id = data.get("conversation_id")
+        try:
+            data = validate_chat_request(request.get_json(silent=True))
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+        user_message = data["message"]
+        history = data["history"]
+        image_str = data["image"]
+        lang = data["lang"]
+        conversation_id = data["conversation_id"]
         user_id = session.get("user_id")
         if "guest_token" not in session:
             session["guest_token"] = f"gst_{uuid.uuid4().hex[:12]}"
@@ -1054,11 +1058,20 @@ def create_app(test_config=None):
                 lang=lang,
                 gemini_service=gemini_service,
                 clinical_hint=clinical_hint,
-                intake_facts=(intake_res or {}).get("facts")
+                intake_facts=(intake_res or {}).get("facts"),
+                health_context=data["health_context"]
             )
 
             # 2. HỢP NHẤT DỮ LIỆU ĐÁNH GIÁ (TRÁNH LỆCH PHA GIỮA CHAT VÀ TÓM TẮT)
             if intake_res:
+                try:
+                    intake_service.record_assistant_reply(conversation_id, res["answer"],
+                                                         user_id=user_id, guest_token=guest_token)
+                except KeyError:
+                    return jsonify({"error": "Cuộc trò chuyện đã được xóa trong lúc xử lý. Hãy bắt đầu cuộc trò chuyện mới."}), 409
+                except PermissionError:
+                    return jsonify({"error": "Bạn không có quyền cập nhật cuộc trò chuyện này."}), 403
+                intake_res["answer"] = res["answer"]
                 res["conversation_id"] = conversation_id
                 res["intake"] = intake_res
                 res["intake_facts"] = intake_res.get("facts")
@@ -1069,8 +1082,8 @@ def create_app(test_config=None):
 
         except ValueError as ve:
             return jsonify({"error": str(ve)}), 400
-        except Exception as e:
-            logger.error(f"Lỗi xử lý tư vấn y tế: {e}")
+        except Exception:
+            logger.error("Không thể xử lý yêu cầu chatbot (chi tiết nội dung không được ghi log).")
             return jsonify({"error": "Đã xảy ra sự cố trong quá trình xử lý yêu cầu y tế."}), 500
 
     # ==============================================================
@@ -1106,6 +1119,27 @@ def create_app(test_config=None):
             "version": s["version"],
             "is_confirmed": s["is_confirmed"]
         })
+
+    @app.route("/api/intake/session/<conversation_id>", methods=["DELETE"])
+    def intake_delete_session(conversation_id):
+        """Delete only the caller's draft, actual transcript and saved summary."""
+        user_id, guest_token = _get_request_identity()
+        try:
+            removed = intake_service.delete_session(conversation_id, user_id=user_id,
+                                                    guest_token=guest_token, commit=False)
+            if not removed:
+                return jsonify({"error": "Không tìm thấy cuộc trò chuyện."}), 404
+            if user_id:
+                ClinicalConsultation.query.filter_by(user_id=user_id, conversation_id=conversation_id).delete()
+            db.session.commit()
+        except PermissionError:
+            db.session.rollback()
+            return jsonify({"error": "Bạn không có quyền xóa cuộc trò chuyện này."}), 403
+        except Exception:
+            db.session.rollback()
+            logger.error("Không thể xóa cuộc trò chuyện đã xác thực chủ sở hữu.")
+            return jsonify({"error": "Chưa xóa được cuộc trò chuyện. Vui lòng thử lại."}), 500
+        return jsonify({"success": True, "message": "Đã xóa cuộc trò chuyện và bản tóm tắt đã lưu."})
 
     @app.route("/api/intake/message", methods=["POST"])
     def intake_send_message():
@@ -1598,6 +1632,13 @@ def create_app(test_config=None):
             return jsonify({"error": "Vui lòng đăng nhập."}), 401
         c = ClinicalConsultation.query.filter_by(id=cid, user_id=user_id).first()
         if c:
+            if c.conversation_id:
+                try:
+                    intake_service.delete_session(c.conversation_id, user_id=user_id,
+                                                  guest_token=session.get("guest_token"), commit=False)
+                except PermissionError:
+                    db.session.rollback()
+                    return jsonify({"error": "Không thể xóa phiên tư vấn không thuộc tài khoản này."}), 403
             db.session.delete(c)
             db.session.commit()
             return jsonify({"message": "Đã xóa phiên tư vấn thành công."}), 200
@@ -1722,8 +1763,12 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Vui lòng mô tả tình trạng trong tối đa 500 ký tự."}), 400
         if recipe_type not in ("food", "drink"):
             return jsonify({"success": False, "error": "Vui lòng chọn thức ăn hoặc nước uống."}), 400
+        exclude_ids = payload.get("exclude_recipe_ids", [])
+        if (not isinstance(exclude_ids, list) or len(exclude_ids) > 5000
+                or any(not isinstance(item, str) or len(item) > 100 for item in exclude_ids)):
+            return jsonify({"success": False, "error": "Danh sách món đã xem không hợp lệ."}), 400
         from core.nutrition_options import get_nutrition_options
-        return jsonify({"success": True, "data": get_nutrition_options(condition, recipe_type)}), 200
+        return jsonify({"success": True, "data": get_nutrition_options(condition, recipe_type, exclude_ids)}), 200
 
     @app.route("/api/nutrition/analyze", methods=["POST"])
     def analyze_nutrition():

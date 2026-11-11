@@ -26,7 +26,8 @@
 </script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=19.0.0">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=5">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=9">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat-context.css') }}?v=1">
 
 <!-- Leaflet CSS & JS for Interactive Hospital Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -839,7 +840,7 @@ background: #94A3B8;
 
           <div class="truncate">
             <div class="text-[11px] font-bold text-slate-900 dark:text-white truncate" id="chat-image-preview-name">anh_ton_thuong.jpg</div>
-            <div class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">Gemini Vision AI sẵn sàng đối chiếu</div>
+            <div class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">Ảnh lâm sàng sẵn sàng đối chiếu</div>
           </div>
 
         </div>
@@ -1208,11 +1209,11 @@ background: #94A3B8;
 
       <!-- Compact Sample Demo Links Bar -->
 
-      <div class="glass-card p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border border-white/10">
+      <div class="glass-card p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 shadow-xs">
 
-        <div class="flex items-center space-x-2 text-slate-300 font-medium">
+        <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-300 font-medium">
 
-          <span class="text-sky-400">🧪</span>
+          <svg class="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
 
           <span data-i18n="ocr_preset_hint">Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:</span>
 
@@ -1220,11 +1221,11 @@ background: #94A3B8;
 
         <div class="flex flex-wrap items-center gap-2">
 
-          <button type="button" onclick="loadPrescriptionPreset('binh_dan')" data-i18n="ocr_preset_gastro" class="px-3 py-1.5 rounded-xl glass-pill text-xs font-semibold text-sky-300 hover:text-white transition-all cursor-pointer">Đơn thuốc mẫu (Tiêu hóa)</button>
+          <button type="button" onclick="loadPrescriptionPreset('binh_dan')" data-i18n="ocr_preset_gastro" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50/50 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs">Đơn thuốc mẫu (Tiêu hóa)</button>
 
-          <button type="button" onclick="loadPrescriptionPreset('throat')" data-i18n="ocr_preset_resp" class="px-3 py-1.5 rounded-xl glass-pill text-xs font-semibold text-teal-300 hover:text-white transition-all cursor-pointer">Đơn thuốc mẫu (Hô hấp)</button>
+          <button type="button" onclick="loadPrescriptionPreset('throat')" data-i18n="ocr_preset_resp" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50/50 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs">Đơn thuốc mẫu (Hô hấp)</button>
 
-          <button type="button" onclick="loadPrescriptionPreset('lab_blood')" data-i18n="ocr_preset_blood" class="px-3 py-1.5 rounded-xl glass-pill text-xs font-semibold text-purple-300 hover:text-white transition-all cursor-pointer">Phiếu xét nghiệm mẫu (Máu)</button>
+          <button type="button" onclick="loadPrescriptionPreset('lab_blood')" data-i18n="ocr_preset_blood" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50/50 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs">Phiếu xét nghiệm mẫu (Máu)</button>
 
         </div>
 
@@ -1320,7 +1321,7 @@ background: #94A3B8;
     <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
     <p class="nf-overline">BƯỚC 1 / 3</p>
     <h1>Bạn muốn xem loại nào?</h1>
-    <div class="nf-condition-banner"><span>TÌNH TRẠNG BẠN ĐÃ NHẬP</span><strong class="nf-query-label"></strong></div>
+    <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12" aria-hidden="true"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
     <div class="nf-type-grid">
       <button type="button" class="nf-type-card" data-nf-type="food"><span class="nf-type-icon nf-type-food" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7"/><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Thức ăn</strong><small>Khám phá những món ăn dễ làm</small></span><span class="nf-arrow">↗</span></button>
       <button type="button" class="nf-type-card" data-nf-type="drink"><span class="nf-type-icon nf-type-drink" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="m11 9 3 25h13l3-25H11Z" fill="#d9edf2"/><path d="M12 20h16" stroke="#95c6ce" stroke-width="2"/><path d="m11 9 3 25h13l3-25H11Zm11 16 4-21 6-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><strong>Nước uống</strong><small>Khám phá những thức uống dễ pha</small></span><span class="nf-arrow">↗</span></button>
@@ -1330,21 +1331,23 @@ background: #94A3B8;
     <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
     <p class="nf-overline">BƯỚC 2 / 3</p>
     <h1 id="nf-results-title">Chọn món bạn thích</h1>
-    <div class="nf-condition-banner"><span>TÌNH TRẠNG BẠN ĐÃ NHẬP</span><strong class="nf-query-label"></strong></div>
+    <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12" aria-hidden="true"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
     <p class="nf-subtitle">Chọn một món để xem công thức và thông tin dinh dưỡng.</p>
     <p id="nf-notice" class="nf-notice" hidden></p>
+    <p id="nf-catalog-stats" class="nf-catalog-stats" hidden></p>
     <details id="nf-selection-info" class="nf-selection-info" hidden><summary>Các món được chọn như thế nào?</summary><p id="nf-selection-copy"></p></details>
     <p id="nf-sources" class="nf-source-links" hidden></p>
     <button id="nf-avoidance-jump" class="nf-limit-jump" type="button" hidden>Xem thực phẩm nên hạn chế / cần tránh ↓</button>
     <div id="nf-clarification" class="nf-clarification" hidden><p id="nf-question"></p><button type="button" class="nf-back" id="nf-edit-query">Bổ sung mô tả →</button></div>
     <div id="nf-status" class="nf-status" role="status" aria-live="polite"></div>
     <div id="nf-cards" class="nf-cards"></div>
+    <button id="nf-load-more" type="button" class="nf-load-more" hidden>Xem thêm gợi ý từ kho →</button>
     <section id="nf-avoidance" class="nf-limit-panel" aria-label="Thực phẩm nên hạn chế và cần tránh" hidden></section>
   </section>
   <section id="nf-detail" class="nf-stage nf-wide" hidden>
     <button class="nf-back" type="button" data-nf-back="results">← Xem món khác</button>
     <p class="nf-overline">BƯỚC 3 / 3 · CHI TIẾT</p>
-    <div class="nf-condition-banner nf-condition-compact"><span>TÌNH TRẠNG BẠN ĐÃ NHẬP</span><strong class="nf-query-label"></strong></div>
+    <div class="nf-condition-banner nf-condition-compact"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12" aria-hidden="true"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
     <div id="nf-detail-content"></div>
     <p class="nf-disclaimer">Thông tin tham khảo dinh dưỡng, không thay thế tư vấn y tế chuyên khoa.</p>
   </section>
@@ -2973,8 +2976,9 @@ Hủy bỏ
 
 
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=19.0.0"></script>
-<script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=19.3.2"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=22.0.1"></script>
+<script src="{{ url_for('static', filename='js/chat-context.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=23.0.3"></script>
 
 <!-- ============================================================== -->
 <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->

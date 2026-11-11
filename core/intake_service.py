@@ -300,13 +300,31 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
         val = temp_match.group(1).replace(",", ".")
         vitals["temperature"] = f"{val}°C"
 
-    # 4. Trích xuất tiền sử / thuốc / dị ứng nếu có từ khóa
+    # 4. Retain only positive self-reports, not a keyword appearing in a denial.
+    # Keep the patient's wording rather than inventing an allergen/drug name.
     allergies = []
     medications = []
-    if "dị ứng" in lower_text or "di ung" in no_accent_text or "allergic" in lower_text:
-        allergies.append("Có ghi nhận tiền sử dị ứng cần lưu ý (chi tiết trong hội thoại)")
-    if any(k in lower_text for k in ["đang uống", "dang uong", "thuốc đang dùng", "thuoc"]):
-        medications.append("Có khai báo đang sử dụng thuốc điều trị")
+    def positive_report(pattern, exclude_drink=False):
+        context_text = no_accent_text.replace("đ", "d")
+        for found in re.finditer(pattern, context_text):
+            preceding = context_text[max(0, found.start() - 55):found.start()]
+            preceding = re.split(r"[,;.!?\n]|\b(?:nhung|tuy nhien|con|hien tai|va)\b", preceding)[-1]
+            if re.search(r"\b(?:khong|chua|chang|khong he|chua tung|no|not)\b", preceding):
+                continue
+            following = context_text[found.end():].lstrip(" :")
+            if exclude_drink and re.match(r"(?:nuoc|sua|tra|ca phe|bia|ruou)\b", following):
+                continue
+            start = max(raw_text.rfind(mark, 0, found.start()) for mark in ",;.!?\n") + 1
+            tail = re.search(r"[,;.!?\n]", raw_text[found.end():])
+            end = found.end() + tail.start() if tail else len(raw_text)
+            return raw_text[start:end].strip()[:500]
+        return None
+    allergy_report = positive_report(r"\b(?:di ung|allergic)\b")
+    medication_report = positive_report(r"\b(?:dang\s+(?:uong|dung|su dung)|thuoc\s+(?:dang|thuong)\s+(?:uong|dung))\b", exclude_drink=True)
+    if allergy_report:
+        allergies.append("Người dùng khai: " + allergy_report)
+    if medication_report:
+        medications.append("Người dùng khai: " + medication_report)
 
     return {
         "present_symptoms": present_symptoms,
@@ -598,9 +616,9 @@ class IntakeSessionManager:
             except Exception:
                 pass
             import logging
-            logging.getLogger("IntakeService").error(f"Lỗi ghi hồ sơ phiên {session_data.get('conversation_id')} vào CSDL: {e}")
+            logging.getLogger("IntakeService").error("Không thể ghi phiên tư vấn (%s).", type(e).__name__)
             if raise_on_error:
-                raise RuntimeError(f"Lỗi ghi hồ sơ vào CSDL bền vững: {e}") from e
+                raise RuntimeError("Không thể ghi phiên tư vấn vào cơ sở dữ liệu.") from None
             return False
 
     def _load_from_db(self, conversation_id: str) -> Optional[Dict[str, Any]]:
@@ -619,10 +637,10 @@ class IntakeSessionManager:
             return d
         except Exception as e:
             import logging
-            logging.getLogger("IntakeService").error(f"Lỗi nạp phiên {conversation_id} từ CSDL: {e}")
+            logging.getLogger("IntakeService").error("Không thể nạp phiên tư vấn (%s).", type(e).__name__)
             return None
 
-    def check_access(self, session_data: Dict[str, Any], user_id: Optional[int] = None, guest_token: Optional[str] = None) -> bool:
+    def check_access(self, session_data: Dict[str, Any], user_id: Optional[int] = None, guest_token: Optional[str] = None, *, claim_guest: bool = True) -> bool:
         """
         Đối soát bảo mật quyền truy cập phiên (Authorization & Tenant Isolation):
         - Nếu phiên thuộc tài khoản đã đăng nhập (owner_id is not None): Chỉ tài khoản đó được phép truy cập.
@@ -639,18 +657,80 @@ class IntakeSessionManager:
 
         if owner_guest:
             if guest_token and guest_token == owner_guest:
-                if user_id is not None:
+                if user_id is not None and claim_guest:
                     session_data["user_id"] = user_id
                     self._save_to_db(session_data)
                 return True
             return False
 
-        # Phiên legacy không có token hoặc tạo trước đó
-        if user_id is not None and not owner_id:
-            session_data["user_id"] = user_id
-            self._save_to_db(session_data)
-            return True
+        # A legacy row without either owner cannot prove ownership. Do not
+        # disclose or let an arbitrary signed-in account claim that row.
+        return False
+
+    def _existing_session(self, conversation_id: str) -> Optional[Dict[str, Any]]:
+        session_data = self._sessions.get(conversation_id)
+        if session_data is None:
+            session_data = self._load_from_db(conversation_id)
+            if session_data is not None:
+                self._sessions[conversation_id] = session_data
+        return session_data
+
+    def delete_session(self, conversation_id: str, user_id: Optional[int] = None,
+                       guest_token: Optional[str] = None, *, commit: bool = True) -> bool:
+        """Delete an existing owned draft from persistent storage and RAM.
+
+        ``commit=False`` lets an API combine this deletion with another row in
+        one transaction. An unknown ID never creates a replacement session.
+        """
+        session_data = self._existing_session(conversation_id)
+        if session_data is None:
+            return False
+        if not self.check_access(session_data, user_id, guest_token, claim_guest=False):
+            raise PermissionError("Bạn không có quyền xóa phiên tư vấn này.")
+        from flask import has_app_context
+        if has_app_context():
+            from core.models import db, IntakeSessionRecord
+            row = IntakeSessionRecord.query.populate_existing().filter_by(conversation_id=conversation_id).first()
+            if row is not None:
+                if not self.check_access({"user_id": row.user_id, "guest_token": row.guest_token},
+                                         user_id, guest_token, claim_guest=False):
+                    raise PermissionError("Bạn không có quyền xóa phiên tư vấn này.")
+                db.session.delete(row)
+            if commit:
+                db.session.commit()
+        self._sessions.pop(conversation_id, None)
         return True
+
+    def record_assistant_reply(self, conversation_id: str, answer: str,
+                               user_id: Optional[int] = None,
+                               guest_token: Optional[str] = None) -> Dict[str, Any]:
+        """Store the actual displayed reply instead of the intake placeholder."""
+        if not isinstance(answer, str) or not answer.strip() or len(answer) > 60000:
+            raise ValueError("Nội dung phản hồi không hợp lệ.")
+        session_data = self._existing_session(conversation_id)
+        if session_data is None:
+            raise KeyError(conversation_id)
+        if not self.check_access(session_data, user_id, guest_token, claim_guest=False):
+            raise PermissionError("Bạn không có quyền sửa phiên tư vấn này.")
+        from flask import has_app_context
+        if has_app_context():
+            from core.models import IntakeSessionRecord
+            row = IntakeSessionRecord.query.populate_existing().filter_by(conversation_id=conversation_id).first()
+            if row is None:
+                self._sessions.pop(conversation_id, None)
+                raise KeyError(conversation_id)
+            if row is not None and not self.check_access({"user_id": row.user_id, "guest_token": row.guest_token},
+                                                         user_id, guest_token, claim_guest=False):
+                raise PermissionError("Bạn không có quyền sửa phiên tư vấn này.")
+        reply = {"sender": "assistant", "content": answer,
+                 "timestamp": datetime.datetime.now().strftime("%H:%M:%S")}
+        messages = session_data.setdefault("messages", [])
+        if messages and messages[-1].get("sender") == "assistant":
+            messages[-1] = reply
+        else:
+            messages.append(reply)
+        self._save_to_db(session_data, raise_on_error=True)
+        return session_data
 
     def get_or_create_session(
         self,

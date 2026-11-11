@@ -1,7 +1,8 @@
 # Nutrition recommendations
 
 `POST /api/nutrition/options` accepts `condition` (up to 500 characters) and
-`recipe_type` (`food` or `drink`). The condition is sent to Google Gemini.
+`recipe_type` (`food` or `drink`), and optionally `exclude_recipe_ids` (up to
+5000 IDs already displayed) for more suggestions. The condition is sent to Google Gemini.
 There is no patient profile, chat history or credential in the prompt.
 
 ## Configuration
@@ -18,11 +19,23 @@ The separate nutrition key does not replace existing chatbot configuration.
 
 ## Pipeline
 
-1. Load the local catalog: 7 food recipes and 7 drinks. RecipeNLG is not imported.
+1. Load the Vietnamese home-cooking selection under
+   `data/recipes/vifoodrec/recipes.json`. The author's clean `foods.csv` has
+   4000 rows; the 5509 figure in the paper refers to the earlier collection.
+   The current deterministic import retains 2462 recipes (2367 food,95 drink).
+   International recipe names, unresolved cuisine, alcohol, fermented recipes,
+   risky raw dishes and medical/infant recipe titles are excluded. Cuisine is
+   a documented familiar-home-cooking heuristic, not certified geographic origin.
+   Wikibooks remains an archive and is not mixed into active suggestions.
+   If the active dataset is missing, only the original 14 clearly counted sample
+   recipes are available; an empty food/drink filter never adds foreign recipes.
 2. Apply explicit ingredient/allergen metadata and a small set of source-linked
    general guidelines. Unknown constraints are not silently treated as safe.
-3. Send only remaining recipes and relevant guidelines to Gemini. Gemini can
-   select up to 5 existing IDs and provide short reasons, caveats and source IDs.
+3. Retrieve at most 32 related candidates using ingredient/category text and
+   Vietnamese and English search expansions, after filtering. Repeated titles
+   are collapsed for variety; already displayed IDs and their titles are excluded
+   from further batches. Gemini selects up to 5 existing IDs with short reasons,
+   caveats and source IDs. Vietnamese titles cannot be rewritten by the model.
 4. Validate the JSON, IDs, duplicates, source IDs and required fields. Recipe
    ingredients, amounts and instructions always come from the local catalog.
 5. Show a clarification question when needed. For an explicitly recognized
@@ -52,10 +65,45 @@ are supplied by the server, not invented by the model. Model explanations
 still need human review; a structured JSON response does not certify medical
 accuracy.
 
+Imported ingredient features are deterministic bilingual text scans, not
+expert-reviewed medical labels. Vietnamese texture terms preserve accents:
+canh/cánh and cháo/chảo are different. Unknown compound ingredients and ambiguous
+butter/avocado wording block explicit allergy requests. Exact source features
+are cached; user health queries are not cached. Original ingredient quantities
+and preparation stay unaltered; they are not converted to grams, per-serving
+amounts or inferred nutrient values. Source nutrient/promotional descriptions
+are not used as verified benefits. Imported recipes use a clearly labeled generic
+illustration; dataset photo URLs are not fetched or shown.
+The raw recipe prose remains stored for audit. Displayed text repairs the known
+duplicated `muỗnguỗng` unit typo and omits standalone health advertising that
+contains no preparation instruction; ingredient amounts are not changed.
+
+The ViFoodRec paper describes free research access. The author repository has no
+explicit data reuse license, so the manifest and UI use `not_declared`, not an
+invented open license. This integration is a local research prototype; production
+redistribution rights are not verified. Each record retains the author dataset
+reference and row ID. The source CSV does not have original recipe URLs, so the
+UI labels its link as a research dataset, not an original cooking article.
+Raw `foods.csv` is ignored by Git and retained locally for reproducibility.
+
+Sources:
+- https://aclanthology.org/2024.paclic-1.4/
+- https://github.com/QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System
+
+To rebuild from the downloaded source or refresh it:
+
+```console
+python scripts/import_vifoodrec_recipes.py
+python scripts/import_vifoodrec_recipes.py --offline
+```
+
 ## Checks
 
 ```console
 python -m unittest discover -s tests -p "test_nutrition_ai.py" -v
 python -m unittest discover -s tests -p "test_nutrition_rules.py" -v
+python -m unittest discover -s tests -p "test_recipe_catalog.py" -v
+python -m unittest discover -s tests -p "test_recipe_features*.py" -v
+python -m unittest discover -s tests -p "test_vifoodrec_importer.py" -v
 node --check static/js/nutrition-flow.js
 ```

@@ -160,60 +160,46 @@ ANTIBIOTIC_BLACKLIST = [
 
 
 def apply_safety_guardrails(answer: str, lang: str = "vi") -> str:
-    """
-    Hậu kiểm an toàn (Post-generation Guardrail):
-    Rà soát câu trả lời của AI và Fallback.
-    Nếu phát hiện nhắc tên thuốc kháng sinh kê đơn hoặc hướng dẫn liều dùng:
-      - Loại bỏ/thay thế nội dung vi phạm bằng cảnh báo từ chối kê đơn chuẩn y tế.
-      - Tuyệt đối không giữ nguyên hướng dẫn dùng thuốc kháng sinh bị cấm.
-    """
+    """Block antibiotic prescribing while preserving explanations and refusals."""
     if not answer:
         return ""
-
-    answer_lower = answer.lower()
-    found_antibiotics = [ab for ab in ANTIBIOTIC_BLACKLIST if ab in answer_lower]
-
-    if not found_antibiotics:
+    drugs = "|".join(re.escape(name) for name in ANTIBIOTIC_BLACKLIST)
+    if not re.search(r"\b(?:" + drugs + r")\b", answer, re.IGNORECASE):
         return answer
-
-    ab_names_str = ", ".join([ab.capitalize() for ab in found_antibiotics])
-
-    if lang == "en":
-        replacement_block = (
-            f"> [!CAUTION]\n"
-            f"> 🛑 **SAFETY INTERVENTION - PRESCRIPTION MEDICATION DETECTED ({ab_names_str}):**\n"
-            "> Under strict healthcare safety protocols and MOH regulations, AI assistants are strictly prohibited "
-            "from prescribing, dosing, or instructing the use of prescription antibiotics.\n"
-            "> Any self-medication with antibiotics carries severe risks of acute anaphylaxis, organ toxicity, "
-            "and dangerous antimicrobial resistance. Please consult a licensed medical practitioner for a proper examination and prescription."
-        )
-    else:
-        replacement_block = (
-            f"> [!CAUTION]\n"
-            f"> 🛑 **CAN THIỆP AN TOÀN Y TẾ - PHÁT HIỆN THUỐC KHÁNG SINH ({ab_names_str}):**\n"
-            "> Theo quy chuẩn an toàn lâm sàng của Bộ Y Tế, Trợ lý AI tuyệt đối không kê đơn, chỉ định liều dùng hoặc khuyến nghị tự ý sử dụng các loại thuốc kháng sinh.\n"
-            "> Việc tự ý mua và dùng kháng sinh tiềm ẩn nguy cơ sốc phản vệ nguy kịch, tổn thương gan thận và gia tăng tình trạng kháng kháng sinh trong cộng đồng. "
-            "Bạn hãy thăm khám trực tiếp tại cơ sở y tế để được bác sĩ chẩn đoán nguyên nhân và kê đơn chính xác."
-        )
-
-    # Tách đoạn văn bản và thay thế các đoạn có chứa tên kháng sinh
-    paragraphs = answer.split("\n\n")
-    cleaned_paragraphs = []
-    replaced_any = False
-
-    for p in paragraphs:
-        p_lower = p.lower()
-        if any(ab in p_lower for ab in found_antibiotics):
-            # Thay thế đoạn vi phạm bằng khối can thiệp an toàn
-            cleaned_paragraphs.append(replacement_block)
-            replaced_any = True
+    warning = ("Do not choose an antibiotic or dose from this reply. Consult a doctor or pharmacist and tell them about your allergies and current medicines."
+               if lang == "en" else "Bạn không được tự ý chọn kháng sinh hoặc liều dùng từ câu trả lời này. Hãy hỏi bác sĩ hoặc dược sĩ và cho biết dị ứng, thuốc đang dùng trước khi sử dụng.")
+    kept, blocked = [], False
+    for sentence in re.split(r"(?<=[.!?;])\s+|\n+", answer):
+        folded = remove_accents(re.sub(r"\bđừng\b", "không", sentence, flags=re.IGNORECASE)).replace("đ", "d")
+        if not re.search(r"\b(?:" + drugs + r")\b", folded):
+            # A regimen may be on the following line after an antibiotic name.
+            if re.search(r"\b\d+(?:\.\d+)?\s*(?:mg|ml|vien|tablets?|capsules?)\b.*\b(?:moi|ngay|lan|every|daily|times)\b", folded):
+                blocked = True
+                continue
+            kept.append(sentence)
+            continue
+        unsafe = bool(re.search(r"\b(?:don thuoc cho ban|prescription for you)\b", folded))
+        for action in re.finditer(r"\b(?:uong|dung|su dung|ke|take|use|start|prescribe|recommend)\b", folded):
+            tail = folded[action.end():action.end() + 100]
+            if not re.search(r"\b(?:" + drugs + r")\b", tail):
+                continue
+            prefix = folded[max(0, action.start() - 65):action.start()]
+            prefix = re.split(r"[,;:!?]|\b(?:nhung|but|however)\b", prefix)[-1]
+            if not re.search(r"\b(?:khong|chua|tranh|not|never|avoid|don't|shouldn't|mustn't)\b", prefix):
+                unsafe = True
+        regimen = re.search(r"\b\d+(?:\.\d+)?\s*(?:mg|ml|vien|tablets?|capsules?)\b.*\b(?:moi|ngay|lan|every|daily|times)\b", folded)
+        regimen_prefix = re.split(r"[,;:!?]|\b(?:nhung|but|however)\b", folded[:regimen.start()])[-1] if regimen else ""
+        if regimen and not re.search(r"\b(?:khong|tranh|not|never|avoid|don't|shouldn't|mustn't)\b", regimen_prefix):
+            unsafe = True
+        if unsafe:
+            blocked = True
+            if re.search(r"\b(?:115|cap cuu|emergency)\b", folded):
+                kept.append("Seek emergency care now." if lang == "en" else "Hãy gọi 115 hoặc đến khoa cấp cứu ngay.")
         else:
-            cleaned_paragraphs.append(p)
-
-    if not replaced_any:
-        cleaned_paragraphs.append(replacement_block)
-
-    return "\n\n".join(cleaned_paragraphs)
+            kept.append(sentence)
+    if not blocked:
+        return answer
+    return "\n\n".join(part for part in [*kept, warning] if part.strip())
 
 
 # ------------------------------------------------------------------------------

@@ -1,9 +1,11 @@
 import uuid
 import logging
+import re
 from typing import Dict, Any, List, Optional
 from core.triage import analyze_symptoms, assess_emergency_risk, apply_safety_guardrails
 from core.rag_service import medical_rag_service
-from core.gemini_service import GeminiMedicalService
+from core.gemini_service import (GeminiMedicalService, sanitize_history, sanitize_health_context,
+                                sanitize_intake_facts, reference_sources)
 
 logger = logging.getLogger("ChatService")
 
@@ -18,6 +20,23 @@ OUT_OF_SCOPE_PATTERNS = (
 )
 
 
+def retrieval_query(message, facts):
+    """Keep the current question, while removing explicitly denied symptoms.
+
+    Negation is used only to improve document relevance; this is not a diagnosis.
+    The model still receives the complete original statement and denied facts.
+    """
+    query = message
+    for symptom in facts.get("denied_symptoms", []):
+        for phrase in symptom.split("/"):
+            phrase = phrase.strip()
+            if phrase:
+                query = re.sub(r"\b(?:không|chưa)(?:\s+(?:có|bị|thấy))?\s+" + re.escape(phrase) + r"\b",
+                               " ", query, flags=re.IGNORECASE)
+    present = ", ".join(facts.get("present_symptoms", []))
+    return ((present + ". " if present else "") + query).strip()[:2400]
+
+
 def process_clinical_chat(
     message: str,
     history: Optional[List[Dict[str, Any]]] = None,
@@ -27,7 +46,8 @@ def process_clinical_chat(
     gemini_service: Optional[GeminiMedicalService] = None,
     request_id: Optional[str] = None,
     clinical_hint: Optional[str] = None,
-    intake_facts: Optional[dict] = None
+    intake_facts: Optional[dict] = None,
+    health_context: Optional[dict] = None
 ) -> Dict[str, Any]:
     """
     Dịch vụ điều phối tư vấn lâm sàng 4 tầng dùng chung (Shared Application Service):
@@ -40,9 +60,13 @@ def process_clinical_chat(
     """
     req_id = request_id or uuid.uuid4().hex[:8]
     lang = lang if lang in ALLOWED_LANGUAGES else "vi"
-    history = (history or [])[-MAX_HISTORY_ITEMS:]
+    history = sanitize_history(history)
+    intake_facts = sanitize_intake_facts(intake_facts)
+    health_context = sanitize_health_context(health_context)
 
-    user_message = (message or "").strip()
+    if not isinstance(message, str):
+        raise ValueError("Tin nhắn phải là văn bản.")
+    user_message = message.strip()
     if len(user_message) > MAX_MESSAGE_LENGTH:
         user_message = user_message[:MAX_MESSAGE_LENGTH]
 
@@ -63,7 +87,7 @@ def process_clinical_chat(
                 "risk_score": None, "symptoms": [], "specialist": "", "is_emergency": False,
                 "visual_findings": [], "differential_diagnosis": [], "degraded": False, "sources": []}
     if emergency.get("is_emergency"):
-        logger.warning(f"[REQ-{req_id}] Phát hiện cờ đỏ cấp cứu: {emergency.get('symptoms')}")
+        logger.warning("[REQ-%s] Emergency rule matched.", req_id)
         return {
             "answer": emergency["message"],
             "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
@@ -74,16 +98,9 @@ def process_clinical_chat(
             "visual_findings": [],
             "differential_diagnosis": ["Dấu hiệu cấp cứu tim mạch / hô hấp"],
             "degraded": False,
-            "sources": [
-                {
-                    "title": "Quy trình Cấp cứu Ban đầu - Bộ Y Tế",
-                    "source": "Cục Quản lý Khám chữa bệnh",
-                    "url": "https://kcb.vn"
-                }
-            ]
+            "sources": []
         }
 
-    import re
     msg_clean = user_message.lower().strip()
     if not has_image and any(re.search(pattern, msg_clean) for pattern in OUT_OF_SCOPE_PATTERNS):
         reported = (intake_facts or {}).get("present_symptoms", [])
@@ -128,7 +145,7 @@ def process_clinical_chat(
         return {
             "answer": triage_result["answer"],
             "risk_level": triage_result["risk_level"],
-            "risk_score": 10,
+            "risk_score": None,
             "symptoms": triage_result.get("symptoms", []),
             "specialist": triage_result.get("specialist", "Y học gia đình"),
             "visual_findings": [],
@@ -143,9 +160,9 @@ def process_clinical_chat(
     # -------------------------------------------------------------
     rag_docs = []
     try:
-        rag_docs = medical_rag_service.retrieve_context(user_message, top_k=2)
+        rag_docs = medical_rag_service.retrieve_context(retrieval_query(user_message, intake_facts), top_k=2)
     except Exception as e:
-        logger.warning(f"[REQ-{req_id}] RAG retrieval gặp lỗi: {e}")
+        logger.warning("[REQ-%s] Retrieval unavailable (%s).", req_id, type(e).__name__)
 
     # -------------------------------------------------------------
     # TẦNG 3: BỘ NÃO SUY LUẬN AI (Gemini) + FALLBACK DỰ PHÒNG NỘI BỘ
@@ -162,10 +179,12 @@ def process_clinical_chat(
             image_mime_type=image_mime_type,
             lang=lang,
             request_id=req_id,
-            clinical_hint=clinical_hint
+            clinical_hint=clinical_hint,
+            intake_facts=intake_facts,
+            health_context=health_context
         )
     except Exception as err:
-        logger.warning(f"[REQ-{req_id}] Gemini service exception: {err}")
+        logger.warning("[REQ-%s] Gemini service unavailable (%s).", req_id, type(err).__name__)
         gemini_result = None
 
     if gemini_result and isinstance(gemini_result, dict) and gemini_result.get("answer"):
@@ -174,54 +193,23 @@ def process_clinical_chat(
         # Kích hoạt Fallback Engine và đánh dấu trạng thái degraded
         degraded = True
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
-        triage_result = analyze_symptoms(user_message, history, lang=lang, has_image=has_image)
-        present = (intake_facts or {}).get("present_symptoms", [])
-        if intake_facts and lang == "vi" and not has_image and not triage_result.get("is_emergency"):
-            recap = ", ".join(present).lower()
-            question = clinical_hint or ""
-            if re.search(r"kê (?:toa|đơn)|(?:uống|dùng|ún) thuốc (?:gì|nào)", msg_clean):
-                answer = "Mình không thể chọn thuốc an toàn chỉ từ những thông tin này."
-                if "tay" in msg_clean and "sưng" in msg_clean:
-                    answer += " Tay sưng đau nên được nhân viên y tế đánh giá trước khi dùng thuốc."
-                question = ""
-            elif "sốt" in msg_clean and present and not (intake_facts.get("vitals") or {}).get("temperature"):
-                answer = "Nếu có nhiệt kế, bạn đo được khoảng bao nhiêu độ?"
-                question = ""
-            elif any(token in msg_clean for token in ("tay", "cổ tay", "bàn tay", "cánh tay")) and "sưng" in msg_clean and "đau" in msg_clean:
-                answer = "Tay vừa đau vừa sưng thì nên làm rõ nguyên nhân trước. Bạn có bị va đập hoặc chấn thương gần đây không?"
-                question = ""
-            else:
-                answer = ("Bạn muốn mình hỗ trợ điều gì về triệu chứng này?" if recap else
-                          "Mình chưa rõ điều bạn muốn hỏi. Bạn nói thêm một chút được không?") if not question else ""
-            if question and any(question in str(turn.get("content", "")) for turn in history if turn.get("role") == "assistant"):
-                question = ""
-            triage_result.update(answer=" ".join(filter(None, [answer, question])), symptoms=present,
-                                 differential_diagnosis=[], specialist="Chưa xác định",
-                                 risk_level="Chưa đủ thông tin", risk_score=None)
-        elif clinical_hint and triage_result.get("answer"):
-            triage_result["answer"] += f"\n\n💡 *Lưu ý y tế:* {clinical_hint}"
-        if rag_docs:
-            triage_result["sources"] = [
-                {
-                    "title": d.get("title", "MedlinePlus"),
-                    "source": d.get("source", "MedlinePlus"),
-                    "url": d.get("source_url", "https://medlineplus.gov")
-                }
-                for d in rag_docs
-            ]
+        question = clinical_hint if isinstance(clinical_hint, str) else ""
+        if question and any(question in turn["content"] for turn in history if turn["role"] == "assistant"):
+            question = ""
+        answer = ("Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn."
+                  if lang == "vi" else "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines.")
+        answer += " " + (question or ("Bạn có thể thử gửi lại sau ít phút." if lang == "vi" else "Please try again in a few minutes."))
+        triage_result = {"answer": answer, "symptoms": intake_facts.get("present_symptoms", []),
+                         "risk_level": "Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
+                         "risk_score": None, "specialist": "Chưa xác định" if lang == "vi" else "Undetermined",
+                         "visual_findings": [], "differential_diagnosis": [], "is_emergency": False,
+                         "sources": []}
 
     # -------------------------------------------------------------
     # TẦNG 4: HẬU KIỂM AN TOÀN (Post-check Guardrail)
     # -------------------------------------------------------------
     raw_answer = triage_result.get("answer", "")
-    # A brief update to an existing cough history only needs a clarification.
     facts = intake_facts or {}
-    reported = facts.get("present_symptoms", [])
-    if (lang == "vi" and not has_image and not triage_result.get("is_emergency")
-            and any(s in reported for s in ("Ho", "Ho khan", "Ho có đờm"))
-            and not (facts.get("vitals") or {}).get("temperature")
-            and re.fullmatch(r"(?:lâu lâu|thỉnh thoảng|đôi lúc)\s+(?:có\s+)?sốt(?:\s+nữa)?[.! ]*", msg_clean)):
-        raw_answer = "Lúc sốt, bạn có đo được nhiệt độ khoảng bao nhiêu không?"
     if any(turn.get("role") == "assistant" for turn in history):
         body = re.sub(r"^\s*(?:xin chào(?: bạn)?|chào bạn|hello(?: there)?|hi there)[!,.:;–—\s]+",
                       "", raw_answer, count=1, flags=re.IGNORECASE)
@@ -232,24 +220,8 @@ def process_clinical_chat(
             and not triage_result.get("is_emergency")):
         triage_result.update(risk_level="Chưa đủ thông tin", risk_score=None,
                              specialist="Chưa xác định", differential_diagnosis=[])
-        if clinical_hint and "?" not in user_message and not re.search(r"thuốc|kê đơn", msg_clean):
-            raw_answer = clinical_hint
-    # Khi người bệnh vừa trả lời câu hỏi khai thác, tiếp tục hỏi dữ kiện kế tiếp
-    # thay vì để mô hình chuyển đột ngột sang checklist chăm sóc chung.
-    previous_assistant = next(
-        (turn.get("content", "") for turn in reversed(history) if turn.get("role") == "assistant"),
-        ""
-    )
-    is_answering_intake = bool(
-        clinical_hint
-        and "?" in previous_assistant
-        and not re.search(
-            r"\?|\b(?:thuốc|uống|dùng|nên|làm sao|vì sao|bao nhiêu|có cần|có phải|là gì|kê đơn|tư vấn)\b",
-            msg_clean,
-        )
-    )
-    if is_answering_intake:
-        raw_answer = clinical_hint
+    # A hint must never replace a model's actual answer, especially urgent
+    # guidance. The model receives it as optional data and chooses one follow-up.
     cleaned_answer = apply_safety_guardrails(raw_answer, lang=lang)
 
     # Chuẩn hóa cấu trúc đầu ra theo hợp đồng y tế
@@ -275,9 +247,7 @@ def process_clinical_chat(
     if not isinstance(diff_diag, list):
         diff_diag = []
 
-    sources = triage_result.get("sources", [])
-    if not isinstance(sources, list):
-        sources = []
+    sources = reference_sources(rag_docs)
 
     return {
         "answer": cleaned_answer,

@@ -18,6 +18,7 @@ import unicodedata
 from collections import Counter
 import sys
 import json
+import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -34,6 +35,7 @@ METADATA_FILE = VECTOR_DB_DIR / "active_collection.json"
 
 # Tiêu chí khoảng cách chấp nhận tài liệu (khoảng cách Euclidean L2 tối đa)
 DEFAULT_ACCEPTANCE_THRESHOLD = float(os.getenv("RAG_ACCEPTANCE_THRESHOLD", "1.35"))
+logger = logging.getLogger("MedicalRAGService")
 
 # Từ điển ánh xạ triệu chứng Việt - Anh phổ biến để hỗ trợ tìm kiếm chéo ngôn ngữ chuẩn xác
 VIETNAMESE_TO_ENGLISH_KEYWORDS = {
@@ -75,9 +77,14 @@ class MedicalRAGService:
     Dịch vụ quản lý truy xuất tri thức y khoa từ ChromaDB.
     """
 
-    def __init__(self, db_dir: Optional[Path] = None, acceptance_threshold: float = DEFAULT_ACCEPTANCE_THRESHOLD):
+    def __init__(self, db_dir: Optional[Path] = None, acceptance_threshold: float = DEFAULT_ACCEPTANCE_THRESHOLD,
+                 vector_search_enabled: Optional[bool] = None):
         self.db_dir = Path(db_dir) if db_dir else VECTOR_DB_DIR
         self.acceptance_threshold = acceptance_threshold
+        # Querying query_texts can lazily download an embedding model. Keep the
+        # default request path entirely local; vectors require operator opt-in.
+        self.vector_search_enabled = (os.getenv("RAG_VECTOR_SEARCH_ENABLED", "").lower() in ("1", "true", "yes")
+                                      if vector_search_enabled is None else vector_search_enabled is True)
         self._lexical_index = None
         self.client = None
         self.collection = None
@@ -123,7 +130,11 @@ class MedicalRAGService:
 
     def is_available(self) -> bool:
         """Kiểm tra xem hệ thống RAG đã sẵn sàng hoạt động chưa."""
-        return self.collection is not None and self.collection.count() > 0
+        try:
+            return self.collection is not None and self.collection.count() > 0
+        except Exception as error:
+            logger.warning("Reference collection unavailable (%s).", type(error).__name__)
+            return False
 
     def expand_query(self, query: str) -> str:
         """
@@ -147,7 +158,9 @@ class MedicalRAGService:
         key = (self.collection_name, self.collection.count())
         if not self._lexical_index or self._lexical_index[0] != key:
             corpus = self.collection.get(include=["documents", "metadatas"])
-            rows = list(zip(corpus["documents"], corpus["metadatas"]))
+            documents, metadata = corpus.get("documents") or [], corpus.get("metadatas") or []
+            rows = [(doc, metadata[index] if index < len(metadata) and isinstance(metadata[index], dict) else {})
+                    for index, doc in enumerate(documents) if isinstance(doc, str) and doc.strip()]
             counts = [Counter(search_tokens((meta or {}).get("title", "") + " " + doc)) for doc, meta in rows]
             df = Counter(term for row in counts for term in row)
             lengths = [sum(row.values()) for row in counts]
@@ -165,72 +178,66 @@ class MedicalRAGService:
             overlap = terms.intersection(row)
             title = " ".join(search_tokens((rows[idx][1] or {}).get("title", "")))
             exact_title = bool(title and " " + title + " " in whole_query)
-            if len(overlap) < 2 and not exact_title:
+            if len(overlap) < min(2, len(terms)) and not exact_title:
                 continue
             for term in overlap:
                 idf = math.log1p((size - df[term] + 0.5) / (df[term] + 0.5))
                 tf = row[term]
                 score += idf * tf * 2.2 / (tf + 1.2 * (0.25 + 0.75 * lengths[idx] / average))
-            if score:
-                scores.append((score * (2 if exact_title else 1), idx))
+            if score or exact_title:
+                scores.append(((score or 1) * (2 if exact_title else 1), idx))
         return [rows[idx] for _, idx in sorted(scores, reverse=True)[:limit]]
 
     def retrieve_context(self, user_query: str, top_k: int = 2) -> List[Dict[str, Any]]:
         """
-        Tìm kiếm các đoạn tài liệu y khoa phù hợp nhất với câu hỏi của người dùng.
-        - Ghi rõ distance_metric ("l2") và giá trị khoảng cách thô thực tế.
-        - Áp dụng ngưỡng chấp nhận tài liệu (acceptance_threshold).
+        Local BM25 by default, with optional vector search after lexical search.
+        No user-query cache, embedding download or external request is required
+        for the default path. A failed vector lookup cannot discard local hits.
         """
-        if not self.is_available():
+        if not isinstance(user_query, str) or not user_query.strip() or not self.is_available():
             return []
-
+        top_k = max(1, min(5, top_k)) if type(top_k) is int else 2
+        search_query = self.expand_query(user_query[:2000])
+        pool = min(self.collection.count(), top_k * 3)
+        by_text, ranks = {}, {}
+        # Index only the local source corpus, never store user messages/queries.
         try:
-            search_query = self.expand_query(user_query)
-
-            pool = min(self.collection.count(), max(1, top_k * 3))
-            results = self.collection.query(
-                query_texts=[search_query],
-                n_results=pool
-            )
-
-            retrieved_docs = []
-            if results and results.get("documents") and len(results["documents"][0]) > 0:
-                docs = results["documents"][0]
-                metas = results["metadatas"][0] if results.get("metadatas") else [{}] * len(docs)
-                distances = results["distances"][0] if results.get("distances") else [0.0] * len(docs)
-
-                for doc_text, meta, dist in zip(docs, metas, distances):
-                    dist_float = float(dist) if dist is not None else 1.0
-                    is_accepted = (dist_float <= self.acceptance_threshold)
-
-                    # Chỉ nạp tài liệu đạt tiêu chuẩn ngưỡng chấp nhận để tránh rác
-                    if is_accepted:
-                        retrieved_docs.append({
-                            "content": doc_text,
-                            "title": meta.get("title", "Tài liệu Y khoa"),
-                            "category": meta.get("category", "Y học Tổng quát"),
-                            "source": meta.get("source", "MedlinePlus Medical Encyclopedia"),
-                            "source_url": meta.get("source_url", "https://medlineplus.gov"),
-                            "distance": round(dist_float, 4),
-                            "distance_metric": "l2",
-                            "accepted": True
-                        })
-
-            ranks = {d["content"]: 1 / (60 + i) for i, d in enumerate(retrieved_docs, 1)}
-            by_text = {d["content"]: d for d in retrieved_docs}
             for rank, (content, meta) in enumerate(self._bm25_matches(search_query, pool), 1):
                 meta = meta or {}
-                ranks[content] = ranks.get(content, 0) + 1 / (60 + rank)
-                if content not in by_text:
+                ranks[content] = 1 / (60 + rank)
+                by_text[content] = dict(content=content, title=meta.get("title", ""),
+                    category=meta.get("category", ""), source=meta.get("source", ""),
+                    source_url=meta.get("source_url", ""), distance=None, distance_metric=None,
+                    accepted=True, retrieval="bm25")
+        except Exception as error:
+            logger.warning("Local reference lookup unavailable (%s).", type(error).__name__)
+
+        if self.vector_search_enabled:
+            try:
+                # Exactly one attempt. Operators enabling this path must have
+                # provisioned a compatible embedding model outside requests.
+                results = self.collection.query(query_texts=[search_query], n_results=pool)
+                docs = (results.get("documents") or [[]])[0]
+                metas = (results.get("metadatas") or [[]])[0]
+                distances = (results.get("distances") or [[]])[0]
+                for index, (content, distance) in enumerate(zip(docs, distances), 1):
+                    if not isinstance(content, str) or not content.strip() or distance is None:
+                        continue
+                    try:
+                        dist = float(distance)
+                    except (TypeError, ValueError, OverflowError):
+                        continue
+                    if not math.isfinite(dist) or not 0 <= dist <= self.acceptance_threshold:
+                        continue
+                    meta = metas[index - 1] if index <= len(metas) and isinstance(metas[index - 1], dict) else {}
+                    ranks[content] = ranks.get(content, 0) + 1 / (60 + index)
                     by_text[content] = dict(content=content, title=meta.get("title", ""),
                         category=meta.get("category", ""), source=meta.get("source", ""),
-                        source_url=meta.get("source_url", ""), distance=None, distance_metric=None,
-                        accepted=True, retrieval="bm25")
-            return [by_text[key] for key in sorted(ranks, key=ranks.get, reverse=True)[:top_k]]
-
-        except Exception as e:
-            print(f"⚠️ [RAG Service] Lỗi khi truy vấn tri thức y khoa: {e}")
-            return []
+                        source_url=meta.get("source_url", ""), distance=round(dist, 4), distance_metric="l2",
+                        accepted=True, retrieval="hybrid" if content in by_text else "vector")
+            except Exception as error:
+                logger.warning("Optional vector lookup unavailable (%s); keeping local matches.", type(error).__name__)
+        return [by_text[key] for key in sorted(ranks, key=ranks.get, reverse=True)[:top_k]]
 
 
 # Khởi tạo thể hiện Singleton dùng chung toàn ứng dụng

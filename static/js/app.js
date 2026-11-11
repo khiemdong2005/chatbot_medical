@@ -640,7 +640,7 @@ const translations = {
     history_demo_label: "Dữ liệu thử nghiệm:",
     history_demo_btn: "Xem thử ca tư vấn mẫu (Demo)",
     history_security: "Bảo mật dữ liệu cá nhân",
-    history_encrypted: "Cục bộ & Mã hóa",
+    history_encrypted: "Lịch sử trò chuyện cá nhân",
     assistant_header_title: "Trợ lý y tế MediMind",
     assistant_header_subtitle: "Đang trực tuyến • Tham khảo MedlinePlus và Dược thư",
     assistant_btn_summary: "Hồ sơ & Tóm tắt",
@@ -719,7 +719,7 @@ const translations = {
     disclaimer_footer_text: "⚠️ Dự án thử nghiệm công nghệ y tế phục vụ giáo dục • ",
     disclaimer_footer_btn: "Miễn trừ trách nhiệm",
     typing_vision: "Gemini Vision đang phân tích hình thái học...",
-    typing_guideline: "Đang đối soát phác đồ y khoa...",
+    typing_guideline: "Đang tìm tài liệu và chuẩn bị trả lời...",
     patient_label: "Vừa xong • Bệnh nhân",
     server_error: "Không thể kết nối đến máy chủ.",
     risk_safe: "An toàn",
@@ -1013,7 +1013,7 @@ const translations = {
     history_demo_label: "Demo dataset:",
     history_demo_btn: "View Demo Consultation Case",
     history_security: "Personal Data Privacy",
-    history_encrypted: "Local & Encrypted",
+    history_encrypted: "Personal chat history",
     assistant_header_title: "MediMind Medical Assistant",
     assistant_header_subtitle: "Online • MedlinePlus & Pharmacopoeia Reference",
     assistant_btn_summary: "Record & Summary",
@@ -1092,7 +1092,7 @@ const translations = {
     disclaimer_footer_text: "⚠️ Educational Health AI Prototype • ",
     disclaimer_footer_btn: "Medical Disclaimer",
     typing_vision: "Gemini Vision is analyzing morphology...",
-    typing_guideline: "Cross-referencing medical guidelines...",
+    typing_guideline: "Finding references and preparing a reply...",
     patient_label: "Just now • Patient",
     server_error: "Unable to connect to server.",
     risk_safe: "Safe",
@@ -1543,6 +1543,8 @@ function insertPrompt(text) {
 }
 
 function resetChat() {
+  cancelActiveChatRequest();
+  window.clearChatHealthContext?.();
   showFloatingDecorations();
   clearChatImagePreview();
   chatHistory.length = 0;
@@ -1598,8 +1600,108 @@ function resetChat() {
 // ==========================================
 let currentConversationId = null;
 let currentIntakeSummary = null;
+let activeChatRequest = null;
+
+function chatAccountKey() {
+  return String(currentUser?.id || currentUser?.username || 'guest');
+}
+
+function setChatSending(sending) {
+  document.querySelectorAll('#send-btn, #floating-chat-window button[onclick="sendFloatingChatMessage()"]')
+    .forEach(button => { button.disabled = sending; button.setAttribute('aria-busy', String(sending)); });
+  window.dispatchEvent(new CustomEvent('medimind:chat-busy', { detail: { busy: sending } }));
+}
+
+function beginChatRequest(typingId) {
+  if (activeChatRequest) return null;
+  const request = { controller: new AbortController(), conversationId: currentConversationId,
+    accountKey: chatAccountKey(), typingId, history: chatHistory.slice() };
+  activeChatRequest = request;
+  setChatSending(true);
+  return request;
+}
+
+function chatRequestIsCurrent(request) {
+  return activeChatRequest === request && request.accountKey === chatAccountKey()
+    && request.conversationId === currentConversationId;
+}
+
+function finishChatRequest(request) {
+  document.getElementById(request.typingId)?.remove();
+  if (activeChatRequest === request) { activeChatRequest = null; setChatSending(false); }
+}
+
+function cancelActiveChatRequest() {
+  const request = activeChatRequest;
+  if (!request) return;
+  activeChatRequest = null;
+  request.controller.abort();
+  document.getElementById(request.typingId)?.remove();
+  setChatSending(false);
+}
+
+function formatChatAnswer(text) {
+  return escapeHtml(String(text || '')).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+}
+
+function chatAnswerMetadata(data) {
+  const links = [], seen = new Set();
+  for (const source of (Array.isArray(data.sources) ? data.sources.slice(0, 8) : [])) {
+    try {
+      const url = new URL(source.url);
+      if (url.protocol !== 'https:' || url.username || url.password || seen.has(url.href)) continue;
+      seen.add(url.href);
+      links.push(`<a href="${escapeHtml(url.href)}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">${escapeHtml(source.title || source.source || url.hostname)} <span class="opacity-70">(${escapeHtml(url.hostname)})</span></a>`);
+    } catch (_) { /* Invalid source data never becomes a link. */ }
+  }
+  return `${data.degraded ? '<p role="status" class="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">Đang dùng phản hồi dự phòng vì AI chưa sẵn sàng; hãy kiểm tra lại thông tin trước khi áp dụng.</p>' : ''}${links.length ? `<div class="mt-3 border-t border-slate-200 pt-2 text-xs text-sky-700 dark:border-white/10 dark:text-sky-300"><span class="font-semibold">Nguồn tham khảo:</span> ${links.join(' · ')}</div>` : ''}`;
+}
+
+function chatAssistantTurn(data) {
+  return { role: 'assistant', content: data.answer, sources: Array.isArray(data.sources) ? data.sources : [],
+    degraded: Boolean(data.degraded), is_emergency: Boolean(data.is_emergency),
+    needs_red_flag_confirmation: Boolean(data.needs_red_flag_confirmation) };
+}
+
+function appendChatConfirmation(container, data, conversationId, floating = false) {
+  if (!data.needs_red_flag_confirmation || !container) return;
+  const expectedAnswer = data.answer ?? data.content;
+  const choices = document.createElement('div');
+  choices.className = 'flex gap-2';
+  for (const reply of (currentLang === 'en' ? ['Yes', 'No'] : ['Có', 'Không'])) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.textContent = reply;
+    button.className = 'rounded-lg border px-3 py-1.5 text-sm';
+    button.onclick = () => {
+      if (activeChatRequest || currentConversationId !== conversationId || chatHistory.at(-1)?.content !== expectedAnswer) return;
+      const input = document.getElementById(floating ? 'floating-user-input' : 'user-input');
+      if (!input) return;
+      input.value = reply; choices.remove();
+      if (floating) sendFloatingChatMessage(); else sendChatMessage();
+    };
+    choices.append(button);
+  }
+  container.append(choices);
+}
+
+function renderSharedChatInMain() {
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  container.innerHTML = chatHistory.filter(turn => ['user', 'assistant'].includes(turn.role)).map(turn => {
+    if (turn.role === 'user') {
+      const image = typeof turn.image === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,[a-z0-9+/=]+$/i.test(turn.image)
+        ? `<img src="${escapeHtml(turn.image)}" alt="Ảnh người dùng đã gửi" class="mb-2 max-w-[220px] max-h-[160px] rounded-xl object-cover">` : '';
+      return `<div class="flex justify-end my-1"><div class="max-w-[85%] rounded-2xl bg-sky-600 px-4 py-3 text-sm text-white">${image}${escapeHtml(turn.content).replace(/\n/g, '<br>')}</div></div>`;
+    }
+    return `<div class="flex justify-start my-1"><div class="max-w-[95%] rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-800 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100">${turn.is_emergency ? '<p class="mb-2 font-bold text-rose-600 dark:text-rose-300">Cần trợ giúp khẩn cấp: gọi 115 hoặc đến khoa Cấp cứu.</p>' : ''}${formatChatAnswer(turn.content)}${chatAnswerMetadata(turn)}</div></div>`;
+  }).join('');
+  appendChatConfirmation(container, chatHistory.at(-1) || {}, currentConversationId);
+  container.scrollTop = container.scrollHeight;
+}
 
 async function sendChatMessage() {
+  if (activeChatRequest) return;
   const input = document.getElementById('user-input');
   let text = input.value.trim();
   const currentImage = selectedChatImageBase64;
@@ -1678,6 +1780,7 @@ async function sendChatMessage() {
 
   container.insertAdjacentHTML('beforeend', typingHtml);
   container.scrollTop = container.scrollHeight;
+  const chatRequest = beginChatRequest(typingId);
 
   try {
     const sentConvId = currentConversationId;
@@ -1688,38 +1791,19 @@ async function sendChatMessage() {
       body: JSON.stringify({
         conversation_id: currentConversationId,
         message: text,
-        history: chatHistory,
+        history: chatRequest.history,
         image: currentImage,
-        lang: currentLang
-      })
+        lang: currentLang,
+        health_context: window.getChatHealthContext?.() || {}
+      }),
+      signal: chatRequest.controller.signal
     });
     const data = await chatRes.json();
 
     document.getElementById(typingId)?.remove();
 
     // KIỂM TRA ĐỐI SOÁT CUỘC TRÒ CHUYỆN (Tránh Race Condition khi người dùng chuyển cuộc chat)
-    if (sentConvId && currentConversationId !== sentConvId) {
-      console.warn(`[Chat] Bỏ qua cập nhật giao diện trực tiếp vì người dùng đã chuyển từ phiên '${sentConvId}' sang '${currentConversationId}'`);
-      const targetId = data.conversation_id || sentConvId;
-      let targetSession = chatSessions.find(s => s.id === targetId);
-      if (targetSession) {
-        if (!targetSession.messages) targetSession.messages = [];
-        if (data.answer) {
-          targetSession.messages.push({ role: 'assistant', content: data.answer });
-          targetSession.lastMessage = data.answer.slice(0, 75).replace(/\n/g, ' ');
-          targetSession.messageCount = targetSession.messages.length;
-        }
-        if (data.intake?.facts) targetSession.facts = data.intake.facts;
-        if (data.intake?.summary) targetSession.summary = data.intake.summary;
-        if (data.intake?.status) targetSession.status = data.intake.status;
-        if (data.risk_level) targetSession.riskLevel = data.risk_level;
-        if (data.risk_score !== undefined) targetSession.riskScore = data.risk_score;
-        if (data.is_emergency !== undefined) targetSession.isEmergency = data.is_emergency;
-        saveSessionsToStorage();
-        renderChatHistoryList();
-      }
-      return;
-    }
+    if (!chatRequestIsCurrent(chatRequest)) return;
 
     // Đồng bộ tức thời Intake Session và Tóm tắt trước khám từ kết quả phản hồi hợp nhất
     if (data && data.conversation_id) {
@@ -1735,7 +1819,7 @@ async function sendChatMessage() {
       }
     }
 
-    if (!data || data.error) {
+    if (!chatRes.ok || !data || data.error || typeof data.answer !== 'string') {
       appendErrorMessage(data?.error || dict.server_error);
       return;
     }
@@ -1789,40 +1873,27 @@ async function sendChatMessage() {
           ${emergencyBadge}
           ${visualFindingsHtml}
           <div class="text-slate-800 dark:text-slate-100 font-normal leading-relaxed">${formattedAnswer}</div>
+          ${chatAnswerMetadata(data)}
         </div>
       </div>
     `;
 
     container.insertAdjacentHTML('beforeend', botHtml);
-    if (data.needs_red_flag_confirmation) {
-      const choices = document.createElement('div');
-      choices.className = 'flex gap-2';
-      for (const reply of (currentLang === 'en' ? ['Yes', 'No'] : ['Có', 'Không'])) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = reply;
-        btn.className = 'rounded-lg border px-3 py-1.5 text-sm';
-        btn.onclick = () => {
-          if (currentConversationId !== sentConvId || chatHistory.at(-1)?.content !== data.answer) return;
-          input.value = reply;
-          choices.remove();
-          sendChatMessage();
-        };
-        choices.append(btn);
-      }
-      container.append(choices);
-    }
+    appendChatConfirmation(container, data, currentConversationId);
     container.scrollTop = container.scrollHeight;
 
     chatHistory.push({ role: 'user', content: text, image: currentImage });
-    chatHistory.push({ role: 'assistant', content: data.answer });
+    chatHistory.push(chatAssistantTurn(data));
 
     saveOrUpdateCurrentSession(text, data, data.intake);
-    if (data.history_saved === false) appendErrorMessage("Chưa lưu được lượt tư vấn này vào hồ sơ.");
+    if (typeof syncFloatingChatMessages === 'function') syncFloatingChatMessages();
+    if (data.history_saved === false) appendErrorMessage("Lượt chat này chưa được lưu vào lịch sử trên máy chủ.");
 
   } catch (err) {
     document.getElementById(typingId)?.remove();
-    appendErrorMessage(dict.server_error);
+    if (err.name !== 'AbortError' && chatRequestIsCurrent(chatRequest)) appendErrorMessage(dict.server_error);
+  } finally {
+    finishChatRequest(chatRequest);
   }
 }
 
@@ -3431,6 +3502,8 @@ async function handleLoginSubmit(e) {
 }
 
 async function handleLogout() {
+  cancelActiveChatRequest();
+  window.clearChatHealthContext?.();
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
   } catch (err) {
@@ -3856,13 +3929,14 @@ function syncFloatingChatMessages() {
       return `
         <div class="flex justify-start max-w-[90%] my-1">
           <div class="bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 p-3.5 rounded-2xl rounded-tl-xs text-xs text-slate-800 dark:text-slate-200 leading-relaxed shadow-sm">
-            ${formatted}
+            ${formatted}${chatAnswerMetadata(msg)}
           </div>
         </div>
       `;
     }
   }).join('');
 
+  appendChatConfirmation(container, chatHistory.at(-1) || {}, currentConversationId, true);
   container.scrollTop = container.scrollHeight;
 }
 
@@ -3909,7 +3983,7 @@ async function sendFloatingChatMessage() {
     <div id="${typingId}" class="flex justify-start max-w-[90%] my-1">
       <div class="glass-card border border-white/10 px-3 py-2 rounded-xl rounded-tl-xs text-xs text-slate-300 flex items-center space-x-1.5 shadow-md backdrop-blur-md bg-white/[0.05]">
         <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-        <span class="text-[11px] text-slate-300">Đang đối soát phác đồ...</span>
+        <span class="text-[11px] text-slate-300">Đang chuẩn bị câu trả lời...</span>
       </div>
     </div>
   `;
@@ -4254,13 +4328,36 @@ function renderOcrReview(draft, file) {
   const section = document.getElementById('prescription-result-section');
   section.replaceChildren();
   section.classList.remove('hidden');
+
+  const inputSec = document.getElementById('prescription-input-section');
+  const histSec = document.getElementById('prescription-history-section');
+  if (inputSec) inputSec.classList.add('hidden');
+  if (histSec) histSec.classList.add('hidden');
+
   const layout = document.createElement('div');
-  layout.className = 'grid gap-5 lg:grid-cols-2';
+  layout.className = 'grid gap-6 lg:grid-cols-12 items-start';
   section.append(layout);
+
+  const leftCol = document.createElement('div');
+  leftCol.className = 'lg:col-span-5 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-sm space-y-3';
+  layout.append(leftCol);
+
+  const leftHeader = document.createElement('div');
+  leftHeader.className = 'flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs text-slate-500 font-semibold';
+  leftHeader.innerHTML = `
+    <span class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+      <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+      Đối chiếu ảnh phiếu gốc
+    </span>
+    <span class="text-[10px] text-sky-600 font-mono">Bấm vào ô để xem vị trí chữ</span>
+  `;
+  leftCol.append(leftHeader);
+
   const canvas = document.createElement('canvas');
-  canvas.className = 'w-full h-auto self-start border rounded-xl';
-  canvas.setAttribute('aria-label', 'Ảnh gốc và vùng chữ OCR nhận diện');
-  layout.append(canvas);
+  canvas.className = 'w-full h-auto self-start border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800';
+  canvas.setAttribute('aria-label', 'Ảnh gốc và vùng chữ nhận diện');
+  leftCol.append(canvas);
+
   const image = new Image();
   const url = URL.createObjectURL(file);
   function draw(value = '') {
@@ -4274,63 +4371,130 @@ function renderOcrReview(draft, file) {
       ctx.beginPath();
       box.points.forEach(([x,y], i) => i ? ctx.lineTo(x * canvas.width, y * canvas.height) : ctx.moveTo(x * canvas.width, y * canvas.height));
       ctx.closePath();
-      ctx.strokeStyle = matches.length === 1 ? '#b45309' : 'rgba(3,105,161,.45)';
-      ctx.lineWidth = matches.length === 1 ? 4 : 1;
+      ctx.strokeStyle = matches.length === 1 ? '#0284c7' : 'rgba(2,132,199,.45)';
+      ctx.lineWidth = matches.length === 1 ? 3 : 1.5;
       ctx.stroke();
     }
   }
   image.onload = () => { draw(); URL.revokeObjectURL(url); };
   image.onerror = () => { URL.revokeObjectURL(url); canvas.replaceWith(document.createTextNode('Đối chiếu với tệp gốc trên thiết bị.')); };
   image.src = url;
+
   const form = document.createElement('form');
-  form.className = 'space-y-3';
+  form.className = 'lg:col-span-7 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4';
   layout.append(form);
-  const heading = document.createElement('h3');
-  heading.textContent = 'Đối chiếu với phiếu gốc trước khi lưu';
+
+  const heading = document.createElement('div');
+  heading.className = 'flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800';
+  heading.innerHTML = `
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">Đối chiếu thông tin trích xuất</h3>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">Kiểm tra thông tin trên phiếu trước khi lưu vào hồ sơ</p>
+      </div>
+    </div>
+    <span class="text-[10px] font-bold bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 px-2.5 py-0.5 rounded-full">
+      Chờ xác nhận
+    </span>
+  `;
   form.append(heading);
-  const labels = {patient_name:'Người bệnh', dob:'Ngày sinh', doctor:'Bác sĩ', facility:'Cơ sở', date:'Ngày trên phiếu', diagnosis:'Chẩn đoán ghi trên phiếu', name:'Tên thuốc', strength:'Hàm lượng', dose:'Liều mỗi lần', frequency:'Tần suất', days:'Thời gian / số lượng', usage:'Cách dùng', test_name:'Tên xét nghiệm', result:'Kết quả', unit:'Đơn vị', reference_range:'Khoảng tham chiếu', flag_on_paper:'Cờ trên phiếu'};
+
+  const labels = {patient_name:'Người bệnh', dob:'Ngày sinh', doctor:'Bác sĩ', facility:'Cơ sở khám', date:'Ngày trên phiếu', diagnosis:'Chẩn đoán ghi trên phiếu', name:'Tên thuốc', strength:'Hàm lượng', dose:'Liều mỗi lần', frequency:'Tần suất', days:'Thời gian / số lượng', usage:'Cách dùng', test_name:'Tên xét nghiệm', result:'Kết quả', unit:'Đơn vị', reference_range:'Khoảng tham chiếu', flag_on_paper:'Cờ trên phiếu'};
   function field(parent, key, value, required = false) {
     const label = document.createElement('label');
-    label.className = 'block text-sm';
+    label.className = 'block text-[11px] font-semibold text-slate-600 dark:text-slate-400 space-y-1';
     label.textContent = labels[key];
     const input = document.createElement('input');
     input.name = key;
     input.value = value || '';
     input.required = required;
     input.maxLength = 2000;
-    input.className = 'block w-full rounded border px-2 py-1 text-slate-900 bg-white';
+    input.className = 'block w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
     input.onfocus = () => draw(input.value);
     label.append(input);
     parent.append(label);
   }
+
+  const headerTitle = document.createElement('div');
+  headerTitle.className = 'text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide';
+  headerTitle.textContent = 'Thông tin hành chính & chẩn đoán';
+  form.append(headerTitle);
+
   const header = document.createElement('fieldset');
+  header.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-100 dark:border-slate-800';
   form.append(header);
   for (const key of ['patient_name','dob','doctor','facility','date','diagnosis']) field(header,key,draft.data[key]);
+
   const key = draft.doc_type === 'lab_test' ? 'metrics' : 'medications';
   const keys = key === 'metrics' ? ['test_name','result','unit','reference_range','flag_on_paper'] : ['name','strength','dose','frequency','days','usage'];
+
+  const rowsTitle = document.createElement('div');
+  rowsTitle.className = 'text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide pt-1';
+  rowsTitle.textContent = draft.doc_type === 'lab_test' ? 'Danh mục chỉ số xét nghiệm' : 'Danh mục thuốc trong toa';
+  form.append(rowsTitle);
+
   const rows = document.createElement('div');
+  rows.className = 'space-y-3';
   form.append(rows);
-  function button(parent, text, action) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'rounded border px-3 py-2 text-sm';
-    btn.textContent = text;
-    btn.onclick = action;
-    parent.append(btn);
-    return btn;
-  }
-  function addRow(data) {
+
+  function addRow(data, index = 0) {
     const row = document.createElement('fieldset');
-    row.className = 'my-3 rounded-xl border p-3';
+    row.className = 'rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 p-3.5 space-y-2.5';
     rows.append(row);
-    for (const k of keys) field(row,k,data[k],k === keys[0]);
-    button(row,'Xóa dòng',() => row.remove());
+    const rowHeader = document.createElement('div');
+    rowHeader.className = 'flex items-center justify-between pb-1 text-xs font-bold text-slate-700 dark:text-slate-300';
+    rowHeader.innerHTML = `
+      <span class="inline-flex items-center gap-1.5">
+        <span class="w-5 h-5 rounded-md bg-sky-600 text-white flex items-center justify-center text-[10px] font-mono">#</span>
+        Mục trích xuất
+      </span>
+    `;
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'text-[11px] text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer';
+    delBtn.textContent = 'Xóa mục này';
+    delBtn.onclick = () => row.remove();
+    rowHeader.append(delBtn);
+    row.append(rowHeader);
+
+    const rowGrid = document.createElement('div');
+    rowGrid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5';
+    row.append(rowGrid);
+    for (const k of keys) field(rowGrid,k,data[k],k === keys[0]);
   }
-  (draft.data[key].length ? draft.data[key] : [{}]).forEach(addRow);
-  button(form,'Thêm dòng',() => addRow({}));
-  button(form,'Hủy',resetPrescriptionScan);
-  const save = button(form,'Xác nhận đúng thông tin trên phiếu và lưu',null);
+  (draft.data[key].length ? draft.data[key] : [{}]).forEach((item, i) => addRow(item, i + 1));
+
+  const actions = document.createElement('div');
+  actions.className = 'flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800';
+  form.append(actions);
+
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold transition-all cursor-pointer';
+  addBtn.textContent = '+ Thêm dòng';
+  addBtn.onclick = () => addRow({});
+  actions.append(addBtn);
+
+  const rightActions = document.createElement('div');
+  rightActions.className = 'flex items-center gap-2';
+  actions.append(rightActions);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className = 'px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 text-xs font-semibold transition-all cursor-pointer';
+  cancelBtn.textContent = 'Hủy bỏ';
+  cancelBtn.onclick = resetPrescriptionScan;
+  rightActions.append(cancelBtn);
+
+  const save = document.createElement('button');
   save.type = 'submit';
+  save.className = 'px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm shadow-sky-500/20 transition-all cursor-pointer';
+  save.textContent = 'Xác nhận thông tin & Lưu';
+  rightActions.append(save);
+
   const values = group => Object.fromEntries(Array.from(group.querySelectorAll('input'), input => [input.name,input.value]));
   form.onsubmit = async event => {
     event.preventDefault();
@@ -4596,51 +4760,52 @@ async function loadPrescriptionHistory() {
         listEl.innerHTML = history.map(item => {
           const isLab = item.doc_type === 'lab_test';
           const badgeType = isLab 
-            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">🔬 Phiếu Xét Nghiệm</span>'
-            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">💊 Đơn Thuốc</span>';
+            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1"><svg class="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>Phiếu Xét Nghiệm</span>'
+            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc</span>';
 
           const iconSvg = isLab
-            ? `<svg class="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
-            : `<svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+            ? `<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
+            : `<svg class="w-5 h-5 text-sky-600 dark:text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
 
           const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Theo dõi & Điều trị theo chỉ định';
           const facility = item.facility && item.facility !== 'Cơ sở Y tế' ? item.facility : 'Cơ sở Y tế';
 
           return `
-            <div class="glass-card p-4 rounded-2xl border border-white/10 hover:border-teal-400/40 bg-white/[0.04] transition-all space-y-2.5">
+            <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-sky-400/50 bg-white dark:bg-slate-900/90 shadow-xs transition-all space-y-2.5">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-start gap-3">
-                  <div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-500/20 border-purple-400/30' : 'bg-teal-500/20 border-teal-400/30'} border flex items-center justify-center shrink-0 mt-0.5">
+                  <div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800'} border flex items-center justify-center shrink-0 mt-0.5">
                     ${iconSvg}
                   </div>
                   <div class="space-y-1">
                     <div class="flex flex-wrap items-center gap-2">
                       ${badgeType}
-                      <span class="text-[11px] text-slate-300 font-mono flex items-center gap-1">
+                      <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         ${escapeHtml(item.uploaded_at || 'Vừa xong')}
                       </span>
                       <span class="text-[10px] text-slate-400 font-mono">#MED-${item.id}</span>
                     </div>
                     
-                    <h4 class="text-sm font-bold text-white leading-snug">
-                      <span class="text-slate-400 font-normal">Chẩn đoán / Bệnh:</span> 
-                      <span class="text-emerald-300 font-bold">${escapeHtml(diag)}</span>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+                      <span class="text-slate-500 dark:text-slate-400 font-normal">Chẩn đoán / Bệnh:</span>
+                      <span class="text-sky-700 dark:text-sky-400 font-bold">${escapeHtml(diag)}</span>
                     </h4>
 
-                    <div class="text-xs text-slate-300 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <div class="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1">
                       <span class="flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         ${escapeHtml(facility)}
                       </span>
-                      ${item.doctor ? `<span class="text-slate-400">• BS: <strong class="text-slate-200">${escapeHtml(item.doctor)}</strong></span>` : ''}
-                      ${item.patient_name ? `<span class="text-slate-400">• BN: <strong class="text-slate-200">${escapeHtml(item.patient_name)}</strong></span>` : ''}
+                      ${item.doctor ? `<span class="text-slate-400">• BS: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(item.doctor)}</strong></span>` : ''}
+                      ${item.patient_name ? `<span class="text-slate-400">• BN: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(item.patient_name)}</strong></span>` : ''}
                     </div>
 
                     ${item.summary ? `
                       <div class="pt-1">
-                        <span class="text-[11px] px-2.5 py-1 rounded-lg bg-teal-950/40 text-teal-200 border border-teal-500/25 inline-flex items-center gap-1.5 font-medium">
-                          <span>📋</span> ${escapeHtml(item.summary)}
+                        <span class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1.5 font-medium">
+                          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                          ${escapeHtml(item.summary)}
                         </span>
                       </div>
                     ` : ''}
@@ -4648,11 +4813,11 @@ async function loadPrescriptionHistory() {
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0">
-                  <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-sky-600 hover:from-teal-400 hover:to-sky-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:scale-102">
+                  <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>Xem lại đơn</span>
                   </button>
-                  <button type="button" onclick="deletePrescriptionHistoryItem(${item.id}, event)" class="p-2 rounded-xl glass-pill text-slate-400 hover:text-rose-400 hover:border-rose-400/40 transition-all cursor-pointer" title="Xóa khỏi lịch sử">
+                  <button type="button" onclick="deletePrescriptionHistoryItem(${item.id}, event)" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-500 hover:border-rose-300 dark:hover:border-rose-800 transition-all cursor-pointer" title="Xóa khỏi lịch sử">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   </button>
                 </div>
@@ -4829,16 +4994,18 @@ function renderPrescriptionResult(data) {
         <!-- TOP TOOLBAR -->
         <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
           <div class="flex flex-wrap items-center gap-2.5">
-            <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
-              🔬 PHÂN LOẠI: PHIẾU XÉT NGHIỆM
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold tracking-wide shadow-xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              PHÂN LOẠI: PHIẾU XÉT NGHIỆM
             </span>
-            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-              📄 ${fileName} <span class="text-slate-400 font-mono">(${scanAcc}% Tin cậy)</span>
+            <span class="text-xs text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              ${fileName} <span class="text-slate-400 font-mono">(${scanAcc}% Tin cậy)</span>
             </span>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
-            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-900 hover:bg-sky-950 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
+            <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
+            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
           </div>
         </div>
 
@@ -4894,21 +5061,21 @@ function renderPrescriptionResult(data) {
 
           <!-- SIDEBAR COPILOT -->
           <div class="space-y-4">
-            <div class="bg-sky-950 text-white rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-lg bg-sky-900 flex items-center justify-center text-sky-200">
+                  <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                   </div>
                   <div>
-                    <h4 class="text-xs font-bold leading-tight">Cố vấn Lâm sàng MediMind</h4>
-                    <span class="text-[10px] text-sky-300">Chuyên trách Hướng dẫn Lâm sàng</span>
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white leading-tight">Cố vấn Lâm sàng MediMind</h4>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400">Chuyên trách Hướng dẫn Lâm sàng</span>
                   </div>
                 </div>
-                <span class="text-[9px] bg-sky-700 text-sky-100 font-bold px-2 py-0.5 rounded-full">Active</span>
+                <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">Active</span>
               </div>
-              <div class="text-xs text-sky-50 space-y-2 pt-2 border-t border-sky-900/80 leading-relaxed">
-                ${data.interpretation ? `<div class="prose prose-invert prose-xs">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
+              <div class="text-xs text-slate-700 dark:text-slate-200 space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
+                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
               </div>
             </div>
           </div>
@@ -4974,15 +5141,16 @@ function renderPrescriptionResult(data) {
   let html = `
     <div class="space-y-5 font-sans select-none text-slate-800 dark:text-slate-100">
 
-      <!-- 1. TOP STATUS BAR (Ảnh mẫu: Phân loại đơn thuốc bản gốc) -->
+      <!-- 1. TOP STATUS BAR (Phân loại đơn thuốc bản gốc) -->
       <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
         <div class="flex flex-wrap items-center gap-2.5">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold tracking-wide shadow-xs">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC
           </span>
           <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
-            📄 ${fileName} <span class="text-slate-400 font-mono font-normal">(${scanAcc}% Scan OCR)</span>
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            ${fileName} <span class="text-slate-400 font-mono font-normal">(${scanAcc}% Scan OCR)</span>
           </span>
           <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
             ✓ Đã trích xuất dữ liệu an toàn
@@ -4990,11 +5158,12 @@ function renderPrescriptionResult(data) {
         </div>
 
         <div class="flex items-center gap-2">
-          <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs cursor-pointer">
+          <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer">
             Export Summary PDF
           </button>
-<button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
-            <span>📋 Xem Lịch sử / Quét thêm</span>
+          <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span>Xem Lịch sử / Quét thêm</span>
           </button>
         </div>
       </div>
@@ -5067,41 +5236,41 @@ function renderPrescriptionResult(data) {
 
         </div>
 
-        <!-- CỘT PHẢI (4/12): CỐ VẤN LÂM SÀNG MEDIMIND THIẾT KẾ COMPACT TIẾT KIỆM KHÔNG GIAN -->
-        <div class="lg:col-span-4 bg-sky-950 text-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div class="flex items-center justify-between pb-2 border-b border-sky-900">
-            <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-sky-900 flex items-center justify-center text-sky-200 border border-sky-700">
-                <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <!-- CỘT PHẢI (4/12): CỐ VẤN LÂM SÀNG MEDIMIND -->
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
               </div>
               <div>
-                <h4 class="text-xs font-black tracking-tight leading-tight">Cố vấn Lâm sàng MediMind</h4>
-                <p class="text-[9px] text-sky-300">Hướng dẫn đơn thuốc</p>
+                <h4 class="text-xs font-black text-slate-900 dark:text-white tracking-tight leading-tight">Cố vấn Lâm sàng MediMind</h4>
+                <p class="text-[9px] text-slate-500 dark:text-slate-400">Hướng dẫn đơn thuốc</p>
               </div>
             </div>
-            <span class="text-[9px] font-bold bg-sky-900 text-sky-200 border border-sky-700 px-2 py-0.2 rounded-full">
+            <span class="text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 rounded-full">
               Active
             </span>
           </div>
 
-          <div class="space-y-1.5 text-xs text-sky-50">
-            <div class="bg-sky-900/60 border border-sky-700/60 p-2 rounded-lg flex items-start gap-2">
-              <span class="text-sky-300 font-bold text-[11px] shrink-0">1.</span>
-              <p class="text-[11px] leading-tight opacity-90"><strong class="text-sky-200">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
+          <div class="space-y-2 text-xs">
+            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 p-2.5 rounded-xl flex items-start gap-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sky-600 dark:text-sky-400 font-bold text-[11px] shrink-0">1.</span>
+              <p class="text-[11px] leading-tight"><strong class="text-slate-900 dark:text-white font-bold">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
             </div>
-            <div class="bg-sky-900/60 border border-sky-700/60 p-2 rounded-lg flex items-start gap-2">
-              <span class="text-sky-300 font-bold text-[11px] shrink-0">2.</span>
-              <p class="text-[11px] leading-tight opacity-90"><strong class="text-sky-200">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
+            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 p-2.5 rounded-xl flex items-start gap-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sky-600 dark:text-sky-400 font-bold text-[11px] shrink-0">2.</span>
+              <p class="text-[11px] leading-tight"><strong class="text-slate-900 dark:text-white font-bold">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
             </div>
           </div>
 
-          <button onclick="askBotAboutPrescription()" class="w-full py-2 rounded-xl bg-sky-900 hover:bg-sky-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-sky-700 cursor-pointer">
-            <svg class="w-3.5 h-3.5 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <button onclick="askBotAboutPrescription()" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm shadow-sky-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
-            <span>Hỏi Bác sĩ AI</span>
+            <span>Tư vấn đơn thuốc</span>
           </button>
         </div>
 
@@ -5134,7 +5303,7 @@ function renderPrescriptionResult(data) {
           </div>
 
           <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium px-2 flex items-center gap-2">
-            <span>⏱️ Điều trị: <strong>${duration}</strong> liên tục</span>
+            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Điều trị: <strong>${duration}</strong> liên tục</span>
             <span class="text-sky-900 font-bold bg-sky-50 dark:bg-sky-500/10 border border-sky-200 px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
               ✓ Khớp chuẩn ICD-10
             </span>
@@ -5163,13 +5332,13 @@ function renderPrescriptionResult(data) {
                 <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
                   <div class="flex items-start justify-between gap-3">
                     <div class="flex items-start gap-3.5">
-                      <div class="w-8 h-8 rounded-lg bg-sky-900 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-2xs">
+                      <div class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-xs">
                         ${numStr}
                       </div>
                       <div>
                         <div class="flex flex-wrap items-center gap-2">
                           <h5 class="text-sm font-black text-slate-900 dark:text-white">${m.standard_name || m.name} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
-                          <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-sky-100 text-sky-950 border border-sky-300 shadow-2xs">
+                          <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                             ${m.purpose || m.category || 'Thuốc đặc trị'}
                           </span>
                         </div>
@@ -5193,8 +5362,9 @@ function renderPrescriptionResult(data) {
                       <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
                       <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-700 hover:text-sky-950 underline font-bold shrink-0 cursor-pointer">
-                      Hỏi AI →
+                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                      <span>Tư vấn thuốc</span>
+                      <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                   </div>
                 </div>
@@ -5252,7 +5422,7 @@ function renderPrescriptionResult(data) {
       <!-- 4. BOTTOM BAR ACTIONS -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div class="flex items-center gap-2">
-          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-sky-900 hover:bg-sky-950 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer">
+          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-sm shadow-sky-500/20 flex items-center gap-2 cursor-pointer">
             <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             <span>Bật nhắc nhở uống thuốc định kỳ</span>
           </button>
@@ -5928,12 +6098,15 @@ function saveOrUpdateCurrentSession(lastUserText, triageData, intakeData) {
   const facts = intakeData?.facts || session?.facts || {};
   const summary = intakeData?.summary || session?.summary || currentIntakeSummary || null;
   const status = intakeData?.status || session?.status || 'collecting';
-  const riskLevel = triageData?.risk_level || session?.riskLevel || 'Theo dõi & Chăm sóc';
-  const riskScore = triageData?.risk_score ?? session?.riskScore ?? 25;
+  const riskScore = triageData && Object.prototype.hasOwnProperty.call(triageData, 'risk_score')
+    ? triageData.risk_score : session?.riskScore ?? null;
+  const riskLevel = triageData?.risk_level || session?.riskLevel || 'Chưa đủ thông tin';
   const isEmergency = triageData?.is_emergency ?? session?.isEmergency ?? false;
 
   let riskBadgeClass = 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
-  if (isEmergency || riskScore >= 70) {
+  if (riskScore == null && !isEmergency) {
+    riskBadgeClass = 'bg-slate-100 text-slate-600 border border-slate-300 dark:bg-slate-800 dark:text-slate-300';
+  } else if (isEmergency || riskScore >= 70) {
     riskBadgeClass = 'bg-rose-500/20 text-rose-300 border border-rose-400/30';
   } else if (riskScore >= 35) {
     riskBadgeClass = 'bg-amber-500/20 text-amber-300 border border-amber-400/30';
@@ -6030,6 +6203,8 @@ function renderChatHistoryList(filterQuery = '') {
 function loadSession(sessionId) {
   const session = chatSessions.find(s => s.id === sessionId);
   if (!session) return;
+  cancelActiveChatRequest();
+  window.clearChatHealthContext?.();
 
   currentConversationId = session.id;
   currentIntakeSummary = session.summary || null;
@@ -6070,7 +6245,7 @@ function loadSession(sessionId) {
         const botHtml = `
           <div class="flex justify-start max-w-[95%] sm:max-w-xl">
             <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
-              <div class="text-slate-200 font-normal leading-relaxed">${formattedAnswer}</div>
+        <div class="text-slate-800 dark:text-slate-200 font-normal leading-relaxed">${formattedAnswer}${chatAnswerMetadata(msg)}</div>
             </div>
           </div>
         `;
@@ -6085,11 +6260,13 @@ function loadSession(sessionId) {
   }
 
   updateTriagePanel({
-    risk_score: session.riskScore || 25,
-    risk_level: session.riskLevel || 'Theo dõi & Chăm sóc',
+    risk_score: session.riskScore ?? null,
+    risk_level: session.riskLevel || 'Chưa đủ thông tin',
     is_emergency: session.isEmergency || false
   });
 
+  appendChatConfirmation(container, chatHistory.at(-1) || {}, currentConversationId);
+  if (typeof syncFloatingChatMessages === 'function') syncFloatingChatMessages();
   renderChatHistoryList();
 }
 
@@ -6100,9 +6277,17 @@ function startFreshChatForCurrentUser() {
   resetChat();
 }
 
-function deleteSession(sessionId) {
-  const idx = chatSessions.findIndex(s => s.id === sessionId);
-  if (idx !== -1) {
+const deletingChatSessions = new Set();
+async function deleteSession(sessionId) {
+  if (!chatSessions.some(s => s.id === sessionId) || deletingChatSessions.has(sessionId)) return;
+  const accountKey = chatAccountKey();
+  deletingChatSessions.add(sessionId);
+  try {
+    const response = await fetch('/api/intake/session/' + encodeURIComponent(sessionId), { method: 'DELETE' });
+    if (!response.ok && response.status !== 404) throw new Error('delete_failed');
+    if (chatAccountKey() !== accountKey) return;
+    const idx = chatSessions.findIndex(s => s.id === sessionId);
+    if (idx < 0) return;
     chatSessions.splice(idx, 1);
     saveSessionsToStorage();
     if (currentConversationId === sessionId) {
@@ -6111,6 +6296,10 @@ function deleteSession(sessionId) {
       renderChatHistoryList();
     }
     showMedicalToast('Đã xóa phiên tư vấn khỏi lịch sử.', 'info', 2500);
+  } catch (_) {
+    if (chatAccountKey() === accountKey) showMedicalToast('Chưa xóa được hội thoại trên máy chủ. Lịch sử vẫn được giữ để bạn thử lại.', 'error', 4500);
+  } finally {
+    deletingChatSessions.delete(sessionId);
   }
 }
 
@@ -6136,8 +6325,8 @@ async function syncServerConsultations() {
               { role: 'user', content: c.message },
               { role: 'assistant', content: c.answer }
             ],
-            riskLevel: c.risk_level || 'Theo dõi tại nhà',
-            riskScore: c.risk_score || 30
+            riskLevel: c.risk_level || 'Chưa đủ thông tin',
+            riskScore: c.risk_score ?? null
           });
         }
       });
@@ -7500,8 +7689,8 @@ function updateEhrTabUI() {
           </h4>
           <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed font-normal">
             ${currentLang === 'en'
-              ? 'Personal health records are encrypted and protected by medical privacy standards. Please sign in to save your AI consultation history, lab tests, and clinical treatment plans.'
-              : 'Hồ sơ bệnh án cá nhân được mã hóa an toàn theo tiêu chuẩn bảo vệ dữ liệu y tế. Vui lòng đăng nhập để lưu trữ lịch sử tư vấn AI, quản lý đơn thuốc và phác đồ điều trị.'}
+              ? 'Sign in to view the summaries you reviewed and chose to save. These self-reported summaries do not replace a medical record from a healthcare provider.'
+              : 'Đăng nhập để xem các bản tóm tắt bạn đã xem lại và chủ động lưu. Thông tin tự khai này không thay thế bệnh án của cơ sở y tế.'}
           </p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-3 pt-3">
@@ -8012,10 +8201,11 @@ function sendQuickFloatingPrompt(text) {
 async function sendFloatingChatMessage() {
   const input = document.getElementById('floating-user-input');
   const msgContainer = document.getElementById('floating-chat-messages');
-  if (!input || !msgContainer) return;
+  if (!input || !msgContainer || activeChatRequest) return;
 
   const text = input.value.trim();
   if (!text) return;
+  currentConversationId ||= crypto.randomUUID();
 
   // Render user bubble
   const userBubble = document.createElement('div');
@@ -8042,29 +8232,35 @@ async function sendFloatingChatMessage() {
   `;
   msgContainer.appendChild(typingIndicator);
   msgContainer.scrollTop = msgContainer.scrollHeight;
+  const chatRequest = beginChatRequest(typingId);
 
   try {
-    currentConversationId ||= crypto.randomUUID();
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conversation_id: currentConversationId,
-        history: chatHistory,
+        history: chatRequest.history,
         message: text,
         lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
-        user_name: currentUser ? (currentUser.first_name || currentUser.name || 'Bệnh nhân') : 'Bệnh nhân'
-      })
+        health_context: window.getChatHealthContext?.() || {}
+      }),
+      signal: chatRequest.controller.signal
     });
     const data = await res.json();
     document.getElementById(typingId)?.remove();
+    if (!chatRequestIsCurrent(chatRequest)) return;
 
     if (res.ok && data.answer) {
-      chatHistory.push({role: 'user', content: text}, {role: 'assistant', content: data.answer});
+      if (data.conversation_id) currentConversationId = data.conversation_id;
+      chatHistory.push({role: 'user', content: text}, chatAssistantTurn(data));
       saveOrUpdateCurrentSession(text, data, data.intake);
       if (data.intake) updateLiveIntakeCard(data.intake.facts, data.intake.status, data.intake.summary);
+      if (data.intake?.summary) currentIntakeSummary = data.intake.summary;
+      updateTriagePanel(data);
+      renderSharedChatInMain();
     }
-    const rawReply = data.answer || data.reply || data.response || data.error || 'Hệ thống đã ghi nhận thông tin của bạn.';
+    const rawReply = (res.ok && typeof data.answer === 'string' ? data.answer : data.error) || 'Không nhận được phản hồi hợp lệ. Bạn có thể thử gửi lại.';
     const safeReply = escapeHtml(String(rawReply))
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
@@ -8074,12 +8270,16 @@ async function sendFloatingChatMessage() {
     botBubble.innerHTML = `
       <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs border floating-welcome-bubble text-xs leading-relaxed shadow-xs">
         ${safeReply}
+        ${data.is_emergency ? '<p class="mt-2 font-bold text-rose-600 dark:text-rose-300">Cần trợ giúp khẩn cấp: gọi 115 hoặc đến khoa Cấp cứu.</p>' : ''}
+        ${chatAnswerMetadata(data)}
       </div>
     `;
     msgContainer.appendChild(botBubble);
+    appendChatConfirmation(msgContainer, data, currentConversationId, true);
     msgContainer.scrollTop = msgContainer.scrollHeight;
   } catch (err) {
     document.getElementById(typingId)?.remove();
+    if (err.name === 'AbortError' || !chatRequestIsCurrent(chatRequest)) return;
     const errBubble = document.createElement('div');
     errBubble.className = 'flex justify-start';
     errBubble.innerHTML = `
@@ -8089,6 +8289,8 @@ async function sendFloatingChatMessage() {
     `;
     msgContainer.appendChild(errBubble);
     msgContainer.scrollTop = msgContainer.scrollHeight;
+  } finally {
+    finishChatRequest(chatRequest);
   }
 }
 
