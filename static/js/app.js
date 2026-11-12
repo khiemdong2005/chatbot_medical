@@ -987,6 +987,18 @@ function switchTab(tabId) {
     activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
   }
 
+  // Đảm bảo Google Map / Leaflet cập nhật kích thước chuẩn xác khi mở Tab Cơ sở y tế
+  if (tabId === 'booking-tab') {
+    setTimeout(() => {
+      if (typeof gMap !== 'undefined' && gMap && window.google) {
+        google.maps.event.trigger(gMap, 'resize');
+      }
+      if (typeof leafletMap !== 'undefined' && leafletMap) {
+        leafletMap.invalidateSize();
+      }
+    }, 150);
+  }
+
   // Floating Chatbox: Show on all tabs except Trợ lý sức khỏe (chat-tab)
   const floatingChat = document.getElementById('floating-chat-container');
   if (floatingChat) {
