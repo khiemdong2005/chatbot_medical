@@ -1,0 +1,42 @@
+{
+  "frozen_at_utc": "2026-11-12T11:50:07.333683+00:00",
+  "phase": "2.1 - LLM Answer Quality Evaluation",
+  "dataset_version": "v1.0 - 50 curated clinical cases (25 VI, 25 EN)",
+  "model": "gemini-flash-lite-latest",
+  "temperature": 0.25,
+  "max_output_tokens": 2400,
+  "response_mime_type": "application/json",
+  "system_prompt_sha256": "2179e5c16b6e96679202e588170dbf0a5f9ec378972c1e099b4e0f8e42ac1988",
+  "retrieval_config": {
+    "retriever": "medical_rag_service.retrieve_context",
+    "top_k": 2,
+    "max_reference_documents": 4,
+    "vector_search_enabled": false,
+    "reranker_enabled": false
+  },
+  "safety_guardrails": {
+    "emergency_precheck": "assess_emergency_risk",
+    "postcheck": "apply_safety_guardrails",
+    "antibiotic_guard": "true",
+    "max_history_items": 20,
+    "max_message_length": 2000
+  },
+  "files_sha256": {
+    "core/chat_service.py": "bf81e16a11747b77823fabe72ec6164bcabee5025e14ec385b30029ec0381310",
+    "core/gemini_service.py": "393262dc3020848f48c7b71900178d152e640daa54221d510c7d9731f9f26880",
+    "core/prompts.py": "c4078c86b41e114e237935856a0d874fdf97a93a110310c0f71a2993a0d6912d",
+    "core/rag_service.py": "61cce3fd857f34b059b6f3f7b6fb6d4a4443bbfc15c35d2aca7e25eeef004afa",
+    "core/triage.py": "ebd80cf78bf0e1458308a0c0346d01989dcb46223831c56b1ab8c76c29331ff7",
+    "core/observability.py": null,
+    "evaluation/answer_eval_dataset.json": "a8b3793e513b0c702f87eab57053936d4bf2d807154e8e978a10894e5bd6bfad"
+  },
+  "auth_status": {
+    "gemini_api_key_configured": false,
+    "last_auth_probe": "ClientError 401 UNAUTHENTICATED (ACCESS_TOKEN_TYPE_UNSUPPORTED)"
+  },
+  "notes": [
+    "Generation pipeline is strictly frozen for Phase 2.1 evaluation.",
+    "No prompt modifications, model switching, or safety rule loosening are permitted.",
+    "If Gemini authentication fails, report BLOCKED_BY_MODEL_AUTHENTICATION and do not fabricate answers."
+  ]
+}

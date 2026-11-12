@@ -140,6 +140,16 @@ python app.py
 ```
 Mở trình duyệt web và truy cập: **`http://localhost:8000`** hoặc **`http://127.0.0.1:8000`**.
 
+Các điểm chạy bổ sung sau khi sắp xếp thư mục:
+
+```bash
+# FastAPI gateway (nếu cần)
+python -m core.main_fastapi
+
+# Nạp lại corpus RAG: chỉ chạy khi chủ động muốn tạo phiên bản chỉ mục mới
+python -m scripts.ingest
+```
+
 ---
 
 ## ⚖️ 7. Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)

@@ -475,7 +475,7 @@ const translations = {
     home_hero_title_sub: "thông minh mỗi ngày",
     home_hero_desc: "Trò chuyện với MediMind AI để hiểu sơ bộ về triệu chứng, giải thích thuật ngữ y khoa và tra cứu hồ sơ khám bệnh ở một nơi duy nhất.",
     home_btn_chat: "Trò chuyện với trợ lý",
-    home_btn_record: "Thử thách sống khỏe",
+    home_btn_record: "Khám phá món ăn",
     home_badge_security: "Thông tin được bảo mật",
     home_badge_history: "Lưu lịch sử trò chuyện",
     home_feat1_title: "Hỏi đáp triệu chứng",
@@ -726,10 +726,10 @@ const translations = {
     risk_moderate: "Theo dõi",
     risk_emergency: "Cần Cấp cứu",
         // Home Page Redesign Discovery & Hero
-    home_hero_headline: "Chăm sóc sức khỏe<br>thông minh hơn mỗi ngày.",
+    home_hero_headline: "Hiểu sức khỏe.<br>Chủ động mỗi ngày.",
     home_hero_desc: "Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.",
     home_btn_chat: "Trò chuyện với trợ lý",
-    home_btn_record: "Thử thách sống khỏe",
+    home_btn_record: "Khám phá món ăn",
     home_badge_security: "Thông tin được bảo mật",
     home_badge_data: "Hỗ trợ dựa trên dữ liệu",
     home_metric_status: "Khỏe mạnh",
@@ -1500,11 +1500,17 @@ function switchTab(tabId, updateHistory = true) {
   // 7. Khởi tạo dữ liệu chuyên biệt từng tab trong try/catch (bảo vệ tuyệt đối hệ thống routing)
   try {
     if (tabId === 'booking-tab') {
-      renderMedicalFacilities();
+      if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
       setTimeout(() => {
-        initHospitalInteractiveMap();
-        if (hospitalLeafletMap) {
+        if (typeof initHospitalInteractiveMap === 'function') initHospitalInteractiveMap();
+        if (typeof hospitalLeafletMap !== 'undefined' && hospitalLeafletMap) {
           hospitalLeafletMap.invalidateSize();
+        }
+        if (typeof gMap !== 'undefined' && gMap && window.google) {
+          google.maps.event.trigger(gMap, 'resize');
+        }
+        if (typeof leafletMap !== 'undefined' && leafletMap) {
+          leafletMap.invalidateSize();
         }
       }, 150);
     } else if (tabId === 'doctor-tab') {
@@ -4366,8 +4372,10 @@ function renderOcrReview(draft, file) {
     canvas.height = canvas.width * image.naturalHeight / image.naturalWidth;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const matches = value ? draft.boxes.filter(box => box.text.toLowerCase().includes(value.toLowerCase())) : [];
-    for (const box of (matches.length === 1 ? matches : draft.boxes)) {
+    const boxesList = Array.isArray(draft.boxes) ? draft.boxes : [];
+    const matches = value ? boxesList.filter(box => box && box.text && box.text.toLowerCase().includes(value.toLowerCase())) : [];
+    for (const box of (matches.length === 1 ? matches : boxesList)) {
+      if (!box || !Array.isArray(box.points)) continue;
       ctx.beginPath();
       box.points.forEach(([x,y], i) => i ? ctx.lineTo(x * canvas.width, y * canvas.height) : ctx.moveTo(x * canvas.width, y * canvas.height));
       ctx.closePath();
@@ -4426,7 +4434,8 @@ function renderOcrReview(draft, file) {
   const header = document.createElement('fieldset');
   header.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-100 dark:border-slate-800';
   form.append(header);
-  for (const key of ['patient_name','dob','doctor','facility','date','diagnosis']) field(header,key,draft.data[key]);
+  const dData = draft.data || {};
+  for (const key of ['patient_name','dob','doctor','facility','date','diagnosis']) field(header,key,dData[key]);
 
   const key = draft.doc_type === 'lab_test' ? 'metrics' : 'medications';
   const keys = key === 'metrics' ? ['test_name','result','unit','reference_range','flag_on_paper'] : ['name','strength','dose','frequency','days','usage'];
@@ -4465,7 +4474,8 @@ function renderOcrReview(draft, file) {
     row.append(rowGrid);
     for (const k of keys) field(rowGrid,k,data[k],k === keys[0]);
   }
-  (draft.data[key].length ? draft.data[key] : [{}]).forEach((item, i) => addRow(item, i + 1));
+  const rowsData = (dData[key] && Array.isArray(dData[key]) && dData[key].length) ? dData[key] : [{}];
+  rowsData.forEach((item, i) => addRow(item, i + 1));
 
   const actions = document.createElement('div');
   actions.className = 'flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800';
@@ -5756,9 +5766,12 @@ const CLINICAL_CYAN_GLOW = {
 function applyThemeMode(theme) {
   document.documentElement.classList.toggle('dark', theme === 'dark');
   document.body.classList.toggle('light-glass', theme === 'light');
+  document.body.classList.toggle('dark', theme === 'dark');
   document.body.style.backgroundImage = CLINICAL_CYAN_GLOW[theme];
   document.body.style.backgroundAttachment = 'fixed';
   if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
+  if (typeof syncDrawerTheme === 'function') syncDrawerTheme();
+  if (typeof window.syncDrawerTheme === 'function') window.syncDrawerTheme();
 }
 
 function initThemeMode() {

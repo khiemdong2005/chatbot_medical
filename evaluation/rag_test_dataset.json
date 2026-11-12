@@ -1,0 +1,1228 @@
+[
+  {
+    "id": "test_001",
+    "query": "Mệt mỏi kéo dài có thể liên quan đến những yếu tố nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/fatigue.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Fatigue (general-symptoms-fatigue.json); requires independent review."
+  },
+  {
+    "id": "test_002",
+    "query": "What can cause persistent fatigue besides lack of sleep?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/fatigue.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Fatigue (general-symptoms-fatigue.json); requires independent review."
+  },
+  {
+    "id": "test_003",
+    "query": "Trước khi ngất xỉu một người có thể cảm thấy thế nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/fainting.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Fainting (general-symptoms-fainting.json); requires independent review."
+  },
+  {
+    "id": "test_004",
+    "query": "What warning signs can occur just before fainting?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/fainting.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Fainting (general-symptoms-fainting.json); requires independent review."
+  },
+  {
+    "id": "test_005",
+    "query": "Khô miệng ảnh hưởng thế nào đến việc nhai nuốt?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/drymouth.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Dry mouth (general-symptoms-dry-mouth.json); requires independent review."
+  },
+  {
+    "id": "test_006",
+    "query": "Why does having too little saliva make eating difficult?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/drymouth.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Dry mouth (general-symptoms-dry-mouth.json); requires independent review."
+  },
+  {
+    "id": "test_007",
+    "query": "Khi đứng yên mà vẫn thấy căn phòng quay vòng thì hiện tượng đó gọi là gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/dizzinessandvertigo.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vertigo (general-symptoms-vertigo.json); requires independent review."
+  },
+  {
+    "id": "test_008",
+    "query": "What does it mean if the room seems to spin around you?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/dizzinessandvertigo.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vertigo (general-symptoms-vertigo.json); requires independent review."
+  },
+  {
+    "id": "test_009",
+    "query": "Khớp trong cơ thể gồm những cấu trúc nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/jointdisorders.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Joint pain (general-symptoms-joint-pain.json); requires independent review."
+  },
+  {
+    "id": "test_010",
+    "query": "Which parts of the body make up a joint?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/jointdisorders.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Joint pain (general-symptoms-joint-pain.json); requires independent review."
+  },
+  {
+    "id": "test_011",
+    "query": "Chuột rút ở chân vào ban đêm là hiện tượng gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/musclecramps.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Muscle cramps (muscles-bones-back-muscle-cramps.json); requires independent review."
+  },
+  {
+    "id": "test_012",
+    "query": "Why can a muscle suddenly tighten without you controlling it?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/musclecramps.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Muscle cramps (muscles-bones-back-muscle-cramps.json); requires independent review."
+  },
+  {
+    "id": "test_013",
+    "query": "Những tình trạng nào có thể gây buồn nôn và nôn?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/nauseaandvomiting.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vomiting (digestive-vomiting.json); requires independent review."
+  },
+  {
+    "id": "test_014",
+    "query": "What conditions can lead to nausea and vomiting?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/nauseaandvomiting.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vomiting (digestive-vomiting.json); requires independent review."
+  },
+  {
+    "id": "test_015",
+    "query": "Ngứa da có thể xuất hiện ở một vùng hay toàn thân?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/itching.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Itching (general-symptoms-itching.json); requires independent review."
+  },
+  {
+    "id": "test_016",
+    "query": "Can itching affect only one area or the entire body?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/itching.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Itching (general-symptoms-itching.json); requires independent review."
+  },
+  {
+    "id": "test_017",
+    "query": "Đau cơ có thể xuất phát từ những vấn đề nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/muscledisorders.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Muscle pain (general-symptoms-muscle-pain.json); requires independent review."
+  },
+  {
+    "id": "test_018",
+    "query": "What are some possible reasons for aching muscles?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/muscledisorders.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Muscle pain (general-symptoms-muscle-pain.json); requires independent review."
+  },
+  {
+    "id": "test_019",
+    "query": "Chứng đau nửa đầu khác gì với cơn đau đầu thông thường?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/migraine.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Migraine (general-symptoms-migraine.json); requires independent review."
+  },
+  {
+    "id": "test_020",
+    "query": "What kinds of symptoms may accompany migraine?",
+    "language": "en",
+    "cross_language": false,
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/migraine.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Migraine (general-symptoms-migraine.json); requires independent review."
+  },
+  {
+    "id": "test_021",
+    "query": "Chảy máu bên trong khác chảy máu ngoài như thế nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/bleeding.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Bleeding (first-aid-emergencies-bleeding.json); requires independent review."
+  },
+  {
+    "id": "test_022",
+    "query": "How does internal bleeding differ from an open wound?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/bleeding.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Bleeding (first-aid-emergencies-bleeding.json); requires independent review."
+  },
+  {
+    "id": "test_023",
+    "query": "Gãy xương có thể có những biểu hiện nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/fractures.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Broken bone (first-aid-emergencies-broken-bone.json); requires independent review."
+  },
+  {
+    "id": "test_024",
+    "query": "What signs might suggest a fractured bone after a fall?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/fractures.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Broken bone (first-aid-emergencies-broken-bone.json); requires independent review."
+  },
+  {
+    "id": "test_025",
+    "query": "Điện giật có thể gây tổn thương bên trong cơ thể không?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/electricalinjuries.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Electric shock (first-aid-emergencies-electric-shock.json); requires independent review."
+  },
+  {
+    "id": "test_026",
+    "query": "Can an electrical injury damage organs even without obvious skin wounds?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/electricalinjuries.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Electric shock (first-aid-emergencies-electric-shock.json); requires independent review."
+  },
+  {
+    "id": "test_027",
+    "query": "Sau khi làm việc ngoài nắng, người bị nóng quá mức và lú lẫn có thể gặp tình trạng gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/heatillness.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Heat stroke (first-aid-emergencies-heat-stroke.json); requires independent review."
+  },
+  {
+    "id": "test_028",
+    "query": "Which heat illness can cause confusion and dangerously high body temperature?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/heatillness.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Heat stroke (first-aid-emergencies-heat-stroke.json); requires independent review."
+  },
+  {
+    "id": "test_029",
+    "query": "Cơ thể mất nhiệt quá nhanh trong thời tiết lạnh có thể dẫn tới điều gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hypothermia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hypothermia (first-aid-emergencies-hypothermia.json); requires independent review."
+  },
+  {
+    "id": "test_030",
+    "query": "What happens when the body loses heat faster than it can produce it?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hypothermia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hypothermia (first-aid-emergencies-hypothermia.json); requires independent review."
+  },
+  {
+    "id": "test_031",
+    "query": "Sau khi bị động vật cắn, vết thương có thể gặp biến chứng gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/animalbites.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Animal bites (first-aid-emergencies-animal-bites.json); requires independent review."
+  },
+  {
+    "id": "test_032",
+    "query": "Why can an animal bite become a serious health problem?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/animalbites.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Animal bites (first-aid-emergencies-animal-bites.json); requires independent review."
+  },
+  {
+    "id": "test_033",
+    "query": "Ruột thừa nằm ở đâu và viêm ruột thừa do điều gì gây ra?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/appendicitis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Appendicitis (digestive-appendicitis.json); requires independent review."
+  },
+  {
+    "id": "test_034",
+    "query": "Where is the appendix located and what can block it?",
+    "language": "en",
+    "cross_language": false,
+    "category": "emergency",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/appendicitis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Appendicitis (digestive-appendicitis.json); requires independent review."
+  },
+  {
+    "id": "test_035",
+    "query": "Dùng thuốc trong thai kỳ cần cân nhắc những nguy cơ nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Medicine safety (medicines-medicine-safety.json); requires independent review."
+  },
+  {
+    "id": "test_036",
+    "query": "Why should medicine safety be considered during pregnancy?",
+    "language": "en",
+    "cross_language": false,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Medicine safety (medicines-medicine-safety.json); requires independent review."
+  },
+  {
+    "id": "test_037",
+    "query": "Thuốc giảm đau không kê đơn gồm những nhóm nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/painrelievers.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Painkillers (medicines-painkillers.json); requires independent review."
+  },
+  {
+    "id": "test_038",
+    "query": "Which common medicines are classified as over-the-counter pain relievers?",
+    "language": "en",
+    "cross_language": false,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/painrelievers.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Painkillers (medicines-painkillers.json); requires independent review."
+  },
+  {
+    "id": "test_039",
+    "query": "Tại sao dùng nhiều loại thuốc cùng chứa acetaminophen có thể gây rủi ro?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "medication",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/painrelievers.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Ibuprofen (medicines-ibuprofen.json); requires independent review."
+  },
+  {
+    "id": "test_040",
+    "query": "Why is it risky to take multiple products containing acetaminophen?",
+    "language": "en",
+    "cross_language": false,
+    "category": "medication",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/painrelievers.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Ibuprofen (medicines-ibuprofen.json); requires independent review."
+  },
+  {
+    "id": "test_041",
+    "query": "Phản ứng không mong muốn do thuốc có thể biểu hiện như thế nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/drugreactions.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Side effects (medicines-side-effects.json); requires independent review."
+  },
+  {
+    "id": "test_042",
+    "query": "What are side effects and how do they differ from desired drug effects?",
+    "language": "en",
+    "cross_language": false,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/drugreactions.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Side effects (medicines-side-effects.json); requires independent review."
+  },
+  {
+    "id": "test_043",
+    "query": "Thuốc kháng sinh có tác dụng với virus cảm lạnh không?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "medication",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/antibiotics.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Antibiotics (medicines-antibiotics.json); requires independent review."
+  },
+  {
+    "id": "test_044",
+    "query": "Do antibiotics work against illnesses caused by viruses?",
+    "language": "en",
+    "cross_language": false,
+    "category": "medication",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/antibiotics.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Antibiotics (medicines-antibiotics.json); requires independent review."
+  },
+  {
+    "id": "test_045",
+    "query": "Vắc xin giúp hệ miễn dịch chuẩn bị chống lại tác nhân gây bệnh như thế nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/vaccines.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vaccinations (pregnancy-children-vaccinations.json); requires independent review."
+  },
+  {
+    "id": "test_046",
+    "query": "How do vaccines train the immune system to recognize germs?",
+    "language": "en",
+    "cross_language": false,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/vaccines.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vaccinations (pregnancy-children-vaccinations.json); requires independent review."
+  },
+  {
+    "id": "test_047",
+    "query": "Khói thuốc của người khác có thể ảnh hưởng đến sức khỏe ra sao?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/smoking.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Smoking (lifestyle-smoking.json); requires independent review."
+  },
+  {
+    "id": "test_048",
+    "query": "Why is breathing other people’s cigarette smoke harmful?",
+    "language": "en",
+    "cross_language": false,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/smoking.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Smoking (lifestyle-smoking.json); requires independent review."
+  },
+  {
+    "id": "test_049",
+    "query": "Thuốc lá điện tử có chứa nicotine gây lệ thuộc không?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "prevention",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/ecigarettes.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vaping (lifestyle-vaping.json); requires independent review."
+  },
+  {
+    "id": "test_050",
+    "query": "Can vaping expose someone to addictive nicotine?",
+    "language": "en",
+    "cross_language": false,
+    "category": "prevention",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/ecigarettes.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vaping (lifestyle-vaping.json); requires independent review."
+  },
+  {
+    "id": "test_051",
+    "query": "Thói quen nào giúp duy trì giấc ngủ tốt hơn?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/healthysleep.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Sleep hygiene (lifestyle-sleep-hygiene.json); requires independent review."
+  },
+  {
+    "id": "test_052",
+    "query": "What daily habits can support healthy sleep?",
+    "language": "en",
+    "cross_language": false,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/healthysleep.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Sleep hygiene (lifestyle-sleep-hygiene.json); requires independent review."
+  },
+  {
+    "id": "test_053",
+    "query": "Một chế độ ăn cân bằng thường bao gồm những nhóm thực phẩm nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/nutrition.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Healthy eating (lifestyle-healthy-eating.json); requires independent review."
+  },
+  {
+    "id": "test_054",
+    "query": "What food groups are part of a balanced eating pattern?",
+    "language": "en",
+    "cross_language": false,
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/nutrition.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Healthy eating (lifestyle-healthy-eating.json); requires independent review."
+  },
+  {
+    "id": "test_055",
+    "query": "Bác sĩ dùng xét nghiệm nào để kiểm tra tuyến giáp hoạt động kém?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hypothyroidism.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hypothyroidism (diabetes-hormones-hypothyroidism.json); requires independent review."
+  },
+  {
+    "id": "test_056",
+    "query": "Which blood tests are used when an underactive thyroid is suspected?",
+    "language": "en",
+    "cross_language": false,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hypothyroidism.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hypothyroidism (diabetes-hormones-hypothyroidism.json); requires independent review."
+  },
+  {
+    "id": "test_057",
+    "query": "Vì sao cần đo huyết áp để phát hiện huyết áp cao?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/highbloodpressure.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: High blood pressure (heart-blood-pressure-high-blood-pressure.json); requires independent review."
+  },
+  {
+    "id": "test_058",
+    "query": "How is high blood pressure detected if it causes no obvious symptoms?",
+    "language": "en",
+    "cross_language": false,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/highbloodpressure.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: High blood pressure (heart-blood-pressure-high-blood-pressure.json); requires independent review."
+  },
+  {
+    "id": "test_059",
+    "query": "Sỏi mật có thể được phát hiện tình cờ khi kiểm tra hình ảnh không?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/gallstones.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Gallstones (digestive-gallstones.json); requires independent review."
+  },
+  {
+    "id": "test_060",
+    "query": "Can gallstones be found during imaging for another condition?",
+    "language": "en",
+    "cross_language": false,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/gallstones.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Gallstones (digestive-gallstones.json); requires independent review."
+  },
+  {
+    "id": "test_061",
+    "query": "Chụp X quang ngực có vai trò gì khi kiểm tra viêm phổi?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/pneumonia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Pneumonia (respiratory-pneumonia.json); requires independent review."
+  },
+  {
+    "id": "test_062",
+    "query": "Which imaging test may help diagnose pneumonia?",
+    "language": "en",
+    "cross_language": false,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/pneumonia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Pneumonia (respiratory-pneumonia.json); requires independent review."
+  },
+  {
+    "id": "test_063",
+    "query": "Các bác sĩ đánh giá hội chứng buồng trứng đa nang bằng những cách nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/polycysticovarysyndrome.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: PCOS (sexual-health-women-pcos.json); requires independent review."
+  },
+  {
+    "id": "test_064",
+    "query": "What information and tests can be used to assess PCOS?",
+    "language": "en",
+    "cross_language": false,
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/polycysticovarysyndrome.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: PCOS (sexual-health-women-pcos.json); requires independent review."
+  },
+  {
+    "id": "test_065",
+    "query": "Nhiễm nấm da hình vòng thường được điều trị bằng loại thuốc nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "treatment",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/tineainfections.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Ringworm (skin-ringworm.json); requires independent review."
+  },
+  {
+    "id": "test_066",
+    "query": "What kinds of medicines are commonly used for tinea skin infections?",
+    "language": "en",
+    "cross_language": false,
+    "category": "treatment",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/tineainfections.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Ringworm (skin-ringworm.json); requires independent review."
+  },
+  {
+    "id": "test_067",
+    "query": "Những lựa chọn điều trị nào có thể được dùng cho chứng mất ngủ?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/insomnia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Insomnia (mental-health-insomnia.json); requires independent review."
+  },
+  {
+    "id": "test_068",
+    "query": "What approaches may help treat chronic insomnia?",
+    "language": "en",
+    "cross_language": false,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/insomnia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Insomnia (mental-health-insomnia.json); requires independent review."
+  },
+  {
+    "id": "test_069",
+    "query": "Có những phương pháp nào giúp kiểm soát bệnh chàm?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/eczema.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Eczema (skin-eczema.json); requires independent review."
+  },
+  {
+    "id": "test_070",
+    "query": "What treatments are used to manage eczema symptoms?",
+    "language": "en",
+    "cross_language": false,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/eczema.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Eczema (skin-eczema.json); requires independent review."
+  },
+  {
+    "id": "test_071",
+    "query": "Thoái hóa khớp thường được kiểm soát bằng những phương pháp gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/osteoarthritis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Osteoarthritis (muscles-bones-back-osteoarthritis.json); requires independent review."
+  },
+  {
+    "id": "test_072",
+    "query": "How can osteoarthritis be managed without assuming there is a cure?",
+    "language": "en",
+    "cross_language": false,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/osteoarthritis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Osteoarthritis (muscles-bones-back-osteoarthritis.json); requires independent review."
+  },
+  {
+    "id": "test_073",
+    "query": "Mụn trứng cá có thể được điều trị bằng những cách nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/acne.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Acne (skin-acne.json); requires independent review."
+  },
+  {
+    "id": "test_074",
+    "query": "What treatment options exist for acne?",
+    "language": "en",
+    "cross_language": false,
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/acne.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Acne (skin-acne.json); requires independent review."
+  },
+  {
+    "id": "test_075",
+    "query": "Vì sao một số người khó chịu ở bụng sau khi uống sữa?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/lactoseintolerance.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Lactose intolerance (digestive-lactose-intolerance.json); requires independent review."
+  },
+  {
+    "id": "test_076",
+    "query": "What happens when someone cannot digest the sugar in milk?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/lactoseintolerance.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Lactose intolerance (digestive-lactose-intolerance.json); requires independent review."
+  },
+  {
+    "id": "test_077",
+    "query": "Viêm phế quản mạn tính có liên quan gì đến COPD?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/chronicbronchitis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Bronchitis (respiratory-bronchitis.json); requires independent review."
+  },
+  {
+    "id": "test_078",
+    "query": "How is chronic bronchitis related to chronic obstructive pulmonary disease?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/chronicbronchitis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Bronchitis (respiratory-bronchitis.json); requires independent review."
+  },
+  {
+    "id": "test_079",
+    "query": "Bệnh vảy nến thường có biểu hiện trên da ra sao?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/psoriasis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Psoriasis (skin-psoriasis.json); requires independent review."
+  },
+  {
+    "id": "test_080",
+    "query": "What does psoriasis commonly look like on the skin?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/psoriasis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Psoriasis (skin-psoriasis.json); requires independent review."
+  },
+  {
+    "id": "test_081",
+    "query": "Viêm gan ảnh hưởng đến cơ quan nào và là tình trạng gì?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hepatitis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hepatitis (infectious-diseases-hepatitis.json); requires independent review."
+  },
+  {
+    "id": "test_082",
+    "query": "What organ is affected by hepatitis and what does the condition involve?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hepatitis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hepatitis (infectious-diseases-hepatitis.json); requires independent review."
+  },
+  {
+    "id": "test_083",
+    "query": "Lo âu có thể gây ra những cảm giác hoặc biểu hiện cơ thể nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/anxiety.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Anxiety (mental-health-anxiety.json); requires independent review."
+  },
+  {
+    "id": "test_084",
+    "query": "What physical feelings can accompany anxiety?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/anxiety.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Anxiety (mental-health-anxiety.json); requires independent review."
+  },
+  {
+    "id": "test_085",
+    "query": "Bệnh lao chủ yếu ảnh hưởng đến bộ phận nào của cơ thể?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/tuberculosis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Tuberculosis (infectious-diseases-tuberculosis.json); requires independent review."
+  },
+  {
+    "id": "test_086",
+    "query": "Which organs can be affected by tuberculosis?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/tuberculosis.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Tuberculosis (infectious-diseases-tuberculosis.json); requires independent review."
+  },
+  {
+    "id": "test_087",
+    "query": "Nhiễm trùng thận thuộc nhóm nhiễm trùng nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/urinarytractinfections.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Kidney infection (urinary-system-kidney-infection.json); requires independent review."
+  },
+  {
+    "id": "test_088",
+    "query": "How is a kidney infection related to urinary tract infection?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/urinarytractinfections.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Kidney infection (urinary-system-kidney-infection.json); requires independent review."
+  },
+  {
+    "id": "test_089",
+    "query": "Vitamin nhóm B giúp cơ thể thực hiện những chức năng nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/bvitamins.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vitamin B12 (nutrition-vitamin-b12.json); requires independent review."
+  },
+  {
+    "id": "test_090",
+    "query": "What roles do B vitamins play in energy and blood cells?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_documents": [
+      "https://medlineplus.gov/bvitamins.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Vitamin B12 (nutrition-vitamin-b12.json); requires independent review."
+  },
+  {
+    "id": "test_091",
+    "query": "Các biện pháp tránh thai có những loại tổng quát nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/birthcontrol.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Birth control (sexual-relationships-birth-control.json); requires independent review."
+  },
+  {
+    "id": "test_092",
+    "query": "What are the main types of birth control?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/birthcontrol.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Birth control (sexual-relationships-birth-control.json); requires independent review."
+  },
+  {
+    "id": "test_093",
+    "query": "Vi rút gây COVID-19 có thể lây giữa người với người như thế nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/covid19coronavirusdisease2019.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: COVID-19 (respiratory-covid-19.json); requires independent review."
+  },
+  {
+    "id": "test_094",
+    "query": "How can the virus that causes COVID-19 spread between people?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/covid19coronavirusdisease2019.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: COVID-19 (respiratory-covid-19.json); requires independent review."
+  },
+  {
+    "id": "test_095",
+    "query": "Đường huyết thấp có thể gây ra những dấu hiệu nào?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hypoglycemia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hypoglycemia (diabetes-hormones-hypoglycemia.json); requires independent review."
+  },
+  {
+    "id": "test_096",
+    "query": "What symptoms can occur when blood glucose drops too low?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hypoglycemia.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hypoglycemia (diabetes-hormones-hypoglycemia.json); requires independent review."
+  },
+  {
+    "id": "test_097",
+    "query": "Người mắc bệnh celiac cần tránh loại protein nào trong thực phẩm?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/celiacdisease.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Celiac disease (digestive-celiac-disease.json); requires independent review."
+  },
+  {
+    "id": "test_098",
+    "query": "Which food protein triggers an immune reaction in celiac disease?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "hard",
+    "relevant_documents": [
+      "https://medlineplus.gov/celiacdisease.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Celiac disease (digestive-celiac-disease.json); requires independent review."
+  },
+  {
+    "id": "test_099",
+    "query": "Tuyến giáp hoạt động quá mức ảnh hưởng thế nào đến chuyển hóa?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hyperthyroidism.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hyperthyroidism (diabetes-hormones-hyperthyroidism.json); requires independent review."
+  },
+  {
+    "id": "test_100",
+    "query": "How does an overactive thyroid affect the body’s metabolism?",
+    "language": "en",
+    "cross_language": false,
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/hyperthyroidism.html"
+    ],
+    "label_basis": "Draft judgment based on source topic and content: Hyperthyroidism (diabetes-hormones-hyperthyroidism.json); requires independent review."
+  },
+  {
+    "id": "test_101",
+    "query": "Thuốc giảm đau và kháng sinh khác nhau thế nào về mục đích sử dụng?",
+    "language": "vi",
+    "cross_language": true,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/painrelievers.html",
+      "https://medlineplus.gov/antibiotics.html"
+    ],
+    "label_basis": "Draft judgment: question explicitly asks about both pain relievers and antibiotics; requires independent review."
+  },
+  {
+    "id": "test_102",
+    "query": "How do pain relievers and antibiotics differ in what they treat?",
+    "language": "en",
+    "cross_language": false,
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_documents": [
+      "https://medlineplus.gov/painrelievers.html",
+      "https://medlineplus.gov/antibiotics.html"
+    ],
+    "label_basis": "Draft judgment: question explicitly asks about both pain relievers and antibiotics; requires independent review."
+  }
+]

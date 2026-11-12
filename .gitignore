@@ -1,5 +1,6 @@
 # Python bytecode and cache
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 *.so
@@ -56,3 +57,7 @@ data/recipes/**/image-*
 data/recipes/**/rejected-*
 data/recipes/**/*.bak
 
+
+# Locally provisioned reranker weights (download separately)
+models/bge-reranker-v2-m3/
+_quarantine_trash/

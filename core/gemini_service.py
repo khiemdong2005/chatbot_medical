@@ -112,13 +112,16 @@ class GeminiMedicalService:
                 logger.info(f"✅ [GEMINI SERVICE] Kết nối thành công Gemini SDK (Model: {self.model})")
             except Exception as e:
                 logger.warning("Gemini client unavailable (%s).", type(e).__name__)
+        elif self.api_key and not self.api_key.startswith("YOUR_") and self.api_key != "your_google_gemini_api_key_here":
+            logger.warning("Gemini API authentication failed: Invalid GEMINI_API_KEY configuration.")
 
     def is_configured(self) -> bool:
         """Kiểm tra xem Gemini API Key đã được cấu hình hợp lệ chưa."""
         return bool(
             self.api_key
             and not self.api_key.startswith("YOUR_")
-            and len(self.api_key) > 20
+            and self.api_key != "your_google_gemini_api_key_here"
+            and len(self.api_key) > 10
             and re.fullmatch(r"[A-Za-z0-9_.-]+", self.model)
         )
 

@@ -1,0 +1,5606 @@
+{
+  "metadata": {
+    "dataset_sha256": "e5b25cabc2d7ed431f07da00d7fbb466dcdca7a0209cfe32f39484ce55bb455b",
+    "corpus_sha256": "74b767f1c94704a529df19571b78f3b085364d8713ab5352bae537d8e3072b38",
+    "timestamp_utc": "2026-11-12T07:15:50.378523+00:00",
+    "vector_model": "Chroma default all-MiniLM-L6-v2 (existing collection configuration)",
+    "phrase_matching": "legacy accent-folded",
+    "vector_distance_threshold": 1.35,
+    "diagnostic_note": "Top 50 is a separate 150-chunk-per-branch experiment, not production retrieve_candidates (clamped to 20).",
+    "benchmark_note": "Exploratory evaluation on the same development set; not an unbiased test or clinical validation."
+  },
+  "baseline": {
+    "count": 56,
+    "metrics": {
+      "hit@1": 0.6071428571428571,
+      "recall@1": 0.5982142857142857,
+      "hit@3": 0.6785714285714286,
+      "recall@3": 0.6785714285714286,
+      "hit@5": 0.6785714285714286,
+      "recall@5": 0.6785714285714286,
+      "mrr": 0.6428571428571429,
+      "ndcg@5": 0.652209268112247
+    },
+    "candidate_recall_at_20": 0.6785714285714286,
+    "latency_ms": {
+      "mean_ms": 4.291833928488943,
+      "p50_ms": 3.1649500015191734,
+      "p95_ms": 3.7785500007885275
+    },
+    "language": {
+      "vi": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.25,
+          "recall@1": 0.25,
+          "hit@3": 0.35714285714285715,
+          "recall@3": 0.35714285714285715,
+          "hit@5": 0.35714285714285715,
+          "recall@5": 0.35714285714285715,
+          "mrr": 0.30357142857142855,
+          "ndcg@5": 0.31759961645408474
+        },
+        "candidate_recall_at_20": 0.35714285714285715
+      },
+      "en": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.9642857142857143,
+          "recall@1": 0.9464285714285714,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.9821428571428571,
+          "ndcg@5": 0.9868189197704093
+        },
+        "candidate_recall_at_20": 1.0
+      }
+    }
+  },
+  "hybrid": {
+    "count": 56,
+    "metrics": {
+      "hit@1": 0.625,
+      "recall@1": 0.6160714285714286,
+      "hit@3": 0.6785714285714286,
+      "recall@3": 0.6785714285714286,
+      "hit@5": 0.6785714285714286,
+      "recall@5": 0.6785714285714286,
+      "mrr": 0.657312925170068,
+      "ndcg@5": 0.6587998082270424
+    },
+    "candidate_recall_at_20": 0.7142857142857143,
+    "latency_ms": {
+      "mean_ms": 138.18861250001646,
+      "p50_ms": 136.81595000161906,
+      "p95_ms": 150.100724999902
+    },
+    "language": {
+      "vi": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.2857142857142857,
+          "recall@1": 0.2857142857142857,
+          "hit@3": 0.35714285714285715,
+          "recall@3": 0.35714285714285715,
+          "hit@5": 0.35714285714285715,
+          "recall@5": 0.35714285714285715,
+          "mrr": 0.33248299319727886,
+          "ndcg@5": 0.33078069668367555
+        },
+        "candidate_recall_at_20": 0.42857142857142855
+      },
+      "en": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.9642857142857143,
+          "recall@1": 0.9464285714285714,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.9821428571428571,
+          "ndcg@5": 0.9868189197704093
+        },
+        "candidate_recall_at_20": 1.0
+      }
+    }
+  },
+  "per_query": [
+    {
+      "baseline": {
+        "id": "med_001",
+        "query": "Sốt là gì và thường có triệu chứng gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 6,
+        "latency_ms": 65.40580000000773
+      },
+      "hybrid": {
+        "id": "med_001",
+        "query": "Sốt là gì và thường có triệu chứng gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 12,
+        "latency_ms": 140.28660000258242
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_002",
+        "query": "What is a fever and what symptoms can accompany it?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.5018999988096766
+      },
+      "hybrid": {
+        "id": "med_002",
+        "query": "What is a fever and what symptoms can accompany it?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 137.27780000044731
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_003",
+        "query": "Đau bụng có thể do những nguyên nhân nào?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.434899997955654
+      },
+      "hybrid": {
+        "id": "med_003",
+        "query": "Đau bụng có thể do những nguyên nhân nào?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 142.72970000092755
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_004",
+        "query": "What are possible causes of abdominal pain?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.171100001054583
+      },
+      "hybrid": {
+        "id": "med_004",
+        "query": "What are possible causes of abdominal pain?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 142.96770000146353
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_005",
+        "query": "Ho có thể do những nguyên nhân nào?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 3,
+        "latency_ms": 3.345900000567781
+      },
+      "hybrid": {
+        "id": "med_005",
+        "query": "Ho có thể do những nguyên nhân nào?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 3,
+        "latency_ms": 143.10829999885755
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_006",
+        "query": "What can cause a cough?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 18,
+        "latency_ms": 3.2529999989492353
+      },
+      "hybrid": {
+        "id": "med_006",
+        "query": "What can cause a cough?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 144.63619999878574
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_007",
+        "query": "Đau đầu có những loại nào?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 3.409600001759827
+      },
+      "hybrid": {
+        "id": "med_007",
+        "query": "Đau đầu có những loại nào?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 158.5006000022986
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_008",
+        "query": "What are the different types of headaches?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.440000000409782
+      },
+      "hybrid": {
+        "id": "med_008",
+        "query": "What are the different types of headaches?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 145.69769999798154
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_009",
+        "query": "Tiêu chảy là gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 2.985900002386188
+      },
+      "hybrid": {
+        "id": "med_009",
+        "query": "Tiêu chảy là gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 136.3491999982216
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_010",
+        "query": "What is diarrhea?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.011600001627812
+      },
+      "hybrid": {
+        "id": "med_010",
+        "query": "What is diarrhea?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 151.63589999792748
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_011",
+        "query": "Táo bón là gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 2.718499999900814
+      },
+      "hybrid": {
+        "id": "med_011",
+        "query": "Táo bón là gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 142.8161000003456
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_012",
+        "query": "What is constipation?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 10,
+        "latency_ms": 2.8619000004255213
+      },
+      "hybrid": {
+        "id": "med_012",
+        "query": "What is constipation?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 13,
+        "latency_ms": 136.95500000176253
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_013",
+        "query": "Mất nước có dấu hiệu gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.048899998248089
+      },
+      "hybrid": {
+        "id": "med_013",
+        "query": "Mất nước có dấu hiệu gì?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 149.5890000005602
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_014",
+        "query": "What are the symptoms of dehydration?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.283699999883538
+      },
+      "hybrid": {
+        "id": "med_014",
+        "query": "What are the symptoms of dehydration?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 141.30590000058874
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_015",
+        "query": "Nguyên nhân nào gây đau họng?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 8,
+        "latency_ms": 3.111199999693781
+      },
+      "hybrid": {
+        "id": "med_015",
+        "query": "Nguyên nhân nào gây đau họng?",
+        "language": "vi",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 140.04430000204593
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_016",
+        "query": "What causes a sore throat?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.1912999984342605
+      },
+      "hybrid": {
+        "id": "med_016",
+        "query": "What causes a sore throat?",
+        "language": "en",
+        "category": "symptom",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 139.84350000100676
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_017",
+        "query": "Đau ngực có thể có những nguyên nhân nào?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 13,
+        "latency_ms": 2.872699998988537
+      },
+      "hybrid": {
+        "id": "med_017",
+        "query": "Đau ngực có thể có những nguyên nhân nào?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 129.9911999994947
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_018",
+        "query": "What are possible causes of chest pain?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.3221999983652495
+      },
+      "hybrid": {
+        "id": "med_018",
+        "query": "What are possible causes of chest pain?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 130.05750000229455
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_019",
+        "query": "Khó thở có thể do nguyên nhân gì?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 16,
+        "latency_ms": 4.01649999912479
+      },
+      "hybrid": {
+        "id": "med_019",
+        "query": "Khó thở có thể do nguyên nhân gì?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 142.4284999993688
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_020",
+        "query": "What can cause shortness of breath?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 10,
+        "latency_ms": 3.1588000019837637
+      },
+      "hybrid": {
+        "id": "med_020",
+        "query": "What can cause shortness of breath?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 143.55499999874155
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_021",
+        "query": "Sơ cứu người bị nghẹn như thế nào?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.1019999987620395
+      },
+      "hybrid": {
+        "id": "med_021",
+        "query": "Sơ cứu người bị nghẹn như thế nào?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 131.5667000017129
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_022",
+        "query": "What first aid is used for choking?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 18,
+        "latency_ms": 3.424599999561906
+      },
+      "hybrid": {
+        "id": "med_022",
+        "query": "What first aid is used for choking?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 19,
+        "latency_ms": 130.36619999911636
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_023",
+        "query": "Sơ cứu vết bỏng như thế nào?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.1168999994406477
+      },
+      "hybrid": {
+        "id": "med_023",
+        "query": "Sơ cứu vết bỏng như thế nào?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 126.11549999928684
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_024",
+        "query": "How should a burn be treated with first aid?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.1054999999469146
+      },
+      "hybrid": {
+        "id": "med_024",
+        "query": "How should a burn be treated with first aid?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 132.72150000193506
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_025",
+        "query": "Cần làm gì khi bị ngộ độc?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 3.1333000006270595
+      },
+      "hybrid": {
+        "id": "med_025",
+        "query": "Cần làm gì khi bị ngộ độc?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 131.4736999993329
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_026",
+        "query": "What should I do in a poisoning emergency?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.4497000015107915
+      },
+      "hybrid": {
+        "id": "med_026",
+        "query": "What should I do in a poisoning emergency?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 134.26869999966584
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_027",
+        "query": "Hồi sức tim phổi là gì?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.0999000009614974
+      },
+      "hybrid": {
+        "id": "med_027",
+        "query": "Hồi sức tim phổi là gì?",
+        "language": "vi",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 133.97909999912372
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_028",
+        "query": "What is cardiopulmonary resuscitation?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 1,
+        "latency_ms": 2.715100003115367
+      },
+      "hybrid": {
+        "id": "med_028",
+        "query": "What is cardiopulmonary resuscitation?",
+        "language": "en",
+        "category": "emergency",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 136.26400000066496
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_029",
+        "query": "Hen suyễn là bệnh gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 2.5884999995469116
+      },
+      "hybrid": {
+        "id": "med_029",
+        "query": "Hen suyễn là bệnh gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 134.22829999763053
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_030",
+        "query": "What is asthma?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 18,
+        "latency_ms": 2.7917000006709713
+      },
+      "hybrid": {
+        "id": "med_030",
+        "query": "What is asthma?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 137.68329999948037
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_031",
+        "query": "Bệnh tiểu đường típ 2 là gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 5,
+        "latency_ms": 2.7166999971086625
+      },
+      "hybrid": {
+        "id": "med_031",
+        "query": "Bệnh tiểu đường típ 2 là gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 131.68779999978142
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_032",
+        "query": "What is type 2 diabetes?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.1897000008029863
+      },
+      "hybrid": {
+        "id": "med_032",
+        "query": "What is type 2 diabetes?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 136.6769000014756
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_033",
+        "query": "Sốt xuất huyết lây truyền như thế nào?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 6,
+        "latency_ms": 3.062899999349611
+      },
+      "hybrid": {
+        "id": "med_033",
+        "query": "Sốt xuất huyết lây truyền như thế nào?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.14285714285714285,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 15,
+        "latency_ms": 131.9283999982872
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_034",
+        "query": "How does dengue spread?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.224600000976352
+      },
+      "hybrid": {
+        "id": "med_034",
+        "query": "How does dengue spread?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 137.4065000018163
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_035",
+        "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.772600000957027
+      },
+      "hybrid": {
+        "id": "med_035",
+        "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 134.695600001578
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_036",
+        "query": "What is gastroesophageal reflux disease?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 5,
+        "latency_ms": 2.934200001618592
+      },
+      "hybrid": {
+        "id": "med_036",
+        "query": "What is gastroesophageal reflux disease?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 14,
+        "latency_ms": 147.3708000012266
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_037",
+        "query": "Bệnh cúm là gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.796400000283029
+      },
+      "hybrid": {
+        "id": "med_037",
+        "query": "Bệnh cúm là gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 133.6613000021316
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_038",
+        "query": "What is influenza?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 3,
+        "latency_ms": 3.2463999996252824
+      },
+      "hybrid": {
+        "id": "med_038",
+        "query": "What is influenza?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 9,
+        "latency_ms": 134.72420000107377
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_039",
+        "query": "Thuốc kháng sinh dùng để điều trị gì?",
+        "language": "vi",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.6399999989953358
+      },
+      "hybrid": {
+        "id": "med_039",
+        "query": "Thuốc kháng sinh dùng để điều trị gì?",
+        "language": "vi",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 130.63189999957103
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_040",
+        "query": "What kinds of infections do antibiotics treat?",
+        "language": "en",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 2.7942000015173107
+      },
+      "hybrid": {
+        "id": "med_040",
+        "query": "What kinds of infections do antibiotics treat?",
+        "language": "en",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 134.99469999806024
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_041",
+        "query": "Tương tác thuốc là gì?",
+        "language": "vi",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.0847999987599906
+      },
+      "hybrid": {
+        "id": "med_041",
+        "query": "Tương tác thuốc là gì?",
+        "language": "vi",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 131.20419999904698
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_042",
+        "query": "What is a drug interaction?",
+        "language": "en",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 2,
+        "latency_ms": 2.6419999994686805
+      },
+      "hybrid": {
+        "id": "med_042",
+        "query": "What is a drug interaction?",
+        "language": "en",
+        "category": "medication",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 2,
+        "latency_ms": 127.86809999670368
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_043",
+        "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+        "language": "vi",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 3.5343999988981523
+      },
+      "hybrid": {
+        "id": "med_043",
+        "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+        "language": "vi",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 4,
+        "latency_ms": 136.41640000059851
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_044",
+        "query": "How can sexually transmitted infections be prevented?",
+        "language": "en",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.006300001288764
+      },
+      "hybrid": {
+        "id": "med_044",
+        "query": "How can sexually transmitted infections be prevented?",
+        "language": "en",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 130.41309999971418
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_045",
+        "query": "Làm sao phòng bệnh sốt xuất huyết?",
+        "language": "vi",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 6,
+        "latency_ms": 3.0229999974835664
+      },
+      "hybrid": {
+        "id": "med_045",
+        "query": "Làm sao phòng bệnh sốt xuất huyết?",
+        "language": "vi",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.16666666666666666,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 15,
+        "latency_ms": 137.9452000001038
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_046",
+        "query": "How can dengue be prevented?",
+        "language": "en",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 17,
+        "latency_ms": 3.7517999990086537
+      },
+      "hybrid": {
+        "id": "med_046",
+        "query": "How can dengue be prevented?",
+        "language": "en",
+        "category": "prevention",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 145.30849999937345
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_047",
+        "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+        "language": "vi",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 5,
+        "latency_ms": 3.0681000025651883
+      },
+      "hybrid": {
+        "id": "med_047",
+        "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+        "language": "vi",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.5,
+          "ndcg@5": 0.6309297535714575
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 135.63969999813708
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_048",
+        "query": "How is type 2 diabetes diagnosed?",
+        "language": "en",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.383600000233855
+      },
+      "hybrid": {
+        "id": "med_048",
+        "query": "How is type 2 diabetes diagnosed?",
+        "language": "en",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 145.80690000002505
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_049",
+        "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+        "language": "vi",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 1,
+        "latency_ms": 2.8572000010171905
+      },
+      "hybrid": {
+        "id": "med_049",
+        "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+        "language": "vi",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 1,
+        "latency_ms": 152.27450000020326
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_050",
+        "query": "How is asthma diagnosed?",
+        "language": "en",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.283900001406437
+      },
+      "hybrid": {
+        "id": "med_050",
+        "query": "How is asthma diagnosed?",
+        "language": "en",
+        "category": "diagnosis",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 149.53869999953895
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_051",
+        "query": "Hen suyễn được điều trị như thế nào?",
+        "language": "vi",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.265599996666424
+      },
+      "hybrid": {
+        "id": "med_051",
+        "query": "Hen suyễn được điều trị như thế nào?",
+        "language": "vi",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 130.6808999979694
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_052",
+        "query": "How is asthma treated?",
+        "language": "en",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.2185999989451375
+      },
+      "hybrid": {
+        "id": "med_052",
+        "query": "How is asthma treated?",
+        "language": "en",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 137.0003000010911
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_053",
+        "query": "Điều trị táo bón như thế nào?",
+        "language": "vi",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 2.823899998475099
+      },
+      "hybrid": {
+        "id": "med_053",
+        "query": "Điều trị táo bón như thế nào?",
+        "language": "vi",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 134.03989999642363
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_054",
+        "query": "How is constipation treated?",
+        "language": "en",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 3.5820999983116053
+      },
+      "hybrid": {
+        "id": "med_054",
+        "query": "How is constipation treated?",
+        "language": "en",
+        "category": "treatment",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 1.0,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 141.88800000192714
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_055",
+        "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 3.049899998586625
+      },
+      "hybrid": {
+        "id": "med_055",
+        "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+        "language": "vi",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 0.0,
+          "recall@1": 0.0,
+          "hit@3": 0.0,
+          "recall@3": 0.0,
+          "hit@5": 0.0,
+          "recall@5": 0.0,
+          "mrr": 0.0,
+          "ndcg@5": 0.0
+        },
+        "candidate_recall_at_20": 0.0,
+        "candidate_count_chunks": 0,
+        "latency_ms": 149.08680000007735
+      }
+    },
+    {
+      "baseline": {
+        "id": "med_056",
+        "query": "What are asthma and pneumonia?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 0.5,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 12,
+        "latency_ms": 3.3172000003105495
+      },
+      "hybrid": {
+        "id": "med_056",
+        "query": "What are asthma and pneumonia?",
+        "language": "en",
+        "category": "disease",
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 0.5,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 1.0
+        },
+        "candidate_recall_at_20": 1.0,
+        "candidate_count_chunks": 20,
+        "latency_ms": 131.2303000013344
+      }
+    }
+  ],
+  "failures_phase13": [
+    {
+      "id": "med_011",
+      "query": "Táo bón là gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/constipation.html",
+          "titles": [
+            "Constipation"
+          ]
+        }
+      ],
+      "expanded_query": "Táo bón là gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "tao",
+        "bon",
+        "la",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 0,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 34,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_013",
+      "query": "Mất nước có dấu hiệu gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "titles": [
+            "Dehydration",
+            "Hydration"
+          ]
+        }
+      ],
+      "expanded_query": "Mất nước có dấu hiệu gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "mat",
+        "nuoc",
+        "co",
+        "dau",
+        "hieu",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 0,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_NO_EXPECTED_IN_TOP_150_RAW"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": null,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_021",
+      "query": "Sơ cứu người bị nghẹn như thế nào?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/choking.html",
+          "titles": [
+            "Choking"
+          ]
+        }
+      ],
+      "expanded_query": "Sơ cứu người bị nghẹn như thế nào?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "so",
+        "cuu",
+        "nguoi",
+        "bi",
+        "nghen",
+        "nhu",
+        "the",
+        "nao"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [
+        "so"
+      ],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 1,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Pregnancy nutrition",
+          "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Calcium",
+          "source_url": "https://medlineplus.gov/calcium.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Stress",
+          "source_url": "https://medlineplus.gov/stress.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Child development",
+          "source_url": "https://medlineplus.gov/childdevelopment.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Vertigo",
+          "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Anxiety",
+          "source_url": "https://medlineplus.gov/anxiety.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 16,
+          "title": "Ear infection",
+          "source_url": "https://medlineplus.gov/earinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 17,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Pregnancy nutrition",
+          "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Calcium",
+          "source_url": "https://medlineplus.gov/calcium.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Stress",
+          "source_url": "https://medlineplus.gov/stress.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Child development",
+          "source_url": "https://medlineplus.gov/childdevelopment.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Vertigo",
+          "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Anxiety",
+          "source_url": "https://medlineplus.gov/anxiety.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 16,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 17,
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 18,
+          "title": "Burping",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 19,
+          "title": "Ear infection",
+          "source_url": "https://medlineplus.gov/earinfections.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 20,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 21,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 22,
+          "title": "Asthma",
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 23,
+          "title": "Heart failure",
+          "source_url": "https://medlineplus.gov/heartfailure.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 24,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 25,
+          "title": "Penis discharge",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 26,
+          "title": "Hiccups",
+          "source_url": "https://medlineplus.gov/hiccups.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 27,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 28,
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 29,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 30,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 31,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 32,
+          "title": "High blood pressure",
+          "source_url": "https://medlineplus.gov/highbloodpressure.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 33,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 34,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 35,
+          "title": "OCD",
+          "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 36,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 37,
+          "title": "Mononucleosis",
+          "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 38,
+          "title": "Migraine",
+          "source_url": "https://medlineplus.gov/migraine.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 39,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 40,
+          "title": "Vaccinations",
+          "source_url": "https://medlineplus.gov/vaccines.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 41,
+          "title": "PCOS",
+          "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 42,
+          "title": "Rheumatoid arthritis",
+          "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 43,
+          "title": "Energy drinks",
+          "source_url": "https://medlineplus.gov/caffeine.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 44,
+          "title": "PTSD",
+          "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 45,
+          "title": "Joint pain",
+          "source_url": "https://medlineplus.gov/jointdisorders.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 46,
+          "title": "Hemorrhoids",
+          "source_url": "https://medlineplus.gov/hemorrhoids.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 47,
+          "title": "Type 2 diabetes",
+          "source_url": "https://medlineplus.gov/diabetestype2.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 48,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 49,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 50,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Pregnancy nutrition",
+          "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Calcium",
+          "source_url": "https://medlineplus.gov/calcium.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Stress",
+          "source_url": "https://medlineplus.gov/stress.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Child development",
+          "source_url": "https://medlineplus.gov/childdevelopment.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Vertigo",
+          "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Anxiety",
+          "source_url": "https://medlineplus.gov/anxiety.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 16,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 17,
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 18,
+          "title": "Burping",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 19,
+          "title": "Ear infection",
+          "source_url": "https://medlineplus.gov/earinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 20,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 21,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 22,
+          "title": "Asthma",
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 23,
+          "title": "Heart failure",
+          "source_url": "https://medlineplus.gov/heartfailure.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 24,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 25,
+          "title": "Penis discharge",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 26,
+          "title": "Hiccups",
+          "source_url": "https://medlineplus.gov/hiccups.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 27,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 28,
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 29,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 30,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 31,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 32,
+          "title": "High blood pressure",
+          "source_url": "https://medlineplus.gov/highbloodpressure.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 33,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 34,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 35,
+          "title": "OCD",
+          "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 36,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 37,
+          "title": "Mononucleosis",
+          "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 38,
+          "title": "Migraine",
+          "source_url": "https://medlineplus.gov/migraine.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 39,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 40,
+          "title": "Vaccinations",
+          "source_url": "https://medlineplus.gov/vaccines.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 41,
+          "title": "PCOS",
+          "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 42,
+          "title": "Rheumatoid arthritis",
+          "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 43,
+          "title": "Energy drinks",
+          "source_url": "https://medlineplus.gov/caffeine.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 44,
+          "title": "PTSD",
+          "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 45,
+          "title": "Joint pain",
+          "source_url": "https://medlineplus.gov/jointdisorders.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 46,
+          "title": "Hemorrhoids",
+          "source_url": "https://medlineplus.gov/hemorrhoids.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 47,
+          "title": "Type 2 diabetes",
+          "source_url": "https://medlineplus.gov/diabetestype2.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 48,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 49,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 50,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_count_within_150": 62,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 102,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 20,
+      "baseline_candidate_count_unique_sources": 17
+    },
+    {
+      "id": "med_023",
+      "query": "Sơ cứu vết bỏng như thế nào?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/burns.html",
+          "titles": [
+            "Burns"
+          ]
+        }
+      ],
+      "expanded_query": "Sơ cứu vết bỏng như thế nào?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "so",
+        "cuu",
+        "vet",
+        "bong",
+        "nhu",
+        "the",
+        "nao"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [
+        "so"
+      ],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 1,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Pregnancy nutrition",
+          "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Calcium",
+          "source_url": "https://medlineplus.gov/calcium.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Stress",
+          "source_url": "https://medlineplus.gov/stress.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Child development",
+          "source_url": "https://medlineplus.gov/childdevelopment.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Vertigo",
+          "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Anxiety",
+          "source_url": "https://medlineplus.gov/anxiety.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 16,
+          "title": "Ear infection",
+          "source_url": "https://medlineplus.gov/earinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 17,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Pregnancy nutrition",
+          "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Calcium",
+          "source_url": "https://medlineplus.gov/calcium.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Stress",
+          "source_url": "https://medlineplus.gov/stress.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Child development",
+          "source_url": "https://medlineplus.gov/childdevelopment.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Vertigo",
+          "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Anxiety",
+          "source_url": "https://medlineplus.gov/anxiety.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 16,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 17,
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 18,
+          "title": "Burping",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 19,
+          "title": "Ear infection",
+          "source_url": "https://medlineplus.gov/earinfections.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 20,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 21,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 22,
+          "title": "Asthma",
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 23,
+          "title": "Heart failure",
+          "source_url": "https://medlineplus.gov/heartfailure.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 24,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 25,
+          "title": "Penis discharge",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 26,
+          "title": "Hiccups",
+          "source_url": "https://medlineplus.gov/hiccups.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 27,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 28,
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 29,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 30,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 31,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 32,
+          "title": "High blood pressure",
+          "source_url": "https://medlineplus.gov/highbloodpressure.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 33,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 34,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 35,
+          "title": "OCD",
+          "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 36,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 37,
+          "title": "Mononucleosis",
+          "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 38,
+          "title": "Migraine",
+          "source_url": "https://medlineplus.gov/migraine.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 39,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 40,
+          "title": "Vaccinations",
+          "source_url": "https://medlineplus.gov/vaccines.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 41,
+          "title": "PCOS",
+          "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 42,
+          "title": "Rheumatoid arthritis",
+          "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 43,
+          "title": "Energy drinks",
+          "source_url": "https://medlineplus.gov/caffeine.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 44,
+          "title": "PTSD",
+          "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 45,
+          "title": "Joint pain",
+          "source_url": "https://medlineplus.gov/jointdisorders.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 46,
+          "title": "Hemorrhoids",
+          "source_url": "https://medlineplus.gov/hemorrhoids.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 47,
+          "title": "Type 2 diabetes",
+          "source_url": "https://medlineplus.gov/diabetestype2.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 48,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 49,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 50,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Pregnancy nutrition",
+          "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Calcium",
+          "source_url": "https://medlineplus.gov/calcium.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Stress",
+          "source_url": "https://medlineplus.gov/stress.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Tuberculosis",
+          "source_url": "https://medlineplus.gov/tuberculosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Child development",
+          "source_url": "https://medlineplus.gov/childdevelopment.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Vertigo",
+          "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Anxiety",
+          "source_url": "https://medlineplus.gov/anxiety.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 16,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 17,
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 18,
+          "title": "Burping",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 19,
+          "title": "Ear infection",
+          "source_url": "https://medlineplus.gov/earinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 20,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 21,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 22,
+          "title": "Asthma",
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 23,
+          "title": "Heart failure",
+          "source_url": "https://medlineplus.gov/heartfailure.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 24,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 25,
+          "title": "Penis discharge",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 26,
+          "title": "Hiccups",
+          "source_url": "https://medlineplus.gov/hiccups.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 27,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 28,
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 29,
+          "title": "Hydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 30,
+          "title": "Dehydration",
+          "source_url": "https://medlineplus.gov/dehydration.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 31,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 32,
+          "title": "High blood pressure",
+          "source_url": "https://medlineplus.gov/highbloodpressure.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 33,
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 34,
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 35,
+          "title": "OCD",
+          "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 36,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 37,
+          "title": "Mononucleosis",
+          "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 38,
+          "title": "Migraine",
+          "source_url": "https://medlineplus.gov/migraine.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 39,
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 40,
+          "title": "Vaccinations",
+          "source_url": "https://medlineplus.gov/vaccines.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 41,
+          "title": "PCOS",
+          "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 42,
+          "title": "Rheumatoid arthritis",
+          "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 43,
+          "title": "Energy drinks",
+          "source_url": "https://medlineplus.gov/caffeine.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 44,
+          "title": "PTSD",
+          "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 45,
+          "title": "Joint pain",
+          "source_url": "https://medlineplus.gov/jointdisorders.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 46,
+          "title": "Hemorrhoids",
+          "source_url": "https://medlineplus.gov/hemorrhoids.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 47,
+          "title": "Type 2 diabetes",
+          "source_url": "https://medlineplus.gov/diabetestype2.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 48,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 49,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 50,
+          "title": "STI prevention",
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_count_within_150": 62,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 114,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 20,
+      "baseline_candidate_count_unique_sources": 17
+    },
+    {
+      "id": "med_025",
+      "query": "Cần làm gì khi bị ngộ độc?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/poisoning.html",
+          "titles": [
+            "Poisoning"
+          ]
+        }
+      ],
+      "expanded_query": "Cần làm gì khi bị ngộ độc?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "can",
+        "lam",
+        "gi",
+        "khi",
+        "bi",
+        "ngo",
+        "doc"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [
+        "lam"
+      ],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 1,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_count_within_150": 4,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 20,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 4,
+      "baseline_candidate_count_unique_sources": 1
+    },
+    {
+      "id": "med_027",
+      "query": "Hồi sức tim phổi là gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/cpr.html",
+          "titles": [
+            "CPR"
+          ]
+        }
+      ],
+      "expanded_query": "Hồi sức tim phổi là gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "hoi",
+        "suc",
+        "tim",
+        "phoi",
+        "la",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 0,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 48,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_029",
+      "query": "Hen suyễn là bệnh gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "titles": [
+            "Asthma"
+          ]
+        }
+      ],
+      "expanded_query": "Hen suyễn là bệnh gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "hen",
+        "suyen",
+        "la",
+        "benh",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 143,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_033",
+      "query": "Sốt xuất huyết lây truyền như thế nào?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "titles": [
+            "Dengue"
+          ]
+        }
+      ],
+      "expanded_query": "Sốt xuất huyết lây truyền như thế nào? fever pyrexia temperature",
+      "english_terms_added": true,
+      "query_tokens": [
+        "sot",
+        "xuat",
+        "huyet",
+        "lay",
+        "truyen",
+        "nhu",
+        "the",
+        "nao",
+        "fever",
+        "pyrexia",
+        "temperature"
+      ],
+      "expected_max_token_overlap_all_tokens": 2,
+      "bm25_eligible_query_terms": [
+        "fever",
+        "pyrexia",
+        "temperature"
+      ],
+      "expected_max_eligible_term_overlap": 1,
+      "bm25_required_term_overlap": 2,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "ELIGIBLE_OVERLAP_BELOW_BM25_MINIMUM",
+        "BM25_NO_EXPECTED_IN_TOP_150"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "High fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Low-grade fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Chills",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8241,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Chills",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8389,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "High fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.867,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Low-grade fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.9231,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Heat exhaustion",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.0896,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Heat stroke",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.1258,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Hypothermia",
+          "source_url": "https://medlineplus.gov/hypothermia.html",
+          "distance": 1.1535,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Chickenpox",
+          "source_url": "https://medlineplus.gov/chickenpox.html",
+          "distance": 1.2244,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "distance": 1.2657,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 10,
+          "title": "COVID-19",
+          "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
+          "distance": 1.3103,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Malaria",
+          "source_url": "https://medlineplus.gov/malaria.html",
+          "distance": 1.3181,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": 1.3219,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Adrenal disorders",
+          "source_url": "https://medlineplus.gov/adrenalglanddisorders.html",
+          "distance": 1.3344,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Hay fever",
+          "source_url": "https://medlineplus.gov/hayfever.html",
+          "distance": 1.3406,
+          "retrieval": null
+        }
+      ],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8241,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "High fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.867,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Chills",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8389,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Low-grade fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.9231,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": 1.3219,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Heat exhaustion",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.0896,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Heat stroke",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.1258,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Hypothermia",
+          "source_url": "https://medlineplus.gov/hypothermia.html",
+          "distance": 1.1535,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Chickenpox",
+          "source_url": "https://medlineplus.gov/chickenpox.html",
+          "distance": 1.2244,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "distance": 1.2657,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 12,
+          "title": "COVID-19",
+          "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
+          "distance": 1.3103,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Malaria",
+          "source_url": "https://medlineplus.gov/malaria.html",
+          "distance": 1.3181,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Adrenal disorders",
+          "source_url": "https://medlineplus.gov/adrenalglanddisorders.html",
+          "distance": 1.3344,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Hay fever",
+          "source_url": "https://medlineplus.gov/hayfever.html",
+          "distance": 1.3406,
+          "retrieval": "vector"
+        }
+      ],
+      "bm25_count_within_150": 6,
+      "vector_count_accepted_within_150": 14,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 9,
+      "vector_expected_rank_accepted_within_150_chunks": 9,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": 11,
+      "baseline_candidate_count_chunks": 6,
+      "baseline_candidate_count_unique_sources": 3
+    },
+    {
+      "id": "med_035",
+      "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/gerd.html",
+          "titles": [
+            "GERD"
+          ]
+        }
+      ],
+      "expanded_query": "Bệnh trào ngược dạ dày thực quản là gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "benh",
+        "trao",
+        "nguoc",
+        "da",
+        "day",
+        "thuc",
+        "quan",
+        "la",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 2,
+      "bm25_eligible_query_terms": [
+        "da",
+        "day"
+      ],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 2,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_NO_EXPECTED_IN_TOP_150_RAW"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": null,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_037",
+      "query": "Bệnh cúm là gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/flu.html",
+          "titles": [
+            "Influenza"
+          ]
+        }
+      ],
+      "expanded_query": "Bệnh cúm là gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "benh",
+        "cum",
+        "la",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 132,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_039",
+      "query": "Thuốc kháng sinh dùng để điều trị gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/antibiotics.html",
+          "titles": [
+            "Antibiotics"
+          ]
+        }
+      ],
+      "expanded_query": "Thuốc kháng sinh dùng để điều trị gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "thuoc",
+        "khang",
+        "sinh",
+        "dung",
+        "de",
+        "dieu",
+        "tri",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 2,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_NO_EXPECTED_IN_TOP_150_RAW"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": null,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_041",
+      "query": "Tương tác thuốc là gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/drugreactions.html",
+          "titles": [
+            "Drug interactions",
+            "Side effects"
+          ]
+        }
+      ],
+      "expanded_query": "Tương tác thuốc là gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "tuong",
+        "tac",
+        "thuoc",
+        "la",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 0,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_NO_EXPECTED_IN_TOP_150_RAW"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": null,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_043",
+      "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+          "titles": [
+            "Penis discharge",
+            "STI prevention"
+          ]
+        }
+      ],
+      "expanded_query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "lam",
+        "the",
+        "nao",
+        "de",
+        "phong",
+        "nhiem",
+        "trung",
+        "lay",
+        "truyen",
+        "qua",
+        "duong",
+        "tinh",
+        "duc"
+      ],
+      "expected_max_token_overlap_all_tokens": 2,
+      "bm25_eligible_query_terms": [
+        "lam"
+      ],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 1,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Emergency contraception",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_count_within_150": 4,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 87,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 4,
+      "baseline_candidate_count_unique_sources": 1
+    },
+    {
+      "id": "med_045",
+      "query": "Làm sao phòng bệnh sốt xuất huyết?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "titles": [
+            "Dengue"
+          ]
+        }
+      ],
+      "expanded_query": "Làm sao phòng bệnh sốt xuất huyết? fever pyrexia temperature",
+      "english_terms_added": true,
+      "query_tokens": [
+        "lam",
+        "sao",
+        "phong",
+        "benh",
+        "sot",
+        "xuat",
+        "huyet",
+        "fever",
+        "pyrexia",
+        "temperature"
+      ],
+      "expected_max_token_overlap_all_tokens": 2,
+      "bm25_eligible_query_terms": [
+        "fever",
+        "lam",
+        "pyrexia",
+        "temperature"
+      ],
+      "expected_max_eligible_term_overlap": 1,
+      "bm25_required_term_overlap": 2,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "ELIGIBLE_OVERLAP_BELOW_BM25_MINIMUM",
+        "BM25_NO_EXPECTED_IN_TOP_150"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "High fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Low-grade fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Chills",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "distance": null,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.7959,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 2,
+          "title": "Chills",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8274,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 3,
+          "title": "High fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8393,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Low-grade fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8761,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Heat exhaustion",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.0683,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Heat stroke",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.0812,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Hypothermia",
+          "source_url": "https://medlineplus.gov/hypothermia.html",
+          "distance": 1.1504,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "distance": 1.1812,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Chickenpox",
+          "source_url": "https://medlineplus.gov/chickenpox.html",
+          "distance": 1.2423,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 10,
+          "title": "COVID-19",
+          "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
+          "distance": 1.2688,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Malaria",
+          "source_url": "https://medlineplus.gov/malaria.html",
+          "distance": 1.2699,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 12,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": 1.2726,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Poisoning",
+          "source_url": "https://medlineplus.gov/poisoning.html",
+          "distance": 1.3389,
+          "retrieval": null
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "distance": 1.3457,
+          "retrieval": null
+        }
+      ],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.7959,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 2,
+          "title": "High fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8393,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 3,
+          "title": "Chills",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8274,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 4,
+          "title": "Low-grade fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "distance": 0.8761,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 5,
+          "title": "Food poisoning",
+          "source_url": "https://medlineplus.gov/foodborneillness.html",
+          "distance": 1.2726,
+          "retrieval": "hybrid"
+        },
+        {
+          "rank_chunk": 6,
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "distance": null,
+          "retrieval": "bm25"
+        },
+        {
+          "rank_chunk": 7,
+          "title": "Heat exhaustion",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.0683,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 8,
+          "title": "Heat stroke",
+          "source_url": "https://medlineplus.gov/heatillness.html",
+          "distance": 1.0812,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 9,
+          "title": "Hypothermia",
+          "source_url": "https://medlineplus.gov/hypothermia.html",
+          "distance": 1.1504,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 10,
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "distance": 1.1812,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 11,
+          "title": "Chickenpox",
+          "source_url": "https://medlineplus.gov/chickenpox.html",
+          "distance": 1.2423,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 12,
+          "title": "COVID-19",
+          "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
+          "distance": 1.2688,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 13,
+          "title": "Malaria",
+          "source_url": "https://medlineplus.gov/malaria.html",
+          "distance": 1.2699,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 14,
+          "title": "Poisoning",
+          "source_url": "https://medlineplus.gov/poisoning.html",
+          "distance": 1.3389,
+          "retrieval": "vector"
+        },
+        {
+          "rank_chunk": 15,
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "distance": 1.3457,
+          "retrieval": "vector"
+        }
+      ],
+      "bm25_count_within_150": 6,
+      "vector_count_accepted_within_150": 14,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 8,
+      "vector_expected_rank_accepted_within_150_chunks": 8,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": 10,
+      "baseline_candidate_count_chunks": 6,
+      "baseline_candidate_count_unique_sources": 3
+    },
+    {
+      "id": "med_049",
+      "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "titles": [
+            "Asthma"
+          ]
+        }
+      ],
+      "expanded_query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "bac",
+        "si",
+        "chan",
+        "doan",
+        "hen",
+        "suyen",
+        "bang",
+        "cach",
+        "nao"
+      ],
+      "expected_max_token_overlap_all_tokens": 0,
+      "bm25_eligible_query_terms": [
+        "bac"
+      ],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 1,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [
+        {
+          "rank_chunk": 1,
+          "title": "Alcohol",
+          "source_url": "https://medlineplus.gov/alcohol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_top50_chunks": [
+        {
+          "rank_chunk": 1,
+          "title": "Alcohol",
+          "source_url": "https://medlineplus.gov/alcohol.html",
+          "distance": null,
+          "retrieval": null
+        }
+      ],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [
+        {
+          "rank_chunk": 1,
+          "title": "Alcohol",
+          "source_url": "https://medlineplus.gov/alcohol.html",
+          "distance": null,
+          "retrieval": "bm25"
+        }
+      ],
+      "bm25_count_within_150": 1,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 88,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 1,
+      "baseline_candidate_count_unique_sources": 1
+    },
+    {
+      "id": "med_051",
+      "query": "Hen suyễn được điều trị như thế nào?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "titles": [
+            "Asthma"
+          ]
+        }
+      ],
+      "expanded_query": "Hen suyễn được điều trị như thế nào?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "hen",
+        "suyen",
+        "duoc",
+        "dieu",
+        "tri",
+        "nhu",
+        "the",
+        "nao"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 110,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_053",
+      "query": "Điều trị táo bón như thế nào?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/constipation.html",
+          "titles": [
+            "Constipation"
+          ]
+        }
+      ],
+      "expanded_query": "Điều trị táo bón như thế nào?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "dieu",
+        "tri",
+        "tao",
+        "bon",
+        "nhu",
+        "the",
+        "nao"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_NO_EXPECTED_IN_TOP_150_RAW"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": null,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    },
+    {
+      "id": "med_055",
+      "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+      "language": "vi",
+      "expected_documents": [
+        {
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "titles": [
+            "Asthma"
+          ]
+        },
+        {
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "titles": [
+            "Pneumonia"
+          ]
+        }
+      ],
+      "expanded_query": "Hen suyễn và viêm phổi là những bệnh gì?",
+      "english_terms_added": false,
+      "query_tokens": [
+        "hen",
+        "suyen",
+        "va",
+        "viem",
+        "phoi",
+        "la",
+        "nhung",
+        "benh",
+        "gi"
+      ],
+      "expected_max_token_overlap_all_tokens": 1,
+      "bm25_eligible_query_terms": [],
+      "expected_max_eligible_term_overlap": 0,
+      "bm25_required_term_overlap": 0,
+      "reason_codes": [
+        "VECTOR_DISABLED_IN_BASELINE",
+        "NO_CROSS_LANGUAGE_EXPANSION",
+        "NO_ELIGIBLE_LEXICAL_OVERLAP",
+        "BM25_NO_EXPECTED_IN_TOP_150",
+        "VECTOR_THRESHOLD_FILTERED_EXPECTED"
+      ],
+      "baseline_vector": "disabled",
+      "baseline_merged_top20": [],
+      "bm25_top50_chunks": [],
+      "hybrid_vector_top50_accepted_chunks": [],
+      "hybrid_merged_top50_chunks_diagnostic": [],
+      "bm25_count_within_150": 0,
+      "vector_count_accepted_within_150": 0,
+      "bm25_expected_rank_within_150_chunks": null,
+      "vector_expected_rank_within_150_raw_chunks": 47,
+      "vector_expected_rank_accepted_within_150_chunks": null,
+      "hybrid_expected_rank_within_top50_chunks_diagnostic": null,
+      "baseline_candidate_count_chunks": 0,
+      "baseline_candidate_count_unique_sources": 0
+    }
+  ],
+  "reason_counts": {
+    "VECTOR_DISABLED_IN_BASELINE": 18,
+    "NO_CROSS_LANGUAGE_EXPANSION": 16,
+    "NO_ELIGIBLE_LEXICAL_OVERLAP": 16,
+    "BM25_NO_EXPECTED_IN_TOP_150": 18,
+    "VECTOR_THRESHOLD_FILTERED_EXPECTED": 11,
+    "VECTOR_NO_EXPECTED_IN_TOP_150_RAW": 5,
+    "ELIGIBLE_OVERLAP_BELOW_BM25_MINIMUM": 2
+  },
+  "regressions_hybrid_top5": [],
+  "improvements_hybrid_top5": []
+}

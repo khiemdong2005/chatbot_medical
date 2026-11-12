@@ -563,6 +563,412 @@ body.light-glass .hospital-filter-btn.active {
   border-color: #0284C7 !important;
 }
 
+/* Hospital directory redesign: keep the new facility tab in sync with app theme. */
+body.light-glass #booking-tab #hospitalsView,
+body.light-glass #booking-tab #hospitalsView > main,
+body.light-glass #booking-tab #hospitalsView > main > .flex-1,
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#0b1325]"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#0d162b]"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#090f1f]"] {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--glass-border) !important;
+}
+
+body.light-glass #booking-tab #hospitalsView {
+  border-radius: 26px;
+  overflow: hidden;
+}
+
+body.light-glass #booking-tab #hospitalsView > aside,
+body.light-glass #booking-tab #hospitalsView > aside > div,
+body.light-glass #booking-tab #hospitalsView input,
+body.light-glass #booking-tab #hospitalsView select,
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#0f172a]"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#090f1f]"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#090f1e]"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-[#0b1222]"] {
+  background-color: rgba(255, 255, 255, 0.60) !important;
+  border-color: rgba(255, 255, 255, 0.70) !important;
+}
+
+body.light-glass #booking-tab #hospitalsView .text-white,
+body.light-glass #booking-tab #hospitalsView .text-slate-100,
+body.light-glass #booking-tab #hospitalsView .text-slate-200,
+body.light-glass #booking-tab #hospitalsView .text-slate-300 {
+  color: #0f172a !important;
+}
+
+body.light-glass #booking-tab #hospitalsView .text-slate-400,
+body.light-glass #booking-tab #hospitalsView .text-slate-500 {
+  color: #64748b !important;
+}
+
+body.light-glass #booking-tab #hospitalsView .bg-slate-800\/60,
+body.light-glass #booking-tab #hospitalsView .bg-slate-800\/80,
+body.light-glass #booking-tab #hospitalsView .bg-slate-800\/90,
+body.light-glass #booking-tab #hospitalsView .bg-slate-800,
+body.light-glass #booking-tab #hospitalsView .bg-slate-700\/60 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Facility category count pills need their own readable light-mode contrast. */
+body.light-glass #booking-tab #hospitalsView aside .space-y-5 > div:first-child button > span.rounded-full {
+  background-color: #e2e8f0 !important;
+  color: #334155 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView aside .space-y-5 > div:first-child button[class*="bg-sky-500/15"] > span.rounded-full {
+  background-color: #bae6fd !important;
+  border-color: #7dd3fc !important;
+  color: #075985 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-sky-500/15"] {
+  background-color: #dbeafe !important;
+  border-color: #7dd3fc !important;
+  color: #075985 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-sky-500/15"] * {
+  color: #075985 !important;
+}
+
+/* Facility icon tiles and metadata chips use soft light-theme colors. */
+body.light-glass #booking-tab #hospitalsView [class*="bg-cyan-950/60"] {
+  background-color: #e0f2fe !important;
+  border-color: #7dd3fc !important;
+  color: #0369a1 !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-amber-950/70"] {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-cyan-950/80"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-emerald-950/80"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-rose-950/80"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-purple-950/80"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-blue-950/80"] {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #075985 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-emerald-950/80"] {
+  background-color: #d1fae5 !important;
+  border-color: #a7f3d0 !important;
+  color: #047857 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-rose-950/80"] {
+  background-color: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+  color: #be123c !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-purple-950/80"] {
+  background-color: #f3e8ff !important;
+  border-color: #e9d5ff !important;
+  color: #7e22ce !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-blue-950/80"] {
+  background-color: #dbeafe !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView .group.cursor-pointer .flex.flex-wrap.gap-1 > span {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer [class*="bg-cyan-950"],
+body.light-glass #hospital-details-drawer [class*="bg-slate-800"] {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer [class*="bg-amber-950"] {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+
+body.light-glass #hospital-details-drawer [class*="bg-sky-950"] {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #075985 !important;
+}
+
+/* Detail drawer has a few intentionally dark elements in its static markup.
+   Restyle those too when the application is in light mode. */
+body.light-glass #hospital-details-drawer > .relative.h-44,
+body.light-glass #hospital-details-drawer > .relative.h-44 > .bg-gradient-to-tr {
+  background: linear-gradient(135deg, #dff4ff 0%, #eaf7ff 52%, #dbeafe 100%) !important;
+}
+
+body.light-glass #hospital-details-drawer > .relative.h-44 > .bg-gradient-to-tr > .absolute.bg-cyan-500\/20,
+body.light-glass #hospital-details-drawer > .relative.h-44 > .bg-gradient-to-tr > .absolute.bg-sky-500\/20 {
+  background-color: rgba(14, 165, 233, 0.16) !important;
+}
+
+body.light-glass #hospital-details-drawer > .relative.h-44 > .bg-gradient-to-t {
+  background: linear-gradient(to top, rgba(255,255,255,.94), rgba(255,255,255,.2) 58%, rgba(255,255,255,.04)) !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-type-badge {
+  background-color: #e0f2fe !important;
+  border-color: #7dd3fc !important;
+  color: #075985 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-category-badge {
+  background-color: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-rating-badge {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+
+body.light-glass #hospital-details-drawer #hospital-detail-content [class*="bg-[#090f1e]"] {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Hospital Details Drawer - Complete Light Mode Styling & Sync */
+body.light-glass #hospital-details-drawer,
+body:not(.dark) #hospital-details-drawer {
+  background-color: #ffffff !important;
+  border-left-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+body.light-glass #hospital-details-drawer #slideOverHospitalName,
+body:not(.dark) #hospital-details-drawer #slideOverHospitalName {
+  color: #0f172a !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-address,
+body:not(.dark) #hospital-details-drawer #drawer-address {
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-hours,
+body:not(.dark) #hospital-details-drawer #drawer-hours {
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer div:has(> #drawer-hours),
+body:not(.dark) #hospital-details-drawer div:has(> #drawer-hours) {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-emergency,
+body:not(.dark) #hospital-details-drawer #drawer-emergency {
+  color: #047857 !important;
+}
+
+body.light-glass #hospital-details-drawer div:has(> #drawer-emergency),
+body:not(.dark) #hospital-details-drawer div:has(> #drawer-emergency) {
+  background-color: #d1fae5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-benefits,
+body:not(.dark) #hospital-details-drawer #drawer-benefits,
+html:not(.dark) #hospital-details-drawer #drawer-benefits {
+  background-color: #f8fafc !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-benefits > div:first-child,
+body:not(.dark) #hospital-details-drawer #drawer-benefits > div:first-child,
+html:not(.dark) #hospital-details-drawer #drawer-benefits > div:first-child {
+  color: #64748b !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-benefits span,
+body:not(.dark) #hospital-details-drawer #drawer-benefits span,
+html:not(.dark) #hospital-details-drawer #drawer-benefits span,
+body.light-glass #drawer-benefits-tags span,
+body:not(.dark) #drawer-benefits-tags span,
+html:not(.dark) #drawer-benefits-tags span {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-doctors-header,
+body:not(.dark) #hospital-details-drawer #drawer-doctors-header,
+html:not(.dark) #hospital-details-drawer #drawer-doctors-header {
+  color: #0f172a !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-doctors-header > span,
+body:not(.dark) #hospital-details-drawer #drawer-doctors-header > span,
+html:not(.dark) #hospital-details-drawer #drawer-doctors-header > span {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+
+body.light-glass #hospital-details-drawer h3,
+body:not(.dark) #hospital-details-drawer h3,
+html:not(.dark) #hospital-details-drawer h3 {
+  color: #0f172a !important;
+}
+
+body.light-glass #hospital-details-drawer h3 > span,
+body:not(.dark) #hospital-details-drawer h3 > span,
+html:not(.dark) #hospital-details-drawer h3 > span {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #92400e !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-rating-metrics > div,
+body:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div,
+html:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div {
+  background-color: #f8fafc !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-rating-metrics > div > div:first-child,
+body:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div > div:first-child,
+html:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div > div:first-child {
+  color: #64748b !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-rating-metrics > div > div:last-child,
+body:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div > div:last-child,
+html:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div > div:last-child {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-rating-metrics > div > div:last-child span:last-child,
+body:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div > div:last-child span:last-child,
+html:not(.dark) #hospital-details-drawer #drawer-rating-metrics > div > div:last-child span:last-child {
+  color: #64748b !important;
+  font-weight: 400 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-testimonial,
+body:not(.dark) #hospital-details-drawer #drawer-testimonial,
+html:not(.dark) #hospital-details-drawer #drawer-testimonial {
+  background-color: rgba(240, 249, 255, 0.75) !important;
+  border-color: #bae6fd !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-testimonial p,
+body:not(.dark) #hospital-details-drawer #drawer-testimonial p,
+html:not(.dark) #hospital-details-drawer #drawer-testimonial p {
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-testimonial > div:last-child,
+body:not(.dark) #hospital-details-drawer #drawer-testimonial > div:last-child,
+html:not(.dark) #hospital-details-drawer #drawer-testimonial > div:last-child {
+  border-top-color: #cbd5e1 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-testimonial > div:last-child span:first-child,
+body:not(.dark) #hospital-details-drawer #drawer-testimonial > div:last-child span:first-child,
+html:not(.dark) #hospital-details-drawer #drawer-testimonial > div:last-child span:first-child {
+  color: #0f172a !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-testimonial > div:last-child span:last-child,
+body:not(.dark) #hospital-details-drawer #drawer-testimonial > div:last-child span:last-child,
+html:not(.dark) #hospital-details-drawer #drawer-testimonial > div:last-child span:last-child {
+  color: #64748b !important;
+}
+
+body.light-glass #hospital-details-drawer > div.relative.z-20,
+body:not(.dark) #hospital-details-drawer > div.relative.z-20,
+html:not(.dark) #hospital-details-drawer > div.relative.z-20,
+body.light-glass #hospital-details-drawer #drawer-footer,
+body:not(.dark) #hospital-details-drawer #drawer-footer,
+html:not(.dark) #hospital-details-drawer #drawer-footer {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-phone-link,
+body.light-glass #hospital-details-drawer #drawer-map-link,
+body:not(.dark) #hospital-details-drawer #drawer-phone-link,
+body:not(.dark) #hospital-details-drawer #drawer-map-link {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.light-glass #hospital-details-drawer #drawer-phone-link:hover,
+body.light-glass #hospital-details-drawer #drawer-map-link:hover,
+body:not(.dark) #hospital-details-drawer #drawer-phone-link:hover,
+body:not(.dark) #hospital-details-drawer #drawer-map-link:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+body.light-glass #hospital-details-drawer .space-y-2\.5 > div,
+body:not(.dark) #hospital-details-drawer .space-y-2\.5 > div {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+body.light-glass #hospital-details-drawer .space-y-2\.5 > div h4,
+body:not(.dark) #hospital-details-drawer .space-y-2\.5 > div h4 {
+  color: #1e293b !important;
+}
+
+body.light-glass #hospital-details-drawer .space-y-2\.5 > div p,
+body:not(.dark) #hospital-details-drawer .space-y-2\.5 > div p {
+  color: #0369a1 !important;
+}
+
+body.light-glass #hospital-details-drawer button[aria-label="Đóng bảng chi tiết"],
+body:not(.dark) #hospital-details-drawer button[aria-label="Đóng bảng chi tiết"] {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-sky-500"],
+body.light-glass #booking-tab #hospitalsView [class*="bg-gradient-to-r"],
+body.light-glass #hospital-details-drawer [class*="bg-gradient-to-r"],
+body:not(.dark) #hospital-details-drawer [class*="bg-gradient-to-r"] {
+  color: #ffffff !important;
+}
+
+body.light-glass #booking-tab #hospitalsView [class*="bg-sky-500"] *,
+body.light-glass #booking-tab #hospitalsView [class*="bg-gradient-to-r"] *,
+body.light-glass #hospital-details-drawer [class*="bg-gradient-to-r"] *,
+body:not(.dark) #hospital-details-drawer [class*="bg-gradient-to-r"] * {
+  color: #ffffff !important;
+}
+
+
 
 /* ==============================================================================
    Modal Dialogs (Login, Register, Disclaimer, Profile) - Complete Light & Dark Sync

@@ -1,0 +1,315 @@
+{
+  "dataset_sha256": "e5b25cabc2d7ed431f07da00d7fbb466dcdca7a0209cfe32f39484ce55bb455b",
+  "corpus_sha256": "74b767f1c94704a529df19571b78f3b085364d8713ab5352bae537d8e3072b38",
+  "baseline_before_normalization_fix": {
+    "count": 56,
+    "metrics": {
+      "hit@1": 0.6071428571428571,
+      "recall@1": 0.5982142857142857,
+      "hit@3": 0.6785714285714286,
+      "recall@3": 0.6785714285714286,
+      "hit@5": 0.6785714285714286,
+      "recall@5": 0.6785714285714286,
+      "mrr": 0.6428571428571429,
+      "ndcg@5": 0.652209268112247
+    },
+    "candidate_recall_at_20": 0.6785714285714286,
+    "latency_ms": {
+      "mean_ms": 4.291833928488943,
+      "p50_ms": 3.1649500015191734,
+      "p95_ms": 3.7785500007885275
+    },
+    "language": {
+      "vi": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.25,
+          "recall@1": 0.25,
+          "hit@3": 0.35714285714285715,
+          "recall@3": 0.35714285714285715,
+          "hit@5": 0.35714285714285715,
+          "recall@5": 0.35714285714285715,
+          "mrr": 0.30357142857142855,
+          "ndcg@5": 0.31759961645408474
+        },
+        "candidate_recall_at_20": 0.35714285714285715
+      },
+      "en": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.9642857142857143,
+          "recall@1": 0.9464285714285714,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.9821428571428571,
+          "ndcg@5": 0.9868189197704093
+        },
+        "candidate_recall_at_20": 1.0
+      }
+    }
+  },
+  "baseline_after_normalization_fix": {
+    "count": 56,
+    "metrics": {
+      "hit@1": 0.6071428571428571,
+      "recall@1": 0.5982142857142857,
+      "hit@3": 0.6785714285714286,
+      "recall@3": 0.6785714285714286,
+      "hit@5": 0.6785714285714286,
+      "recall@5": 0.6785714285714286,
+      "mrr": 0.6428571428571429,
+      "ndcg@5": 0.652209268112247
+    },
+    "candidate_recall_at_20": 0.6785714285714286,
+    "latency_ms": {
+      "mean_ms": 5.27368571439573,
+      "p50_ms": 3.97385000178474,
+      "p95_ms": 4.725275000055262
+    },
+    "language": {
+      "vi": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.25,
+          "recall@1": 0.25,
+          "hit@3": 0.35714285714285715,
+          "recall@3": 0.35714285714285715,
+          "hit@5": 0.35714285714285715,
+          "recall@5": 0.35714285714285715,
+          "mrr": 0.30357142857142855,
+          "ndcg@5": 0.31759961645408474
+        },
+        "candidate_recall_at_20": 0.35714285714285715
+      },
+      "en": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.9642857142857143,
+          "recall@1": 0.9464285714285714,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.9821428571428571,
+          "ndcg@5": 0.9868189197704093
+        },
+        "candidate_recall_at_20": 1.0
+      }
+    }
+  },
+  "hybrid_after_fix": {
+    "count": 56,
+    "metrics": {
+      "hit@1": 0.625,
+      "recall@1": 0.6160714285714286,
+      "hit@3": 0.6785714285714286,
+      "recall@3": 0.6785714285714286,
+      "hit@5": 0.6785714285714286,
+      "recall@5": 0.6785714285714286,
+      "mrr": 0.657312925170068,
+      "ndcg@5": 0.6587998082270424
+    },
+    "candidate_recall_at_20": 0.7142857142857143,
+    "latency_ms": {
+      "mean_ms": 140.42541250013787,
+      "p50_ms": 140.39109999976063,
+      "p95_ms": 149.12090000052558
+    },
+    "language": {
+      "vi": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.2857142857142857,
+          "recall@1": 0.2857142857142857,
+          "hit@3": 0.35714285714285715,
+          "recall@3": 0.35714285714285715,
+          "hit@5": 0.35714285714285715,
+          "recall@5": 0.35714285714285715,
+          "mrr": 0.33248299319727886,
+          "ndcg@5": 0.33078069668367555
+        },
+        "candidate_recall_at_20": 0.42857142857142855
+      },
+      "en": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.9642857142857143,
+          "recall@1": 0.9464285714285714,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 0.9821428571428571,
+          "ndcg@5": 0.9868189197704093
+        },
+        "candidate_recall_at_20": 1.0
+      }
+    }
+  },
+  "hybrid_reranker_after_fix": {
+    "count": 56,
+    "metrics": {
+      "hit@1": 0.625,
+      "recall@1": 0.6160714285714286,
+      "hit@3": 0.6785714285714286,
+      "recall@3": 0.6785714285714286,
+      "hit@5": 0.7142857142857143,
+      "recall@5": 0.7142857142857143,
+      "mrr": 0.6547619047619049,
+      "ndcg@5": 0.6680714939083291
+    },
+    "candidate_recall_at_20": 0.7142857142857143,
+    "latency_ms": {
+      "mean_ms": 6138.55604285709,
+      "p50_ms": 8859.628850001172,
+      "p95_ms": 9265.371000001323
+    },
+    "language": {
+      "vi": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 0.25,
+          "recall@1": 0.25,
+          "hit@3": 0.35714285714285715,
+          "recall@3": 0.35714285714285715,
+          "hit@5": 0.42857142857142855,
+          "recall@5": 0.42857142857142855,
+          "mrr": 0.3095238095238095,
+          "ndcg@5": 0.3390101024899373
+        },
+        "candidate_recall_at_20": 0.42857142857142855
+      },
+      "en": {
+        "count": 28,
+        "metrics": {
+          "hit@1": 1.0,
+          "recall@1": 0.9821428571428571,
+          "hit@3": 1.0,
+          "recall@3": 1.0,
+          "hit@5": 1.0,
+          "recall@5": 1.0,
+          "mrr": 1.0,
+          "ndcg@5": 0.997132885326721
+        },
+        "candidate_recall_at_20": 1.0
+      }
+    }
+  },
+  "changes_vs_baseline_before_by_query": {
+    "baseline": {
+      "top_1": {
+        "regressions": [],
+        "improvements": []
+      },
+      "top_3": {
+        "regressions": [],
+        "improvements": []
+      },
+      "top_5": {
+        "regressions": [],
+        "improvements": []
+      }
+    },
+    "hybrid": {
+      "top_1": {
+        "regressions": [],
+        "improvements": [
+          {
+            "id": "med_007",
+            "query": "Đau đầu có những loại nào?",
+            "language": "vi"
+          }
+        ]
+      },
+      "top_3": {
+        "regressions": [],
+        "improvements": []
+      },
+      "top_5": {
+        "regressions": [],
+        "improvements": []
+      }
+    },
+    "hybrid_reranker": {
+      "top_1": {
+        "regressions": [
+          {
+            "id": "med_003",
+            "query": "Đau bụng có thể do những nguyên nhân nào?",
+            "language": "vi"
+          },
+          {
+            "id": "med_005",
+            "query": "Ho có thể do những nguyên nhân nào?",
+            "language": "vi"
+          },
+          {
+            "id": "med_019",
+            "query": "Khó thở có thể do nguyên nhân gì?",
+            "language": "vi"
+          }
+        ],
+        "improvements": [
+          {
+            "id": "med_007",
+            "query": "Đau đầu có những loại nào?",
+            "language": "vi"
+          },
+          {
+            "id": "med_024",
+            "query": "How should a burn be treated with first aid?",
+            "language": "en"
+          },
+          {
+            "id": "med_031",
+            "query": "Bệnh tiểu đường típ 2 là gì?",
+            "language": "vi"
+          },
+          {
+            "id": "med_047",
+            "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+            "language": "vi"
+          }
+        ]
+      },
+      "top_3": {
+        "regressions": [
+          {
+            "id": "med_003",
+            "query": "Đau bụng có thể do những nguyên nhân nào?",
+            "language": "vi"
+          }
+        ],
+        "improvements": [
+          {
+            "id": "med_045",
+            "query": "Làm sao phòng bệnh sốt xuất huyết?",
+            "language": "vi"
+          }
+        ]
+      },
+      "top_5": {
+        "regressions": [],
+        "improvements": [
+          {
+            "id": "med_033",
+            "query": "Sốt xuất huyết lây truyền như thế nào?",
+            "language": "vi"
+          },
+          {
+            "id": "med_045",
+            "query": "Làm sao phòng bệnh sốt xuất huyết?",
+            "language": "vi"
+          }
+        ]
+      }
+    }
+  },
+  "notes": [
+    "Per-query changes compare hit, not recall; source-level labels are incomplete.",
+    "Translation expansion is unmeasured; no independent translator was provided.",
+    "Hybrid plus rerank latency sums separately measured branch durations; model load is excluded."
+  ]
+}

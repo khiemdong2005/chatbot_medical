@@ -1,5 +1,7 @@
 # 🏥 MEDIMIND CLINICAL AI — KIẾN TRÚC & CẤU TRÚC THƯ MỤC DỰ ÁN
 
+> Tài liệu lịch sử: sơ đồ bên dưới chưa được cập nhật toàn bộ theo repository hiện tại. Ví dụ, các tệp triển khai Docker được liệt kê chưa có trong dự án. Xem `docs/PROJECT_INVENTORY.md` để biết các đường dẫn đã được kiểm tra.
+
 Tài liệu này hướng dẫn chi tiết cách tổ chức mã nguồn, phân chia module, quy trình làm việc nhóm (Git) và cách deploy lên AWS hoặc Docker VPS thuận tiện nhất.
 
 ---
@@ -14,7 +16,7 @@ Medical ChatBOT\
 │   │   └── index.html               # Web Portal chính (Chatbot, Dashboard, Quản lý tài liệu)
 │   └── static\                      # Tài nguyên tĩnh phục vụ trình duyệt
 │       ├── css\                     # Stylesheets (Giao diện y tế, dark/light mode, mobile responsive)
-│       ├── js\                      # Logic tương tác phía Client (Fetch API, JWT Bearer, DOM rendering)
+│       ├── js\                      # Logic tương tác phía Client (Fetch API, DOM rendering)
 │       │   └── app.js               # Controller JavaScript chính của Web Portal
 │       └── images\                  # Logo, Icon và Atlas minh họa lâm sàng
 │
@@ -22,13 +24,11 @@ Medical ChatBOT\
 │   ├── app.py                       # ⭐ Điểm khởi chạy chính của hệ thống Flask Server & API Routing
 │   └── core\                        # Các module dịch vụ độc lập (Clean Architecture)
 │       ├── models.py                # Mô hình dữ liệu ORM (SQLAlchemy), Băm mật khẩu scrypt
-│       ├── jwt_auth.py              # Xác thực Stateless JWT (Access/Refresh Token, Decorator @jwt_required)
 │       ├── security_patch.py        # Tầng phòng thủ OWASP: Magic Bytes check, OTP Lockout, XSS Sanitize
 │       ├── gemini_service.py        # Tích hợp Google Gemini Flash API cho suy luận y khoa
 │       ├── rag_service.py           # Grounded RAG tra cứu tri thức y khoa từ ChromaDB
 │       ├── cache_service.py         # Bộ nhớ đệm Redis & RAM Fallback, Rate Limiting
 │       ├── email_service.py         # Gửi email mã OTP xác thực quên mật khẩu (SMTP / SES)
-│       ├── observability.py         # Giám sát Prometheus (/metrics) & Cảnh báo Telegram tự động
 │       ├── triage.py                # Phân luồng khẩn cấp và cảnh báo dấu hiệu nguy hiểm (Red Flags)
 │       └── prompts.py               # System Prompts lâm sàng chuẩn y khoa
 │

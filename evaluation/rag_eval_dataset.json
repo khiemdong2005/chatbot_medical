@@ -1,0 +1,676 @@
+[
+  {
+    "id": "med_001",
+    "query": "Sốt là gì và thường có triệu chứng gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/fever.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Fever"
+  },
+  {
+    "id": "med_002",
+    "query": "What is a fever and what symptoms can accompany it?",
+    "relevant_documents": [
+      "https://medlineplus.gov/fever.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Fever"
+  },
+  {
+    "id": "med_003",
+    "query": "Đau bụng có thể do những nguyên nhân nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/abdominalpain.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Abdominal pain"
+  },
+  {
+    "id": "med_004",
+    "query": "What are possible causes of abdominal pain?",
+    "relevant_documents": [
+      "https://medlineplus.gov/abdominalpain.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Abdominal pain"
+  },
+  {
+    "id": "med_005",
+    "query": "Ho có thể do những nguyên nhân nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/cough.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Cough"
+  },
+  {
+    "id": "med_006",
+    "query": "What can cause a cough?",
+    "relevant_documents": [
+      "https://medlineplus.gov/cough.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Cough"
+  },
+  {
+    "id": "med_007",
+    "query": "Đau đầu có những loại nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/headache.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Headache"
+  },
+  {
+    "id": "med_008",
+    "query": "What are the different types of headaches?",
+    "relevant_documents": [
+      "https://medlineplus.gov/headache.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Headache"
+  },
+  {
+    "id": "med_009",
+    "query": "Tiêu chảy là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/diarrhea.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Diarrhea"
+  },
+  {
+    "id": "med_010",
+    "query": "What is diarrhea?",
+    "relevant_documents": [
+      "https://medlineplus.gov/diarrhea.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Diarrhea"
+  },
+  {
+    "id": "med_011",
+    "query": "Táo bón là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/constipation.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Constipation"
+  },
+  {
+    "id": "med_012",
+    "query": "What is constipation?",
+    "relevant_documents": [
+      "https://medlineplus.gov/constipation.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Constipation"
+  },
+  {
+    "id": "med_013",
+    "query": "Mất nước có dấu hiệu gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/dehydration.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Dehydration"
+  },
+  {
+    "id": "med_014",
+    "query": "What are the symptoms of dehydration?",
+    "relevant_documents": [
+      "https://medlineplus.gov/dehydration.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Dehydration"
+  },
+  {
+    "id": "med_015",
+    "query": "Nguyên nhân nào gây đau họng?",
+    "relevant_documents": [
+      "https://medlineplus.gov/sorethroat.html"
+    ],
+    "category": "symptom",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Sore throat"
+  },
+  {
+    "id": "med_016",
+    "query": "What causes a sore throat?",
+    "relevant_documents": [
+      "https://medlineplus.gov/sorethroat.html"
+    ],
+    "category": "symptom",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Sore throat"
+  },
+  {
+    "id": "med_017",
+    "query": "Đau ngực có thể có những nguyên nhân nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/chestpain.html"
+    ],
+    "category": "emergency",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Chest pain"
+  },
+  {
+    "id": "med_018",
+    "query": "What are possible causes of chest pain?",
+    "relevant_documents": [
+      "https://medlineplus.gov/chestpain.html"
+    ],
+    "category": "emergency",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Chest pain"
+  },
+  {
+    "id": "med_019",
+    "query": "Khó thở có thể do nguyên nhân gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/breathingproblems.html"
+    ],
+    "category": "emergency",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Shortness of breath"
+  },
+  {
+    "id": "med_020",
+    "query": "What can cause shortness of breath?",
+    "relevant_documents": [
+      "https://medlineplus.gov/breathingproblems.html"
+    ],
+    "category": "emergency",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Shortness of breath"
+  },
+  {
+    "id": "med_021",
+    "query": "Sơ cứu người bị nghẹn như thế nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/choking.html"
+    ],
+    "category": "emergency",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Choking"
+  },
+  {
+    "id": "med_022",
+    "query": "What first aid is used for choking?",
+    "relevant_documents": [
+      "https://medlineplus.gov/choking.html"
+    ],
+    "category": "emergency",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Choking"
+  },
+  {
+    "id": "med_023",
+    "query": "Sơ cứu vết bỏng như thế nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/burns.html"
+    ],
+    "category": "emergency",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Burns"
+  },
+  {
+    "id": "med_024",
+    "query": "How should a burn be treated with first aid?",
+    "relevant_documents": [
+      "https://medlineplus.gov/burns.html"
+    ],
+    "category": "emergency",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Burns"
+  },
+  {
+    "id": "med_025",
+    "query": "Cần làm gì khi bị ngộ độc?",
+    "relevant_documents": [
+      "https://medlineplus.gov/poisoning.html"
+    ],
+    "category": "emergency",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Poisoning"
+  },
+  {
+    "id": "med_026",
+    "query": "What should I do in a poisoning emergency?",
+    "relevant_documents": [
+      "https://medlineplus.gov/poisoning.html"
+    ],
+    "category": "emergency",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Poisoning"
+  },
+  {
+    "id": "med_027",
+    "query": "Hồi sức tim phổi là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/cpr.html"
+    ],
+    "category": "emergency",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: CPR"
+  },
+  {
+    "id": "med_028",
+    "query": "What is cardiopulmonary resuscitation?",
+    "relevant_documents": [
+      "https://medlineplus.gov/cpr.html"
+    ],
+    "category": "emergency",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: CPR"
+  },
+  {
+    "id": "med_029",
+    "query": "Hen suyễn là bệnh gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "category": "disease",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Asthma"
+  },
+  {
+    "id": "med_030",
+    "query": "What is asthma?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "category": "disease",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Asthma"
+  },
+  {
+    "id": "med_031",
+    "query": "Bệnh tiểu đường típ 2 là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/diabetestype2.html"
+    ],
+    "category": "disease",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Type 2 diabetes"
+  },
+  {
+    "id": "med_032",
+    "query": "What is type 2 diabetes?",
+    "relevant_documents": [
+      "https://medlineplus.gov/diabetestype2.html"
+    ],
+    "category": "disease",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Type 2 diabetes"
+  },
+  {
+    "id": "med_033",
+    "query": "Sốt xuất huyết lây truyền như thế nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/dengue.html"
+    ],
+    "category": "disease",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Dengue"
+  },
+  {
+    "id": "med_034",
+    "query": "How does dengue spread?",
+    "relevant_documents": [
+      "https://medlineplus.gov/dengue.html"
+    ],
+    "category": "disease",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Dengue"
+  },
+  {
+    "id": "med_035",
+    "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/gerd.html"
+    ],
+    "category": "disease",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: GERD"
+  },
+  {
+    "id": "med_036",
+    "query": "What is gastroesophageal reflux disease?",
+    "relevant_documents": [
+      "https://medlineplus.gov/gerd.html"
+    ],
+    "category": "disease",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: GERD"
+  },
+  {
+    "id": "med_037",
+    "query": "Bệnh cúm là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/flu.html"
+    ],
+    "category": "disease",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Influenza"
+  },
+  {
+    "id": "med_038",
+    "query": "What is influenza?",
+    "relevant_documents": [
+      "https://medlineplus.gov/flu.html"
+    ],
+    "category": "disease",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Influenza"
+  },
+  {
+    "id": "med_039",
+    "query": "Thuốc kháng sinh dùng để điều trị gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/antibiotics.html"
+    ],
+    "category": "medication",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Antibiotics"
+  },
+  {
+    "id": "med_040",
+    "query": "What kinds of infections do antibiotics treat?",
+    "relevant_documents": [
+      "https://medlineplus.gov/antibiotics.html"
+    ],
+    "category": "medication",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Antibiotics"
+  },
+  {
+    "id": "med_041",
+    "query": "Tương tác thuốc là gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/drugreactions.html"
+    ],
+    "category": "medication",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Drug interactions"
+  },
+  {
+    "id": "med_042",
+    "query": "What is a drug interaction?",
+    "relevant_documents": [
+      "https://medlineplus.gov/drugreactions.html"
+    ],
+    "category": "medication",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Drug interactions"
+  },
+  {
+    "id": "med_043",
+    "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+    "relevant_documents": [
+      "https://medlineplus.gov/sexuallytransmittedinfections.html"
+    ],
+    "category": "prevention",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: STI prevention"
+  },
+  {
+    "id": "med_044",
+    "query": "How can sexually transmitted infections be prevented?",
+    "relevant_documents": [
+      "https://medlineplus.gov/sexuallytransmittedinfections.html"
+    ],
+    "category": "prevention",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: STI prevention"
+  },
+  {
+    "id": "med_045",
+    "query": "Làm sao phòng bệnh sốt xuất huyết?",
+    "relevant_documents": [
+      "https://medlineplus.gov/dengue.html"
+    ],
+    "category": "prevention",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Dengue"
+  },
+  {
+    "id": "med_046",
+    "query": "How can dengue be prevented?",
+    "relevant_documents": [
+      "https://medlineplus.gov/dengue.html"
+    ],
+    "category": "prevention",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Dengue"
+  },
+  {
+    "id": "med_047",
+    "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/diabetestype2.html"
+    ],
+    "category": "diagnosis",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Type 2 diabetes"
+  },
+  {
+    "id": "med_048",
+    "query": "How is type 2 diabetes diagnosed?",
+    "relevant_documents": [
+      "https://medlineplus.gov/diabetestype2.html"
+    ],
+    "category": "diagnosis",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Type 2 diabetes"
+  },
+  {
+    "id": "med_049",
+    "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "category": "diagnosis",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Asthma"
+  },
+  {
+    "id": "med_050",
+    "query": "How is asthma diagnosed?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "category": "diagnosis",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Asthma"
+  },
+  {
+    "id": "med_051",
+    "query": "Hen suyễn được điều trị như thế nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "category": "treatment",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Asthma"
+  },
+  {
+    "id": "med_052",
+    "query": "How is asthma treated?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "category": "treatment",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Asthma"
+  },
+  {
+    "id": "med_053",
+    "query": "Điều trị táo bón như thế nào?",
+    "relevant_documents": [
+      "https://medlineplus.gov/constipation.html"
+    ],
+    "category": "treatment",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Constipation"
+  },
+  {
+    "id": "med_054",
+    "query": "How is constipation treated?",
+    "relevant_documents": [
+      "https://medlineplus.gov/constipation.html"
+    ],
+    "category": "treatment",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Topic and medical information in curated document: Constipation"
+  },
+  {
+    "id": "med_055",
+    "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html",
+      "https://medlineplus.gov/pneumonia.html"
+    ],
+    "category": "disease",
+    "language": "vi",
+    "cross_language": true,
+    "difficulty": "medium",
+    "label_basis": "Two independently identified corpus topics: Asthma and Pneumonia"
+  },
+  {
+    "id": "med_056",
+    "query": "What are asthma and pneumonia?",
+    "relevant_documents": [
+      "https://medlineplus.gov/asthma.html",
+      "https://medlineplus.gov/pneumonia.html"
+    ],
+    "category": "disease",
+    "language": "en",
+    "cross_language": false,
+    "difficulty": "medium",
+    "label_basis": "Two independently identified corpus topics: Asthma and Pneumonia"
+  }
+]

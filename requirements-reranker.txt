@@ -1,0 +1,2 @@
+# Optional local RAG reranker; not required when RAG_RERANK_ENABLED is unset.
+sentence-transformers>=5.0,<7

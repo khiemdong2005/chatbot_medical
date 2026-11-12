@@ -1,0 +1,30 @@
+{
+  "errors": [],
+  "near_dev_flags": [],
+  "distribution": {
+    "count": 102,
+    "languages": {
+      "vi": 51,
+      "en": 51
+    },
+    "categories": {
+      "symptom": 20,
+      "emergency": 14,
+      "medication": 12,
+      "prevention": 10,
+      "diagnosis": 10,
+      "treatment": 10,
+      "disease": 26
+    },
+    "difficulty": {
+      "medium": 74,
+      "easy": 20,
+      "hard": 8
+    },
+    "multi_source_queries": 2
+  },
+  "notes": [
+    "Similarity flags are heuristic and do not establish semantic independence.",
+    "Source existence is not a clinical relevance review; all labels require independent human review."
+  ]
+}

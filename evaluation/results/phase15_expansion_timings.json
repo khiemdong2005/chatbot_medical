@@ -1,0 +1,142 @@
+[
+  {
+    "query": "Sốt là gì và thường có triệu chứng gì?",
+    "status": "ok",
+    "latency_ms": 1415.8238999989408
+  },
+  {
+    "query": "Đau bụng có thể do những nguyên nhân nào?",
+    "status": "ok",
+    "latency_ms": 996.3260000004084
+  },
+  {
+    "query": "Ho có thể do những nguyên nhân nào?",
+    "status": "ok",
+    "latency_ms": 1060.8561000008194
+  },
+  {
+    "query": "Đau đầu có những loại nào?",
+    "status": "ok",
+    "latency_ms": 767.7615999964473
+  },
+  {
+    "query": "Tiêu chảy là gì?",
+    "status": "ok",
+    "latency_ms": 726.6216999996686
+  },
+  {
+    "query": "Táo bón là gì?",
+    "status": "ok",
+    "latency_ms": 884.0658000008261
+  },
+  {
+    "query": "Mất nước có dấu hiệu gì?",
+    "status": "ok",
+    "latency_ms": 371.4232999991509
+  },
+  {
+    "query": "Nguyên nhân nào gây đau họng?",
+    "status": "ok",
+    "latency_ms": 1038.2123999988835
+  },
+  {
+    "query": "Đau ngực có thể có những nguyên nhân nào?",
+    "status": "ok",
+    "latency_ms": 1451.3800000022457
+  },
+  {
+    "query": "Khó thở có thể do nguyên nhân gì?",
+    "status": "ok",
+    "latency_ms": 799.4969999999739
+  },
+  {
+    "query": "Sơ cứu người bị nghẹn như thế nào?",
+    "status": "ok",
+    "latency_ms": 1124.0292999973462
+  },
+  {
+    "query": "Sơ cứu vết bỏng như thế nào?",
+    "status": "ok",
+    "latency_ms": 1355.42390000046
+  },
+  {
+    "query": "Cần làm gì khi bị ngộ độc?",
+    "status": "ok",
+    "latency_ms": 1236.0818999986805
+  },
+  {
+    "query": "Hồi sức tim phổi là gì?",
+    "status": "ok",
+    "latency_ms": 666.997000000265
+  },
+  {
+    "query": "Hen suyễn là bệnh gì?",
+    "status": "ok",
+    "latency_ms": 1096.662899999501
+  },
+  {
+    "query": "Bệnh tiểu đường típ 2 là gì?",
+    "status": "ok",
+    "latency_ms": 369.3572000011045
+  },
+  {
+    "query": "Sốt xuất huyết lây truyền như thế nào?",
+    "status": "ok",
+    "latency_ms": 1115.1252000017848
+  },
+  {
+    "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+    "status": "ok",
+    "latency_ms": 1183.0881999994745
+  },
+  {
+    "query": "Bệnh cúm là gì?",
+    "status": "ok",
+    "latency_ms": 281.75439999904484
+  },
+  {
+    "query": "Thuốc kháng sinh dùng để điều trị gì?",
+    "status": "ok",
+    "latency_ms": 892.6924000006693
+  },
+  {
+    "query": "Tương tác thuốc là gì?",
+    "status": "ok",
+    "latency_ms": 616.3323000000673
+  },
+  {
+    "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+    "status": "ok",
+    "latency_ms": 525.8892999991076
+  },
+  {
+    "query": "Làm sao phòng bệnh sốt xuất huyết?",
+    "status": "ok",
+    "latency_ms": 471.0527999995975
+  },
+  {
+    "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+    "status": "ok",
+    "latency_ms": 728.2070000001113
+  },
+  {
+    "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+    "status": "ok",
+    "latency_ms": 667.7037000008568
+  },
+  {
+    "query": "Hen suyễn được điều trị như thế nào?",
+    "status": "ok",
+    "latency_ms": 1078.5443999993731
+  },
+  {
+    "query": "Điều trị táo bón như thế nào?",
+    "status": "ok",
+    "latency_ms": 941.9914000027347
+  },
+  {
+    "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+    "status": "ok",
+    "latency_ms": 536.3585999984934
+  }
+]
