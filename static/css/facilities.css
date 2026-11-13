@@ -1,0 +1,470 @@
+/* The facility directory uses the same sky accent as MediMind navigation. */
+#hospitalsView,
+#hospital-details-drawer {
+  --facility-canvas: #0b1120;
+  --facility-surface: #111c30;
+  --facility-muted-surface: #18253a;
+  --facility-border: #2c3e56;
+  --facility-text: #e2e8f0;
+  --facility-muted: #a4b5c9;
+  --facility-accent: #0369a1;
+  --facility-accent-hover: #075985;
+  --facility-accent-soft: #12354d;
+  --facility-accent-ink: #7dd3fc;
+  --facility-status: #6ee7b7;
+  --facility-status-soft: #10382d;
+  --facility-hospital-soft: #4c1828;
+  --facility-hospital-border: #9f2949;
+  --facility-hospital-ink: #fda4af;
+  min-width: 0;
+  min-height: 0;
+}
+
+body.light-glass #hospitalsView,
+body.light-glass #hospital-details-drawer {
+  --facility-canvas: #f8fafc;
+  --facility-surface: #ffffff;
+  --facility-muted-surface: #f1f5f9;
+  --facility-border: #dbe5ed;
+  --facility-text: #0f172a;
+  --facility-muted: #64748b;
+  --facility-accent-soft: #e0f2fe;
+  --facility-accent-ink: #075985;
+  --facility-status: #047857;
+  --facility-status-soft: #ecfdf5;
+  --facility-hospital-soft: #fff1f2;
+  --facility-hospital-border: #fecdd3;
+  --facility-hospital-ink: #be123c;
+}
+
+body #booking-tab #hospitalsView {
+  background: var(--facility-canvas) !important;
+  color: var(--facility-text);
+  border-radius: 26px;
+  overflow: hidden;
+}
+
+body #booking-tab #hospitalsView > aside,
+body #booking-tab #hospitalsView > aside > div,
+body #booking-tab #hospitalsView > main > .flex-1,
+body #booking-tab #hospitalsView > main > .flex-1 > div:not(#hospitalSplitContainer) {
+  background: var(--facility-surface) !important;
+  border-color: var(--facility-border) !important;
+}
+
+body #booking-tab #hospitalsView > main,
+body #booking-tab #hospitalsView #hospitalCardsList {
+  background: var(--facility-canvas) !important;
+  min-width: 0;
+}
+
+body #booking-tab #hospitalsView [class*="border-slate-"] {
+  border-color: var(--facility-border) !important;
+}
+
+body #booking-tab #hospitalsView .text-white,
+body #booking-tab #hospitalsView .text-slate-100,
+body #booking-tab #hospitalsView .text-slate-200,
+body #booking-tab #hospitalsView .text-slate-300 {
+  color: var(--facility-text) !important;
+}
+
+body #booking-tab #hospitalsView .text-slate-400,
+body #booking-tab #hospitalsView .text-slate-500 {
+  color: var(--facility-muted) !important;
+}
+
+body #booking-tab #hospitalsView [class*="text-cyan-"],
+body #booking-tab #hospitalsView [class*="text-sky-"] {
+  color: var(--facility-accent-ink) !important;
+}
+
+body #booking-tab #hospitalsView input,
+body #booking-tab #hospitalsView select {
+  color: var(--facility-text) !important;
+  background: var(--facility-surface) !important;
+  border-color: var(--facility-border) !important;
+  box-shadow: none !important;
+}
+
+body #booking-tab #hospitalsView input::placeholder {
+  color: var(--facility-muted) !important;
+}
+
+body #booking-tab #hospitalsView :is(button, a, input, select):focus-visible {
+  outline: 2px solid var(--facility-accent);
+  outline-offset: 3px;
+}
+
+body #booking-tab #hospitalsView #facilityCategoryButtons > button {
+  color: var(--facility-text) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  min-height: 40px;
+}
+
+body #booking-tab #hospitalsView #facilityCategoryButtons > button:hover {
+  background: var(--facility-muted-surface) !important;
+}
+
+body #booking-tab #hospitalsView #facilityCategoryButtons [id^="catCount"] {
+  color: var(--facility-muted) !important;
+  background: var(--facility-muted-surface) !important;
+  border: 1px solid var(--facility-border) !important;
+}
+
+body #booking-tab #hospitalsView #facilityRegionButtons > button,
+body #booking-tab #hospitalsView #facilitySpecialtyPills > button {
+  color: var(--facility-text) !important;
+  background: var(--facility-muted-surface) !important;
+  border: 1px solid var(--facility-border) !important;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s;
+}
+
+body #booking-tab #hospitalsView #facilitySpecialtyPills > button:hover {
+  border-color: var(--facility-accent) !important;
+}
+
+body #booking-tab #hospitalsView #facilityCategoryButtons > button[aria-pressed="true"],
+body #booking-tab #hospitalsView #facilityRegionButtons > button[aria-pressed="true"],
+body #booking-tab #hospitalsView #facilitySpecialtyPills > button[aria-pressed="true"] {
+  background: var(--facility-accent) !important;
+  border-color: var(--facility-accent) !important;
+  color: #ffffff !important;
+}
+
+body #booking-tab #hospitalsView #facilityCategoryButtons > button[aria-pressed="true"] > span {
+  color: #ffffff !important;
+}
+
+body #booking-tab #hospitalsView #facilityCategoryButtons > button[aria-pressed="true"] [id^="catCount"] {
+  color: #ffffff !important;
+  background: rgba(255,255,255,.16) !important;
+  border-color: rgba(255,255,255,.3) !important;
+}
+
+body #booking-tab #hospitalsView #facilityNearbyButton,
+body #booking-tab #hospitalsView .facility-primary-action {
+  background: var(--facility-accent) !important;
+  border-color: var(--facility-accent) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+body #booking-tab #hospitalsView #facilityNearbyButton :is(span, svg),
+body #booking-tab #hospitalsView .facility-primary-action svg {
+  color: #ffffff !important;
+}
+
+body #booking-tab #hospitalsView #facilityNearbyButton:hover,
+body #booking-tab #hospitalsView .facility-primary-action:hover {
+  background: var(--facility-accent-hover) !important;
+}
+
+body #booking-tab #hospitalsView #mapStatusPill,
+body #booking-tab #hospitalsView #facilitiesCountBadge,
+body #booking-tab #hospitalsView .facility-type-tag,
+body #booking-tab #hospitalsView .facility-icon-tile {
+  background: var(--facility-accent-soft) !important;
+  border-color: var(--facility-border) !important;
+  color: var(--facility-accent-ink) !important;
+  box-shadow: none !important;
+}
+
+body #booking-tab #hospitalsView .hospital-card {
+  background: var(--facility-surface) !important;
+  border-color: var(--facility-border) !important;
+  box-shadow: 0 3px 12px rgba(15,23,42,.035) !important;
+}
+
+/* Red identifies hospitals; other facility types retain the sky accent. */
+body #booking-tab #hospitalsView .hospital-card[data-facility-type="Bệnh viện"] .facility-icon-tile,
+body #booking-tab #hospitalsView .hospital-card[data-facility-type="Bệnh viện"] .facility-type-tag {
+  background: var(--facility-hospital-soft) !important;
+  border-color: var(--facility-hospital-border) !important;
+  color: var(--facility-hospital-ink) !important;
+}
+
+body #booking-tab #hospitalsView .hospital-card[data-facility-type="Bệnh viện"] .facility-address svg {
+  color: var(--facility-hospital-ink) !important;
+}
+
+body #booking-tab #hospitalsView .hospital-card:hover,
+body #booking-tab #hospitalsView .hospital-card[data-selected="true"] {
+  border-color: var(--facility-accent) !important;
+  box-shadow: 0 0 0 1px var(--facility-accent) !important;
+}
+
+body #booking-tab #hospitalsView .facility-meta-tag,
+body #booking-tab #hospitalsView .facility-secondary-action,
+body #booking-tab #hospitalsView #btnMobileToggleView,
+body #booking-tab #hospitalsView #paginationPageNumbers > button:not([aria-current="page"]) {
+  background: var(--facility-muted-surface) !important;
+  border-color: var(--facility-border) !important;
+  color: var(--facility-text) !important;
+}
+
+body #booking-tab #hospitalsView #paginationPageNumbers > button[aria-current="page"] {
+  color: #ffffff !important;
+  background: var(--facility-accent) !important;
+}
+
+body #booking-tab #hospitalsView .facility-address svg,
+body #booking-tab #hospitalsView .facility-secondary-action svg {
+  color: var(--facility-accent-ink) !important;
+}
+
+body #booking-tab #hospitalsView .facility-operation-status {
+  color: var(--facility-status) !important;
+}
+
+body #booking-tab #hospitalsView .facility-operation-status > span {
+  background: var(--facility-status) !important;
+  animation: none;
+}
+
+body #booking-tab #hospitalsView #hospitalMapPanel {
+  background: var(--facility-muted-surface) !important;
+  border-color: var(--facility-border) !important;
+  height: 42%;
+  min-height: 280px;
+}
+
+#googleHospitalMap, #googleHospitalMapEmbed, #leafletHospitalMap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Keep Google's place card, attribution and zoom controls unobstructed. */
+#hospitalMapPanel .facility-map-controls {
+  top: auto;
+  bottom: 36px;
+  right: 70px;
+  gap: 8px;
+}
+
+body #booking-tab #hospitalsView #hospitalMapPanel .pointer-events-auto,
+body #booking-tab #hospitalsView #hospitalMapPanel button {
+  background: var(--facility-surface) !important;
+  border-color: var(--facility-border) !important;
+  color: var(--facility-text) !important;
+}
+
+body #booking-tab #hospitalsView #activeHospitalBadge {
+  color: var(--facility-text) !important;
+}
+
+/* Detail drawer shares the directory tokens in both application themes. */
+body #hospital-details-drawer {
+  height: 100dvh;
+  max-height: 100dvh;
+  background: var(--facility-surface);
+  border-color: var(--facility-border);
+  color: var(--facility-text);
+}
+
+body #hospital-details-drawer .facility-drawer-header {
+  background: var(--facility-accent-soft);
+  border-bottom: 1px solid var(--facility-border);
+}
+
+body #hospital-details-drawer .facility-drawer-cover {
+  background: linear-gradient(135deg, var(--facility-accent-soft), var(--facility-surface));
+}
+
+body #hospital-details-drawer .facility-drawer-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 52%;
+  pointer-events: none;
+  user-select: none;
+}
+
+body:not(.light-glass) #hospital-details-drawer .facility-drawer-cover-image {
+  opacity: .78;
+}
+
+body #hospital-details-drawer .facility-drawer-shade {
+  background: linear-gradient(0deg, var(--facility-surface), transparent 58%);
+}
+
+body #hospital-details-drawer .facility-drawer-close,
+body #hospital-details-drawer #drawer-district-badge {
+  color: var(--facility-text);
+  background: var(--facility-surface);
+  border-color: var(--facility-border);
+}
+
+body #hospital-details-drawer #drawer-type-badge {
+  color: var(--facility-accent-ink);
+  background: var(--facility-accent-soft);
+  border-color: var(--facility-border);
+}
+
+body #hospital-details-drawer[data-facility-type="Bệnh viện"] #drawer-type-badge {
+  color: var(--facility-hospital-ink);
+  background: var(--facility-hospital-soft);
+  border-color: var(--facility-hospital-border);
+}
+
+body #hospital-details-drawer #drawer-status-badge {
+  color: var(--facility-status);
+  background: var(--facility-status-soft);
+  border-color: var(--facility-status);
+}
+
+body #hospital-details-drawer #drawer-status-badge > span {
+  background: currentColor;
+  animation: none;
+}
+
+body #hospital-details-drawer #slideOverHospitalName {
+  color: var(--facility-text);
+  overflow-wrap: anywhere;
+}
+
+body #hospital-details-drawer .facility-drawer-muted {
+  color: var(--facility-muted);
+}
+
+body #hospital-details-drawer .facility-drawer-address,
+body #hospital-details-drawer .facility-drawer-license,
+body #hospital-details-drawer .facility-drawer-contact {
+  color: var(--facility-text);
+  background: var(--facility-canvas);
+  border-color: var(--facility-border);
+  line-height: 1.6;
+}
+
+body #hospital-details-drawer .facility-drawer-address > div { min-width: 0; }
+body #hospital-details-drawer #drawer-address { overflow-wrap: anywhere; }
+
+body #hospital-details-drawer .facility-drawer-section-title,
+body #hospital-details-drawer .facility-drawer-address > svg {
+  color: var(--facility-accent-ink);
+}
+
+body #hospital-details-drawer[data-facility-type="Bệnh viện"] .facility-drawer-address > svg {
+  color: var(--facility-hospital-ink);
+}
+
+body #hospital-details-drawer .facility-drawer-license-field {
+  min-width: 0;
+  color: var(--facility-text);
+  background: var(--facility-surface);
+  border-color: var(--facility-border);
+  overflow-wrap: anywhere;
+}
+
+body #hospital-details-drawer .facility-drawer-specialty {
+  color: var(--facility-accent-ink);
+  background: var(--facility-accent-soft);
+  border-color: var(--facility-border);
+  overflow-wrap: anywhere;
+}
+
+body #hospital-details-drawer .facility-drawer-contact-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  align-items: start;
+  gap: 12px;
+  border-color: var(--facility-border);
+  padding-block: 8px;
+}
+
+body #hospital-details-drawer .facility-drawer-contact-row > :last-child {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+body #hospital-details-drawer #drawer-footer {
+  color: var(--facility-text);
+  background: var(--facility-surface);
+  border-color: var(--facility-border);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+body #hospital-details-drawer #drawer-booking-button {
+  min-height: 42px;
+  color: #ffffff;
+  background: var(--facility-accent);
+  box-shadow: none;
+}
+
+body #hospital-details-drawer #drawer-booking-button:hover {
+  background: var(--facility-accent-hover);
+}
+
+body #hospital-details-drawer .facility-drawer-secondary-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+body #hospital-details-drawer .facility-drawer-secondary {
+  min-width: 0;
+  min-height: 40px;
+  color: var(--facility-text);
+  background: var(--facility-muted-surface);
+  border-color: var(--facility-border);
+}
+
+body #hospital-details-drawer .facility-drawer-secondary > svg {
+  color: var(--facility-accent-ink);
+  flex-shrink: 0;
+}
+
+body #hospital-details-drawer .facility-drawer-secondary:hover,
+body #hospital-details-drawer .facility-drawer-close:hover {
+  background: var(--facility-accent-soft);
+  border-color: var(--facility-accent);
+}
+
+body #hospital-details-drawer :is(button, a):focus-visible {
+  outline: 2px solid var(--facility-accent);
+  outline-offset: 3px;
+}
+
+.facility-filter-toggle, .facility-filter-close { display: none; }
+
+@media (max-width: 767px) {
+  #hospitalsView { position: relative; }
+  #hospitalsView > aside { display: none; }
+  #hospitalsView > main { width: 100%; }
+  #hospitalsView.filters-open > aside {
+    display: flex;
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: min(320px, 88%);
+    z-index: 35;
+    box-shadow: 8px 0 35px rgba(15,23,42,.2);
+  }
+  .facility-filter-toggle, .facility-filter-close {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    border: 1px solid var(--facility-border);
+    border-radius: 10px;
+    color: var(--facility-accent-ink);
+    background: var(--facility-accent-soft);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .facility-filter-close { margin: 12px 16px 0; }
+  #hospitalMapPanel .facility-map-controls { flex-wrap: wrap; }
+  #hospitalMapPanel #activeHospitalBadge { max-width: 160px; }
+}
+
+@media (max-width: 430px) {
+  #hospital-details-drawer #hospital-detail-content { padding: 16px; }
+  #hospital-details-drawer .facility-drawer-contact-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 8px;
+  }
+}

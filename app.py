@@ -108,6 +108,8 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///medimind.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_AS_ASCII"] = False
+    # Refresh edited templates locally even when the debugger is disabled.
+    app.config["TEMPLATES_AUTO_RELOAD"] = not is_prod
 
     # Cấu hình Cookie an toàn bảo vệ Session
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -142,12 +144,12 @@ def create_app(test_config=None):
         # Content-Security-Policy (CSP) bảo vệ giao diện chống XSS và nạp tài nguyên trái phép
         csp_policy = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; "
             "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com; "
-            "connect-src 'self' https://accounts.google.com/gsi/; "
-            "frame-src 'self' https://accounts.google.com/gsi/; "
+            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; "
+            "connect-src 'self' https://accounts.google.com/gsi/ https://maps.googleapis.com https://mapsresources-pa.googleapis.com https://maps.gstatic.com; "
+            "frame-src 'self' https://accounts.google.com/gsi/ https://www.google.com https://maps.google.com; "
             "base-uri 'self';"
         )
         response.headers.setdefault("Content-Security-Policy", csp_policy)

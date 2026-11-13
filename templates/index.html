@@ -25,9 +25,10 @@
 
 </script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=19.0.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=19.0.3">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=9">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-context.css') }}?v=1">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=4">
 
 <!-- Leaflet CSS & JS for Interactive Hospital Map -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -37,7 +38,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
-  window.MEDIMIND_GOOGLE_MAPS_KEY = "{{ google_maps_api_key|default('') }}";
+  window.MEDIMIND_GOOGLE_MAPS_KEY = {{ google_maps_api_key|default('')|tojson }};
 </script>
 
 
@@ -896,6 +897,7 @@ background: #94A3B8;
 <div class="flex-1 overflow-hidden flex" id="hospitalsView">
 <!-- Left Filter & Department Column -->
 <aside class="w-80 lg:w-[340px] bg-[#0b1222] border-r border-slate-800/80 flex flex-col shrink-0">
+<button type="button" class="facility-filter-close" onclick="document.getElementById('hospitalsView').classList.remove('filters-open')">Đóng bộ lọc ✕</button>
 <!-- Panel Header -->
 <div class="p-4 border-b border-slate-800/60">
 <div class="mb-3">
@@ -917,7 +919,7 @@ background: #94A3B8;
 <div>
 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Loại hình cơ sở</span>
 <div class="space-y-1" id="facilityCategoryButtons">
-  <button onclick="selectCategoryFilter('all', this)" class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-sky-500/15 border border-sky-500/40 text-sky-300 text-xs font-semibold text-left transition">
+  <button aria-pressed="true" onclick="selectCategoryFilter('all', this)" class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-sky-500/15 border border-sky-500/40 text-sky-300 text-xs font-semibold text-left transition">
     <span>Tất cả cơ sở</span>
     <span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-[10px] font-mono" id="catCountAll">1505</span>
   </button>
@@ -946,8 +948,8 @@ background: #94A3B8;
 <!-- Region Filter -->
 <div>
 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Khu vực địa lý</span>
-<div class="grid grid-cols-3 gap-1.5">
-<button class="py-1.5 px-2 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-medium text-center">TP. HCM</button>
+<div class="grid grid-cols-3 gap-1.5" id="facilityRegionButtons">
+<button aria-pressed="true" class="py-1.5 px-2 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-medium text-center">TP. HCM</button>
 <button class="py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition">Hà Nội</button>
 <button class="py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition">Đà Nẵng</button>
 </div>
@@ -956,16 +958,16 @@ background: #94A3B8;
 <div>
 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Chuyên khoa nổi bật</span>
 <div class="flex flex-wrap gap-1.5" id="facilitySpecialtyPills">
-  <span onclick="selectSpecialtyFilter('all', this)" class="px-2.5 py-1 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-[11px] font-medium cursor-pointer hover:border-cyan-500">Tất cả</span>
-  <span onclick="selectSpecialtyFilter('Nội tổng hợp', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Nội tổng hợp</span>
-  <span onclick="selectSpecialtyFilter('Răng Hàm Mặt', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Răng Hàm Mặt</span>
-  <span onclick="selectSpecialtyFilter('Sản phụ khoa', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Sản phụ khoa</span>
-  <span onclick="selectSpecialtyFilter('Tai Mũi Họng', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Tai Mũi Họng</span>
-  <span onclick="selectSpecialtyFilter('Nhi', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Nhi khoa</span>
-  <span onclick="selectSpecialtyFilter('Chẩn trị y học cổ truyền', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Y học cổ truyền</span>
-  <span onclick="selectSpecialtyFilter('Da liễu', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Da liễu</span>
-  <span onclick="selectSpecialtyFilter('Mắt', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Mắt</span>
-  <span onclick="selectSpecialtyFilter('Chấn thương chỉnh hình', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Chấn thương chỉnh hình</span>
+  <button type="button" aria-pressed="true" onclick="selectSpecialtyFilter('all', this)" class="px-2.5 py-1 rounded-full bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-[11px] font-medium cursor-pointer hover:border-cyan-500">Tất cả</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Nội tổng hợp', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Nội tổng hợp</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Răng Hàm Mặt', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Răng Hàm Mặt</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Sản phụ khoa', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Sản phụ khoa</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Tai Mũi Họng', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Tai Mũi Họng</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Nhi', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Nhi khoa</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Chẩn trị y học cổ truyền', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Y học cổ truyền</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Da liễu', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Da liễu</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Mắt', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Mắt</button>
+  <button type="button" aria-pressed="false" onclick="selectSpecialtyFilter('Chấn thương chỉnh hình', this)" class="px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/70 text-slate-300 text-[11px] font-medium cursor-pointer hover:border-slate-500">Chấn thương chỉnh hình</button>
 </div>
 </div>
 <!-- Accreditation Note -->
@@ -984,12 +986,13 @@ background: #94A3B8;
 <div class="flex-1 flex flex-col bg-[#0b1325]/90 border border-slate-800/80 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl relative">
   <!-- Search Toolbar Header -->
   <div class="px-4 sm:px-5 py-3.5 border-b border-slate-800/70 bg-[#0d162b]/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shrink-0">
+    <button type="button" class="facility-filter-toggle" onclick="document.getElementById('hospitalsView').classList.add('filters-open')">☰ Bộ lọc</button>
     <!-- Search Input Bar with Google Places Autocomplete -->
     <div class="relative flex-1 max-w-xl">
       <svg class="w-4 h-4 text-cyan-400 absolute left-3.5 top-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
-      <input id="hospitalSearchInput" class="w-full pl-10 pr-24 py-2 text-xs bg-[#090f1e] border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition shadow-inner" placeholder="Nhập tên bệnh viện, phòng khám hoặc địa chỉ (kết nối Google Maps)..." type="text" autocomplete="off">
+      <input id="hospitalSearchInput" class="w-full pl-10 pr-24 py-2 text-xs bg-[#090f1e] border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition shadow-inner" placeholder="Tìm bệnh viện, phòng khám hoặc địa chỉ..." type="text" autocomplete="off">
       <button id="btnClearHospitalSearch" onclick="clearHospitalSearch()" class="hidden absolute right-2 top-2 px-2 py-0.5 rounded-lg text-[10px] bg-slate-800 text-slate-400 hover:text-white transition">Xóa</button>
     </div>
     <!-- Filter dropdowns & Quick actions -->
@@ -1020,7 +1023,7 @@ background: #94A3B8;
         <option value="Huyện Nhà Bè">Huyện Nhà Bè</option>
         <option value="Huyện Cần Giờ">Huyện Cần Giờ</option>
       </select>
-      <button onclick="locateUserPosition()" class="px-3 py-2 text-xs font-semibold text-cyan-300 bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-700/60 rounded-xl flex items-center gap-1.5 transition shadow-xs" title="Tìm cơ sở y tế gần tôi">
+      <button id="facilityNearbyButton" onclick="locateUserPosition()" class="px-3 py-2 text-xs font-semibold text-cyan-300 bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-700/60 rounded-xl flex items-center gap-1.5 transition shadow-xs" title="Tìm cơ sở y tế gần tôi">
         <svg class="w-3.5 h-3.5 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Gần tôi</span>
       </button>
@@ -1036,16 +1039,16 @@ background: #94A3B8;
     <div class="flex items-center gap-2">
       <span class="text-slate-300 font-medium flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-        Hiển thị <span id="hospitalCountBadge" class="text-cyan-300 font-bold">6</span> cơ sở y tế uy tín
+        Hiển thị <span id="hospitalCountBadge" class="text-cyan-300 font-bold">0</span> cơ sở trên trang
       </span>
       <span id="mapStatusPill" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-sky-950/80 text-sky-300 border border-sky-800/60">
         <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-        Google Maps Active
+        Đang tải bản đồ
       </span>
     </div>
     <div class="flex items-center gap-3 text-[11px] text-slate-400">
       <span class="hidden md:inline">Click vào cơ sở để <strong class="text-cyan-300">định vị trên bản đồ</strong></span>
-      <span>Sắp xếp: <strong class="text-slate-200">Gần nhất &amp; Đánh giá cao</strong></span>
+      <span>Sắp xếp: <strong class="text-slate-200">Theo danh sách cơ sở</strong></span>
     </div>
   </div>
 
@@ -1054,7 +1057,7 @@ background: #94A3B8;
     <!-- Top Section: Interactive Google Map Panel -->
     <div class="w-full h-[42%] min-h-[280px] max-h-[420px] flex flex-col relative bg-[#070c18] border-b border-slate-800/80 shrink-0 overflow-hidden" id="hospitalMapPanel">
       <!-- Floating Map Control Bar -->
-      <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+      <div class="facility-map-controls absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
         <div class="pointer-events-auto bg-[#0b1325]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/70 shadow-lg flex items-center gap-2 text-xs">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
           <span id="activeHospitalBadge" class="font-medium text-slate-200 truncate max-w-[200px] sm:max-w-md">Bản đồ cơ sở y tế (Toàn cảnh)</span>
@@ -1072,27 +1075,13 @@ background: #94A3B8;
       </div>
 
       <!-- Google Maps Viewport Container -->
-      <div id="googleHospitalMap" class="w-full h-full"></div>
+      <div id="googleHospitalMap" class="w-full h-full hidden"></div>
+      <iframe id="googleHospitalMapEmbed" class="w-full h-full" title="Google Maps — Cơ sở y tế tại TP.HCM" src="https://www.google.com/maps?q=Ho%20Chi%20Minh%20City%2C%20Vietnam&amp;z=12&amp;hl=vi&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
 
       <!-- OpenStreetMap / Leaflet Fallback Viewport Container -->
       <div id="leafletHospitalMap" class="w-full h-full hidden"></div>
 
-      <!-- Fallback / Setup Banner when Key is not configured in .env -->
-      <div id="mapsApiKeyNotice" class="hidden absolute bottom-3 left-3 right-3 z-10 p-3.5 rounded-2xl bg-[#0b1426]/95 border border-sky-500/30 backdrop-blur-md shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div>
-            <div class="font-bold text-white flex items-center gap-1.5">
-              <span>Đang dùng bản đồ dự phòng</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] bg-sky-500/20 text-sky-300">File .env</span>
-            </div>
-            <p class="text-[11px] text-slate-400">Dán <code class="text-cyan-300">GOOGLE_MAPS_API_KEY=...</code> vào file <code class="text-white font-mono">chatbot_medical/.env</code> để kích hoạt Google Maps &amp; Places Autocomplete.</p>
-          </div>
-        </div>
-        <button onclick="dismissMapsNotice()" class="text-slate-400 hover:text-slate-200 text-[11px] shrink-0 px-2.5 py-1 rounded-lg bg-slate-800/80">Đã hiểu</button>
-      </div>
+
     </div>
 
     <!-- Bottom Section: Hospital Cards List (Grid View) -->
@@ -1132,7 +1121,6 @@ background: #94A3B8;
       </div>
     </div>
   </div>
-</div>
 </main>
 </div>
 
@@ -3376,34 +3364,29 @@ Hủy bỏ
 <!-- ============================================================== -->
 <div id="hospital-details-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeHospitalDetails()"></div>
 
-<aside class="fixed top-0 right-0 z-50 w-full sm:w-[480px] lg:w-[520px] bg-white dark:bg-[#0c1425] text-slate-900 dark:text-white border-l border-slate-200 dark:border-cyan-500/25 shadow-2xl flex flex-col h-full overflow-hidden transition-transform duration-300 ease-out translate-x-full" id="hospital-details-drawer">
+<aside class="facility-drawer fixed top-0 right-0 z-50 w-full sm:w-[480px] lg:w-[520px] border-l shadow-2xl flex flex-col h-full overflow-hidden transition-transform duration-300 ease-out translate-x-full" id="hospital-details-drawer" aria-labelledby="slideOverHospitalName">
   <!-- Header with Cover & Badges -->
-  <div class="relative h-40 shrink-0 overflow-hidden bg-sky-100 dark:bg-slate-900">
-    <div class="absolute inset-0 bg-gradient-to-tr from-sky-950 via-[#0b1c38] to-slate-900 flex items-center justify-center">
-      <div class="absolute -top-10 -right-10 w-60 h-60 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-8 -left-10 w-48 h-48 bg-sky-500/20 rounded-full blur-2xl pointer-events-none"></div>
-      <svg class="w-full h-full opacity-30 object-cover" viewBox="0 0 500 160" preserveAspectRatio="xMidYMid slice">
-        <circle cx="250" cy="80" r="45" fill="none" stroke="#38bdf8" stroke-width="1.5" opacity="0.4"></circle>
-        <path d="M245 65h10v15h15v10h-15v15h-10V90h-15V80h15z" fill="#38bdf8" opacity="0.7"></path>
-      </svg>
+  <div class="facility-drawer-header relative h-40 shrink-0 overflow-hidden">
+    <div class="facility-drawer-cover absolute inset-0 flex items-center justify-center">
+      <img class="facility-drawer-cover-image" src="{{ url_for('static', filename='images/facility-detail-cover.png') }}" alt="" width="2172" height="724" decoding="async">
     </div>
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0c1425] via-[#0c1425]/70 to-transparent"></div>
+    <div class="facility-drawer-shade absolute inset-0"></div>
 
     <!-- Close Button 'X' -->
-    <button type="button" onclick="closeHospitalDetails()" class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 backdrop-blur-md flex items-center justify-center transition shadow-lg" aria-label="Đóng bảng chi tiết">
+    <button type="button" onclick="closeHospitalDetails()" class="facility-drawer-close absolute top-4 right-4 z-20 w-9 h-9 rounded-full border backdrop-blur-md flex items-center justify-center transition" aria-label="Đóng bảng chi tiết">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
 
     <!-- Header Badges -->
     <div class="absolute bottom-3 left-5 right-5 flex items-center justify-between z-10 flex-wrap gap-2">
       <div class="flex items-center gap-2">
-        <span id="drawer-type-badge" class="px-2.5 py-1 rounded-md bg-cyan-950/90 text-cyan-300 border border-cyan-700/60 text-[11px] font-bold">Phòng khám</span>
-        <span id="drawer-status-badge" class="px-2.5 py-1 rounded-md bg-emerald-950/90 text-emerald-300 border border-emerald-700/60 text-[11px] font-semibold flex items-center gap-1.5">
+        <span id="drawer-type-badge" class="px-2.5 py-1 rounded-md border text-[11px] font-bold">Phòng khám</span>
+        <span id="drawer-status-badge" class="px-2.5 py-1 rounded-md border text-[11px] font-semibold flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           Đang hoạt động
         </span>
       </div>
-      <span id="drawer-district-badge" class="px-2.5 py-1 rounded-md bg-slate-800/90 text-slate-300 border border-slate-700/60 text-[11px] font-medium">TP. Hồ Chí Minh</span>
+      <span id="drawer-district-badge" class="px-2.5 py-1 rounded-md border text-[11px] font-medium">TP. Hồ Chí Minh</span>
     </div>
   </div>
 
@@ -3411,44 +3394,44 @@ Hủy bỏ
   <div class="flex-1 min-h-0 overflow-y-auto p-5 space-y-5" id="hospital-detail-content">
     <!-- Tên cơ sở -->
     <div>
-      <h2 id="slideOverHospitalName" class="text-lg sm:text-xl font-bold text-white tracking-tight leading-snug">Tên cơ sở y tế</h2>
-      <p id="drawer-fullname" class="text-xs text-slate-400 mt-1 italic"></p>
+      <h2 id="slideOverHospitalName" class="text-lg sm:text-xl font-bold tracking-tight leading-snug">Tên cơ sở y tế</h2>
+      <p id="drawer-fullname" class="facility-drawer-muted text-xs mt-1 italic"></p>
       
       <!-- Địa chỉ -->
-      <div class="mt-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-start gap-2.5 text-xs text-slate-300">
-        <svg class="w-4 h-4 text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <div class="facility-drawer-address mt-3 p-3 rounded-xl border flex items-start gap-2.5 text-xs">
+        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"></path>
           <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
         <div>
-          <span class="font-semibold text-slate-200 block mb-0.5">Địa chỉ cơ sở:</span>
-          <span id="drawer-address" class="text-slate-300 leading-relaxed">Đang tải...</span>
+          <span class="font-semibold block mb-0.5">Địa chỉ cơ sở:</span>
+          <span id="drawer-address" class="leading-relaxed">Đang tải...</span>
         </div>
       </div>
     </div>
 
     <!-- Thông tin pháp lý & cấp phép (Sở Y Tế) -->
-    <div class="p-4 rounded-2xl bg-[#090f1f] border border-slate-800/90 space-y-3">
-      <div class="text-[11px] font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="facility-drawer-license p-4 rounded-2xl border space-y-3">
+      <div class="facility-drawer-section-title text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Hồ sơ cấp phép hoạt động
       </div>
       <div class="grid grid-cols-2 gap-3 text-xs">
-        <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60">
-          <span class="text-[10px] text-slate-400 block mb-0.5">Số giấy phép GPHĐ:</span>
-          <span id="drawer-license" class="font-bold text-white">Chưa cập nhật</span>
+        <div class="facility-drawer-license-field p-2.5 rounded-xl border">
+          <span class="facility-drawer-muted text-[10px] block mb-0.5">Số giấy phép GPHĐ:</span>
+          <span id="drawer-license" class="font-bold">Chưa cập nhật</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-700/60">
-          <span class="text-[10px] text-slate-400 block mb-0.5">Ngày cấp phép:</span>
-          <span id="drawer-date" class="font-bold text-white">Chưa cập nhật</span>
+        <div class="facility-drawer-license-field p-2.5 rounded-xl border">
+          <span class="facility-drawer-muted text-[10px] block mb-0.5">Ngày cấp phép:</span>
+          <span id="drawer-date" class="font-bold">Chưa cập nhật</span>
         </div>
       </div>
     </div>
 
     <!-- Chuyên khoa & Dịch vụ -->
     <div>
-      <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3 class="facility-drawer-section-title text-xs font-bold uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Chuyên khoa khám chữa bệnh
       </h3>
       <div id="drawer-specialties-container" class="flex flex-wrap gap-1.5">
@@ -3457,31 +3440,31 @@ Hủy bỏ
     </div>
 
     <!-- Giờ làm việc & Hotline -->
-    <div class="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2 text-xs">
-      <div class="flex items-center justify-between py-1 border-b border-slate-800/80">
-        <span class="text-slate-400">Giờ làm việc:</span>
-        <span id="drawer-hours" class="text-slate-200 font-medium">Giờ hành chính & theo lịch cơ sở</span>
+    <div class="facility-drawer-contact p-3.5 rounded-2xl border text-xs">
+      <div class="facility-drawer-contact-row py-1 border-b">
+        <span class="facility-drawer-muted">Giờ làm việc:</span>
+        <span id="drawer-hours" class="font-medium">Giờ hành chính & theo lịch cơ sở</span>
       </div>
-      <div class="flex items-center justify-between py-1">
-        <span class="text-slate-400">Liên hệ đặt khám:</span>
-        <span id="drawer-phone-info" class="text-slate-300">Đang cập nhật tổng đài</span>
+      <div class="facility-drawer-contact-row py-1">
+        <span class="facility-drawer-muted">Liên hệ đặt khám:</span>
+        <span id="drawer-phone-info">Đang cập nhật tổng đài</span>
       </div>
     </div>
   </div>
 
   <!-- Footer Action Bar -->
-  <div id="drawer-footer" class="relative z-20 bg-[#0b1326] p-4 border-t border-slate-800 flex flex-col gap-2 shrink-0">
-    <button type="button" onclick="openBookingNotice()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition flex items-center justify-center gap-2">
-      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div id="drawer-footer" class="relative z-20 p-4 border-t flex flex-col gap-2 shrink-0">
+    <button id="drawer-booking-button" type="button" onclick="openBookingNotice()" class="w-full py-2.5 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Đặt lịch khám tại cơ sở này
     </button>
-    <div class="flex items-center gap-2">
-      <button id="drawer-btn-map" type="button" onclick="focusDrawerFacilityOnMap()" class="flex-1 py-2 px-3 rounded-lg bg-cyan-950/70 hover:bg-cyan-900/90 border border-cyan-800/60 text-center text-xs font-medium text-cyan-300 transition flex items-center justify-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="facility-drawer-secondary-actions">
+      <button id="drawer-btn-map" type="button" onclick="focusDrawerFacilityOnMap()" class="facility-drawer-secondary py-2 px-3 rounded-lg border text-center text-xs font-medium transition flex items-center justify-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Định vị trên bản đồ
       </button>
-      <a id="drawer-map-link" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-center text-xs font-medium text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <a id="drawer-map-link" href="#" target="_blank" rel="noopener noreferrer" class="facility-drawer-secondary py-2 px-3 rounded-lg border text-center text-xs font-medium transition flex items-center justify-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Chỉ đường Maps
       </a>
     </div>
@@ -3521,22 +3504,62 @@ let leafletMarkersById = {};
 let gMarkersById = {};
 let activeFacilityId = null;
 let userPositionMarker = null;
+let googleUserPositionMarker = null;
 
 // 1. Khởi tạo toàn bộ hệ thống
 async function initHospitalMapSystem() {
   const hasGoogleKey = Boolean(window.MEDIMIND_GOOGLE_MAPS_KEY && window.MEDIMIND_GOOGLE_MAPS_KEY.trim());
+  const dataReady = Promise.all([fetchMapMarkers(), fetchFacilities(1)]);
+  initEmbeddedGoogleMap();
 
   if (hasGoogleKey) {
-    initGoogleMapsView();
+    try {
+      await initGoogleMapsView();
+    } catch (error) {
+      console.warn('Không tải được Google Maps:', error.message);
+      await showFallbackMap();
+    }
   } else {
-    initLeafletMapView();
+    await showFallbackMap();
   }
 
-  // Tải dữ liệu ban đầu
-  await Promise.all([
-    fetchMapMarkers(),
-    fetchFacilities(1)
-  ]);
+  await dataReady;
+}
+
+async function showFallbackMap() {
+  showEmbeddedGoogleMap();
+}
+
+function initEmbeddedGoogleMap() {
+  const frame = document.getElementById('googleHospitalMapEmbed');
+  const status = document.getElementById('mapStatusPill');
+  if (!frame) return;
+  frame.addEventListener('load', () => {
+    frame.dataset.loaded = 'true';
+    if (!frame.classList.contains('hidden') && status) status.textContent = 'Google Maps';
+  });
+  frame.addEventListener('error', () => {
+    if (status) status.textContent = 'Không kết nối được Google Maps';
+  });
+}
+
+function showEmbeddedGoogleMap(query, zoom = 12) {
+  const frame = document.getElementById('googleHospitalMapEmbed');
+  if (!frame) return;
+  document.getElementById('googleHospitalMap')?.classList.add('hidden');
+  document.getElementById('leafletHospitalMap')?.classList.add('hidden');
+  frame.classList.remove('hidden');
+  const status = document.getElementById('mapStatusPill');
+  if (query) {
+    const url = new URL('https://www.google.com/maps');
+    url.search = new URLSearchParams({q: query, z: String(zoom), hl: 'vi', output: 'embed'}).toString();
+    if (frame.src !== url.href) {
+      frame.dataset.loaded = 'false';
+      frame.src = url.href;
+    }
+    frame.title = 'Google Maps — ' + query;
+  }
+  if (status) status.textContent = frame.dataset.loaded === 'true' ? 'Google Maps' : 'Đang tải Google Maps';
 }
 
 // 2. Tải toàn bộ marker lên bản đồ (Cluster)
@@ -3548,6 +3571,7 @@ async function fetchMapMarkers() {
 
     mapMarkersData = data.markers;
     renderLeafletMarkers(mapMarkersData);
+    renderGoogleMarkers(mapMarkersData);
   } catch (err) {
     console.error('Lỗi khi tải map markers:', err);
   }
@@ -3560,7 +3584,13 @@ function initLeafletMapView() {
   if (googleContainer) googleContainer.classList.add('hidden');
   if (mapContainer) mapContainer.classList.remove('hidden');
 
-  if (leafletMap || typeof L === 'undefined') return;
+  const status = document.getElementById('mapStatusPill');
+  if (status) status.textContent = typeof L === 'undefined' ? 'Không tải được bản đồ' : 'Bản đồ OpenStreetMap';
+  if (leafletMap) { setTimeout(() => leafletMap.invalidateSize(), 100); return; }
+  if (typeof L === 'undefined') {
+    showEmbeddedGoogleMap();
+    return;
+  }
 
   // Tọa độ trung tâm TP.HCM
   leafletMap = L.map('leafletHospitalMap', {
@@ -3583,6 +3613,58 @@ function initLeafletMapView() {
     });
     leafletMap.addLayer(leafletMarkerCluster);
   }
+  renderLeafletMarkers(mapMarkersData);
+  setTimeout(() => leafletMap.invalidateSize(), 100);
+}
+
+function initGoogleMapsView() {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    const timer = setTimeout(() => finish(new Error('Google Maps tải quá lâu')), 12000);
+    function finish(error) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      if (error) { reject(error); return; }
+      try {
+        const container = document.getElementById('googleHospitalMap');
+        const fallback = document.getElementById('leafletHospitalMap');
+        if (!container || !window.google?.maps) throw new Error('Google Maps không sẵn sàng');
+        container.classList.remove('hidden');
+        if (fallback) fallback.classList.add('hidden');
+        document.getElementById('googleHospitalMapEmbed')?.classList.add('hidden');
+        gMap = new google.maps.Map(container, { center: {lat: 10.776889, lng: 106.695380}, zoom: 12, mapTypeControl: false, streetViewControl: false });
+        const status = document.getElementById('mapStatusPill');
+        if (status) status.textContent = 'Google Maps';
+        renderGoogleMarkers(mapMarkersData);
+        resolve();
+      } catch (err) { reject(err); }
+    }
+    window.medimindMapsReady = () => finish();
+    window.gm_authFailure = () => {
+      if (finished) { gMap = null; showFallbackMap(); }
+      else finish(new Error('Google Maps từ chối khóa'));
+    };
+    if (window.google?.maps?.Map) { finish(); return; }
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(window.MEDIMIND_GOOGLE_MAPS_KEY.trim()) + '&callback=medimindMapsReady&loading=async';
+    script.onerror = () => finish(new Error('Không tải được thư viện Google Maps'));
+    document.head.appendChild(script);
+  });
+}
+
+function renderGoogleMarkers(markers) {
+  if (!gMap || !window.google?.maps) return;
+  Object.values(gMarkersById).forEach(marker => marker.setMap(null));
+  gMarkersById = {};
+  markers.forEach(m => {
+    const lat = Number(m.lat), lng = Number(m.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !lat || !lng) return;
+    const marker = new google.maps.Marker({map: gMap, position: {lat, lng}, title: m.name || 'Cơ sở y tế'});
+    marker.addListener('click', () => { highlightAndScrollCard(m.id); openFacilityDrawer(m.id); });
+    gMarkersById[m.id] = marker;
+  });
 }
 
 // 4. Render markers lên Leaflet
@@ -3590,7 +3672,8 @@ function renderLeafletMarkers(markers) {
   if (!leafletMap) return;
 
   const targetLayer = leafletMarkerCluster || leafletMap;
-  targetLayer.clearLayers();
+  if (leafletMarkerCluster) leafletMarkerCluster.clearLayers();
+  else Object.values(leafletMarkersById).forEach(marker => leafletMap.removeLayer(marker));
   leafletMarkersById = {};
 
   markers.forEach(m => {
@@ -3707,7 +3790,7 @@ function renderFacilityCards(facilities) {
 
     // Tạo specialties tags
     const specTags = spec.split(',').slice(0, 3).map(s => 
-      `<span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/50 truncate max-w-[120px]">${escapeHtml(s.trim())}</span>`
+      `<span class="facility-meta-tag text-[10px] px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/50 truncate max-w-[120px]">${escapeHtml(s.trim())}</span>`
     ).join('');
 
     const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + address)}`;
@@ -3716,44 +3799,45 @@ function renderFacilityCards(facilities) {
       <div class="hospital-card rounded-2xl bg-[#0f172a]/95 border border-slate-800/90 hover:border-cyan-500/60 p-4 transition-all duration-200 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col justify-between group cursor-pointer" 
            id="facility-card-${id}" 
            data-facility-id="${id}" 
+           data-facility-type="${escapeHtml(type)}"
            data-lat="${lat || ''}" 
            data-lng="${lng || ''}" 
            onclick="focusFacilityOnMap('${id}', ${lat}, ${lng}, '${escapeHtml(name)}')">
         <div>
           <div class="flex items-start gap-3.5 mb-2.5">
-            <div class="w-11 h-11 rounded-xl ${isHospital ? 'bg-rose-950/60 border-rose-500/40 text-rose-400' : 'bg-cyan-950/60 border-cyan-500/40 text-cyan-400'} border flex items-center justify-center shrink-0 shadow-md">
+            <div class="facility-icon-tile w-11 h-11 rounded-xl ${isHospital ? 'bg-rose-950/60 border-rose-500/40 text-rose-400' : 'bg-cyan-950/60 border-cyan-500/40 text-cyan-400'} border flex items-center justify-center shrink-0 shadow-md">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                <span class="px-2 py-0.5 rounded-md ${isHospital ? 'bg-rose-950/80 border-rose-800/50 text-rose-300' : 'bg-cyan-950/80 border-cyan-800/50 text-cyan-300'} text-[10px] font-semibold border">${escapeHtml(type)}</span>
-                ${district ? `<span class="px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700/60 text-slate-300 text-[10px] font-medium">${escapeHtml(district)}</span>` : ''}
+                <span class="facility-type-tag px-2 py-0.5 rounded-md ${isHospital ? 'bg-rose-950/80 border-rose-800/50 text-rose-300' : 'bg-cyan-950/80 border-cyan-800/50 text-cyan-300'} text-[10px] font-semibold border">${escapeHtml(type)}</span>
+                ${district ? `<span class="facility-meta-tag px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700/60 text-slate-300 text-[10px] font-medium">${escapeHtml(district)}</span>` : ''}
               </div>
               <h3 class="text-sm font-bold text-white group-hover:text-cyan-300 transition line-clamp-1" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
             </div>
           </div>
-          <p class="text-xs text-slate-400 flex items-center gap-1.5 mb-2.5">
+          <p class="facility-address text-xs text-slate-400 flex items-center gap-1.5 mb-2.5">
             <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             <span class="truncate" title="${escapeHtml(address)}">${escapeHtml(address)}</span>
           </p>
           <div class="flex flex-wrap gap-1 mb-2.5">
             ${specTags}
           </div>
-          <div class="text-[11px] text-emerald-400 flex items-center gap-1.5 mb-2 font-medium">
+          <div class="facility-operation-status text-[11px] text-emerald-400 flex items-center gap-1.5 mb-2 font-medium">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             ${escapeHtml(item.tinh_trang || 'Đang hoạt động')}
           </div>
         </div>
         <div class="pt-2.5 border-t border-slate-800/80 flex items-center gap-2">
-          <button type="button" class="flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs text-center transition shadow-sm flex items-center justify-center gap-1" onclick="event.stopPropagation(); openFacilityDrawer('${id}');">
+          <button type="button" class="facility-primary-action flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs text-center transition shadow-sm flex items-center justify-center gap-1" onclick="event.stopPropagation(); openFacilityDrawer('${id}');">
             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             Xem chi tiết
           </button>
-          <button class="py-1.5 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800/60 text-cyan-300 text-xs font-medium transition flex items-center gap-1" onclick="event.stopPropagation(); focusFacilityOnMap('${id}', ${lat}, ${lng}, '${escapeHtml(name)}');">
+          <button class="facility-secondary-action py-1.5 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800/60 text-cyan-300 text-xs font-medium transition flex items-center gap-1" onclick="event.stopPropagation(); focusFacilityOnMap('${id}', ${lat}, ${lng}, '${escapeHtml(name)}');">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             Vị trí
           </button>
-          <a class="py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-slate-300 text-xs font-medium transition flex items-center gap-1" href="${mapSearchUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
+          <a class="facility-secondary-action py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-slate-300 text-xs font-medium transition flex items-center gap-1" href="${mapSearchUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
             <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             Chỉ đường
           </a>
@@ -3767,10 +3851,14 @@ function renderFacilityCards(facilities) {
 
 // 7. Định vị và zoom cơ sở trên bản đồ
 function focusFacilityOnMap(id, lat, lng, name) {
-  if (!lat || !lng) {
-    alert('Cơ sở này hiện chưa có dữ liệu tọa độ định vị.');
-    return;
-  }
+  const facility = currentFacilityState.facilities.find(item => String(item.id) === String(id));
+  const marker = mapMarkersData.find(item => String(item.id) === String(id));
+  const address = facility?.dia_chi_hien_thi_tren_web || facility?.dia_chi || marker?.address || '';
+  name = name || facility?.ten_ngan || facility?.ten || marker?.name || '';
+  const position = {lat: Number(lat), lng: Number(lng)};
+  const hasCoordinates = lat != null && lng != null && lat !== '' && lng !== '' &&
+    Number.isFinite(position.lat) && Number.isFinite(position.lng) &&
+    Math.abs(position.lat) <= 90 && Math.abs(position.lng) <= 180;
 
   activeFacilityId = id;
   const badge = document.getElementById('activeHospitalBadge');
@@ -3779,7 +3867,17 @@ function focusFacilityOnMap(id, lat, lng, name) {
   // Highlight card
   highlightSelectedCard(id);
 
-  if (leafletMap) {
+  if (gMap && hasCoordinates) {
+    gMap.panTo(position);
+    gMap.setZoom(16);
+  } else {
+    // Google can locate an address even when this directory has no coordinates.
+    const query = [name, address].filter(Boolean).join(', ') ||
+      (hasCoordinates ? `${position.lat},${position.lng}` : 'Ho Chi Minh City, Vietnam');
+    showEmbeddedGoogleMap(query, 16);
+  }
+
+  if (leafletMap && hasCoordinates) {
     leafletMap.setView([lat, lng], 16, { animate: true });
     
     // Mở popup tương ứng nếu có marker
@@ -3805,6 +3903,7 @@ function focusFacilityOnMap(id, lat, lng, name) {
 // Highlight thẻ tương ứng
 function highlightSelectedCard(id) {
   document.querySelectorAll('.hospital-card').forEach(c => {
+    c.dataset.selected = String(c.getAttribute('data-facility-id') === String(id));
     if (c.getAttribute('data-facility-id') === String(id)) {
       c.classList.add('border-cyan-400', 'bg-cyan-950/20', 'ring-1', 'ring-cyan-500/50');
     } else {
@@ -3859,7 +3958,7 @@ function renderPagination() {
     } else {
       const active = p === current;
       html += `
-        <button onclick="changeFacilityPage(${p})" class="w-7 h-7 rounded-lg text-xs font-semibold transition ${active ? 'bg-cyan-500 text-white' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'}">
+        <button ${active ? 'aria-current="page"' : ''} onclick="changeFacilityPage(${p})" class="w-7 h-7 rounded-lg text-xs font-semibold transition ${active ? 'bg-cyan-500 text-white' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'}">
           ${p}
         </button>
       `;
@@ -3893,11 +3992,14 @@ function selectCategoryFilter(cat, btn) {
   const container = document.getElementById('facilityCategoryButtons');
   if (container) {
     container.querySelectorAll('button').forEach(b => {
+      b.setAttribute('aria-pressed', 'false');
       b.classList.remove('bg-sky-500/15', 'border-sky-500/40', 'text-sky-300');
       b.classList.add('hover:bg-slate-800/60', 'border-transparent', 'text-slate-300');
     });
   }
+  btn = btn || container?.querySelector('button');
   if (btn) {
+    btn.setAttribute('aria-pressed', 'true');
     btn.classList.remove('hover:bg-slate-800/60', 'border-transparent', 'text-slate-300');
     btn.classList.add('bg-sky-500/15', 'border-sky-500/40', 'text-sky-300');
   }
@@ -3910,12 +4012,15 @@ function selectSpecialtyFilter(spec, el) {
 
   const container = document.getElementById('facilitySpecialtyPills');
   if (container) {
-    container.querySelectorAll('span').forEach(s => {
+    container.querySelectorAll('button').forEach(s => {
+      s.setAttribute('aria-pressed', 'false');
       s.classList.remove('bg-cyan-950/70', 'border-cyan-800/60', 'text-cyan-300');
       s.classList.add('bg-slate-800/80', 'border-slate-700/70', 'text-slate-300');
     });
   }
+  el = el || container?.querySelector('button');
   if (el) {
+    el.setAttribute('aria-pressed', 'true');
     el.classList.remove('bg-slate-800/80', 'border-slate-700/70', 'text-slate-300');
     el.classList.add('bg-cyan-950/70', 'border-cyan-800/60', 'text-cyan-300');
   }
@@ -3969,6 +4074,8 @@ function resetAllFilters() {
 }
 
 function updateHeaderCounters() {
+  const pageCount = document.getElementById('hospitalCountBadge');
+  if (pageCount) pageCount.textContent = currentFacilityState.facilities.length;
   const badge = document.getElementById('facilitiesCountBadge');
   if (badge) {
     badge.textContent = `${Number(currentFacilityState.total).toLocaleString('vi-VN')} cơ sở`;
@@ -3988,6 +4095,16 @@ function locateUserPosition() {
       const userLng = position.coords.longitude;
       const badge = document.getElementById('activeHospitalBadge');
       if (badge) badge.textContent = '📍 Vị trí hiện tại của bạn';
+
+      if (gMap && window.google?.maps) {
+        const position = {lat: userLat, lng: userLng};
+        gMap.panTo(position);
+        gMap.setZoom(15);
+        if (googleUserPositionMarker) googleUserPositionMarker.setMap(null);
+        googleUserPositionMarker = new google.maps.Marker({map: gMap, position, title: 'Vị trí của bạn'});
+      } else {
+        showEmbeddedGoogleMap(`${userLat},${userLng}`, 15);
+      }
 
       if (leafletMap) {
         leafletMap.setView([userLat, userLng], 15);
@@ -4018,6 +4135,8 @@ function resetHospitalMapView() {
   if (leafletMap) {
     leafletMap.setView([10.776889, 106.695380], 12);
   }
+  if (gMap) { gMap.panTo({lat: 10.776889, lng: 106.695380}); gMap.setZoom(12); }
+  else showEmbeddedGoogleMap('Ho Chi Minh City, Vietnam', 12);
 }
 
 function dismissMapsNotice() {
@@ -4109,17 +4228,17 @@ function openFacilityDrawer(id) {
   if (addressEl) addressEl.textContent = fac.dia_chi_hien_thi_tren_web || fac.dia_chi || 'Đang cập nhật';
 
   const licenseEl = document.getElementById('drawer-license');
-  if (licenseEl) licenseEl.textContent = fac.so_giay_phep || 'Đã kiểm duyệt';
+  if (licenseEl) licenseEl.textContent = fac.so_giay_phep || 'Chưa cập nhật';
 
   const dateEl = document.getElementById('drawer-date');
-  if (dateEl) dateEl.textContent = fac.ngay_cap || 'Theo quy định SYT';
+  if (dateEl) dateEl.textContent = fac.ngay_cap || 'Chưa cập nhật';
 
   // Chuyên khoa
   const specContainer = document.getElementById('drawer-specialties-container');
   if (specContainer) {
     const specs = (fac.chuyen_khoa || 'Đa khoa').split(',');
     specContainer.innerHTML = specs.map(s => 
-      `<span class="px-2.5 py-1 rounded-lg bg-cyan-950/70 border border-cyan-800/60 text-cyan-300 text-xs font-medium">${escapeHtml(s.trim())}</span>`
+      `<span class="facility-drawer-specialty px-2.5 py-1 rounded-lg border text-xs font-medium">${escapeHtml(s.trim())}</span>`
     ).join('');
   }
 
@@ -4134,6 +4253,7 @@ function openFacilityDrawer(id) {
   const backdrop = document.getElementById('hospital-details-overlay');
   const panel = document.getElementById('hospital-details-drawer');
   if (backdrop && panel) {
+    panel.dataset.facilityType = fac.loai_hinh || 'Phòng khám';
     backdrop.classList.remove('opacity-0', 'pointer-events-none');
     backdrop.classList.add('opacity-100');
     panel.classList.remove('translate-x-full');
