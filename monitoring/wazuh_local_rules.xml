@@ -1,0 +1,58 @@
+<!-- ============================================================== -->
+<!-- WAZUH SIEM CUSTOM RULES FOR MEDIMIND CLINICAL AI               -->
+<!-- Copy vào /var/ossec/etc/rules/local_rules.xml trên Ubuntu VM   -->
+<!-- Đọc luồng JSON từ: logs/security_audit.json                    -->
+<!-- ============================================================== -->
+<group name="medimind,security,web,">
+
+  <!-- Base Rule: Nhận diện mọi log JSON từ dịch vụ medimind_clinical_ai -->
+  <rule id="100500" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="service">^medimind_clinical_ai$</field>
+    <description>MediMind Security Audit Event: $(event_type) trên $(endpoint)</description>
+  </rule>
+
+  <!-- Rule 100501: Đăng nhập thất bại (HTTP 401) - MITRE T1110.001 -->
+  <rule id="100501" level="6">
+    <if_sid>100500</if_sid>
+    <field name="event_type">^LOGIN_FAILED$</field>
+    <description>[MediMind SIEM] Đăng nhập thất bại cho tài khoản $(dstuser) từ IP $(srcip)</description>
+    <mitre>
+      <id>T1110.001</id>
+    </mitre>
+    <group>authentication_failed,</group>
+  </rule>
+
+  <!-- Rule 100502: Brute-Force khóa tài khoản (HTTP 429) -> Kích hoạt Active Response chặn IP Kali Linux -->
+  <rule id="100502" level="12">
+    <if_sid>100500</if_sid>
+    <field name="event_type">^LOGIN_BRUTE_FORCE_LOCKED$</field>
+    <description>[MediMind CRITICAL] Phát hiện tấn công Brute-Force từ IP $(srcip) nhắm vào $(dstuser) (MITRE T1110)</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failures,brute_force,attack,</group>
+  </rule>
+
+  <!-- Rule 100503: Ngăn chặn tải lên tệp độc hại / giả mạo chữ ký số Magic Bytes - MITRE T1190 -->
+  <rule id="100503" level="12">
+    <if_sid>100500</if_sid>
+    <field name="event_type">^MALICIOUS_FILE_UPLOAD_BLOCKED$</field>
+    <description>[MediMind CRITICAL] Chặn tệp tải lên giả mạo/độc hại tại $(endpoint) từ IP $(srcip)</description>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+    <group>web_attack,exploit_attempt,</group>
+  </rule>
+
+  <!-- Rule 100504: Ngoại lệ máy chủ 500 (Fuzzing / DoS) - MITRE T1499 -->
+  <rule id="100504" level="10">
+    <if_sid>100500</if_sid>
+    <field name="event_type">^UNHANDLED_SERVER_ERROR$</field>
+    <description>[MediMind ERROR] Lỗi 500 Internal Server Error tại $(endpoint) từ IP $(srcip)</description>
+    <mitre>
+      <id>T1499</id>
+    </mitre>
+  </rule>
+
+</group>

@@ -1,9 +1,9 @@
 # ==============================================================
-# SRE ALERT RULES SPECIFICATION (GOOGLE 4 GOLDEN SIGNALS)
+# SRE & SIEM ALERT RULES SPECIFICATION (PROMETHEUS + GRAFANA)
 # ==============================================================
 
 groups:
-  - name: medimind_clinical_alerts
+  - name: medimind_clinical_and_security_alerts
     rules:
       # 1. Tỷ lệ lỗi máy chủ (Error Rate > 5%)
       - alert: HighHttpErrorRate
@@ -44,3 +44,13 @@ groups:
         annotations:
           summary: "Bộ nhớ RAM máy chủ vượt quá 90%"
           description: "Nguy cơ sập máy chủ do cạn kiệt RAM (Memory Saturation = {{ $value }}%)."
+
+      # 5. Tấn công Brute-Force / Fuzzing / Upload độc hại từ Kali Linux (SIEM Metric)
+      - alert: SecurityAttackSpike
+        expr: sum(increase(medimind_security_events_total[1m])) > 5
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Phát hiện tấn công an ninh mạng cường độ cao (Brute-force / Exploit)"
+          description: "Ghi nhận {{ $value }} sự kiện bảo mật trong 1 phút qua. Kiểm tra ngay Wazuh SIEM Dashboard!"

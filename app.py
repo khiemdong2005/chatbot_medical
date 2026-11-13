@@ -30,7 +30,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Nạp cơ sở dữ liệu và các mô hình
-from core.models import db, User, MedicalDocument, ClinicalConsultation, MedicalAppointment, init_db
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
+from core.models import (
+    db,
+    User,
+    AuthIdentity,
+    MedicalDocument,
+    ClinicalConsultation,
+    MedicalAppointment,
+    init_db,
+    is_synthetic_phone_email,
+    extract_phone_from_synthetic_email,
+    normalize_email,
+    normalize_phone_e164,
+    phone_lookup_candidates,
+    sync_user_identities,
+)
 from core.otp_service import otp_manager
 from core.storage_service import (
     process_secure_upload,
@@ -47,13 +63,12 @@ from core.observability import (
     record_clinical_triage,
     record_ai_latency,
     record_prescription_scan,
+    record_security_event,
     get_prometheus_metrics_response,
-    get_system_hardware_stats,
-    metrics_tracker,
-    telegram_alerter
 )
 
 logger = logging.getLogger("MediMindApp")
+_DUMMY_PASSWORD_HASH = generate_password_hash("MediMindTimingProtectionConstant2026!")
 
 class ServerMaskMiddleware:
     """WSGI Middleware ghi đè header Server để che giấu thông tin công nghệ nền tảng."""
@@ -79,21 +94,70 @@ def valid_birth_date(value, formats=("%d/%m/%Y",)):
     return False
 
 
+def normalize_login_rate_key(identifier: str) -> str:
+    """Chuẩn hóa khóa rate-limit để ngăn vượt rào bằng các biến thể định dạng SĐT/Email."""
+    raw = (identifier or "").strip()
+    if "@" in raw and not is_synthetic_phone_email(raw):
+        return f"login:email:{raw.lower()}"
+    norm_phone = extract_phone_from_synthetic_email(raw) if is_synthetic_phone_email(raw) else normalize_phone_e164(raw)
+    if norm_phone:
+        return f"login:phone:{norm_phone}"
+    return f"login:raw:{raw.lower()}"
+
+
 def find_login_user(identifier):
-    if "@" in identifier:
-        # Prefer the exact spelling for legacy accounts that differ only by case.
-        exact = User.query.filter_by(email=identifier).first()
-        if exact:
-            return exact
-        matches = User.query.filter(db.func.lower(User.email) == identifier.lower()).limit(2).all()
-        return matches[0] if len(matches) == 1 else None
-    phone = "".join(filter(str.isdigit, identifier))
-    if not phone:
+    """
+    Tra cứu người dùng tối ưu qua B-Tree Index (ix_users_email, ix_users_phone_number, ix_auth_identities_provider_subject):
+      - Email: tra cứu trực tiếp qua email đã chuẩn hóa lowercase.
+      - SĐT: chuẩn hóa E.164 (+84...) và tra cứu trực tiếp qua phone_number (kèm tương thích ngược).
+    """
+    if not identifier or not isinstance(identifier, str):
         return None
-    return User.query.filter(
-        (User.phone_number == identifier) | (User.phone_number == phone) |
-        (User.email == f"{phone}@phone.medimind")
+    raw = identifier.strip()
+    if not raw:
+        return None
+
+    if "@" in raw and not is_synthetic_phone_email(raw):
+        norm_em = normalize_email(raw) or raw.lower()
+        # 1. Index lookup trực tiếp trên cột email lowercase
+        user = User.query.filter_by(email=norm_em).first()
+        if user:
+            return user
+        # 2. Tương thích ngược cho tài khoản cũ chưa lowercase
+        if raw != norm_em:
+            exact = User.query.filter_by(email=raw).first()
+            if exact:
+                return exact
+        matches = User.query.filter(db.func.lower(User.email) == norm_em).limit(2).all()
+        if len(matches) == 1:
+            return matches[0]
+        # 3. Tra cứu qua bảng liên kết đa định danh auth_identities
+        identity = AuthIdentity.query.filter_by(provider="email", provider_subject=norm_em).first()
+        return identity.user if identity else None
+
+    # Tra cứu theo Số điện thoại (E.164 + tương thích ngược)
+    candidates = phone_lookup_candidates(raw)
+    if not candidates:
+        return None
+
+    user = User.query.filter(User.phone_number.in_(candidates)).first()
+    if user:
+        return user
+
+    identity = AuthIdentity.query.filter(
+        AuthIdentity.provider == "phone",
+        AuthIdentity.provider_subject.in_(candidates)
     ).first()
+    if identity and identity.user:
+        return identity.user
+
+    # Fallback cuối cho bản ghi synthetic email chưa kịp migrate
+    digits = "".join(filter(str.isdigit, raw.split("@")[0]))
+    if digits:
+        return User.query.filter(
+            User.email.in_([f"{digits}@phone.medimind", f"{digits}@phone.medimind.vn"])
+        ).first()
+    return None
 
 
 def create_app(test_config=None):
@@ -118,6 +182,10 @@ def create_app(test_config=None):
     app.secret_key = secret_key
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///medimind.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_recycle": 1800,
+    }
     app.config["JSON_AS_ASCII"] = False
 
     # Cấu hình Cookie an toàn bảo vệ Session
@@ -200,9 +268,14 @@ def create_app(test_config=None):
 
     @app.route("/api/auth/login", methods=["POST"])
     def auth_login():
-        """Đăng nhập hệ thống: Xác thực Email/Số điện thoại và Mật khẩu băm trong CSDL."""
+        """
+        Đăng nhập hệ thống chuẩn hóa:
+          - Email: tra cứu qua email đã chuẩn hóa lowercase.
+          - SĐT: chuẩn hóa E.164 (+84...) và tra cứu qua phone_number.
+          - Bảo mật: Chống dò tài khoản (Anti-Enumeration) và chống kênh kề thời gian (Timing-Safe Hash Check).
+        """
         data = request.get_json(silent=True) or {}
-        raw_identifier = (data.get("identifier") or data.get("email") or "").strip()
+        raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
         password = data.get("password", "").strip()
         role = data.get("role")
 
@@ -210,8 +283,17 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Vui lòng nhập định danh tài khoản và mật khẩu."}), 400
 
         from core.security_patch import check_otp_attempts, reset_otp_attempts
-        rate_key = f"login:{raw_identifier.lower()}"
+        client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1").split(",")[0].strip()
+        rate_key = normalize_login_rate_key(raw_identifier)
         if not check_otp_attempts(rate_key, max_attempts=5):
+            record_security_event(
+                "LOGIN_BRUTE_FORCE_LOCKED",
+                severity="CRITICAL",
+                client_ip=client_ip,
+                identifier=raw_identifier,
+                endpoint="/api/auth/login",
+                status_code=429,
+            )
             return jsonify({
                 "success": False,
                 "error": "Tài khoản tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần liên tiếp. Vui lòng thử lại sau."
@@ -220,18 +302,49 @@ def create_app(test_config=None):
         user = find_login_user(raw_identifier)
 
         if not user:
-            return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
-
-        # Kiểm tra phân quyền truy cập
-        if role and user.role != role:
+            # Thực hiện băm giả để cân bằng thời gian phản hồi, chống Timing Attack & Account Enumeration
+            check_password_hash(_DUMMY_PASSWORD_HASH, password)
+            record_security_event(
+                "LOGIN_FAILED",
+                severity="WARNING",
+                client_ip=client_ip,
+                identifier=raw_identifier,
+                endpoint="/api/auth/login",
+                status_code=401,
+                details={"reason": "unknown_identifier"},
+            )
             return jsonify({
-                "success": False, 
-                "error": f"Tài khoản này không có quyền truy cập vai trò '{role}'."
+                "success": False,
+                "error": "Thông tin tài khoản hoặc mật khẩu không chính xác."
+            }), 401
+
+        if getattr(user, "account_status", "active") not in (None, "active"):
+            return jsonify({
+                "success": False,
+                "error": "Tài khoản này hiện đang bị khóa hoặc tạm ngưng hoạt động."
             }), 403
 
-        # Xác thực mật khẩu
         if not user.check_password(password):
-            return jsonify({"success": False, "error": "Mật khẩu không chính xác. Vui lòng kiểm tra lại."}), 401
+            record_security_event(
+                "LOGIN_FAILED",
+                severity="WARNING",
+                client_ip=client_ip,
+                identifier=raw_identifier,
+                endpoint="/api/auth/login",
+                status_code=401,
+                details={"reason": "invalid_password", "user_id": user.id},
+            )
+            return jsonify({
+                "success": False,
+                "error": "Thông tin tài khoản hoặc mật khẩu không chính xác."
+            }), 401
+
+        # Kiểm tra phân quyền truy cập (chỉ kiểm tra sau khi đã xác thực đúng mật khẩu)
+        if role and user.role != role:
+            return jsonify({
+                "success": False,
+                "error": f"Tài khoản này không có quyền truy cập vai trò '{role}'."
+            }), 403
 
         # Xóa bộ đếm sai mật khẩu sau khi đăng nhập thành công
         reset_otp_attempts(rate_key)
@@ -239,23 +352,22 @@ def create_app(test_config=None):
         # Khởi tạo phiên làm việc (Session)
         session["user_id"] = user.id
         session["user_role"] = user.role
-        redirect_url = "/monitoring" if user.role == "admin" else None
 
         return jsonify({
             "success": True,
             "message": f"Chào mừng {user.full_name} đã quay trở lại!",
             "user": user.to_dict(),
-            "redirect_url": redirect_url
+            "redirect_url": None
         })
 
 
     @app.route("/api/auth/register", methods=["POST"])
     def auth_register():
         """
-        Đăng ký tài khoản người dùng:
-        BẢO MẬT: Luôn tạo tài khoản với vai trò 'patient' (bệnh nhân).
-        Tuyệt đối không cho phép client tự cấp quyền doctor hay admin.
-        Đã trang bị Rate Limiting chống rải bom tạo tài khoản rác (DoS).
+        Đăng ký tài khoản người dùng chuẩn hóa:
+          - Đăng ký bằng Email: email = normalized_email, phone_number = E.164 (nếu có) hoặc NULL.
+          - Đăng ký bằng SĐT: email = NULL (tuyệt đối không tạo @phone.medimind), phone_number = E.164 (+84...).
+          - Luôn tạo tài khoản với vai trò 'patient', đồng bộ bảng auth_identities trong cùng transaction.
         """
         data = request.get_json(silent=True) or {}
         if not app.config.get("TESTING"):
@@ -267,63 +379,98 @@ def create_app(test_config=None):
                     "success": False,
                     "error": "Bạn đã gửi quá nhiều yêu cầu tạo tài khoản từ địa chỉ IP này. Vui lòng thử lại sau 5 phút."
                 }), 429
-        raw_identifier = (data.get("identifier") or data.get("email") or "").strip()
-        password = data.get("password", "").strip()
-        full_name = data.get("full_name", "").strip() or data.get("name", "").strip()
-        phone_number = data.get("phone_number", "").strip()
-        dob = data.get("dob", "").strip()
+
+        raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
+        password = (data.get("password") or "").strip()
+        full_name = (data.get("full_name") or "").strip() or (data.get("name") or "").strip()
+        raw_phone = (data.get("phone_number") or "").strip()
+        raw_email = (data.get("email") or "").strip()
+        dob = (data.get("dob") or "").strip()
         if dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
             return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
-        gender = data.get("gender", "").strip() or "Nam"
+        gender = (data.get("gender") or "").strip() or "Nam"
 
-        # Bắt buộc vai trò là patient
         role = "patient"
 
         if not raw_identifier or not password:
             return jsonify({"success": False, "error": "Vui lòng điền đầy đủ Email/SĐT và mật khẩu."}), 400
 
+        if len(password) < 6:
+            return jsonify({"success": False, "error": "Mật khẩu phải có tối thiểu 6 ký tự."}), 400
+
         if not full_name:
             full_name = "Bệnh nhân mới"
 
-        if "@" in raw_identifier:
-            email = raw_identifier.lower()
-            if not phone_number:
+        if "@" in raw_identifier and not is_synthetic_phone_email(raw_identifier):
+            email = normalize_email(raw_identifier)
+            if not email:
+                return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+            if raw_phone and raw_phone != raw_identifier:
+                phone_number = normalize_phone_e164(raw_phone)
+                if not phone_number:
+                    return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
+            else:
                 phone_number = None
+            reg_channel = "email"
         else:
-            clean_phone = "".join(filter(str.isdigit, raw_identifier))
-            if len(clean_phone) < 9 or len(clean_phone) > 11:
+            phone_Input = extract_phone_from_synthetic_email(raw_identifier) if is_synthetic_phone_email(raw_identifier) else raw_identifier
+            phone_number = normalize_phone_e164(phone_Input)
+            if not phone_number:
                 return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
-            phone_number = clean_phone
-            email = f"{clean_phone}@phone.medimind"
+            # Nếu client đồng thời cung cấp email thật hợp lệ thì lưu, nếu không thì email = None (NULL)
+            if raw_email and "@" in raw_email and raw_email != raw_identifier and not is_synthetic_phone_email(raw_email):
+                email = normalize_email(raw_email)
+                if not email:
+                    return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+            else:
+                email = None
+            reg_channel = "sms"
 
-        existing_user = User.query.filter(
-            (db.func.lower(User.email) == email.lower()) |
-            ((User.phone_number == phone_number) & (User.phone_number.isnot(None)))
-        ).first()
-        if existing_user:
-            return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
+        # Kiểm tra trùng lặp trên cả email và phone_number đã chuẩn hóa
+        if email:
+            dup_email = User.query.filter(db.func.lower(User.email) == email).first()
+            if dup_email:
+                return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
+        if phone_number:
+            candidates = phone_lookup_candidates(phone_number)
+            dup_phone = User.query.filter(User.phone_number.in_(candidates)).first()
+            if dup_phone:
+                return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
 
         if not app.config.get("TESTING"):
-            reg_channel = "email" if "@" in raw_identifier else "sms"
-            reg_id = email if reg_channel == "email" else phone_number
-            if not otp_manager.is_verified(reg_id, reg_channel, consume=True):
+            if reg_channel == "email":
+                verified = otp_manager.is_verified(email, "email", consume=True)
+            else:
+                verified = False
+                for cand in phone_lookup_candidates(phone_number):
+                    if otp_manager.is_verified(cand, "sms", consume=True):
+                        verified = True
+                        break
+            if not verified:
                 return jsonify({
                     "success": False,
                     "error": "Vui lòng xác thực mã OTP 6 số trước khi tạo tài khoản."
                 }), 403
 
-        new_user = User(
-            email=email,
-            full_name=full_name,
-            role=role,
-            phone_number=phone_number,
-            dob=dob,
-            gender=gender,
-            license_code=None
-        )
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            new_user = User(
+                email=email,
+                full_name=full_name,
+                role=role,
+                account_status="active",
+                phone_number=phone_number,
+                dob=dob,
+                gender=gender,
+                license_code=None
+            )
+            new_user.set_password(password)
+            db.session.add(new_user)
+            db.session.flush()
+            sync_user_identities(new_user, verified=True)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
 
         session["user_id"] = new_user.id
         session["user_role"] = new_user.role
@@ -343,7 +490,7 @@ def create_app(test_config=None):
             return jsonify({"authenticated": False, "user": None})
 
         user = db.session.get(User, user_id)
-        if not user:
+        if not user or getattr(user, "account_status", "active") not in (None, "active"):
             session.clear()
             return jsonify({"authenticated": False, "user": None})
 
@@ -354,7 +501,7 @@ def create_app(test_config=None):
     def auth_update_profile():
         """
         Cập nhật thông tin cá nhân:
-        BẢO MẬT: Bắt buộc session đăng nhập hợp lệ. Bỏ fallback lấy id từ JSON body.
+        BẢO MẬT: Bắt buộc session đăng nhập hợp lệ. Chuẩn hóa SĐT E.164 và Email, đồng bộ bảng auth_identities.
         """
         user_id = session.get("user_id")
         if not user_id:
@@ -366,13 +513,13 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Không tìm thấy thông tin tài khoản."}), 404
 
         data = request.get_json(silent=True) or {}
-        full_name = data.get("name", "").strip() or data.get("full_name", "").strip()
-        gender = data.get("gender", "").strip()
-        dob = data.get("dob", "").strip()
-        phone_number = data.get("phone_number", "").strip()
-        address = data.get("address", "").strip()
-        bhyt = data.get("bhyt", "").strip()
-        email = data.get("email", "").strip()
+        full_name = (data.get("name") or "").strip() or (data.get("full_name") or "").strip()
+        gender = (data.get("gender") or "").strip()
+        dob = (data.get("dob") or "").strip()
+        raw_phone = (data.get("phone_number") or "").strip()
+        address = (data.get("address") or "").strip()
+        bhyt = (data.get("bhyt") or "").strip()
+        raw_email = (data.get("email") or "").strip()
 
         if full_name:
             user.full_name = full_name
@@ -382,29 +529,41 @@ def create_app(test_config=None):
             if not valid_birth_date(dob):
                 return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
             user.dob = dob
-        if phone_number:
-            clean_phone = "".join(filter(str.isdigit, phone_number))
-            if len(clean_phone) < 9 or len(clean_phone) > 11:
+        if raw_phone and "•" not in raw_phone:
+            norm_phone = normalize_phone_e164(raw_phone)
+            if not norm_phone:
                 return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
-            if clean_phone:
-                dup_phone = User.query.filter(
-                    (User.id != user.id) &
-                    ((User.phone_number == clean_phone) | (User.email == f"{clean_phone}@phone.medimind"))
-                ).first()
-                if dup_phone:
-                    return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
-                user.phone_number = clean_phone
+            candidates = phone_lookup_candidates(norm_phone)
+            dup_phone = User.query.filter(
+                (User.id != user.id) &
+                (User.phone_number.in_(candidates))
+            ).first()
+            dup_phone_id = AuthIdentity.query.filter(
+                (AuthIdentity.user_id != user.id) &
+                (AuthIdentity.provider == "phone") &
+                (AuthIdentity.provider_subject.in_(candidates))
+            ).first()
+            if dup_phone or dup_phone_id:
+                return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
+            user.phone_number = norm_phone
         if "address" in data:
             user.address = address
-        if bhyt:
+        if bhyt and "•" not in bhyt:
             user.bhyt = bhyt
-        if email and "@" in email and not email.endswith("@phone.medimind"):
-            dup_email = User.query.filter((User.id != user.id) & (db.func.lower(User.email) == email.lower())).first()
-            if dup_email:
+        if raw_email and "•" not in raw_email and "@" in raw_email and not is_synthetic_phone_email(raw_email):
+            norm_email = normalize_email(raw_email)
+            if not norm_email:
+                return jsonify({"success": False, "error": "Địa chỉ Email không hợp lệ."}), 400
+            dup_email = User.query.filter((User.id != user.id) & (db.func.lower(User.email) == norm_email)).first()
+            dup_email_id = AuthIdentity.query.filter(
+                (AuthIdentity.user_id != user.id) &
+                (AuthIdentity.provider == "email") &
+                (AuthIdentity.provider_subject == norm_email)
+            ).first()
+            if dup_email or dup_email_id:
                 return jsonify({"success": False, "error": "Địa chỉ Email này đã được sử dụng bởi một tài khoản khác."}), 409
-            user.email = email
+            user.email = norm_email
 
-        # Luu toan bo ho so mo rong vao JSON clinical_profile
         extra_profile = json.loads(user.clinical_profile or "{}")
         profile_fields = (
             "ethnicity", "religion", "province", "ward", "address", "cccd",
@@ -412,13 +571,14 @@ def create_app(test_config=None):
             "nationality", "blood_type", "allergies", "height", "weight",
         )
         for field in profile_fields:
-            if field in data:
+            if field in data and isinstance(data[field], str):
                 extra_profile[field] = data[field].strip()
         if not extra_profile.get("nationality"):
             extra_profile["nationality"] = "VN"
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
         try:
+            sync_user_identities(user, verified=True)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -445,7 +605,7 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
 
         data = request.get_json(silent=True) or {}
-        current_password = (data.get("current_password") or "").strip()
+        current_password = (data.get("current_password") or data.get("old_password") or "").strip()
         new_password = (data.get("new_password") or "").strip()
 
         if not current_password or not new_password:
@@ -462,6 +622,234 @@ def create_app(test_config=None):
         return jsonify({"success": True, "message": "Đã thay đổi mật khẩu thành công!"})
 
 
+    @app.route("/api/auth/forgot-password", methods=["POST"])
+    def auth_forgot_password():
+        """
+        Yêu cầu đặt lại mật khẩu (Forgot Password) qua Email hoặc SĐT:
+          - Giới hạn tần suất chống spam.
+          - Không tiết lộ sự tồn tại của tài khoản ra thông báo lỗi.
+        """
+        data = request.get_json(silent=True) or {}
+        raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
+        if not raw_identifier:
+            return jsonify({"success": False, "error": "Vui lòng nhập Email hoặc Số điện thoại khôi phục."}), 400
+
+        if "@" in raw_identifier:
+            norm_id = normalize_email(raw_identifier)
+            if not norm_id:
+                return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+            channel = "email"
+        else:
+            norm_id = normalize_phone_e164(raw_identifier)
+            if not norm_id:
+                return jsonify({"success": False, "error": "Số điện thoại không hợp lệ."}), 400
+            channel = "sms"
+
+        user = find_login_user(norm_id)
+        if not user:
+            # Phản hồi thành công giả định để chống dò tài khoản (Anti-Enumeration)
+            return jsonify({
+                "success": True,
+                "message": "Nếu tài khoản tồn tại, mã xác thực khôi phục mật khẩu đã được gửi.",
+                "channel": channel,
+                "cooldown": otp_manager.cooldown
+            }), 200
+
+        success, msg, cooldown = otp_manager.request_otp(
+            identifier=norm_id,
+            channel=channel,
+            purpose="reset_pwd",
+            full_name=user.full_name
+        )
+        if not success:
+            return jsonify({"success": False, "error": msg, "cooldown": cooldown}), 429 if cooldown > 0 else 400
+
+        res_data = {
+            "success": True,
+            "message": "Nếu tài khoản tồn tại, mã xác thực khôi phục mật khẩu đã được gửi.",
+            "channel": channel,
+            "cooldown": cooldown
+        }
+        from core.email_service import email_service
+        from core.sms_service import sms_service
+        is_real_channel = email_service.is_configured() if channel == "email" else sms_service.is_configured()
+        if not is_real_channel and (app.debug or app.config.get("TESTING") or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")):
+            res_data["dev_otp"] = otp_manager.get_active_code(norm_id, channel)
+        return jsonify(res_data), 200
+
+
+    @app.route("/api/auth/reset-password", methods=["POST"])
+    def auth_reset_password():
+        """Xác minh mã OTP khôi phục và đặt lại mật khẩu mới, bảo toàn 100% user_id và dữ liệu y tế."""
+        data = request.get_json(silent=True) or {}
+        raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
+        code = (data.get("code") or "").strip()
+        new_password = (data.get("new_password") or "").strip()
+
+        if not raw_identifier or not code or not new_password:
+            return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ định danh, mã OTP và mật khẩu mới."}), 400
+
+        if len(new_password) < 6:
+            return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 6 ký tự."}), 400
+
+        if "@" in raw_identifier:
+            norm_id = normalize_email(raw_identifier)
+            channel = "email"
+            candidates = [norm_id] if norm_id else []
+        else:
+            norm_id = normalize_phone_e164(raw_identifier)
+            channel = "sms"
+            candidates = phone_lookup_candidates(raw_identifier)
+
+        if not norm_id:
+            return jsonify({"success": False, "error": "Định danh tài khoản không hợp lệ."}), 400
+
+        verified = False
+        err_msg = "Mã xác thực không hợp lệ hoặc đã hết hạn."
+        for cand in candidates:
+            ok, msg = otp_manager.verify_otp(identifier=cand, channel=channel, code=code, purpose="reset_pwd")
+            if ok:
+                verified = True
+                break
+            err_msg = msg
+
+        if not verified:
+            return jsonify({"success": False, "error": err_msg}), 400
+
+        user = find_login_user(norm_id)
+        if not user:
+            return jsonify({"success": False, "error": "Không thể đặt lại mật khẩu cho tài khoản này."}), 400
+
+        user.set_password(new_password)
+        db.session.commit()
+
+        from core.security_patch import reset_otp_attempts
+        reset_otp_attempts(normalize_login_rate_key(norm_id))
+
+        return jsonify({
+            "success": True,
+            "message": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới."
+        }), 200
+
+
+    @app.route("/api/auth/link-identity", methods=["POST"])
+    def auth_link_identity():
+        """
+        Liên kết thêm phương thức đăng nhập (Email, Số điện thoại E.164, hoặc Google Subject ID)
+        vào tài khoản đang đăng nhập hiện tại:
+          - Bắt buộc xác minh quyền sở hữu định danh mới (OTP cho Email/SĐT, hoặc Google OIDC Token).
+          - Ngăn chặn chiếm đoạt tài khoản (Account Takeover) nếu định danh đã thuộc về user khác.
+        """
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"success": False, "error": "Vui lòng đăng nhập trước khi liên kết định danh."}), 401
+
+        user = db.session.get(User, user_id)
+        if not user:
+            session.clear()
+            return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+
+        data = request.get_json(silent=True) or {}
+        provider = (data.get("provider") or "").strip().lower()
+        code = (data.get("code") or "").strip()
+
+        if provider == "email":
+            norm_email = normalize_email(data.get("email") or data.get("identifier"))
+            if not norm_email:
+                return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+
+            dup = User.query.filter((User.id != user.id) & (db.func.lower(User.email) == norm_email)).first()
+            dup_id = AuthIdentity.query.filter(
+                (AuthIdentity.user_id != user.id) &
+                (AuthIdentity.provider == "email") &
+                (AuthIdentity.provider_subject == norm_email)
+            ).first()
+            if dup or dup_id:
+                return jsonify({"success": False, "error": "Email này đã được liên kết với một tài khoản khác."}), 409
+
+            if not app.config.get("TESTING"):
+                if code:
+                    ok, err = otp_manager.verify_otp(norm_email, "email", code, purpose="link_identity")
+                    if not ok:
+                        return jsonify({"success": False, "error": err}), 400
+                elif not otp_manager.is_verified(norm_email, "email", consume=True):
+                    return jsonify({"success": False, "error": "Vui lòng xác thực mã OTP gửi tới email trước khi liên kết."}), 403
+
+            user.email = norm_email
+
+        elif provider == "phone":
+            raw_phone = data.get("phone_number") or data.get("identifier")
+            norm_phone = normalize_phone_e164(raw_phone)
+            if not norm_phone:
+                return jsonify({"success": False, "error": "Số điện thoại không hợp lệ."}), 400
+
+            candidates = phone_lookup_candidates(norm_phone)
+            dup = User.query.filter((User.id != user.id) & (User.phone_number.in_(candidates))).first()
+            dup_id = AuthIdentity.query.filter(
+                (AuthIdentity.user_id != user.id) &
+                (AuthIdentity.provider == "phone") &
+                (AuthIdentity.provider_subject.in_(candidates))
+            ).first()
+            if dup or dup_id:
+                return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
+
+            if not app.config.get("TESTING"):
+                verified = False
+                if code:
+                    for cand in candidates:
+                        ok, _ = otp_manager.verify_otp(cand, "sms", code, purpose="link_identity")
+                        if ok:
+                            verified = True
+                            break
+                else:
+                    for cand in candidates:
+                        if otp_manager.is_verified(cand, "sms", consume=True):
+                            verified = True
+                            break
+                if not verified:
+                    return jsonify({"success": False, "error": "Vui lòng xác thực mã OTP SMS trước khi liên kết số điện thoại."}), 403
+
+            user.phone_number = norm_phone
+
+        elif provider == "google":
+            google_sub = (data.get("google_sub") or data.get("sub") or "").strip()
+            google_email = normalize_email(data.get("email"))
+            if not google_sub:
+                return jsonify({"success": False, "error": "Thiếu định danh Google Subject ID (sub)."}), 400
+
+            dup_sub = User.query.filter((User.id != user.id) & (User.google_sub == google_sub)).first()
+            dup_id = AuthIdentity.query.filter(
+                (AuthIdentity.user_id != user.id) &
+                (AuthIdentity.provider == "google") &
+                (AuthIdentity.provider_subject == google_sub)
+            ).first()
+            if dup_sub or dup_id:
+                return jsonify({"success": False, "error": "Tài khoản Google này đã được liên kết với người dùng khác."}), 409
+
+            if google_email and not user.email:
+                dup_em = User.query.filter((User.id != user.id) & (db.func.lower(User.email) == google_email)).first()
+                if dup_em:
+                    return jsonify({"success": False, "error": "Email của tài khoản Google này đã thuộc về người dùng khác."}), 409
+                user.email = google_email
+
+            user.google_sub = google_sub
+        else:
+            return jsonify({"success": False, "error": "Phương thức liên kết không hợp lệ (hỗ trợ: email, phone, google)."}), 400
+
+        try:
+            sync_user_identities(user, verified=True)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"success": False, "error": "Định danh này đã được liên kết với một tài khoản khác."}), 409
+
+        return jsonify({
+            "success": True,
+            "message": f"Liên kết định danh {provider} thành công!",
+            "user": user.to_dict()
+        }), 200
+
+
     @app.route("/api/auth/logout", methods=["POST"])
     def auth_logout():
         """Đăng xuất và hủy phiên làm việc."""
@@ -469,7 +857,7 @@ def create_app(test_config=None):
         return jsonify({"success": True, "message": "Đã đăng xuất thành công."})
 
     # ==============================================================
-    # HỆ THỐNG XÁC THỰC OTP (EMAIL / SMS) & GOOGLE OAUTH 2.0
+    # HỆ THỐNG XÁC THỰC OTP (EMAIL / SMS) & GOOGLE OAUTH 2.0 (OIDC)
     # ==============================================================
 
     @app.route("/api/auth/otp/send", methods=["POST"])
@@ -487,37 +875,30 @@ def create_app(test_config=None):
         if not identifier:
             return jsonify({"success": False, "error": "Vui lòng nhập Email hoặc Số điện thoại."}), 400
 
-        # Tự động nhận diện kênh gửi nếu client không truyền channel
         if not channel:
             channel = "email" if "@" in identifier else "sms"
 
         if channel == "email":
-            if "@" not in identifier:
+            norm_email = normalize_email(identifier)
+            if not norm_email:
                 return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+            identifier = norm_email
         else:
-            clean_phone = "".join(filter(str.isdigit, identifier))
-            if len(clean_phone) < 9 or len(clean_phone) > 11:
+            norm_phone = normalize_phone_e164(identifier)
+            if not norm_phone:
                 return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (9-11 chữ số)."}), 400
-            identifier = clean_phone
+            identifier = norm_phone
 
-        # Kiểm tra sự tồn tại của tài khoản trước khi bắn mã OTP (BUG-01)
+        # Kiểm tra sự tồn tại của tài khoản trước khi bắn mã OTP
         if purpose == "register":
-            dup_acc = User.query.filter(
-                (db.func.lower(User.email) == identifier.lower()) |
-                ((User.phone_number == identifier) & (User.phone_number.isnot(None))) |
-                (User.email == f"{identifier}@phone.medimind")
-            ).first()
-            if dup_acc:
+            existing = find_login_user(identifier)
+            if existing:
                 return jsonify({
                     "success": False,
                     "error": "Email hoặc Số điện thoại này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập!"
                 }), 409
-        elif purpose == "login_2fa":
-            exist_acc = User.query.filter(
-                (db.func.lower(User.email) == identifier.lower()) |
-                (User.phone_number == identifier) |
-                (User.email == f"{identifier}@phone.medimind")
-            ).first()
+        elif purpose in ("login_2fa", "reset_pwd"):
+            exist_acc = find_login_user(identifier)
             if not exist_acc:
                 return jsonify({
                     "success": False,
@@ -543,14 +924,11 @@ def create_app(test_config=None):
             "expires_in": otp_manager.ttl
         }
 
-        # Nếu chưa cấu hình cổng Email/SMS thật và đang ở chế độ Dev, trả kèm dev_otp để trải nghiệm mượt mà
         from core.email_service import email_service
         from core.sms_service import sms_service
         is_real_channel = email_service.is_configured() if channel == "email" else sms_service.is_configured()
-        if not is_real_channel and (app.debug or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")):
+        if not is_real_channel and (app.debug or app.config.get("TESTING") or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")):
             res_data["dev_otp"] = otp_manager.get_active_code(identifier, channel)
-
-
 
         return jsonify(res_data)
 
@@ -560,76 +938,97 @@ def create_app(test_config=None):
         """
         Xác minh mã OTP 6 số:
         Hỗ trợ:
-          - purpose='register': Xác thực OTP và khởi tạo tài khoản bệnh nhân an toàn
+          - purpose='register': Xác thực OTP và khởi tạo tài khoản bệnh nhân (SĐT: email=NULL, phone_number=E.164)
           - purpose='login_2fa': Xác thực OTP và đăng nhập cấp session
-          - purpose='verify': Xác minh chung
+          - purpose='reset_pwd' / 'link_identity' / 'verify': Xác minh OTP theo mục đích
         """
         data = request.get_json(silent=True) or {}
-        identifier = (data.get("identifier") or "").strip()
+        raw_identifier = (data.get("identifier") or "").strip()
         channel = (data.get("channel") or "").strip().lower()
         code = (data.get("code") or "").strip()
         purpose = (data.get("purpose") or "register").strip()
         user_data = data.get("user_data") or {}
 
-        if not identifier or not code:
+        if not raw_identifier or not code:
             return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ thông tin và mã OTP 6 chữ số."}), 400
 
         if not channel:
-            channel = "email" if "@" in identifier else "sms"
+            channel = "email" if "@" in raw_identifier else "sms"
 
-        if channel == "sms":
-            identifier = "".join(filter(str.isdigit, identifier))
+        if channel == "email":
+            identifier = normalize_email(raw_identifier)
+            if not identifier:
+                return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
+            verify_candidates = [identifier]
+        else:
+            identifier = normalize_phone_e164(raw_identifier)
+            if not identifier:
+                return jsonify({"success": False, "error": "Số điện thoại không hợp lệ."}), 400
+            verify_candidates = phone_lookup_candidates(raw_identifier)
 
         dob = (user_data.get("dob") or "").strip()
         if purpose == "register" and dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
             return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
 
-        success, err_msg = otp_manager.verify_otp(
-            identifier=identifier,
-            channel=channel,
-            code=code,
-            purpose=purpose
-        )
+        success = False
+        err_msg = "Mã xác thực không hợp lệ."
+        for cand in verify_candidates:
+            ok, msg = otp_manager.verify_otp(
+                identifier=cand,
+                channel=channel,
+                code=code,
+                purpose=purpose
+            )
+            if ok:
+                success = True
+                break
+            err_msg = msg
 
         if not success:
             return jsonify({"success": False, "error": err_msg}), 400
 
-        # Nếu là kịch bản Đăng ký (Register with OTP)
+        # Kịch bản Đăng ký (Register with OTP)
         if purpose == "register" and user_data:
             full_name = (user_data.get("full_name") or user_data.get("name") or "Bệnh nhân mới").strip()
             password = (user_data.get("password") or "").strip()
             gender = (user_data.get("gender") or "Nam").strip()
 
             if channel == "email":
-                email = identifier.lower()
-                phone_number = (user_data.get("phone_number") or "").strip() or None
+                email = identifier
+                raw_phone = (user_data.get("phone_number") or "").strip()
+                phone_number = normalize_phone_e164(raw_phone) if raw_phone else None
             else:
                 phone_number = identifier
-                email = f"{identifier}@phone.medimind"
+                raw_em = (user_data.get("email") or "").strip()
+                email = normalize_email(raw_em) if (raw_em and "@" in raw_em and not is_synthetic_phone_email(raw_em)) else None
 
-            # Kiểm tra tài khoản đã tồn tại chưa
-            existing = User.query.filter(
-                (db.func.lower(User.email) == email.lower()) |
-                ((User.phone_number == phone_number) & (User.phone_number.isnot(None)))
-            ).first()
-            if existing:
+            if email and User.query.filter(db.func.lower(User.email) == email).first():
+                return jsonify({"success": False, "error": "Tài khoản này đã tồn tại trên hệ thống."}), 409
+            if phone_number and User.query.filter(User.phone_number.in_(phone_lookup_candidates(phone_number))).first():
                 return jsonify({"success": False, "error": "Tài khoản này đã tồn tại trên hệ thống."}), 409
 
-            if not password:
-                import secrets
-                password = secrets.token_urlsafe(12)
-
-            new_user = User(
-                email=email,
-                full_name=full_name,
-                role="patient",
-                phone_number=phone_number,
-                dob=dob,
-                gender=gender
-            )
-            new_user.set_password(password)
-            db.session.add(new_user)
-            db.session.commit()
+            try:
+                new_user = User(
+                    email=email,
+                    full_name=full_name,
+                    role="patient",
+                    account_status="active",
+                    phone_number=phone_number,
+                    dob=dob,
+                    gender=gender
+                )
+                if password:
+                    new_user.set_password(password)
+                else:
+                    import secrets
+                    new_user.set_password(secrets.token_urlsafe(16))
+                db.session.add(new_user)
+                db.session.flush()
+                sync_user_identities(new_user, verified=True)
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                return jsonify({"success": False, "error": "Tài khoản này đã tồn tại trên hệ thống."}), 409
 
             session["user_id"] = new_user.id
             session["user_role"] = new_user.role
@@ -640,10 +1039,9 @@ def create_app(test_config=None):
                 "user": new_user.to_dict()
             }), 201
 
-        # Nếu là kịch bản Đăng nhập 2FA (2FA Login)
+        # Kịch bản Đăng nhập 2FA (2FA Login)
         if purpose == "login_2fa":
             user = find_login_user(identifier)
-
             if not user:
                 return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
 
@@ -662,12 +1060,66 @@ def create_app(test_config=None):
         })
 
 
+    def _validate_google_oidc_claims(claims: dict, expected_client_id: str = "") -> tuple:
+        """
+        Kiểm tra toàn diện các trường bảo mật của Google OpenID Connect Token:
+          - iss (Issuer): accounts.google.com hoặc https://accounts.google.com
+          - aud (Audience): khớp với GOOGLE_CLIENT_ID
+          - exp (Expiration): chưa hết hạn
+          - email_verified: bắt buộc đã xác minh bởi Google
+          - sub (Subject ID): định danh bất biến của tài khoản Google
+        """
+        if not isinstance(claims, dict):
+            return False, "Dữ liệu xác thực Google không hợp lệ."
+
+        iss = str(claims.get("iss") or "").strip()
+        if iss and iss not in ("https://accounts.google.com", "accounts.google.com"):
+            return False, "Nhà phát hành Google ID Token (issuer) không hợp lệ."
+
+        if expected_client_id:
+            aud = str(claims.get("aud") or "").strip()
+            if aud != expected_client_id:
+                return False, "Google ID Token không thuộc ứng dụng MediMind (audience mismatch)."
+
+        if "exp" in claims:
+            try:
+                if int(claims["exp"]) <= int(time.time()):
+                    return False, "Google ID Token đã hết hạn."
+            except (ValueError, TypeError):
+                return False, "Trường thời hạn (exp) của Google ID Token không hợp lệ."
+
+        if "email_verified" in claims:
+            ev = claims.get("email_verified")
+            if str(ev).lower() not in ("true", "1") and ev is not True:
+                return False, "Địa chỉ email trên tài khoản Google chưa được xác minh."
+
+        google_sub = str(claims.get("sub") or "").strip()
+        if not google_sub:
+            return False, "Thiếu định danh Google Subject ID (sub) trong phản hồi OpenID Connect."
+
+        email = normalize_email(claims.get("email"))
+        if not email:
+            return False, "Email Google không hợp lệ hoặc không được cung cấp."
+
+        return True, {"sub": google_sub, "email": email}
+
+
+    def _find_user_by_google_sub(google_sub: str):
+        """Tìm người dùng theo Google Subject ID (sub) qua bảng users và auth_identities."""
+        if not google_sub:
+            return None
+        user = User.query.filter_by(google_sub=google_sub).first()
+        if user:
+            return user
+        identity = AuthIdentity.query.filter_by(provider="google", provider_subject=google_sub).first()
+        return identity.user if identity else None
+
+
     def _create_google_oauth_state(intent: str = "login") -> str:
         import base64
         import hashlib
         import hmac
         import secrets
-        import time
 
         clean_intent = "register" if intent == "register" else "login"
         payload = json.dumps({
@@ -684,7 +1136,6 @@ def create_app(test_config=None):
         import base64
         import hashlib
         import hmac
-        import time
 
         if not state_token or "." not in state_token:
             return None
@@ -704,12 +1155,7 @@ def create_app(test_config=None):
 
     @app.route("/api/auth/google/login", methods=["GET"])
     def auth_google_login():
-        """
-        Khởi tạo luồng Google OAuth 2.0 Authorization Code (PKCE/State) chuẩn giống ForumFlash:
-          - Nhận intent ('login' hoặc 'register')
-          - Buộc hiển thị bảng chọn tài khoản thật của Google (prompt=select_account)
-          - Hỗ trợ trả JSON (?format=json) cho pre-flight check hoặc Redirect 302 trực tiếp.
-        """
+        """Khởi tạo luồng Google OAuth 2.0 / OpenID Connect Authorization Code."""
         from urllib.parse import urlencode
 
         intent = (request.args.get("intent") or "login").strip().lower()
@@ -756,16 +1202,12 @@ def create_app(test_config=None):
     @app.route("/api/auth/google/callback", methods=["GET"])
     def auth_google_callback():
         """
-        Callback nhận Authorization Code từ Google OAuth 2.0:
-          - Xác thực chữ ký HMAC state chống CSRF
-          - Đổi code lấy access_token & id_token (tự động retry 1 lần nếu mạng chập chờn)
-          - Lấy hồ sơ xác thực từ Google UserInfo API
-          - Phân nhánh Đăng nhập vs Đăng ký & kiểm tra hoàn tất hồ sơ (Onboarding)
+        Callback nhận Authorization Code từ Google OpenID Connect:
+          - Định danh tài khoản ưu tiên bằng Google Subject ID (`sub`).
+          - Chống chiếm quyền tài khoản (Account Takeover): Không tự động gộp vào tài khoản mật khẩu sẵn có chỉ dựa trên email.
         """
-        import secrets
         import urllib.request
         import urllib.parse
-        import urllib.error
 
         error = (request.args.get("error") or "").strip()
         if error:
@@ -825,38 +1267,47 @@ def create_app(test_config=None):
             logger.error(f"Không thể lấy thông tin người dùng từ Google: {ex}")
             return redirect("/?google_auth=error&error_reason=userinfo_failed")
 
-        email = (user_info.get("email") or "").strip().lower()
-        full_name = (user_info.get("name") or "").strip()
+        valid_claims, claim_res = _validate_google_oidc_claims(user_info, expected_client_id="")
+        if not valid_claims:
+            return redirect("/?google_auth=error&error_reason=invalid_claims")
+
+        google_sub = claim_res["sub"]
+        email = claim_res["email"]
+        full_name = (user_info.get("name") or "").strip() or email.split("@")[0].capitalize()
         avatar_url = (user_info.get("picture") or "").strip()
 
-        if not email or "@" not in email:
-            return redirect("/?google_auth=error&error_reason=invalid_email")
-
-        if not full_name:
-            full_name = email.split("@")[0].capitalize()
-
-        user = User.query.filter_by(email=email).first()
-
-        # TRƯỜNG HỢP 1: TỪ LẦN THỨ 2 TRỞ ĐI (Tài khoản Google đã có trong CSDL -> Vào luôn ngay lập tức)
+        # 1. Tra cứu ưu tiên theo Google Subject ID (sub)
+        user = _find_user_by_google_sub(google_sub)
         if user:
             if avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
+            sync_user_identities(user, verified=True)
             db.session.commit()
 
             session.pop("pending_google_register", None)
             session["user_id"] = user.id
             session["user_role"] = user.role
+            return redirect("/?google_auth=success&existing=1")
 
-            query_out = {
-                "google_auth": "success",
-                "existing": "1",
-            }
-            return redirect(f"/?{urllib.parse.urlencode(query_out)}")
+        # 2. Kiểm tra nếu email đã tồn tại trên một tài khoản chưa liên kết Google
+        existing_email_user = User.query.filter_by(email=email).first()
+        if existing_email_user:
+            # Nếu người dùng đang đăng nhập sẵn đúng tài khoản đó thì cho phép liên kết
+            if session.get("user_id") == existing_email_user.id and not existing_email_user.google_sub:
+                existing_email_user.google_sub = google_sub
+                if avatar_url and not existing_email_user.avatar_url:
+                    existing_email_user.avatar_url = avatar_url
+                sync_user_identities(existing_email_user, verified=True)
+                db.session.commit()
+                return redirect("/?google_auth=success&existing=1&linked=1")
+            # Không tự động gộp vào tài khoản hiện có chỉ dựa trên email
+            return redirect("/?google_auth=error&error_reason=account_link_verification_required")
 
-        # TRƯỜNG HỢP 2: LẦN ĐẦU TIÊN SỬ DỤNG GOOGLE (Chưa có trong CSDL -> Chuyển vào bước xác nhận thông tin)
+        # 3. Tài khoản Google mới hoàn toàn -> Chuyển vào bước xác nhận thông tin
         session["pending_google_register"] = {
+            "google_sub": google_sub,
             "email": email,
             "full_name": full_name,
             "avatar_url": avatar_url or "",
@@ -879,9 +1330,7 @@ def create_app(test_config=None):
 
     @app.route("/api/auth/google/complete-registration", methods=["POST"])
     def auth_google_complete_registration():
-        """Hoàn tất thông tin đăng ký Google và chính thức INSERT vào CSDL."""
-        import secrets
-
+        """Hoàn tất thông tin đăng ký Google (lưu google_sub, không lưu mật khẩu Google)."""
         pending = session.get("pending_google_register")
         if not pending or not pending.get("email"):
             return jsonify({
@@ -896,39 +1345,57 @@ def create_app(test_config=None):
         if dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
             return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
         raw_phone = (data.get("phone_number") or "").strip()
-        clean_phone = "".join(filter(str.isdigit, raw_phone))
+        norm_phone = normalize_phone_e164(raw_phone) if raw_phone else None
 
-        if not full_name:
-            full_name = pending.get("full_name") or pending["email"].split("@")[0].capitalize()
-        if clean_phone and (len(clean_phone) < 9 or len(clean_phone) > 11):
+        if raw_phone and not norm_phone:
             return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số)."}), 400
 
-        email = pending["email"].strip().lower()
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
-            session.pop("pending_google_register", None)
-            session["user_id"] = existing_user.id
-            session["user_role"] = existing_user.role
-            return jsonify({"success": True, "user": existing_user.to_dict()})
+        email = normalize_email(pending["email"])
+        google_sub = (pending.get("google_sub") or "").strip() or None
+        if not full_name:
+            full_name = pending.get("full_name") or email.split("@")[0].capitalize()
 
-        dup_phone = User.query.filter(
-            (User.phone_number == clean_phone) | (User.email == f"{clean_phone}@phone.medimind")
-        ).first()
-        if dup_phone:
-            return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
+        if google_sub:
+            existing_sub_user = _find_user_by_google_sub(google_sub)
+            if existing_sub_user:
+                session.pop("pending_google_register", None)
+                session["user_id"] = existing_sub_user.id
+                session["user_role"] = existing_sub_user.role
+                return jsonify({"success": True, "user": existing_sub_user.to_dict()})
 
-        user = User(
-            email=email,
-            full_name=full_name,
-            role="patient",
-            gender=gender,
-            dob=dob or None,
-            phone_number=clean_phone or None,
-            avatar_url=pending.get("avatar_url") or None
-        )
-        user.set_password(secrets.token_urlsafe(24))
-        db.session.add(user)
-        db.session.commit()
+        existing_email_user = User.query.filter_by(email=email).first()
+        if existing_email_user:
+            return jsonify({
+                "success": False,
+                "code": "ACCOUNT_LINK_VERIFICATION_REQUIRED",
+                "error": "Email này đã thuộc về một tài khoản hiện có. Vui lòng đăng nhập và xác minh quyền sở hữu để liên kết Google."
+            }), 409
+
+        if norm_phone:
+            dup_phone = User.query.filter(User.phone_number.in_(phone_lookup_candidates(norm_phone))).first()
+            if dup_phone:
+                return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
+
+        try:
+            user = User(
+                email=email,
+                google_sub=google_sub,
+                full_name=full_name,
+                role="patient",
+                account_status="active",
+                gender=gender,
+                dob=dob or None,
+                phone_number=norm_phone,
+                avatar_url=pending.get("avatar_url") or None
+            )
+            user.set_unusable_password()
+            db.session.add(user)
+            db.session.flush()
+            sync_user_identities(user, verified=True)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"success": False, "error": "Định danh tài khoản Google hoặc SĐT đã tồn tại."}), 409
 
         session.pop("pending_google_register", None)
         session["user_id"] = user.id
@@ -943,8 +1410,12 @@ def create_app(test_config=None):
     @app.route("/api/auth/google", methods=["POST"])
     def auth_google():
         """
-        Cổng xác thực Google ID Token (Đã khóa chống giả mạo email trần - VULN-01):
-        Khi đã cấu hình GOOGLE_CLIENT_ID thực tế, bắt buộc xác minh chữ ký ID Token với máy chủ Google.
+        Cổng xác thực Google OpenID Connect (ID Token / Google Identity Services):
+          - Định danh chuẩn hóa theo `google_sub` (Subject ID).
+          - Kiểm tra chữ ký/token, `iss`, `aud`, `exp`, `email_verified`.
+          - Chống Account Takeover: Không tự động liên kết với tài khoản hiện có chỉ dựa trên email trùng nhau
+            nếu chưa xác minh quyền sở hữu (qua session đăng nhập, mật khẩu hoặc OTP).
+          - Không lưu mật khẩu Google (`set_unusable_password()`).
         """
         import urllib.request
         import urllib.parse
@@ -953,65 +1424,138 @@ def create_app(test_config=None):
         data = request.get_json(silent=True) or {}
         credential = data.get("credential")
 
-        if client_id and not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
-            if not credential or not isinstance(credential, str):
-                return jsonify({
-                    "success": False,
-                    "error": "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
-                }), 403
-            try:
-                verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={urllib.parse.quote(credential)}"
-                with urllib.request.urlopen(verify_url, timeout=8) as resp:
-                    token_info = json.loads(resp.read().decode("utf-8"))
-                if token_info.get("aud") != client_id:
-                    return jsonify({"success": False, "error": "Google ID Token không thuộc ứng dụng MediMind."}), 403
-                email = (token_info.get("email") or "").strip().lower()
-                full_name = (token_info.get("name") or "").strip()
-                avatar_url = (token_info.get("picture") or "").strip()
-            except Exception as ex:
-                logger.warning(f"Xác thực Google ID Token thất bại: {ex}")
-                return jsonify({"success": False, "error": "Google ID Token không hợp lệ hoặc đã hết hạn."}), 401
+        google_sub = None
+        email = None
+        full_name = ""
+        avatar_url = ""
+        is_verified_token_flow = False
+
+        if credential and isinstance(credential, str):
+            is_verified_token_flow = True
+            token_info = None
+            if app.config.get("TESTING") and isinstance(data.get("_mock_token_info"), dict):
+                token_info = data["_mock_token_info"]
+            else:
+                try:
+                    verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={urllib.parse.quote(credential)}"
+                    with urllib.request.urlopen(verify_url, timeout=8) as resp:
+                        token_info = json.loads(resp.read().decode("utf-8"))
+                except Exception as ex:
+                    logger.warning(f"Xác thực Google ID Token thất bại: {ex}")
+                    return jsonify({"success": False, "error": "Google ID Token không hợp lệ hoặc đã hết hạn."}), 401
+
+            valid_claims, claim_res = _validate_google_oidc_claims(token_info, expected_client_id=client_id)
+            if not valid_claims:
+                status_code = 403 if "audience" in str(claim_res) else 401
+                return jsonify({"success": False, "error": claim_res}), status_code
+
+            google_sub = claim_res["sub"]
+            email = claim_res["email"]
+            full_name = (token_info.get("name") or "").strip()
+            avatar_url = (token_info.get("picture") or "").strip()
+        elif client_id and not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
+            return jsonify({
+                "success": False,
+                "error": "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
+            }), 403
         else:
-            email = (data.get("email") or "").strip().lower()
+            # Chế độ Dev / Test Simulator khi chưa cấu hình GOOGLE_CLIENT_ID
+            raw_claims = {
+                "iss": data.get("iss", "https://accounts.google.com"),
+                "aud": data.get("aud", client_id),
+                "exp": data.get("exp", int(time.time()) + 3600),
+                "email_verified": data.get("email_verified", True),
+                "sub": (data.get("google_sub") or data.get("sub") or "").strip(),
+                "email": (data.get("email") or "").strip(),
+            }
+            if not raw_claims["sub"] and raw_claims["email"]:
+                import hashlib
+                # Tạo deterministic dev sub cho trình mô phỏng UI Local khi không truyền sub
+                raw_claims["sub"] = "dev_gsub_" + hashlib.sha256(raw_claims["email"].lower().encode("utf-8")).hexdigest()[:24]
+            else:
+                is_verified_token_flow = bool(data.get("google_sub") or data.get("sub"))
+
+            valid_claims, claim_res = _validate_google_oidc_claims(raw_claims, expected_client_id="")
+            if not valid_claims:
+                return jsonify({"success": False, "error": claim_res}), 400
+
+            google_sub = claim_res["sub"]
+            email = claim_res["email"]
             full_name = (data.get("name") or "").strip()
             avatar_url = (data.get("avatar_url") or data.get("picture") or "").strip()
-
-
-
-        if not email or "@" not in email:
-            return jsonify({"success": False, "error": "Email Google không hợp lệ hoặc không được cung cấp."}), 400
 
         if not full_name:
             full_name = email.split("@")[0].capitalize()
 
-        # Tìm hoặc tạo người dùng
-        user = User.query.filter_by(email=email).first()
+        # 1. Tìm người dùng theo Google Subject ID (google_sub) trước tiên
+        user = _find_user_by_google_sub(google_sub)
         if user:
-            # Đồng bộ lại Avatar và Họ tên từ Google nếu chưa có
+            if getattr(user, "account_status", "active") not in (None, "active"):
+                return jsonify({"success": False, "error": "Tài khoản này hiện đang bị khóa."}), 403
             if avatar_url and not user.avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
+            sync_user_identities(user, verified=True)
             db.session.commit()
         else:
-            user = User(
-                email=email,
-                full_name=full_name,
-                role="patient",
-                avatar_url=avatar_url or None
-            )
-            user.set_password(secrets.token_urlsafe(24))
-            db.session.add(user)
-            db.session.commit()
+            # 2. Kiểm tra xem email có trùng với tài khoản hiện có chưa liên kết Google hay không
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                if existing_user.google_sub and existing_user.google_sub != google_sub:
+                    return jsonify({
+                        "success": False,
+                        "error": "Email này đã được liên kết với một định danh Google khác."
+                    }), 409
 
-        # Khởi tạo Session
+                # Kiểm tra xác minh quyền sở hữu tài khoản trước khi cho phép liên kết Google
+                link_password = (data.get("link_password") or data.get("password") or "").strip()
+                is_same_session = (session.get("user_id") == existing_user.id)
+                is_password_verified = bool(link_password and existing_user.check_password(link_password))
+                is_otp_verified = otp_manager.is_verified(email, "email", consume=True)
+
+                if is_same_session or is_password_verified or is_otp_verified:
+                    existing_user.google_sub = google_sub
+                    if avatar_url and not existing_user.avatar_url:
+                        existing_user.avatar_url = avatar_url
+                    sync_user_identities(existing_user, verified=True)
+                    db.session.commit()
+                    user = existing_user
+                else:
+                    return jsonify({
+                        "success": False,
+                        "code": "ACCOUNT_LINK_VERIFICATION_REQUIRED",
+                        "requires_verification": True,
+                        "error": "Email này đã tồn tại trên hệ thống. Vui lòng xác minh mật khẩu hoặc mã OTP để liên kết với Google."
+                    }), 409
+            else:
+                # 3. Tạo tài khoản mới với google_sub và không lưu mật khẩu Google
+                try:
+                    user = User(
+                        email=email,
+                        google_sub=google_sub,
+                        full_name=full_name,
+                        role="patient",
+                        account_status="active",
+                        avatar_url=avatar_url or None
+                    )
+                    user.set_unusable_password()
+                    db.session.add(user)
+                    db.session.flush()
+                    sync_user_identities(user, verified=True)
+                    db.session.commit()
+                except IntegrityError:
+                    db.session.rollback()
+                    return jsonify({"success": False, "error": "Không thể tạo tài khoản Google do xung đột định danh."}), 409
+
         session["user_id"] = user.id
         session["user_role"] = user.role
 
         return jsonify({
             "success": True,
-            "message": f"Đăng nhập thành công với tài khoản Google ({user.email})!",
-            "user": user.to_dict()
+            "message": f"Đăng nhập thành công với tài khoản Google ({user.email or user.display_account})!",
+            "user": user.to_dict(),
+            "redirect_url": None
         })
 
 
@@ -1313,6 +1857,15 @@ def create_app(test_config=None):
         upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
         success, meta, err_msg = process_secure_upload(file, upload_folder)
         if not success:
+            record_security_event(
+                "MALICIOUS_FILE_UPLOAD_BLOCKED",
+                severity="CRITICAL",
+                client_ip=request.remote_addr or "127.0.0.1",
+                identifier=str(user_id),
+                endpoint="/api/upload-lab",
+                status_code=400,
+                details={"filename": getattr(file, "filename", ""), "reason": err_msg},
+            )
             return jsonify({"status": "error", "message": err_msg}), 400
 
         try:
@@ -1467,7 +2020,8 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
-            profile_allergies = db.session.get(User, user_id).to_dict().get("allergies") or ""
+            user_obj = db.session.get(User, user_id)
+            profile_allergies = (user_obj.to_dict().get("allergies") if user_obj else "") or ""
             user_allergies = [s.strip() for s in profile_allergies.split(",") if s.strip()] if isinstance(profile_allergies, str) else list(profile_allergies)
             req_allergies = request.form.get("allergies")
             if req_allergies:
@@ -1640,8 +2194,9 @@ def create_app(test_config=None):
         record = records.order_by(ClinicalConsultation.id.desc()).first()
         if record is None:
             return jsonify({"status": "no_data", "message": "Chưa có dữ liệu tư vấn đã xác nhận để hiển thị trong hồ sơ."})
+        user_obj = db.session.get(User, user_id)
         return jsonify({"status": "success", "summary": json.loads(record.confirmed_summary),
-                        "patient_name": db.session.get(User, user_id).full_name,
+                        "patient_name": user_obj.full_name if user_obj else "Bệnh nhân",
                         "patient_id": f"BN-2026-{user_id:04d}"})
 
     @app.route("/api/consultations", methods=["GET"])
@@ -1752,7 +2307,7 @@ def create_app(test_config=None):
 
         paths = {}
         for rule in app.url_map.iter_rules():
-            if not rule.rule.startswith("/api/"):
+            if not rule.rule.startswith("/api/") or rule.rule.startswith("/api/monitoring"):
                 continue
             path = re.sub(r"<(?:\w+:)?(\w+)>", r"{\1}", rule.rule)
             parameters = [
@@ -1813,136 +2368,46 @@ def create_app(test_config=None):
 
     @app.route("/")
     def index():
-        """Trang chủ ứng dụng y tế MediMind (Tự động chuyển hướng Admin sang buồng lái SRE)."""
-        if session.get("user_role") == "admin":
-            return redirect(url_for("monitoring_cockpit_view"))
+        """Trang chủ ứng dụng y tế MediMind."""
         return render_template("index.html")
 
     # ==============================================================
-    # HỆ THỐNG GIÁM SÁT TOÀN DIỆN (OBSERVABILITY & MONITORING SUITE)
+    # HYBRID SECURITY OBSERVABILITY & SIEM (PROMETHEUS + WAZUH)
     # ==============================================================
-
-    def admin_required(f):
-        """
-        Ổ khóa phân quyền tối cao (Admin & DevOps Guard):
-        Bảo vệ toàn bộ tài nguyên SRE Cockpit và API giám sát.
-        Cho phép truy cập nếu thỏa mãn ít nhất 1 trong các điều kiện:
-          1. Header X-Admin-Key hoặc Query param admin_key trùng khớp với ADMIN_MONITORING_KEY.
-          2. Session hiện tại có cờ 'is_monitoring_admin' = True.
-          3. Người dùng đã đăng nhập có vai trò 'admin' hoặc 'doctor'.
-          4. Gửi kèm Bearer JWT Token hợp lệ với vai trò 'admin' hoặc 'doctor'.
-        Nếu xác thực thành công qua key bí mật, tự động lưu cờ session để duy trì quyền cho các yêu cầu polling tiếp theo.
-        Nếu từ chối:
-          - Endpoint API: trả về HTTP 403 Forbidden dạng JSON.
-          - Giao diện HTML: chuyển hướng về trang chủ kèm thông báo yêu cầu quyền quản trị viên.
-        """
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            # 1. Khóa bí mật SRE qua Header hoặc Query Params
-            expected_key = os.getenv("ADMIN_MONITORING_KEY", "medimind-sre-secret-key-2026")
-            req_key = request.headers.get("X-Admin-Key") or request.args.get("admin_key")
-            if req_key and (req_key == expected_key or req_key == "Nitax"):
-                session["is_monitoring_admin"] = True
-                return f(*args, **kwargs)
-
-            # 2. Cờ phiên làm việc Admin đã được cấp quyền trước đó
-            if session.get("is_monitoring_admin"):
-                return f(*args, **kwargs)
-
-            # 3. Phiên đăng nhập người dùng (Flask Session)
-            user_id = session.get("user_id")
-            if user_id:
-                user = db.session.get(User, user_id)
-                if user and user.role in ("admin", "doctor"):
-                    return f(*args, **kwargs)
-
-            # 4. JWT Bearer Token
-            from core.jwt_auth import get_token_from_request, decode_token
-            token = get_token_from_request()
-            if token:
-                payload = decode_token(token, expected_type="access")
-                if payload and payload.get("role") in ("admin", "doctor"):
-                    return f(*args, **kwargs)
-
-            # Từ chối truy cập (403 Forbidden)
-            if request.path.startswith("/api/"):
-                return jsonify({
-                    "success": False,
-                    "error": "Truy cập bị từ chối: Yêu cầu quyền Quản trị viên (Admin) hoặc khóa bí mật SRE để truy cập tài nguyên này.",
-                    "code": "FORBIDDEN_ADMIN_REQUIRED"
-                }), 403
-
-            return redirect("/?auth=login&notice=admin_required")
-        return decorated_function
 
     @app.errorhandler(500)
     def internal_server_error_handler(e):
-        """Tự động tóm bắt ngoại lệ 500 và bắn còi báo động SRE qua Telegram."""
-        telegram_alerter.notify_server_error(e, request)
+        """Ghi nhận ngoại lệ 500 vào luồng Wazuh SIEM JSON Audit Log và Prometheus."""
+        record_security_event(
+            "UNHANDLED_SERVER_ERROR",
+            severity="CRITICAL",
+            client_ip=request.remote_addr or "127.0.0.1",
+            endpoint=request.path,
+            status_code=500,
+            details={"exception": type(e).__name__, "error": str(e)[:200]},
+        )
         return jsonify({
             "status": "error",
-            "error": "Đã xảy ra sự cố nội bộ. Đội ngũ kỹ sư SRE đã nhận được thông báo cứu nạn."
+            "error": "Đã xảy ra sự cố nội bộ máy chủ."
         }), 500
 
     @app.route("/metrics", methods=["GET"])
     def prometheus_metrics():
-        """Cổng Scraping chuẩn Prometheus TSDB (Google SRE 4 Golden Signals)."""
+        """Cổng Scraping chuẩn OpenMetrics cho Prometheus TSDB & Grafana."""
         client_ip = request.remote_addr or ""
-        expected_key = os.getenv("ADMIN_MONITORING_KEY", "medimind-sre-secret-key-2026")
-        req_key = request.headers.get("X-Admin-Key") or request.args.get("admin_key")
-        is_loopback = client_ip in ("127.0.0.1", "::1", "localhost", "testclient") or bool(app.config.get("TESTING"))
-        is_auth = (req_key == expected_key or req_key == "Nitax") or session.get("is_monitoring_admin")
-        if not is_loopback and not is_auth:
+        expected_key = os.getenv("PROMETHEUS_SCRAPE_KEY", os.getenv("ADMIN_MONITORING_KEY", ""))
+        req_key = request.headers.get("X-Metrics-Key") or request.headers.get("X-Admin-Key") or request.args.get("key")
+        is_internal = (
+            client_ip in ("127.0.0.1", "::1", "localhost", "testclient")
+            or client_ip.startswith(("10.", "172.", "192.168."))
+            or bool(app.config.get("TESTING"))
+        )
+        is_auth = bool(expected_key and req_key == expected_key)
+        if not is_internal and not is_auth:
             return jsonify({
-                "error": "Forbidden: Metrics endpoint is restricted to internal scrapers or authorized administrators."
+                "error": "Forbidden: Metrics endpoint is restricted to Prometheus scrapers."
             }), 403
         return get_prometheus_metrics_response()
-
-    @app.route("/api/monitoring/status", methods=["GET"])
-    @admin_required
-    def monitoring_api_status():
-        """API thời gian thực cung cấp dữ liệu hiệu năng cho SRE Cockpit Dashboard."""
-        snapshot = metrics_tracker.get_snapshot()
-        hw = get_system_hardware_stats()
-        try:
-            db_stats = {
-                "users_total": User.query.count(),
-                "consultations_total": ClinicalConsultation.query.count(),
-                "documents_total": MedicalDocument.query.count(),
-                "appointments_total": MedicalAppointment.query.count()
-            }
-        except Exception:
-            db_stats = {"users_total": 0, "consultations_total": 0, "documents_total": 0, "appointments_total": 0}
-
-        return jsonify({
-            "status": "healthy",
-            "service": "MediMind Clinical AI Engine",
-            "timestamp": time.time(),
-            "metrics": snapshot,
-            "hardware": hw,
-            "database": db_stats
-        })
-
-    @app.route("/api/monitoring/alert/test", methods=["POST"])
-    @admin_required
-    def monitoring_test_alert():
-        """Kích hoạt thử nghiệm còi báo động SRE Telegram Alert."""
-        sent = telegram_alerter.send_alert(
-            title="Kiểm tra hệ thống báo động SRE",
-            message="Đây là cảnh báo thử nghiệm được kích hoạt thủ công từ SRE Cockpit Dashboard.",
-            level="WARNING",
-            extra={"TriggeredBy": "SRE_Admin", "Endpoint": "/monitoring"}
-        )
-        return jsonify({
-            "success": sent,
-            "message": "Đã kích hoạt còi báo động SRE Telegram Alert thành công!"
-        })
-
-    @app.route("/monitoring", methods=["GET"])
-    @admin_required
-    def monitoring_cockpit_view():
-        """Bảng điều khiển trực quan hóa SRE Cockpit Dashboard (Liquid Glass Theme)."""
-        return render_template("monitoring.html")
 
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)
     return app

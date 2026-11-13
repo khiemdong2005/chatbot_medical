@@ -49,4 +49,5 @@ scratch/
 .sharing.json
 
 instance/
+logs/
 

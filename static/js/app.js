@@ -184,7 +184,13 @@ const fieldRealValues = {};
 function sanitizeUserEmail(email) {
   if (!email || typeof email !== 'string') return '';
   const trimmed = email.trim();
-  if (!trimmed.includes('@') || trimmed.endsWith('@phone.medimind') || /^\+?[0-9]{9,15}$/.test(trimmed)) {
+  const lowered = trimmed.toLowerCase();
+  if (
+    !trimmed.includes('@') ||
+    lowered.endsWith('@phone.medimind') ||
+    lowered.endsWith('@phone.medimind.vn') ||
+    /^\+?[0-9]{9,15}$/.test(trimmed)
+  ) {
     return '';
   }
   return trimmed;
@@ -3066,6 +3072,34 @@ async function handleOtpSubmit(e) {
   }
 
   try {
+    if (pendingOtpFlow.purpose === 'reset_pwd') {
+      const newPassword = (pendingOtpFlow.userData?.new_password || '').trim();
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: pendingOtpFlow.identifier,
+          code,
+          new_password: newPassword
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toggleAuthMode('login');
+        const loginInput = document.getElementById('login-identifier');
+        if (loginInput) loginInput.value = pendingOtpFlow.identifier;
+        if (typeof showMedicalToast === 'function') {
+          showMedicalToast(data.message || 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.', 'success');
+        } else {
+          alert(data.message || 'Đặt lại mật khẩu thành công!');
+        }
+      } else {
+        alert(data.error || 'Mã xác thực không hợp lệ hoặc đã hết hạn.');
+        clearOtpInputs();
+      }
+      return;
+    }
+
     const res = await fetch('/api/auth/otp/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3141,6 +3175,32 @@ async function startOtpLoginFlow() {
   };
 
   await requestAndShowOtp(identifier, channel, 'login_2fa');
+}
+
+async function startForgotPasswordFlow() {
+  let identifier = (document.getElementById('login-identifier')?.value || '').trim();
+  if (!identifier) {
+    identifier = prompt('Nhập Email hoặc Số điện thoại của tài khoản cần khôi phục mật khẩu:');
+    if (!identifier) return;
+    identifier = identifier.trim();
+  }
+  const newPassword = prompt('Nhập mật khẩu mới (tối thiểu 6 ký tự) sẽ áp dụng sau khi xác thực OTP:');
+  if (!newPassword) return;
+  if (newPassword.trim().length < 6) {
+    alert('Mật khẩu mới phải có tối thiểu 6 ký tự.');
+    return;
+  }
+
+  const channel = identifier.includes('@') ? 'email' : 'sms';
+  pendingOtpFlow = {
+    identifier,
+    channel,
+    purpose: 'reset_pwd',
+    userData: { new_password: newPassword.trim() },
+    previousMode: 'login'
+  };
+
+  await requestAndShowOtp(identifier, channel, 'reset_pwd');
 }
 
 
@@ -3435,12 +3495,12 @@ async function handleLoginSubmit(e) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, email: identifier, password })
+      body: JSON.stringify({ identifier, password })
     });
     const data = await res.json();
     if (data.success && data.user) {
-      if (data.user.role === 'admin' || data.redirect_url) {
-        window.location.href = data.redirect_url || '/monitoring';
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
         return;
       }
       currentUser = data.user;
@@ -4091,10 +4151,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAuthUI();
       }
     } else if (data.user) {
-      if (data.user.role === 'admin') {
-        window.location.href = '/monitoring';
-        return;
-      }
       const previousUserId = currentUser?.id;
       currentUser = { ...(currentUser || {}), ...data.user };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
@@ -7966,21 +8022,22 @@ async function handleSaveImage1Profile(e) {
 
     const data = await res.json();
     if (res.ok && data.success) {
+      const srvUser = data.user || {};
       currentUser = {
         ...currentUser,
-        ...(data.user || {}),
         name: name || currentUser.name,
         full_name: name || currentUser.full_name,
         dob: birthDate,
         gender: gender,
-        phone: phone,
-        phone_number: phone,
-        email: email,
+        phone: srvUser.phone_number || phone,
+        phone_number: srvUser.phone_number || phone,
+        email: srvUser.email !== undefined ? srvUser.email : email,
         address: address,
         blood_type: blood,
         allergies: allergies,
         height: height,
-        weight: weight
+        weight: weight,
+        ...srvUser
       };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 
@@ -8012,136 +8069,20 @@ async function handleSaveImage1Profile(e) {
   }
 }
 // ==============================================================
-// FLOATING CHATBOX WIDGET HANDLERS (Image 2)
+// FLOATING CHATBOX WIDGET HANDLERS & ALIASES
 // ==============================================================
-let isFloatingChatOpen = false;
-
-function toggleFloatingChat(forceState) {
-  const win = document.getElementById('floating-chat-window');
-  if (!win) return;
-  
-  if (typeof forceState === 'boolean') {
-    isFloatingChatOpen = forceState;
-  } else {
-    isFloatingChatOpen = !isFloatingChatOpen;
-  }
-
-  if (isFloatingChatOpen) {
-    win.classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('floating-user-input')?.focus();
-    }, 100);
-  } else {
-    win.classList.add('hidden');
-  }
-}
-
-function expandFloatingChatToFull() {
-  toggleFloatingChat(false);
-  switchTab('chat-tab');
-}
-
-function sendQuickFloatingPrompt(text) {
-  const input = document.getElementById('floating-user-input');
-  if (input) {
-    input.value = text;
-    sendFloatingChatMessage();
-  }
-}
-
-async function sendFloatingChatMessage() {
-  const input = document.getElementById('floating-user-input');
-  const msgContainer = document.getElementById('floating-chat-messages');
-  if (!input || !msgContainer) return;
-
-  const text = input.value.trim();
-  if (!text) return;
-
-  // Render user bubble
-  const userBubble = document.createElement('div');
-  userBubble.className = 'flex justify-end';
-  userBubble.innerHTML = `
-    <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl rounded-tr-xs bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md text-xs leading-relaxed font-medium">
-      ${escapeHtml(text)}
-    </div>
-  `;
-  msgContainer.appendChild(userBubble);
-  input.value = '';
-  msgContainer.scrollTop = msgContainer.scrollHeight;
-
-  // Add typing indicator
-  const typingId = 'floating-typing-' + Date.now();
-  const typingIndicator = document.createElement('div');
-  typingIndicator.className = 'flex justify-start';
-  typingIndicator.id = typingId;
-  typingIndicator.innerHTML = `
-    <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs glass-card border border-white/10 text-xs text-sky-400 flex items-center space-x-1.5">
-      <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
-      <span class="text-[11px] font-medium text-slate-300">MediMind đang đối chiếu dữ liệu...</span>
-    </div>
-  `;
-  msgContainer.appendChild(typingIndicator);
-  msgContainer.scrollTop = msgContainer.scrollHeight;
-
-  try {
-    currentConversationId ||= crypto.randomUUID();
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        conversation_id: currentConversationId,
-        history: chatHistory,
-        message: text,
-        lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
-        user_name: currentUser ? (currentUser.first_name || currentUser.name || 'Bệnh nhân') : 'Bệnh nhân'
-      })
-    });
-    const data = await res.json();
-    document.getElementById(typingId)?.remove();
-
-    if (res.ok && data.answer) {
-      chatHistory.push({role: 'user', content: text}, {role: 'assistant', content: data.answer});
-      saveOrUpdateCurrentSession(text, data, data.intake);
-      if (data.intake) updateLiveIntakeCard(data.intake.facts, data.intake.status, data.intake.summary);
-    }
-    const rawReply = data.answer || data.reply || data.response || data.error || 'Hệ thống đã ghi nhận thông tin của bạn.';
-    const safeReply = escapeHtml(String(rawReply))
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
-
-    const botBubble = document.createElement('div');
-    botBubble.className = 'flex justify-start';
-    botBubble.innerHTML = `
-      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs border floating-welcome-bubble text-xs leading-relaxed shadow-xs">
-        ${safeReply}
-      </div>
-    `;
-    msgContainer.appendChild(botBubble);
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-  } catch (err) {
-    document.getElementById(typingId)?.remove();
-    const errBubble = document.createElement('div');
-    errBubble.className = 'flex justify-start';
-    errBubble.innerHTML = `
-      <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs">
-        Không thể kết nối đến máy chủ lâm sàng. Vui lòng thử lại.
-      </div>
-    `;
-    msgContainer.appendChild(errBubble);
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-  }
-}
-
-// Floating Chatbox Compatibility Aliases
 function toggleFloatingChat(forceState) {
   if (typeof forceState === 'boolean') {
     const win = document.getElementById('floating-chat-window');
+    const bubble = document.getElementById('floating-chat-bubble');
     if (win) {
       if (forceState) {
-        win.classList.remove('hidden');
         if (typeof syncFloatingChatMessages === 'function') syncFloatingChatMessages();
+        win.classList.remove('hidden');
+        if (bubble) bubble.classList.add('hidden');
       } else {
         win.classList.add('hidden');
+        if (bubble) bubble.classList.remove('hidden');
       }
     }
   } else {
