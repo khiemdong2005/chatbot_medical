@@ -2289,16 +2289,33 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập hoặc tạo tài khoản để đặt lịch khám."}), 401
 
-        data = request.get_json(silent=True) or {}
-        facility_id = (data.get("facility_id") or "fac_unknown").strip()
-        facility_name = (data.get("facility_name") or "Cơ sở Y tế").strip()
-        facility_address = (data.get("facility_address") or "").strip()
-        specialty = (data.get("specialty") or "Đa khoa").strip()
-        appointment_date = (data.get("appointment_date") or "").strip()
-        appointment_time = (data.get("appointment_time") or "").strip()
-        patient_name = (data.get("patient_name") or "").strip()
-        patient_phone = (data.get("patient_phone") or "").strip()
-        note = (data.get("note") or "").strip()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Dữ liệu đặt lịch không hợp lệ."}), 400
+
+        def _s(key: str, default: str = "", max_len: int = 255) -> str:
+            val = data.get(key)
+            if val is None:
+                return default
+            if not isinstance(val, str):
+                raise ValueError(f"Trường '{key}' phải là chuỗi ký tự.")
+            cleaned = val.strip()
+            if len(cleaned) > max_len:
+                raise ValueError(f"Trường '{key}' vượt quá độ dài cho phép ({max_len} ký tự).")
+            return cleaned or default
+
+        try:
+            facility_id = _s("facility_id", "fac_unknown", 100)
+            facility_name = _s("facility_name", "Cơ sở Y tế", 255)
+            facility_address = _s("facility_address", "", 500)
+            specialty = _s("specialty", "Đa khoa", 150)
+            appointment_date = _s("appointment_date", "", 30)
+            appointment_time = _s("appointment_time", "", 50)
+            patient_name = _s("patient_name", "", 150)
+            patient_phone = _s("patient_phone", "", 30)
+            note = _s("note", "", 1000)
+        except ValueError as ve:
+            return jsonify({"success": False, "error": str(ve)}), 400
 
         if not appointment_date or not appointment_time or not patient_name or not patient_phone:
             return jsonify({"success": False, "error": "Vui lòng điền đầy đủ ngày khám, giờ khám, họ tên và số điện thoại."}), 400

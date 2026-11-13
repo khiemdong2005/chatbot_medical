@@ -63,13 +63,18 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Cấu hình CORS
+# Cấu hình CORS an toàn (chống lộ Cookie phiên qua Wildcard Origin)
+_allowed_origins = [
+    o.strip()
+    for o in os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:8000,http://localhost:8000").split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
 )
 
 # Mount thư mục Static Files & Templates
@@ -126,7 +131,14 @@ class ChatMessageRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse, summary="Giao diện Web Trợ lý Sức khỏe MediMind")
 async def get_index(request: Request):
     """Phục vụ toàn bộ giao diện Web."""
-    return templates.TemplateResponse(request, "index.html", context={"request": request})
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        context={
+            "request": request,
+            "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY", "").strip(),
+        },
+    )
 
 
 # ==============================================================================

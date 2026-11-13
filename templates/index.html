@@ -3687,6 +3687,8 @@ function renderLeafletMarkers(markers) {
       fillOpacity: 0.9
     });
 
+    const safeMarkerId = escapeHtml(String(m.id ?? '').replace(/[^a-zA-Z0-9_-]/g, ''));
+    const safeMarkerLink = (typeof m.link === 'string' && /^https?:\/\//i.test(m.link.trim())) ? escapeHtml(m.link.trim()) : '';
     const popupHtml = `
       <div style="font-family: inherit; font-size: 12px; line-height: 1.4; min-width: 200px;">
         <span style="font-size: 10px; font-weight: bold; color: ${m.type === 'Bệnh viện' ? '#ef4444' : '#06b6d4'}; text-transform: uppercase;">${escapeHtml(m.type || 'Cơ sở y tế')}</span>
@@ -3694,8 +3696,8 @@ function renderLeafletMarkers(markers) {
         <p style="margin: 0 0 6px 0; color: #64748b; font-size: 11px;">📍 ${escapeHtml(m.address)}</p>
         ${m.spec ? `<p style="margin: 0 0 6px 0; color: #0284c7; font-size: 11px;">🩺 ${escapeHtml(m.spec)}</p>` : ''}
         <div style="display: flex; gap: 6px; margin-top: 6px;">
-          <button onclick="openFacilityDrawer('${m.id}')" style="background: #0ea5e9; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Xem chi tiết</button>
-          ${m.link ? `<a href="${m.link}" target="_blank" style="background: #e2e8f0; color: #334155; text-decoration: none; padding: 4px 8px; border-radius: 6px; font-size: 11px;">Doctogo</a>` : ''}
+          <button onclick="openFacilityDrawer('${safeMarkerId}')" style="background: #0ea5e9; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">Xem chi tiết</button>
+          ${safeMarkerLink ? `<a href="${safeMarkerLink}" target="_blank" rel="noopener noreferrer" style="background: #e2e8f0; color: #334155; text-decoration: none; padding: 4px 8px; border-radius: 6px; font-size: 11px;">Doctogo</a>` : ''}
         </div>
       </div>
     `;
@@ -3794,14 +3796,18 @@ function renderFacilityCards(facilities) {
 
     const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + address)}`;
 
+    const safeCardId = escapeHtml(String(id ?? '').replace(/[^a-zA-Z0-9_-]/g, ''));
+    const safeLat = Number.isFinite(Number(lat)) ? Number(lat) : 'null';
+    const safeLng = Number.isFinite(Number(lng)) ? Number(lng) : 'null';
+
     html += `
       <div class="hospital-card rounded-2xl bg-[#0f172a]/95 border border-slate-800/90 hover:border-cyan-500/60 p-4 transition-all duration-200 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col justify-between group cursor-pointer" 
-           id="facility-card-${id}" 
-           data-facility-id="${id}" 
+           id="facility-card-${safeCardId}" 
+           data-facility-id="${safeCardId}" 
            data-facility-type="${escapeHtml(type)}"
-           data-lat="${lat || ''}" 
-           data-lng="${lng || ''}" 
-           onclick="focusFacilityOnMap('${id}', ${lat}, ${lng}, '${escapeHtml(name)}')">
+           data-lat="${safeLat !== 'null' ? safeLat : ''}" 
+           data-lng="${safeLng !== 'null' ? safeLng : ''}" 
+           onclick="focusFacilityOnMap('${safeCardId}', ${safeLat}, ${safeLng})">
         <div>
           <div class="flex items-start gap-3.5 mb-2.5">
             <div class="facility-icon-tile w-11 h-11 rounded-xl ${isHospital ? 'bg-rose-950/60 border-rose-500/40 text-rose-400' : 'bg-cyan-950/60 border-cyan-500/40 text-cyan-400'} border flex items-center justify-center shrink-0 shadow-md">
@@ -3828,11 +3834,11 @@ function renderFacilityCards(facilities) {
           </div>
         </div>
         <div class="pt-2.5 border-t border-slate-800/80 flex items-center gap-2">
-          <button type="button" class="facility-primary-action flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs text-center transition shadow-sm flex items-center justify-center gap-1" onclick="event.stopPropagation(); openFacilityDrawer('${id}');">
+          <button type="button" class="facility-primary-action flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs text-center transition shadow-sm flex items-center justify-center gap-1" onclick="event.stopPropagation(); openFacilityDrawer('${safeCardId}');">
             <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             Xem chi tiết
           </button>
-          <button class="facility-secondary-action py-1.5 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800/60 text-cyan-300 text-xs font-medium transition flex items-center gap-1" onclick="event.stopPropagation(); focusFacilityOnMap('${id}', ${lat}, ${lng}, '${escapeHtml(name)}');">
+          <button class="facility-secondary-action py-1.5 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-800/60 text-cyan-300 text-xs font-medium transition flex items-center gap-1" onclick="event.stopPropagation(); focusFacilityOnMap('${safeCardId}', ${safeLat}, ${safeLng});">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             Vị trí
           </button>
@@ -4285,8 +4291,10 @@ function focusDrawerFacilityOnMap() {
 
 function openBookingNotice() {
   if (!currentDrawerFacility) return;
-  const name = currentDrawerFacility.ten_ngan || currentDrawerFacility.ten;
-  alert(`Tính năng Đặt lịch khám trực tuyến tại [${name}] đang được tích hợp vào hệ thống MediMind. Bạn vui lòng sử dụng tính năng tư vấn trực tiếp với AI Bác sĩ hoặc liên hệ hotline để được phục vụ tốt nhất!`);
+  closeHospitalDetails();
+  if (typeof openFacilityBookingModal === 'function') {
+    openFacilityBookingModal(currentDrawerFacility.id, currentDrawerFacility);
+  }
 }
 </script>
 

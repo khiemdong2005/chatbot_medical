@@ -7155,11 +7155,36 @@ function getFacilityBadgeColor(badgeType) {
   return 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/40 font-semibold';
 }
 
-function openFacilityBookingModal(facId) {
+function resolveFacilityRecord(facId, facObj = null) {
+  if (facObj && (facObj.name || facObj.ten_ngan || facObj.ten)) {
+    return {
+      id: String(facObj.id ?? facId ?? 'fac_unknown'),
+      name: facObj.name || facObj.ten_ngan || facObj.ten,
+      address: facObj.address || facObj.dia_chi_hien_thi_tren_web || facObj.dia_chi || ''
+    };
+  }
+  const sid = String(facId ?? '');
+  const dynList = window.currentFacilityState?.facilities || [];
+  const dyn = dynList.find(f => String(f.id) === sid);
+  if (dyn) {
+    return {
+      id: String(dyn.id),
+      name: dyn.ten_ngan || dyn.ten,
+      address: dyn.dia_chi_hien_thi_tren_web || dyn.dia_chi || ''
+    };
+  }
+  const marker = (window.mapMarkersData || []).find(m => String(m.id) === sid);
+  if (marker) {
+    return { id: String(marker.id), name: marker.name, address: marker.address || '' };
+  }
+  return medicalFacilitiesData.find(f => String(f.id) === sid) || medicalFacilitiesData[0];
+}
+
+function openFacilityBookingModal(facId, facObj = null) {
+  const fac = resolveFacilityRecord(facId, facObj);
   if (!currentUser) {
-    pendingBookingFacilityId = facId;
+    pendingBookingFacilityId = fac ? fac.id : facId;
     const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-    const fac = medicalFacilitiesData.find(f => f.id === facId);
     const facName = fac ? fac.name : (isEn ? 'healthcare facility' : 'cơ sở y tế');
     const bannerTitle = isEn ? 'ACCOUNT AUTHENTICATION REQUIRED' : 'YÊU CẦU XÁC THỰC TÀI KHOẢN';
     const bannerText = isEn 
@@ -7170,7 +7195,6 @@ function openFacilityBookingModal(facId) {
     return;
   }
 
-  const fac = medicalFacilitiesData.find(f => f.id === facId) || medicalFacilitiesData[0];
   if (!fac) return;
 
   const modal = document.getElementById('facility-booking-modal');
@@ -7210,7 +7234,9 @@ async function handleFacilityBookingSubmit(e) {
   }
 
   const facId = document.getElementById('book-modal-facility-id')?.value;
-  const fac = medicalFacilitiesData.find(f => f.id === facId);
+  const fac = resolveFacilityRecord(facId);
+  const modalFacName = document.getElementById('book-modal-facility-name')?.innerText?.trim();
+  const modalFacAddr = document.getElementById('book-modal-facility-address')?.innerText?.trim();
   const spec = document.getElementById('book-modal-spec')?.value;
   const date = document.getElementById('book-modal-date')?.value;
   const time = document.getElementById('book-modal-time')?.value;
@@ -7223,9 +7249,9 @@ async function handleFacilityBookingSubmit(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        facility_id: facId || 'fac_unknown',
-        facility_name: fac ? fac.name : (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế'),
-        facility_address: fac ? fac.address : '',
+        facility_id: String(facId || 'fac_unknown'),
+        facility_name: modalFacName || (fac ? fac.name : (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế')),
+        facility_address: modalFacAddr || (fac ? fac.address : ''),
         specialty: spec || (isEn ? 'General Practice' : 'Đa khoa'),
         appointment_date: date,
         appointment_time: time,
@@ -7234,15 +7260,18 @@ async function handleFacilityBookingSubmit(e) {
         note: note || ''
       })
     });
-    
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.success === false) {
+      showMedicalToast(data.error || (isEn ? 'Unable to book appointment. Please check your information.' : 'Không thể đặt lịch khám. Vui lòng kiểm tra lại thông tin.'), 'error');
+      return;
+    }
+
     closeFacilityBookingModal();
-    const successMsg = isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!';
+    const successMsg = data.message || (isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!');
     showMedicalToast(successMsg, 'success', 4000);
   } catch (err) {
     console.error('Lỗi khi lưu lịch hẹn:', err);
-    closeFacilityBookingModal();
-    const fallbackMsg = isEn ? 'Saved appointment reminder locally!' : 'Đã lưu lịch nhắc đi khám trên thiết bị thành công!';
-    showMedicalToast(fallbackMsg, 'success', 4000);
+    showMedicalToast(isEn ? 'Unable to connect to booking server.' : 'Không thể kết nối máy chủ đặt lịch. Vui lòng thử lại.', 'error');
   }
 }
 
