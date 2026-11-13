@@ -140,7 +140,7 @@ def _apply_auth_identity_normalization(conn):
         ("updated_at", "DATETIME"),
     ]
     for col_name, col_type in optional_cols:
-        if col_name not in existing_col_names:
+        if col_name not in existing_col_names and col_name.isidentifier():
             conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
             existing_col_names.add(col_name)
 

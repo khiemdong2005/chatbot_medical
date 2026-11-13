@@ -4995,7 +4995,7 @@ function renderPrescriptionResult(data) {
             <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
               <div class="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div>
-                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${escapeHtml(data.doc_title || 'Phiếu Xét Nghiệm Y Khoa')}</h3>
                   <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
                 </div>
                 <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
@@ -5016,16 +5016,16 @@ function renderPrescriptionResult(data) {
                     ${(data.metrics || []).map(m => `
                       <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
                         <td class="py-3 px-3">
-                          <div class="font-bold text-slate-900 dark:text-white">${m.standard_name || m.name || m.test_name}</div>
-                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                          <div class="font-bold text-slate-900 dark:text-white">${escapeHtml(m.standard_name || m.name || m.test_name || '')}</div>
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${escapeHtml(m.loinc_code)}</span>` : ''}
                         </td>
                         <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
-                          ${m.result || m.value} <span class="text-[11px] font-normal text-slate-400">${m.unit || ''}</span>
+                          ${escapeHtml(m.result || m.value || '')} <span class="text-[11px] font-normal text-slate-400">${escapeHtml(m.unit || '')}</span>
                         </td>
-                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${m.reference_range || m.reference || '---'}</td>
+                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${escapeHtml(m.reference_range || m.reference || '---')}</td>
                         <td class="py-3 px-3">
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
-                            ${m.computed_flag || m.status || 'Bình thường'}
+                            ${escapeHtml(m.computed_flag || m.status || 'Bình thường')}
                           </span>
                         </td>
                         <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
@@ -5055,7 +5055,7 @@ function renderPrescriptionResult(data) {
                 <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">Active</span>
               </div>
               <div class="text-xs text-slate-700 dark:text-slate-200 space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
-                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
+                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${escapeHtml(data.interpretation).replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
               </div>
             </div>
           </div>
@@ -5302,11 +5302,12 @@ function renderPrescriptionResult(data) {
           <div class="space-y-3">
             ${meds.map((m, idx) => {
               const numStr = (idx + 1).toString().padStart(2, '0');
-              const freq = m.frequency || '3 lần / ngày';
-              const usage = m.usage || m.purpose || 'Uống đúng chỉ dẫn sau bữa ăn';
-              const dose = m.dose || '1 viên';
-              const days = m.days || '60 viên (Đủ 30 ngày)';
-              const strength = m.strength ? `(${m.strength})` : '';
+              const freq = escapeHtml(m.frequency || '3 lần / ngày');
+              const usage = escapeHtml(m.usage || m.purpose || 'Uống đúng chỉ dẫn sau bữa ăn');
+              const dose = escapeHtml(m.dose || '1 viên');
+              const days = escapeHtml(m.days || '60 viên (Đủ 30 ngày)');
+              const strength = m.strength ? `(${escapeHtml(m.strength)})` : '';
+              const medName = escapeHtml(m.standard_name || m.name || '');
 
               return `
                 <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
@@ -5317,14 +5318,14 @@ function renderPrescriptionResult(data) {
                       </div>
                       <div>
                         <div class="flex flex-wrap items-center gap-2">
-                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${m.standard_name || m.name} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
+                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${medName} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
                           <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                            ${m.purpose || m.category || 'Thuốc đặc trị'}
+                            ${escapeHtml(m.purpose || m.category || 'Thuốc đặc trị')}
                           </span>
                         </div>
                         
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength || 'Theo liều'}</strong> / viên</span>
+                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${escapeHtml(m.strength || 'Theo liều')}</strong> / viên</span>
                           <span>•</span>
                           <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
                         </div>
@@ -5342,7 +5343,7 @@ function renderPrescriptionResult(data) {
                       <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
                       <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                    <button data-med-name="${escapeHtml(m.name || '')}" onclick="askBotAboutSpecificMedicine(this.dataset.medName)" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
                       <span>Tư vấn thuốc</span>
                       <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
@@ -5383,11 +5384,11 @@ function renderPrescriptionResult(data) {
                   ${s.items.map(it => `
                     <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
                       <div>
-                        <strong class="font-bold text-slate-900 dark:text-white">${it.name}</strong>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
+                        <strong class="font-bold text-slate-900 dark:text-white">${escapeHtml(it.name || '')}</strong>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${escapeHtml(it.note || 'Uống sau ăn 30 phút')}</p>
                       </div>
                       <span class="font-mono font-bold text-sky-950 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 border border-sky-200">
-                        ${it.dose || '1 viên'}
+                        ${escapeHtml(it.dose || '1 viên')}
                       </span>
                     </div>
                   `).join('')}
@@ -5469,11 +5470,11 @@ function renderSlotPillChecklist(slot) {
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 border-amber-400/50 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-amber-300 font-bold">${m.tag || 'Trước ăn'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${escapeHtml(m.name || '')}</span>
+                  <span class="text-[10px] text-amber-300 font-bold">${escapeHtml(m.tag || 'Trước ăn')}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-amber-200 bg-amber-500/30 border border-amber-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-amber-200 bg-amber-500/30 border border-amber-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${escapeHtml(m.dosage || '')}</span>
             </div>
           `).join('')}
         </div>
@@ -5492,11 +5493,11 @@ function renderSlotPillChecklist(slot) {
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-sky-500 focus:ring-sky-400 border-white/20 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-slate-400 font-bold">${m.tag || 'Sau ăn'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${escapeHtml(m.name || '')}</span>
+                  <span class="text-[10px] text-slate-400 font-bold">${escapeHtml(m.tag || 'Sau ăn')}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-sky-200 bg-sky-500/30 border border-sky-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-sky-200 bg-sky-500/30 border border-sky-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${escapeHtml(m.dosage || '')}</span>
             </div>
           `).join('')}
         </div>
@@ -5515,11 +5516,11 @@ function renderSlotPillChecklist(slot) {
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-purple-500 focus:ring-purple-400 border-purple-400/50 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-purple-300 font-bold">${m.note || 'Xoa lưng đau'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${escapeHtml(m.name || '')}</span>
+                  <span class="text-[10px] text-purple-300 font-bold">${escapeHtml(m.note || 'Xoa lưng đau')}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-purple-200 bg-purple-500/30 border border-purple-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-purple-200 bg-purple-500/30 border border-purple-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${escapeHtml(m.dosage || '')}</span>
             </div>
           `).join('')}
         </div>
@@ -6154,9 +6155,10 @@ function renderChatHistoryList(filterQuery = '') {
   historyList.innerHTML = filtered.map(session => {
     const isActive = session.id === currentConversationId;
     const timeFormatted = formatSessionTime(session.timestamp);
+    const safeSessionId = escapeHtml(session.id || '');
 
     return `
-      <div onclick="loadSession('${session.id}')" 
+      <div data-session="${safeSessionId}" onclick="loadSession(this.dataset.session)" 
            class="chat-history-item p-2.5 rounded-xl border transition-all cursor-pointer group relative ${isActive ? 'bg-sky-500/20 border-sky-400/60 shadow-md shadow-sky-500/15 ring-1 ring-sky-400/40' : 'bg-white/80 dark:bg-white/[0.03] border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20'}">
         <div class="flex items-center justify-between gap-1.5">
           <div class="flex items-center gap-1.5 min-w-0">
@@ -6165,7 +6167,7 @@ function renderChatHistoryList(filterQuery = '') {
           </div>
           <div class="flex items-center gap-1 shrink-0">
             <span class="text-[10px] text-slate-500 dark:text-white/40 font-mono">${timeFormatted}</span>
-            <button type="button" onclick="event.stopPropagation(); deleteSession('${session.id}')" class="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-500 transition-opacity" title="Xóa phiên tư vấn">
+            <button type="button" data-session="${safeSessionId}" onclick="event.stopPropagation(); deleteSession(this.dataset.session)" class="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-500 transition-opacity" title="Xóa phiên tư vấn">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
           </div>
@@ -6199,10 +6201,10 @@ function loadSession(sessionId) {
       chatHistory.push(msg);
       if (msg.role === 'user') {
         let userImgHtml = '';
-        if (msg.image) {
+        if (typeof msg.image === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,[a-z0-9+/=]+$/i.test(msg.image)) {
           userImgHtml = `
-            <div class="mb-2 overflow-hidden rounded-xl border border-white/20 shadow-xs cursor-pointer max-w-[220px]" onclick="openImageModal('${msg.image}', 'Ảnh tổn thương bạn đã gửi', 'Ảnh người bệnh cung cấp')">
-              <img src="${msg.image}" alt="Ảnh tải lên" class="w-full h-auto max-h-[160px] object-cover hover:scale-105 transition-transform duration-200">
+            <div class="mb-2 overflow-hidden rounded-xl border border-white/20 shadow-xs cursor-pointer max-w-[220px]" onclick="openImageModal(this.querySelector('img').src, 'Ảnh tổn thương bạn đã gửi', 'Ảnh người bệnh cung cấp')">
+              <img src="${escapeHtml(msg.image)}" alt="Ảnh tải lên" class="w-full h-auto max-h-[160px] object-cover hover:scale-105 transition-transform duration-200">
             </div>
           `;
         }
@@ -7846,7 +7848,7 @@ async function loadAndRenderAiConsultations() {
     container.innerHTML = list.map((item) => {
       const isEmg = item.is_emergency;
       const statusClass = isEmg ? 'bg-rose-500/15 text-rose-500 border-rose-500/30' : 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30';
-      const statusText = isEmg ? 'Cảnh báo cấp cứu' : (item.risk_level || 'Tư vấn ban đầu');
+      const statusText = escapeHtml(isEmg ? 'Cảnh báo cấp cứu' : (item.risk_level || 'Tư vấn ban đầu'));
       return `
         <div data-session="${escapeHtml(item.conversation_id || '')}" onclick="openConsultationSummaryDetail(this.dataset.session)" class="relative group cursor-pointer">
           <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full ${isEmg ? 'bg-rose-500' : 'bg-sky-500'} border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>

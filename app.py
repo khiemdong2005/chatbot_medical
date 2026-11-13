@@ -20,6 +20,7 @@ import time
 import json
 import logging
 import uuid
+import urllib.parse
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
@@ -206,11 +207,15 @@ def create_app(test_config=None):
     def validate_csrf_and_origin():
         """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE)."""
         if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-            origin = request.headers.get("Origin")
-            if origin:
-                origin_clean = origin.split("://")[-1].rstrip("/").split(":")[0]
-                host_clean = request.host.split(":")[0]
-                if origin_clean != host_clean and origin_clean != "localhost" and origin_clean != "127.0.0.1":
+            # ponytail: Origin + Referer hostname check covers browser CSRF; add per-session CSRF token if cross-subdomain forms are added
+            source = request.headers.get("Origin") or request.headers.get("Referer")
+            if source:
+                parsed = urllib.parse.urlparse(source)
+                origin_host = (parsed.hostname or "").lower()
+                req_host = (request.host.split(":")[0] or "").lower()
+                loopbacks = {"localhost", "127.0.0.1"}
+                same_loopback = origin_host in loopbacks and req_host in loopbacks
+                if not origin_host or (origin_host != req_host and not same_loopback):
                     return jsonify({
                         "error": "Yêu cầu bị từ chối do vi phạm chính sách cùng nguồn gốc (Origin Policy Mismatch)."
                     }), 403
