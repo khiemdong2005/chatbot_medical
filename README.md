@@ -1,149 +1,124 @@
-# 🩺 MediMind AI — Clinical Assistant & Symptom Triage Platform
-> **Nền tảng Trợ lý AI Y tế Lâm sàng & Sàng lọc Triệu chứng End-to-End**  
-> Kết hợp giữa **Clinical Triage Protocol**, **Medical Safety Guardrails**.
+# MediMind
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Framework](https://img.shields.io/badge/Framework-Flask%203.1.0-emerald.svg)](https://flask.palletsprojects.com/)
-[![Medical Protocol](https://img.shields.io/badge/Protocol-Clinical%20Triage%20Guidelines-red.svg)](#-nguyên-tắc-an-toàn-y-tế)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
+Ứng dụng web hỗ trợ tra cứu thông tin sức khỏe, tiếp nhận mô tả triệu chứng, đọc tài liệu y tế và tìm cơ sở khám chữa bệnh. Backend chính dùng Flask; giao diện dùng Jinja2, JavaScript và CSS. Các tính năng AI tích hợp Google Gemini, kết hợp dữ liệu tham khảo qua ChromaDB.
 
----
+Đây là dự án hỗ trợ tham khảo, không thay thế thăm khám, chẩn đoán hoặc chỉ định điều trị của bác sĩ.
 
-## 📖 1. Giới thiệu Tổng quan (Overview)
+## Tính năng
 
-**MediMind AI** là hệ thống trợ lý y tế số thông minh hỗ trợ người bệnh sàng lọc triệu chứng ban đầu, đánh giá mức độ nguy cơ lâm sàng, cảnh báo cờ đỏ cấp cứu và kết xuất hồ sơ tóm tắt tiền khám (*Pre-Consultation Summary*) gửi trực tiếp cho bác sĩ chuyên khoa trong vòng 30 giây.
+- Trò chuyện sức khỏe, thu thập thông tin triệu chứng và cảnh báo dấu hiệu cần hỗ trợ y tế.
+- Tải lên tài liệu, trích xuất nội dung đơn thuốc/xét nghiệm và cho người dùng kiểm tra lại kết quả.
+- Quản lý tài khoản, phiên đăng nhập và tài liệu theo tài khoản.
+- Tra cứu cơ sở y tế, lọc danh sách và mở vị trí trên Google Maps.
+- Gợi ý dinh dưỡng và tra cứu danh mục công thức món ăn.
+- Truy xuất tài liệu tham khảo từ chỉ mục ChromaDB được tạo cục bộ.
 
-Hệ thống được thiết kế theo tiêu chuẩn an toàn y tế nghiêm ngặt, tuân thủ hướng dẫn điều trị của **Bộ Y Tế** và các tài liệu chuẩn quốc tế như **MedlinePlus**, giúp giảm tải áp lực tiếp đón bệnh nhân tại khoa khám bệnh và tối ưu hóa thời gian hội chẩn lâm sàng.
+## Chạy cục bộ
 
----
+Yêu cầu: Git, Python 3.11 và kết nối mạng để cài thư viện. Gemini, Google Maps và một số tài nguyên giao diện cũng cần mạng khi sử dụng.
 
-## 🌟 2. Tính năng Cốt lõi (Key Features)
-
-* 🚨 **AI Clinical Triage & Red Flag Detection**:
-  * Phát hiện tức thời dấu hiệu cấp cứu đe dọa tính mạng (*đau thắt ngực, đột quỵ, co giật, khó thở dữ dội, sốc phản vệ, nôn/ho ra máu...*).
-  * Kích hoạt quy trình khẩn cấp hướng dẫn người bệnh gọi **Cấp cứu 115** hoặc di chuyển khẩn đến cơ sở y tế gần nhất.
-  * Phân tầng nguy cơ 3 cấp độ: **Xanh (Nhẹ / Theo dõi)** $\rightarrow$ **Vàng (Cần khám chuyên khoa)** $\rightarrow$ **Đỏ (Khẩn cấp 115)**.
-* 🛡️ **Medical Safety Guardrails (Rào chắn an toàn)**:
-  * Tuyệt đối **không chẩn đoán khẳng định** ("Triệu chứng có thể liên quan..." thay vì kết luận áp đặt).
-  * Tuyệt đối **không tự ý kê đơn kháng sinh** hoặc thuốc đặc trị.
-  * Tự động kiểm tra tiền sử dị ứng và chống chỉ định (ví dụ: dị ứng Penicillin / NSAIDs / Paracetamol).
-* 📚 **Grounded Citations (Đối chiếu chuẩn y khoa)**:
-  * Mọi thông tin phản hồi đều đính kèm nguồn trích dẫn đối soát chính thống (*Cục Quản lý Khám chữa bệnh - kcb.vn*, *MedlinePlus*).
-* 🧪 **Multimodal Lab Scanner (Phân tích sinh hóa máu)**:
-  * Bóc tách và so sánh các chỉ số sinh hóa máu quan trọng (*Glucose đói, Cholesterol toàn phần, Men gan SGOT/AST, Creatinine thận*) với dải tham chiếu chuẩn.
-  * Cảnh báo nguy cơ bất thường (tiền tiểu đường, rối loạn lipid máu, suy giảm chức năng gan/thận).
-* 📋 **Pre-Consultation Summary (Bản tóm tắt bệnh án cho Bác sĩ)**:
-  * Kết xuất bệnh sử hiện tại (*HPI - History of Present Illness*), danh sách dị ứng, chẩn đoán phân biệt sơ bộ (*Differential Diagnosis*) kèm độ tin cậy và đề xuất cận lâm sàng (*Suggested Lab Orders*).
-
----
-
-## 🏗️ 3. Kiến trúc Hệ thống (System Architecture)
-
-```text
-[ Người Bệnh / Web UI (Single Page Application) ]
-                         │
-                         ├──► [ POST /api/chat ]
-                         │            │
-                         │            ▼
-                         │   [ assess_emergency_risk ]
-                         │            │
-                         │    ┌───────┴───────┐
-                         │    ▼               ▼
-                         │ [CỜ ĐỎ CẤP CỨU]  [TRIỆU CHỨNG THƯỜNG]
-                         │    │               │
-                         │    ▼               ▼
-                         │ [Bypass 115]   [analyze_symptoms]
-                         │                    │
-                         │                    ├── Tính Risk Score (0 - 100)
-                         │                    ├── Định tuyến Chuyên khoa
-                         │                    ├── Khuyến nghị OTC & Cảnh báo
-                         │                    └── Trích xuất Grounded Sources
-                         │
-                         ├──► [ POST /api/upload-lab ] ──► Bóc tách chỉ số xét nghiệm & Amazon S3
-                         │
-                         └──► [ GET /api/clinical-summary ] ──► Xuất tóm tắt bệnh sử cho Bác sĩ
-```
-
----
-
-## 📂 4. Cấu trúc Thư mục Dự án (Project Structure)
-
-```text
-Medical ChatBOT/
-├── app.py                      # Flask Application Server & Định tuyến 4 APIs
-├── requirements.txt            # Danh sách dependencies (Flask, Boto3, Pydantic, Requests)
-├── .env.example                # Cấu hình môi trường (Port, API Keys, AWS S3)
-├── README.md                   # Tài liệu kỹ thuật dự án
-│
-├── core/                       # Lõi Xử lý Nghiệp vụ Lâm sàng
-│   ├── __init__.py
-│   ├── prompts.py              # Medical Safety Prompts & Guardrails Tiếng Việt
-│   └── triage.py               # Thuật toán Triage, Red Flags, Risk Scoring & Routing
-│
-├── templates/
-│   └── index.html              # Giao diện Web lâm sàng thời gian thực (SPA)
-│
-└── static/
-    ├── css/                    # Giao diện y khoa hiện đại, responsive
-    └── js/                     # Xử lý tương tác AJAX, render markdown, upload file
-```
-
----
-
-## 🔌 5. Đặc tả API Endpoints (API Specification)
-
-| Phương thức | Endpoint | Chức năng | Dữ liệu đầu vào | Dữ liệu đầu ra |
-|:---:|:---|:---|:---|:---|
-| `GET` | `/` | Tải giao diện Web SPA | Không | HTML/CSS/JS Application |
-| `POST` | `/api/chat` | Phân tích triệu chứng & Phân tầng Triage | `{"message": "string", "history": []}` | `answer`, `risk_level`, `risk_score`, `specialist`, `medications`, `sources` |
-| `POST` | `/api/upload-lab` | Tiếp nhận và phân tích phiếu xét nghiệm máu | `multipart/form-data` (file ảnh) | `extracted_metrics`, `ai_summary`, `s3_url` |
-| `GET` | `/api/clinical-summary` | Kết xuất tóm tắt bệnh án sơ bộ cho bác sĩ | Không | `chief_complaint`, `hpi`, `differential_diagnosis`, `suggested_orders`, `contraindications` |
-
----
-
-## 🚀 6. Hướng dẫn Cài đặt & Vận hành (Local Setup)
-
-### Yêu cầu tiên quyết
-* **Python**: Phiên bản 3.10 trở lên.
-* **Git**: Đã cài đặt trên máy.
-
-### Bước 1: Clone kho mã nguồn
-```bash
+```powershell
 git clone https://github.com/khiemdong2005/chatbot_medical.git
 cd chatbot_medical
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
-### Bước 2: Tạo môi trường ảo và cài đặt thư viện
+Trên Linux/macOS, kích hoạt môi trường bằng `source .venv/bin/activate` và sao chép cấu hình bằng `cp .env.example .env`.
+
+Mở `.env`, điền `GEMINI_API_KEY` nếu dùng AI và đặt `SECRET_KEY` riêng. Có thể tạo khóa phiên bằng lệnh dưới đây, sau đó chép kết quả vào `.env`:
+
 ```bash
-# Khởi tạo môi trường ảo Python
-python -m venv venv
-
-# Kích hoạt môi trường (Windows PowerShell / CMD)
-.\venv\Scripts\activate
-# Hoặc trên Linux/macOS:
-# source venv/bin/activate
-
-# Cài đặt toàn bộ dependencies
-pip install -r requirements.txt
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-### Bước 3: Cấu hình biến môi trường
-Tạo file `.env` từ file mẫu:
-```bash
-cp .env.example .env
-```
-*(Tùy chỉnh các tham số cấu hình `PORT`, `AWS_ACCESS_KEY_ID`, `S3_BUCKET_NAME` nếu cần).*
+Khởi chạy giao diện đầy đủ từ thư mục gốc:
 
-### Bước 4: Khởi chạy Server
 ```bash
 python app.py
 ```
-Mở trình duyệt web và truy cập: **`http://localhost:8000`** hoặc **`http://127.0.0.1:8000`**.
 
----
+Truy cập [http://127.0.0.1:8000](http://127.0.0.1:8000). SQLite và các bảng dữ liệu được ứng dụng khởi tạo trong `instance/`; tài liệu tải lên nằm trong `uploads/`. Không commit hai thư mục dữ liệu cá nhân này hoặc file `.env`.
 
-## ⚖️ 7. Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)
+## Cấu hình
 
-> **CẢNH BÁO QUAN TRỌNG:**  
-> MediMind AI là hệ thống hỗ trợ tham khảo và sàng lọc thông tin y tế ban đầu, **hoàn toàn không thay thế** cho việc chẩn đoán, thăm khám, kê đơn hoặc điều trị trực tiếp từ các bác sĩ chuyên khoa hoặc nhân viên y tế có chứng chỉ hành nghề.  
-> Trong trường hợp xuất hiện các triệu chứng nguy kịch đe dọa tính mạng, người bệnh hoặc người nhà cần gọi ngay **Cấp cứu 115** hoặc di chuyển khẩn cấp tới cơ sở y tế gần nhất.
+Các biến được mô tả trong [.env.example](.env.example).
+
+| Biến | Mục đích |
+|---|---|
+| `HOST`, `PORT` | Địa chỉ và cổng Flask; mẫu cấu hình chỉ mở trên máy cục bộ |
+| `FLASK_DEBUG` | Bật/tắt chế độ debug; mặc định `false` |
+| `SECRET_KEY` | Khóa ký phiên đăng nhập; cần giá trị riêng, ổn định |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Cấu hình Gemini; model phải khả dụng với tài khoản của bạn |
+| `DATABASE_URL` | Kết nối SQLAlchemy; mặc định SQLite cục bộ |
+| `SEED_DEMO_ACCOUNTS` | Tạo tài khoản mẫu khi được bật; mặc định `false` |
+| `RAG_VECTOR_SEARCH_ENABLED` | Cho phép truy vấn vector; mặc định dùng truy xuất từ khóa trên chỉ mục |
+| `GOOGLE_MAPS_API_KEY` | Tùy chọn cho Maps JavaScript API; bản đồ nhúng có thể dùng khi để trống |
+| `GOOGLE_CLIENT_*`, `GOOGLE_REDIRECT_URI` | Tùy chọn cho đăng nhập Google OAuth |
+| `SMTP_*` | Tùy chọn cho gửi email OTP |
+
+Khi thiếu khóa AI hoặc chỉ mục tài liệu, một số luồng có thể trả phản hồi dự phòng. Việc tải được trang không xác nhận AI/OCR đã được cấu hình đầy đủ.
+
+## Tạo chỉ mục tài liệu RAG
+
+Kho mã lưu dữ liệu nguồn; chỉ mục ChromaDB là dữ liệu được tạo cục bộ, không được đưa lên Git. Sau khi clone hoặc pull bản dọn repo, hãy tạo chỉ mục trước khi dựa vào kết quả truy xuất RAG.
+
+Nếu đã có thư mục `medical_vectordb/`, sao lưu **toàn bộ thư mục ra ngoài dự án** trước khi chạy ingestion. Đừng xóa cơ sở dữ liệu đang dùng hoặc chỉ giữ riêng các file `.bin`.
+
+```bash
+python ingest.py
+```
+
+Script đọc `data/curated/ready_documents/`, tạo collection mới trong `medical_vectordb/`, kiểm tra số lượng tài liệu rồi ghi `active_collection.json`. Lần đầu tạo embedding có thể cần mạng để tải model. Khi chưa có chỉ mục hợp lệ, RAG chuyển sang chế độ dự phòng.
+
+Xem [hướng dẫn dữ liệu](data/README.md) để biết dữ liệu nào thuộc Git và dữ liệu nào cần giữ cục bộ.
+
+## Kiểm thử và công cụ
+
+Cài các phụ thuộc phát triển trước khi chạy bộ kiểm thử:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest tests
+```
+
+Chạy một kiểm tra bố cục nhanh:
+
+```bash
+python -m pytest tests/test_facility_page_layout.py -q
+```
+
+Các script nhập dữ liệu, khôi phục ảnh và xử lý dữ liệu nằm trong `scripts/`. Cài thêm `requirements-tools.txt` khi dùng các công cụ này. Một số tác vụ tải dữ liệu hoặc gọi AI cần cấu hình/mạng riêng; xem nội dung script trước khi chạy.
+
+## Cấu trúc dự án
+
+```text
+app.py                 # Flask: giao diện và các API của website
+main_fastapi.py        # Gateway FastAPI cho một phần API
+ingest.py              # Tạo chỉ mục ChromaDB từ dữ liệu nguồn
+core/                  # Xử lý nghiệp vụ, AI, tài khoản và lưu trữ
+templates/  static/    # Giao diện và tài nguyên trình duyệt
+data/                  # Dữ liệu nguồn, danh mục và thông tin nguồn
+scripts/               # Công cụ nhập liệu và bảo trì
+tests/                 # Bộ kiểm thử
+docs/                  # Kiến trúc, tài liệu và bản thiết kế tham khảo
+```
+
+`main_fastapi.py` cung cấp chat và một số route xác thực/đơn thuốc, **chưa thay thế toàn bộ Flask website**. Để dùng đầy đủ giao diện, cơ sở y tế và dinh dưỡng, chạy `python app.py`.
+
+## Tài liệu và đóng góp
+
+- [Kiến trúc hiện tại](docs/architecture.md)
+- [Nguồn dữ liệu và lưu trữ cục bộ](data/README.md)
+- [Hướng dẫn đóng góp](CONTRIBUTING.md)
+- [Kế hoạch và tài liệu lịch sử](docs/archive/)
+- [Bản thiết kế tham khảo](docs/design/medimind-redesign/)
+
+Các điều kiện sử dụng dữ liệu hoặc thư viện bên thứ ba cần được xem tại nguồn và thông báo giấy phép đi kèm. Kho mã hiện không công bố giấy phép riêng cho toàn bộ dự án.
+
+## Lưu ý sử dụng
+
+Đầu ra AI/OCR có thể sai và cần được người dùng kiểm tra. Không dùng ứng dụng để tự quyết định điều trị hoặc thay thế tư vấn chuyên môn. Trong tình huống cấp cứu tại Việt Nam, gọi 115 hoặc đến cơ sở y tế gần nhất.
