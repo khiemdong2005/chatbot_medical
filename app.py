@@ -108,6 +108,8 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///medimind.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_AS_ASCII"] = False
+    # Refresh edited templates locally even when the debugger is disabled.
+    app.config["TEMPLATES_AUTO_RELOAD"] = not is_prod
 
     # Cấu hình Cookie an toàn bảo vệ Session
     app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -142,12 +144,12 @@ def create_app(test_config=None):
         # Content-Security-Policy (CSP) bảo vệ giao diện chống XSS và nạp tài nguyên trái phép
         csp_policy = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; "
             "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com; "
-            "connect-src 'self' https://accounts.google.com/gsi/; "
-            "frame-src 'self' https://accounts.google.com/gsi/; "
+            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; "
+            "connect-src 'self' https://accounts.google.com/gsi/ https://maps.googleapis.com https://mapsresources-pa.googleapis.com https://maps.gstatic.com; "
+            "frame-src 'self' https://accounts.google.com/gsi/ https://www.google.com https://maps.google.com; "
             "base-uri 'self';"
         )
         response.headers.setdefault("Content-Security-Policy", csp_policy)
@@ -1793,10 +1795,157 @@ def create_app(test_config=None):
             logger.error(f"Lỗi phân tích dinh dưỡng: {e}")
             return jsonify({"success": False, "error": "Không thể phân tích dinh dưỡng lúc này."}), 500
 
+    FACILITIES_DATA_FILE = os.path.join(
+        os.path.dirname(__file__), "data", "CSKCB_Data", "danh_sach_co_so_kcb_normalized.json"
+    )
+
+    _FACILITIES_CACHE = None
+
+    def load_facilities_data():
+        nonlocal _FACILITIES_CACHE
+        if _FACILITIES_CACHE is None:
+            if os.path.exists(FACILITIES_DATA_FILE):
+                try:
+                    with open(FACILITIES_DATA_FILE, "r", encoding="utf-8") as f:
+                        _FACILITIES_CACHE = json.load(f)
+                except Exception as e:
+                    logger.error(f"Lỗi khi đọc file dữ liệu cơ sở y tế: {e}")
+                    _FACILITIES_CACHE = []
+            else:
+                logger.warning(f"File cơ sở y tế không tồn tại: {FACILITIES_DATA_FILE}")
+                _FACILITIES_CACHE = []
+        return _FACILITIES_CACHE
+
+    @app.route("/api/facilities", methods=["GET"])
+    def get_facilities():
+        """
+        API danh sách cơ sở y tế có phân trang và bộ lọc:
+        - page: int (1-based, default: 1)
+        - limit: int (default: 12)
+        - search: từ khóa tìm kiếm (tên, địa chỉ, tags)
+        - loai_hinh: loại hình cơ sở (Phòng khám, Bệnh viện,...)
+        - chuyen_khoa: chuyên khoa (Tai Mũi Họng, Nội tổng hợp,...)
+        - quan_huyen: quận huyện (Quận 10, Quận 1,...)
+        """
+        data = load_facilities_data()
+
+        page = max(1, request.args.get("page", 1, type=int))
+        limit = min(50, max(1, request.args.get("limit", 12, type=int)))
+        search = request.args.get("search", "").strip().lower()
+        loai_hinh = request.args.get("loai_hinh", "").strip()
+        chuyen_khoa = request.args.get("chuyen_khoa", "").strip()
+        quan_huyen = request.args.get("quan_huyen", "").strip()
+
+        filtered = data
+
+        if loai_hinh and loai_hinh.lower() != "all":
+            filtered = [x for x in filtered if loai_hinh.lower() in (x.get("loai_hinh") or "").lower()]
+
+        if chuyen_khoa and chuyen_khoa.lower() != "all":
+            filtered = [x for x in filtered if chuyen_khoa.lower() in (x.get("chuyen_khoa") or "").lower()]
+
+        if quan_huyen and quan_huyen.lower() != "all":
+            filtered = [x for x in filtered if quan_huyen.lower() in (x.get("quan_huyen") or "").lower()]
+
+        if search:
+            def match_search(item):
+                s = search
+                ten = (item.get("ten") or "").lower()
+                ten_ngan = (item.get("ten_ngan") or "").lower()
+                dia_chi = (item.get("dia_chi") or "").lower()
+                dia_chi_web = (item.get("dia_chi_hien_thi_tren_web") or "").lower()
+                ck = (item.get("chuyen_khoa") or "").lower()
+                tags = " ".join(item.get("tags") or []).lower()
+                return (s in ten or s in ten_ngan or s in dia_chi or s in dia_chi_web or s in ck or s in tags)
+            filtered = [x for x in filtered if match_search(x)]
+
+        total = len(filtered)
+        total_pages = max(1, (total + limit - 1) // limit)
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        items = filtered[start_idx:end_idx]
+
+        return jsonify({
+            "success": True,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": total_pages,
+            "data": items
+        })
+
+    @app.route("/api/facilities/filters", methods=["GET"])
+    def get_facilities_filters():
+        """Trả về thống kê số lượng loại hình, chuyên khoa và quận huyện thực tế."""
+        data = load_facilities_data()
+        
+        type_counts = {}
+        district_counts = {}
+        spec_counts = {}
+
+        for x in data:
+            lh = x.get("loai_hinh") or "Khác"
+            type_counts[lh] = type_counts.get(lh, 0) + 1
+
+            qh = x.get("quan_huyen") or "Khác"
+            district_counts[qh] = district_counts.get(qh, 0) + 1
+
+            ck_str = x.get("chuyen_khoa") or ""
+            if ck_str:
+                for part in ck_str.split(","):
+                    p = part.strip()
+                    if p:
+                        spec_counts[p] = spec_counts.get(p, 0) + 1
+
+        top_specs = sorted(spec_counts.items(), key=lambda x: x[1], reverse=True)[:15]
+        top_districts = sorted(district_counts.items(), key=lambda x: x[0])
+
+        return jsonify({
+            "success": True,
+            "total": len(data),
+            "loai_hinh": type_counts,
+            "quan_huyen": top_districts,
+            "chuyen_khoa": top_specs
+        })
+
+    @app.route("/api/facilities/map-markers", methods=["GET"])
+    def get_facilities_map_markers():
+        """Trả về dữ liệu tinh gọn của tất cả cơ sở có tọa độ để vẽ markers lên bản đồ."""
+        data = load_facilities_data()
+        markers = []
+        for x in data:
+            lat = x.get("lat")
+            lng = x.get("lng")
+            if lat is not None and lng is not None:
+                markers.append({
+                    "id": str(x.get("id")),
+                    "name": x.get("ten_ngan") or x.get("ten"),
+                    "type": x.get("loai_hinh") or "",
+                    "spec": x.get("chuyen_khoa") or "",
+                    "address": x.get("dia_chi_hien_thi_tren_web") or x.get("dia_chi") or "",
+                    "lat": float(lat),
+                    "lng": float(lng),
+                    "link": x.get("link") or ""
+                })
+        return jsonify({
+            "success": True,
+            "total": len(markers),
+            "markers": markers
+        })
+
+    @app.route("/api/config/maps", methods=["GET"])
+    def get_maps_config():
+        """Cung cấp cấu hình Google Maps API cho frontend."""
+        key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+        return jsonify({
+            "has_key": bool(key),
+            "key": key if key else ""
+        })
+
     @app.route("/")
     def index():
         """Trang chủ ứng dụng y tế MediMind."""
-        return render_template("index.html")
+        return render_template("index.html", google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", "").strip())
 
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)
     return app
