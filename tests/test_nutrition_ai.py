@@ -37,6 +37,14 @@ class NutritionAITests(unittest.TestCase):
             with self.subTest(payload=payload), self.assertRaises(NutritionAIError):
                 validate_selection(payload, FOOD, 1)
 
+    def test_vietnamese_source_title_cannot_be_rewritten_by_model(self):
+        recipe = {**FOOD[0], "language": "vi"}
+        payload = answer()
+        payload["recommendations"][0]["display_title"] = "Tên mới có công dụng điều trị bị bịa"
+        selected = validate_selection(payload, [recipe], 0)["recipes"][0]
+        self.assertEqual(selected["display_title"], recipe["title"])
+        self.assertEqual(selected["ingredients"], recipe["ingredients"])
+
     def test_clarification_requires_question_and_no_selected_recipes(self):
         payload = {"needs_clarification": True, "clarification_question": "Bạn cần tránh nguyên liệu nào?", "recommendations": []}
         self.assertEqual(validate_selection(payload, FOOD, 0)["recipes"], [])
@@ -88,7 +96,8 @@ class NutritionAITests(unittest.TestCase):
                 self.assertGreater(len(result["recipes"]), 0)
                 self.assertLessEqual(len(result["recipes"]), 5)
                 self.assertTrue(result["sources"])
-                known = {recipe["id"]: recipe for recipe in catalog}
+                from core.recipe_catalog import imported_recipes
+                known = {recipe["id"]: recipe for recipe in catalog + imported_recipes(kind)}
                 for recipe in result["recipes"]:
                     self.assertIn(recipe["id"], known)
                     self.assertEqual(recipe["ingredients"], known[recipe["id"]]["ingredients"])
@@ -113,7 +122,7 @@ class NutritionAITests(unittest.TestCase):
     @patch("core.nutrition_ai.select_recipes")
     def test_unknown_and_ambiguous_clarifications_are_not_replaced_with_options(self, provider):
         provider.return_value = self.clarification()
-        for query in ("tình trạng chưa biết", "ho và mất ngủ", "không sốt"):
+        for query in ("tình trạng chưa biết", "tình trạng mơ hồ", "không sốt"):
             with self.subTest(query=query):
                 result = get_nutrition_options(query, "food")
                 self.assertTrue(result["needs_clarification"])

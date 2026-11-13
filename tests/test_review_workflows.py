@@ -23,11 +23,11 @@ def test_red_flag_scope(message, expected):
 def test_abdominal_pain_follow_up(test_app):
     manager = IntakeSessionManager()
     with patch.object(medical_rag_service, "retrieve_context", return_value=[]):
-        first = manager.process_message("opqrst", "Bác sĩ ơi tôi đau bụng quá")
+        first = manager.process_message("opqrst", "Bác sĩ ơi tôi đau bụng quá", guest_token="review_test_guest")
         assert "vị trí" in first["next_question"]
         assert first["summary"]["part_b_system_assessment"]["triage_badge"] == "collecting"
-        manager.process_message("opqrst", "quanh rốn")
-        result = manager.process_message("opqrst", "đau quặn 2 ngày, lan ra lưng, 6/10")
+        manager.process_message("opqrst", "quanh rốn", guest_token="review_test_guest")
+        result = manager.process_message("opqrst", "đau quặn 2 ngày, lan ra lưng, 6/10", guest_token="review_test_guest")
         pain = result["summary"]["part_a_patient_facts"]["pain"]
         assert pain == {"location": "quanh rốn", "quality": "quặn", "radiation": "lan ra lưng", "severity": "6/10"}
         assert "2 ngày" in result["facts"]["duration"]

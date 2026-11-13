@@ -11,7 +11,7 @@ from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
 from core.ocr_parallel_service import extract_ocr_parallel
 from core.gemini_schema_service import extract_with_gemini_schema
-from core.reconciliation_service import reconcile_parallel_results
+from core.reconciliation_service import reconcile_parallel_results, extract_schema_from_ocr
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
 from core.interpretation_service import generate_clinical_interpretation
@@ -94,13 +94,16 @@ def process_medical_document_pipeline(
 
     if not gemini_data:
         # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
-        gemini_data = {
-            "doc_type": doc_type,
-            "patient_name": "",
-            "facility": "",
-            "medications": [] if doc_type == "prescription" else [],
-            "metrics": [] if doc_type == "lab_test" else []
-        }
+        gemini_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+    else:
+        # Nếu Gemini chạy được nhưng có trường bị khuyết, bổ sung từ OCR
+        ocr_fallback = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+        for hf in HEADER_FIELDS:
+            if not gemini_data.get(hf) and ocr_fallback.get(hf):
+                gemini_data[hf] = ocr_fallback[hf]
+        key = "metrics" if doc_type == "lab_test" else "medications"
+        if not gemini_data.get(key) and ocr_fallback.get(key):
+            gemini_data[key] = ocr_fallback[key]
 
     # Đảm bảo đồng bộ doc_type
     doc_type = gemini_data.get("doc_type", doc_type)

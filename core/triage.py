@@ -62,12 +62,110 @@ NEGATION_WORDS = [
     "không có", "khong co", "chẳng có", "chang co", "chưa có", "chua co"
 ]
 
-# English emergency keywords
+# English contractions map for robust normalization
+ENGLISH_CONTRACTIONS = {
+    r"\bdon't\b": "do not",
+    r"\bdont\b": "do not",
+    r"\bdidn't\b": "did not",
+    r"\bdidnt\b": "did not",
+    r"\bdoesn't\b": "does not",
+    r"\bdoesnt\b": "does not",
+    r"\bhaven't\b": "have not",
+    r"\bhavent\b": "have not",
+    r"\bhasn't\b": "has not",
+    r"\bhasnt\b": "has not",
+    r"\bhadn't\b": "had not",
+    r"\bhadnt\b": "had not",
+    r"\bwon't\b": "will not",
+    r"\bwont\b": "will not",
+    r"\bwouldn't\b": "would not",
+    r"\bwouldnt\b": "would not",
+    r"\bcan't\b": "cannot",
+    r"\bcant\b": "cannot",
+    r"\bcouldn't\b": "could not",
+    r"\bcouldnt\b": "could not",
+    r"\bshouldn't\b": "should not",
+    r"\bshouldnt\b": "should not",
+    r"\bisn't\b": "is not",
+    r"\bisnt\b": "is not",
+    r"\baren't\b": "are not",
+    r"\barent\b": "are not",
+    r"\bwasn't\b": "was not",
+    r"\bwasnt\b": "was not",
+    r"\bweren't\b": "were not",
+    r"\bwerent\b": "were not",
+}
+
+# English emergency keywords (generalized clinical red flags)
 EMERGENCY_SIGNS_EN = [
-    "chest pain", "severe chest pain", "shortness of breath", "difficulty breathing",
-    "cannot breathe", "choking", "facial drooping", "slurred speech", "paralysis",
-    "seizure", "unconscious", "passed out", "coughing blood", "vomiting blood", "anaphylaxis"
+    # Cardiovascular & Respiratory
+    "severe chest pain", "chest pain", "shortness of breath", "difficulty breathing",
+    "cannot breathe", "choking", "severe respiratory distress", "stridor",
+    # Neurological (FAST)
+    "facial drooping", "slurred speech", "paralysis", "seizure", "unconscious", "passed out",
+    # Hemorrhage & Anaphylaxis
+    "coughing blood", "vomiting blood", "blood spurting", "spurting blood", "anaphylaxis",
+    # Ophthalmic emergencies (acute vision loss / retinal detachment patterns)
+    "sudden vision loss", "sudden loss of vision", "loss of sight", "sudden blindness",
+    "acute vision loss", "abrupt vision loss", "abrupt loss of vision",
+    "curtain over vision", "curtain-like shadow", "gray shadow over vision", "dark shadow over vision",
+    "shadow covering vision", "shadow over vision", "suddenly cannot see"
 ]
+
+ENGLISH_NEGATION_MARKERS = {
+    "no", "not", "never", "without", "neither", "no longer",
+    "cannot", "denies", "denied", "free of"
+}
+
+ENGLISH_NEGATION_FILLERS = {
+    # auxiliary / verbs
+    "have", "had", "having", "feel", "feeling", "felt", "experience", "experienced", "experiencing",
+    "see", "seeing", "noticed", "noticing", "get", "getting", "got", "suffer", "suffered", "suffering",
+    "be", "is", "are", "was", "were", "been", "become", "became", "say", "think", "believe",
+    "reporting", "reported",
+    # pronouns / articles / prepositions
+    "i", "you", "he", "she", "we", "they", "my", "any", "a", "an", "the", "kind", "of", "type", "types",
+    "sign", "signs", "symptom", "symptoms", "with", "in", "to", "such",
+    # modifiers / qualifiers
+    "severe", "significant", "real", "actual", "noticeable", "current", "major", "acute",
+    "serious", "further", "other", "such", "new", "more", "particular", "true", "obvious"
+}
+
+
+def is_negated_english(before: str, after: str) -> bool:
+    """Determine if an English emergency sign mention is negated or resolved."""
+    # 1. Post-symptom resolution (e.g. 'chest pain has resolved', 'last year', 'months ago')
+    if re.match(r"\s+(?:has resolved|resolved|is gone|went away|last year|years ago|months ago)\b", after):
+        return True
+
+    # 2. Scope boundary before symptom: split by punctuation or contrastive conjunctions
+    scope = re.split(r"[,;]|\b(?:but|however|although|yet|though|instead of|rather than|while)\b", before)[-1]
+
+    # 3. Check coordinated negative list: e.g. "without slurred speech or [facial drooping]"
+    coord_match = re.search(r"\b(?:no|not|never|without|neither|denies|nor|cannot)\b[^,;]{0,60}\b(?:or|nor)\b", scope)
+    if coord_match:
+        after_coord = scope[coord_match.end():]
+        coord_tokens = re.findall(r"\b[\w']+\b", after_coord)
+        if all(w in ENGLISH_NEGATION_FILLERS for w in coord_tokens):
+            return True
+
+    # 4. Token-based lookback from symptom
+    tokens = re.findall(r"\b[\w']+\b", scope)
+    if not tokens:
+        return False
+
+    # Check from nearest word backwards up to 7 words
+    window = tokens[-7:]
+    for i in range(len(window) - 1, -1, -1):
+        word = window[i]
+        if word in ENGLISH_NEGATION_MARKERS:
+            intervening = window[i + 1:]
+            if all(w in ENGLISH_NEGATION_FILLERS for w in intervening):
+                return True
+        elif word not in ENGLISH_NEGATION_FILLERS:
+            break
+
+    return False
 
 
 # ------------------------------------------------------------------------------
@@ -80,37 +178,51 @@ def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str
     Có cơ chế phân tích cụm phủ định để không báo nhầm (ví dụ: 'sốt nhưng không khó thở').
     """
     text = remove_accents(message).replace("đ", "d")
+    if lang == "en":
+        for pat, repl in ENGLISH_CONTRACTIONS.items():
+            text = re.sub(pat, repl, text, flags=re.IGNORECASE)
+
     if text.strip(" .!") in {"co", "dung", "yes"}:
         for prefix in ("Hiện bạn hoặc người bạn đang hỏi giúp có đang bị ", "Are you or the person you are asking about experiencing "):
             if previous_question.startswith(prefix):
                 text = remove_accents(previous_question[len(prefix):]).replace("đ", "d")
+                if lang == "en":
+                    for pat, repl in ENGLISH_CONTRACTIONS.items():
+                        text = re.sub(pat, repl, text, flags=re.IGNORECASE)
                 break
     signs = {sign["no_accent"]: sign["vi"] for sign in EMERGENCY_SIGNS}
     if lang == "en":
-        signs.update({name: name for name in EMERGENCY_SIGNS_EN})
+        signs.update({name: name for name in sorted(EMERGENCY_SIGNS_EN, key=len, reverse=True)})
     matched_flags = []
     uncertain = []
     # Evaluate each mention in its own clause so a past denial cannot cancel a new symptom.
-    clauses = re.split(r"[.;!?\n]|\b(?:nhung|tuy nhien|but|however)\b|(?=\b(?:bay gio|hien tai|luc nay|now)\b)", text)
+    clauses = re.split(r"[.;!?\n]|\b(?:nhung|tuy nhien|but|however|although|yet|though|nevertheless)\b|(?=\b(?:bay gio|hien tai|luc nay|now)\b)", text)
     for clause in clauses:
         for phrase, label in signs.items():
             for match in re.finditer(r"\b" + re.escape(phrase) + r"\b", clause):
                 before = clause[:match.start()]
                 after = clause[match.end():]
                 history_scope = re.split(r",|\b(?:con toi|toi dang|bo toi dang|me toi dang)\b", before)[-1]
-                if re.search(r"\b(?:nam ngoai|nhieu nam truoc|tien su gia dinh|last year|family history of)\b", history_scope):
+                if re.search(r"\b(?:nam ngoai|nhieu nam truoc|tien su gia dinh|last year|years ago|family history of|history of)\b", history_scope):
                     continue
-                # A new subject/affirmation starts a new scope; coordinated negative lists share one.
-                scope = re.split(r"[,;]|\b(?:con toi|gio toi|i now)\b", before)[-1]
-                negative = re.search(r"\b(?:khong|chua|chang|no|not|without|neither)\s+(?:(?:he|bi|co|thay|con|cam thay|have|having)\s+)*$", scope)
-                coordinated = re.search(r"\b(?:khong|chua|chang|no|without|neither)\b[^,;]{0,45}\b(?:hay|hoac|or|nor)\s*$", scope)
-                if negative or coordinated or re.match(r"\s+(?:da het|het roi|nam ngoai|last year)\b", after):
-                    continue
-                if re.search(r"\b(?:khong nho ro|khong chac co|not sure (?:if|whether))\s+(?:(?:toi|minh|bi|i|have)\s+)*$", scope):
-                    uncertain.append(label)
-                    continue
-                if label.capitalize() not in matched_flags:
-                    matched_flags.append(label.capitalize())
+                
+                if lang == "en":
+                    if is_negated_english(before, after):
+                        continue
+                else:
+                    # A new subject/affirmation starts a new scope; coordinated negative lists share one.
+                    scope = re.split(r"[,;]|\b(?:con toi|gio toi|i now)\b", before)[-1]
+                    negative = re.search(r"\b(?:khong|chua|chang)\s+(?:(?:he|bi|co|thay|con|cam thay)\s+)*$", scope)
+                    coordinated = re.search(r"\b(?:khong|chua|chang)\b[^,;]{0,45}\b(?:hay|hoac)\s*$", scope)
+                    if negative or coordinated or re.match(r"\s+(?:da het|het roi|nam ngoai)\b", after):
+                        continue
+                    if re.search(r"\b(?:khong nho ro|khong chac co|not sure (?:if|whether))\s+(?:(?:toi|minh|bi|i|have)\s+)*$", scope):
+                        uncertain.append(label)
+                        continue
+
+                cap_label = label.capitalize()
+                if cap_label not in matched_flags:
+                    matched_flags.append(cap_label)
 
     if matched_flags:
         if lang == "en":
@@ -160,60 +272,46 @@ ANTIBIOTIC_BLACKLIST = [
 
 
 def apply_safety_guardrails(answer: str, lang: str = "vi") -> str:
-    """
-    Hậu kiểm an toàn (Post-generation Guardrail):
-    Rà soát câu trả lời của AI và Fallback.
-    Nếu phát hiện nhắc tên thuốc kháng sinh kê đơn hoặc hướng dẫn liều dùng:
-      - Loại bỏ/thay thế nội dung vi phạm bằng cảnh báo từ chối kê đơn chuẩn y tế.
-      - Tuyệt đối không giữ nguyên hướng dẫn dùng thuốc kháng sinh bị cấm.
-    """
+    """Block antibiotic prescribing while preserving explanations and refusals."""
     if not answer:
         return ""
-
-    answer_lower = answer.lower()
-    found_antibiotics = [ab for ab in ANTIBIOTIC_BLACKLIST if ab in answer_lower]
-
-    if not found_antibiotics:
+    drugs = "|".join(re.escape(name) for name in ANTIBIOTIC_BLACKLIST)
+    if not re.search(r"\b(?:" + drugs + r")\b", answer, re.IGNORECASE):
         return answer
-
-    ab_names_str = ", ".join([ab.capitalize() for ab in found_antibiotics])
-
-    if lang == "en":
-        replacement_block = (
-            f"> [!CAUTION]\n"
-            f"> 🛑 **SAFETY INTERVENTION - PRESCRIPTION MEDICATION DETECTED ({ab_names_str}):**\n"
-            "> Under strict healthcare safety protocols and MOH regulations, AI assistants are strictly prohibited "
-            "from prescribing, dosing, or instructing the use of prescription antibiotics.\n"
-            "> Any self-medication with antibiotics carries severe risks of acute anaphylaxis, organ toxicity, "
-            "and dangerous antimicrobial resistance. Please consult a licensed medical practitioner for a proper examination and prescription."
-        )
-    else:
-        replacement_block = (
-            f"> [!CAUTION]\n"
-            f"> 🛑 **CAN THIỆP AN TOÀN Y TẾ - PHÁT HIỆN THUỐC KHÁNG SINH ({ab_names_str}):**\n"
-            "> Theo quy chuẩn an toàn lâm sàng của Bộ Y Tế, Trợ lý AI tuyệt đối không kê đơn, chỉ định liều dùng hoặc khuyến nghị tự ý sử dụng các loại thuốc kháng sinh.\n"
-            "> Việc tự ý mua và dùng kháng sinh tiềm ẩn nguy cơ sốc phản vệ nguy kịch, tổn thương gan thận và gia tăng tình trạng kháng kháng sinh trong cộng đồng. "
-            "Bạn hãy thăm khám trực tiếp tại cơ sở y tế để được bác sĩ chẩn đoán nguyên nhân và kê đơn chính xác."
-        )
-
-    # Tách đoạn văn bản và thay thế các đoạn có chứa tên kháng sinh
-    paragraphs = answer.split("\n\n")
-    cleaned_paragraphs = []
-    replaced_any = False
-
-    for p in paragraphs:
-        p_lower = p.lower()
-        if any(ab in p_lower for ab in found_antibiotics):
-            # Thay thế đoạn vi phạm bằng khối can thiệp an toàn
-            cleaned_paragraphs.append(replacement_block)
-            replaced_any = True
+    warning = ("Do not choose an antibiotic or dose from this reply. Consult a doctor or pharmacist and tell them about your allergies and current medicines."
+               if lang == "en" else "Bạn không được tự ý chọn kháng sinh hoặc liều dùng từ câu trả lời này. Hãy hỏi bác sĩ hoặc dược sĩ và cho biết dị ứng, thuốc đang dùng trước khi sử dụng.")
+    kept, blocked = [], False
+    for sentence in re.split(r"(?<=[.!?;])\s+|\n+", answer):
+        folded = remove_accents(re.sub(r"\bđừng\b", "không", sentence, flags=re.IGNORECASE)).replace("đ", "d")
+        if not re.search(r"\b(?:" + drugs + r")\b", folded):
+            # A regimen may be on the following line after an antibiotic name.
+            if re.search(r"\b\d+(?:\.\d+)?\s*(?:mg|ml|vien|tablets?|capsules?)\b.*\b(?:moi|ngay|lan|every|daily|times)\b", folded):
+                blocked = True
+                continue
+            kept.append(sentence)
+            continue
+        unsafe = bool(re.search(r"\b(?:don thuoc cho ban|prescription for you)\b", folded))
+        for action in re.finditer(r"\b(?:uong|dung|su dung|ke|take|use|start|prescribe|recommend)\b", folded):
+            tail = folded[action.end():action.end() + 100]
+            if not re.search(r"\b(?:" + drugs + r")\b", tail):
+                continue
+            prefix = folded[max(0, action.start() - 65):action.start()]
+            prefix = re.split(r"[,;:!?]|\b(?:nhung|but|however)\b", prefix)[-1]
+            if not re.search(r"\b(?:khong|chua|tranh|not|never|avoid|don't|shouldn't|mustn't)\b", prefix):
+                unsafe = True
+        regimen = re.search(r"\b\d+(?:\.\d+)?\s*(?:mg|ml|vien|tablets?|capsules?)\b.*\b(?:moi|ngay|lan|every|daily|times)\b", folded)
+        regimen_prefix = re.split(r"[,;:!?]|\b(?:nhung|but|however)\b", folded[:regimen.start()])[-1] if regimen else ""
+        if regimen and not re.search(r"\b(?:khong|tranh|not|never|avoid|don't|shouldn't|mustn't)\b", regimen_prefix):
+            unsafe = True
+        if unsafe:
+            blocked = True
+            if re.search(r"\b(?:115|cap cuu|emergency)\b", folded):
+                kept.append("Seek emergency care now." if lang == "en" else "Hãy gọi 115 hoặc đến khoa cấp cứu ngay.")
         else:
-            cleaned_paragraphs.append(p)
-
-    if not replaced_any:
-        cleaned_paragraphs.append(replacement_block)
-
-    return "\n\n".join(cleaned_paragraphs)
+            kept.append(sentence)
+    if not blocked:
+        return answer
+    return "\n\n".join(part for part in [*kept, warning] if part.strip())
 
 
 # ------------------------------------------------------------------------------

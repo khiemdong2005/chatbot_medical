@@ -36,6 +36,7 @@ from starlette.middleware.wsgi import WSGIMiddleware
 from starlette.routing import Route
 
 from core.chat_service import process_clinical_chat
+from core.health_context import validate_chat_request
 from core.storage_service import decode_and_validate_base64_image
 from core.gemini_service import GeminiMedicalService
 from app import app as flask_app_instance
@@ -115,6 +116,7 @@ class ChatMessageRequest(BaseModel):
         description="Ngôn ngữ tư vấn ('vi' hoặc 'en')",
         json_schema_extra={"example": "vi"}
     )
+    health_context: Optional[Dict[str, Any]] = Field(default=None, description="Thông tin sức khỏe tự khai, tùy chọn cho lượt chat; không lưu hồ sơ tài khoản")
 
 
 # ==============================================================================
@@ -140,7 +142,11 @@ async def chat_endpoint(req: ChatMessageRequest):
     3. Bộ não AI Gemini Flash + Fallback nội bộ
     4. Hậu kiểm màng lọc chặn kê đơn kháng sinh
     """
-    user_message = req.message.strip()
+    try:
+        payload = validate_chat_request(req.model_dump())
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    user_message = payload["message"]
     if not user_message and not req.image:
         raise HTTPException(status_code=400, detail="Vui lòng nhập nội dung tin nhắn hoặc tải ảnh.")
 
@@ -159,11 +165,12 @@ async def chat_endpoint(req: ChatMessageRequest):
         result = await run_in_threadpool(
             process_clinical_chat,
             message=user_message,
-            history=req.history,
+            history=payload["history"],
             image_bytes=image_bytes,
             image_mime_type=image_mime_type,
             lang=req.lang or "vi",
-            gemini_service=gemini_service
+            gemini_service=gemini_service,
+            health_context=payload["health_context"]
         )
         return JSONResponse(content=result)
     except ValueError as ve:

@@ -21,7 +21,14 @@ VN_DRUG_DATABASE = [
     {"name": "Thiamine", "aliases": ["vitamin b1", "thiamin"], "active_ingredient": "Thiamine Mononitrate", "category": "Vitamin nhóm B", "purpose": "Bổ thần kinh ngoại biên"},
     {"name": "Desloratadine", "aliases": ["aerius", "desloratadin"], "active_ingredient": "Desloratadine", "category": "Kháng dị ứng Histamin H1", "purpose": "Chống dị ứng, giảm ngứa nghẹt mũi"},
     {"name": "Alpha Chymotrypsin", "aliases": ["chymoral", "alphachymotrypsin", "choay", "alphachoay"], "active_ingredient": "Chymotrypsin", "category": "Kháng viêm dạng men", "purpose": "Giảm phù nề, chống sung huyết"},
-    {"name": "Natri Clorid 0.9%", "aliases": ["nacl", "nuoc muoi sinh ly", "natri clorid"], "active_ingredient": "NaCl 0.9%", "category": "Dung dịch đẳng trương", "purpose": "Vệ sinh sát khuẩn đường thở"}
+    {"name": "Natri Clorid 0.9%", "aliases": ["nacl", "nuoc muoi sinh ly", "natri clorid"], "active_ingredient": "NaCl 0.9%", "category": "Dung dịch đẳng trương", "purpose": "Vệ sinh sát khuẩn đường thở"},
+    {"name": "Scotolac (Shunorac)", "aliases": ["scotolac", "shunorac", "scotols", "scotolns", "etodolac"], "active_ingredient": "Etodolac 200mg", "category": "Kháng viêm NSAID", "purpose": "Kháng viêm, giảm đau cơ khớp & đau thần kinh tọa"},
+    {"name": "Độc hoạt TKS viên (Lọ/100v)", "aliases": ["độc hoạt tks", "doc hoat tks", "độc hoạt", "doc hoat", "dxk hoat", "dk hoat"], "active_ingredient": "Độc hoạt tang ký sinh", "category": "Y học cổ truyền / Xương khớp", "purpose": "Bổ can thận, trừ phong thấp, giảm đau nhức lưng và chi"},
+    {"name": "Đại tần giao (H/100v)", "aliases": ["đại tần giao", "dai tan giao", "đại tần", "dai lin gio", "dai lin"], "active_ingredient": "Đại tần giao thang", "category": "Y học cổ truyền / Xương khớp", "purpose": "Khu phong thanh nhiệt, thông kinh hoạt lạc, dưỡng huyết nhuận táo"},
+    {"name": "Rheumatin (Ch/40v)", "aliases": ["rheumatin", "rhcumatin"], "active_ingredient": "Cao xương khớp thảo dược", "category": "Y học cổ truyền / Xương khớp", "purpose": "Bổ khí huyết, mạnh gân cốt, giảm đau thần kinh tọa"},
+    {"name": "Ginkobil (H/100v)", "aliases": ["ginkobil", "ginkgo", "ginkgo biloba", "bạch quả"], "active_ingredient": "Ginkgo Biloba", "category": "Tuần hoàn não & thần kinh", "purpose": "Tăng cường lưu thông máu, hỗ trợ dẫn truyền thần kinh ngoại biên"},
+    {"name": "JEX (H/30v)", "aliases": ["jex", "jex max", "jex thế hệ mới"], "active_ingredient": "Peptan & Collagen Type II", "category": "Bảo vệ sụn khớp", "purpose": "Tái tạo sụn khớp, giảm đau thoái hóa cột sống & đĩa đệm"},
+    {"name": "Cồn xoa bóp Viện", "aliases": ["cồn xoa bóp", "con xoa bop", "can xon bop", "xoa bóp"], "active_ingredient": "Cồn thảo dược xoa bóp", "category": "Dùng ngoài da", "purpose": "Xoa bóp giảm đau cơ khớp, lưu thông kinh lạc tại chỗ"}
 ]
 
 # Từ điển chuẩn hóa tên chỉ số xét nghiệm sang LOINC / chuẩn quốc tế

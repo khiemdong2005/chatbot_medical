@@ -563,6 +563,9 @@ body.light-glass .hospital-filter-btn.active {
   border-color: #0284C7 !important;
 }
 
+/* Facility directory styles are scoped in facilities.css. */
+
+/* Facility detail drawer styles are scoped in facilities.css. */
 
 /* ==============================================================================
    Modal Dialogs (Login, Register, Disclaimer, Profile) - Complete Light & Dark Sync

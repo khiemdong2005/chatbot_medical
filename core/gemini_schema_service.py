@@ -13,7 +13,7 @@ def extract_with_gemini_schema(image_path: str, doc_type: str = "auto", api_key:
     """
     if not api_key:
         api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
-    if not api_key:
+    if not api_key or api_key.startswith("YOUR_") or api_key == "your_google_gemini_api_key_here" or len(api_key) < 10:
         return None
 
     try:
@@ -78,7 +78,7 @@ YÊU CẦU SCHEMA TRẢ VỀ:
 
 BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
 """
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-flash-latest"]
         for model in candidate_models:
             try:
                 res = client.models.generate_content(

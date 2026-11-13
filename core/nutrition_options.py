@@ -2,6 +2,7 @@
 from copy import deepcopy
 from typing import Any, Dict
 import unicodedata
+from core.recipe_catalog import imported_recipes, catalog_stats, retrieve_candidates, title_key
 
 
 def _recipe(key, title, icon, subtitle, time, benefit, ingredients, steps, avoid):
@@ -89,7 +90,9 @@ def _get_general_options(condition: str, recipe_type: str) -> Dict[str, Any]:
     # multi-condition input (e.g. "không mất ngủ") as a confirmed condition.
     note_context = {"nhiet mieng": "nhiet_mieng", "loet mieng": "nhiet_mieng",
                     "mat ngu": "mat_ngu", "kho ngu": "mat_ngu"}.get(normalized)
-    recipes = deepcopy(DRINK if recipe_type == "drink" else FOOD)
+    recipes = imported_recipes(recipe_type)
+    if not catalog_stats()["imported_count"]:
+        recipes = deepcopy(DRINK if recipe_type == "drink" else FOOD)
     notice = f'Danh sách tham khảo chung. Chưa xác nhận mức độ phù hợp của từng món với tình trạng “{query}”.'
     if note_context == "nhiet_mieng":
         notice = "Danh sách tham khảo chung, có thêm lưu ý khi miệng khó chịu. Các món chưa được lọc riêng theo tình trạng này."
@@ -110,23 +113,45 @@ def _get_general_options(condition: str, recipe_type: str) -> Dict[str, Any]:
             "notice": notice, "recipe_type": recipe_type, "recipes": recipes}
 
 
-def get_nutrition_options(condition: str, recipe_type: str) -> Dict[str, Any]:
+def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=None) -> Dict[str, Any]:
     """Filter canonical recipes first, then let Gemini select and explain IDs."""
     from core.nutrition_rules import prepare_nutrition_candidates
     from core.nutrition_ai import NutritionAIError, select_recipes
 
     result = _get_general_options(condition, recipe_type)
     prepared = prepare_nutrition_candidates(condition, result["recipes"])
-    candidates = prepared["recipes"]
+    if prepared.get("is_unmapped_disease"):
+        result.update(recipes=[], eligible_count=0, considered_count=0, has_more=False,
+                      needs_clarification=True, provider_status="clinical_safeguard_refusal",
+                      clarification_question=f"Tình trạng '{condition}' là bệnh lý cần chế độ dinh dưỡng lâm sàng chuyên biệt được bác sĩ chỉ định. Hệ thống không tự động gợi ý món để tránh rủi ro tương tác bệnh lý.",
+                      notice="Để bảo đảm an toàn lâm sàng, hệ thống không tự động gợi ý món cho các bệnh lý chưa có bộ quy tắc dinh dưỡng được kiểm duyệt.",
+                      selection_explanation="Hệ thống MediMind kích hoạt rào chắn an toàn (Clinical Safety Guardrail): không tự ý tạo thực đơn cho các bệnh lý khi chưa có dữ liệu dinh dưỡng kiểm chứng.")
+        return result
+    eligible = prepared["recipes"]
+    seen = set(exclude_recipe_ids or [])
+    seen_titles = {title_key(recipe) for recipe in eligible if recipe["id"] in seen}
+    remaining = [recipe for recipe in eligible if recipe["id"] not in seen and title_key(recipe) not in seen_titles]
+    candidates = retrieve_candidates(condition, remaining)
     guidance = prepared["guidance"]
-    result.update(recipes=candidates, sources=guidance, excluded=prepared["excluded"],
+    stats = catalog_stats()
+    type_count = stats["drink_count"] if recipe_type == "drink" else stats["food_count"]
+    result.update(recipes=candidates, sources=guidance, excluded=prepared["excluded"][:20], excluded_count=len(prepared["excluded"]),
+                  catalog=stats, catalog_type_count=type_count, eligible_count=len(eligible), considered_count=len(candidates),
+                  has_more=False,
                   avoidance=prepared["avoidance"], avoidance_note=prepared["avoidance_note"],
                   limitations=prepared.get("limitations", []), gemini_used=False,
                   needs_clarification=False, clarification_question="",
                   selection_explanation="Python kiểm tra nhãn nguyên liệu và các quy tắc có nguồn trước. "
                       "Gemini chỉ được chọn và giải thích các công thức đã qua bộ lọc; không thay đổi nguyên liệu hoặc cách nấu. "
-                      "Kho hiện có 14 công thức soạn sẵn, chưa nhập RecipeNLG. Việc được gợi ý không xác nhận phù hợp y khoa.")
+                      f'Kho hiện có {stats["total"]} công thức từ {stats["source"]}. '
+                      + ("Danh mục món Việt được chọn theo tiêu chí món quen thuộc và nguyên liệu địa phương; nhãn này không chứng nhận nguồn gốc địa lý hay độ phù hợp với bệnh. " if stats["cuisine"] == "VN" else "") +
+                      "Bộ tìm kiếm lấy một nhóm ứng viên liên quan từ các công thức qua bộ lọc để gửi Gemini; không gửi cả kho trong mỗi yêu cầu. "
+                      "Nhãn của công thức nhập được quét tự động từ văn bản, chưa được rà soát chuyên môn từng món. Việc được gợi ý không xác nhận phù hợp y khoa.")
     if not candidates:
+        if eligible and seen:
+            result.update(provider_status="catalog_exhausted", needs_clarification=False,
+                          notice="Bạn đã xem hết các công thức qua bộ lọc hiện tại.")
+            return result
         result.update(provider_status="no_candidates", recommendation_scope="filtered_catalog",
                       needs_clarification=True,
                       clarification_question="Chưa có công thức đáp ứng những giới hạn bạn nhập. Bạn có thể bổ sung loại thực phẩm dùng được không?",
@@ -164,10 +189,11 @@ def get_nutrition_options(condition: str, recipe_type: str) -> Dict[str, Any]:
             else:
                 result["notice"] = "Cần thêm thông tin trước khi gợi ý món."
         else:
-            result["notice"] = f'Gemini đã chọn {len(selection["recipes"])} công thức từ {len(candidates)} lựa chọn qua bộ lọc. Đây là gợi ý tham khảo, không phải chế độ ăn điều trị.'
+            result["notice"] = f'Gemini đã chọn {len(selection["recipes"])} công thức từ {len(candidates)} ứng viên liên quan trong {len(eligible)} công thức qua bộ lọc. Đây là gợi ý tham khảo, không phải chế độ ăn điều trị.'
             if not prepared["recognized"]:
                 result["notice"] += " Chưa có bộ quy tắc riêng cho nội dung bạn nhập."
     except NutritionAIError as error:
-        result.update(provider_status="fallback_" + error.code, recommendation_scope="filtered_catalog",
+        result.update(recipes=candidates[:8], provider_status="fallback_" + error.code, recommendation_scope="filtered_catalog",
                       notice="Gemini chưa trả được gợi ý hợp lệ. Bạn đang xem danh sách tham khảo qua bộ lọc Python, chưa được AI xếp hạng.")
+    result["has_more"] = bool(result["recipes"]) and len({title_key(r) for r in remaining}) > len(result["recipes"])
     return result

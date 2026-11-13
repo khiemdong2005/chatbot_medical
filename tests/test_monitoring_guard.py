@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import create_app
 from core.models import db
-from core.observability import emit_security_event
+from core.observability import record_security_event
 
 
 class TestObservabilityGuard(unittest.TestCase):
@@ -24,14 +24,20 @@ class TestObservabilityGuard(unittest.TestCase):
         self.assertEqual(self.client.get("/api/monitoring/status").status_code, 404)
 
     def test_prometheus_metrics_loopback_and_security_counters(self):
-        with self.app.test_request_context("/api/auth/login", method="POST"):
-            emit_security_event("auth_failure", "warning", identifier="attacker@test.com", reason="bad_password")
+        record_security_event(
+            event_type="LOGIN_FAILED",
+            severity="WARNING",
+            client_ip="127.0.0.1",
+            identifier="attacker@test.com",
+            endpoint="/api/auth/login",
+            status_code=401,
+        )
         res = self.client.get("/metrics")
         self.assertEqual(res.status_code, 200)
         body = res.data.decode("utf-8")
         self.assertIn("medimind_http_requests_total", body)
         self.assertIn("medimind_security_events_total", body)
-        self.assertIn('type="auth_failure"', body)
+        self.assertIn('event_type="LOGIN_FAILED"', body)
 
     def test_prometheus_metrics_blocks_external_ip_without_token(self):
         res = self.client.get("/metrics", environ_base={"REMOTE_ADDR": "203.0.113.55"})
