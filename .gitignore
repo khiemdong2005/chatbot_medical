@@ -6,6 +6,8 @@ __pycache__/
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -30,6 +32,8 @@ dist/
 .DS_Store
 Thumbs.db
 *.db
+*.db-*
+*.sqlite3-*
 
 # Uploads
 uploads/*
@@ -37,6 +41,8 @@ uploads/*
 
 # AI Agent config
 .gemini/
+/antigravity-setup/
+/skills-lock.json
 
 # Temporary scratch
 scratch/
@@ -56,4 +62,23 @@ data/recipes/wikibooks/api_cache/
 data/recipes/**/image-*
 data/recipes/**/rejected-*
 data/recipes/**/*.bak
+
+# Generated knowledge index and downloaded local models.
+/medical_vectordb/
+/models/
+/_quarantine_trash/
+
+# Generated editor history; current artboards belong in docs/design/.
+/designs/medimind-redesign/history/
+/docs/design/medimind-redesign/history/
+
+# Development caches and test output.
+.pytest_cache/
+node_modules/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
 
