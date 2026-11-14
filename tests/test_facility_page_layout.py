@@ -21,3 +21,18 @@ def test_primary_tabs_share_main_container():
     assert set(parser.parents)=={'home-tab','booking-tab','ocr-tab','doctor-tab'}
     assert len(set(parser.parents.values()))==1
     assert parser.parents['ocr-tab'][0]=='main'
+
+
+def test_auth_split_shell_structure_and_modes():
+    html = Path('templates/index.html').read_text(encoding='utf8')
+    js = Path('static/js/app.js').read_text(encoding='utf8')
+    css = Path('static/css/style.css').read_text(encoding='utf8')
+    for required_id in (
+        'id="login-modal"', 'id="auth-left-hero"', 'id="auth-modal-card"',
+        'id="btn-google-signin"', 'id="login-form"', 'id="register-form"',
+        'id="register-confirm-password"', 'id="forgot-form"', 'id="otp-form"',
+    ):
+        assert required_id in html, f'Missing {required_id}'
+    assert '#login-modal.auth-4exam-shell' in css
+    assert 'function toggleAuthPasswordVisibility(' in js
+    assert 'async function handleForgotSubmit(' in js

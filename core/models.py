@@ -1,19 +1,134 @@
 import os
+import re
 import datetime
+from typing import Optional, List
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
+
+
+def _utcnow() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+UNUSABLE_PASSWORD_PREFIX = "!unusable_oauth_password"
+_SYNTHETIC_PHONE_EMAIL_RE = re.compile(r"^(\+?\d{8,15})@phone\.medimind(?:\.vn)?$", re.IGNORECASE)
+_EMAIL_FORMAT_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def is_synthetic_phone_email(value: Optional[str]) -> bool:
+    """Kiểm tra xem chuỗi email có phải là synthetic email của tài khoản SĐT cũ hay không."""
+    if not value or not isinstance(value, str):
+        return False
+    return bool(_SYNTHETIC_PHONE_EMAIL_RE.match(value.strip()))
+
+
+def extract_phone_from_synthetic_email(value: Optional[str]) -> Optional[str]:
+    """Trích xuất và chuẩn hóa số điện thoại E.164 từ synthetic email cũ."""
+    if not value or not isinstance(value, str):
+        return None
+    m = _SYNTHETIC_PHONE_EMAIL_RE.match(value.strip())
+    if not m:
+        return None
+    return normalize_phone_e164(m.group(1))
+
+
+def normalize_email(email: Optional[str]) -> Optional[str]:
+    """Chuẩn hóa địa chỉ email thật (lowercase, trim). Trả về None nếu rỗng hoặc là email giả lập."""
+    if not email or not isinstance(email, str):
+        return None
+    cleaned = email.strip().lower()
+    if not cleaned or is_synthetic_phone_email(cleaned):
+        return None
+    if not _EMAIL_FORMAT_RE.match(cleaned):
+        return None
+    return cleaned
+
+
+def normalize_phone_e164(phone: Optional[str]) -> Optional[str]:
+    """
+    Chuẩn hóa số điện thoại về định dạng quốc tế E.164 (VD: 0987656789 -> +84987656789).
+    Trả về None nếu chuỗi không phải số điện thoại hợp lệ (9-15 chữ số).
+    """
+    if not phone or not isinstance(phone, str):
+        return None
+    raw = phone.strip()
+    if not raw or "@" in raw:
+        return None
+    cleaned = re.sub(r"[^\d+]", "", raw)
+    if not cleaned:
+        return None
+    if cleaned.startswith("+"):
+        digits = re.sub(r"\D", "", cleaned[1:])
+        if not digits:
+            return None
+        if digits.startswith("840") and len(digits) == 12:
+            digits = "84" + digits[3:]
+        if len(digits) < 9 or len(digits) > 15:
+            return None
+        if digits.startswith("84") and len(digits) != 11:
+            return None
+        return f"+{digits}"
+
+    digits = re.sub(r"\D", "", cleaned)
+    if digits.startswith("0"):
+        if len(digits) != 10:
+            return None
+        return f"+84{digits[1:]}"
+    if digits.startswith("84"):
+        if len(digits) != 11:
+            return None
+        return f"+{digits}"
+    if len(digits) == 9:
+        return f"+84{digits}"
+    return None
+
+
+def format_phone_local(phone: Optional[str]) -> str:
+    """Chuyển đổi số điện thoại E.164 (+84987656789) sang dạng nội địa (0987656789) khi cần."""
+    if not phone or not isinstance(phone, str):
+        return ""
+    norm = normalize_phone_e164(phone) or phone.strip()
+    if norm.startswith("+84") and len(norm) == 12:
+        return "0" + norm[3:]
+    return norm
+
+
+def phone_lookup_candidates(phone: Optional[str]) -> List[str]:
+    """Trả về danh sách các biến thể chuẩn hóa (E.164 và nội địa 0...) phục vụ truy vấn index."""
+    if not phone or not isinstance(phone, str):
+        return []
+    raw = phone.strip()
+    if is_synthetic_phone_email(raw):
+        norm = extract_phone_from_synthetic_email(raw)
+    else:
+        norm = normalize_phone_e164(raw)
+    candidates = []
+    if norm:
+        candidates.append(norm)
+        local_fmt = format_phone_local(norm)
+        if local_fmt and local_fmt not in candidates:
+            candidates.append(local_fmt)
+        digits_only = norm.lstrip("+")
+        if digits_only and digits_only not in candidates:
+            candidates.append(digits_only)
+    else:
+        digits = "".join(filter(str.isdigit, raw))
+        if 9 <= len(digits) <= 15:
+            candidates.append(digits)
+    return candidates
+
 
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Tự động kích hoạt chế độ WAL Mode và timeout 5000ms để triệt tiêu lỗi 'database is locked'."""
+    """Tự động kích hoạt chế độ WAL Mode, Foreign Keys và timeout 5000ms."""
     if "sqlite" in str(type(dbapi_connection)).lower() or hasattr(dbapi_connection, "cursor"):
         try:
             cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA foreign_keys=ON;")
             cursor.execute("PRAGMA journal_mode=WAL;")
             cursor.execute("PRAGMA synchronous=NORMAL;")
             cursor.execute("PRAGMA busy_timeout=5000;")
@@ -24,38 +139,62 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 class User(db.Model):
     """
-    Mô hình Người dùng (User Model) tuân thủ kiến trúc SQLAlchemy ORM.
-    Chạy 100% trên SQLite ở Local và tương thích hoàn toàn khi chuyển dịch lên production.
+    Mô hình Người dùng (User Model) chuẩn hóa Authentication:
+      - email: Địa chỉ email thật (NULL nếu đăng ký bằng SĐT và chưa cung cấp email)
+      - phone_number: Số điện thoại thật chuẩn hóa E.164 (+84...), UNIQUE & INDEXED
+      - google_sub: Định danh Google Subject ID (OpenID Connect sub), UNIQUE & INDEXED
     """
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=True, index=True)
+    phone_number = db.Column(db.String(20), unique=True, nullable=True, index=True)
+    google_sub = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    password_hash = db.Column(db.String(255), nullable=False, default=UNUSABLE_PASSWORD_PREFIX)
     full_name = db.Column(db.String(120), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default="patient")  # 'patient' hoặc 'doctor'
+    role = db.Column(db.String(20), nullable=False, default="patient")  # 'patient', 'doctor', 'admin'
+    account_status = db.Column(db.String(20), nullable=False, default="active")  # 'active', 'locked', 'disabled'
     license_code = db.Column(db.String(50), nullable=True)  # Chứng chỉ hành nghề (Bác sĩ)
-    phone_number = db.Column(db.String(20), nullable=True)
     dob = db.Column(db.String(50), nullable=True)  # Ngày sinh (VD: 15/08/1995)
     gender = db.Column(db.String(20), nullable=True)  # Giới tính (Nam / Nữ / Khác)
     address = db.Column(db.String(255), nullable=True)  # Địa chỉ / Tỉnh thành
     bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
     avatar_url = db.Column(db.String(500), nullable=True)
-    clinical_profile = db.Column(db.Text, nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    clinical_profile = db.Column(db.Text, nullable=True)  # Hồ sơ y tế mở rộng (JSON)
+    created_at = db.Column(db.DateTime, default=_utcnow)
+    updated_at = db.Column(
+        db.DateTime,
+        default=_utcnow,
+        onupdate=_utcnow
+    )
 
     def set_password(self, password: str) -> None:
         """Băm mật khẩu 1 chiều an toàn bằng thuật toán scrypt/pbkdf2."""
         self.password_hash = generate_password_hash(password)
 
+    def set_unusable_password(self) -> None:
+        """Đánh dấu tài khoản OAuth chưa thiết lập mật khẩu nội bộ (không lưu mật khẩu Google)."""
+        self.password_hash = UNUSABLE_PASSWORD_PREFIX
+
+    def has_usable_password(self) -> bool:
+        """Kiểm tra tài khoản có mật khẩu băm hợp lệ để đăng nhập bằng mật khẩu hay không."""
+        return bool(self.password_hash and not self.password_hash.startswith("!"))
+
     def check_password(self, password: str) -> bool:
         """Kiểm tra mật khẩu nhập vào với chuỗi băm trong CSDL."""
-        return check_password_hash(self.password_hash, password)
+        if not password or not self.has_usable_password():
+            return False
+        try:
+            return check_password_hash(self.password_hash, password)
+        except Exception:
+            return False
 
     def to_dict(self) -> dict:
         """Xuất thông tin an toàn và chuẩn hóa vai trò."""
-        is_phone = self.email.endswith("@phone.medimind")
-        display_account = self.phone_number if (is_phone and self.phone_number) else self.email
+        is_synthetic = is_synthetic_phone_email(self.email)
+        real_email = "" if (not self.email or is_synthetic) else self.email
+        is_phone_only = bool(not real_email and self.phone_number)
+        display_account = real_email or (self.phone_number or "")
 
         info_parts = []
         if self.gender:
@@ -64,15 +203,19 @@ class User(db.Model):
             info_parts.append(self.dob)
         if self.phone_number:
             info_parts.append(self.phone_number)
-        elif not is_phone and self.email:
-            info_parts.append(self.email)
+        elif real_email:
+            info_parts.append(real_email)
 
         personal_info = " • ".join(info_parts) if info_parts else ("Bác sĩ chuyên khoa" if self.role == "doctor" else "Thành viên")
         badge = "BS" if self.role == "doctor" else "BN"
 
         user_dict = {
             "id": self.id,
-            "email": display_account,
+            "email": real_email,
+            "display_account": display_account,
+            "is_phone_account": is_phone_only,
+            "google_linked": bool(self.google_sub),
+            "account_status": self.account_status or "active",
             "name": self.full_name,
             "full_name": self.full_name,
             "role": self.role,
@@ -98,6 +241,81 @@ class User(db.Model):
         return user_dict
 
 
+class AuthIdentity(db.Model):
+    """
+    Bảng liên kết đa định danh xác thực (Multi-Provider Identity Mapping):
+      - Cho phép 1 người dùng (user_id) liên kết Email, Số điện thoại (E.164) và Google OIDC (sub).
+      - Đảm bảo tính duy nhất (provider, provider_subject) trên toàn hệ thống.
+    """
+    __tablename__ = "auth_identities"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    provider = db.Column(db.String(30), nullable=False)  # 'email' | 'phone' | 'google'
+    provider_subject = db.Column(db.String(255), nullable=False)
+    verified_at = db.Column(db.DateTime, nullable=True, default=_utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint("provider", "provider_subject", name="uq_auth_identities_provider_subject"),
+        db.Index("ix_auth_identities_provider_subject", "provider", "provider_subject"),
+    )
+
+    user = db.relationship(
+        "User",
+        backref=db.backref("auth_identities", lazy="selectin", cascade="all, delete-orphan")
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "provider": self.provider,
+            "provider_subject": self.provider_subject,
+            "verified_at": self.verified_at.isoformat() if self.verified_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }
+
+
+def sync_user_identities(user: User, verified: bool = True) -> None:
+    """
+    Đồng bộ các trường định danh trên User (email, phone_number, google_sub)
+    vào bảng auth_identities trong cùng transaction hiện tại.
+    """
+    if not user or not user.id:
+        return
+    now = _utcnow() if verified else None
+    desired = {}
+    norm_email = normalize_email(user.email)
+    if norm_email:
+        desired["email"] = norm_email
+    norm_phone = normalize_phone_e164(user.phone_number)
+    if norm_phone:
+        desired["phone"] = norm_phone
+    if user.google_sub and str(user.google_sub).strip():
+        desired["google"] = str(user.google_sub).strip()
+
+    existing_rows = AuthIdentity.query.filter_by(user_id=user.id).all()
+    by_provider = {row.provider: row for row in existing_rows}
+
+    for provider, subject in desired.items():
+        if provider in by_provider:
+            row = by_provider[provider]
+            if row.provider_subject != subject:
+                row.provider_subject = subject
+                if now:
+                    row.verified_at = now
+        else:
+            conflict = AuthIdentity.query.filter_by(provider=provider, provider_subject=subject).first()
+            if not conflict:
+                db.session.add(AuthIdentity(
+                    user_id=user.id,
+                    provider=provider,
+                    provider_subject=subject,
+                    verified_at=now
+                ))
+
+
 class MedicalDocument(db.Model):
     """
     Mô hình quản lý tệp tài liệu y khoa / kết quả xét nghiệm gắn với chủ sở hữu (RBAC).
@@ -120,7 +338,7 @@ class MedicalDocument(db.Model):
     summary = db.Column(db.Text, nullable=True)  # Tóm tắt nhanh danh mục thuốc / chỉ số
     parsed_data = db.Column(db.Text, nullable=True)  # Toàn bộ JSON kết quả phân tích để xem lại ngay
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     owner = db.relationship("User", backref=db.backref("documents", lazy=True, cascade="all, delete-orphan"))
 
@@ -173,7 +391,7 @@ class ClinicalConsultation(db.Model):
     symptoms = db.Column(db.Text, nullable=True)  # JSON-encoded string
     specialist = db.Column(db.String(100), nullable=True)
     is_emergency = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     user = db.relationship("User", backref=db.backref("consultations", lazy=True, cascade="all, delete-orphan"))
 
@@ -219,7 +437,7 @@ class IntakeSessionRecord(db.Model):
     is_confirmed = db.Column(db.Boolean, default=False)
     version = db.Column(db.Integer, default=1)
     created_at = db.Column(db.String(50), nullable=True)
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=_utcnow, onupdate=_utcnow)
 
     user = db.relationship("User", backref=db.backref("intake_sessions", lazy=True, cascade="all, delete-orphan"))
 
@@ -270,7 +488,7 @@ class MedicalAppointment(db.Model):
     patient_phone = db.Column(db.String(20), nullable=False)
     note = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(30), default="pending", nullable=False)  # pending | confirmed | cancelled
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     user = db.relationship("User", backref=db.backref("appointments", lazy=True, cascade="all, delete-orphan"))
 

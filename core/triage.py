@@ -62,12 +62,110 @@ NEGATION_WORDS = [
     "không có", "khong co", "chẳng có", "chang co", "chưa có", "chua co"
 ]
 
-# English emergency keywords
+# English contractions map for robust normalization
+ENGLISH_CONTRACTIONS = {
+    r"\bdon't\b": "do not",
+    r"\bdont\b": "do not",
+    r"\bdidn't\b": "did not",
+    r"\bdidnt\b": "did not",
+    r"\bdoesn't\b": "does not",
+    r"\bdoesnt\b": "does not",
+    r"\bhaven't\b": "have not",
+    r"\bhavent\b": "have not",
+    r"\bhasn't\b": "has not",
+    r"\bhasnt\b": "has not",
+    r"\bhadn't\b": "had not",
+    r"\bhadnt\b": "had not",
+    r"\bwon't\b": "will not",
+    r"\bwont\b": "will not",
+    r"\bwouldn't\b": "would not",
+    r"\bwouldnt\b": "would not",
+    r"\bcan't\b": "cannot",
+    r"\bcant\b": "cannot",
+    r"\bcouldn't\b": "could not",
+    r"\bcouldnt\b": "could not",
+    r"\bshouldn't\b": "should not",
+    r"\bshouldnt\b": "should not",
+    r"\bisn't\b": "is not",
+    r"\bisnt\b": "is not",
+    r"\baren't\b": "are not",
+    r"\barent\b": "are not",
+    r"\bwasn't\b": "was not",
+    r"\bwasnt\b": "was not",
+    r"\bweren't\b": "were not",
+    r"\bwerent\b": "were not",
+}
+
+# English emergency keywords (generalized clinical red flags)
 EMERGENCY_SIGNS_EN = [
-    "chest pain", "severe chest pain", "shortness of breath", "difficulty breathing",
-    "cannot breathe", "choking", "facial drooping", "slurred speech", "paralysis",
-    "seizure", "unconscious", "passed out", "coughing blood", "vomiting blood", "anaphylaxis"
+    # Cardiovascular & Respiratory
+    "severe chest pain", "chest pain", "shortness of breath", "difficulty breathing",
+    "cannot breathe", "choking", "severe respiratory distress", "stridor",
+    # Neurological (FAST)
+    "facial drooping", "slurred speech", "paralysis", "seizure", "unconscious", "passed out",
+    # Hemorrhage & Anaphylaxis
+    "coughing blood", "vomiting blood", "blood spurting", "spurting blood", "anaphylaxis",
+    # Ophthalmic emergencies (acute vision loss / retinal detachment patterns)
+    "sudden vision loss", "sudden loss of vision", "loss of sight", "sudden blindness",
+    "acute vision loss", "abrupt vision loss", "abrupt loss of vision",
+    "curtain over vision", "curtain-like shadow", "gray shadow over vision", "dark shadow over vision",
+    "shadow covering vision", "shadow over vision", "suddenly cannot see"
 ]
+
+ENGLISH_NEGATION_MARKERS = {
+    "no", "not", "never", "without", "neither", "no longer",
+    "cannot", "denies", "denied", "free of"
+}
+
+ENGLISH_NEGATION_FILLERS = {
+    # auxiliary / verbs
+    "have", "had", "having", "feel", "feeling", "felt", "experience", "experienced", "experiencing",
+    "see", "seeing", "noticed", "noticing", "get", "getting", "got", "suffer", "suffered", "suffering",
+    "be", "is", "are", "was", "were", "been", "become", "became", "say", "think", "believe",
+    "reporting", "reported",
+    # pronouns / articles / prepositions
+    "i", "you", "he", "she", "we", "they", "my", "any", "a", "an", "the", "kind", "of", "type", "types",
+    "sign", "signs", "symptom", "symptoms", "with", "in", "to", "such",
+    # modifiers / qualifiers
+    "severe", "significant", "real", "actual", "noticeable", "current", "major", "acute",
+    "serious", "further", "other", "such", "new", "more", "particular", "true", "obvious"
+}
+
+
+def is_negated_english(before: str, after: str) -> bool:
+    """Determine if an English emergency sign mention is negated or resolved."""
+    # 1. Post-symptom resolution (e.g. 'chest pain has resolved', 'last year', 'months ago')
+    if re.match(r"\s+(?:has resolved|resolved|is gone|went away|last year|years ago|months ago)\b", after):
+        return True
+
+    # 2. Scope boundary before symptom: split by punctuation or contrastive conjunctions
+    scope = re.split(r"[,;]|\b(?:but|however|although|yet|though|instead of|rather than|while)\b", before)[-1]
+
+    # 3. Check coordinated negative list: e.g. "without slurred speech or [facial drooping]"
+    coord_match = re.search(r"\b(?:no|not|never|without|neither|denies|nor|cannot)\b[^,;]{0,60}\b(?:or|nor)\b", scope)
+    if coord_match:
+        after_coord = scope[coord_match.end():]
+        coord_tokens = re.findall(r"\b[\w']+\b", after_coord)
+        if all(w in ENGLISH_NEGATION_FILLERS for w in coord_tokens):
+            return True
+
+    # 4. Token-based lookback from symptom
+    tokens = re.findall(r"\b[\w']+\b", scope)
+    if not tokens:
+        return False
+
+    # Check from nearest word backwards up to 7 words
+    window = tokens[-7:]
+    for i in range(len(window) - 1, -1, -1):
+        word = window[i]
+        if word in ENGLISH_NEGATION_MARKERS:
+            intervening = window[i + 1:]
+            if all(w in ENGLISH_NEGATION_FILLERS for w in intervening):
+                return True
+        elif word not in ENGLISH_NEGATION_FILLERS:
+            break
+
+    return False
 
 
 # ------------------------------------------------------------------------------
@@ -80,37 +178,51 @@ def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str
     Có cơ chế phân tích cụm phủ định để không báo nhầm (ví dụ: 'sốt nhưng không khó thở').
     """
     text = remove_accents(message).replace("đ", "d")
+    if lang == "en":
+        for pat, repl in ENGLISH_CONTRACTIONS.items():
+            text = re.sub(pat, repl, text, flags=re.IGNORECASE)
+
     if text.strip(" .!") in {"co", "dung", "yes"}:
         for prefix in ("Hiện bạn hoặc người bạn đang hỏi giúp có đang bị ", "Are you or the person you are asking about experiencing "):
             if previous_question.startswith(prefix):
                 text = remove_accents(previous_question[len(prefix):]).replace("đ", "d")
+                if lang == "en":
+                    for pat, repl in ENGLISH_CONTRACTIONS.items():
+                        text = re.sub(pat, repl, text, flags=re.IGNORECASE)
                 break
     signs = {sign["no_accent"]: sign["vi"] for sign in EMERGENCY_SIGNS}
     if lang == "en":
-        signs.update({name: name for name in EMERGENCY_SIGNS_EN})
+        signs.update({name: name for name in sorted(EMERGENCY_SIGNS_EN, key=len, reverse=True)})
     matched_flags = []
     uncertain = []
     # Evaluate each mention in its own clause so a past denial cannot cancel a new symptom.
-    clauses = re.split(r"[.;!?\n]|\b(?:nhung|tuy nhien|but|however)\b|(?=\b(?:bay gio|hien tai|luc nay|now)\b)", text)
+    clauses = re.split(r"[.;!?\n]|\b(?:nhung|tuy nhien|but|however|although|yet|though|nevertheless)\b|(?=\b(?:bay gio|hien tai|luc nay|now)\b)", text)
     for clause in clauses:
         for phrase, label in signs.items():
             for match in re.finditer(r"\b" + re.escape(phrase) + r"\b", clause):
                 before = clause[:match.start()]
                 after = clause[match.end():]
                 history_scope = re.split(r",|\b(?:con toi|toi dang|bo toi dang|me toi dang)\b", before)[-1]
-                if re.search(r"\b(?:nam ngoai|nhieu nam truoc|tien su gia dinh|last year|family history of)\b", history_scope):
+                if re.search(r"\b(?:nam ngoai|nhieu nam truoc|tien su gia dinh|last year|years ago|family history of|history of)\b", history_scope):
                     continue
-                # A new subject/affirmation starts a new scope; coordinated negative lists share one.
-                scope = re.split(r"[,;]|\b(?:con toi|gio toi|i now)\b", before)[-1]
-                negative = re.search(r"\b(?:khong|chua|chang|no|not|without|neither)\s+(?:(?:he|bi|co|thay|con|cam thay|have|having)\s+)*$", scope)
-                coordinated = re.search(r"\b(?:khong|chua|chang|no|without|neither)\b[^,;]{0,45}\b(?:hay|hoac|or|nor)\s*$", scope)
-                if negative or coordinated or re.match(r"\s+(?:da het|het roi|nam ngoai|last year)\b", after):
-                    continue
-                if re.search(r"\b(?:khong nho ro|khong chac co|not sure (?:if|whether))\s+(?:(?:toi|minh|bi|i|have)\s+)*$", scope):
-                    uncertain.append(label)
-                    continue
-                if label.capitalize() not in matched_flags:
-                    matched_flags.append(label.capitalize())
+                
+                if lang == "en":
+                    if is_negated_english(before, after):
+                        continue
+                else:
+                    # A new subject/affirmation starts a new scope; coordinated negative lists share one.
+                    scope = re.split(r"[,;]|\b(?:con toi|gio toi|i now)\b", before)[-1]
+                    negative = re.search(r"\b(?:khong|chua|chang)\s+(?:(?:he|bi|co|thay|con|cam thay)\s+)*$", scope)
+                    coordinated = re.search(r"\b(?:khong|chua|chang)\b[^,;]{0,45}\b(?:hay|hoac)\s*$", scope)
+                    if negative or coordinated or re.match(r"\s+(?:da het|het roi|nam ngoai)\b", after):
+                        continue
+                    if re.search(r"\b(?:khong nho ro|khong chac co|not sure (?:if|whether))\s+(?:(?:toi|minh|bi|i|have)\s+)*$", scope):
+                        uncertain.append(label)
+                        continue
+
+                cap_label = label.capitalize()
+                if cap_label not in matched_flags:
+                    matched_flags.append(cap_label)
 
     if matched_flags:
         if lang == "en":

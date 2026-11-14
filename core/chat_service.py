@@ -160,7 +160,11 @@ def process_clinical_chat(
     # -------------------------------------------------------------
     rag_docs = []
     try:
-        rag_docs = medical_rag_service.retrieve_context(retrieval_query(user_message, intake_facts), top_k=2)
+        rag_docs = medical_rag_service.retrieve_context(
+            retrieval_query(user_message, intake_facts),
+            top_k=2,
+            lang=lang
+        )
     except Exception as e:
         logger.warning("[REQ-%s] Retrieval unavailable (%s).", req_id, type(e).__name__)
 
@@ -193,17 +197,50 @@ def process_clinical_chat(
         # Kích hoạt Fallback Engine và đánh dấu trạng thái degraded
         degraded = True
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
-        question = clinical_hint if isinstance(clinical_hint, str) else ""
-        if question and any(question in turn["content"] for turn in history if turn["role"] == "assistant"):
-            question = ""
-        answer = ("Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn."
-                  if lang == "vi" else "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines.")
-        answer += " " + (question or ("Bạn có thể thử gửi lại sau ít phút." if lang == "vi" else "Please try again in a few minutes."))
-        triage_result = {"answer": answer, "symptoms": intake_facts.get("present_symptoms", []),
-                         "risk_level": "Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
-                         "risk_score": None, "specialist": "Chưa xác định" if lang == "vi" else "Undetermined",
-                         "visual_findings": [], "differential_diagnosis": [], "is_emergency": False,
-                         "sources": []}
+
+        # Kiểm tra an toàn khẩn cấp: Đánh giá lại dấu hiệu cấp cứu deterministically trước khi tạo fallback
+        fallback_emergency = assess_emergency_risk(user_message, lang=lang)
+        if fallback_emergency.get("is_emergency"):
+            emg_symptoms = fallback_emergency.get("symptoms", [])
+            symptom_str = ", ".join(emg_symptoms) if emg_symptoms else ("Dấu hiệu cấp cứu" if lang == "vi" else "Emergency symptoms")
+            if lang == "vi":
+                emg_answer = (
+                    f"⚠️ **CẢNH BÁO LÂM SÀNG KHẨN CẤP:** Hệ thống đang tạm thời gián đoạn dịch vụ AI, nhưng đã phát hiện dấu hiệu nguy kịch: **{symptom_str}**.\n\n"
+                    "**TUYỆT ĐỐI KHÔNG CHỜ ĐỢI AI PHỤC HỒI.** Hãy gọi ngay Cấp cứu (**115**) hoặc nhờ người thân đưa đến Khoa Cấp cứu gần nhất ngay lập tức!"
+                )
+                risk_lvl = "Nguy cơ cao (Cần thăm khám khẩn)"
+                spec = "Cấp cứu 115 / Khoa Cấp cứu"
+            else:
+                emg_answer = (
+                    f"⚠️ **CLINICAL EMERGENCY ALERT:** The AI service is temporarily unavailable, but potential life-threatening signs were detected: **{symptom_str}**.\n\n"
+                    "**DO NOT WAIT FOR AI SERVICE RECOVERY.** Immediately call Emergency Services (**911 / 115**) or proceed to the nearest emergency room right now!"
+                )
+                risk_lvl = "High Risk (Immediate Care Needed)"
+                spec = "Emergency 115 / ER Department"
+            triage_result = {
+                "answer": emg_answer,
+                "symptoms": emg_symptoms,
+                "risk_level": risk_lvl,
+                "risk_score": 90,
+                "specialist": spec,
+                "visual_findings": [],
+                "differential_diagnosis": ["Dấu hiệu cấp cứu tim mạch / hô hấp / thần kinh / nhãn khoa"],
+                "is_emergency": True,
+                "degraded": True,
+                "sources": []
+            }
+        else:
+            question = clinical_hint if isinstance(clinical_hint, str) else ""
+            if question and any(question in turn["content"] for turn in history if turn["role"] == "assistant"):
+                question = ""
+            answer = ("Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn."
+                      if lang == "vi" else "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines.")
+            answer += " " + (question or ("Bạn có thể thử gửi lại sau ít phút." if lang == "vi" else "Please try again in a few minutes."))
+            triage_result = {"answer": answer, "symptoms": intake_facts.get("present_symptoms", []),
+                             "risk_level": "Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
+                             "risk_score": None, "specialist": "Chưa xác định" if lang == "vi" else "Undetermined",
+                             "visual_findings": [], "differential_diagnosis": [], "is_emergency": False,
+                             "sources": []}
 
     # -------------------------------------------------------------
     # TẦNG 4: HẬU KIỂM AN TOÀN (Post-check Guardrail)

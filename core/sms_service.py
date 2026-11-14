@@ -41,11 +41,11 @@ class SmsService:
 
         # Chế độ Dev Simulator khi chưa có API Key
         if not self.is_configured():
-            print("\n" + "=" * 70)
-            print(f"📱 [DEV SMS SIMULATOR] Gửi tới SĐT: {norm_phone}")
-            print(f"🔑 Mã OTP 6 số: {otp_code}")
-            print(f"💬 Tin nhắn: {message_text}")
-            print("=" * 70 + "\n")
+            print("\n" + "=" * 70, flush=True)
+            print(f"📱 [DEV SMS SIMULATOR] Gửi tới SĐT: {norm_phone}", flush=True)
+            print(f"🔑 Mã OTP 6 số: {otp_code}", flush=True)
+            print(f"💬 Tin nhắn: {message_text}", flush=True)
+            print("=" * 70 + "\n", flush=True)
             return True
 
         # Gửi qua Twilio nếu được cấu hình

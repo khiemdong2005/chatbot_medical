@@ -1,0 +1,56 @@
+# ==============================================================
+# SRE & SIEM ALERT RULES SPECIFICATION (PROMETHEUS + GRAFANA)
+# ==============================================================
+
+groups:
+  - name: medimind_clinical_and_security_alerts
+    rules:
+      # 1. Tỷ lệ lỗi máy chủ (Error Rate > 5%)
+      - alert: HighHttpErrorRate
+        expr: rate(medimind_http_requests_total{status=~"5.."}[1m]) / rate(medimind_http_requests_total[1m]) * 100 > 5
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tỷ lệ lỗi HTTP 5xx vượt ngưỡng 5% trong 1 phút"
+          description: "Dịch vụ đang gặp sự cố nghiêm trọng, tỷ lệ lỗi 5xx đạt {{ $value }}%."
+
+      # 2. Độ trễ yêu cầu cao (Latency P95 > 2s)
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum(rate(medimind_http_request_duration_seconds_bucket[1m])) by (le)) > 2.0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Độ trễ xử lý P95 vượt quá 2.0 giây"
+          description: "Phản hồi API đang bị nghẽn (P95 = {{ $value }}s)."
+
+      # 3. Cờ đỏ cấp cứu lâm sàng dồn dập (Emergency Spike)
+      - alert: EmergencyTriageSpike
+        expr: rate(medimind_clinical_triage_total{urgency="emergency"}[2m]) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Số ca triage cờ đỏ cấp cứu tăng đột biến"
+          description: "Ghi nhận nhiều ca bệnh nhân nguy kịch cùng thời điểm."
+
+      # 4. Tràn bộ nhớ máy chủ (Memory Saturation > 90%)
+      - alert: HighMemoryLoad
+        expr: medimind_system_memory_load_percent > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Bộ nhớ RAM máy chủ vượt quá 90%"
+          description: "Nguy cơ sập máy chủ do cạn kiệt RAM (Memory Saturation = {{ $value }}%)."
+
+      # 5. Tấn công Brute-Force / Fuzzing / Upload độc hại từ Kali Linux (SIEM Metric)
+      - alert: SecurityAttackSpike
+        expr: sum(increase(medimind_security_events_total[1m])) > 5
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Phát hiện tấn công an ninh mạng cường độ cao (Brute-force / Exploit)"
+          description: "Ghi nhận {{ $value }} sự kiện bảo mật trong 1 phút qua. Kiểm tra ngay Wazuh SIEM Dashboard!"

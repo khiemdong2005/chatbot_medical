@@ -28,11 +28,11 @@ class EmailService:
     def send_email(self, to_email: str, subject: str, html_body: str, text_body: Optional[str] = None) -> bool:
         """Gửi thư điện tử qua giao thức SMTP. Nếu chưa cấu hình, in ra terminal để test."""
         if not self.is_configured():
-            print("\n" + "=" * 70)
-            print(f"📧 [DEV EMAIL SIMULATOR] Gửi tới: {to_email}")
-            print(f"📌 Tiêu đề: {subject}")
-            print(f"📝 Nội dung:\n{text_body or html_body}")
-            print("=" * 70 + "\n")
+            print("\n" + "=" * 70, flush=True)
+            print(f"📧 [DEV EMAIL SIMULATOR] Gửi tới: {to_email}", flush=True)
+            print(f"📌 Tiêu đề: {subject}", flush=True)
+            print(f"📝 Nội dung:\n{text_body or html_body}", flush=True)
+            print("=" * 70 + "\n", flush=True)
             return True
 
         try:

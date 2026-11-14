@@ -20,7 +20,10 @@ import sys
 import json
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+
+from core.reranker_service import reranker_service
+from core.query_expansion_service import query_expansion_service
 
 try:
     import chromadb
@@ -72,19 +75,47 @@ def search_tokens(text):
     return re.findall(r"[a-z0-9]+", "".join(c for c in folded if not unicodedata.combining(c)))
 
 
+def _accented_tokens(text):
+    """Keep Vietnamese accents while normalizing case, Unicode and punctuation."""
+    return re.findall(r"[^\W_]+", unicodedata.normalize("NFC", text).lower(), re.UNICODE)
+
+
+def _contains_vietnamese_phrase(query, phrase):
+    """Match accented input exactly; permit accent-free input as a fallback.
+
+    Accent folding both sides unconditionally maps e.g. Vietnamese 'họ' to
+    the symptom 'ho'. Individual ASCII query tokens remain usable for people
+    typing without Vietnamese marks, without overriding explicit diacritics.
+    """
+    query_tokens, phrase_tokens = _accented_tokens(query), _accented_tokens(phrase)
+    width = len(phrase_tokens)
+    if not width:
+        return False
+    for index in range(len(query_tokens) - width + 1):
+        window = query_tokens[index:index + width]
+        if all(actual == expected or
+               (actual.isascii() and search_tokens(actual) == search_tokens(expected))
+               for actual, expected in zip(window, phrase_tokens)):
+            return True
+    return False
+
+
 class MedicalRAGService:
     """
     Dịch vụ quản lý truy xuất tri thức y khoa từ ChromaDB.
     """
 
     def __init__(self, db_dir: Optional[Path] = None, acceptance_threshold: float = DEFAULT_ACCEPTANCE_THRESHOLD,
-                 vector_search_enabled: Optional[bool] = None):
+                 vector_search_enabled: Optional[bool] = None,
+                 rerank_enabled: Optional[bool] = None):
         self.db_dir = Path(db_dir) if db_dir else VECTOR_DB_DIR
         self.acceptance_threshold = acceptance_threshold
         # Querying query_texts can lazily download an embedding model. Keep the
         # default request path entirely local; vectors require operator opt-in.
         self.vector_search_enabled = (os.getenv("RAG_VECTOR_SEARCH_ENABLED", "").lower() in ("1", "true", "yes")
                                       if vector_search_enabled is None else vector_search_enabled is True)
+        self.rerank_enabled = (os.getenv("RAG_RERANK_ENABLED", "").lower() in ("1", "true", "yes")
+                               if rerank_enabled is None else rerank_enabled is True)
         self._lexical_index = None
         self.client = None
         self.collection = None
@@ -141,11 +172,10 @@ class MedicalRAGService:
         Mở rộng từ khóa truy vấn: Kết hợp câu hỏi tiếng Việt của người bệnh
         với các thuật ngữ y khoa tiếng Anh tương ứng để nâng cao độ chính xác khi tìm trong sách.
         """
-        query_lower = " " + " ".join(search_tokens(query)) + " "
         matched_en_terms = []
 
         for vi_term, en_terms in VIETNAMESE_TO_ENGLISH_KEYWORDS.items():
-            if " " + " ".join(search_tokens(vi_term)) + " " in query_lower:
+            if _contains_vietnamese_phrase(query, vi_term):
                 if en_terms not in matched_en_terms:
                     matched_en_terms.append(en_terms)
 
@@ -188,56 +218,178 @@ class MedicalRAGService:
                 scores.append(((score or 1) * (2 if exact_title else 1), idx))
         return [rows[idx] for _, idx in sorted(scores, reverse=True)[:limit]]
 
-    def retrieve_context(self, user_query: str, top_k: int = 2) -> List[Dict[str, Any]]:
-        """
-        Local BM25 by default, with optional vector search after lexical search.
-        No user-query cache, embedding download or external request is required
-        for the default path. A failed vector lookup cannot discard local hits.
-        """
-        if not isinstance(user_query, str) or not user_query.strip() or not self.is_available():
-            return []
-        top_k = max(1, min(5, top_k)) if type(top_k) is int else 2
-        search_query = self.expand_query(user_query[:2000])
-        pool = min(self.collection.count(), top_k * 3)
-        by_text, ranks = {}, {}
-        # Index only the local source corpus, never store user messages/queries.
+    def lexical_search(self, query: str, limit: int) -> List[Dict[str, Any]]:
+        """Search the local BM25 index; query is already expanded by the caller."""
         try:
-            for rank, (content, meta) in enumerate(self._bm25_matches(search_query, pool), 1):
-                meta = meta or {}
-                ranks[content] = 1 / (60 + rank)
-                by_text[content] = dict(content=content, title=meta.get("title", ""),
-                    category=meta.get("category", ""), source=meta.get("source", ""),
-                    source_url=meta.get("source_url", ""), distance=None, distance_metric=None,
-                    accepted=True, retrieval="bm25")
+            return [dict(content=content, metadata=meta or {}, rank=rank)
+                    for rank, (content, meta) in enumerate(self._bm25_matches(query, limit), 1)]
         except Exception as error:
             logger.warning("Local reference lookup unavailable (%s).", type(error).__name__)
+            return []
 
+    def vector_search(self, query: str, limit: int) -> List[Dict[str, Any]]:
+        """Return valid, threshold-accepted vector hits, or an empty list on failure."""
+        if not self.vector_search_enabled:
+            return []
+        try:
+            results = self.collection.query(query_texts=[query], n_results=limit)
+            docs = (results.get("documents") or [[]])[0]
+            metas = (results.get("metadatas") or [[]])[0]
+            distances = (results.get("distances") or [[]])[0]
+            matches = []
+            for index, (content, distance) in enumerate(zip(docs, distances), 1):
+                if not isinstance(content, str) or not content.strip() or distance is None:
+                    continue
+                try:
+                    dist = float(distance)
+                except (TypeError, ValueError, OverflowError):
+                    continue
+                if not math.isfinite(dist) or not 0 <= dist <= self.acceptance_threshold:
+                    continue
+                meta = metas[index - 1] if index <= len(metas) and isinstance(metas[index - 1], dict) else {}
+                matches.append(dict(content=content, metadata=meta, distance=round(dist, 4), rank=index))
+            return matches
+        except Exception as error:
+            logger.warning("Optional vector lookup unavailable (%s); keeping local matches.", type(error).__name__)
+            return []
+
+    @staticmethod
+    def merge_results(lexical: List[Dict[str, Any]], vector: List[Dict[str, Any]],
+                      limit: int) -> List[Dict[str, Any]]:
+        """Deduplicate by exact content and apply the existing reciprocal-rank fusion."""
+        by_text: Dict[str, Dict[str, Any]] = {}
+        for hit in lexical:
+            content, meta, rank = hit["content"], hit["metadata"], hit["rank"]
+            # Assignment preserves the previous duplicate-content/rank behavior.
+            by_text[content] = dict(content=content, metadata=meta, lexical_metadata=meta,
+                vector_metadata=None, lexical_score=1 / (60 + rank), vector_score=None,
+                rerank_score=None, fusion_score=1 / (60 + rank), distance=None, distance_metric=None, accepted=True, retrieval="bm25")
+        for hit in vector:
+            content, meta, rank = hit["content"], hit["metadata"], hit["rank"]
+            candidate = by_text.get(content)
+            if candidate is None:
+                candidate = dict(content=content, lexical_metadata=None, vector_metadata=None,
+                    lexical_score=None, vector_score=None, rerank_score=None, fusion_score=0)
+                by_text[content] = candidate
+            candidate["fusion_score"] += 1 / (60 + rank)
+            candidate.update(metadata={**(candidate.get("lexical_metadata") or {}), **meta}, vector_metadata=meta,
+                vector_score=(candidate["vector_score"] or 0) + 1 / (60 + rank),
+                distance=hit["distance"], distance_metric="l2", accepted=True,
+                retrieval="hybrid" if candidate.get("retrieval") else "vector")
+        return sorted(by_text.values(), key=lambda doc: doc["fusion_score"], reverse=True)[:limit]
+
+    @staticmethod
+    def fuse_branches(branches: List[Tuple[str, List[Dict[str, Any]]]], limit: int) -> List[Dict[str, Any]]:
+        """Reciprocal-rank fusion across multiple retrieval branches with deduplication and provenance."""
+        by_text: Dict[str, Dict[str, Any]] = {}
+        for branch_name, hits in branches:
+            seen = set()
+            for hit in hits:
+                content = hit.get("content")
+                rank = hit.get("rank")
+                if not isinstance(content, str) or not content.strip() or rank is None:
+                    continue
+                if content in seen:
+                    continue
+                seen.add(content)
+                meta = hit.get("metadata") or {}
+                candidate = by_text.get(content)
+                if candidate is None:
+                    candidate = {
+                        "content": content,
+                        "metadata": meta,
+                        "lexical_metadata": meta if "bm25" in branch_name else None,
+                        "vector_metadata": meta if branch_name == "vector" else None,
+                        "lexical_score": None,
+                        "vector_score": None,
+                        "rerank_score": None,
+                        "fusion_score": 0.0,
+                        "distance": hit.get("distance"),
+                        "distance_metric": "l2" if branch_name == "vector" else None,
+                        "accepted": True,
+                        "retrieval": "hybrid" if len(branches) > 1 else ("vector" if branch_name == "vector" else "bm25"),
+                        "retrieval_branches": []
+                    }
+                    by_text[content] = candidate
+                candidate["fusion_score"] += 1.0 / (60 + rank)
+                if branch_name not in candidate["retrieval_branches"]:
+                    candidate["retrieval_branches"].append(branch_name)
+                candidate["metadata"] = {**candidate["metadata"], **meta}
+                if "bm25" in branch_name:
+                    candidate["lexical_metadata"] = {**(candidate.get("lexical_metadata") or {}), **meta}
+                    candidate["lexical_score"] = (candidate["lexical_score"] or 0) + 1.0 / (60 + rank)
+                elif branch_name == "vector":
+                    candidate["vector_metadata"] = meta
+                    candidate["vector_score"] = (candidate["vector_score"] or 0) + 1.0 / (60 + rank)
+                    candidate["distance"] = hit.get("distance")
+                    candidate["distance_metric"] = "l2"
+
+        for candidate in by_text.values():
+            branches_seen = candidate["retrieval_branches"]
+            if len(branches_seen) > 1:
+                candidate["retrieval"] = "hybrid"
+            elif "vector" in branches_seen:
+                candidate["retrieval"] = "vector"
+            else:
+                candidate["retrieval"] = "bm25"
+
+        return sorted(by_text.values(), key=lambda doc: doc["fusion_score"], reverse=True)[:limit]
+
+    def retrieve_candidates(self, user_query: str, top_k: int = 20, lang: str = "vi") -> List[Dict[str, Any]]:
+        """Retrieve ranked candidates, retaining branch metadata and scores for later stages."""
+        if not isinstance(user_query, str) or not user_query.strip() or not self.is_available():
+            return []
+        top_k = max(1, min(20, top_k)) if type(top_k) is int else 2
+        query = self.expand_query(user_query[:2000])
+        pool = min(self.collection.count(), top_k * 3)
+
+        # 1. Base lexical branch (bm25_original)
+        branches = [("bm25_original", self.lexical_search(query, pool))]
+
+        # 2. Cross-language query expansion branch (bm25_expanded)
+        if query_expansion_service.enabled and lang == "vi":
+            expansion_res = query_expansion_service.expand_for_retrieval(user_query, language=lang)
+            if expansion_res.used_expansion and expansion_res.expanded_query.strip():
+                exp_query = expansion_res.expanded_query.strip()[:2000]
+                if exp_query.lower() != user_query.strip().lower():
+                    branches.append(("bm25_expanded", self.lexical_search(exp_query, pool)))
+
+        # 3. Optional vector search branch
         if self.vector_search_enabled:
+            branches.append(("vector", self.vector_search(query, pool)))
+
+        if len(branches) == 1 and branches[0][0] == "bm25_original":
+            # Baseline compatibility: single branch
+            hits = branches[0][1]
+            return [dict(
+                content=h["content"], metadata=h.get("metadata") or {}, lexical_metadata=h.get("metadata") or {},
+                vector_metadata=None, lexical_score=1 / (60 + h["rank"]), vector_score=None,
+                rerank_score=None, fusion_score=1 / (60 + h["rank"]), distance=None, distance_metric=None,
+                accepted=True, retrieval="bm25", retrieval_branches=["bm25_original"]
+            ) for h in hits[:top_k]]
+
+        return self.fuse_branches(branches, top_k)
+
+    def retrieve_context(self, user_query: str, top_k: int = 2, lang: str = "vi") -> List[Dict[str, Any]]:
+        """Return the original context contract for current chat and intake callers."""
+        top_k = max(1, min(5, top_k)) if type(top_k) is int else 2
+        candidates = self.retrieve_candidates(user_query, 20 if self.rerank_enabled else top_k, lang=lang)
+        if self.rerank_enabled and candidates:
             try:
-                # Exactly one attempt. Operators enabling this path must have
-                # provisioned a compatible embedding model outside requests.
-                results = self.collection.query(query_texts=[search_query], n_results=pool)
-                docs = (results.get("documents") or [[]])[0]
-                metas = (results.get("metadatas") or [[]])[0]
-                distances = (results.get("distances") or [[]])[0]
-                for index, (content, distance) in enumerate(zip(docs, distances), 1):
-                    if not isinstance(content, str) or not content.strip() or distance is None:
-                        continue
-                    try:
-                        dist = float(distance)
-                    except (TypeError, ValueError, OverflowError):
-                        continue
-                    if not math.isfinite(dist) or not 0 <= dist <= self.acceptance_threshold:
-                        continue
-                    meta = metas[index - 1] if index <= len(metas) and isinstance(metas[index - 1], dict) else {}
-                    ranks[content] = ranks.get(content, 0) + 1 / (60 + index)
-                    by_text[content] = dict(content=content, title=meta.get("title", ""),
-                        category=meta.get("category", ""), source=meta.get("source", ""),
-                        source_url=meta.get("source_url", ""), distance=round(dist, 4), distance_metric="l2",
-                        accepted=True, retrieval="hybrid" if content in by_text else "vector")
+                candidates = reranker_service.rerank(user_query, candidates, top_k)
             except Exception as error:
-                logger.warning("Optional vector lookup unavailable (%s); keeping local matches.", type(error).__name__)
-        return [by_text[key] for key in sorted(ranks, key=ranks.get, reverse=True)[:top_k]]
+                logger.warning("Reranking unavailable (%s); keeping retrieval order.", type(error).__name__)
+        candidates = candidates[:top_k]
+        context = []
+        for hit in candidates:
+            # Previously a vector hit replaced lexical metadata, including missing fields.
+            meta = hit.get("vector_metadata") if hit.get("vector_metadata") is not None else hit.get("metadata") or {}
+            context.append(dict(content=hit["content"], title=meta.get("title", ""),
+                category=meta.get("category", ""), source=meta.get("source", ""),
+                source_url=meta.get("source_url", ""), distance=hit.get("distance"),
+                distance_metric=hit.get("distance_metric"), accepted=hit.get("accepted", True),
+                retrieval=hit.get("retrieval", "bm25")))
+        return context
 
 
 # Khởi tạo thể hiện Singleton dùng chung toàn ứng dụng

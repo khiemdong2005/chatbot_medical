@@ -181,6 +181,21 @@ const fieldMaskState = {
 
 const fieldRealValues = {};
 
+function sanitizeUserEmail(email) {
+  if (!email || typeof email !== 'string') return '';
+  const trimmed = email.trim();
+  const lowered = trimmed.toLowerCase();
+  if (
+    !trimmed.includes('@') ||
+    lowered.endsWith('@phone.medimind') ||
+    lowered.endsWith('@phone.medimind.vn') ||
+    /^\+?[0-9]{9,15}$/.test(trimmed)
+  ) {
+    return '';
+  }
+  return trimmed;
+}
+
 function maskFieldValue(val, fieldId) {
   if (!val) return '';
   if (fieldId === 'p-email') {
@@ -239,8 +254,9 @@ function syncLeftCardPhoneEmail() {
   }
 
   if (cardEmail) {
-    if (rawEmail && rawEmail.trim() && !rawEmail.endsWith('@phone.medimind')) {
-      cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(rawEmail, 'p-email') : rawEmail;
+    const validEmail = sanitizeUserEmail(rawEmail);
+    if (validEmail) {
+      cardEmail.innerText = fieldMaskState['p-email'] ? maskFieldValue(validEmail, 'p-email') : validEmail;
     } else {
       cardEmail.innerText = 'Chưa có email';
     }
@@ -367,6 +383,13 @@ const DEFAULT_USER_PROFILE = {
 
 // Default visitor: NO USER LOGGED IN unless explicit valid user exists in localStorage
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
+if (currentUser && currentUser.email) {
+  const sanitizedEmail = sanitizeUserEmail(currentUser.email);
+  if (sanitizedEmail !== currentUser.email) {
+    currentUser.email = sanitizedEmail;
+    localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+  }
+}
 if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png') || currentUser.avatar?.includes('.svg'))) {
   currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
   currentUser.hasCustomAvatar = false;
@@ -602,19 +625,31 @@ const translations = {
     ocr_preset_gastro: "Đơn thuốc mẫu (Tiêu hóa)",
     ocr_preset_resp: "Đơn thuốc mẫu (Hô hấp)",
     ocr_preset_blood: "Phiếu xét nghiệm mẫu (Máu)",
-    modal_login_title: "Đăng nhập MediMind AI",
-    modal_register_title: "Đăng ký tài khoản MediMind",
+    modal_login_title: "Đăng nhập vào MediMind",
+    modal_register_title: "Đăng ký vào MediMind",
+    modal_forgot_title: "Quên mật khẩu?",
+    modal_otp_title: "Xác thực mã bảo mật (OTP)",
     modal_auth_subtitle: "Hệ thống Trợ lý Y tế & Phân tầng Lâm sàng",
     tab_login: "Đăng nhập",
     tab_register: "Tạo tài khoản mới",
-    ph_identifier: "Email hoặc số di động",
-    ph_password: "Mật khẩu",
+    lbl_login_identifier: "Email hoặc số điện thoại",
+    ph_identifier: "Email hoặc số điện thoại",
+    ph_password: "Nhập mật khẩu",
     btn_login: "Đăng nhập",
     link_forgot_pwd: "Quên mật khẩu?",
     btn_create_account: "Tạo tài khoản mới",
     btn_demo_login: "Đăng nhập tài khoản mẫu thử nghiệm",
-    btn_google_signin: "Tiếp tục với Google",
+    btn_google_signin: "Đăng nhập bằng Google",
+    auth_or_divider: "hoặc",
+    auth_back_home: "Quay lại trang chính",
+    auth_forgot_subtitle: "Nhập email hoặc số điện thoại để nhận mã xác thực đặt lại mật khẩu.",
+    auth_register_terms: "Bằng việc đăng ký, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật y tế của MediMind.",
+    auth_hero_badge: "MediMind Clinical AI • Phác đồ MedlinePlus® NIH",
+    auth_hero_headline: "Nơi tri thức y khoa đồng hành cùng bạn",
+    auth_hero_tagline: "Chăm sóc sức khỏe không còn đơn độc – vào là có trợ lý lâm sàng hỗ trợ",
     lbl_name: "Tên",
+    lbl_full_name: "Họ và tên",
+    ph_full_name: "Nhập họ và tên",
     ph_last_name: "Họ",
     ph_first_name: "Tên",
     lbl_dob: "Ngày sinh",
@@ -626,10 +661,17 @@ const translations = {
     opt_male: "Nam",
     opt_female: "Nữ",
     opt_other: "Khác",
-    lbl_identifier: "Số di động hoặc email",
+    lbl_identifier: "Email hoặc số điện thoại",
     lbl_password: "Mật khẩu",
-    btn_register_submit: "Đăng ký tài khoản mới",
-    lbl_have_account: "Đã có tài khoản?",
+    lbl_confirm_password: "Xác nhận mật khẩu",
+    ph_confirm_password: "Nhập lại mật khẩu",
+    lbl_new_password: "Mật khẩu mới",
+    btn_forgot_submit: "Nhận mã xác thực OTP",
+    btn_register_submit: "Đăng ký",
+    lbl_no_account: "Bạn chưa có tài khoản?",
+    link_register_now: "Đăng ký ngay",
+    link_register_short: "Đăng ký",
+    lbl_have_account: "Bạn đã có tài khoản?",
     link_login_now: "Đăng nhập ngay",
     history_title: "Lịch Sử Tư Vấn",
     history_subtitle: "Các phiên sàng lọc & phân tích triệu chứng",
@@ -975,19 +1017,31 @@ const translations = {
     ocr_preset_gastro: "Sample Prescription (Gastro)",
     ocr_preset_resp: "Sample Prescription (Resp)",
     ocr_preset_blood: "Sample Lab Report (Blood)",
-    modal_login_title: "Sign In to MediMind AI",
-    modal_register_title: "Create MediMind Account",
+    modal_login_title: "Sign in to MediMind",
+    modal_register_title: "Create MediMind account",
+    modal_forgot_title: "Forgot password?",
+    modal_otp_title: "Security Verification (OTP)",
     modal_auth_subtitle: "Clinical Decision Support & Health Assistant",
     tab_login: "Sign In",
     tab_register: "Create Account",
-    ph_identifier: "Email or mobile number",
-    ph_password: "Password",
-    btn_login: "Sign In",
-    link_forgot_pwd: "Forgot Password?",
+    lbl_login_identifier: "Email or phone number",
+    ph_identifier: "Email or phone number",
+    ph_password: "Enter password",
+    btn_login: "Sign in",
+    link_forgot_pwd: "Forgot password?",
     btn_create_account: "Create New Account",
     btn_demo_login: "Quick Demo Patient Sign-in",
-    btn_google_signin: "Continue with Google",
+    btn_google_signin: "Sign in with Google",
+    auth_or_divider: "or",
+    auth_back_home: "Back to home",
+    auth_forgot_subtitle: "Enter your registered email or phone number to receive a password reset OTP.",
+    auth_register_terms: "By signing up, you agree to MediMind's Terms of Use and Clinical Privacy Policy.",
+    auth_hero_badge: "MediMind Clinical AI • MedlinePlus® NIH Guidelines",
+    auth_hero_headline: "Where medical knowledge stands beside you",
+    auth_hero_tagline: "Healthcare is never lonely – step inside for instant clinical guidance",
     lbl_name: "Name",
+    lbl_full_name: "Full name",
+    ph_full_name: "Enter your full name",
     ph_last_name: "Last Name",
     ph_first_name: "First Name",
     lbl_dob: "Date of Birth",
@@ -999,11 +1053,18 @@ const translations = {
     opt_male: "Male",
     opt_female: "Female",
     opt_other: "Other",
-    lbl_identifier: "Mobile Number or Email",
+    lbl_identifier: "Email or phone number",
     lbl_password: "Password",
-    btn_register_submit: "Register New Account",
+    lbl_confirm_password: "Confirm password",
+    ph_confirm_password: "Re-enter password",
+    lbl_new_password: "New password",
+    btn_forgot_submit: "Send verification OTP",
+    btn_register_submit: "Sign up",
+    lbl_no_account: "Don't have an account?",
+    link_register_now: "Sign up now",
+    link_register_short: "Sign up",
     lbl_have_account: "Already have an account?",
-    link_login_now: "Sign In Now",
+    link_login_now: "Sign in now",
     history_title: "Consultation History",
     history_subtitle: "Screening sessions & symptom analyses",
     history_btn_new: "New Session",
@@ -1252,11 +1313,8 @@ function applyLanguage() {
   if (checkEn) checkEn.classList.toggle('hidden', currentLang !== 'en');
 
   // Dynamic Auth modal header based on currentAuthMode
-  const titleEl = document.getElementById('auth-modal-title');
-  if (titleEl) {
-    titleEl.innerText = (typeof currentAuthMode !== 'undefined' && currentAuthMode === 'register')
-      ? (dict.modal_register_title || 'Đăng ký tài khoản MediMind')
-      : (dict.modal_login_title || 'Đăng nhập MediMind AI');
+  if (typeof toggleAuthMode === 'function' && typeof currentAuthMode !== 'undefined') {
+    toggleAuthMode(currentAuthMode);
   }
 
   // Update gender options text
@@ -1500,11 +1558,17 @@ function switchTab(tabId, updateHistory = true) {
   // 7. Khởi tạo dữ liệu chuyên biệt từng tab trong try/catch (bảo vệ tuyệt đối hệ thống routing)
   try {
     if (tabId === 'booking-tab') {
-      renderMedicalFacilities();
+      if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
       setTimeout(() => {
-        initHospitalInteractiveMap();
-        if (hospitalLeafletMap) {
+        if (typeof initHospitalInteractiveMap === 'function') initHospitalInteractiveMap();
+        if (typeof hospitalLeafletMap !== 'undefined' && hospitalLeafletMap) {
           hospitalLeafletMap.invalidateSize();
+        }
+        if (typeof gMap !== 'undefined' && gMap && window.google) {
+          google.maps.event.trigger(gMap, 'resize');
+        }
+        if (typeof leafletMap !== 'undefined' && leafletMap) {
+          leafletMap.invalidateSize();
         }
       }, 150);
     } else if (tabId === 'doctor-tab') {
@@ -2590,69 +2654,39 @@ function closeProfileModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+// ponytail: #login-modal.auth-4exam-shell owns its flat #f8f9fb palette in CSS; only sync #google-account-card here.
 function syncAuthModalTheme() {
   const isLight = document.body.classList.contains('light-glass');
-  const card = document.getElementById('auth-modal-card');
-  const title = document.getElementById('auth-modal-title');
-  const modal = document.getElementById('login-modal');
-  const dividerBadge = document.getElementById('auth-divider-badge');
-  const divLineLeft = document.getElementById('auth-divider-line-left');
-  const divLineRight = document.getElementById('auth-divider-line-right');
-  const btnGoogle = document.getElementById('btn-google-signin');
   const googleCard = document.getElementById('google-account-card');
-
-  if (!card) return;
-
-  if (isLight) {
-    card.classList.remove('bg-slate-900/95', 'text-white', 'border-white/15');
-    card.classList.add('bg-white', 'text-slate-900', 'border-slate-200', 'shadow-2xl');
-    if (title) {
-      title.classList.remove('text-white');
-      title.classList.add('text-slate-900');
-    }
-    if (modal) {
-      modal.classList.remove('bg-black/60');
-      modal.classList.add('bg-slate-900/40');
-    }
-    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-white rounded-full";
-    if (divLineLeft) divLineLeft.className = "border-t border-slate-200 w-full";
-    if (divLineRight) divLineRight.className = "border-t border-slate-200 w-full";
-    if (btnGoogle) {
-      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 border border-slate-300/80 cursor-pointer";
-      const span = btnGoogle.querySelector('span');
-      if (span) span.className = "font-semibold text-slate-700";
-    }
-    if (googleCard) {
-      googleCard.classList.remove('bg-slate-900', 'text-white', 'border-white/15');
-      googleCard.classList.add('bg-white', 'text-slate-800', 'border-slate-200');
-    }
-  } else {
-    card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200');
-    card.classList.add('bg-slate-900/95', 'text-white', 'border-white/15', 'shadow-2xl');
-    if (title) {
-      title.classList.remove('text-slate-900');
-      title.classList.add('text-white');
-    }
-    if (modal) {
-      modal.classList.remove('bg-slate-900/40');
-      modal.classList.add('bg-black/60');
-    }
-    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-slate-900 rounded-full";
-    if (divLineLeft) divLineLeft.className = "border-t border-white/10 w-full";
-    if (divLineRight) divLineRight.className = "border-t border-white/10 w-full";
-    if (btnGoogle) {
-      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-3 border border-white/15 cursor-pointer";
-      const span = btnGoogle.querySelector('span');
-      if (span) span.className = "font-semibold text-white";
-    }
-    if (googleCard) {
-      googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
-      googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
-    }
+  if (googleCard) {
+    googleCard.classList.toggle('bg-white', isLight);
+    googleCard.classList.toggle('text-slate-800', isLight);
+    googleCard.classList.toggle('border-slate-200', isLight);
+    googleCard.classList.toggle('bg-slate-900', !isLight);
+    googleCard.classList.toggle('text-white', !isLight);
+    googleCard.classList.toggle('border-white/15', !isLight);
   }
-  if (typeof toggleAuthMode === 'function') {
-    toggleAuthMode(currentAuthMode);
-  }
+}
+
+const AUTH_EYE_OPEN_SVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
+const AUTH_EYE_OFF_SVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
+
+function toggleAuthPasswordVisibility(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const reveal = input.type === 'password';
+  input.type = reveal ? 'text' : 'password';
+  if (btnEl) btnEl.innerHTML = reveal ? AUTH_EYE_OFF_SVG : AUTH_EYE_OPEN_SVG;
+}
+
+function resetAuthPasswordToggles() {
+  ['login-password', 'register-password', 'register-confirm-password', 'forgot-new-password'].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.type = 'password';
+    const btn = input.parentElement?.querySelector('button[onclick*="toggleAuthPasswordVisibility"]');
+    if (btn) btn.innerHTML = AUTH_EYE_OPEN_SVG;
+  });
 }
 
 function resetAuthModal() {
@@ -2670,37 +2704,25 @@ function resetAuthModal() {
   };
 
   // Reset forms
-  const loginForm = document.getElementById('login-form');
-  const regForm = document.getElementById('register-form');
-  const otpForm = document.getElementById('otp-form');
-  if (loginForm) loginForm.reset();
-  if (regForm) regForm.reset();
-  if (otpForm) otpForm.reset();
+  ['login-form', 'register-form', 'forgot-form', 'otp-form'].forEach(id => {
+    document.getElementById(id)?.reset();
+  });
 
   // Clear inputs explicitly to prevent lingering state on logout / new account
-  const regLastName = document.getElementById('register-last-name');
-  const regFirstName = document.getElementById('register-first-name');
-  const regName = document.getElementById('register-name');
-  const regIdent = document.getElementById('register-identifier');
-  const regEmail = document.getElementById('register-email');
-  const regPass = document.getElementById('register-password');
-  const regDob = document.getElementById('register-dob');
+  [
+    'register-last-name', 'register-first-name', 'register-name',
+    'register-identifier', 'register-email', 'register-password',
+    'register-confirm-password', 'register-dob',
+    'login-identifier', 'login-password',
+    'forgot-identifier', 'forgot-new-password'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   const regGender = document.getElementById('register-gender');
-
-  if (regLastName) regLastName.value = '';
-  if (regFirstName) regFirstName.value = '';
-  if (regName) regName.value = '';
-  if (regIdent) regIdent.value = '';
-  if (regEmail) regEmail.value = '';
-  if (regPass) regPass.value = '';
-  if (regDob) regDob.value = '';
   if (regGender) regGender.value = 'Nam';
 
-  const loginIdent = document.getElementById('login-identifier');
-  const loginPass = document.getElementById('login-password');
-  if (loginIdent) loginIdent.value = '';
-  if (loginPass) loginPass.value = '';
-
+  resetAuthPasswordToggles();
   clearOtpInputs();
   const timerWrap = document.getElementById('otp-timer-wrap');
   const resendBtn = document.getElementById('btn-otp-resend');
@@ -2716,10 +2738,14 @@ function openLoginModal(mode = 'login') {
   syncAuthModalTheme();
   const modal = document.getElementById('login-modal');
   if (modal) {
-    toggleAuthMode(mode || 'login');
+    const targetMode = mode || 'login';
+    toggleAuthMode(targetMode);
     modal.classList.remove('hidden');
-    if (mode === 'register') {
-      document.getElementById('register-last-name')?.focus();
+    document.body.style.overflow = 'hidden';
+    if (targetMode === 'register') {
+      (document.getElementById('register-name') || document.getElementById('register-last-name'))?.focus();
+    } else if (targetMode === 'forgot') {
+      document.getElementById('forgot-identifier')?.focus();
     } else {
       document.getElementById('login-identifier')?.focus();
     }
@@ -2730,6 +2756,7 @@ function openLoginModal(mode = 'login') {
 function closeLoginModal() {
   const modal = document.getElementById('login-modal');
   if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
   resetAuthModal();
 }
 
@@ -2760,82 +2787,46 @@ function populateDobDropdowns() {
 
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
-  currentAuthMode = mode;
+  const nextMode = ['login', 'register', 'forgot', 'otp'].includes(mode) ? mode : 'login';
+  currentAuthMode = nextMode;
   const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
+  const forgotSubEl = document.getElementById('auth-forgot-subtitle');
+  const leftHeroEl = document.getElementById('auth-left-hero');
   const loginForm = document.getElementById('login-form');
   const regForm = document.getElementById('register-form');
+  const forgotForm = document.getElementById('forgot-form');
   const otpForm = document.getElementById('otp-form');
   const googleContainer = document.getElementById('google-auth-container');
   const socialDivider = document.getElementById('auth-social-divider');
-  const tabsContainer = document.querySelector('.auth-segmented-tabs');
-  const tabLogin = document.getElementById('tab-auth-login');
-  const tabReg = document.getElementById('tab-auth-register');
 
-  const isLight = document.body.classList.contains('light-glass');
+  const showSocial = nextMode === 'login' || nextMode === 'register';
+  loginForm?.classList.toggle('hidden', nextMode !== 'login');
+  regForm?.classList.toggle('hidden', nextMode !== 'register');
+  forgotForm?.classList.toggle('hidden', nextMode !== 'forgot');
+  otpForm?.classList.toggle('hidden', nextMode !== 'otp');
+  googleContainer?.classList.toggle('hidden', !showSocial);
+  socialDivider?.classList.toggle('hidden', !showSocial);
+  forgotSubEl?.classList.toggle('hidden', nextMode !== 'forgot');
 
-  if (mode === 'login') {
-    if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
-    if (loginForm) loginForm.classList.remove('hidden');
-    if (regForm) regForm.classList.add('hidden');
-    if (otpForm) otpForm.classList.add('hidden');
-    if (googleContainer) googleContainer.classList.remove('hidden');
-    if (socialDivider) socialDivider.classList.remove('hidden');
-    if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
-    if (googleSpan) {
-      googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
-    }
+  // Match 4exam.net/forgot-password: hide 58% left hero on forgot mode so form centers full-width
+  if (leftHeroEl) {
+    leftHeroEl.classList.toggle('lg:flex', nextMode !== 'forgot');
+  }
 
-    if (tabLogin) {
-      if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      }
-    }
-    if (tabReg) {
-      if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
-      } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
-      }
-    }
-  } else if (mode === 'register') {
-    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
-    if (loginForm) loginForm.classList.add('hidden');
-    if (regForm) regForm.classList.remove('hidden');
-    if (otpForm) otpForm.classList.add('hidden');
-    if (googleContainer) googleContainer.classList.remove('hidden');
-    if (socialDivider) socialDivider.classList.remove('hidden');
-    if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
-    if (googleSpan) {
-      googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
-    }
+  const googleSpan = document.querySelector('#btn-google-signin span[data-i18n="btn_google_signin"]');
+  if (googleSpan) {
+    googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Sign in with Google' : 'Đăng nhập bằng Google');
+  }
 
-    if (tabReg) {
-      if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      }
-    }
-    if (tabLogin) {
-      if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
-      } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
-      }
-    }
-  } else if (mode === 'otp') {
-    if (titleEl) titleEl.innerText = "Xác thực mã bảo mật (OTP)";
-    if (loginForm) loginForm.classList.add('hidden');
-    if (regForm) regForm.classList.add('hidden');
-    if (otpForm) otpForm.classList.remove('hidden');
-    if (googleContainer) googleContainer.classList.add('hidden');
-    if (socialDivider) socialDivider.classList.add('hidden');
-    if (tabsContainer) tabsContainer.classList.add('hidden');
+  if (titleEl) {
+    const titles = {
+      login: dict.modal_login_title || 'Đăng nhập vào MediMind',
+      register: dict.modal_register_title || 'Đăng ký vào MediMind',
+      forgot: dict.modal_forgot_title || 'Quên mật khẩu?',
+      otp: dict.modal_otp_title || 'Xác thực mã bảo mật (OTP)'
+    };
+    titleEl.innerText = titles[nextMode];
   }
 }
 
@@ -3088,8 +3079,22 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
     clearOtpInputs();
     startOtpCountdown(data.cooldown || 59);
 
+    if (data.dev_otp) {
+      console.log('🔑 [DEV TEST OTP]:', data.dev_otp);
+      const digitInputs = document.querySelectorAll('.otp-digit');
+      if (digitInputs && digitInputs.length === 6) {
+        data.dev_otp.split('').forEach((d, i) => {
+          if (digitInputs[i]) digitInputs[i].value = d;
+        });
+        if (typeof checkOtpComplete === 'function') checkOtpComplete();
+      }
+    }
+
     if (typeof showMedicalToast === 'function') {
-      showMedicalToast(`Mã OTP đã được gửi tới ${identifier}!`, 'success');
+      const toastMsg = data.dev_otp 
+        ? `[DEV TEST] Mã OTP xác thực: ${data.dev_otp} (Đã tự động điền)` 
+        : `Mã OTP đã được gửi tới ${identifier}!`;
+      showMedicalToast(toastMsg, 'success');
     }
   } catch (err) {
     console.error('Lỗi yêu cầu gửi OTP:', err);
@@ -3106,6 +3111,34 @@ async function handleOtpSubmit(e) {
   }
 
   try {
+    if (pendingOtpFlow.purpose === 'reset_pwd') {
+      const newPassword = (pendingOtpFlow.userData?.new_password || '').trim();
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: pendingOtpFlow.identifier,
+          code,
+          new_password: newPassword
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toggleAuthMode('login');
+        const loginInput = document.getElementById('login-identifier');
+        if (loginInput) loginInput.value = pendingOtpFlow.identifier;
+        if (typeof showMedicalToast === 'function') {
+          showMedicalToast(data.message || 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập.', 'success');
+        } else {
+          alert(data.message || 'Đặt lại mật khẩu thành công!');
+        }
+      } else {
+        alert(data.error || 'Mã xác thực không hợp lệ hoặc đã hết hạn.');
+        clearOtpInputs();
+      }
+      return;
+    }
+
     const res = await fetch('/api/auth/otp/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -3183,6 +3216,40 @@ async function startOtpLoginFlow() {
   await requestAndShowOtp(identifier, channel, 'login_2fa');
 }
 
+function startForgotPasswordFlow() {
+  const prefill = (document.getElementById('login-identifier')?.value || '').trim();
+  const forgotIdent = document.getElementById('forgot-identifier');
+  const forgotPass = document.getElementById('forgot-new-password');
+  if (forgotIdent && prefill) forgotIdent.value = prefill;
+  toggleAuthMode('forgot');
+  (prefill ? forgotPass : forgotIdent)?.focus();
+}
+
+async function handleForgotSubmit(e) {
+  e.preventDefault();
+  const identifier = (document.getElementById('forgot-identifier')?.value || '').trim();
+  const newPassword = (document.getElementById('forgot-new-password')?.value || '').trim();
+  if (!identifier) {
+    if (typeof showMedicalToast === 'function') showMedicalToast('Vui lòng nhập email hoặc số điện thoại.', 'warning');
+    document.getElementById('forgot-identifier')?.focus();
+    return;
+  }
+  if (newPassword.length < 6) {
+    if (typeof showMedicalToast === 'function') showMedicalToast('Mật khẩu mới phải có tối thiểu 6 ký tự.', 'warning');
+    document.getElementById('forgot-new-password')?.focus();
+    return;
+  }
+  const channel = identifier.includes('@') ? 'email' : 'sms';
+  pendingOtpFlow = {
+    identifier,
+    channel,
+    purpose: 'reset_pwd',
+    userData: { new_password: newPassword },
+    previousMode: 'forgot'
+  };
+  await requestAndShowOtp(identifier, channel, 'reset_pwd');
+}
+
 
 // ==============================================================
 // GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN (5-STATE MACHINE)
@@ -3217,7 +3284,7 @@ async function handleGoogleSignIn(intentOverride) {
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
+    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-[#282b35] border-t-transparent animate-spin inline-block"></span><span class="font-semibold text-[#383b45]">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
   }
 
   try {
@@ -3379,7 +3446,7 @@ function submitCustomGoogleAccount() {
   startGoogleAccountSelection(email, name, initial, '#0284c7');
 }
 
-// Bắt phím Escape và Enter cho Google Account Modal
+// Bắt phím Escape và Enter cho Google Account Modal + Login Split Shell
 window.addEventListener('keydown', (e) => {
   const modal = document.getElementById('google-account-modal');
   if (modal && !modal.classList.contains('hidden')) {
@@ -3389,6 +3456,16 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && currentGoogleState === 'custom') {
       submitCustomGoogleAccount();
     }
+    return;
+  }
+  const disclaimerModal = document.getElementById('disclaimer-modal');
+  if (e.key === 'Escape' && disclaimerModal && !disclaimerModal.classList.contains('hidden')) {
+    closeDisclaimerModal();
+    return;
+  }
+  const loginModal = document.getElementById('login-modal');
+  if (e.key === 'Escape' && loginModal && !loginModal.classList.contains('hidden')) {
+    closeLoginModal();
   }
 });
 
@@ -3403,6 +3480,7 @@ async function handleRegisterSubmit(e) {
   const gender = document.getElementById('register-gender')?.value || '';
   const identifier = (document.getElementById('register-identifier')?.value || document.getElementById('register-email')?.value || '').trim();
   const password = document.getElementById('register-password')?.value;
+  const confirmEl = document.getElementById('register-confirm-password');
 
   if (!fullName || !identifier || !password) {
     alert('Vui lòng điền đầy đủ Họ và Tên, Email hoặc Số di động và mật khẩu.');
@@ -3410,6 +3488,13 @@ async function handleRegisterSubmit(e) {
   }
   if (password.length < 6) {
     alert('Mật khẩu phải có ít nhất 6 ký tự.');
+    return;
+  }
+  if (confirmEl && confirmEl.value !== password) {
+    const mismatchMsg = currentLang === 'en' ? 'Passwords do not match.' : 'Mật khẩu xác nhận không khớp.';
+    if (typeof showMedicalToast === 'function') showMedicalToast(mismatchMsg, 'error');
+    else alert(mismatchMsg);
+    confirmEl.focus();
     return;
   }
 
@@ -3475,10 +3560,14 @@ async function handleLoginSubmit(e) {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, email: identifier, password })
+      body: JSON.stringify({ identifier, password })
     });
     const data = await res.json();
     if (data.success && data.user) {
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+        return;
+      }
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       startFreshChatForCurrentUser();
@@ -3679,7 +3768,7 @@ function updateAuthUI() {
     fieldRealValues['p-phone'] = phoneVal;
     if (pPhone) pPhone.value = fieldMaskState['p-phone'] ? maskFieldValue(phoneVal, 'p-phone') : phoneVal;
 
-    const emailVal = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
+    const emailVal = sanitizeUserEmail(currentUser.email);
     fieldRealValues['p-email'] = emailVal;
     if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
 
@@ -3759,7 +3848,7 @@ function updateAuthUI() {
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
     if (tabPhone) tabPhone.value = currentUser.phone_number || '';
-    if (tabEmail) tabEmail.value = (currentUser.email && !currentUser.email.endsWith('@phone.medimind')) ? currentUser.email : '';
+    if (tabEmail) tabEmail.value = sanitizeUserEmail(currentUser.email);
     if (tabBhyt) tabBhyt.value = currentUser.bhyt || '';
     if (tabCity) tabCity.value = currentUser.city || '';
     if (tabAddress) tabAddress.value = currentUser.address || '';
@@ -3938,127 +4027,6 @@ function syncFloatingChatMessages() {
 
   appendChatConfirmation(container, chatHistory.at(-1) || {}, currentConversationId, true);
   container.scrollTop = container.scrollHeight;
-}
-
-async function sendFloatingChatMessage() {
-  const input = document.getElementById('floating-user-input');
-  if (!input) return;
-  const text = input.value.trim();
-  if (!text) return;
-
-  input.value = '';
-  const container = document.getElementById('floating-chat-messages');
-  if (!container) return;
-
-  // Render tin nhắn của người dùng trong khung mini
-  const userHtml = `
-    <div class="flex flex-col items-end my-1">
-      <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-3 py-2 rounded-xl rounded-tr-xs text-xs leading-relaxed font-medium text-left break-words border border-white/20 shadow-xs">
-        ${escapeHtml(text)}
-      </div>
-      <span class="text-[9px] text-slate-400 mt-0.5 mr-1">Bạn</span>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', userHtml);
-  container.scrollTop = container.scrollHeight;
-
-  // Đồng thời cập nhật vào khung chat chính
-  const mainContainer = document.getElementById('chat-messages');
-  if (mainContainer) {
-    const mainUserHtml = `
-      <div class="flex flex-col items-end my-1">
-        <div class="w-fit max-w-[85%] bg-gradient-to-r from-sky-500/90 to-indigo-600/90 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm text-xs sm:text-sm shadow-lg shadow-sky-500/20 backdrop-blur-md leading-relaxed font-medium text-left break-words border border-white/20">
-          <div>${escapeHtml(text)}</div>
-        </div>
-        <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">Bệnh nhân</div>
-      </div>
-    `;
-    mainContainer.insertAdjacentHTML('beforeend', mainUserHtml);
-    mainContainer.scrollTop = mainContainer.scrollHeight;
-  }
-
-  // Mini Typing Indicator
-  const typingId = 'floating-typing-' + Date.now();
-  const typingHtml = `
-    <div id="${typingId}" class="flex justify-start max-w-[90%] my-1">
-      <div class="glass-card border border-white/10 px-3 py-2 rounded-xl rounded-tl-xs text-xs text-slate-300 flex items-center space-x-1.5 shadow-md backdrop-blur-md bg-white/[0.05]">
-        <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-        <span class="text-[11px] text-slate-300">Đang chuẩn bị câu trả lời...</span>
-      </div>
-    </div>
-  `;
-  container.insertAdjacentHTML('beforeend', typingHtml);
-  container.scrollTop = container.scrollHeight;
-
-  try {
-    const [chatResponse, intakeResponse] = await Promise.allSettled([
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: chatHistory, lang: currentLang })
-      }).then(r => r.json()),
-      fetch('/api/intake/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversation_id: currentConversationId, message: text })
-      }).then(r => r.json())
-    ]);
-
-    document.getElementById(typingId)?.remove();
-
-    const data = (chatResponse.status === 'fulfilled') ? chatResponse.value : null;
-    if (!data || data.error) {
-      container.insertAdjacentHTML('beforeend', `<div class="p-2 text-rose-300 text-[11px]">${escapeHtml(data?.error || 'Có lỗi xảy ra, vui lòng thử lại.')}</div>`);
-      return;
-    }
-
-    if (intakeResponse.status === 'fulfilled' && intakeResponse.value) {
-      const intakeData = intakeResponse.value;
-      if (intakeData.conversation_id) currentConversationId = intakeData.conversation_id;
-      if (intakeData.facts) updateLiveIntakeCard(intakeData.facts, intakeData.status, intakeData.summary);
-      if (intakeData.summary) currentIntakeSummary = intakeData.summary;
-    }
-
-    updateTriagePanel(data);
-
-    let formattedAnswer = escapeHtml(data.answer)
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\n/g, '<br>');
-
-    const botHtml = `
-      <div class="flex justify-start max-w-[90%] my-1">
-        <div class="glass-card border border-white/10 p-3 rounded-xl rounded-tl-xs text-xs text-slate-200 leading-relaxed shadow-md backdrop-blur-md bg-white/[0.06]">
-          ${formattedAnswer}
-        </div>
-      </div>
-    `;
-    container.insertAdjacentHTML('beforeend', botHtml);
-    container.scrollTop = container.scrollHeight;
-
-    // Cập nhật khung chat chính
-    if (mainContainer) {
-      const mainBotHtml = `
-        <div class="flex justify-start max-w-[95%] sm:max-w-xl">
-          <div class="glass-card border border-white/10 p-4 sm:p-5 rounded-2xl rounded-tl-sm text-xs sm:text-sm text-slate-200 space-y-3 leading-relaxed shadow-xl w-full backdrop-blur-xl bg-white/[0.06]">
-            <div class="text-slate-200 font-normal leading-relaxed">${formattedAnswer}</div>
-          </div>
-        </div>
-      `;
-      mainContainer.insertAdjacentHTML('beforeend', mainBotHtml);
-      mainContainer.scrollTop = mainContainer.scrollHeight;
-    }
-
-    chatHistory.push({ role: 'user', content: text });
-    chatHistory.push({ role: 'assistant', content: data.answer });
-
-    const intakeVal = (intakeResponse.status === 'fulfilled') ? intakeResponse.value : null;
-    saveOrUpdateCurrentSession(text, data, intakeVal);
-
-  } catch (err) {
-    document.getElementById(typingId)?.remove();
-    container.insertAdjacentHTML('beforeend', `<div class="p-2 text-rose-300 text-[11px]">Lỗi kết nối máy chủ y tế.</div>`);
-  }
 }
 
 // ==========================================
@@ -4548,7 +4516,7 @@ function showMedicalToast(message, type = 'info', duration = 3500) {
   if (!container) {
     container = document.createElement('div');
     container.id = 'medical-toast-container';
-    container.className = 'fixed top-5 right-5 sm:right-8 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none';
+    container.className = 'fixed top-5 right-5 sm:right-8 z-[90] flex flex-col gap-2.5 max-w-sm pointer-events-none';
     document.body.appendChild(container);
   }
 
@@ -5015,7 +4983,7 @@ function renderPrescriptionResult(data) {
             <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
               <div class="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div>
-                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${escapeHtml(data.doc_title || 'Phiếu Xét Nghiệm Y Khoa')}</h3>
                   <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
                 </div>
                 <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
@@ -5036,16 +5004,16 @@ function renderPrescriptionResult(data) {
                     ${(data.metrics || []).map(m => `
                       <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
                         <td class="py-3 px-3">
-                          <div class="font-bold text-slate-900 dark:text-white">${m.standard_name || m.name || m.test_name}</div>
-                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                          <div class="font-bold text-slate-900 dark:text-white">${escapeHtml(m.standard_name || m.name || m.test_name || '')}</div>
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${escapeHtml(m.loinc_code)}</span>` : ''}
                         </td>
                         <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
-                          ${m.result || m.value} <span class="text-[11px] font-normal text-slate-400">${m.unit || ''}</span>
+                          ${escapeHtml(m.result || m.value || '')} <span class="text-[11px] font-normal text-slate-400">${escapeHtml(m.unit || '')}</span>
                         </td>
-                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${m.reference_range || m.reference || '---'}</td>
+                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${escapeHtml(m.reference_range || m.reference || '---')}</td>
                         <td class="py-3 px-3">
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
-                            ${m.computed_flag || m.status || 'Bình thường'}
+                            ${escapeHtml(m.computed_flag || m.status || 'Bình thường')}
                           </span>
                         </td>
                         <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
@@ -5075,7 +5043,7 @@ function renderPrescriptionResult(data) {
                 <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">Active</span>
               </div>
               <div class="text-xs text-slate-700 dark:text-slate-200 space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
-                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
+                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${escapeHtml(data.interpretation).replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
               </div>
             </div>
           </div>
@@ -5322,11 +5290,12 @@ function renderPrescriptionResult(data) {
           <div class="space-y-3">
             ${meds.map((m, idx) => {
               const numStr = (idx + 1).toString().padStart(2, '0');
-              const freq = m.frequency || '3 lần / ngày';
-              const usage = m.usage || m.purpose || 'Uống đúng chỉ dẫn sau bữa ăn';
-              const dose = m.dose || '1 viên';
-              const days = m.days || '60 viên (Đủ 30 ngày)';
-              const strength = m.strength ? `(${m.strength})` : '';
+              const freq = escapeHtml(m.frequency || '3 lần / ngày');
+              const usage = escapeHtml(m.usage || m.purpose || 'Uống đúng chỉ dẫn sau bữa ăn');
+              const dose = escapeHtml(m.dose || '1 viên');
+              const days = escapeHtml(m.days || '60 viên (Đủ 30 ngày)');
+              const strength = m.strength ? `(${escapeHtml(m.strength)})` : '';
+              const medName = escapeHtml(m.standard_name || m.name || '');
 
               return `
                 <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
@@ -5337,14 +5306,14 @@ function renderPrescriptionResult(data) {
                       </div>
                       <div>
                         <div class="flex flex-wrap items-center gap-2">
-                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${m.standard_name || m.name} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
+                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${medName} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
                           <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                            ${m.purpose || m.category || 'Thuốc đặc trị'}
+                            ${escapeHtml(m.purpose || m.category || 'Thuốc đặc trị')}
                           </span>
                         </div>
                         
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength || 'Theo liều'}</strong> / viên</span>
+                          <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${escapeHtml(m.strength || 'Theo liều')}</strong> / viên</span>
                           <span>•</span>
                           <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
                         </div>
@@ -5362,7 +5331,7 @@ function renderPrescriptionResult(data) {
                       <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
                       <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button onclick="askBotAboutSpecificMedicine('${m.name}')" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                    <button data-med-name="${escapeHtml(m.name || '')}" onclick="askBotAboutSpecificMedicine(this.dataset.medName)" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
                       <span>Tư vấn thuốc</span>
                       <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
@@ -5403,11 +5372,11 @@ function renderPrescriptionResult(data) {
                   ${s.items.map(it => `
                     <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
                       <div>
-                        <strong class="font-bold text-slate-900 dark:text-white">${it.name}</strong>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
+                        <strong class="font-bold text-slate-900 dark:text-white">${escapeHtml(it.name || '')}</strong>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${escapeHtml(it.note || 'Uống sau ăn 30 phút')}</p>
                       </div>
                       <span class="font-mono font-bold text-sky-950 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 border border-sky-200">
-                        ${it.dose || '1 viên'}
+                        ${escapeHtml(it.dose || '1 viên')}
                       </span>
                     </div>
                   `).join('')}
@@ -5489,11 +5458,11 @@ function renderSlotPillChecklist(slot) {
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 border-amber-400/50 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-amber-300 font-bold">${m.tag || 'Trước ăn'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${escapeHtml(m.name || '')}</span>
+                  <span class="text-[10px] text-amber-300 font-bold">${escapeHtml(m.tag || 'Trước ăn')}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-amber-200 bg-amber-500/30 border border-amber-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-amber-200 bg-amber-500/30 border border-amber-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${escapeHtml(m.dosage || '')}</span>
             </div>
           `).join('')}
         </div>
@@ -5512,11 +5481,11 @@ function renderSlotPillChecklist(slot) {
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-sky-500 focus:ring-sky-400 border-white/20 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-slate-400 font-bold">${m.tag || 'Sau ăn'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${escapeHtml(m.name || '')}</span>
+                  <span class="text-[10px] text-slate-400 font-bold">${escapeHtml(m.tag || 'Sau ăn')}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-sky-200 bg-sky-500/30 border border-sky-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-sky-200 bg-sky-500/30 border border-sky-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${escapeHtml(m.dosage || '')}</span>
             </div>
           `).join('')}
         </div>
@@ -5535,11 +5504,11 @@ function renderSlotPillChecklist(slot) {
               <div class="flex items-center space-x-2.5 min-w-0">
                 <input type="checkbox" onchange="togglePillChecked(this)" class="w-4 h-4 rounded text-purple-500 focus:ring-purple-400 border-purple-400/50 bg-slate-900 cursor-pointer">
                 <div class="truncate">
-                  <span class="font-black text-white leading-snug block truncate pill-name">${m.name}</span>
-                  <span class="text-[10px] text-purple-300 font-bold">${m.note || 'Xoa lưng đau'}</span>
+                  <span class="font-black text-white leading-snug block truncate pill-name">${escapeHtml(m.name || '')}</span>
+                  <span class="text-[10px] text-purple-300 font-bold">${escapeHtml(m.note || 'Xoa lưng đau')}</span>
                 </div>
               </div>
-              <span class="font-mono font-black text-purple-200 bg-purple-500/30 border border-purple-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${m.dosage}</span>
+              <span class="font-mono font-black text-purple-200 bg-purple-500/30 border border-purple-400/40 px-3 py-1 rounded-xl text-xs shrink-0 ml-2 shadow-2xs">${escapeHtml(m.dosage || '')}</span>
             </div>
           `).join('')}
         </div>
@@ -6174,9 +6143,10 @@ function renderChatHistoryList(filterQuery = '') {
   historyList.innerHTML = filtered.map(session => {
     const isActive = session.id === currentConversationId;
     const timeFormatted = formatSessionTime(session.timestamp);
+    const safeSessionId = escapeHtml(session.id || '');
 
     return `
-      <div onclick="loadSession('${session.id}')" 
+      <div data-session="${safeSessionId}" onclick="loadSession(this.dataset.session)" 
            class="chat-history-item p-2.5 rounded-xl border transition-all cursor-pointer group relative ${isActive ? 'bg-sky-500/20 border-sky-400/60 shadow-md shadow-sky-500/15 ring-1 ring-sky-400/40' : 'bg-white/80 dark:bg-white/[0.03] border-slate-200/80 dark:border-white/10 hover:bg-white dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/20'}">
         <div class="flex items-center justify-between gap-1.5">
           <div class="flex items-center gap-1.5 min-w-0">
@@ -6185,7 +6155,7 @@ function renderChatHistoryList(filterQuery = '') {
           </div>
           <div class="flex items-center gap-1 shrink-0">
             <span class="text-[10px] text-slate-500 dark:text-white/40 font-mono">${timeFormatted}</span>
-            <button type="button" onclick="event.stopPropagation(); deleteSession('${session.id}')" class="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-500 transition-opacity" title="Xóa phiên tư vấn">
+            <button type="button" data-session="${safeSessionId}" onclick="event.stopPropagation(); deleteSession(this.dataset.session)" class="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-rose-500 transition-opacity" title="Xóa phiên tư vấn">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
           </div>
@@ -6219,10 +6189,10 @@ function loadSession(sessionId) {
       chatHistory.push(msg);
       if (msg.role === 'user') {
         let userImgHtml = '';
-        if (msg.image) {
+        if (typeof msg.image === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,[a-z0-9+/=]+$/i.test(msg.image)) {
           userImgHtml = `
-            <div class="mb-2 overflow-hidden rounded-xl border border-white/20 shadow-xs cursor-pointer max-w-[220px]" onclick="openImageModal('${msg.image}', 'Ảnh tổn thương bạn đã gửi', 'Ảnh người bệnh cung cấp')">
-              <img src="${msg.image}" alt="Ảnh tải lên" class="w-full h-auto max-h-[160px] object-cover hover:scale-105 transition-transform duration-200">
+            <div class="mb-2 overflow-hidden rounded-xl border border-white/20 shadow-xs cursor-pointer max-w-[220px]" onclick="openImageModal(this.querySelector('img').src, 'Ảnh tổn thương bạn đã gửi', 'Ảnh người bệnh cung cấp')">
+              <img src="${escapeHtml(msg.image)}" alt="Ảnh tải lên" class="w-full h-auto max-h-[160px] object-cover hover:scale-105 transition-transform duration-200">
             </div>
           `;
         }
@@ -7175,11 +7145,36 @@ function getFacilityBadgeColor(badgeType) {
   return 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/40 font-semibold';
 }
 
-function openFacilityBookingModal(facId) {
+function resolveFacilityRecord(facId, facObj = null) {
+  if (facObj && (facObj.name || facObj.ten_ngan || facObj.ten)) {
+    return {
+      id: String(facObj.id ?? facId ?? 'fac_unknown'),
+      name: facObj.name || facObj.ten_ngan || facObj.ten,
+      address: facObj.address || facObj.dia_chi_hien_thi_tren_web || facObj.dia_chi || ''
+    };
+  }
+  const sid = String(facId ?? '');
+  const dynList = window.currentFacilityState?.facilities || [];
+  const dyn = dynList.find(f => String(f.id) === sid);
+  if (dyn) {
+    return {
+      id: String(dyn.id),
+      name: dyn.ten_ngan || dyn.ten,
+      address: dyn.dia_chi_hien_thi_tren_web || dyn.dia_chi || ''
+    };
+  }
+  const marker = (window.mapMarkersData || []).find(m => String(m.id) === sid);
+  if (marker) {
+    return { id: String(marker.id), name: marker.name, address: marker.address || '' };
+  }
+  return medicalFacilitiesData.find(f => String(f.id) === sid) || medicalFacilitiesData[0];
+}
+
+function openFacilityBookingModal(facId, facObj = null) {
+  const fac = resolveFacilityRecord(facId, facObj);
   if (!currentUser) {
-    pendingBookingFacilityId = facId;
+    pendingBookingFacilityId = fac ? fac.id : facId;
     const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-    const fac = medicalFacilitiesData.find(f => f.id === facId);
     const facName = fac ? fac.name : (isEn ? 'healthcare facility' : 'cơ sở y tế');
     const bannerTitle = isEn ? 'ACCOUNT AUTHENTICATION REQUIRED' : 'YÊU CẦU XÁC THỰC TÀI KHOẢN';
     const bannerText = isEn 
@@ -7190,7 +7185,6 @@ function openFacilityBookingModal(facId) {
     return;
   }
 
-  const fac = medicalFacilitiesData.find(f => f.id === facId) || medicalFacilitiesData[0];
   if (!fac) return;
 
   const modal = document.getElementById('facility-booking-modal');
@@ -7230,7 +7224,9 @@ async function handleFacilityBookingSubmit(e) {
   }
 
   const facId = document.getElementById('book-modal-facility-id')?.value;
-  const fac = medicalFacilitiesData.find(f => f.id === facId);
+  const fac = resolveFacilityRecord(facId);
+  const modalFacName = document.getElementById('book-modal-facility-name')?.innerText?.trim();
+  const modalFacAddr = document.getElementById('book-modal-facility-address')?.innerText?.trim();
   const spec = document.getElementById('book-modal-spec')?.value;
   const date = document.getElementById('book-modal-date')?.value;
   const time = document.getElementById('book-modal-time')?.value;
@@ -7243,9 +7239,9 @@ async function handleFacilityBookingSubmit(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        facility_id: facId || 'fac_unknown',
-        facility_name: fac ? fac.name : (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế'),
-        facility_address: fac ? fac.address : '',
+        facility_id: String(facId || 'fac_unknown'),
+        facility_name: modalFacName || (fac ? fac.name : (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế')),
+        facility_address: modalFacAddr || (fac ? fac.address : ''),
         specialty: spec || (isEn ? 'General Practice' : 'Đa khoa'),
         appointment_date: date,
         appointment_time: time,
@@ -7254,15 +7250,18 @@ async function handleFacilityBookingSubmit(e) {
         note: note || ''
       })
     });
-    
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.success === false) {
+      showMedicalToast(data.error || (isEn ? 'Unable to book appointment. Please check your information.' : 'Không thể đặt lịch khám. Vui lòng kiểm tra lại thông tin.'), 'error');
+      return;
+    }
+
     closeFacilityBookingModal();
-    const successMsg = isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!';
+    const successMsg = data.message || (isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!');
     showMedicalToast(successMsg, 'success', 4000);
   } catch (err) {
     console.error('Lỗi khi lưu lịch hẹn:', err);
-    closeFacilityBookingModal();
-    const fallbackMsg = isEn ? 'Saved appointment reminder locally!' : 'Đã lưu lịch nhắc đi khám trên thiết bị thành công!';
-    showMedicalToast(fallbackMsg, 'success', 4000);
+    showMedicalToast(isEn ? 'Unable to connect to booking server.' : 'Không thể kết nối máy chủ đặt lịch. Vui lòng thử lại.', 'error');
   }
 }
 
@@ -7837,7 +7836,7 @@ async function loadAndRenderAiConsultations() {
     container.innerHTML = list.map((item) => {
       const isEmg = item.is_emergency;
       const statusClass = isEmg ? 'bg-rose-500/15 text-rose-500 border-rose-500/30' : 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-500/30';
-      const statusText = isEmg ? 'Cảnh báo cấp cứu' : (item.risk_level || 'Tư vấn ban đầu');
+      const statusText = escapeHtml(isEmg ? 'Cảnh báo cấp cứu' : (item.risk_level || 'Tư vấn ban đầu'));
       return `
         <div data-session="${escapeHtml(item.conversation_id || '')}" onclick="openConsultationSummaryDetail(this.dataset.session)" class="relative group cursor-pointer">
           <div class="absolute -left-[31px] top-4 w-3.5 h-3.5 rounded-full ${isEmg ? 'bg-rose-500' : 'bg-sky-500'} border-2 border-white dark:border-slate-900 shadow-md shadow-sky-500/50"></div>
@@ -8060,7 +8059,8 @@ async function handleSaveImage1Profile(e) {
   const birthDate = document.getElementById('p-birthdate')?.value.trim() || '';
   const gender = document.getElementById('p-gender')?.value || 'Nam';
   const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
-  const email = getFieldValue('p-email', currentUser?.email || '');
+  const rawEmailVal = getFieldValue('p-email', '');
+  const email = sanitizeUserEmail(rawEmailVal);
   const blood = document.getElementById('p-blood')?.value || 'O+';
   const allergies = document.getElementById('p-allergies')?.value.trim() || '';
   const height = document.getElementById('p-height')?.value.trim() || '';
@@ -8115,21 +8115,22 @@ async function handleSaveImage1Profile(e) {
 
     const data = await res.json();
     if (res.ok && data.success) {
+      const srvUser = data.user || {};
       currentUser = {
         ...currentUser,
-        ...(data.user || {}),
         name: name || currentUser.name,
         full_name: name || currentUser.full_name,
         dob: birthDate,
         gender: gender,
-        phone: phone,
-        phone_number: phone,
-        email: email,
+        phone: srvUser.phone_number || phone,
+        phone_number: srvUser.phone_number || phone,
+        email: srvUser.email !== undefined ? srvUser.email : email,
         address: address,
         blood_type: blood,
         allergies: allergies,
         height: height,
-        weight: weight
+        weight: weight,
+        ...srvUser
       };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 
@@ -8161,41 +8162,30 @@ async function handleSaveImage1Profile(e) {
   }
 }
 // ==============================================================
-// FLOATING CHATBOX WIDGET HANDLERS (Image 2)
+// FLOATING CHATBOX WIDGET HANDLERS & ALIASES
 // ==============================================================
-let isFloatingChatOpen = false;
-
 function toggleFloatingChat(forceState) {
-  const win = document.getElementById('floating-chat-window');
-  if (!win) return;
-  
   if (typeof forceState === 'boolean') {
-    isFloatingChatOpen = forceState;
+    const win = document.getElementById('floating-chat-window');
+    const bubble = document.getElementById('floating-chat-bubble');
+    if (win) {
+      if (forceState) {
+        if (typeof syncFloatingChatMessages === 'function') syncFloatingChatMessages();
+        win.classList.remove('hidden');
+        if (bubble) bubble.classList.add('hidden');
+      } else {
+        win.classList.add('hidden');
+        if (bubble) bubble.classList.remove('hidden');
+      }
+    }
   } else {
-    isFloatingChatOpen = !isFloatingChatOpen;
+    toggleFloatingChatWindow();
   }
-
-  if (isFloatingChatOpen) {
-    win.classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('floating-user-input')?.focus();
-    }, 100);
-  } else {
-    win.classList.add('hidden');
-  }
-}
-
-function expandFloatingChatToFull() {
-  toggleFloatingChat(false);
-  switchTab('chat-tab');
 }
 
 function sendQuickFloatingPrompt(text) {
-  const input = document.getElementById('floating-user-input');
-  if (input) {
-    input.value = text;
-    sendFloatingChatMessage();
-  }
+  insertFloatingPrompt(text);
+  sendFloatingChatMessage();
 }
 
 async function sendFloatingChatMessage() {
@@ -8292,28 +8282,6 @@ async function sendFloatingChatMessage() {
   } finally {
     finishChatRequest(chatRequest);
   }
-}
-
-// Floating Chatbox Compatibility Aliases
-function toggleFloatingChat(forceState) {
-  if (typeof forceState === 'boolean') {
-    const win = document.getElementById('floating-chat-window');
-    if (win) {
-      if (forceState) {
-        win.classList.remove('hidden');
-        if (typeof syncFloatingChatMessages === 'function') syncFloatingChatMessages();
-      } else {
-        win.classList.add('hidden');
-      }
-    }
-  } else {
-    toggleFloatingChatWindow();
-  }
-}
-
-function sendQuickFloatingPrompt(text) {
-  insertFloatingPrompt(text);
-  sendFloatingChatMessage();
 }
 
 

@@ -55,6 +55,7 @@ scratch/
 .sharing.json
 
 instance/
+logs/
 
 # Rebuildable Wikimedia HTTP response cache and temporary backups
 data/recipes/wikibooks/api_cache/
