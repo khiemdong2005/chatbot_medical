@@ -1,0 +1,49 @@
+{
+  "id": "dietarysupplements",
+  "title": "Dietary Supplements",
+  "title_en": "Dietary Supplements",
+  "title_vi": "Thực phẩm chức năng và chất bổ sung",
+  "category": "Pharmacology & Medication Safety",
+  "category_en": "Pharmacology & Medication Safety",
+  "category_vi": "Dược lý & An toàn thuốc",
+  "search_phrases": [
+    "dietary supplements",
+    "vitamins and minerals",
+    "supplement safety",
+    "multivitamins",
+    "supplement regulation",
+    "thực phẩm chức năng",
+    "bổ sung vitamin",
+    "khoáng chất",
+    "uống thực phẩm bổ sung",
+    "an toàn chất bổ sung"
+  ],
+  "keywords_en": [
+    "dietary supplements",
+    "vitamins and minerals",
+    "supplement safety",
+    "multivitamins",
+    "supplement regulation"
+  ],
+  "keywords_vi": [
+    "thực phẩm chức năng",
+    "bổ sung vitamin",
+    "khoáng chất",
+    "uống thực phẩm bổ sung",
+    "an toàn chất bổ sung"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/dietarysupplements.html",
+  "summary": "Dietary supplements are vitamins , minerals , herbs , and many other products. They can come as pills, capsules, powders, drinks, and energy bars. Supplements do not have to go through the testing that drugs do. Some supplements can play an important role in health. For example, calcium and vitamin D are important for keeping bones strong. Pregnant women can take the vitamin folic acid to prevent certain birth defects in their babies. To take a supplement as safely as possible: Tell your health care provider about any dietary supplements you use Do not take a bigger dose than the label recommends Check with your health care provider about the supplements you take if you are going to have any type of surgery Read trustworthy information about the supplement NIH: National Institutes of Health Office of Dietary Supplements",
+  "page_content": "Dietary supplements are vitamins , minerals , herbs , and many other products. They can come as pills, capsules, powders, drinks, and energy bars. Supplements do not have to go through the testing that drugs do. Some supplements can play an important role in health. For example, calcium and vitamin D are important for keeping bones strong. Pregnant women can take the vitamin folic acid to prevent certain birth defects in their babies. To take a supplement as safely as possible: Tell your health care provider about any dietary supplements you use Do not take a bigger dose than the label recommends Check with your health care provider about the supplements you take if you are going to have any type of surgery Read trustworthy information about the supplement NIH: National Institutes of Health Office of Dietary Supplements",
+  "content_sha256": "50712b484155e1fa6dee85d45a2a07d9f1198efdbaeb35169e039137b8f967c5",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Hướng dẫn an toàn chung cảnh báo người bệnh không uống quá liều khuyến nghị trên nhãn sản phẩm; không mang tính kê đơn.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

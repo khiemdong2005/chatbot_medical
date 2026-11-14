@@ -1,0 +1,49 @@
+{
+  "id": "anaphylaxis",
+  "title": "Anaphylaxis",
+  "title_en": "Anaphylaxis",
+  "title_vi": "Sốc phản vệ",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "anaphylaxis",
+    "severe allergic reaction",
+    "epinephrine",
+    "anaphylactic shock",
+    "allergy emergency",
+    "sốc phản vệ",
+    "dị ứng nặng",
+    "tiêm epinephrine",
+    "khó thở do dị ứng",
+    "cấp cứu phản vệ"
+  ],
+  "keywords_en": [
+    "anaphylaxis",
+    "severe allergic reaction",
+    "epinephrine",
+    "anaphylactic shock",
+    "allergy emergency"
+  ],
+  "keywords_vi": [
+    "sốc phản vệ",
+    "dị ứng nặng",
+    "tiêm epinephrine",
+    "khó thở do dị ứng",
+    "cấp cứu phản vệ"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/anaphylaxis.html",
+  "summary": "Anaphylaxis is a serious allergic reaction . It can begin very quickly, and symptoms may be life-threatening. The most common causes are reactions to foods (especially peanuts), medications , and stinging insects . Other causes include exercise and exposure to latex . Sometimes no cause can be found. It can affect many organs: Skin - itching, hives, redness, swelling Nose - sneezing, stuffy nose, runny nose Mouth - itching, swelling of the lips or tongue Throat - itching, tightness, trouble swallowing, swelling of the back of the throat Chest - shortness of breath, coughing, wheezing, chest pain or tightness Heart - weak pulse, passing out, shock Gastrointestinal tract - vomiting, diarrhea, cramps Nervous system - dizziness or fainting If someone is having a serious allergic reaction, call 911. If an auto-injector is available, give the person the injection right away.",
+  "page_content": "Anaphylaxis is a serious allergic reaction . It can begin very quickly, and symptoms may be life-threatening. The most common causes are reactions to foods (especially peanuts), medications , and stinging insects . Other causes include exercise and exposure to latex . Sometimes no cause can be found. It can affect many organs: Skin - itching, hives, redness, swelling Nose - sneezing, stuffy nose, runny nose Mouth - itching, swelling of the lips or tongue Throat - itching, tightness, trouble swallowing, swelling of the back of the throat Chest - shortness of breath, coughing, wheezing, chest pain or tightness Heart - weak pulse, passing out, shock Gastrointestinal tract - vomiting, diarrhea, cramps Nervous system - dizziness or fainting If someone is having a serious allergic reaction, call 911. If an auto-injector is available, give the person the injection right away.",
+  "content_sha256": "e5b451b6d88bf99285f09e3f3b939ea718fed10138aa7ff1af9482dda5217cae",
+  "candidate_score": 0.99,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

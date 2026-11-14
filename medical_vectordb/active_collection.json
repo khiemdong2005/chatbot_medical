@@ -1,0 +1,17 @@
+{
+  "active_collection": "medical_knowledge_shadow_v2_20261114_211653",
+  "created_at": "2026-11-14T21:25:08.695503",
+  "updated_at": "2026-11-14T21:25:08.695503",
+  "document_count": 408,
+  "source_file_count": 241,
+  "embedding_model": "all-MiniLM-L6-v2",
+  "embedding_dimension": 384,
+  "chunking_version": "v2_sentence_contextual",
+  "chunk_config": {
+    "max_chars": 2000,
+    "overlap_chars": 200,
+    "min_chunk_chars": 200,
+    "hard_max_chars": 2200
+  },
+  "version": "20261114_211653"
+}

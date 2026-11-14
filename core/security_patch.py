@@ -77,3 +77,49 @@ def sanitize_text(text: str) -> str:
     if not text:
         return ""
     return html.escape(text.strip(), quote=True)
+
+
+# 5. GIỚI HẠN TẦN SUẤT TRÒ CHUYỆN (CHAT RATE LIMITING POLICY)
+def get_rate_limit_identity(
+    user_id: Optional[int] = None,
+    guest_token: Optional[str] = None,
+    client_ip: Optional[str] = None
+) -> str:
+    """
+    Xác định khóa định danh cho Rate Limiting theo thứ tự ưu tiên:
+    1. Authenticated User ID (nếu đã đăng nhập)
+    2. Guest Token (nếu là khách có phiên)
+    3. Client IP (fallback an toàn cuối cùng)
+    """
+    if user_id is not None:
+        return f"user:{user_id}"
+    if guest_token:
+        return f"guest:{guest_token}"
+    return f"ip:{client_ip or '127.0.0.1'}"
+
+
+def check_chat_rate_limit(
+    identity: str,
+    max_requests: int = 25,
+    window_seconds: int = 60,
+    enforce: bool = True
+) -> bool:
+    """
+    Kiểm tra giới hạn tần suất gửi tin nhắn trò chuyện y tế:
+    Policy: Tối đa 25 requests trong 60 giây.
+    Trả về True nếu được phép tiếp tục (Allowed);
+    Trả về False nếu vượt quá ngưỡng (Rate Limited - HTTP 429).
+    """
+    if not enforce:
+        return True
+
+    rate_key = f"chat_rate:{identity}"
+    blocked = cache_service.is_rate_limited(rate_key, max_requests=max_requests, window_seconds=window_seconds)
+    if blocked:
+        import logging
+        logging.getLogger("Security").warning(
+            "Tần suất gửi tin nhắn vượt ngưỡng cho phép (429 Rate Limit) đối với định danh %s.",
+            identity.split(":")[0]  # Privacy-safe: chỉ ghi nhận loại identity (user/guest/ip)
+        )
+        return False
+    return True

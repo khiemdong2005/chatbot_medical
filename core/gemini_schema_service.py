@@ -1,23 +1,26 @@
 import os
 import json
 import re
+import logging
 from typing import Dict, Any, Optional
-from google import genai
-from google.genai import types
+
+logger = logging.getLogger("GeminiSchemaService")
 
 def extract_with_gemini_schema(image_path: str, doc_type: str = "auto", api_key: str = "") -> Optional[Dict[str, Any]]:
     """
-    [2.B] Gemini đọc thẳng ảnh -> JSON theo response schema chuẩn y khoa:
+    [2.B] Gemini đọc thẳng ảnh -> JSON theo response schema chuẩn y khoa qua Unified LLM Provider:
       - Đơn thuốc: patient_name, diagnosis, medications [name, strength, dose, frequency, days, usage]
       - Xét nghiệm: metrics [test_name, result, unit, reference_range, flag_on_paper (H/L/Normal)]
     """
+    from core.llm_provider import llm_provider
+
     if not api_key:
-        api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
-    if not api_key or api_key.startswith("YOUR_") or api_key == "your_google_gemini_api_key_here" or len(api_key) < 10:
+        api_key = llm_provider.resolve_api_key(profile="ocr")
+    if not llm_provider.is_configured(profile="ocr", explicit_key=api_key):
         return None
 
     try:
-        client = genai.Client(api_key=api_key)
+        from google.genai import types
 
         with open(image_path, "rb") as f:
             file_bytes = f.read()
@@ -79,29 +82,19 @@ YÊU CẦU SCHEMA TRẢ VỀ:
 BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
 """
         candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-flash-latest"]
-        for model in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model,
-                    contents=[
-                        types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
-                        prompt
-                    ]
-                )
-                if res and res.text:
-                    cleaned = res.text.strip()
-                    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-                    cleaned = re.sub(r"\s*```$", "", cleaned).strip()
-                    match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-                    if match:
-                        cleaned = match.group(1).strip()
-                    return json.loads(cleaned)
-            except Exception as me:
-                print(f"[GEMINI SCHEMA MODEL FAIL {model}] {me}")
-                continue
+        contents = [
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+            prompt
+        ]
+        return llm_provider.generate_json(
+            contents=contents,
+            candidate_models=candidate_models,
+            api_key=api_key,
+            operation="prescription_ocr"
+        )
 
     except Exception as e:
-        print(f"[GEMINI SCHEMA EXTRACTION ERROR] {e}")
+        logger.warning("Gemini schema extraction failed (%s).", type(e).__name__)
 
     return None
 

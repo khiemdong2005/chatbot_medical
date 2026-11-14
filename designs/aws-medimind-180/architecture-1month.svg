@@ -1,0 +1,44 @@
+<svg class="diagram" viewBox="0 0 1230 780" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+<title id="title">MediMind trên Lightsail hai vùng sẵn sàng</title><desc id="desc">Người dùng đi qua HTTPS tới Lightsail load balancer, phân phối tới hai máy FastAPI tại hai Availability Zone. Hai máy dùng PostgreSQL high availability và Lightsail object storage. Google Gemini là dịch vụ ngoài AWS.</desc>
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#6682a4"/></marker><filter id="s"><feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#1b3965" flood-opacity=".09"/></filter></defs>
+<rect x="13" y="17" width="1204" height="719" rx="26" fill="#f9fbfe" stroke="#dae5ef" stroke-width="2"/>
+<text x="43" y="55" font-size="13" font-weight="800" letter-spacing="2" fill="#47709e">DEPLOYMENT MAP · AWS SINGAPORE + GOOGLE GEMINI</text>
+
+<rect x="45" y="110" width="185" height="100" rx="16" fill="#fff" stroke="#cbd9e8" filter="url(#s)"/>
+<text x="65" y="146" font-size="19" font-weight="800" fill="#17263b">Người dùng</text><text x="65" y="172" font-size="13" fill="#596d83">Web / điện thoại</text><text x="65" y="193" font-size="12" font-weight="800" fill="#165ff0">HTTPS 443</text>
+<rect x="284" y="100" width="258" height="120" rx="17" fill="#e6efff" stroke="#a8c2ed" filter="url(#s)"/>
+<text x="306" y="136" font-size="19" font-weight="800" fill="#174d9d">Lightsail Load Balancer</text><text x="306" y="164" font-size="13" fill="#4c6d9a">TLS certificate · health check /health</text><text x="306" y="190" font-size="12" font-weight="800" fill="#165ff0">18 USD / tháng</text>
+<path d="M230 160H284" fill="none" stroke="#6682a4" stroke-width="3" marker-end="url(#a)"/>
+
+<rect x="586" y="96" width="358" height="174" rx="20" fill="#edf4ff" stroke="#aac4e8" stroke-width="2"/>
+<text x="609" y="127" font-size="12" letter-spacing="1.6" font-weight="800" fill="#4373ac">AVAILABILITY ZONE A</text>
+<rect x="609" y="145" width="312" height="103" rx="14" fill="#fff" stroke="#cbd9e8"/>
+<text x="627" y="174" font-size="18" font-weight="800" fill="#17263b">Lightsail app A · 8 GB</text><text x="627" y="199" font-size="13" fill="#596d83">Docker · FastAPI · Uvicorn · RAG</text><text x="627" y="223" font-size="12" fill="#a36315">Chroma index bản đọc · OCR/reranker tắt</text>
+<rect x="586" y="301" width="358" height="174" rx="20" fill="#edf4ff" stroke="#aac4e8" stroke-width="2"/>
+<text x="609" y="332" font-size="12" letter-spacing="1.6" font-weight="800" fill="#4373ac">AVAILABILITY ZONE B</text>
+<rect x="609" y="350" width="312" height="103" rx="14" fill="#fff" stroke="#cbd9e8"/>
+<text x="627" y="379" font-size="18" font-weight="800" fill="#17263b">Lightsail app B · 8 GB</text><text x="627" y="404" font-size="13" fill="#596d83">Docker · FastAPI · Uvicorn · RAG</text><text x="627" y="428" font-size="12" fill="#a36315">Cùng phiên bản code và Chroma index</text>
+<path d="M542 159H560V195H609" fill="none" stroke="#6682a4" stroke-width="3" marker-end="url(#a)"/>
+<path d="M542 159H560V400H609" fill="none" stroke="#6682a4" stroke-width="3" marker-end="url(#a)"/>
+
+<rect x="288" y="313" width="247" height="132" rx="17" fill="#e8f7ed" stroke="#addbb9" filter="url(#s)"/>
+<text x="310" y="347" font-size="18" font-weight="800" fill="#176849">PostgreSQL managed</text><text x="310" y="374" font-size="13" fill="#4f745d">2 GB · HA / 2 AZ · private</text><text x="310" y="397" font-size="13" fill="#4f745d">Dữ liệu hồ sơ và hội thoại</text><text x="310" y="422" font-size="12" font-weight="800" fill="#137553">60 USD / tháng · mã hóa</text>
+<rect x="288" y="489" width="247" height="122" rx="17" fill="#fff2dc" stroke="#e5c98e" filter="url(#s)"/>
+<text x="310" y="523" font-size="17" font-weight="800" fill="#805516">Lightsail object bucket</text><text x="310" y="550" font-size="13" fill="#776348">Ảnh / tài liệu riêng tư · 100 GB</text><text x="310" y="576" font-size="12" font-weight="800" fill="#a36315">3 USD / tháng · không public</text>
+<path d="M609 242H561V379H535" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+<path d="M609 405H561V379H535" fill="none" stroke="#6682a4" stroke-width="2.7"/>
+<path d="M561 379V550H535" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+
+<rect x="1000" y="158" width="191" height="118" rx="17" fill="#fff" stroke="#cbd9e8" filter="url(#s)"/>
+<text x="1020" y="193" font-size="18" font-weight="800" fill="#17263b">Google Gemini</text><text x="1020" y="221" font-size="13" fill="#596d83">Chat / Vision qua API</text><text x="1020" y="248" font-size="12" font-weight="800" fill="#a36315">Chi phí ngoài AWS</text>
+<path d="M944 195H1000" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+<path d="M944 405H968V218H1000" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+
+<rect x="1000" y="326" width="191" height="118" rx="17" fill="#fff" stroke="#cbd9e8" filter="url(#s)"/>
+<text x="1020" y="360" font-size="17" font-weight="800" fill="#17263b">AWS Budgets</text><text x="1020" y="388" font-size="13" fill="#596d83">Cảnh báo 100 / 150 / 175</text><text x="1020" y="415" font-size="12" fill="#596d83">Theo dõi credit còn lại</text>
+
+<rect x="46" y="649" width="1144" height="58" rx="12" fill="#fff6e8" stroke="#efd8ad"/>
+<text x="67" y="675" font-size="14" font-weight="800" fill="#825519">Bắt buộc trước khi triển khai:</text>
+<text x="67" y="695" font-size="12" fill="#755d3f">SQLite → PostgreSQL · uploads → bucket · trạng thái phiên/rate limit dùng chung · Chroma index đóng băng, phát hành đồng bộ · test 100 request đồng thời</text>
+<text x="46" y="765" font-size="12" fill="#6b7b8d">Thiết kế mục tiêu, chưa phải mô tả hạ tầng đã triển khai. Giá AWS theo bảng Lightsail tại ngày 14/11/2026.</text>
+</svg>

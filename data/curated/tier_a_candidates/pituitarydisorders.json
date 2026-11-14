@@ -1,0 +1,49 @@
+{
+  "id": "pituitarydisorders",
+  "title": "Pituitary Disorders",
+  "title_en": "Pituitary Disorders",
+  "title_vi": "Rối loạn tuyến yên",
+  "category": "Endocrinology & Metabolic",
+  "category_en": "Endocrinology & Metabolic",
+  "category_vi": "Nội tiết & Chuyển hóa",
+  "search_phrases": [
+    "pituitary disorders",
+    "pituitary adenoma",
+    "growth hormone deficiency",
+    "hyperprolactinemia",
+    "hypopituitarism",
+    "rối loạn tuyến yên",
+    "u tuyến yên",
+    "rối loạn nội tiết tuyến yên",
+    "suy tuyến yên",
+    "tăng prolactin"
+  ],
+  "keywords_en": [
+    "pituitary disorders",
+    "pituitary adenoma",
+    "growth hormone deficiency",
+    "hyperprolactinemia",
+    "hypopituitarism"
+  ],
+  "keywords_vi": [
+    "rối loạn tuyến yên",
+    "u tuyến yên",
+    "rối loạn nội tiết tuyến yên",
+    "suy tuyến yên",
+    "tăng prolactin"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/pituitarydisorders.html",
+  "summary": "Your pituitary gland is a pea-sized gland at the base of your brain. The pituitary is the \"master control gland\" - it makes hormones that affect growth and the functions of other glands in the body. With pituitary disorders, you often have too much or too little of one of your hormones. Injuries can cause pituitary disorders, but the most common cause is a pituitary tumor .",
+  "page_content": "Your pituitary gland is a pea-sized gland at the base of your brain. The pituitary is the \"master control gland\" - it makes hormones that affect growth and the functions of other glands in the body. With pituitary disorders, you often have too much or too little of one of your hormones. Injuries can cause pituitary disorders, but the most common cause is a pituitary tumor .",
+  "content_sha256": "14188b141bef25b9aeac1368b55f28918679661742ce2dc37bf3dce6a00c13cd",
+  "candidate_score": 0.93,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

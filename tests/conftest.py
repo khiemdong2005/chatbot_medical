@@ -21,6 +21,26 @@ from app import create_app
 from core.models import db, User, MedicalDocument, ClinicalConsultation
 
 
+@pytest.fixture(autouse=True)
+def clean_intake_test_state():
+    """Tự động dọn dẹp các bản ghi intake kiểm thử để đảm bảo tính độc lập giữa các test."""
+    from core.intake_service import intake_service
+    intake_service._sessions.clear()
+    yield
+    intake_service._sessions.clear()
+    try:
+        from core.intake_service import intake_db_context
+        with intake_db_context():
+            from core.models import db, IntakeSessionRecord
+            IntakeSessionRecord.query.filter(
+                IntakeSessionRecord.conversation_id.like("test_%") |
+                IntakeSessionRecord.conversation_id.like("conv_%")
+            ).delete(synchronize_session=False)
+            db.session.commit()
+    except Exception:
+        pass
+
+
 @pytest.fixture
 def temp_dirs(tmp_path):
     """Tạo các thư mục tạm cho CSDL, uploads và vector db để không chạm vào dữ liệu thật."""

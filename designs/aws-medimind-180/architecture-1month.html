@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediMind AWS · kiến trúc 180 USD/tháng</title>
+<style>
+:root{--bg:#f4f7fb;--ink:#17263b;--muted:#596d83;--line:#dbe5ef;--blue:#165ff0;--green:#137553;--orange:#a36315}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.48 Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}main{max-width:1300px;margin:auto;padding:38px 26px 70px}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:800}h1{font-size:clamp(30px,4vw,47px);letter-spacing:-.04em;line-height:1.08;margin:8px 0 10px}h2{font-size:21px;letter-spacing:-.02em;margin:0 0 13px}p{margin:0}.lead{color:var(--muted);max-width:930px;font-size:17px}.pills{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 24px}.pill{padding:5px 11px;background:#e7efff;border:1px solid #c7d8f4;border-radius:99px;font-size:12px;font-weight:750;color:#25519b}.pill.warn{background:#fff1db;color:#945d19;border-color:#efd3a7}.sheet,.card{background:white;border:1px solid var(--line);border-radius:20px;box-shadow:0 12px 40px #2b46690e}.sheet{padding:18px;overflow:auto}.diagram{display:block;width:100%;height:auto;min-width:950px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}.card{padding:23px}.table{border-collapse:collapse;width:100%;font-size:14px}.table th,.table td{padding:9px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}.table tr:last-child td{border:0}.total{font-weight:800;color:#126b4f}.small{color:var(--muted);font-size:13px}.list{margin:0;padding-left:20px}.list li{margin:7px 0}.steps{counter-reset:step;list-style:none;padding:0;margin:0}.steps li{counter-increment:step;position:relative;padding:0 0 13px 40px}.steps li:before{content:counter(step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#eaf1ff;color:var(--blue);font-weight:800;font-size:12px}.callout{background:#fff6e7;border-left:4px solid #db9330;border-radius:0 10px 10px 0;padding:14px 16px;margin-top:18px}.sources{margin-top:24px;color:var(--muted);font-size:12px}.sources a{color:#2362ac}.sources li{margin:4px 0}@media(max-width:780px){main{padding:24px 12px}.grid{grid-template-columns:1fr}.sheet{padding:6px}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">MediMind · AWS solution architecture · 14/11/2026</div>
+<h1>Kiến trúc mục tiêu<br>trong 180 USD / tháng</h1>
+<p class="lead">Dành cho ứng dụng nhỏ có 20–100 người dùng đồng thời và lưu dữ liệu sức khỏe để dùng lại. Hai máy ứng dụng ở hai Availability Zone; cơ sở dữ liệu có máy dự phòng. <strong>Đây là thiết kế sau khi sửa tầng lưu trữ của dự án</strong>, chưa phải cấu hình chạy được ngay từ repository.</p>
+<div class="pills"><span class="pill">AWS Singapore</span><span class="pill">2 Availability Zone</span><span class="pill">2 × Lightsail 8 GB</span><span class="pill">PostgreSQL HA</span><span class="pill warn">Cần migration trước khi chạy thật</span></div>
+<section class="sheet" aria-label="Sơ đồ triển khai AWS MediMind">
+<svg class="diagram" viewBox="0 0 1230 780" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+<title id="title">MediMind trên Lightsail hai vùng sẵn sàng</title><desc id="desc">Người dùng đi qua HTTPS tới Lightsail load balancer, phân phối tới hai máy FastAPI tại hai Availability Zone. Hai máy dùng PostgreSQL high availability và Lightsail object storage. Google Gemini là dịch vụ ngoài AWS.</desc>
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#6682a4"/></marker><filter id="s"><feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#1b3965" flood-opacity=".09"/></filter></defs>
+<rect x="13" y="17" width="1204" height="719" rx="26" fill="#f9fbfe" stroke="#dae5ef" stroke-width="2"/>
+<text x="43" y="55" font-size="13" font-weight="800" letter-spacing="2" fill="#47709e">DEPLOYMENT MAP · AWS SINGAPORE + GOOGLE GEMINI</text>
+
+<rect x="45" y="110" width="185" height="100" rx="16" fill="#fff" stroke="#cbd9e8" filter="url(#s)"/>
+<text x="65" y="146" font-size="19" font-weight="800" fill="#17263b">Người dùng</text><text x="65" y="172" font-size="13" fill="#596d83">Web / điện thoại</text><text x="65" y="193" font-size="12" font-weight="800" fill="#165ff0">HTTPS 443</text>
+<rect x="284" y="100" width="258" height="120" rx="17" fill="#e6efff" stroke="#a8c2ed" filter="url(#s)"/>
+<text x="306" y="136" font-size="19" font-weight="800" fill="#174d9d">Lightsail Load Balancer</text><text x="306" y="164" font-size="13" fill="#4c6d9a">TLS certificate · health check /health</text><text x="306" y="190" font-size="12" font-weight="800" fill="#165ff0">18 USD / tháng</text>
+<path d="M230 160H284" fill="none" stroke="#6682a4" stroke-width="3" marker-end="url(#a)"/>
+
+<rect x="586" y="96" width="358" height="174" rx="20" fill="#edf4ff" stroke="#aac4e8" stroke-width="2"/>
+<text x="609" y="127" font-size="12" letter-spacing="1.6" font-weight="800" fill="#4373ac">AVAILABILITY ZONE A</text>
+<rect x="609" y="145" width="312" height="103" rx="14" fill="#fff" stroke="#cbd9e8"/>
+<text x="627" y="174" font-size="18" font-weight="800" fill="#17263b">Lightsail app A · 8 GB</text><text x="627" y="199" font-size="13" fill="#596d83">Docker · FastAPI · Uvicorn · RAG</text><text x="627" y="223" font-size="12" fill="#a36315">Chroma index bản đọc · OCR/reranker tắt</text>
+<rect x="586" y="301" width="358" height="174" rx="20" fill="#edf4ff" stroke="#aac4e8" stroke-width="2"/>
+<text x="609" y="332" font-size="12" letter-spacing="1.6" font-weight="800" fill="#4373ac">AVAILABILITY ZONE B</text>
+<rect x="609" y="350" width="312" height="103" rx="14" fill="#fff" stroke="#cbd9e8"/>
+<text x="627" y="379" font-size="18" font-weight="800" fill="#17263b">Lightsail app B · 8 GB</text><text x="627" y="404" font-size="13" fill="#596d83">Docker · FastAPI · Uvicorn · RAG</text><text x="627" y="428" font-size="12" fill="#a36315">Cùng phiên bản code và Chroma index</text>
+<path d="M542 159H560V195H609" fill="none" stroke="#6682a4" stroke-width="3" marker-end="url(#a)"/>
+<path d="M542 159H560V400H609" fill="none" stroke="#6682a4" stroke-width="3" marker-end="url(#a)"/>
+
+<rect x="288" y="313" width="247" height="132" rx="17" fill="#e8f7ed" stroke="#addbb9" filter="url(#s)"/>
+<text x="310" y="347" font-size="18" font-weight="800" fill="#176849">PostgreSQL managed</text><text x="310" y="374" font-size="13" fill="#4f745d">2 GB · HA / 2 AZ · private</text><text x="310" y="397" font-size="13" fill="#4f745d">Dữ liệu hồ sơ và hội thoại</text><text x="310" y="422" font-size="12" font-weight="800" fill="#137553">60 USD / tháng · mã hóa</text>
+<rect x="288" y="489" width="247" height="122" rx="17" fill="#fff2dc" stroke="#e5c98e" filter="url(#s)"/>
+<text x="310" y="523" font-size="17" font-weight="800" fill="#805516">Lightsail object bucket</text><text x="310" y="550" font-size="13" fill="#776348">Ảnh / tài liệu riêng tư · 100 GB</text><text x="310" y="576" font-size="12" font-weight="800" fill="#a36315">3 USD / tháng · không public</text>
+<path d="M609 242H561V379H535" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+<path d="M609 405H561V379H535" fill="none" stroke="#6682a4" stroke-width="2.7"/>
+<path d="M561 379V550H535" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+
+<rect x="1000" y="158" width="191" height="118" rx="17" fill="#fff" stroke="#cbd9e8" filter="url(#s)"/>
+<text x="1020" y="193" font-size="18" font-weight="800" fill="#17263b">Google Gemini</text><text x="1020" y="221" font-size="13" fill="#596d83">Chat / Vision qua API</text><text x="1020" y="248" font-size="12" font-weight="800" fill="#a36315">Chi phí ngoài AWS</text>
+<path d="M944 195H1000" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+<path d="M944 405H968V218H1000" fill="none" stroke="#6682a4" stroke-width="2.7" marker-end="url(#a)"/>
+
+<rect x="1000" y="326" width="191" height="118" rx="17" fill="#fff" stroke="#cbd9e8" filter="url(#s)"/>
+<text x="1020" y="360" font-size="17" font-weight="800" fill="#17263b">AWS Budgets</text><text x="1020" y="388" font-size="13" fill="#596d83">Cảnh báo 100 / 150 / 175</text><text x="1020" y="415" font-size="12" fill="#596d83">Theo dõi credit còn lại</text>
+
+<rect x="46" y="649" width="1144" height="58" rx="12" fill="#fff6e8" stroke="#efd8ad"/>
+<text x="67" y="675" font-size="14" font-weight="800" fill="#825519">Bắt buộc trước khi triển khai:</text>
+<text x="67" y="695" font-size="12" fill="#755d3f">SQLite → PostgreSQL · uploads → bucket · trạng thái phiên/rate limit dùng chung · Chroma index đóng băng, phát hành đồng bộ · test 100 request đồng thời</text>
+<text x="46" y="765" font-size="12" fill="#6b7b8d">Thiết kế mục tiêu, chưa phải mô tả hạ tầng đã triển khai. Giá AWS theo bảng Lightsail tại ngày 14/11/2026.</text>
+</svg></section>
+
+<div class="grid">
+<section class="card"><h2>Dự toán AWS / 1 tháng</h2><table class="table"><thead><tr><th>Hạng mục</th><th>Cách tính</th><th>USD</th></tr></thead><tbody>
+<tr><td>Hai máy ứng dụng</td><td>2 × Lightsail 8 GB</td><td>88</td></tr><tr><td>Cân bằng tải + HTTPS</td><td>Lightsail Load Balancer</td><td>18</td></tr><tr><td>Cơ sở dữ liệu</td><td>PostgreSQL 2 GB, HA, mã hóa</td><td>60</td></tr><tr><td>Kho tệp riêng tư</td><td>Lightsail bucket 100 GB</td><td>3</td></tr><tr><td class="total">Tổng cơ bản</td><td></td><td class="total">169</td></tr><tr><td>Dự phòng AWS</td><td>Snapshots / phát sinh</td><td>11</td></tr><tr><td class="total">Trần thiết kế</td><td></td><td class="total">180</td></tr>
+</tbody></table><p class="small">Trước thuế. Khoản dự phòng 11 USD khá mỏng; không cộng Gemini API, SMS/email, tên miền. Dữ liệu lưu và truyền vượt gói có thể làm tổng vượt 180 USD.</p></section>
+<section class="card"><h2>Đường triển khai tốt nhất</h2><ol class="steps">
+<li><strong>Chuyển dữ liệu dùng chung:</strong> sửa migration SQLite riêng của dự án để dùng PostgreSQL; chuyển uploads sang bucket riêng tư và đồng bộ trạng thái phiên, giới hạn tốc độ.</li>
+<li><strong>Đóng gói RAG:</strong> phát hành cùng một chỉ mục Chroma chỉ đọc lên cả hai máy; mọi cập nhật tài liệu tạo phiên bản mới rồi triển khai đồng bộ.</li>
+<li><strong>Ra mắt với Gemini:</strong> giữ BGE reranker và EasyOCR cục bộ tắt lúc đầu. Luồng quét tài liệu dùng Gemini Vision nơi mã hiện có hỗ trợ; kiểm tra các luồng còn phụ thuộc EasyOCR.</li>
+<li><strong>Kiểm thử:</strong> đo tải 20, 50, 100 yêu cầu đang hoạt động, độ trễ Gemini, CPU burst, bộ nhớ, kết nối DB và chức năng OCR trước khi xác nhận công suất.</li>
+<li><strong>Bảo vệ dữ liệu:</strong> bucket không public, DB private + TLS, xóa tệp tạm, giới hạn quyền, log không chứa dữ liệu sức khỏe, chính sách lưu/xóa và thử khôi phục.</li>
+</ol></section></div>
+<div class="callout"><strong>Điều kiện Free Tier:</strong> tài khoản mở tháng 9/2026 nằm trong nhóm tài khoản mới, nhưng AWS chỉ cấp 100 USD credit lúc đầu; phần còn lại phải kiếm theo hoạt động đủ điều kiện. Hãy kiểm tra <em>credit thực có và ngày hết hạn</em> trước khi tạo hạ tầng 169 USD/tháng. Dữ liệu sức khỏe cần bảo vệ dù sản phẩm không dùng để chữa bệnh.</div>
+<div class="sources"><strong>Nguồn:</strong><ol><li><a href="https://aws.amazon.com/lightsail/pricing/">Lightsail pricing: máy, LB, DB mã hóa, object storage</a></li><li><a href="https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-high-availability-databases.html">Lightsail high availability database</a></li><li><a href="https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-bucket-security-best-practices.html">Bảo vệ Lightsail object bucket</a></li><li><a href="https://aws.amazon.com/free/free-tier-faqs/">AWS Free Tier credit và thời hạn</a></li><li><a href="https://docs.aws.amazon.com/en_en/lightsail/latest/userguide/baseline-cpu-performance.html">CPU baseline của Lightsail</a></li></ol></div>
+</main></body></html>

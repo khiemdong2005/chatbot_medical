@@ -1,0 +1,37 @@
+{
+  "id": "minerals",
+  "title": "Minerals",
+  "category": "Lifestyle",
+  "mapped_title": "Minerals",
+  "page_content": "User topic: Minerals\nCategory: Lifestyle\nTrusted medical topic: Minerals\nSearch phrases: Minerals\nMedical groups: Food and Nutrition\n\nMedical information:\nMinerals are important for your body to stay healthy. Your body uses minerals for many different jobs, including keeping your bones, muscles, heart, and brain working properly. Minerals are also important for making enzymes and hormones. There are two kinds of minerals: macrominerals and trace minerals. You need larger amounts of macrominerals. They include calcium , phosphorus, magnesium, sodium , potassium , chloride and sulfur. You only need small amounts of trace minerals. They include iron , manganese, copper, iodine, zinc, cobalt, fluoride and selenium. Most people get the amount of minerals they need by eating a wide variety of foods. In some cases, your doctor may recommend a mineral supplement. People who have certain health problems or take some medicines may need to get less of one of the minerals. For example, people with chronic kidney disease need to limit foods that are high in potassium.",
+  "search_phrases": [
+    "Minerals"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/minerals.html",
+  "medlineplus_id": "4298",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Minerals",
+  "title_vi": "Khoáng chất vi lượng thiết yếu",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "minerals",
+    "essential minerals",
+    "dietary minerals",
+    "trace elements",
+    "mineral deficiency"
+  ],
+  "keywords_vi": [
+    "khoáng chất",
+    "khoáng chất vi lượng",
+    "bổ sung khoáng chất",
+    "sắt kẽm magie",
+    "dinh dưỡng vi chất"
+  ],
+  "content_hash": "8f15178b118b25987b982c0e471a984206b7cf9032da7611e9916c91bd3603ff",
+  "content_sha256": "8f15178b118b25987b982c0e471a984206b7cf9032da7611e9916c91bd3603ff",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

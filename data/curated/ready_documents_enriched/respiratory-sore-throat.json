@@ -1,0 +1,38 @@
+{
+  "id": "sore-throat",
+  "title": "Sore throat",
+  "category": "Respiratory",
+  "mapped_title": "Sore Throat",
+  "page_content": "User topic: Sore throat\nCategory: Respiratory\nTrusted medical topic: Sore Throat\nSearch phrases: Sore throat, Sore Throat, Pharyngitis\nMedical groups: Ear, Nose and Throat\n\nMedical information:\nYour throat is a tube that carries food to your esophagus and air to your windpipe and larynx (also called the voice box). The technical name for the throat is pharynx. You can have a sore throat for many reasons. Often, colds and flu cause sore throats. Other causes can include: Allergies Mononucleosis Smoking Strep throat Tonsillitis Treatment depends on the cause. Sucking on lozenges, drinking lots of liquids, and gargling may ease the pain. Over-the-counter pain relievers can also help, but children should not take aspirin.",
+  "search_phrases": [
+    "Sore throat",
+    "Sore Throat",
+    "Pharyngitis"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/sorethroat.html",
+  "medlineplus_id": "4748",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Sore throat",
+  "title_vi": "Đau họng (Rát họng)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "sore throat",
+    "pharyngitis",
+    "throat pain",
+    "painful swallowing"
+  ],
+  "keywords_vi": [
+    "đau họng",
+    "rát họng",
+    "viêm họng",
+    "nuốt đau",
+    "nhiễm trùng hầu họng"
+  ],
+  "content_hash": "8716b6880d10aef6370066bf0213d5de21bd40e923b7932b6974b4a9fcd1fb1b",
+  "content_sha256": "8716b6880d10aef6370066bf0213d5de21bd40e923b7932b6974b4a9fcd1fb1b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

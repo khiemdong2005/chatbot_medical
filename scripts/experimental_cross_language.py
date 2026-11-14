@@ -6,13 +6,18 @@ Do not generate translations from evaluation labels: that would leak ground trut
 import math
 
 
-def retrieve_with_translation(rag, query, english_query, top_k=20):
+def retrieve_with_translation(rag, query, english_query, top_k=20, no_df_cutoff=False, source_diversity=False):
     """Fuse existing lexical + independently translated lexical + optional vector.
 
     If a translation is absent, use the exact configured production retriever.
     Scores are RRF over separate branches; one chunk can receive multiple votes.
     """
     if not isinstance(english_query, str) or not english_query.strip():
+        if no_df_cutoff or source_diversity:
+            try:
+                return rag.retrieve_candidates(query, top_k, no_df_cutoff=no_df_cutoff, source_diversity=source_diversity)
+            except TypeError:
+                return rag.retrieve_candidates(query, top_k)
         return rag.retrieve_candidates(query, top_k)
     if not isinstance(query, str) or not query.strip() or not rag.is_available():
         return []
@@ -20,8 +25,17 @@ def retrieve_with_translation(rag, query, english_query, top_k=20):
         raise ValueError('top_k must be an integer between 1 and 20')
     pool = min(rag.collection.count(), top_k * 3)
     expanded = rag.expand_query(query[:2000])
-    branches = [('original', rag.lexical_search(expanded, pool)),
-                ('translated', rag.lexical_search(english_query.strip()[:2000], pool))]
+
+    def _call_lexical(q, p):
+        if no_df_cutoff:
+            try:
+                return rag.lexical_search(q, p, no_df_cutoff=no_df_cutoff)
+            except TypeError:
+                return rag.lexical_search(q, p)
+        return rag.lexical_search(q, p)
+
+    branches = [('original', _call_lexical(expanded, pool)),
+                ('translated', _call_lexical(english_query.strip()[:2000], pool))]
     if rag.vector_search_enabled:
         branches.append(('vector', rag.vector_search(expanded, pool)))
     fused = {}
@@ -46,7 +60,7 @@ def retrieve_with_translation(rag, query, english_query, top_k=20):
         raise ValueError('Invalid RRF score')
     # Keep the same top-K chunk budget as the baseline, then collapse source
     # URLs for document-level evaluation. Do not refill after deduplication.
-    chunks = sorted(fused.values(), key=lambda x: x['fusion_score'], reverse=True)[:top_k]
+    chunks = sorted(fused.values(), key=lambda x: x['fusion_score'], reverse=True)[:(top_k * 2 if source_diversity else top_k)]
     documents = {}
     for hit in chunks:
         identity = hit['metadata'].get('source_url') or ('content:' + hit['content'])
@@ -56,4 +70,5 @@ def retrieve_with_translation(rag, query, english_query, top_k=20):
             existing = documents[identity]
             existing['branches'] = list(dict.fromkeys(existing['branches'] + hit['branches']))
             existing['metadata'] = {**hit['metadata'], **existing['metadata']}
-    return list(documents.values())
+    res = list(documents.values())
+    return res[:top_k]

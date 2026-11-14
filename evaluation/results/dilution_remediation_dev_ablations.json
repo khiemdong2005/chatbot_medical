@@ -1,0 +1,1334 @@
+{
+  "timestamp": "2026-11-14T18:00:45.369165+00:00",
+  "summary_table": [
+    {
+      "variant": "Variant A (V2 Active)",
+      "recall@5": 0.6786,
+      "candidate@20": 0.6786,
+      "vi_recall@5": 0.3571,
+      "en_recall@5": 1.0,
+      "expansion_recall@5": 1.0,
+      "latency_p50_ms": 2.69,
+      "mean_unique_urls_top5": 3.27,
+      "crowded_queries": 0
+    },
+    {
+      "variant": "Variant B (V3 Current)",
+      "recall@5": 0.6429,
+      "candidate@20": 0.6786,
+      "vi_recall@5": 0.2857,
+      "en_recall@5": 1.0,
+      "expansion_recall@5": 0.9464,
+      "latency_p50_ms": 4.3,
+      "mean_unique_urls_top5": 4.36,
+      "crowded_queries": 0
+    },
+    {
+      "variant": "Variant C (V3 + No DF Cutoff)",
+      "recall@5": 0.6429,
+      "candidate@20": 0.6786,
+      "vi_recall@5": 0.2857,
+      "en_recall@5": 1.0,
+      "expansion_recall@5": 0.9464,
+      "latency_p50_ms": 4.4,
+      "mean_unique_urls_top5": 4.64,
+      "crowded_queries": 0
+    },
+    {
+      "variant": "Variant D (V4 Bilingual + DF Cutoff)",
+      "recall@5": 1.0,
+      "candidate@20": 1.0,
+      "vi_recall@5": 1.0,
+      "en_recall@5": 1.0,
+      "expansion_recall@5": 1.0,
+      "latency_p50_ms": 4.94,
+      "mean_unique_urls_top5": 4.52,
+      "crowded_queries": 0
+    },
+    {
+      "variant": "Variant E (V4 Bilingual + No DF Cutoff)",
+      "recall@5": 1.0,
+      "candidate@20": 1.0,
+      "vi_recall@5": 1.0,
+      "en_recall@5": 1.0,
+      "expansion_recall@5": 1.0,
+      "latency_p50_ms": 5.1,
+      "mean_unique_urls_top5": 4.62,
+      "crowded_queries": 0
+    },
+    {
+      "variant": "Variant F (V4 + No DF Cutoff + Diversity)",
+      "recall@5": 1.0,
+      "candidate@20": 1.0,
+      "vi_recall@5": 1.0,
+      "en_recall@5": 1.0,
+      "expansion_recall@5": 1.0,
+      "latency_p50_ms": 5.1,
+      "mean_unique_urls_top5": 4.62,
+      "crowded_queries": 0
+    }
+  ],
+  "ranking_shifts": {
+    "Variant B (V3 Current)": {
+      "improvements_count": 0,
+      "regressions_count": 2,
+      "improvements": [],
+      "regressions": [
+        {
+          "id": "med_031",
+          "query": "Bệnh tiểu đường típ 2 là gì?",
+          "old_rank": 2,
+          "new_rank": 7
+        },
+        {
+          "id": "med_047",
+          "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+          "old_rank": 2,
+          "new_rank": 8
+        }
+      ]
+    },
+    "Variant C (V3 + No DF Cutoff)": {
+      "improvements_count": 0,
+      "regressions_count": 2,
+      "improvements": [],
+      "regressions": [
+        {
+          "id": "med_031",
+          "query": "Bệnh tiểu đường típ 2 là gì?",
+          "old_rank": 2,
+          "new_rank": 7
+        },
+        {
+          "id": "med_047",
+          "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+          "old_rank": 2,
+          "new_rank": 9
+        }
+      ]
+    },
+    "Variant D (V4 Bilingual + DF Cutoff)": {
+      "improvements_count": 18,
+      "regressions_count": 0,
+      "improvements": [
+        {
+          "id": "med_011",
+          "query": "Táo bón là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_013",
+          "query": "Mất nước có dấu hiệu gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_021",
+          "query": "Sơ cứu người bị nghẹn như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_023",
+          "query": "Sơ cứu vết bỏng như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_025",
+          "query": "Cần làm gì khi bị ngộ độc?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_027",
+          "query": "Hồi sức tim phổi là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_029",
+          "query": "Hen suyễn là bệnh gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_033",
+          "query": "Sốt xuất huyết lây truyền như thế nào?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_035",
+          "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_037",
+          "query": "Bệnh cúm là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_039",
+          "query": "Thuốc kháng sinh dùng để điều trị gì?",
+          "old_rank": null,
+          "new_rank": 5
+        },
+        {
+          "id": "med_041",
+          "query": "Tương tác thuốc là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_043",
+          "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_045",
+          "query": "Làm sao phòng bệnh sốt xuất huyết?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_049",
+          "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_051",
+          "query": "Hen suyễn được điều trị như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_053",
+          "query": "Điều trị táo bón như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_055",
+          "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+          "old_rank": null,
+          "new_rank": 1
+        }
+      ],
+      "regressions": []
+    },
+    "Variant E (V4 Bilingual + No DF Cutoff)": {
+      "improvements_count": 18,
+      "regressions_count": 0,
+      "improvements": [
+        {
+          "id": "med_011",
+          "query": "Táo bón là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_013",
+          "query": "Mất nước có dấu hiệu gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_021",
+          "query": "Sơ cứu người bị nghẹn như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_023",
+          "query": "Sơ cứu vết bỏng như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_025",
+          "query": "Cần làm gì khi bị ngộ độc?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_027",
+          "query": "Hồi sức tim phổi là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_029",
+          "query": "Hen suyễn là bệnh gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_033",
+          "query": "Sốt xuất huyết lây truyền như thế nào?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_035",
+          "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_037",
+          "query": "Bệnh cúm là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_039",
+          "query": "Thuốc kháng sinh dùng để điều trị gì?",
+          "old_rank": null,
+          "new_rank": 5
+        },
+        {
+          "id": "med_041",
+          "query": "Tương tác thuốc là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_043",
+          "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_045",
+          "query": "Làm sao phòng bệnh sốt xuất huyết?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_049",
+          "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_051",
+          "query": "Hen suyễn được điều trị như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_053",
+          "query": "Điều trị táo bón như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_055",
+          "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+          "old_rank": null,
+          "new_rank": 1
+        }
+      ],
+      "regressions": []
+    },
+    "Variant F (V4 + No DF Cutoff + Diversity)": {
+      "improvements_count": 18,
+      "regressions_count": 0,
+      "improvements": [
+        {
+          "id": "med_011",
+          "query": "Táo bón là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_013",
+          "query": "Mất nước có dấu hiệu gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_021",
+          "query": "Sơ cứu người bị nghẹn như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_023",
+          "query": "Sơ cứu vết bỏng như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_025",
+          "query": "Cần làm gì khi bị ngộ độc?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_027",
+          "query": "Hồi sức tim phổi là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_029",
+          "query": "Hen suyễn là bệnh gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_033",
+          "query": "Sốt xuất huyết lây truyền như thế nào?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_035",
+          "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_037",
+          "query": "Bệnh cúm là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_039",
+          "query": "Thuốc kháng sinh dùng để điều trị gì?",
+          "old_rank": null,
+          "new_rank": 5
+        },
+        {
+          "id": "med_041",
+          "query": "Tương tác thuốc là gì?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_043",
+          "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_045",
+          "query": "Làm sao phòng bệnh sốt xuất huyết?",
+          "old_rank": null,
+          "new_rank": 2
+        },
+        {
+          "id": "med_049",
+          "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_051",
+          "query": "Hen suyễn được điều trị như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_053",
+          "query": "Điều trị táo bón như thế nào?",
+          "old_rank": null,
+          "new_rank": 1
+        },
+        {
+          "id": "med_055",
+          "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+          "old_rank": null,
+          "new_rank": 1
+        }
+      ],
+      "regressions": []
+    }
+  },
+  "results": {
+    "Variant A (V2 Active)__Baseline": {
+      "metrics": {
+        "hit@1": 0.6071,
+        "hit@3": 0.6786,
+        "hit@5": 0.6786,
+        "recall@1": 0.5982,
+        "recall@3": 0.6786,
+        "recall@5": 0.6786,
+        "candidate_recall@20": 0.6786,
+        "mrr": 0.6429,
+        "ndcg@5": 0.6522
+      },
+      "latency": {
+        "mean_ms": 4.0,
+        "p50_ms": 2.69,
+        "p95_ms": 3.26
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 0.3571,
+          "candidate_recall@20": 0.3571,
+          "mrr": 0.3036
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 0.6667,
+          "candidate_recall@20": 0.6667
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 0.5833,
+          "candidate_recall@20": 0.5833
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 0.875,
+          "candidate_recall@20": 0.875
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 0.75,
+          "candidate_recall@20": 0.75
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 3.27,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant B (V3 Current)__Baseline": {
+      "metrics": {
+        "hit@1": 0.5714,
+        "hit@3": 0.6429,
+        "hit@5": 0.6429,
+        "recall@1": 0.5625,
+        "recall@3": 0.6429,
+        "recall@5": 0.6429,
+        "candidate_recall@20": 0.6786,
+        "mrr": 0.6089,
+        "ndcg@5": 0.6142
+      },
+      "latency": {
+        "mean_ms": 6.63,
+        "p50_ms": 4.3,
+        "p95_ms": 5.24
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 0.2857,
+          "candidate_recall@20": 0.3571,
+          "mrr": 0.2358
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 0.6667,
+          "candidate_recall@20": 0.6667
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5833
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 0.875,
+          "candidate_recall@20": 0.875
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.75
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.36,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant C (V3 + No DF Cutoff)__Baseline": {
+      "metrics": {
+        "hit@1": 0.5536,
+        "hit@3": 0.6429,
+        "hit@5": 0.6429,
+        "recall@1": 0.5446,
+        "recall@3": 0.6429,
+        "recall@5": 0.6429,
+        "candidate_recall@20": 0.6786,
+        "mrr": 0.5998,
+        "ndcg@5": 0.6076
+      },
+      "latency": {
+        "mean_ms": 4.44,
+        "p50_ms": 4.4,
+        "p95_ms": 5.23
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 0.2857,
+          "candidate_recall@20": 0.3571,
+          "mrr": 0.2353
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9643
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 0.6667,
+          "candidate_recall@20": 0.6667
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5833
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 0.875,
+          "candidate_recall@20": 0.875
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.75
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 0.5
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.64,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant D (V4 Bilingual + DF Cutoff)__Baseline": {
+      "metrics": {
+        "hit@1": 0.8571,
+        "hit@3": 0.9464,
+        "hit@5": 1.0,
+        "recall@1": 0.8393,
+        "recall@3": 0.9375,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9143,
+        "ndcg@5": 0.9336
+      },
+      "latency": {
+        "mean_ms": 7.6,
+        "p50_ms": 4.94,
+        "p95_ms": 5.99
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.8286
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.52,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant E (V4 Bilingual + No DF Cutoff)__Baseline": {
+      "metrics": {
+        "hit@1": 0.8393,
+        "hit@3": 0.9464,
+        "hit@5": 1.0,
+        "recall@1": 0.8214,
+        "recall@3": 0.9375,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9054,
+        "ndcg@5": 0.927
+      },
+      "latency": {
+        "mean_ms": 5.24,
+        "p50_ms": 5.1,
+        "p95_ms": 6.32
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.8286
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.62,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant F (V4 + No DF Cutoff + Diversity)__Baseline": {
+      "metrics": {
+        "hit@1": 0.8393,
+        "hit@3": 0.9464,
+        "hit@5": 1.0,
+        "recall@1": 0.8214,
+        "recall@3": 0.9375,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9054,
+        "ndcg@5": 0.927
+      },
+      "latency": {
+        "mean_ms": 5.43,
+        "p50_ms": 5.1,
+        "p95_ms": 7.81
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.8286
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.62,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant A (V2 Active)__Expansion": {
+      "metrics": {
+        "hit@1": 0.8571,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@1": 0.8393,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9226,
+        "ndcg@5": 0.9426
+      },
+      "latency": {
+        "mean_ms": 4.16,
+        "p50_ms": 4.16,
+        "p95_ms": 7.26
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.8631
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.36,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant B (V3 Current)__Expansion": {
+      "metrics": {
+        "hit@1": 0.6429,
+        "hit@3": 0.9464,
+        "hit@5": 0.9464,
+        "recall@1": 0.6339,
+        "recall@3": 0.9464,
+        "recall@5": 0.9464,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.7879,
+        "ndcg@5": 0.8238
+      },
+      "latency": {
+        "mean_ms": 5.85,
+        "p50_ms": 5.93,
+        "p95_ms": 8.26
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 0.8929,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.5938
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 0.75,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.75,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant C (V3 + No DF Cutoff)__Expansion": {
+      "metrics": {
+        "hit@1": 0.5893,
+        "hit@3": 0.9286,
+        "hit@5": 0.9464,
+        "recall@1": 0.5804,
+        "recall@3": 0.9196,
+        "recall@5": 0.9464,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.7493,
+        "ndcg@5": 0.7952
+      },
+      "latency": {
+        "mean_ms": 7.56,
+        "p50_ms": 7.06,
+        "p95_ms": 11.74
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 0.8929,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.5344
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9643
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 0.75,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 0.5,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.86,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant D (V4 Bilingual + DF Cutoff)__Expansion": {
+      "metrics": {
+        "hit@1": 0.9286,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@1": 0.9107,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9643,
+        "ndcg@5": 0.9736
+      },
+      "latency": {
+        "mean_ms": 7.12,
+        "p50_ms": 6.96,
+        "p95_ms": 11.04
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9286
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.75,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant E (V4 Bilingual + No DF Cutoff)__Expansion": {
+      "metrics": {
+        "hit@1": 0.9107,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@1": 0.8929,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9554,
+        "ndcg@5": 0.967
+      },
+      "latency": {
+        "mean_ms": 6.7,
+        "p50_ms": 6.8,
+        "p95_ms": 9.39
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9286
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.86,
+        "crowded_queries_count": 0
+      }
+    },
+    "Variant F (V4 + No DF Cutoff + Diversity)__Expansion": {
+      "metrics": {
+        "hit@1": 0.9107,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "recall@1": 0.8929,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "candidate_recall@20": 1.0,
+        "mrr": 0.9554,
+        "ndcg@5": 0.967
+      },
+      "latency": {
+        "mean_ms": 7.23,
+        "p50_ms": 7.12,
+        "p95_ms": 12.69
+      },
+      "language_breakdown": {
+        "vi": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9286
+        },
+        "en": {
+          "count": 28,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0,
+          "mrr": 0.9821
+        }
+      },
+      "category_breakdown": {
+        "emergency": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "medication": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "prevention": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "disease": {
+          "count": 12,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "symptom": {
+          "count": 16,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "diagnosis": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        },
+        "treatment": {
+          "count": 4,
+          "recall@5": 1.0,
+          "candidate_recall@20": 1.0
+        }
+      },
+      "diversity": {
+        "mean_unique_urls_top5": 4.86,
+        "crowded_queries_count": 0
+      }
+    }
+  }
+}

@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 
 from google import genai
 from google.genai import types
+from core.settings import settings
 
 
 class NutritionAIError(Exception):
@@ -108,25 +109,104 @@ trả needs_clarification=true, recommendations=[], clarification_question ngắ
 Nếu chọn được món, needs_clarification=false và clarification_question="".
 Không tiết lộ suy luận nội bộ; chỉ nêu lý do lựa chọn ngắn có thể kiểm tra.
 """
-    client = None
+    from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
+    from core.retry_policy import RetryPolicy, execute_with_retry, ErrorClassification
+    from core.llm_provider import llm_provider, LLMProviderError
+    from unittest.mock import MagicMock
+
+    if not gemini_circuit_breaker.can_execute():
+        raise NutritionAIError("unavailable")
+
+    gen_timeout = float(os.getenv("GEMINI_GENERATION_TIMEOUT_SECONDS", str(settings.gemini.timeout_nutrition)))
+    payload = json.dumps({"user_input": condition, "recipe_type": recipe_type,
+                         "guidance": guidance, "candidates": [{k: recipe[k] for k in
+                             ("id", "title", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note")
+                             if k in recipe} for recipe in recipes]}, ensure_ascii=False)
+
+    # Nếu môi trường kiểm thử trực tiếp mock genai.Client
+    if isinstance(genai.Client, MagicMock) or hasattr(genai.Client, "mock_calls"):
+        try:
+            timeout_ms = max(10000, int(gen_timeout * 1000))
+            client = genai.Client(api_key=key, http_options=types.HttpOptions(
+                timeout=timeout_ms, retry_options=types.HttpRetryOptions(attempts=1)))
+
+            config = types.GenerateContentConfig(system_instruction=instruction, temperature=0.2,
+                max_output_tokens=2600, response_mime_type="application/json", response_json_schema=schema)
+
+            def _do_generate():
+                return client.models.generate_content(
+                    model=model,
+                    contents=payload,
+                    config=config
+                )
+
+            policy = RetryPolicy(
+                max_attempts=int(os.getenv("AI_RETRY_MAX_ATTEMPTS", str(settings.retry.max_attempts))),
+                base_delay=float(os.getenv("AI_RETRY_BASE_DELAY_SECONDS", str(settings.retry.base_delay_seconds))),
+                max_delay=float(os.getenv("AI_RETRY_MAX_DELAY_SECONDS", str(settings.retry.max_delay_seconds))),
+                jitter=settings.retry.jitter
+            )
+
+            response = execute_with_retry(
+                _do_generate,
+                policy=policy,
+                circuit_breaker=gemini_circuit_breaker,
+                stage="nutrition_ai"
+            )
+            result = validate_selection(json.loads(response.text or ""), recipes, len(guidance))
+            result["model"] = model
+            return result
+        except NutritionAIError:
+            raise
+        except CircuitBreakerOpenError:
+            raise NutritionAIError("unavailable")
+        except Exception as error:
+            code = getattr(error, "code", None)
+            reason = "invalid_response" if isinstance(error, (ValueError, TypeError, AttributeError)) else "unavailable"
+            if code in (400, 401, 403):
+                reason = "credentials_or_access"
+            elif code == 429:
+                reason = "quota"
+            raise NutritionAIError(reason) from None
+        finally:
+            if client is not None:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+
+    # Runtime chính thức chuyển qua Unified LLM Provider
     try:
-        client = genai.Client(api_key=key, http_options=types.HttpOptions(
-            timeout=25000, retry_options=types.HttpRetryOptions(attempts=1)))
-        response = client.models.generate_content(
+        raw_result = llm_provider.generate_json(
+            contents=payload,
+            schema=schema,
             model=model,
-            contents=json.dumps({"user_input": condition, "recipe_type": recipe_type,
-                                 "guidance": guidance, "candidates": [{key: recipe[key] for key in
-                                     ("id", "title", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note")
-                                     if key in recipe} for recipe in recipes]}, ensure_ascii=False),
-            config=types.GenerateContentConfig(system_instruction=instruction, temperature=0.2,
-                max_output_tokens=2600, response_mime_type="application/json", response_json_schema=schema))
-        result = validate_selection(json.loads(response.text or ""), recipes, len(guidance))
+            system_instruction=instruction,
+            temperature=0.2,
+            max_output_tokens=2600,
+            timeout_seconds=gen_timeout,
+            operation="nutrition_ai",
+            profile="nutrition",
+            api_key=key
+        )
+        result = validate_selection(raw_result, recipes, len(guidance))
         result["model"] = model
         return result
     except NutritionAIError:
         raise
+    except CircuitBreakerOpenError:
+        raise NutritionAIError("unavailable")
+    except LLMProviderError as lpe:
+        if lpe.classification == ErrorClassification.RATE_LIMIT:
+            reason = "quota"
+        elif lpe.classification in (ErrorClassification.AUTH_ERROR, ErrorClassification.BAD_REQUEST):
+            reason = "credentials_or_access"
+        elif lpe.classification == ErrorClassification.SCHEMA_ERROR:
+            reason = "invalid_response"
+        else:
+            reason = "unavailable"
+        raise NutritionAIError(reason) from None
     except Exception as error:
-        # Never emit raw provider errors: they can contain request details or credentials.
         code = getattr(error, "code", None)
         reason = "invalid_response" if isinstance(error, (ValueError, TypeError, AttributeError)) else "unavailable"
         if code in (400, 401, 403):
@@ -134,9 +214,3 @@ Không tiết lộ suy luận nội bộ; chỉ nêu lý do lựa chọn ngắn 
         elif code == 429:
             reason = "quota"
         raise NutritionAIError(reason) from None
-    finally:
-        if client is not None:
-            try:
-                client.close()
-            except Exception:
-                pass

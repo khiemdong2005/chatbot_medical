@@ -1,0 +1,49 @@
+{
+  "id": "pancreaticdiseases",
+  "title": "Pancreatic Diseases",
+  "title_en": "Pancreatic Diseases",
+  "title_vi": "Các bệnh tuyến tụy",
+  "category": "Gastroenterology",
+  "category_en": "Gastroenterology",
+  "category_vi": "Tiêu hóa & Gan mật",
+  "search_phrases": [
+    "pancreatic diseases",
+    "exocrine pancreatic insufficiency",
+    "pancreatic cysts",
+    "pancreatic enzyme deficiency",
+    "pancreas health",
+    "bệnh tuyến tụy",
+    "thiếu hụt men tụy",
+    "nang tuyến tụy",
+    "chức năng tụy",
+    "tiêu hóa mỡ kém"
+  ],
+  "keywords_en": [
+    "pancreatic diseases",
+    "exocrine pancreatic insufficiency",
+    "pancreatic cysts",
+    "pancreatic enzyme deficiency",
+    "pancreas health"
+  ],
+  "keywords_vi": [
+    "bệnh tuyến tụy",
+    "thiếu hụt men tụy",
+    "nang tuyến tụy",
+    "chức năng tụy",
+    "tiêu hóa mỡ kém"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/pancreaticdiseases.html",
+  "summary": "The pancreas is a gland behind your stomach and in front of your spine. It produces juices that help break down food and hormones that help control blood sugar levels. Problems with the pancreas can lead to many health problems. These include: Pancreatitis , or inflammation of the pancreas: This happens when digestive enzymes start digesting the pancreas itself Pancreatic cancer Cystic fibrosis , a genetic disorder in which thick, sticky mucus can also block tubes in your pancreas The pancreas also plays a role in diabetes. In type 1 diabetes , the beta cells of the pancreas no longer make insulin because the body's immune system has attacked them. In type 2 diabetes , the pancreas loses the ability to secrete enough insulin in response to meals.",
+  "page_content": "The pancreas is a gland behind your stomach and in front of your spine. It produces juices that help break down food and hormones that help control blood sugar levels. Problems with the pancreas can lead to many health problems. These include: Pancreatitis , or inflammation of the pancreas: This happens when digestive enzymes start digesting the pancreas itself Pancreatic cancer Cystic fibrosis , a genetic disorder in which thick, sticky mucus can also block tubes in your pancreas The pancreas also plays a role in diabetes. In type 1 diabetes , the beta cells of the pancreas no longer make insulin because the body's immune system has attacked them. In type 2 diabetes , the pancreas loses the ability to secrete enough insulin in response to meals.",
+  "content_sha256": "bb69bf722de42776009312e165af4ed4db8a04cd6f04c8afb2b7b09d38624310",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

@@ -1,0 +1,53 @@
+# ==============================================================================
+# 🩺 MEDIMIND CLINICAL AI - DOCKER COMPOSE CONFIGURATION (FULL LOCAL)
+# ==============================================================================
+# Khởi chạy một chạm:
+#   docker compose up -d
+# Kiểm tra log:
+#   docker compose logs -f
+# Nạp dữ liệu RAG:
+#   docker compose run --rm medical-api python ingest.py
+# ==============================================================================
+
+services:
+  medical-api:
+    container_name: medimind-clinical-api
+    image: medimind-api:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_RERANKER: "false"
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # 1. Cơ sở dữ liệu Vector ChromaDB bền vững
+      - ./medical_vectordb:/app/medical_vectordb
+      # 2. CSDL SQLite và cấu hình instance
+      - ./instance:/app/instance
+      # 3. Tệp tài liệu / ảnh tải lên
+      - ./uploads:/app/uploads
+      # 4. Cache HuggingFace tải model BGE Reranker (nếu được kích hoạt)
+      - hf_cache:/home/appuser/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
+
+volumes:
+  hf_cache:
+    name: medimind_hf_cache

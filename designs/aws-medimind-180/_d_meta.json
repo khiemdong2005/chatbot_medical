@@ -1,0 +1,63 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "architecture": {
+      "versions": [
+        {
+          "path": "architecture.html",
+          "createdAt": "2026-11-14T11:32:59.434Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "architecture.svg": {
+      "versions": [
+        {
+          "path": "architecture.svg",
+          "createdAt": "2026-11-14T11:34:27.246Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "architecture-1month": {
+      "versions": [
+        {
+          "path": "architecture-1month.html",
+          "createdAt": "2026-11-14T11:39:07.370Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "architecture-1month.svg": {
+      "versions": [
+        {
+          "path": "architecture-1month.svg",
+          "createdAt": "2026-11-14T11:39:07.434Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "architecture-rubric": {
+      "versions": [
+        {
+          "path": "architecture-rubric.html",
+          "createdAt": "2026-11-14T11:46:57.678Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "architecture-rubric.svg": {
+      "versions": [
+        {
+          "path": "architecture-rubric.svg",
+          "createdAt": "2026-11-14T11:46:57.735Z",
+          "status": "needs-review"
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-11-14T11:32:59.439Z",
+  "updatedAt": "2026-11-14T11:50:47.730Z"
+}

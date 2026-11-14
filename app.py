@@ -26,19 +26,21 @@ from dotenv import load_dotenv
 
 # Tải cấu hình môi trường (.env)
 load_dotenv()
+from core.settings import settings
 
 # Nạp cơ sở dữ liệu và các mô hình
 from core.models import db, User, MedicalDocument, ClinicalConsultation, MedicalAppointment, init_db
+from core.db_utils import commit_or_rollback
 from core.otp_service import otp_manager
 from core.storage_service import (
     process_secure_upload,
     decode_and_validate_base64_image,
     is_safe_path
 )
-from core.chat_service import process_clinical_chat
+from core.chat_service import process_clinical_chat, execute_chat_workflow
 from core.health_context import validate_chat_request
 from core.gemini_service import GeminiMedicalService
-from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.prescription_service import get_preset_data
 from core.intake_service import intake_service
 from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
 
@@ -94,27 +96,18 @@ def create_app(test_config=None):
     """
     app = Flask(__name__)
 
-    is_prod = os.getenv("FLASK_ENV") == "production" or os.getenv("ENV") == "production"
-    secret_key = os.getenv("SECRET_KEY")
-    if not secret_key:
-        if is_prod and not (test_config and test_config.get("TESTING")):
-            raise RuntimeError("Yêu cầu cấu hình SECRET_KEY an toàn trong môi trường Production!")
-        # Ponytail: dev fallback using CSPRNG to prevent hardcoded secret forgery
-        import secrets
-        secret_key = secrets.token_hex(32)
-        logger.warning("CẢNH BÁO BẢO MẬT: Không tìm thấy SECRET_KEY trong .env! Đã tự động tạo khóa mật mã ngẫu nhiên cho phiên này.")
-
-    app.secret_key = secret_key
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///medimind.db")
+    is_testing = bool(test_config and test_config.get("TESTING"))
+    app.secret_key = settings.get_effective_secret_key(testing=is_testing)
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL") or settings.paths.database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_AS_ASCII"] = False
     # Refresh edited templates locally even when the debugger is disabled.
-    app.config["TEMPLATES_AUTO_RELOAD"] = not is_prod
+    app.config["TEMPLATES_AUTO_RELOAD"] = not settings.server.is_production
 
     # Cấu hình Cookie an toàn bảo vệ Session
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["SESSION_COOKIE_SECURE"] = is_prod or (os.getenv("SESSION_COOKIE_SECURE", "false").lower() in ("true", "1"))
+    app.config["SESSION_COOKIE_SECURE"] = settings.server.is_production or settings.security.session_cookie_secure
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Giới hạn 16MB chống tràn bộ nhớ DoS (VULN-04)
 
     @app.before_request
@@ -154,7 +147,7 @@ def create_app(test_config=None):
         )
         response.headers.setdefault("Content-Security-Policy", csp_policy)
 
-        if is_prod or request.is_secure:
+        if settings.server.is_production or request.is_secure:
             response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 
         return response
@@ -302,7 +295,10 @@ def create_app(test_config=None):
         )
         new_user.set_password(password)
         db.session.add(new_user)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
         session["user_id"] = new_user.id
         session["user_role"] = new_user.role
@@ -398,9 +394,8 @@ def create_app(test_config=None):
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
         try:
-            db.session.commit()
+            commit_or_rollback()
         except Exception as e:
-            db.session.rollback()
             logger.error(f"Lỗi lưu hồ sơ cá nhân: {e}")
             return jsonify({"success": False, "error": "Không thể cập nhật thông tin do xung đột dữ liệu."}), 409
 
@@ -437,7 +432,10 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Mật khẩu hiện tại không chính xác."}), 401
 
         user.set_password(new_password)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"success": False, "error": "Không thể cập nhật mật khẩu vào cơ sở dữ liệu."}), 500
         return jsonify({"success": True, "message": "Đã thay đổi mật khẩu thành công!"})
 
 
@@ -601,7 +599,10 @@ def create_app(test_config=None):
             )
             new_user.set_password(password)
             db.session.add(new_user)
-            db.session.commit()
+            try:
+                commit_or_rollback()
+            except Exception:
+                return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
             session["user_id"] = new_user.id
             session["user_role"] = new_user.role
@@ -815,7 +816,7 @@ def create_app(test_config=None):
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
-            db.session.commit()
+            commit_or_rollback()
 
             session.pop("pending_google_register", None)
             session["user_id"] = user.id
@@ -900,7 +901,7 @@ def create_app(test_config=None):
         )
         user.set_password(secrets.token_urlsafe(24))
         db.session.add(user)
-        db.session.commit()
+        commit_or_rollback()
 
         session.pop("pending_google_register", None)
         session["user_id"] = user.id
@@ -964,7 +965,7 @@ def create_app(test_config=None):
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
-            db.session.commit()
+            commit_or_rollback()
         else:
             user = User(
                 email=email,
@@ -974,7 +975,7 @@ def create_app(test_config=None):
             )
             user.set_password(secrets.token_urlsafe(24))
             db.session.add(user)
-            db.session.commit()
+            commit_or_rollback()
 
         # Khởi tạo Session
         session["user_id"] = user.id
@@ -1018,12 +1019,11 @@ def create_app(test_config=None):
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
 
-        if not app.config.get("TESTING"):
-            from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
-            chat_rate_key = f"ai_chat:{session.get('user_id') or client_ip}"
-            if not check_otp_attempts(chat_rate_key, max_attempts=25):
-                return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
+        client_ip = request.remote_addr or "127.0.0.1"
+        from core.security_patch import get_rate_limit_identity, check_chat_rate_limit
+        rate_id = get_rate_limit_identity(user_id=user_id, guest_token=guest_token, client_ip=client_ip)
+        if not check_chat_rate_limit(rate_id, max_requests=25, window_seconds=60, enforce=not app.config.get("TESTING")):
+            return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
 
         image_bytes = None
         image_mime_type = "image/jpeg"
@@ -1035,52 +1035,24 @@ def create_app(test_config=None):
             image_mime_type = mime
 
         try:
-            # 1. ĐỒNG BỘ INTAKE SERVICE: Cập nhật dữ kiện lâm sàng và tìm câu hỏi tiếp theo
-            intake_res = None
-            clinical_hint = None
-            if conversation_id:
-                try:
-                    intake_res = intake_service.process_message(
-                        conversation_id=conversation_id,
-                        message=user_message,
-                        image_bytes=image_bytes,
-                        user_id=user_id,
-                        guest_token=guest_token
-                    )
-                    if intake_res.get("next_question"):
-                        clinical_hint = intake_res["next_question"]
-                except PermissionError as pe:
-                    return jsonify({"error": str(pe)}), 403
-
-            res = process_clinical_chat(
+            res = execute_chat_workflow(
                 message=user_message,
                 history=history,
                 image_bytes=image_bytes,
                 image_mime_type=image_mime_type,
                 lang=lang,
+                conversation_id=conversation_id,
+                health_context=data["health_context"],
                 gemini_service=gemini_service,
-                clinical_hint=clinical_hint,
-                intake_facts=(intake_res or {}).get("facts"),
-                health_context=data["health_context"]
+                user_id=user_id,
+                guest_token=guest_token,
+                chat_processor=process_clinical_chat
             )
-
-            # 2. HỢP NHẤT DỮ LIỆU ĐÁNH GIÁ (TRÁNH LỆCH PHA GIỮA CHAT VÀ TÓM TẮT)
-            if intake_res:
-                try:
-                    intake_service.record_assistant_reply(conversation_id, res["answer"],
-                                                         user_id=user_id, guest_token=guest_token)
-                except KeyError:
-                    return jsonify({"error": "Cuộc trò chuyện đã được xóa trong lúc xử lý. Hãy bắt đầu cuộc trò chuyện mới."}), 409
-                except PermissionError:
-                    return jsonify({"error": "Bạn không có quyền cập nhật cuộc trò chuyện này."}), 403
-                intake_res["answer"] = res["answer"]
-                res["conversation_id"] = conversation_id
-                res["intake"] = intake_res
-                res["intake_facts"] = intake_res.get("facts")
-                res["intake_summary"] = intake_res.get("summary")
-                res["intake_status"] = intake_res.get("status")
-
             return jsonify(res)
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Cuộc trò chuyện đã được xóa trong lúc xử lý. Hãy bắt đầu cuộc trò chuyện mới."}), 409
 
         except ValueError as ve:
             return jsonify({"error": str(ve)}), 400
@@ -1133,7 +1105,7 @@ def create_app(test_config=None):
                 return jsonify({"error": "Không tìm thấy cuộc trò chuyện."}), 404
             if user_id:
                 ClinicalConsultation.query.filter_by(user_id=user_id, conversation_id=conversation_id).delete()
-            db.session.commit()
+            commit_or_rollback()
         except PermissionError:
             db.session.rollback()
             return jsonify({"error": "Bạn không có quyền xóa cuộc trò chuyện này."}), 403
@@ -1251,7 +1223,7 @@ def create_app(test_config=None):
         row.is_emergency = assessment["triage_badge"] == "emergency"
         row.confirmed_summary = json.dumps(snapshot, ensure_ascii=False)
         row.turns_json = None
-        db.session.commit()
+        commit_or_rollback()
         return jsonify(res)
 
     @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
@@ -1309,7 +1281,7 @@ def create_app(test_config=None):
                 owner_id=user_id
             )
             db.session.add(new_doc)
-            db.session.commit()
+            commit_or_rollback()
 
             upload_time = new_doc.created_at.strftime("%H:%M %d/%m/%Y")
             return jsonify({
@@ -1377,7 +1349,10 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi xóa file vật lý: {e}")
 
         db.session.delete(doc)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"status": "error", "message": "Không thể xóa tài liệu khỏi cơ sở dữ liệu."}), 500
 
         return jsonify({"status": "success", "message": f"Đã xóa tài liệu '{doc.original_filename}' thành công."})
 
@@ -1433,10 +1408,9 @@ def create_app(test_config=None):
                     owner_id=user_id
                 )
                 db.session.add(doc)
-                db.session.commit()
+                commit_or_rollback()
                 doc_id = doc.id
             except Exception as e:
-                db.session.rollback()
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
@@ -1458,7 +1432,7 @@ def create_app(test_config=None):
             res["document_id"] = doc_id
             if res.get("status") == "review":
                 doc.parsed_data = json.dumps({"type": res["doc_type"], "allergies": user_allergies}, ensure_ascii=False)
-                db.session.commit()
+                commit_or_rollback()
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -1515,7 +1489,7 @@ def create_app(test_config=None):
         if not changed:
             db.session.rollback()
             return jsonify({"message": "Tài liệu đã được xác nhận."}), 409
-        db.session.commit()
+        commit_or_rollback()
         return jsonify(result)
 
     @app.route("/api/prescription/history", methods=["GET"])
@@ -1586,7 +1560,10 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi xóa file vật lý: {e}")
 
         db.session.delete(doc)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"status": "error", "message": "Không thể xóa tài liệu khỏi cơ sở dữ liệu."}), 500
         return jsonify({"status": "success", "message": f"Đã xóa thành công '{doc.original_filename}' khỏi lịch sử."})
 
 
@@ -1601,21 +1578,13 @@ def create_app(test_config=None):
         - Đồng bộ với quy trình Intake Session theo tiêu chí y tế.
         - Trích xuất từ phiên tư vấn thực tế của tài khoản hiện tại.
         """
-        conversation_id = request.args.get("conversation_id")
         user_id = session.get("user_id")
-
         if not user_id:
             return jsonify({"error": "Vui lòng đăng nhập để xem hồ sơ."}), 401
-        records = ClinicalConsultation.query.filter_by(user_id=user_id).filter(
-            ClinicalConsultation.confirmed_summary.isnot(None))
-        if conversation_id:
-            records = records.filter_by(conversation_id=conversation_id)
-        record = records.order_by(ClinicalConsultation.id.desc()).first()
-        if record is None:
-            return jsonify({"status": "no_data", "message": "Chưa có dữ liệu tư vấn đã xác nhận để hiển thị trong hồ sơ."})
-        return jsonify({"status": "success", "summary": json.loads(record.confirmed_summary),
-                        "patient_name": db.session.get(User, user_id).full_name,
-                        "patient_id": f"BN-2026-{user_id:04d}"})
+        conversation_id = request.args.get("conversation_id")
+        from core.consultation_service import get_clinical_summary
+        _, payload, status_code = get_clinical_summary(user_id, conversation_id=conversation_id)
+        return jsonify(payload), status_code
 
     @app.route("/api/consultations", methods=["GET"])
     def get_consultations():
@@ -1623,8 +1592,9 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách phiên tư vấn.", "consultations": []}), 401
-        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).filter(ClinicalConsultation.confirmed_summary.isnot(None)).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
-        return jsonify({"status": "success", "consultations": [c.to_dict() for c in consultations]}), 200
+        from core.consultation_service import get_user_consultations
+        consultations = get_user_consultations(user_id)
+        return jsonify({"status": "success", "consultations": consultations}), 200
 
     @app.route("/api/consultations/<int:cid>", methods=["DELETE"])
     def delete_consultation(cid):
@@ -1632,19 +1602,13 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"error": "Vui lòng đăng nhập."}), 401
-        c = ClinicalConsultation.query.filter_by(id=cid, user_id=user_id).first()
-        if c:
-            if c.conversation_id:
-                try:
-                    intake_service.delete_session(c.conversation_id, user_id=user_id,
-                                                  guest_token=session.get("guest_token"), commit=False)
-                except PermissionError:
-                    db.session.rollback()
-                    return jsonify({"error": "Không thể xóa phiên tư vấn không thuộc tài khoản này."}), 403
-            db.session.delete(c)
-            db.session.commit()
-            return jsonify({"message": "Đã xóa phiên tư vấn thành công."}), 200
-        return jsonify({"error": "Không tìm thấy phiên tư vấn."}), 404
+        from core.consultation_service import delete_user_consultation
+        _, payload, status_code = delete_user_consultation(
+            user_id=user_id,
+            cid=cid,
+            guest_token=session.get("guest_token")
+        )
+        return jsonify(payload), status_code
 
 
     # ==============================================================
@@ -1657,9 +1621,9 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch hẹn khám.", "appointments": []}), 401
-
-        appts = MedicalAppointment.query.filter_by(user_id=user_id).order_by(MedicalAppointment.created_at.desc()).all()
-        return jsonify({"status": "success", "appointments": [a.to_dict() for a in appts]}), 200
+        from core.appointment_service import get_user_appointments
+        appts = get_user_appointments(user_id)
+        return jsonify({"status": "success", "appointments": appts}), 200
 
     @app.route("/api/appointments", methods=["POST"])
     def create_appointment():
@@ -1670,42 +1634,10 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập hoặc tạo tài khoản để đặt lịch khám."}), 401
-
         data = request.get_json(silent=True) or {}
-        facility_id = (data.get("facility_id") or "fac_unknown").strip()
-        facility_name = (data.get("facility_name") or "Cơ sở Y tế").strip()
-        facility_address = (data.get("facility_address") or "").strip()
-        specialty = (data.get("specialty") or "Đa khoa").strip()
-        appointment_date = (data.get("appointment_date") or "").strip()
-        appointment_time = (data.get("appointment_time") or "").strip()
-        patient_name = (data.get("patient_name") or "").strip()
-        patient_phone = (data.get("patient_phone") or "").strip()
-        note = (data.get("note") or "").strip()
-
-        if not appointment_date or not appointment_time or not patient_name or not patient_phone:
-            return jsonify({"success": False, "error": "Vui lòng điền đầy đủ ngày khám, giờ khám, họ tên và số điện thoại."}), 400
-
-        new_appt = MedicalAppointment(
-            user_id=user_id,
-            facility_id=facility_id,
-            facility_name=facility_name,
-            facility_address=facility_address,
-            specialty=specialty,
-            appointment_date=appointment_date,
-            appointment_time=appointment_time,
-            patient_name=patient_name,
-            patient_phone=patient_phone,
-            note=note,
-            status="pending"
-        )
-        db.session.add(new_appt)
-        db.session.commit()
-
-        return jsonify({
-            "success": True,
-            "message": f"Đặt lịch khám thành công tại {facility_name}!",
-            "appointment": new_appt.to_dict()
-        }), 201
+        from core.appointment_service import create_user_appointment
+        _, payload, status_code = create_user_appointment(user_id, data)
+        return jsonify(payload), status_code
 
     @app.route("/api/appointments/<int:appt_id>", methods=["DELETE"])
     def delete_appointment(appt_id):
@@ -1713,14 +1645,9 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập."}), 401
-
-        appt = MedicalAppointment.query.filter_by(id=appt_id, user_id=user_id).first()
-        if not appt:
-            return jsonify({"success": False, "error": "Không tìm thấy lịch hẹn hoặc bạn không có quyền hủy."}), 404
-
-        db.session.delete(appt)
-        db.session.commit()
-        return jsonify({"success": True, "message": "Đã hủy lịch hẹn khám thành công."}), 200
+        from core.appointment_service import delete_user_appointment
+        _, payload, status_code = delete_user_appointment(user_id, appt_id)
+        return jsonify(payload), status_code
 
     # ==============================================================
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)
@@ -1798,26 +1725,12 @@ def create_app(test_config=None):
     # ==============================================================
     # QUẢN LÝ DỮ LIỆU CƠ SỞ Y TẾ (CSKCB REST API)
     # ==============================================================
-    FACILITIES_DATA_FILE = os.path.join(
-        os.path.dirname(__file__), "data", "CSKCB_Data", "danh_sach_co_so_kcb_normalized.json"
+    from core.facilities_service import (
+        load_facilities_data,
+        get_facilities as service_get_facilities,
+        get_facilities_filters as service_get_facilities_filters,
+        get_facilities_map_markers as service_get_facilities_map_markers
     )
-
-    _FACILITIES_CACHE = None
-
-    def load_facilities_data():
-        nonlocal _FACILITIES_CACHE
-        if _FACILITIES_CACHE is None:
-            if os.path.exists(FACILITIES_DATA_FILE):
-                try:
-                    with open(FACILITIES_DATA_FILE, "r", encoding="utf-8") as f:
-                        _FACILITIES_CACHE = json.load(f)
-                except Exception as e:
-                    logger.error(f"Lỗi khi đọc file dữ liệu cơ sở y tế: {e}")
-                    _FACILITIES_CACHE = []
-            else:
-                logger.warning(f"File cơ sở y tế không tồn tại: {FACILITIES_DATA_FILE}")
-                _FACILITIES_CACHE = []
-        return _FACILITIES_CACHE
 
     @app.route("/api/facilities", methods=["GET"])
     def get_facilities():
@@ -1830,116 +1743,39 @@ def create_app(test_config=None):
         - chuyen_khoa: chuyên khoa (Tai Mũi Họng, Nội tổng hợp,...)
         - quan_huyen: quận huyện (Quận 10, Quận 1,...)
         """
-        data = load_facilities_data()
-
         page = max(1, request.args.get("page", 1, type=int))
         limit = min(50, max(1, request.args.get("limit", 12, type=int)))
-        search = request.args.get("search", "").strip().lower()
+        search = request.args.get("search", "").strip()
         loai_hinh = request.args.get("loai_hinh", "").strip()
         chuyen_khoa = request.args.get("chuyen_khoa", "").strip()
         quan_huyen = request.args.get("quan_huyen", "").strip()
 
-        filtered = data
-
-        if loai_hinh and loai_hinh.lower() != "all":
-            filtered = [x for x in filtered if loai_hinh.lower() in (x.get("loai_hinh") or "").lower()]
-
-        if chuyen_khoa and chuyen_khoa.lower() != "all":
-            filtered = [x for x in filtered if chuyen_khoa.lower() in (x.get("chuyen_khoa") or "").lower()]
-
-        if quan_huyen and quan_huyen.lower() != "all":
-            filtered = [x for x in filtered if quan_huyen.lower() in (x.get("quan_huyen") or "").lower()]
-
-        if search:
-            def match_search(item):
-                s = search
-                ten = (item.get("ten") or "").lower()
-                ten_ngan = (item.get("ten_ngan") or "").lower()
-                dia_chi = (item.get("dia_chi") or "").lower()
-                dia_chi_web = (item.get("dia_chi_hien_thi_tren_web") or "").lower()
-                ck = (item.get("chuyen_khoa") or "").lower()
-                tags = " ".join(item.get("tags") or []).lower()
-                return (s in ten or s in ten_ngan or s in dia_chi or s in dia_chi_web or s in ck or s in tags)
-            filtered = [x for x in filtered if match_search(x)]
-
-        total = len(filtered)
-        total_pages = max(1, (total + limit - 1) // limit)
-        start_idx = (page - 1) * limit
-        end_idx = start_idx + limit
-        items = filtered[start_idx:end_idx]
-
-        return jsonify({
-            "success": True,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "total_pages": total_pages,
-            "data": items
-        })
+        result = service_get_facilities(
+            page=page,
+            limit=limit,
+            search=search,
+            loai_hinh=loai_hinh,
+            chuyen_khoa=chuyen_khoa,
+            quan_huyen=quan_huyen
+        )
+        return jsonify(result)
 
     @app.route("/api/facilities/filters", methods=["GET"])
     def get_facilities_filters():
         """Trả về thống kê số lượng loại hình, chuyên khoa và quận huyện thực tế."""
-        data = load_facilities_data()
-        
-        type_counts = {}
-        district_counts = {}
-        spec_counts = {}
-
-        for x in data:
-            lh = x.get("loai_hinh") or "Khác"
-            type_counts[lh] = type_counts.get(lh, 0) + 1
-
-            qh = x.get("quan_huyen") or "Khác"
-            district_counts[qh] = district_counts.get(qh, 0) + 1
-
-            ck_str = x.get("chuyen_khoa") or ""
-            if ck_str:
-                for part in ck_str.split(","):
-                    p = part.strip()
-                    if p:
-                        spec_counts[p] = spec_counts.get(p, 0) + 1
-
-        top_specs = sorted(spec_counts.items(), key=lambda x: x[1], reverse=True)[:15]
-        top_districts = sorted(district_counts.items(), key=lambda x: x[0])
-
-        return jsonify({
-            "success": True,
-            "total": len(data),
-            "loai_hinh": type_counts,
-            "quan_huyen": top_districts,
-            "chuyen_khoa": top_specs
-        })
+        return jsonify(service_get_facilities_filters())
 
     @app.route("/api/facilities/map-markers", methods=["GET"])
     def get_facilities_map_markers():
         """Trả về dữ liệu tinh gọn của tất cả cơ sở có tọa độ để vẽ markers lên bản đồ."""
-        data = load_facilities_data()
-        markers = []
-        for x in data:
-            lat = x.get("lat")
-            lng = x.get("lng")
-            if lat is not None and lng is not None:
-                markers.append({
-                    "id": str(x.get("id")),
-                    "name": x.get("ten_ngan") or x.get("ten"),
-                    "type": x.get("loai_hinh") or "",
-                    "spec": x.get("chuyen_khoa") or "",
-                    "address": x.get("dia_chi_hien_thi_tren_web") or x.get("dia_chi") or "",
-                    "lat": float(lat),
-                    "lng": float(lng),
-                    "link": x.get("link") or ""
-                })
-        return jsonify({
-            "success": True,
-            "total": len(markers),
-            "markers": markers
-        })
+        return jsonify(service_get_facilities_map_markers())
 
     @app.route("/api/config/maps", methods=["GET"])
     def get_maps_config():
         """Cung cấp cấu hình Google Maps API cho frontend."""
-        key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+        from core.settings import get_settings
+        settings = get_settings()
+        key = (settings.security.google_maps_api_key or os.getenv("GOOGLE_MAPS_API_KEY", "") or "").strip()
         return jsonify({
             "has_key": bool(key),
             "key": key if key else ""
@@ -1951,12 +1787,66 @@ def create_app(test_config=None):
         google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
         return render_template("index.html", google_maps_api_key=google_maps_api_key)
 
+    @app.route("/health")
+    def health_check():
+        return jsonify({"status": "ok"})
+
+    @app.route("/ready")
+    def readiness_check():
+        from core.rag_service import medical_rag_service
+        from core.circuit_breaker import gemini_circuit_breaker
+        rag_ready = medical_rag_service.is_available()
+        cb_status = gemini_circuit_breaker.get_status()
+        cb_state = cb_status.get("state", "CLOSED")
+        gemini_status = "degraded" if cb_state == "OPEN" else "ready"
+        rag_status = "ready" if rag_ready else "not_ready"
+        if not rag_ready:
+            overall = "not_ready"
+            code = 503
+        elif cb_state == "OPEN":
+            overall = "degraded"
+            code = 200
+        else:
+            overall = "ready"
+            code = 200
+        return jsonify({
+            "status": overall,
+            "rag": rag_status,
+            "gemini": gemini_status,
+            "circuit_breaker": cb_state
+        }), code
+
+    @app.route("/api/system/metrics", methods=["GET"])
+    def get_system_metrics():
+        from core.observability import metrics_collector
+        if not metrics_collector.is_enabled():
+            return jsonify({"error": "Metrics endpoint is disabled"}), 403
+        return jsonify(metrics_collector.get_summary())
+
+    @app.route("/api/system/metrics/reset", methods=["POST"])
+    def reset_system_metrics():
+        from core.observability import metrics_collector
+        if not metrics_collector.is_enabled():
+            return jsonify({"error": "Metrics endpoint is disabled"}), 403
+        metrics_collector.reset()
+        return jsonify({"status": "reset_successful"})
+
+    @app.route("/system")
+    @app.route("/admin/system")
+    def system_dashboard():
+        return render_template("system_dashboard.html")
+
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)
     return app
 
 
 # Export singleton app instance for WSGI / CLI
 app = create_app()
+try:
+    from core.intake_service import set_flask_app
+    set_flask_app(app)
+except Exception:
+    pass
 
 if __name__ == "__main__":
     try:

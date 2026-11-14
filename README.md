@@ -103,9 +103,43 @@ Medical ChatBOT/
 
 ## 🚀 6. Hướng dẫn Cài đặt & Vận hành (Local Setup)
 
-### Yêu cầu tiên quyết
-* **Python**: Phiên bản 3.10 trở lên.
-* **Git**: Đã cài đặt trên máy.
+### Cách 1: Khởi chạy Nhanh bằng Docker Compose (Khuyến nghị — 1 Chạm)
+
+#### Yêu cầu tiên quyết
+* **Docker Engine**: Phiên bản 24.0+ hoặc Docker Desktop.
+* **Docker Compose**: Phiên bản 2.20+ hoặc Docker Compose v5+.
+
+#### Các bước thực hiện:
+```bash
+# 1. Sao chép cấu hình môi trường
+cp .env.example .env
+
+# 2. Khởi chạy toàn bộ hệ thống (FastAPI, RAG ChromaDB, Observability)
+docker compose up -d
+
+# 3. (Tùy chọn) Nạp dữ liệu RAG nếu cần tạo collection mới
+docker compose run --rm medical-api python ingest.py
+
+# 4. Kiểm tra logs đang chạy
+docker compose logs -f
+```
+
+#### Các điểm truy cập chính:
+* 🏥 **Giao diện Tư vấn Sức khỏe**: [http://localhost:8000](http://localhost:8000)
+* 📊 **Dashboard Giám sát Cục bộ**: [http://localhost:8000/system](http://localhost:8000/system)
+* 🩺 **Liveness Probe**: [http://localhost:8000/health](http://localhost:8000/health)
+* 🚀 **Readiness Probe**: [http://localhost:8000/ready](http://localhost:8000/ready)
+* 📈 **Local Metrics Snapshot**: [http://localhost:8000/api/system/metrics](http://localhost:8000/api/system/metrics)
+* 📖 **Tài liệu Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+Dừng container an toàn:
+```bash
+docker compose down
+```
+
+---
+
+### Cách 2: Khởi chạy Trực tiếp trên Máy (Python Local)
 
 ### Bước 1: Clone kho mã nguồn
 ```bash

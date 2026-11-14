@@ -25,15 +25,25 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
 
 from dotenv import load_dotenv
+from core.retry_policy import (
+    RetryPolicy, execute_with_retry, classify_exception, ErrorClassification
+)
+from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
+from core.observability import metrics_collector
+from core.settings import settings
 
 load_dotenv()
 logger = logging.getLogger("QueryExpansionService")
 
-# Cấu hình mặc định từ biến môi trường
-DEFAULT_EXPANSION_ENABLED = os.getenv("RAG_QUERY_EXPANSION_ENABLED", "false").lower() in ("1", "true", "yes")
-DEFAULT_EXPANSION_PROVIDER = os.getenv("RAG_QUERY_EXPANSION_PROVIDER", "gemini").lower()
-DEFAULT_EXPANSION_TIMEOUT = float(os.getenv("RAG_QUERY_EXPANSION_TIMEOUT_SECONDS", "3.0"))
-DEFAULT_EXPANSION_MODEL = os.getenv("RAG_QUERY_EXPANSION_MODEL", "gemini-flash-lite-latest")
+# Cấu hình mặc định từ Central Settings (có dự phòng đọc env trực tiếp nếu patched)
+DEFAULT_EXPANSION_ENABLED = (
+    os.getenv("RAG_QUERY_EXPANSION_ENABLED", "true" if settings.rag.query_expansion_enabled else "false").lower() in ("1", "true", "yes")
+)
+DEFAULT_EXPANSION_PROVIDER = os.getenv("RAG_QUERY_EXPANSION_PROVIDER", settings.rag.query_expansion_provider).lower()
+DEFAULT_EXPANSION_TIMEOUT = float(
+    os.getenv("QUERY_EXPANSION_TIMEOUT_SECONDS") or os.getenv("RAG_QUERY_EXPANSION_TIMEOUT_SECONDS") or str(settings.rag.query_expansion_timeout_seconds)
+)
+DEFAULT_EXPANSION_MODEL = os.getenv("RAG_QUERY_EXPANSION_MODEL", settings.gemini.expansion_model)
 
 
 @dataclass
@@ -61,41 +71,36 @@ class QueryExpansionProvider(ABC):
 
 
 class GeminiQueryExpansionProvider(QueryExpansionProvider):
-    """Nhà cung cấp mở rộng truy vấn sử dụng Google Gemini API chính thức."""
+    """Nhà cung cấp mở rộng truy vấn sử dụng Google Gemini API qua Unified LLM Provider."""
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        self.api_key = (api_key or os.getenv("GEMINI_CHAT_API_KEY") or os.getenv("GEMINI_API_KEY")
-                        or os.getenv("GEMINI_NUTRITION_API_KEY") or "").strip()
+        from core.llm_provider import llm_provider
+        self.llm_provider = llm_provider
+        self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="query_expansion")).strip()
         self.model = model or DEFAULT_EXPANSION_MODEL
-        self.client = None
-        self._init_client()
+        self._client = None
 
-    def _init_client(self, timeout_seconds: float = 3.0):
-        if self.api_key and len(self.api_key) > 10 and not self.api_key.startswith("YOUR_"):
+    @property
+    def client(self):
+        if self._client is not None:
+            return self._client
+        if self.is_available():
             try:
-                from google import genai
-                from google.genai import types
-                # Google API Gateway yêu cầu timeout tối thiểu 10s (10000ms)
-                timeout_ms = max(10000, int(timeout_seconds * 1000))
-                http_options = types.HttpOptions(
-                    timeout=timeout_ms,
-                    retry_options=types.HttpRetryOptions(attempts=1)
-                )
-                self.client = genai.Client(api_key=self.api_key, http_options=http_options)
-            except Exception as e:
-                logger.warning("Không thể khởi tạo Gemini Client cho Query Expansion (%s).", type(e).__name__)
-                self.client = None
+                return self.llm_provider.get_client(self.api_key)
+            except Exception:
+                return None
+        return None
+
+    @client.setter
+    def client(self, val):
+        self._client = val
 
     def is_available(self) -> bool:
-        return bool(self.client is not None and self.api_key)
+        return self.llm_provider.is_configured(profile="query_expansion", explicit_key=self.api_key)
 
     def expand(self, query: str, timeout_seconds: float = 3.0) -> str:
         if not self.is_available():
-            self._init_client(timeout_seconds)
-            if not self.is_available():
-                return ""
-
-        from google.genai import types
+            return ""
 
         system_instruction = (
             "Convert this Vietnamese medical search query into a concise English medical retrieval query.\n\n"
@@ -112,27 +117,32 @@ class GeminiQueryExpansionProvider(QueryExpansionProvider):
         prompt = f"Medical query: {query.strip()[:1000]}"
 
         try:
-            config = types.GenerateContentConfig(
+            from core.llm_provider import LLMProviderError
+            response_text = self.llm_provider.generate_text(
+                prompt=prompt,
+                model=self.model,
+                system_instruction=system_instruction,
                 temperature=0.0,
                 max_output_tokens=60,
-                system_instruction=system_instruction
+                timeout_seconds=timeout_seconds,
+                operation="query_expansion",
+                api_key=self.api_key,
+                circuit_breaker=gemini_circuit_breaker
             )
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=config
-            )
-            if not response or not response.text:
+            if not response_text:
                 return ""
 
-            cleaned = response.text.strip()
+            cleaned = response_text.strip()
             # Loại bỏ định dạng markdown hoặc dấu ngoặc kép thừa
             cleaned = re.sub(r"^[`'\"]+|[`'\"]+$", "", cleaned).strip()
             cleaned = re.sub(r"\s+", " ", cleaned).lower()
             return cleaned[:300]
+        except CircuitBreakerOpenError:
+            logger.warning("Gemini expansion skipped because Circuit Breaker is OPEN.")
+            return ""
         except Exception as e:
-            # Ghi log loại lỗi không chứa nội dung query nhạy cảm
-            logger.warning("Gemini expansion call failed (%s).", type(e).__name__)
+            cls = classify_exception(e)
+            logger.warning("Gemini expansion call failed (%s: %s).", cls.value, type(e).__name__)
             return ""
 
 
@@ -236,11 +246,15 @@ class QueryExpansionService:
                 latency_ms=0.0
             )
 
+        metrics_collector.increment("query_expansion_attempt_total")
+
         # 1. Kiểm tra Cache
         key_hash = self._hash_key(trimmed_query)
         cached_result = self._get_from_cache(key_hash)
         if cached_result:
             latency_ms = (time.perf_counter() - start_time) * 1000.0
+            metrics_collector.increment("query_expansion_cache_hit_total")
+            metrics_collector.increment("query_expansion_success_total")
             logger.debug("Query expansion cache hit (latency: %.2f ms)", latency_ms)
             return ExpandedQuery(
                 original_query=trimmed_query,
@@ -260,6 +274,9 @@ class QueryExpansionService:
             if expansion and expansion.strip():
                 final_expansion = expansion.strip()
                 self._put_to_cache(key_hash, final_expansion)
+                metrics_collector.increment("query_expansion_success")
+                metrics_collector.record_latency("query_expansion_latency_ms", latency_ms)
+                metrics_collector.log_event("query_expansion", "exp", latency_ms, "SUCCESS", query_hash=key_hash)
                 logger.info(
                     "Query expansion success (provider=%s, latency_ms=%.2f, cached=False)",
                     self.provider_name, latency_ms
@@ -275,6 +292,9 @@ class QueryExpansionService:
                 )
             else:
                 # Provider trả về rỗng -> Fallback
+                metrics_collector.increment("query_expansion_failure")
+                metrics_collector.record_latency("query_expansion_latency_ms", latency_ms)
+                metrics_collector.log_event("query_expansion", "exp", latency_ms, "FALLBACK", query_hash=key_hash)
                 logger.warning(
                     "Query expansion returned empty; falling back to original query (latency_ms=%.2f)",
                     latency_ms
@@ -290,6 +310,9 @@ class QueryExpansionService:
                 )
         except Exception as err:
             latency_ms = (time.perf_counter() - start_time) * 1000.0
+            metrics_collector.increment("query_expansion_failure")
+            metrics_collector.record_latency("query_expansion_latency_ms", latency_ms)
+            metrics_collector.log_event("query_expansion", "exp", latency_ms, "FALLBACK", error_class=type(err).__name__, query_hash=key_hash)
             logger.warning(
                 "Query expansion exception (%s); falling back to original query (latency_ms=%.2f)",
                 type(err).__name__, latency_ms

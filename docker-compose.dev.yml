@@ -1,0 +1,17 @@
+# ==============================================================================
+# 🩺 MEDIMIND - DOCKER COMPOSE DEVELOPMENT OVERRIDE
+# ==============================================================================
+# Khởi chạy chế độ phát triển với Hot-Reload và Mount mã nguồn trực tiếp:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ==============================================================================
+
+services:
+  medical-api:
+    command: [ "uvicorn", "core.main_fastapi:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    volumes:
+      - .:/app
+      - /app/.venv
+      - /app/__pycache__
+    environment:
+      - FLASK_DEBUG=true
+      - SYSTEM_METRICS_ENABLED=true

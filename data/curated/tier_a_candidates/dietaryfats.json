@@ -1,0 +1,49 @@
+{
+  "id": "dietaryfats",
+  "title": "Dietary Fats",
+  "title_en": "Dietary Fats",
+  "title_vi": "Chất béo trong khẩu phần ăn",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "dietary fats",
+    "healthy fats",
+    "unsaturated fats",
+    "saturated fats",
+    "trans fats",
+    "chất béo trong thực phẩm",
+    "chất béo tốt",
+    "chất béo xấu",
+    "chất béo bão hòa",
+    "axit béo omega-3"
+  ],
+  "keywords_en": [
+    "dietary fats",
+    "healthy fats",
+    "unsaturated fats",
+    "saturated fats",
+    "trans fats"
+  ],
+  "keywords_vi": [
+    "chất béo trong thực phẩm",
+    "chất béo tốt",
+    "chất béo xấu",
+    "chất béo bão hòa",
+    "axit béo omega-3"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/dietaryfats.html",
+  "summary": "Fat is a type of nutrient. You need some fat in your diet but not too much. Fats give you energy and help your body absorb vitamins. Dietary fat also plays a major role in your cholesterol levels . But not all fats are the same. You should try to avoid: Saturated fats such as butter, solid shortening, and lard Trans fats. These are found in vegetable shortenings, some margarines, crackers, cookies, snack foods, and other foods made with or fried in partially hydrogenated oils (PHOs). By 2018, most U.S. companies will not be allowed to add PHOs to food. Try to replace them with oils such as canola, olive, safflower, sesame, or sunflower. Of course, eating too much fat will put on the pounds. Fat has twice as many calories as proteins or carbohydrates. NIH: National Heart, Lung, and Blood Institute",
+  "page_content": "Fat is a type of nutrient. You need some fat in your diet but not too much. Fats give you energy and help your body absorb vitamins. Dietary fat also plays a major role in your cholesterol levels . But not all fats are the same. You should try to avoid: Saturated fats such as butter, solid shortening, and lard Trans fats. These are found in vegetable shortenings, some margarines, crackers, cookies, snack foods, and other foods made with or fried in partially hydrogenated oils (PHOs). By 2018, most U.S. companies will not be allowed to add PHOs to food. Try to replace them with oils such as canola, olive, safflower, sesame, or sunflower. Of course, eating too much fat will put on the pounds. Fat has twice as many calories as proteins or carbohydrates. NIH: National Heart, Lung, and Blood Institute",
+  "content_sha256": "72174a0c043f5db402782c77eac9b43afeb5bf8747a5707913f60776823e1079",
+  "candidate_score": 0.93,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

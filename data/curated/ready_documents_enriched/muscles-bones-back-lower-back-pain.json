@@ -1,0 +1,40 @@
+{
+  "id": "lower-back-pain",
+  "title": "Lower back pain",
+  "category": "Muscles, Bones & Back",
+  "mapped_title": "Back Pain",
+  "page_content": "User topic: Lower back pain\nCategory: Muscles, Bones & Back\nTrusted medical topic: Back Pain\nSearch phrases: Lower back pain, Back Pain, Backache, Lumbago\nMedical groups: Bones, Joints and Muscles, Brain and Nerves\n\nMedical information:\nIf you've ever groaned, \"Oh, my aching back!\", you are not alone. Back pain is one of the most common medical problems, affecting 8 out of 10 people at some point during their lives. Back pain can range from a dull, constant ache to a sudden, sharp pain. Acute back pain comes on suddenly and usually lasts from a few days to a few weeks. Back pain is called chronic if it lasts for more than three months. Most back pain goes away on its own, though it may take awhile. Taking over-the-counter pain relievers and resting can help. However, staying in bed for more than 1 or 2 days can make it worse. If your back pain is severe or doesn't improve after three days, you should call your health care provider. You should also get medical attention if you have back pain following an injury . Treatment for back pain depends on what kind of pain you have, and what is causing it. It may include hot or cold packs, exercise, medicines, injections, complementary treatments, and sometimes surgery. NIH: National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+  "search_phrases": [
+    "Lower back pain",
+    "Back Pain",
+    "Backache",
+    "Lumbago"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/backpain.html",
+  "medlineplus_id": "157",
+  "mapping_type": "manual",
+  "mapping_score": 1.0,
+  "title_en": "Lower back pain",
+  "title_vi": "Đau thắt lưng (Đau lưng dưới)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "lower back pain",
+    "lumbago",
+    "lumbar strain",
+    "herniated disc",
+    "sciatica back"
+  ],
+  "keywords_vi": [
+    "đau thắt lưng",
+    "đau lưng dưới",
+    "thoát vị đĩa đệm",
+    "căng cơ thắt lưng",
+    "cột sống lưng"
+  ],
+  "content_hash": "c8f6b9de97c85d539b3e11b7e5837d85f4b6f3f363f03495d2a227659eb75a85",
+  "content_sha256": "c8f6b9de97c85d539b3e11b7e5837d85f4b6f3f363f03495d2a227659eb75a85",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

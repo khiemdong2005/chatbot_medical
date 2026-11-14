@@ -24,6 +24,7 @@ from typing import List, Dict, Any, Optional, Tuple
 
 from core.reranker_service import reranker_service
 from core.query_expansion_service import query_expansion_service
+from core.observability import metrics_collector
 
 try:
     import chromadb
@@ -107,7 +108,8 @@ class MedicalRAGService:
 
     def __init__(self, db_dir: Optional[Path] = None, acceptance_threshold: float = DEFAULT_ACCEPTANCE_THRESHOLD,
                  vector_search_enabled: Optional[bool] = None,
-                 rerank_enabled: Optional[bool] = None):
+                 rerank_enabled: Optional[bool] = None,
+                 collection_name: Optional[str] = None):
         self.db_dir = Path(db_dir) if db_dir else VECTOR_DB_DIR
         self.acceptance_threshold = acceptance_threshold
         # Querying query_texts can lazily download an embedding model. Keep the
@@ -119,11 +121,19 @@ class MedicalRAGService:
         self._lexical_index = None
         self.client = None
         self.collection = None
-        self.collection_name = self._resolve_active_collection_name()
+        self.collection_name = collection_name or self._resolve_active_collection_name()
         self._init_db()
 
     def _resolve_active_collection_name(self) -> str:
         """Đọc tên collection đang hoạt động từ metadata để hỗ trợ zero-downtime versioning."""
+        try:
+            from core.document_chunker import load_manifest
+            manifest = load_manifest(self.db_dir)
+            if manifest and "active_collection" in manifest:
+                return manifest["active_collection"]
+        except Exception:
+            pass
+
         meta_file = self.db_dir / "active_collection.json"
         if meta_file.exists():
             try:
@@ -142,7 +152,19 @@ class MedicalRAGService:
             return
         try:
             if self.db_dir.exists():
-                self.client = chromadb.PersistentClient(path=str(self.db_dir))
+                if self.client is None:
+                    try:
+                        self.client = chromadb.PersistentClient(path=str(self.db_dir))
+                    except ValueError as ve:
+                        if "already exists" in str(ve).lower():
+                            try:
+                                from chromadb.api.shared_system_client import SharedSystemClient
+                                SharedSystemClient.clear_system_cache()
+                                self.client = chromadb.PersistentClient(path=str(self.db_dir))
+                            except Exception:
+                                pass
+                        if self.client is None:
+                            raise ve
                 try:
                     self.collection = self.client.get_collection(name=self.collection_name)
                     print(f"✅ [RAG Service] Đã kết nối ChromaDB (Collection: '{self.collection_name}', {self.collection.count()} tài liệu).")
@@ -184,7 +206,7 @@ class MedicalRAGService:
             return expanded
         return query
 
-    def _bm25_matches(self, query, limit):
+    def _bm25_matches(self, query, limit, no_df_cutoff: bool = False):
         key = (self.collection_name, self.collection.count())
         if not self._lexical_index or self._lexical_index[0] != key:
             corpus = self.collection.get(include=["documents", "metadatas"])
@@ -200,7 +222,10 @@ class MedicalRAGService:
         average = sum(lengths) / max(size, 1) or 1
         stop = {"va", "co", "la", "cua", "toi", "bi", "nay", "thi", "cho", "xin", "hoi", "gi",
                 "khong", "voi", "ve", "nhu", "nao", "the", "and", "of", "in", "to", "with", "is"}
-        terms = {t for t in search_tokens(query) if t not in stop if len(t) > 1 and 0 < df[t] <= max(1, size * 0.4)}
+        if no_df_cutoff:
+            terms = {t for t in search_tokens(query) if t not in stop if len(t) > 1 and df[t] > 0}
+        else:
+            terms = {t for t in search_tokens(query) if t not in stop if len(t) > 1 and 0 < df[t] <= max(1, size * 0.4)}
         scores = []
         whole_query = " " + " ".join(search_tokens(query)) + " "
         for idx, row in enumerate(counts):
@@ -218,11 +243,11 @@ class MedicalRAGService:
                 scores.append(((score or 1) * (2 if exact_title else 1), idx))
         return [rows[idx] for _, idx in sorted(scores, reverse=True)[:limit]]
 
-    def lexical_search(self, query: str, limit: int) -> List[Dict[str, Any]]:
+    def lexical_search(self, query: str, limit: int, no_df_cutoff: bool = False) -> List[Dict[str, Any]]:
         """Search the local BM25 index; query is already expanded by the caller."""
         try:
             return [dict(content=content, metadata=meta or {}, rank=rank)
-                    for rank, (content, meta) in enumerate(self._bm25_matches(query, limit), 1)]
+                    for rank, (content, meta) in enumerate(self._bm25_matches(query, limit, no_df_cutoff=no_df_cutoff), 1)]
         except Exception as error:
             logger.warning("Local reference lookup unavailable (%s).", type(error).__name__)
             return []
@@ -335,7 +360,8 @@ class MedicalRAGService:
 
         return sorted(by_text.values(), key=lambda doc: doc["fusion_score"], reverse=True)[:limit]
 
-    def retrieve_candidates(self, user_query: str, top_k: int = 20, lang: str = "vi") -> List[Dict[str, Any]]:
+    def retrieve_candidates(self, user_query: str, top_k: int = 20, lang: str = "vi",
+                            no_df_cutoff: bool = False, source_diversity: bool = False) -> List[Dict[str, Any]]:
         """Retrieve ranked candidates, retaining branch metadata and scores for later stages."""
         if not isinstance(user_query, str) or not user_query.strip() or not self.is_available():
             return []
@@ -344,15 +370,23 @@ class MedicalRAGService:
         pool = min(self.collection.count(), top_k * 3)
 
         # 1. Base lexical branch (bm25_original)
-        branches = [("bm25_original", self.lexical_search(query, pool))]
+        branches = [("bm25_original", self.lexical_search(query, pool, no_df_cutoff=no_df_cutoff))]
 
         # 2. Cross-language query expansion branch (bm25_expanded)
+        used_expansion_branch = False
         if query_expansion_service.enabled and lang == "vi":
             expansion_res = query_expansion_service.expand_for_retrieval(user_query, language=lang)
+            if expansion_res.degraded:
+                metrics_collector.increment("retrieval_query_expansion_degraded_total")
             if expansion_res.used_expansion and expansion_res.expanded_query.strip():
                 exp_query = expansion_res.expanded_query.strip()[:2000]
                 if exp_query.lower() != user_query.strip().lower():
-                    branches.append(("bm25_expanded", self.lexical_search(exp_query, pool)))
+                    branches.append(("bm25_expanded", self.lexical_search(exp_query, pool, no_df_cutoff=no_df_cutoff)))
+                    used_expansion_branch = True
+                    metrics_collector.increment("retrieval_query_expansion_used_total")
+
+        if not used_expansion_branch:
+            metrics_collector.increment("retrieval_bm25_only_total")
 
         # 3. Optional vector search branch
         if self.vector_search_enabled:
@@ -361,19 +395,53 @@ class MedicalRAGService:
         if len(branches) == 1 and branches[0][0] == "bm25_original":
             # Baseline compatibility: single branch
             hits = branches[0][1]
-            return [dict(
+            if not hits:
+                metrics_collector.increment("retrieval_no_results_total")
+            res = [dict(
                 content=h["content"], metadata=h.get("metadata") or {}, lexical_metadata=h.get("metadata") or {},
                 vector_metadata=None, lexical_score=1 / (60 + h["rank"]), vector_score=None,
                 rerank_score=None, fusion_score=1 / (60 + h["rank"]), distance=None, distance_metric=None,
                 accepted=True, retrieval="bm25", retrieval_branches=["bm25_original"]
-            ) for h in hits[:top_k]]
+            ) for h in hits[:(top_k * 2 if source_diversity else top_k)]]
+            if source_diversity and res:
+                seen_urls = set()
+                first_picks = []
+                rest_picks = []
+                for item in res:
+                    u = (item.get("metadata") or {}).get("source_url")
+                    if u and u not in seen_urls:
+                        seen_urls.add(u)
+                        first_picks.append(item)
+                    else:
+                        rest_picks.append(item)
+                return (first_picks + rest_picks)[:top_k]
+            return res[:top_k]
 
-        return self.fuse_branches(branches, top_k)
+        fused = self.fuse_branches(branches, top_k * 2 if source_diversity else top_k)
+        if not fused:
+            metrics_collector.increment("retrieval_no_results_total")
+            return []
+        if source_diversity and fused:
+            seen_urls = set()
+            first_picks = []
+            rest_picks = []
+            for item in fused:
+                u = (item.get("metadata") or {}).get("source_url")
+                if u and u not in seen_urls:
+                    seen_urls.add(u)
+                    first_picks.append(item)
+                else:
+                    rest_picks.append(item)
+            return (first_picks + rest_picks)[:top_k]
+        return fused[:top_k]
 
     def retrieve_context(self, user_query: str, top_k: int = 2, lang: str = "vi") -> List[Dict[str, Any]]:
         """Return the original context contract for current chat and intake callers."""
         top_k = max(1, min(5, top_k)) if type(top_k) is int else 2
-        candidates = self.retrieve_candidates(user_query, 20 if self.rerank_enabled else top_k, lang=lang)
+        if lang == "vi":
+            candidates = self.retrieve_candidates(user_query, 20 if self.rerank_enabled else top_k)
+        else:
+            candidates = self.retrieve_candidates(user_query, 20 if self.rerank_enabled else top_k, lang=lang)
         if self.rerank_enabled and candidates:
             try:
                 candidates = reranker_service.rerank(user_query, candidates, top_k)

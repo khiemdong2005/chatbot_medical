@@ -1,0 +1,37 @@
+{
+  "id": "pelvic-pain",
+  "title": "Pelvic pain",
+  "category": "Sexual Health (Women)",
+  "mapped_title": "Pelvic Pain",
+  "page_content": "User topic: Pelvic pain\nCategory: Sexual Health (Women)\nTrusted medical topic: Pelvic Pain\nSearch phrases: Pelvic pain, Pelvic Pain\nMedical groups: Women, Symptoms, Sexual Health Issues, Female Reproductive System\n\nMedical information:\nPelvic pain occurs mostly in the lower abdomen area. The pain might be steady, or it might come and go. It can be a sharp and stabbing pain in a specific spot, or a dull pain that is spread out. If the pain is severe, it might get in the way of your daily activities. If you're a woman, you might feel pain during your period . It could also happen when you have sex. Pelvic pain can be a sign that there is a problem with one of the organs in your pelvic area, such as the uterus, ovaries, fallopian tubes, cervix, or vagina. If you're a man, the cause could be a problem with the prostate . In men and women, it could be a symptom of infection, or a problem with the urinary tract, lower intestines, rectum, muscle, or bone. Some women have more than one cause of pelvic pain at the same time. You might have to have lab, imaging, or other medical tests to find the cause of the pain. The treatment will depend on the cause, how bad the pain is, and how often it occurs. NIH: National Institute of Child Health and Human Development",
+  "search_phrases": [
+    "Pelvic pain",
+    "Pelvic Pain"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/pelvicpain.html",
+  "medlineplus_id": "4486",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Pelvic pain",
+  "title_vi": "Đau vùng chậu ở nữ giới",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "pelvic pain female",
+    "chronic pelvic pain",
+    "lower abdominal pain female",
+    "pelvic inflammatory"
+  ],
+  "keywords_vi": [
+    "đau vùng chậu nữ",
+    "đau bụng dưới nữ",
+    "viêm vùng chậu PID",
+    "đau mạn tính vùng chậu",
+    "phụ khoa"
+  ],
+  "content_hash": "b921f9b49e9b01145471015f143020bd9fe5c9fd79b2ae3b696ea6a0812c7c28",
+  "content_sha256": "b921f9b49e9b01145471015f143020bd9fe5c9fd79b2ae3b696ea6a0812c7c28",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

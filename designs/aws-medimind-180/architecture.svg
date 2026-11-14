@@ -1,0 +1,62 @@
+<svg class="diagram" viewBox="0 0 1180 700" role="img" aria-labelledby="diagram-title diagram-desc" xmlns="http://www.w3.org/2000/svg">
+      <title id="diagram-title">Kiến trúc đề xuất MediMind trên AWS Lightsail</title>
+      <desc id="diagram-desc">Người dùng đi qua HTTPS và tường lửa Lightsail tới Caddy, FastAPI trong Docker. FastAPI lưu SQLite, Chroma và uploads trên SSD Lightsail, gọi Gemini bên ngoài AWS, và được sao lưu bằng Lightsail snapshots.</desc>
+      <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#5c7da3"/></marker><filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#1a365d" flood-opacity=".08"/></filter></defs>
+      <rect x="15" y="25" width="1150" height="608" rx="26" fill="#f9fbfe" stroke="#d9e3ee" stroke-width="2"/>
+      <text x="43" y="62" font-size="13" font-weight="800" letter-spacing="2" fill="#4472a1">DEPLOYMENT MAP · AWS SINGAPORE + EXTERNAL API</text>
+      <rect x="40" y="112" width="200" height="122" rx="18" fill="#fff" stroke="#cbd8e7" filter="url(#shadow)"/>
+      <circle cx="75" cy="151" r="18" fill="#eaf1ff"/><text x="75" y="157" text-anchor="middle" font-size="21" fill="#155eef">◉</text>
+      <text x="106" y="151" font-size="20" font-weight="800" fill="#14243b">Người dùng</text>
+      <text x="67" y="186" font-size="14" fill="#5c6d80">Trình duyệt / điện thoại</text>
+      <text x="67" y="211" font-size="13" fill="#155eef" font-weight="700">HTTPS : 443</text>
+
+      <rect x="301" y="94" width="586" height="468" rx="27" fill="#eaf1ff" stroke="#9fb8e7" stroke-width="2"/>
+      <text x="329" y="127" font-size="18" font-weight="800" fill="#194e9c">AMAZON LIGHTSAIL</text>
+      <text x="329" y="151" font-size="13" fill="#55729b">Linux · 4 GB RAM · 2 vCPU · 80 GB SSD · Public IPv4</text>
+      <rect x="328" y="175" width="532" height="352" rx="20" fill="#fff" stroke="#c6d9ee"/>
+      <text x="352" y="201" font-size="12" font-weight="800" letter-spacing="1.5" fill="#54779e">MỘT MÁY CHỦ · DOCKER COMPOSE</text>
+
+      <rect x="348" y="228" width="148" height="91" rx="14" fill="#dff5fb" stroke="#9fdae6"/>
+      <text x="366" y="255" font-size="17" font-weight="800" fill="#15556c">Caddy</text>
+      <text x="366" y="280" font-size="13" fill="#3c6f7d">TLS / reverse proxy</text>
+      <text x="366" y="299" font-size="12" fill="#3c6f7d">Let's Encrypt</text>
+
+      <rect x="553" y="228" width="283" height="155" rx="14" fill="#e6f7ee" stroke="#a9d7bd"/>
+      <text x="573" y="256" font-size="18" font-weight="800" fill="#1e6945">FastAPI · Uvicorn</text>
+      <text x="573" y="281" font-size="13" fill="#416a54">HTML / API / chatbot / RAG</text>
+      <text x="573" y="303" font-size="13" fill="#416a54">BM25 · MiniLM vector (tùy chọn)</text>
+      <text x="573" y="325" font-size="13" fill="#416a54">Gemini API client</text>
+      <text x="573" y="359" font-size="12" font-weight="700" fill="#966027">BGE reranker: tắt trong cấu hình này</text>
+
+      <path d="M240 173H348" fill="none" stroke="#5c7da3" stroke-width="3" marker-end="url(#arrow)"/>
+      <text x="265" y="159" font-size="12" fill="#5c6d80">Firewall</text>
+      <path d="M496 272H553" fill="none" stroke="#5c7da3" stroke-width="3" marker-end="url(#arrow)"/>
+      <path d="M694 383V412" fill="none" stroke="#5c7da3" stroke-width="3" marker-end="url(#arrow)"/>
+
+      <rect x="348" y="413" width="488" height="92" rx="14" fill="#fff6e7" stroke="#edcf98"/>
+      <text x="369" y="442" font-size="16" font-weight="800" fill="#81561e">SSD bền vững của Lightsail</text>
+      <text x="369" y="467" font-size="13" fill="#735d3c">SQLite /instance · ChromaDB /medical_vectordb</text>
+      <text x="369" y="488" font-size="13" fill="#735d3c">Ảnh, tài liệu tải lên /uploads · dữ liệu RAG</text>
+
+      <rect x="945" y="122" width="190" height="104" rx="17" fill="#fff" stroke="#cbd8e7" filter="url(#shadow)"/>
+      <text x="965" y="155" font-size="17" font-weight="800" fill="#14243b">Google Gemini</text>
+      <text x="965" y="181" font-size="13" fill="#5c6d80">Suy luận qua API</text>
+      <text x="965" y="204" font-size="12" font-weight="700" fill="#a26711">Chi phí ngoài AWS</text>
+      <path d="M836 304H920V174H945" fill="none" stroke="#5c7da3" stroke-width="3" marker-end="url(#arrow)"/>
+      <text x="886" y="291" font-size="12" fill="#5c6d80">HTTPS ra ngoài</text>
+
+      <rect x="939" y="289" width="196" height="116" rx="17" fill="#fff" stroke="#cbd8e7" filter="url(#shadow)"/>
+      <text x="958" y="322" font-size="17" font-weight="800" fill="#14243b">Lightsail snapshots</text>
+      <text x="958" y="347" font-size="13" fill="#5c6d80">Sao lưu 7 bản gần nhất</text>
+      <text x="958" y="369" font-size="13" fill="#5c6d80">Kiểm tra khôi phục định kỳ</text>
+      <text x="958" y="391" font-size="12" fill="#155eef" font-weight="700">Theo GB đã lưu</text>
+      <path d="M836 458H892V347H939" fill="none" stroke="#5c7da3" stroke-width="3" stroke-dasharray="7 6" marker-end="url(#arrow)"/>
+
+      <rect x="939" y="445" width="196" height="82" rx="17" fill="#fff" stroke="#cbd8e7" filter="url(#shadow)"/>
+      <text x="958" y="477" font-size="17" font-weight="800" fill="#14243b">AWS Budgets</text>
+      <text x="958" y="502" font-size="13" fill="#5c6d80">Cảnh báo chi phí / credit</text>
+
+      <text x="43" y="594" font-size="13" font-weight="700" fill="#855d24">Giới hạn:</text>
+      <text x="112" y="594" font-size="13" fill="#6b7690">Một máy / một AZ; hỏng máy có thể gián đoạn. Không đặt SQLite, Chroma hay uploads ra Internet.</text>
+      <text x="43" y="669" font-size="12" fill="#6c7c90">Thiết kế dựa trên Dockerfile, docker-compose.yml và cấu hình lưu trữ hiện tại của repository · 14/11/2026</text>
+    </svg>

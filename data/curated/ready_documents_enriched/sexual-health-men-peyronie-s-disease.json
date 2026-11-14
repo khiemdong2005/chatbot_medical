@@ -1,0 +1,38 @@
+{
+  "id": "peyronie-s-disease",
+  "title": "Peyronie's disease",
+  "category": "Sexual Health (Men)",
+  "mapped_title": "Penis Disorders",
+  "page_content": "User topic: Peyronie's disease\nCategory: Sexual Health (Men)\nTrusted medical topic: Penis Disorders\nSearch phrases: Peyronie's disease, Penis Disorders, Penile disorders\nMedical groups: Men, Sexual Health Issues, Male Reproductive System\n\nMedical information:\nProblems with the penis can cause pain and affect a man's sexual function and fertility. Penis disorders include: Erectile dysfunction - inability to get or keep an erection Priapism - a painful erection that does not go away Peyronie's disease - bending of the penis during an erection due to a hard lump called a plaque Balanitis - inflammation of the skin covering the head of the penis, most often in men and boys who have not been circumcised Penile cancer - a rare form of cancer, highly curable when caught early",
+  "search_phrases": [
+    "Peyronie's disease",
+    "Penis Disorders",
+    "Penile disorders"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/penisdisorders.html",
+  "medlineplus_id": "1360",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Peyronie's disease",
+  "title_vi": "Bệnh xơ cứng vật hang (Cong dương vật Peyronie)",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "Peyronie's disease",
+    "penile curvature",
+    "penile plaque",
+    "bent penis"
+  ],
+  "keywords_vi": [
+    "bệnh peyronie",
+    "cong dương vật",
+    "mảng xơ vật hang",
+    "đau khi cương cong",
+    "nam khoa"
+  ],
+  "content_hash": "aa374ca46f209afcf94ddef1f0c67ef5495043dd2cefb6acee7fdc07bb11016a",
+  "content_sha256": "aa374ca46f209afcf94ddef1f0c67ef5495043dd2cefb6acee7fdc07bb11016a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}
