@@ -625,19 +625,31 @@ const translations = {
     ocr_preset_gastro: "Đơn thuốc mẫu (Tiêu hóa)",
     ocr_preset_resp: "Đơn thuốc mẫu (Hô hấp)",
     ocr_preset_blood: "Phiếu xét nghiệm mẫu (Máu)",
-    modal_login_title: "Đăng nhập MediMind AI",
-    modal_register_title: "Đăng ký tài khoản MediMind",
+    modal_login_title: "Đăng nhập vào MediMind",
+    modal_register_title: "Đăng ký vào MediMind",
+    modal_forgot_title: "Quên mật khẩu?",
+    modal_otp_title: "Xác thực mã bảo mật (OTP)",
     modal_auth_subtitle: "Hệ thống Trợ lý Y tế & Phân tầng Lâm sàng",
     tab_login: "Đăng nhập",
     tab_register: "Tạo tài khoản mới",
-    ph_identifier: "Email hoặc số di động",
-    ph_password: "Mật khẩu",
+    lbl_login_identifier: "Email hoặc số điện thoại",
+    ph_identifier: "Email hoặc số điện thoại",
+    ph_password: "Nhập mật khẩu",
     btn_login: "Đăng nhập",
     link_forgot_pwd: "Quên mật khẩu?",
     btn_create_account: "Tạo tài khoản mới",
     btn_demo_login: "Đăng nhập tài khoản mẫu thử nghiệm",
-    btn_google_signin: "Tiếp tục với Google",
+    btn_google_signin: "Đăng nhập bằng Google",
+    auth_or_divider: "hoặc",
+    auth_back_home: "Quay lại trang chính",
+    auth_forgot_subtitle: "Nhập email hoặc số điện thoại để nhận mã xác thực đặt lại mật khẩu.",
+    auth_register_terms: "Bằng việc đăng ký, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật y tế của MediMind.",
+    auth_hero_badge: "MediMind Clinical AI • Phác đồ MedlinePlus® NIH",
+    auth_hero_headline: "Nơi tri thức y khoa đồng hành cùng bạn",
+    auth_hero_tagline: "Chăm sóc sức khỏe không còn đơn độc – vào là có trợ lý lâm sàng hỗ trợ",
     lbl_name: "Tên",
+    lbl_full_name: "Họ và tên",
+    ph_full_name: "Nhập họ và tên",
     ph_last_name: "Họ",
     ph_first_name: "Tên",
     lbl_dob: "Ngày sinh",
@@ -649,10 +661,17 @@ const translations = {
     opt_male: "Nam",
     opt_female: "Nữ",
     opt_other: "Khác",
-    lbl_identifier: "Số di động hoặc email",
+    lbl_identifier: "Email hoặc số điện thoại",
     lbl_password: "Mật khẩu",
-    btn_register_submit: "Đăng ký tài khoản mới",
-    lbl_have_account: "Đã có tài khoản?",
+    lbl_confirm_password: "Xác nhận mật khẩu",
+    ph_confirm_password: "Nhập lại mật khẩu",
+    lbl_new_password: "Mật khẩu mới",
+    btn_forgot_submit: "Nhận mã xác thực OTP",
+    btn_register_submit: "Đăng ký",
+    lbl_no_account: "Bạn chưa có tài khoản?",
+    link_register_now: "Đăng ký ngay",
+    link_register_short: "Đăng ký",
+    lbl_have_account: "Bạn đã có tài khoản?",
     link_login_now: "Đăng nhập ngay",
     history_title: "Lịch Sử Tư Vấn",
     history_subtitle: "Các phiên sàng lọc & phân tích triệu chứng",
@@ -998,19 +1017,31 @@ const translations = {
     ocr_preset_gastro: "Sample Prescription (Gastro)",
     ocr_preset_resp: "Sample Prescription (Resp)",
     ocr_preset_blood: "Sample Lab Report (Blood)",
-    modal_login_title: "Sign In to MediMind AI",
-    modal_register_title: "Create MediMind Account",
+    modal_login_title: "Sign in to MediMind",
+    modal_register_title: "Create MediMind account",
+    modal_forgot_title: "Forgot password?",
+    modal_otp_title: "Security Verification (OTP)",
     modal_auth_subtitle: "Clinical Decision Support & Health Assistant",
     tab_login: "Sign In",
     tab_register: "Create Account",
-    ph_identifier: "Email or mobile number",
-    ph_password: "Password",
-    btn_login: "Sign In",
-    link_forgot_pwd: "Forgot Password?",
+    lbl_login_identifier: "Email or phone number",
+    ph_identifier: "Email or phone number",
+    ph_password: "Enter password",
+    btn_login: "Sign in",
+    link_forgot_pwd: "Forgot password?",
     btn_create_account: "Create New Account",
     btn_demo_login: "Quick Demo Patient Sign-in",
-    btn_google_signin: "Continue with Google",
+    btn_google_signin: "Sign in with Google",
+    auth_or_divider: "or",
+    auth_back_home: "Back to home",
+    auth_forgot_subtitle: "Enter your registered email or phone number to receive a password reset OTP.",
+    auth_register_terms: "By signing up, you agree to MediMind's Terms of Use and Clinical Privacy Policy.",
+    auth_hero_badge: "MediMind Clinical AI • MedlinePlus® NIH Guidelines",
+    auth_hero_headline: "Where medical knowledge stands beside you",
+    auth_hero_tagline: "Healthcare is never lonely – step inside for instant clinical guidance",
     lbl_name: "Name",
+    lbl_full_name: "Full name",
+    ph_full_name: "Enter your full name",
     ph_last_name: "Last Name",
     ph_first_name: "First Name",
     lbl_dob: "Date of Birth",
@@ -1022,11 +1053,18 @@ const translations = {
     opt_male: "Male",
     opt_female: "Female",
     opt_other: "Other",
-    lbl_identifier: "Mobile Number or Email",
+    lbl_identifier: "Email or phone number",
     lbl_password: "Password",
-    btn_register_submit: "Register New Account",
+    lbl_confirm_password: "Confirm password",
+    ph_confirm_password: "Re-enter password",
+    lbl_new_password: "New password",
+    btn_forgot_submit: "Send verification OTP",
+    btn_register_submit: "Sign up",
+    lbl_no_account: "Don't have an account?",
+    link_register_now: "Sign up now",
+    link_register_short: "Sign up",
     lbl_have_account: "Already have an account?",
-    link_login_now: "Sign In Now",
+    link_login_now: "Sign in now",
     history_title: "Consultation History",
     history_subtitle: "Screening sessions & symptom analyses",
     history_btn_new: "New Session",
@@ -1275,11 +1313,8 @@ function applyLanguage() {
   if (checkEn) checkEn.classList.toggle('hidden', currentLang !== 'en');
 
   // Dynamic Auth modal header based on currentAuthMode
-  const titleEl = document.getElementById('auth-modal-title');
-  if (titleEl) {
-    titleEl.innerText = (typeof currentAuthMode !== 'undefined' && currentAuthMode === 'register')
-      ? (dict.modal_register_title || 'Đăng ký tài khoản MediMind')
-      : (dict.modal_login_title || 'Đăng nhập MediMind AI');
+  if (typeof toggleAuthMode === 'function' && typeof currentAuthMode !== 'undefined') {
+    toggleAuthMode(currentAuthMode);
   }
 
   // Update gender options text
@@ -2619,69 +2654,39 @@ function closeProfileModal() {
   if (modal) modal.classList.add('hidden');
 }
 
+// ponytail: #login-modal.auth-4exam-shell owns its flat #f8f9fb palette in CSS; only sync #google-account-card here.
 function syncAuthModalTheme() {
   const isLight = document.body.classList.contains('light-glass');
-  const card = document.getElementById('auth-modal-card');
-  const title = document.getElementById('auth-modal-title');
-  const modal = document.getElementById('login-modal');
-  const dividerBadge = document.getElementById('auth-divider-badge');
-  const divLineLeft = document.getElementById('auth-divider-line-left');
-  const divLineRight = document.getElementById('auth-divider-line-right');
-  const btnGoogle = document.getElementById('btn-google-signin');
   const googleCard = document.getElementById('google-account-card');
-
-  if (!card) return;
-
-  if (isLight) {
-    card.classList.remove('bg-slate-900/95', 'text-white', 'border-white/15');
-    card.classList.add('bg-white', 'text-slate-900', 'border-slate-200', 'shadow-2xl');
-    if (title) {
-      title.classList.remove('text-white');
-      title.classList.add('text-slate-900');
-    }
-    if (modal) {
-      modal.classList.remove('bg-black/60');
-      modal.classList.add('bg-slate-900/40');
-    }
-    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-white rounded-full";
-    if (divLineLeft) divLineLeft.className = "border-t border-slate-200 w-full";
-    if (divLineRight) divLineRight.className = "border-t border-slate-200 w-full";
-    if (btnGoogle) {
-      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 border border-slate-300/80 cursor-pointer";
-      const span = btnGoogle.querySelector('span');
-      if (span) span.className = "font-semibold text-slate-700";
-    }
-    if (googleCard) {
-      googleCard.classList.remove('bg-slate-900', 'text-white', 'border-white/15');
-      googleCard.classList.add('bg-white', 'text-slate-800', 'border-slate-200');
-    }
-  } else {
-    card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200');
-    card.classList.add('bg-slate-900/95', 'text-white', 'border-white/15', 'shadow-2xl');
-    if (title) {
-      title.classList.remove('text-slate-900');
-      title.classList.add('text-white');
-    }
-    if (modal) {
-      modal.classList.remove('bg-slate-900/40');
-      modal.classList.add('bg-black/60');
-    }
-    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-slate-900 rounded-full";
-    if (divLineLeft) divLineLeft.className = "border-t border-white/10 w-full";
-    if (divLineRight) divLineRight.className = "border-t border-white/10 w-full";
-    if (btnGoogle) {
-      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-3 border border-white/15 cursor-pointer";
-      const span = btnGoogle.querySelector('span');
-      if (span) span.className = "font-semibold text-white";
-    }
-    if (googleCard) {
-      googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
-      googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
-    }
+  if (googleCard) {
+    googleCard.classList.toggle('bg-white', isLight);
+    googleCard.classList.toggle('text-slate-800', isLight);
+    googleCard.classList.toggle('border-slate-200', isLight);
+    googleCard.classList.toggle('bg-slate-900', !isLight);
+    googleCard.classList.toggle('text-white', !isLight);
+    googleCard.classList.toggle('border-white/15', !isLight);
   }
-  if (typeof toggleAuthMode === 'function') {
-    toggleAuthMode(currentAuthMode);
-  }
+}
+
+const AUTH_EYE_OPEN_SVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
+const AUTH_EYE_OFF_SVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
+
+function toggleAuthPasswordVisibility(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const reveal = input.type === 'password';
+  input.type = reveal ? 'text' : 'password';
+  if (btnEl) btnEl.innerHTML = reveal ? AUTH_EYE_OFF_SVG : AUTH_EYE_OPEN_SVG;
+}
+
+function resetAuthPasswordToggles() {
+  ['login-password', 'register-password', 'register-confirm-password', 'forgot-new-password'].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.type = 'password';
+    const btn = input.parentElement?.querySelector('button[onclick*="toggleAuthPasswordVisibility"]');
+    if (btn) btn.innerHTML = AUTH_EYE_OPEN_SVG;
+  });
 }
 
 function resetAuthModal() {
@@ -2699,37 +2704,25 @@ function resetAuthModal() {
   };
 
   // Reset forms
-  const loginForm = document.getElementById('login-form');
-  const regForm = document.getElementById('register-form');
-  const otpForm = document.getElementById('otp-form');
-  if (loginForm) loginForm.reset();
-  if (regForm) regForm.reset();
-  if (otpForm) otpForm.reset();
+  ['login-form', 'register-form', 'forgot-form', 'otp-form'].forEach(id => {
+    document.getElementById(id)?.reset();
+  });
 
   // Clear inputs explicitly to prevent lingering state on logout / new account
-  const regLastName = document.getElementById('register-last-name');
-  const regFirstName = document.getElementById('register-first-name');
-  const regName = document.getElementById('register-name');
-  const regIdent = document.getElementById('register-identifier');
-  const regEmail = document.getElementById('register-email');
-  const regPass = document.getElementById('register-password');
-  const regDob = document.getElementById('register-dob');
+  [
+    'register-last-name', 'register-first-name', 'register-name',
+    'register-identifier', 'register-email', 'register-password',
+    'register-confirm-password', 'register-dob',
+    'login-identifier', 'login-password',
+    'forgot-identifier', 'forgot-new-password'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   const regGender = document.getElementById('register-gender');
-
-  if (regLastName) regLastName.value = '';
-  if (regFirstName) regFirstName.value = '';
-  if (regName) regName.value = '';
-  if (regIdent) regIdent.value = '';
-  if (regEmail) regEmail.value = '';
-  if (regPass) regPass.value = '';
-  if (regDob) regDob.value = '';
   if (regGender) regGender.value = 'Nam';
 
-  const loginIdent = document.getElementById('login-identifier');
-  const loginPass = document.getElementById('login-password');
-  if (loginIdent) loginIdent.value = '';
-  if (loginPass) loginPass.value = '';
-
+  resetAuthPasswordToggles();
   clearOtpInputs();
   const timerWrap = document.getElementById('otp-timer-wrap');
   const resendBtn = document.getElementById('btn-otp-resend');
@@ -2745,10 +2738,14 @@ function openLoginModal(mode = 'login') {
   syncAuthModalTheme();
   const modal = document.getElementById('login-modal');
   if (modal) {
-    toggleAuthMode(mode || 'login');
+    const targetMode = mode || 'login';
+    toggleAuthMode(targetMode);
     modal.classList.remove('hidden');
-    if (mode === 'register') {
-      document.getElementById('register-last-name')?.focus();
+    document.body.style.overflow = 'hidden';
+    if (targetMode === 'register') {
+      (document.getElementById('register-name') || document.getElementById('register-last-name'))?.focus();
+    } else if (targetMode === 'forgot') {
+      document.getElementById('forgot-identifier')?.focus();
     } else {
       document.getElementById('login-identifier')?.focus();
     }
@@ -2759,6 +2756,7 @@ function openLoginModal(mode = 'login') {
 function closeLoginModal() {
   const modal = document.getElementById('login-modal');
   if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
   resetAuthModal();
 }
 
@@ -2789,82 +2787,46 @@ function populateDobDropdowns() {
 
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
-  currentAuthMode = mode;
+  const nextMode = ['login', 'register', 'forgot', 'otp'].includes(mode) ? mode : 'login';
+  currentAuthMode = nextMode;
   const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
+  const forgotSubEl = document.getElementById('auth-forgot-subtitle');
+  const leftHeroEl = document.getElementById('auth-left-hero');
   const loginForm = document.getElementById('login-form');
   const regForm = document.getElementById('register-form');
+  const forgotForm = document.getElementById('forgot-form');
   const otpForm = document.getElementById('otp-form');
   const googleContainer = document.getElementById('google-auth-container');
   const socialDivider = document.getElementById('auth-social-divider');
-  const tabsContainer = document.querySelector('.auth-segmented-tabs');
-  const tabLogin = document.getElementById('tab-auth-login');
-  const tabReg = document.getElementById('tab-auth-register');
 
-  const isLight = document.body.classList.contains('light-glass');
+  const showSocial = nextMode === 'login' || nextMode === 'register';
+  loginForm?.classList.toggle('hidden', nextMode !== 'login');
+  regForm?.classList.toggle('hidden', nextMode !== 'register');
+  forgotForm?.classList.toggle('hidden', nextMode !== 'forgot');
+  otpForm?.classList.toggle('hidden', nextMode !== 'otp');
+  googleContainer?.classList.toggle('hidden', !showSocial);
+  socialDivider?.classList.toggle('hidden', !showSocial);
+  forgotSubEl?.classList.toggle('hidden', nextMode !== 'forgot');
 
-  if (mode === 'login') {
-    if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
-    if (loginForm) loginForm.classList.remove('hidden');
-    if (regForm) regForm.classList.add('hidden');
-    if (otpForm) otpForm.classList.add('hidden');
-    if (googleContainer) googleContainer.classList.remove('hidden');
-    if (socialDivider) socialDivider.classList.remove('hidden');
-    if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
-    if (googleSpan) {
-      googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
-    }
+  // Match 4exam.net/forgot-password: hide 58% left hero on forgot mode so form centers full-width
+  if (leftHeroEl) {
+    leftHeroEl.classList.toggle('lg:flex', nextMode !== 'forgot');
+  }
 
-    if (tabLogin) {
-      if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      }
-    }
-    if (tabReg) {
-      if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
-      } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
-      }
-    }
-  } else if (mode === 'register') {
-    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
-    if (loginForm) loginForm.classList.add('hidden');
-    if (regForm) regForm.classList.remove('hidden');
-    if (otpForm) otpForm.classList.add('hidden');
-    if (googleContainer) googleContainer.classList.remove('hidden');
-    if (socialDivider) socialDivider.classList.remove('hidden');
-    if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
-    if (googleSpan) {
-      googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
-    }
+  const googleSpan = document.querySelector('#btn-google-signin span[data-i18n="btn_google_signin"]');
+  if (googleSpan) {
+    googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Sign in with Google' : 'Đăng nhập bằng Google');
+  }
 
-    if (tabReg) {
-      if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      }
-    }
-    if (tabLogin) {
-      if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
-      } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
-      }
-    }
-  } else if (mode === 'otp') {
-    if (titleEl) titleEl.innerText = "Xác thực mã bảo mật (OTP)";
-    if (loginForm) loginForm.classList.add('hidden');
-    if (regForm) regForm.classList.add('hidden');
-    if (otpForm) otpForm.classList.remove('hidden');
-    if (googleContainer) googleContainer.classList.add('hidden');
-    if (socialDivider) socialDivider.classList.add('hidden');
-    if (tabsContainer) tabsContainer.classList.add('hidden');
+  if (titleEl) {
+    const titles = {
+      login: dict.modal_login_title || 'Đăng nhập vào MediMind',
+      register: dict.modal_register_title || 'Đăng ký vào MediMind',
+      forgot: dict.modal_forgot_title || 'Quên mật khẩu?',
+      otp: dict.modal_otp_title || 'Xác thực mã bảo mật (OTP)'
+    };
+    titleEl.innerText = titles[nextMode];
   }
 }
 
@@ -3254,29 +3216,37 @@ async function startOtpLoginFlow() {
   await requestAndShowOtp(identifier, channel, 'login_2fa');
 }
 
-async function startForgotPasswordFlow() {
-  let identifier = (document.getElementById('login-identifier')?.value || '').trim();
+function startForgotPasswordFlow() {
+  const prefill = (document.getElementById('login-identifier')?.value || '').trim();
+  const forgotIdent = document.getElementById('forgot-identifier');
+  const forgotPass = document.getElementById('forgot-new-password');
+  if (forgotIdent && prefill) forgotIdent.value = prefill;
+  toggleAuthMode('forgot');
+  (prefill ? forgotPass : forgotIdent)?.focus();
+}
+
+async function handleForgotSubmit(e) {
+  e.preventDefault();
+  const identifier = (document.getElementById('forgot-identifier')?.value || '').trim();
+  const newPassword = (document.getElementById('forgot-new-password')?.value || '').trim();
   if (!identifier) {
-    identifier = prompt('Nhập Email hoặc Số điện thoại của tài khoản cần khôi phục mật khẩu:');
-    if (!identifier) return;
-    identifier = identifier.trim();
-  }
-  const newPassword = prompt('Nhập mật khẩu mới (tối thiểu 6 ký tự) sẽ áp dụng sau khi xác thực OTP:');
-  if (!newPassword) return;
-  if (newPassword.trim().length < 6) {
-    alert('Mật khẩu mới phải có tối thiểu 6 ký tự.');
+    if (typeof showMedicalToast === 'function') showMedicalToast('Vui lòng nhập email hoặc số điện thoại.', 'warning');
+    document.getElementById('forgot-identifier')?.focus();
     return;
   }
-
+  if (newPassword.length < 6) {
+    if (typeof showMedicalToast === 'function') showMedicalToast('Mật khẩu mới phải có tối thiểu 6 ký tự.', 'warning');
+    document.getElementById('forgot-new-password')?.focus();
+    return;
+  }
   const channel = identifier.includes('@') ? 'email' : 'sms';
   pendingOtpFlow = {
     identifier,
     channel,
     purpose: 'reset_pwd',
-    userData: { new_password: newPassword.trim() },
-    previousMode: 'login'
+    userData: { new_password: newPassword },
+    previousMode: 'forgot'
   };
-
   await requestAndShowOtp(identifier, channel, 'reset_pwd');
 }
 
@@ -3314,7 +3284,7 @@ async function handleGoogleSignIn(intentOverride) {
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
+    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-[#282b35] border-t-transparent animate-spin inline-block"></span><span class="font-semibold text-[#383b45]">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
   }
 
   try {
@@ -3476,7 +3446,7 @@ function submitCustomGoogleAccount() {
   startGoogleAccountSelection(email, name, initial, '#0284c7');
 }
 
-// Bắt phím Escape và Enter cho Google Account Modal
+// Bắt phím Escape và Enter cho Google Account Modal + Login Split Shell
 window.addEventListener('keydown', (e) => {
   const modal = document.getElementById('google-account-modal');
   if (modal && !modal.classList.contains('hidden')) {
@@ -3486,6 +3456,16 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && currentGoogleState === 'custom') {
       submitCustomGoogleAccount();
     }
+    return;
+  }
+  const disclaimerModal = document.getElementById('disclaimer-modal');
+  if (e.key === 'Escape' && disclaimerModal && !disclaimerModal.classList.contains('hidden')) {
+    closeDisclaimerModal();
+    return;
+  }
+  const loginModal = document.getElementById('login-modal');
+  if (e.key === 'Escape' && loginModal && !loginModal.classList.contains('hidden')) {
+    closeLoginModal();
   }
 });
 
@@ -3500,6 +3480,7 @@ async function handleRegisterSubmit(e) {
   const gender = document.getElementById('register-gender')?.value || '';
   const identifier = (document.getElementById('register-identifier')?.value || document.getElementById('register-email')?.value || '').trim();
   const password = document.getElementById('register-password')?.value;
+  const confirmEl = document.getElementById('register-confirm-password');
 
   if (!fullName || !identifier || !password) {
     alert('Vui lòng điền đầy đủ Họ và Tên, Email hoặc Số di động và mật khẩu.');
@@ -3507,6 +3488,13 @@ async function handleRegisterSubmit(e) {
   }
   if (password.length < 6) {
     alert('Mật khẩu phải có ít nhất 6 ký tự.');
+    return;
+  }
+  if (confirmEl && confirmEl.value !== password) {
+    const mismatchMsg = currentLang === 'en' ? 'Passwords do not match.' : 'Mật khẩu xác nhận không khớp.';
+    if (typeof showMedicalToast === 'function') showMedicalToast(mismatchMsg, 'error');
+    else alert(mismatchMsg);
+    confirmEl.focus();
     return;
   }
 
@@ -4528,7 +4516,7 @@ function showMedicalToast(message, type = 'info', duration = 3500) {
   if (!container) {
     container = document.createElement('div');
     container.id = 'medical-toast-container';
-    container.className = 'fixed top-5 right-5 sm:right-8 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none';
+    container.className = 'fixed top-5 right-5 sm:right-8 z-[90] flex flex-col gap-2.5 max-w-sm pointer-events-none';
     document.body.appendChild(container);
   }
 

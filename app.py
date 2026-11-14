@@ -2625,13 +2625,25 @@ def create_app(test_config=None):
     @app.route("/metrics", methods=["GET"])
     def prometheus_metrics():
         """Cổng Scraping chuẩn OpenMetrics cho Prometheus TSDB & Grafana."""
-        client_ip = request.remote_addr or ""
+        import ipaddress
+        client_ip = (request.remote_addr or "").strip()
         expected_key = os.getenv("PROMETHEUS_SCRAPE_KEY", os.getenv("ADMIN_MONITORING_KEY", ""))
         req_key = request.headers.get("X-Metrics-Key") or request.headers.get("X-Admin-Key") or request.args.get("key")
-        is_internal = (
-            client_ip in ("127.0.0.1", "::1", "localhost", "testclient")
-            or client_ip.startswith(("10.", "172.", "192.168."))
-        )
+        is_internal = client_ip in ("localhost", "testclient")
+        if not is_internal and client_ip:
+            try:
+                addr = ipaddress.ip_address(client_ip)
+                is_internal = any(
+                    addr in net for net in (
+                        ipaddress.ip_network("127.0.0.0/8"),
+                        ipaddress.ip_network("::1/128"),
+                        ipaddress.ip_network("10.0.0.0/8"),
+                        ipaddress.ip_network("172.16.0.0/12"),
+                        ipaddress.ip_network("192.168.0.0/16"),
+                    )
+                )
+            except ValueError:
+                is_internal = False
         is_auth = bool(expected_key and req_key == expected_key)
         if not is_internal and not is_auth:
             return jsonify({

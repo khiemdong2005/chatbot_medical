@@ -1,6 +1,10 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import inspect, text
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 logger = logging.getLogger("MediMindMigrations")
 
@@ -162,7 +166,7 @@ def _apply_auth_identity_normalization(conn):
                     (user_id, old_email, old_phone_number, old_password_hash, migrated_at)
                     VALUES (:uid, :em, :ph, :pw, :ts)
                 """),
-                {"uid": uid, "em": o_email, "ph": o_phone, "pw": o_pwd, "ts": datetime.utcnow()}
+                {"uid": uid, "em": o_email, "ph": o_phone, "pw": o_pwd, "ts": _utcnow()}
             )
 
     # Bước 2 (Expand): Nếu cột email đang bị ràng buộc NOT NULL trên SQLite, rebuild bảng users an toàn
@@ -216,7 +220,7 @@ def _apply_auth_identity_normalization(conn):
 
     used_emails = set()
     used_phones = set()
-    now_ts = datetime.utcnow()
+    now_ts = _utcnow()
 
     # Quét trước các email thật để tránh va chạm
     for uid, raw_email, raw_phone, _ in rows:
@@ -454,7 +458,7 @@ def run_migrations(engine):
                     # Đánh dấu phiên bản đã hoàn tất
                     conn.execute(
                         text("INSERT INTO schema_migrations (version, description, applied_at) VALUES (:v, :d, :t)"),
-                        {"v": version, "d": desc, "t": datetime.utcnow()}
+                        {"v": version, "d": desc, "t": _utcnow()}
                     )
                     applied_versions.add(version)
                     logger.info(f"✅ Áp dụng thành công migration [{version}]")

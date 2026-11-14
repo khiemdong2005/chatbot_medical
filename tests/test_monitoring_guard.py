@@ -39,9 +39,15 @@ class TestObservabilityGuard(unittest.TestCase):
         self.assertIn("medimind_security_events_total", body)
         self.assertIn('event_type="LOGIN_FAILED"', body)
 
+    def tearDown(self):
+        with self.app.app_context():
+            db.session.remove()
+            db.engine.dispose()
+
     def test_prometheus_metrics_blocks_external_ip_without_token(self):
-        res = self.client.get("/metrics", environ_base={"REMOTE_ADDR": "203.0.113.55"})
-        self.assertEqual(res.status_code, 403)
+        self.assertEqual(self.client.get("/metrics", environ_base={"REMOTE_ADDR": "203.0.113.55"}).status_code, 403)
+        self.assertEqual(self.client.get("/metrics", environ_base={"REMOTE_ADDR": "172.67.10.20"}).status_code, 403)
+        self.assertEqual(self.client.get("/metrics", environ_base={"REMOTE_ADDR": "172.16.0.10"}).status_code, 200)
 
 
 if __name__ == "__main__":

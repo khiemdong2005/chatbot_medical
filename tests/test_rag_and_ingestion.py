@@ -2,7 +2,7 @@ import json
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import chromadb
+chromadb = pytest.importorskip("chromadb", reason="chromadb optional wheel not installed in active Python runtime")
 from core.rag_service import MedicalRAGService
 from ingest import run_ingestion
 

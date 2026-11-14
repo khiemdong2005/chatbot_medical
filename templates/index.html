@@ -200,7 +200,7 @@ background: #94A3B8;
 
 <!-- Top Navigation Bar (Floating Pill Header with Even Spacing) -->
 
-<header class="w-full max-w-[1600px] mx-auto px-3 sm:px-8 py-3 flex items-center justify-between z-30 shrink-0 relative gap-2 sm:gap-4 pl-12 sm:pl-20">
+<header class="w-full max-w-[1600px] mx-auto px-3 sm:px-8 py-3 flex items-center justify-between z-30 shrink-0 relative gap-2 sm:gap-4 pl-3 sm:pl-20">
 
 <!-- Brand Logo with Glowing Pulse Beacon -->
 
@@ -220,9 +220,9 @@ background: #94A3B8;
 
     <div class="flex items-center space-x-1.5 sm:space-x-2">
 
-      <span class="font-black text-sm sm:text-lg lg:text-xl tracking-tight text-white truncate">MediMind Clinical AI</span>
+      <span class="font-black text-sm sm:text-lg lg:text-xl tracking-tight text-white truncate"><span class="sm:hidden">MediMind</span><span class="hidden sm:inline">MediMind Clinical AI</span></span>
 
-      <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-bold border border-sky-400/30 shrink-0">v2.5</span>
+      <span class="hidden sm:inline-block text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-bold border border-sky-400/30 shrink-0">v2.5</span>
 
     </div>
 
@@ -253,7 +253,7 @@ background: #94A3B8;
 
 <!-- Right Controls (Glass Pills) -->
 
-<div class="flex items-center space-x-2 shrink-0 whitespace-nowrap">
+<div class="flex items-center space-x-1 sm:space-x-2 shrink-0 whitespace-nowrap">
 
   <!-- Language Picker Dropdown -->
 
@@ -299,7 +299,7 @@ background: #94A3B8;
 
   <div id="auth-unlogged" class="flex items-center shrink-0">
 
-    <button onclick="openLoginModal()" class="rounded-full glass-pill hover:bg-white/15 text-slate-200 text-xs font-semibold px-4 py-2 transition-all flex items-center space-x-2 whitespace-nowrap cursor-pointer">
+    <button onclick="openLoginModal()" class="rounded-full glass-pill hover:bg-white/15 text-slate-200 text-xs font-semibold px-3 sm:px-4 py-1.5 sm:py-2 transition-all flex items-center space-x-1.5 sm:space-x-2 whitespace-nowrap cursor-pointer">
 
       <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 
@@ -317,7 +317,7 @@ background: #94A3B8;
 
   <!-- Sun Icon (Theme Toggle from Image 3) -->
 
-  <button type="button" onclick="toggleGlassThemeMode()" class="text-slate-300 hover:text-amber-300 p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer" title="Đổi giao diện Sáng / Tối">
+  <button type="button" onclick="toggleGlassThemeMode()" class="text-slate-300 hover:text-amber-300 p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer" title="Đổi giao diện Sáng / Tối">
 
     <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 
@@ -333,7 +333,7 @@ background: #94A3B8;
 
   <div class="relative">
 
-    <button type="button" id="notif-btn" onclick="toggleNotificationDropdown(event)" class="relative p-2 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer" title="Thông báo lâm sàng">
+    <button type="button" id="notif-btn" onclick="toggleNotificationDropdown(event)" class="relative p-1.5 sm:p-2 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer" title="Thông báo lâm sàng">
 
       <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 
@@ -909,7 +909,7 @@ background: #94A3B8;
 <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<input class="w-full pl-9 pr-3 py-1.5 text-xs bg-[#0f172a] border border-slate-800/90 rounded-full text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/60 transition" placeholder="Tìm bệnh viện, phòng khám, quận/huyện..." type="text">
+<input id="hospitalSidebarSearchInput" class="w-full pl-9 pr-3 py-1.5 text-xs bg-[#0f172a] border border-slate-800/90 rounded-full text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/60 transition" placeholder="Tìm bệnh viện, phòng khám, quận/huyện..." type="text" autocomplete="off">
 </div>
 </div>
 <!-- Scrollable Filter Content -->
@@ -2092,275 +2092,332 @@ background: #94A3B8;
 
 </footer>
 
-<!-- Modal Đăng nhập (Clean Hospital Pop-up with backdrop-blur-sm & Role Switcher) -->
-
-<div id="login-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-opacity">
-
-<div id="auth-modal-card" class="glass-panel p-6 sm:p-8 max-w-md w-full shadow-2xl border border-white/15 bg-slate-900/95 backdrop-blur-2xl text-white relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
-
-<!-- Close Button -->
-
-<button onclick="closeLoginModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors">
-
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-
-</svg>
-
-</button>
-
-<!-- Header with Dynamic Title -->
-
-<div class="text-center space-y-2">
-
-<div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-sky-500/30 border border-white/20">
-
-<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-
-<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-
-</svg>
-
-</div>
-
-<h3 class="text-xl font-extrabold text-white" id="auth-modal-title">Đăng nhập MediMind AI</h3>
-
-<p data-i18n="modal_auth_subtitle" class="text-xs text-slate-400 font-medium">Hệ thống Trợ lý Y tế &amp; Phân tầng Lâm sàng</p>
-
-</div>
-
-<!-- Contextual Prompt Banner (Hiển thị lý do bật popup đăng nhập/đăng ký ở giữa màn hình) -->
-<div id="auth-context-banner" class="hidden flex items-start gap-3 p-3.5 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold leading-relaxed shadow-lg backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
-  <span class="text-lg shrink-0">⚠️</span>
-  <div class="flex-1 text-left">
-    <p data-i18n="facility_auth_banner_title" class="font-bold text-amber-300 tracking-wide text-xs">YÊU CẦU XÁC THỰC TÀI KHOẢN</p>
-    <p id="auth-context-banner-text" data-i18n="facility_auth_banner_text" class="text-slate-200 font-medium mt-0.5 leading-snug">Vui lòng đăng nhập hoặc tạo tài khoản mới để tiếp tục đặt lịch khám!</p>
-  </div>
-</div>
-
-<!-- Mode Switcher: Đăng nhập vs Đăng ký (Segmented Control matching Image 3) -->
-<div class="auth-segmented-tabs flex items-center p-1 rounded-xl text-xs font-bold text-center gap-1">
-<button type="button" id="tab-auth-login" onclick="toggleAuthMode('login')" data-i18n="tab_login" class="flex-1 py-2 px-3 rounded-lg font-bold shadow-xs transition-all cursor-pointer active">Đăng nhập</button>
-<button type="button" id="tab-auth-register" onclick="toggleAuthMode('register')" data-i18n="tab_register" class="flex-1 py-2 px-3 rounded-lg font-medium transition-all cursor-pointer">Tạo tài khoản mới</button>
-</div>
-
-<!-- LOGIN FORM -->
-
-
-<!-- GOOGLE 1-CLICK SIGN-IN & SOCIAL DIVIDER -->
-<div id="google-auth-container" class="pt-1">
-  <button type="button" id="btn-google-signin" onclick="handleGoogleSignIn()" class="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 border border-slate-300/80 cursor-pointer">
-    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-    </svg>
-    <span data-i18n="btn_google_signin" class="font-semibold text-slate-700">Tiếp tục với Google</span>
-  </button>
-</div>
-
-<!-- Divider with seamless theme background & no vertical wrap -->
-<div id="auth-social-divider" class="relative flex items-center justify-center my-3">
-  <div id="auth-divider-line-left" class="border-t border-slate-200 w-full"></div>
-  <span id="auth-divider-badge" class="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-white rounded-full">hoặc</span>
-  <div id="auth-divider-line-right" class="border-t border-slate-200 w-full"></div>
-</div>
-<!-- LOGIN FORM -->
-
-<form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
-
-<div>
-
-<input type="text" id="login-identifier" required data-i18n-placeholder="ph_identifier" placeholder="Email hoặc số di động" class="glass-card w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all">
-
-</div>
-
-<div>
-
-<input type="password" id="login-password" required data-i18n-placeholder="ph_password" placeholder="Mật khẩu" class="glass-card w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all">
-
-</div>
-
-<button type="submit" data-i18n="btn_login" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-sm font-bold shadow-lg shadow-sky-500/25 transition-all cursor-pointer">Đăng nhập</button>
-
-
-<div class="text-center pt-0.5">
-
-<a href="#" onclick="startForgotPasswordFlow(); return false;" class="text-xs text-slate-400 hover:text-sky-300 font-semibold hover:underline" data-i18n="link_forgot_pwd">Quên mật khẩu?</a>
-
-</div>
-
-<div class="pt-1.5">
-
-<button type="button" onclick="toggleAuthMode('register')" data-i18n="btn_create_account" class="w-full py-3 rounded-xl glass-pill border border-sky-400/40 text-sky-300 hover:bg-sky-500/20 text-xs sm:text-sm font-bold transition-all cursor-pointer">Tạo tài khoản mới</button>
-
-</div>
-
-
-
-</form>
-
-<!-- REGISTER FORM -->
-
-<form id="register-form" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
-
-<div>
-
-<label data-i18n="lbl_name" class="block text-xs font-semibold text-slate-300 mb-1">Tên</label>
-
-<div class="grid grid-cols-2 gap-2">
-
-<input type="text" id="register-last-name" required data-i18n-placeholder="ph_last_name" placeholder="Họ" class="glass-card w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all">
-
-<input type="text" id="register-first-name" required data-i18n-placeholder="ph_first_name" placeholder="Tên" class="glass-card w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all">
-
-</div>
-
-</div>
-
-<div>
-
-<div class="flex items-center space-x-1 mb-1">
-
-<label data-i18n="lbl_dob" class="text-xs font-semibold text-slate-300">Ngày sinh</label>
-
-</div>
-
-<div class="grid grid-cols-3 gap-2">
-
-<select id="register-dob-day" class="glass-card w-full px-2.5 py-2 rounded-xl border border-white/10 bg-white/[0.05] text-xs text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20">
-
-<option value="" disabled selected class="bg-slate-900 text-white">Ngày</option>
-
-</select>
-
-<select id="register-dob-month" class="glass-card w-full px-2.5 py-2 rounded-xl border border-white/10 bg-white/[0.05] text-xs text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20">
-
-<option value="" disabled selected class="bg-slate-900 text-white">Tháng</option>
-
-</select>
-
-<select id="register-dob-year" class="glass-card w-full px-2.5 py-2 rounded-xl border border-white/10 bg-white/[0.05] text-xs text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20">
-
-<option value="" disabled selected class="bg-slate-900 text-white">Năm</option>
-
-</select>
-
-</div>
-
-</div>
-
-<div>
-
-<div class="flex items-center space-x-1 mb-1">
-
-<label data-i18n="lbl_gender" class="text-xs font-semibold text-slate-300">Giới tính</label>
-
-</div>
-
-<select id="register-gender" class="glass-card w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20">
-
-<option value="" disabled selected class="bg-slate-900 text-white">Chọn giới tính</option>
-
-<option value="Nam" class="bg-slate-900 text-white">Nam</option>
-
-<option value="Nữ" class="bg-slate-900 text-white">Nữ</option>
-
-<option value="Khác" class="bg-slate-900 text-white">Khác</option>
-
-</select>
-
-</div>
-
-<div>
-
-<label data-i18n="lbl_identifier" class="block text-xs font-semibold text-slate-300 mb-1">Số di động hoặc email</label>
-
-<input type="text" id="register-identifier" required data-i18n-placeholder="ph_identifier" placeholder="Số di động hoặc email" class="glass-card w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all">
-
-</div>
-
-<div>
-
-<label data-i18n="lbl_password" class="block text-xs font-semibold text-slate-300 mb-1">Mật khẩu</label>
-
-<input type="password" id="register-password" required minlength="6" data-i18n-placeholder="ph_password" placeholder="Mật khẩu" class="glass-card w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-white/[0.05] text-xs sm:text-sm text-white placeholder-white/30 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all">
-
-</div>
-
-<button type="submit" data-i18n="btn_register_submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-sky-500/25 transition-all mt-2 cursor-pointer">Đăng ký tài khoản mới</button>
-
-<p class="text-center text-xs text-slate-400 pt-1"><span data-i18n="lbl_have_account">Đã có tài khoản?</span> <a href="#" onclick="toggleAuthMode('login'); return false;" data-i18n="link_login_now" class="text-sky-400 font-bold hover:underline">Đăng nhập ngay</a></p>
-
-</form>
-
-<!-- OTP VERIFICATION FORM (Step 2 of Register or 2FA Login) -->
-<form id="otp-form" onsubmit="handleOtpSubmit(event)" class="space-y-4 hidden">
-  <div class="text-center space-y-1.5">
-    <div class="w-11 h-11 rounded-2xl bg-sky-500/20 text-sky-400 border border-sky-400/30 flex items-center justify-center mx-auto shadow-md shadow-sky-500/20">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-      </svg>
+<!-- Giao diện Đăng nhập / Đăng ký 2 cột tràn viền (4Exam-Inspired Split Auth Shell) -->
+<div id="login-modal" class="auth-4exam-shell fixed inset-0 z-[70] hidden flex min-h-screen w-full overflow-hidden">
+
+  <!-- LEFT 58% CLINICAL BRAND & EDITORIAL VISUAL PANEL (Hidden below lg, hidden on forgot mode) -->
+  <div id="auth-left-hero" class="hospital-hero-banner relative hidden lg:flex lg:w-[58%] flex-col justify-between overflow-hidden select-none" style="background: linear-gradient(165deg, #dbeafe 0%, #bfdbfe 34%, #1e293b 76%, #070b14 100%);">
+    <!-- Top Clinical Trust Pill -->
+    <div class="relative z-20 p-10 xl:p-14 flex items-center justify-between">
+      <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-950/35 backdrop-blur-md border border-white/20 text-white text-xs font-semibold tracking-wide">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span data-i18n="auth_hero_badge">MediMind Clinical AI • Phác đồ MedlinePlus® NIH</span>
+      </div>
     </div>
-    <h4 class="text-sm sm:text-base font-extrabold text-white" id="otp-header-title">Xác thực mã bảo mật y tế</h4>
-    <p class="text-xs text-slate-300">
-      Mã xác thực 6 số đã được gửi qua <span id="otp-channel-label" class="font-semibold text-sky-300">tin nhắn SMS</span> tới:<br/>
-      <span id="otp-target-display" class="font-bold text-sky-300 tracking-wide text-sm">...</span>
-    </p>
-    
+
+    <!-- Original 3D Clinical Hospital & Stethoscope Artwork (Full-Bleed, Zero 1-1 Copy from 4exam) -->
+    <img src="/static/images/facility-detail-cover.png" alt="MediMind Clinical Care" class="absolute inset-0 w-full h-full object-cover object-[42%_center] pointer-events-none select-none">
+
+    <!-- Subtle Vital ECG Pulse Line Accent -->
+    <svg class="absolute bottom-44 left-0 right-0 w-full h-14 text-sky-300/30 pointer-events-none z-10" viewBox="0 0 800 80" fill="none" preserveAspectRatio="none">
+      <path d="M0 45 H240 L265 45 L282 14 L302 70 L322 24 L338 52 L352 45 H800" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <!-- Seamless Editorial Bottom Dark Scrim (Matching 4exam.net gradient ramp) -->
+    <div class="absolute inset-0 pointer-events-none z-10" style="background: linear-gradient(180deg, rgba(7,11,20,0) 0%, rgba(7,11,20,0.08) 48%, rgba(6,10,19,0.78) 76%, rgba(5,8,17,0.96) 100%);"></div>
+
+    <!-- Bottom-Anchored Editorial Headline & Tagline -->
+    <div class="relative z-20 p-12 xl:p-16 pb-20 space-y-3 max-w-2xl">
+      <h2 data-i18n="auth_hero_headline" class="text-3xl xl:text-4xl font-extrabold text-white leading-tight tracking-tight">
+        Nơi tri thức y khoa đồng hành cùng bạn
+      </h2>
+      <p data-i18n="auth_hero_tagline" class="text-base xl:text-lg font-semibold text-[#b6b9c8] leading-relaxed">
+        Chăm sóc sức khỏe không còn đơn độc – vào là có trợ lý lâm sàng hỗ trợ
+      </p>
+    </div>
   </div>
 
-  <!-- 6 Auto-focus Digit Inputs -->
-  <div class="flex items-center justify-center gap-2 sm:gap-2.5 py-1" id="otp-inputs-container">
-    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-extrabold rounded-xl border border-white/20 bg-white/[0.07] text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 transition-all shadow-inner" data-index="0" autofocus>
-    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-extrabold rounded-xl border border-white/20 bg-white/[0.07] text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 transition-all shadow-inner" data-index="1">
-    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-extrabold rounded-xl border border-white/20 bg-white/[0.07] text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 transition-all shadow-inner" data-index="2">
-    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-extrabold rounded-xl border border-white/20 bg-white/[0.07] text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 transition-all shadow-inner" data-index="3">
-    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-extrabold rounded-xl border border-white/20 bg-white/[0.07] text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 transition-all shadow-inner" data-index="4">
-    <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-extrabold rounded-xl border border-white/20 bg-white/[0.07] text-white focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30 transition-all shadow-inner" data-index="5">
+  <!-- RIGHT 42% FLAT ALABASTER FORM COLUMN (#f8f9fb) -->
+  <div id="auth-modal-card" class="flex flex-1 flex-col justify-between lg:w-[42%] h-screen overflow-y-auto px-6 py-6 sm:px-10 sm:py-8 bg-[#f8f9fb] text-[#383b45] relative">
+
+    <!-- Top Return / Close Bar -->
+    <div class="flex items-center justify-between w-full shrink-0">
+      <button type="button" onclick="closeLoginModal()" class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer py-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span data-i18n="auth_back_home">Quay lại trang chính</span>
+      </button>
+      <button type="button" onclick="closeLoginModal()" aria-label="Đóng" class="w-9 h-9 rounded-full flex items-center justify-center text-[#61667a] hover:text-[#282b35] hover:bg-[#eef0f3] transition-colors cursor-pointer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Centered 368px Form Track -->
+    <div class="flex flex-col items-center justify-center max-w-[368px] mx-auto w-full my-auto py-6 gap-7">
+
+      <!-- Brand Mark + Dynamic Heading -->
+      <div id="auth-brand-header" class="flex flex-col items-center gap-4 w-full text-center">
+        <button type="button" onclick="closeLoginModal()" class="inline-flex items-center gap-2.5 cursor-pointer group">
+          <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+          </span>
+          <span class="text-base font-black tracking-wider text-[#282b35] uppercase">MediMind</span>
+        </button>
+
+        <div class="space-y-1.5">
+          <h3 class="text-2xl font-bold text-[#383b45] tracking-tight" id="auth-modal-title">Đăng nhập vào MediMind</h3>
+          <p id="auth-forgot-subtitle" data-i18n="auth_forgot_subtitle" class="hidden text-sm font-medium text-[#61667a] leading-relaxed">
+            Nhập email hoặc số điện thoại để nhận mã xác thực đặt lại mật khẩu.
+          </p>
+        </div>
+      </div>
+
+      <!-- Contextual Prompt Banner (Shown when guest clicks protected actions like Facility Booking) -->
+      <div id="auth-context-banner" class="hidden w-full flex items-start gap-3 p-3.5 rounded-[14px] bg-amber-50 border border-amber-300 text-amber-900 text-xs font-medium leading-relaxed">
+        <span class="text-base shrink-0 mt-0.5">⚠️</span>
+        <div class="flex-1 text-left">
+          <p data-i18n="facility_auth_banner_title" class="font-bold text-amber-900 tracking-wide text-xs">YÊU CẦU XÁC THỰC TÀI KHOẢN</p>
+          <p id="auth-context-banner-text" data-i18n="facility_auth_banner_text" class="text-amber-800 mt-0.5 leading-snug">Vui lòng đăng nhập hoặc tạo tài khoản mới để tiếp tục đặt lịch khám!</p>
+        </div>
+      </div>
+
+      <div class="w-full flex flex-col gap-5">
+        <!-- GOOGLE SIGN-IN FIRST (4exam.net style: 48px, 1px #282b35 border, rounded-[14px]) -->
+        <div id="google-auth-container" class="w-full">
+          <button type="button" id="btn-google-signin" onclick="handleGoogleSignIn()" class="auth-4e-google-btn w-full px-6 flex items-center justify-center gap-3 cursor-pointer">
+            <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span data-i18n="btn_google_signin" class="font-semibold text-[#383b45]">Đăng nhập bằng Google</span>
+          </button>
+        </div>
+
+        <!-- Lowercase "hoặc" Hairline Divider -->
+        <div id="auth-social-divider" class="flex items-center gap-5 w-full">
+          <div id="auth-divider-line-left" class="flex-1 h-px bg-[#e6e8ef]"></div>
+          <span id="auth-divider-badge" data-i18n="auth_or_divider" class="text-xs font-medium text-[#9ca1b4] lowercase whitespace-nowrap">hoặc</span>
+          <div id="auth-divider-line-right" class="flex-1 h-px bg-[#e6e8ef]"></div>
+        </div>
+
+        <!-- 1. LOGIN FORM -->
+        <form id="login-form" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-4 w-full">
+          <div class="flex flex-col gap-1.5">
+            <label for="login-identifier" data-i18n="lbl_login_identifier" class="auth-4e-label">Email hoặc số điện thoại</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="20" height="16" x="2" y="4" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </span>
+              <input type="text" id="login-identifier" required autocomplete="username" data-i18n-placeholder="ph_identifier" placeholder="Email hoặc số điện thoại" class="auth-4e-input w-full pl-12 pr-4">
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="login-password" data-i18n="lbl_password" class="auth-4e-label">Mật khẩu</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="login-password" required autocomplete="current-password" data-i18n-placeholder="ph_password" placeholder="Nhập mật khẩu" class="auth-4e-input w-full pl-12 pr-12">
+              <button type="button" onclick="toggleAuthPasswordVisibility('login-password', this)" aria-label="Hiện/ẩn mật khẩu" class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex justify-end -mt-0.5">
+            <a href="#" onclick="startForgotPasswordFlow(); return false;" class="auth-4e-forgot text-sm font-medium transition-colors" data-i18n="link_forgot_pwd">Quên mật khẩu?</a>
+          </div>
+
+          <button type="submit" data-i18n="btn_login" class="btn-primary auth-4e-cta-btn w-full mt-1 cursor-pointer">Đăng nhập</button>
+
+          <p class="text-center text-sm font-medium text-[#61667a] pt-1">
+            <span data-i18n="lbl_no_account">Bạn chưa có tài khoản?</span>
+            <a href="#" id="tab-auth-register" onclick="toggleAuthMode('register'); return false;" data-i18n="link_register_now" class="auth-4e-link font-semibold underline underline-offset-2 ml-1.5">Đăng ký ngay</a>
+          </p>
+        </form>
+
+        <!-- 2. REGISTER FORM (4exam.net 4-field clean silhouette) -->
+        <form id="register-form" onsubmit="handleRegisterSubmit(event)" class="flex flex-col gap-3.5 w-full hidden">
+          <div class="flex flex-col gap-1">
+            <label for="register-name" data-i18n="lbl_full_name" class="auth-4e-label">Họ và tên</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              <input type="text" id="register-name" required autocomplete="name" data-i18n-placeholder="ph_full_name" placeholder="Nhập họ và tên" class="auth-4e-input w-full pl-12 pr-4">
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="register-identifier" data-i18n="lbl_identifier" class="auth-4e-label">Email hoặc số điện thoại</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="20" height="16" x="2" y="4" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </span>
+              <input type="text" id="register-identifier" required autocomplete="username" data-i18n-placeholder="ph_identifier" placeholder="Nhập email hoặc số di động" class="auth-4e-input w-full pl-12 pr-4">
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="register-password" data-i18n="lbl_password" class="auth-4e-label">Mật khẩu</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="register-password" required minlength="6" autocomplete="new-password" data-i18n-placeholder="ph_password" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" class="auth-4e-input w-full pl-12 pr-12">
+              <button type="button" onclick="toggleAuthPasswordVisibility('register-password', this)" aria-label="Hiện/ẩn mật khẩu" class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="register-confirm-password" data-i18n="lbl_confirm_password" class="auth-4e-label">Xác nhận mật khẩu</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="register-confirm-password" required minlength="6" autocomplete="new-password" data-i18n-placeholder="ph_confirm_password" placeholder="Nhập lại mật khẩu" class="auth-4e-input w-full pl-12 pr-12">
+              <button type="button" onclick="toggleAuthPasswordVisibility('register-confirm-password', this)" aria-label="Hiện/ẩn mật khẩu" class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" data-i18n="btn_register_submit" class="btn-primary auth-4e-cta-btn w-full mt-2 cursor-pointer">Đăng ký</button>
+
+          <p data-i18n="auth_register_terms" class="text-center text-xs font-medium text-[#61667a] leading-relaxed px-1 pt-0.5">
+            Bằng việc đăng ký, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật y tế của MediMind.
+          </p>
+
+          <p class="text-center text-sm font-medium text-[#61667a]">
+            <span data-i18n="lbl_have_account">Bạn đã có tài khoản?</span>
+            <a href="#" id="tab-auth-login" onclick="toggleAuthMode('login'); return false;" data-i18n="link_login_now" class="auth-4e-link font-semibold underline underline-offset-2 ml-1.5">Đăng nhập ngay</a>
+          </p>
+        </form>
+
+        <!-- 3. FORGOT PASSWORD FORM (4exam.net/forgot-password single-column centered style) -->
+        <form id="forgot-form" onsubmit="handleForgotSubmit(event)" class="flex flex-col gap-4 w-full hidden">
+          <div class="flex flex-col gap-1.5">
+            <label for="forgot-identifier" data-i18n="lbl_login_identifier" class="auth-4e-label">Email hoặc số điện thoại</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="20" height="16" x="2" y="4" rx="2"/>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                </svg>
+              </span>
+              <input type="text" id="forgot-identifier" required placeholder="Nhập email hoặc số điện thoại đã đăng ký" class="auth-4e-input w-full pl-12 pr-4">
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="forgot-new-password" data-i18n="lbl_new_password" class="auth-4e-label">Mật khẩu mới</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input type="password" id="forgot-new-password" required minlength="6" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" class="auth-4e-input w-full pl-12 pr-12">
+              <button type="button" onclick="toggleAuthPasswordVisibility('forgot-new-password', this)" aria-label="Hiện/ẩn mật khẩu" class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" data-i18n="btn_forgot_submit" class="btn-primary auth-4e-cta-btn w-full mt-1 cursor-pointer">Nhận mã xác thực OTP</button>
+
+          <div class="flex items-center justify-center gap-3 text-sm font-medium text-[#61667a] pt-1">
+            <a href="#" onclick="toggleAuthMode('login'); return false;" class="hover:text-[#1D62EC] transition-colors" data-i18n="btn_login">Đăng nhập</a>
+            <span class="text-[#b6b9c8]">|</span>
+            <a href="#" onclick="toggleAuthMode('register'); return false;" class="hover:text-[#1D62EC] transition-colors" data-i18n="link_register_short">Đăng ký</a>
+          </div>
+        </form>
+
+        <!-- 4. OTP VERIFICATION FORM (Step 2 of Register / Reset Password / 2FA) -->
+        <form id="otp-form" onsubmit="handleOtpSubmit(event)" class="flex flex-col gap-4 w-full hidden">
+          <div class="text-center space-y-1.5">
+            <p class="text-sm text-[#61667a] leading-relaxed">
+              Mã xác thực 6 số đã được gửi qua <span id="otp-channel-label" class="font-semibold text-[#282b35]">tin nhắn SMS</span> tới:<br/>
+              <span id="otp-target-display" class="font-bold text-[#1D62EC] tracking-wide text-sm">...</span>
+            </p>
+          </div>
+
+          <div class="flex items-center justify-center gap-2 sm:gap-2.5 py-1" id="otp-inputs-container">
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-11 h-13 text-center text-lg font-extrabold transition-all" data-index="0" autofocus>
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-11 h-13 text-center text-lg font-extrabold transition-all" data-index="1">
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-11 h-13 text-center text-lg font-extrabold transition-all" data-index="2">
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-11 h-13 text-center text-lg font-extrabold transition-all" data-index="3">
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-11 h-13 text-center text-lg font-extrabold transition-all" data-index="4">
+            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-digit w-11 h-13 text-center text-lg font-extrabold transition-all" data-index="5">
+          </div>
+
+          <div class="text-center text-xs">
+            <span id="otp-timer-wrap" class="text-[#61667a] font-medium">
+              Gửi lại mã sau <span id="otp-countdown" class="font-bold text-[#282b35]">59s</span>...
+            </span>
+            <button type="button" id="btn-otp-resend" onclick="handleResendOtp()" class="hidden auth-4e-link font-semibold underline underline-offset-2 cursor-pointer">
+              Gửi lại mã OTP mới
+            </button>
+          </div>
+
+          <button type="submit" id="btn-otp-verify-submit" class="btn-primary auth-4e-cta-btn w-full cursor-pointer">
+            Xác nhận &amp; Tiếp tục
+          </button>
+
+          <button type="button" onclick="cancelOtpStep()" class="w-full py-2 text-[#61667a] hover:text-[#282b35] text-sm font-semibold transition-colors cursor-pointer">
+            ← Quay lại bước trước
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Bottom Legal Policy Bar (Matching 4exam.net footer layout) -->
+    <div class="w-full max-w-[368px] mx-auto lg:max-w-none pt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs font-medium text-[#61667a] shrink-0">
+      <div class="flex flex-wrap items-center gap-5">
+        <button type="button" onclick="openDisclaimerModal()" class="hover:text-[#282b35] transition-colors cursor-pointer">Chính sách cookie</button>
+        <button type="button" onclick="openDisclaimerModal()" class="hover:text-[#282b35] transition-colors cursor-pointer">Điều khoản sử dụng</button>
+        <button type="button" onclick="openDisclaimerModal()" class="hover:text-[#282b35] transition-colors cursor-pointer">Chính sách bảo mật</button>
+      </div>
+      <span class="hidden sm:inline text-[#9ca1b4]">© MediMind AI</span>
+    </div>
+
   </div>
-
-  <!-- Countdown Timer & Resend Button -->
-  <div class="text-center text-xs">
-    <span id="otp-timer-wrap" class="text-slate-400 font-medium">
-      Gửi lại mã sau <span id="otp-countdown" class="font-bold text-sky-400">59s</span>...
-    </span>
-    <button type="button" id="btn-otp-resend" onclick="handleResendOtp()" class="hidden text-sky-400 hover:text-sky-300 font-bold hover:underline cursor-pointer">
-      Gửi lại mã OTP mới
-    </button>
-  </div>
-
-  <button type="submit" id="btn-otp-verify-submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-sky-500/25 transition-all cursor-pointer">
-    Xác nhận &amp; Tiếp tục
-  </button>
-
-  <button type="button" onclick="cancelOtpStep()" class="w-full py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold transition-colors cursor-pointer">
-    ← Quay lại bước trước
-  </button>
-</form>
-<!-- Trust Footer -->
-
-<div class="pt-2 text-center border-t border-white/10 text-[11px] text-slate-400 font-medium">
-
-<div class="flex items-center justify-center space-x-1.5">
-
-<svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-
-<span>Bảo mật dữ liệu cá nhân cục bộ</span>
-
-</div>
-
-</div>
-
-</div>
-
 </div>
 
 <!-- Modal Tuyên bố Miễn trừ Trách nhiệm Y tế & Giáo dục / Nghiên cứu Tương lai (Disclaimer Modal) -->
 
-<div id="disclaimer-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-opacity">
+<div id="disclaimer-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-opacity">
 
 <div class="glass-panel p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-white/15 bg-slate-900/95 backdrop-blur-2xl text-white relative space-y-4 animate-in fade-in zoom-in-95 duration-200">
 
@@ -3171,7 +3228,7 @@ Hủy bỏ
 </div>
 
 <!-- GOOGLE OAUTH ACCOUNT CHOOSER MODAL (Based on Google Dark Mode design specification) -->
-<div id="google-account-modal" onclick="if(event.target === this && currentGoogleState !== 'loading') closeGoogleAccountModal()" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+<div id="google-account-modal" onclick="if(event.target === this && currentGoogleState !== 'loading') closeGoogleAccountModal()" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
   <div class="max-w-4xl w-full rounded-3xl bg-[#131314] text-[#e3e3e3] border border-[#2b2b2b] p-8 sm:p-12 shadow-2xl relative space-y-8 animate-in zoom-in-95 duration-200">
     
     <!-- Close button top-right (Trạng thái 4 - Hủy đăng nhập) -->
@@ -4056,6 +4113,8 @@ function onHospitalSearchInput(query) {
 function clearHospitalSearch() {
   const input = document.getElementById('hospitalSearchInput');
   if (input) input.value = '';
+  const sideInput = document.getElementById('hospitalSidebarSearchInput');
+  if (sideInput) sideInput.value = '';
   const clearBtn = document.getElementById('btnClearHospitalSearch');
   if (clearBtn) clearBtn.classList.add('hidden');
   currentFacilityState.search = '';
@@ -4070,6 +4129,8 @@ function resetAllFilters() {
 
   const input = document.getElementById('hospitalSearchInput');
   if (input) input.value = '';
+  const sideInput = document.getElementById('hospitalSidebarSearchInput');
+  if (sideInput) sideInput.value = '';
   const distSelect = document.getElementById('hospitalDistrictFilter');
   if (distSelect) distSelect.value = 'all';
 
@@ -4164,8 +4225,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initHospitalMapSystem();
 
   const searchInput = document.getElementById('hospitalSearchInput');
+  const sideSearchInput = document.getElementById('hospitalSidebarSearchInput');
   if (searchInput) {
     searchInput.addEventListener('input', e => {
+      if (sideSearchInput && sideSearchInput.value !== e.target.value) sideSearchInput.value = e.target.value;
+      onHospitalSearchInput(e.target.value);
+    });
+  }
+  if (sideSearchInput) {
+    sideSearchInput.addEventListener('input', e => {
+      if (searchInput && searchInput.value !== e.target.value) searchInput.value = e.target.value;
       onHospitalSearchInput(e.target.value);
     });
   }

@@ -568,9 +568,8 @@ body.light-glass .hospital-filter-btn.active {
 /* Facility detail drawer styles are scoped in facilities.css. */
 
 /* ==============================================================================
-   Modal Dialogs (Login, Register, Disclaimer, Profile) - Complete Light & Dark Sync
+   Modal Dialogs (Disclaimer, Profile) & 4Exam-Style Split Auth Shell
    ============================================================================== */
-body.light-glass #login-modal .glass-panel,
 body.light-glass #disclaimer-modal .glass-panel,
 body.light-glass #profile-modal .glass-panel {
   background: rgba(255, 255, 255, 0.98) !important;
@@ -579,28 +578,22 @@ body.light-glass #profile-modal .glass-panel {
   color: #0F172A !important;
 }
 
-body.light-glass #login-modal h3,
-body.light-glass #login-modal #auth-modal-title,
 body.light-glass #disclaimer-modal h3,
 body.light-glass #profile-modal h3 {
   color: #0F172A !important;
   font-weight: 800 !important;
 }
 
-body.light-glass #login-modal p,
 body.light-glass #disclaimer-modal p,
 body.light-glass #profile-modal p {
   color: #475569 !important;
 }
 
-body.light-glass #login-modal label,
 body.light-glass #profile-modal label {
   color: #0F172A !important;
   font-weight: 600 !important;
 }
 
-body.light-glass #login-modal input,
-body.light-glass #login-modal select,
 body.light-glass #profile-modal input,
 body.light-glass #profile-modal select {
   background-color: #F8FAFC !important;
@@ -609,13 +602,10 @@ body.light-glass #profile-modal select {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
 }
 
-body.light-glass #login-modal input::placeholder,
 body.light-glass #profile-modal input::placeholder {
   color: #94A3B8 !important;
 }
 
-body.light-glass #login-modal input:focus,
-body.light-glass #login-modal select:focus,
 body.light-glass #profile-modal input:focus,
 body.light-glass #profile-modal select:focus {
   background-color: #FFFFFF !important;
@@ -623,57 +613,23 @@ body.light-glass #profile-modal select:focus {
   box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
 }
 
-body.light-glass #login-modal select option,
 body.light-glass #profile-modal select option {
   background-color: #FFFFFF !important;
   color: #0F172A !important;
 }
 
-body.light-glass #login-modal button[onclick*="toggleAuthMode"],
-body.light-glass #login-modal .glass-pill {
-  background-color: rgba(2, 132, 199, 0.08) !important;
-  border: 1.5px solid rgba(2, 132, 199, 0.3) !important;
-  color: #0284C7 !important;
-  font-weight: 700 !important;
-}
-
-body.light-glass #login-modal button[onclick*="toggleAuthMode"]:hover,
-body.light-glass #login-modal .glass-pill:hover {
-  background-color: rgba(2, 132, 199, 0.15) !important;
-  color: #0369A1 !important;
-}
-
-body.light-glass #login-modal button[onclick*="quickLogin"],
-body.light-glass #login-modal .glass-card {
-  background-color: #F1F5F9 !important;
-  border: 1px solid #E2E8F0 !important;
-  color: #475569 !important;
-}
-
-body.light-glass #login-modal button[onclick*="quickLogin"]:hover {
-  background-color: #E2E8F0 !important;
-  color: #0284C7 !important;
-}
-
-body.light-glass #login-modal button[onclick*="closeLoginModal"],
 body.light-glass #disclaimer-modal button[onclick*="closeDisclaimerModal"],
 body.light-glass #profile-modal button[onclick*="closeProfileModal"] {
   color: #64748B !important;
 }
 
-body.light-glass #login-modal button[onclick*="closeLoginModal"]:hover,
 body.light-glass #disclaimer-modal button[onclick*="closeDisclaimerModal"]:hover,
 body.light-glass #profile-modal button[onclick*="closeProfileModal"]:hover {
   color: #0F172A !important;
   background-color: #F1F5F9 !important;
 }
 
-body.light-glass #login-modal a {
-  color: #0284C7 !important;
-}
-
-/* Dark Mode Auth Modal Rules */
-body:not(.light-glass) #login-modal .glass-panel,
+/* Dark Mode Disclaimer & Profile Modal Rules */
 body:not(.light-glass) #disclaimer-modal .glass-panel,
 body:not(.light-glass) #profile-modal .glass-panel {
   background: rgba(14, 22, 38, 0.98) !important;
@@ -681,14 +637,11 @@ body:not(.light-glass) #profile-modal .glass-panel {
   color: #FFFFFF !important;
 }
 
-body:not(.light-glass) #login-modal #auth-modal-title,
 body:not(.light-glass) #disclaimer-modal h3,
 body:not(.light-glass) #profile-modal h3 {
   color: #FFFFFF !important;
 }
 
-body:not(.light-glass) #login-modal input,
-body:not(.light-glass) #login-modal select,
 body:not(.light-glass) #profile-modal input,
 body:not(.light-glass) #profile-modal select {
   background-color: rgba(255, 255, 255, 0.06) !important;
@@ -696,136 +649,132 @@ body:not(.light-glass) #profile-modal select {
   color: #FFFFFF !important;
 }
 
-body:not(.light-glass) #login-modal input::placeholder,
 body:not(.light-glass) #profile-modal input::placeholder {
   color: rgba(255, 255, 255, 0.4) !important;
 }
 
-body:not(.light-glass) #login-modal select option,
 body:not(.light-glass) #profile-modal select option {
   background-color: #0F172A !important;
   color: #FFFFFF !important;
 }
 
-body:not(.light-glass) #login-modal button[onclick*="toggleAuthMode"],
-body:not(.light-glass) #login-modal .glass-pill {
-  background-color: rgba(56, 189, 248, 0.08) !important;
-  border: 1px solid rgba(56, 189, 248, 0.35) !important;
-  color: #38BDF8 !important;
-}
-
-body:not(.light-glass) #login-modal button[onclick*="quickLogin"] {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #CBD5E1 !important;
-}
-
-
 /* ==============================================================================
-   LIGHT MODE: 100% Luminous White Auth Modal Box & Inputs
+   4EXAM-INSPIRED FULL-SCREEN SPLIT AUTHENTICATION SHELL (#login-modal)
    ============================================================================== */
-body.light-glass #auth-modal-card,
-body.light-glass #login-modal #auth-modal-card,
-body.light-glass #login-modal .glass-panel {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
-  border: 1px solid #E2E8F0 !important;
-  border-color: #E2E8F0 !important;
-  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
-  color: #0F172A !important;
+#login-modal.auth-4exam-shell {
+  background-color: #f8f9fb !important;
+  color: #383b45 !important;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
-body.light-glass #login-modal #auth-modal-title {
-  color: #0F172A !important;
-  font-weight: 800 !important;
+#login-modal.auth-4exam-shell #auth-modal-card {
+  background-color: #f8f9fb !important;
+  color: #383b45 !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-body.light-glass #login-modal p[data-i18n="modal_auth_subtitle"] {
-  color: #64748B !important;
-}
-
-body.light-glass #login-modal label {
-  color: #0F172A !important;
+#login-modal.auth-4exam-shell #auth-modal-title {
+  color: #383b45 !important;
+  -webkit-text-fill-color: #383b45 !important;
   font-weight: 700 !important;
 }
 
-body.light-glass #login-modal input,
-body.light-glass #login-modal select {
-  background-color: #F8FAFC !important;
-  background: #F8FAFC !important;
-  border: 1.5px solid #CBD5E1 !important;
-  color: #0F172A !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+#login-modal.auth-4exam-shell .auth-4e-label {
+  color: #383b45 !important;
+  -webkit-text-fill-color: #383b45 !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
 }
 
-body.light-glass #login-modal input::placeholder {
-  color: #94A3B8 !important;
+#login-modal.auth-4exam-shell .auth-4e-input {
+  height: 48px;
+  background-color: #eef0f3 !important;
+  border: 1px solid #858a9e !important;
+  border-radius: 14px !important;
+  color: #383b45 !important;
+  -webkit-text-fill-color: #383b45 !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-body.light-glass #login-modal input:focus,
-body.light-glass #login-modal select:focus {
-  background-color: #FFFFFF !important;
-  border-color: #0284C7 !important;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+#login-modal.auth-4exam-shell .auth-4e-input::placeholder {
+  color: #9ca1b4 !important;
+  -webkit-text-fill-color: #9ca1b4 !important;
 }
 
-body.light-glass #login-modal select option {
-  background-color: #FFFFFF !important;
-  color: #0F172A !important;
+#login-modal.auth-4exam-shell .auth-4e-input:focus {
+  background-color: #eef0f3 !important;
+  border-color: #282b35 !important;
+  box-shadow: 0 0 0 1px #282b35 !important;
+  outline: none !important;
 }
 
-body.light-glass #login-modal button[data-i18n="btn_create_account"],
-body.light-glass #login-modal .glass-pill {
-  background-color: rgba(2, 132, 199, 0.08) !important;
-  border: 1.5px solid rgba(2, 132, 199, 0.3) !important;
-  color: #0284C7 !important;
-  font-weight: 700 !important;
+#login-modal.auth-4exam-shell .auth-4e-google-btn {
+  height: 48px;
+  border-radius: 14px !important;
+  border: 1px solid #282b35 !important;
+  background-color: #f8f9fb !important;
+  color: #383b45 !important;
+  -webkit-text-fill-color: #383b45 !important;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
 }
 
-body.light-glass #login-modal button[data-i18n="btn_create_account"]:hover,
-body.light-glass #login-modal .glass-pill:hover {
-  background-color: rgba(2, 132, 199, 0.15) !important;
-  color: #0369A1 !important;
+#login-modal.auth-4exam-shell .auth-4e-google-btn:hover {
+  background-color: #eef0f3 !important;
 }
 
-body.light-glass #login-modal button[onclick*="quickLogin"],
-body.light-glass #login-modal .glass-card {
-  background-color: #F1F5F9 !important;
-  border: 1px solid #E2E8F0 !important;
-  color: #475569 !important;
+#login-modal.auth-4exam-shell .auth-4e-cta-btn {
+  height: 48px;
+  border-radius: 22px !important;
+  background-color: #282b35 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
-body.light-glass #login-modal button[onclick*="quickLogin"]:hover {
-  background-color: #E2E8F0 !important;
-  color: #0284C7 !important;
+#login-modal.auth-4exam-shell .auth-4e-cta-btn:hover {
+  background-color: #3f4353 !important;
 }
 
-body.light-glass #login-modal a {
-  color: #0284C7 !important;
+#login-modal.auth-4exam-shell .auth-4e-link {
+  color: #1D62EC !important;
+  -webkit-text-fill-color: #1D62EC !important;
 }
 
-body.light-glass #login-modal button[onclick*="closeLoginModal"] {
-  color: #64748B !important;
+#login-modal.auth-4exam-shell .auth-4e-forgot {
+  color: #383b45 !important;
+  -webkit-text-fill-color: #383b45 !important;
 }
 
-body.light-glass #login-modal button[onclick*="closeLoginModal"]:hover {
-  color: #0F172A !important;
-  background-color: #F1F5F9 !important;
+#login-modal.auth-4exam-shell .auth-4e-forgot:hover {
+  color: #1D62EC !important;
+  -webkit-text-fill-color: #1D62EC !important;
 }
 
-body.light-glass #login-modal .border-white\/10 {
-  border-color: #E2E8F0 !important;
+#login-modal.auth-4exam-shell .otp-digit {
+  background-color: #eef0f3 !important;
+  border: 1px solid #858a9e !important;
+  border-radius: 14px !important;
+  color: #282b35 !important;
+  -webkit-text-fill-color: #282b35 !important;
+  box-shadow: none !important;
 }
 
-body.light-glass #login-modal #tab-auth-login.text-slate-400,
-body.light-glass #login-modal #tab-auth-register.text-slate-400 {
-  color: #64748B !important;
-}
-
-body.light-glass #login-modal #tab-auth-login.text-sky-400,
-body.light-glass #login-modal #tab-auth-register.text-sky-400 {
-  color: #0284C7 !important;
-  border-color: #0284C7 !important;
+#login-modal.auth-4exam-shell .otp-digit:focus {
+  border-color: #282b35 !important;
+  box-shadow: 0 0 0 1px #282b35 !important;
+  background-color: #ffffff !important;
 }
 
 
@@ -1065,21 +1014,6 @@ body:not(.light-glass) .auth-segmented-tabs button:not(.active) {
   font-weight: 600 !important;
   border: none !important;
   box-shadow: none !important;
-}
-
-/* Explicit Title Contrast for Dark and Light Mode */
-body.light-glass #login-modal #auth-modal-title,
-body.light-glass #auth-modal-title {
-  color: #0F172A !important;
-  -webkit-text-fill-color: #0F172A !important;
-  font-weight: 800 !important;
-}
-
-body:not(.light-glass) #login-modal #auth-modal-title,
-body:not(.light-glass) #auth-modal-title {
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  font-weight: 800 !important;
 }
 
 /* ==============================================================================

@@ -7,6 +7,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+
+def _utcnow() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
 UNUSABLE_PASSWORD_PREFIX = "!unusable_oauth_password"
 _SYNTHETIC_PHONE_EMAIL_RE = re.compile(r"^(\+?\d{8,15})@phone\.medimind(?:\.vn)?$", re.IGNORECASE)
 _EMAIL_FORMAT_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -157,11 +161,11 @@ class User(db.Model):
     bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
     avatar_url = db.Column(db.String(500), nullable=True)
     clinical_profile = db.Column(db.Text, nullable=True)  # Hồ sơ y tế mở rộng (JSON)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
     updated_at = db.Column(
         db.DateTime,
-        default=datetime.datetime.utcnow,
-        onupdate=datetime.datetime.utcnow
+        default=_utcnow,
+        onupdate=_utcnow
     )
 
     def set_password(self, password: str) -> None:
@@ -249,8 +253,8 @@ class AuthIdentity(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     provider = db.Column(db.String(30), nullable=False)  # 'email' | 'phone' | 'google'
     provider_subject = db.Column(db.String(255), nullable=False)
-    verified_at = db.Column(db.DateTime, nullable=True, default=datetime.datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    verified_at = db.Column(db.DateTime, nullable=True, default=_utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     __table_args__ = (
         db.UniqueConstraint("provider", "provider_subject", name="uq_auth_identities_provider_subject"),
@@ -280,7 +284,7 @@ def sync_user_identities(user: User, verified: bool = True) -> None:
     """
     if not user or not user.id:
         return
-    now = datetime.datetime.utcnow() if verified else None
+    now = _utcnow() if verified else None
     desired = {}
     norm_email = normalize_email(user.email)
     if norm_email:
@@ -334,7 +338,7 @@ class MedicalDocument(db.Model):
     summary = db.Column(db.Text, nullable=True)  # Tóm tắt nhanh danh mục thuốc / chỉ số
     parsed_data = db.Column(db.Text, nullable=True)  # Toàn bộ JSON kết quả phân tích để xem lại ngay
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     owner = db.relationship("User", backref=db.backref("documents", lazy=True, cascade="all, delete-orphan"))
 
@@ -387,7 +391,7 @@ class ClinicalConsultation(db.Model):
     symptoms = db.Column(db.Text, nullable=True)  # JSON-encoded string
     specialist = db.Column(db.String(100), nullable=True)
     is_emergency = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     user = db.relationship("User", backref=db.backref("consultations", lazy=True, cascade="all, delete-orphan"))
 
@@ -433,7 +437,7 @@ class IntakeSessionRecord(db.Model):
     is_confirmed = db.Column(db.Boolean, default=False)
     version = db.Column(db.Integer, default=1)
     created_at = db.Column(db.String(50), nullable=True)
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=_utcnow, onupdate=_utcnow)
 
     user = db.relationship("User", backref=db.backref("intake_sessions", lazy=True, cascade="all, delete-orphan"))
 
@@ -484,7 +488,7 @@ class MedicalAppointment(db.Model):
     patient_phone = db.Column(db.String(20), nullable=False)
     note = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(30), default="pending", nullable=False)  # pending | confirmed | cancelled
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
 
     user = db.relationship("User", backref=db.backref("appointments", lazy=True, cascade="all, delete-orphan"))
 

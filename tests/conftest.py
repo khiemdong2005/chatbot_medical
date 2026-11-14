@@ -52,6 +52,7 @@ def test_app(temp_dirs):
         yield flask_app
         db.session.remove()
         db.drop_all()
+        db.engine.dispose()
 
 
 @pytest.fixture

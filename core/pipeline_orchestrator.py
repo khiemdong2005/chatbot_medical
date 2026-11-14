@@ -47,38 +47,52 @@ def process_medical_document_pipeline(
         }
 
     # ==============================================================
-    # [0] INTAKE & PHÂN LOẠI & KIỂM TRA CHẤT LƯỢNG
+    # [0] & [1] INTAKE QUALITY CHECK & TIỀN XỬ LÝ NHẸ
     # ==============================================================
-    quality_check = check_image_quality(file_path)
-    if not quality_check.get("passed", True):
-        return {
-            "status": "rejected",
-            "needs_review": True,
-            "stage": "[0] Intake Quality Check",
-            "error_code": "POOR_IMAGE_QUALITY",
-            "message": quality_check.get("recommendation", "Ảnh chụp không đạt yêu cầu rõ nét."),
-            "quality_details": quality_check,
-            "uploaded_filename": filename_clean
+    is_pdf = file_path.lower().endswith(".pdf")
+    if is_pdf:
+        # ponytail: text-layer PDF via pypdf + Gemini native PDF; add PDF page rasterizer when offline scanned-PDF OCR is needed
+        prep_res = {}
+        active_image_path = file_path
+        pdf_text = ""
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(file_path)
+            pdf_text = "\n".join((page.extract_text() or "") for page in reader.pages).strip()
+        except Exception:
+            pdf_text = ""
+        ocr_result = {
+            "success": bool(pdf_text),
+            "lines": [{"text": ln.strip()} for ln in pdf_text.splitlines() if ln.strip()],
+            "rows": [],
+            "raw_text": pdf_text,
         }
+    else:
+        quality_check = check_image_quality(file_path)
+        if not quality_check.get("passed", True):
+            return {
+                "status": "rejected",
+                "needs_review": True,
+                "stage": "[0] Intake Quality Check",
+                "error_code": "POOR_IMAGE_QUALITY",
+                "message": quality_check.get("recommendation", "Ảnh chụp không đạt yêu cầu rõ nét."),
+                "quality_details": quality_check,
+                "uploaded_filename": filename_clean
+            }
 
-    # ==============================================================
-    # [1] TIỀN XỬ LÝ NHẸ (GIỮ NGUYÊN ẢNH GỐC)
-    # ==============================================================
-    need_clahe = quality_check.get("need_clahe", False)
-    prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
-    active_image_path = prep_res.get("processed_path", file_path)
+        need_clahe = quality_check.get("need_clahe", False)
+        prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
+        active_image_path = prep_res.get("processed_path", file_path)
 
-    # (Tùy chọn) Che PII trước khi gửi đi nếu người dùng bật
-    if mask_pii:
-        active_image_path = mask_pii_on_image(active_image_path, [])
+        if mask_pii:
+            active_image_path = mask_pii_on_image(active_image_path, [])
 
-    # ==============================================================
-    # [2] TRÍCH XUẤT SONG SONG (PARALLEL EXTRACTION)
-    #     Nhánh A: OCR Cục bộ (EasyOCR)
-    #     Nhánh B: Gemini Vision Multimodal theo Response Schema
-    # ==============================================================
-    # 2.A: OCR cục bộ
-    ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
+        # ==============================================================
+        # [2] TRÍCH XUẤT SONG SONG (PARALLEL EXTRACTION)
+        #     Nhánh A: OCR Cục bộ (EasyOCR)
+        #     Nhánh B: Gemini Vision Multimodal theo Response Schema
+        # ==============================================================
+        ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
 
     # Phân loại tự động nếu chưa có doc_type_hint
     doc_type = doc_type_hint

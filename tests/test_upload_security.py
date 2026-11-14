@@ -93,3 +93,20 @@ def test_corrupt_or_oversized_base64_image():
     assert err is not None
     assert "không hợp lệ" in err
 
+
+def test_pdf_scan_accepted_without_cv2_rejection(client, test_users, monkeypatch):
+    """Kiểm thử 3f: PDF hợp lệ đi qua pipeline scan sang trạng thái review thay vì bị cv2.imread chặn."""
+    import io
+    import core.pipeline_orchestrator as pipe
+
+    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    with client.session_transaction() as sess:
+        sess["user_id"] = test_users["user_a_id"]
+
+    pdf_bytes = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF"
+    r_pdf = client.post("/api/prescription/scan", data={"file": (io.BytesIO(pdf_bytes), "rx.pdf")}, content_type="multipart/form-data")
+    assert r_pdf.status_code == 200
+    body = r_pdf.get_json()
+    assert body["status"] == "review"
+    assert "document_id" in body
+
