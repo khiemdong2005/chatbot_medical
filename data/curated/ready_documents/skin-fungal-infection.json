@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/fungalinfections.html",
   "medlineplus_id": "258",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.97
+  "mapping_score": 0.97,
+  "title_en": "Fungal infection",
+  "title_vi": "Nhiễm nấm da",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "fungal infection",
+    "mycosis",
+    "fungal skin infection",
+    "antifungal cream"
+  ],
+  "keywords_vi": [
+    "nấm da",
+    "nhiễm nấm ngoài da",
+    "ngứa ngáy vùng nấm",
+    "thuốc kháng nấm bôi",
+    "da liễu"
+  ],
+  "content_hash": "c9fc2c66351935583f918aae6a26ce2d15a9c80fd8f3c92d96cd73a25aaacea6",
+  "content_sha256": "c9fc2c66351935583f918aae6a26ce2d15a9c80fd8f3c92d96cd73a25aaacea6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/prostatediseases.html",
   "medlineplus_id": "7",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Prostatitis",
+  "title_vi": "Viêm tuyến tiền liệt",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "prostatitis",
+    "prostate inflammation",
+    "pelvic discomfort male",
+    "urinary pain male"
+  ],
+  "keywords_vi": [
+    "viêm tuyến tiền liệt",
+    "đau vùng đáy chậu",
+    "tiểu buốt tiểu rắt nam",
+    "tuyến tiền liệt sưng",
+    "tiết niệu nam khoa"
+  ],
+  "content_hash": "cd72d1508e96a29db03d0a37f7536d64aae967615e822c0b27ee4d13babe5885",
+  "content_sha256": "cd72d1508e96a29db03d0a37f7536d64aae967615e822c0b27ee4d13babe5885",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -17,5 +17,27 @@
   "source_url": "https://medlineplus.gov/heartfailure.html",
   "medlineplus_id": "199",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heart failure",
+  "title_vi": "Suy tim",
+  "category_en": "Heart & Blood Pressure",
+  "category_vi": "Tim mạch & Huyết áp",
+  "keywords_en": [
+    "heart failure",
+    "congestive heart failure",
+    "shortness of breath",
+    "fluid retention",
+    "cardiomyopathy"
+  ],
+  "keywords_vi": [
+    "suy tim",
+    "khó thở khi nằm",
+    "phù chân",
+    "suy tim sung huyết",
+    "tim mạch"
+  ],
+  "content_hash": "7a22ec6fef1273f7958ff02a73d4e3b6fd517dca635ca61080a66c676b220ee8",
+  "content_sha256": "7a22ec6fef1273f7958ff02a73d4e3b6fd517dca635ca61080a66c676b220ee8",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

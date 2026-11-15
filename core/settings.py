@@ -76,6 +76,7 @@ class RAGSettings(BaseModel):
     rerank_model_path: str = Field(default="BAAI/bge-reranker-v2-m3")
     rerank_timeout_seconds: float = Field(default=3.0)
     acceptance_threshold: float = Field(default=0.35)
+    bm25_no_df_cutoff: bool = Field(default=True)
 
 
 class IngestionSettings(BaseModel):
@@ -94,7 +95,14 @@ class SecuritySettings(BaseModel):
     """Cấu hình an ninh, Session Cookie và OAuth credentials."""
     secret_key: Optional[str] = Field(default=None)
     session_cookie_secure: bool = Field(default=False)
-    seed_demo_accounts: bool = Field(default=True)
+    session_lifetime_minutes: int = Field(default=120)
+    trust_proxy_headers: bool = Field(default=False)
+    trusted_proxy_count: int = Field(default=1)
+    ocr_draft_retention_hours: int = Field(default=24)
+    temp_upload_retention_hours: int = Field(default=24)
+    seed_demo_accounts: bool = Field(default=False)
+    dev_seed_users: bool = Field(default=False)
+    cors_allowed_origins: List[str] = Field(default_factory=list)
     google_client_id: Optional[str] = Field(default=None)
     google_client_secret: Optional[str] = Field(default=None)
     google_redirect_uri: Optional[str] = Field(default=None)
@@ -104,6 +112,7 @@ class SecuritySettings(BaseModel):
         return (
             f"SecuritySettings(secret_key={_mask_secret(self.secret_key)}, "
             f"cookie_secure={self.session_cookie_secure}, "
+            f"cors_origins={len(self.cors_allowed_origins)}, "
             f"google_client_id={_mask_secret(self.google_client_id)})"
         )
 
@@ -170,6 +179,7 @@ class Settings(BaseSettings):
     # Core raw environment mappings
     env: str = Field(default="development", validation_alias="FLASK_ENV")
     app_env: str = Field(default="development", validation_alias="ENV")
+    app_env_explicit: Optional[str] = Field(default=None, validation_alias="APP_ENV")
     debug: bool = Field(default=False, validation_alias="FLASK_DEBUG")
     port: int = Field(default=8000, validation_alias="PORT")
     host: str = Field(default="0.0.0.0", validation_alias="HOST")
@@ -178,7 +188,14 @@ class Settings(BaseSettings):
     secret_key: Optional[str] = Field(default=None, validation_alias="SECRET_KEY")
     database_url: Optional[str] = Field(default=None, validation_alias="DATABASE_URL")
     session_cookie_secure: bool = Field(default=False, validation_alias="SESSION_COOKIE_SECURE")
-    seed_demo_accounts: bool = Field(default=True, validation_alias="SEED_DEMO_ACCOUNTS")
+    session_lifetime_minutes: int = Field(default=120, validation_alias="SESSION_LIFETIME_MINUTES")
+    trust_proxy_headers: bool = Field(default=False, validation_alias="TRUST_PROXY_HEADERS")
+    trusted_proxy_count: int = Field(default=1, validation_alias="TRUSTED_PROXY_COUNT")
+    ocr_draft_retention_hours: int = Field(default=24, validation_alias="OCR_DRAFT_RETENTION_HOURS")
+    temp_upload_retention_hours: int = Field(default=24, validation_alias="TEMP_UPLOAD_RETENTION_HOURS")
+    seed_demo_accounts: bool = Field(default=False, validation_alias="SEED_DEMO_ACCOUNTS")
+    dev_seed_users: bool = Field(default=False, validation_alias="DEV_SEED_USERS")
+    cors_allowed_origins: str = Field(default="", validation_alias="CORS_ALLOWED_ORIGINS")
 
     gemini_api_key: Optional[str] = Field(default=None, validation_alias="GEMINI_API_KEY")
     google_api_key: Optional[str] = Field(default=None, validation_alias="GOOGLE_API_KEY")
@@ -210,6 +227,7 @@ class Settings(BaseSettings):
     rag_rerank_model_path: str = Field(default="BAAI/bge-reranker-v2-m3", validation_alias="RAG_RERANK_MODEL_PATH")
     rag_rerank_timeout_seconds: float = Field(default=3.0, validation_alias="RAG_RERANK_TIMEOUT_SECONDS")
     rag_acceptance_threshold: float = Field(default=0.35, validation_alias="RAG_ACCEPTANCE_THRESHOLD")
+    rag_bm25_no_df_cutoff: bool = Field(default=True, validation_alias="RAG_BM25_NO_DF_CUTOFF")
 
     ingest_chunk_max_chars: int = Field(default=2000, validation_alias="INGEST_CHUNK_MAX_CHARS")
     ingest_chunk_overlap_chars: int = Field(default=200, validation_alias="INGEST_CHUNK_OVERLAP_CHARS")
@@ -250,7 +268,7 @@ class Settings(BaseSettings):
     ingestion: IngestionSettings = Field(default_factory=IngestionSettings)
 
     def model_post_init(self, __context: Any) -> None:
-        effective_env = self.app_env if self.app_env != "development" else self.env
+        effective_env = self.app_env_explicit or (self.app_env if self.app_env != "development" else self.env)
         self.server.env = effective_env
         self.server.debug = self.debug
         self.server.host = self.host
@@ -290,6 +308,7 @@ class Settings(BaseSettings):
         self.rag.rerank_model_path = self.rag_rerank_model_path
         self.rag.rerank_timeout_seconds = self.rag_rerank_timeout_seconds
         self.rag.acceptance_threshold = self.rag_acceptance_threshold
+        self.rag.bm25_no_df_cutoff = self.rag_bm25_no_df_cutoff
 
         self.ingestion.chunk_max_chars = self.ingest_chunk_max_chars
         self.ingestion.chunk_overlap_chars = self.ingest_chunk_overlap_chars
@@ -302,7 +321,28 @@ class Settings(BaseSettings):
 
         self.security.secret_key = self.secret_key
         self.security.session_cookie_secure = self.session_cookie_secure
+        self.security.session_lifetime_minutes = self.session_lifetime_minutes
+        self.security.trust_proxy_headers = self.trust_proxy_headers
+        self.security.trusted_proxy_count = max(1, self.trusted_proxy_count)
+        self.security.ocr_draft_retention_hours = self.ocr_draft_retention_hours
+        self.security.temp_upload_retention_hours = self.temp_upload_retention_hours
         self.security.seed_demo_accounts = self.seed_demo_accounts
+        self.security.dev_seed_users = self.dev_seed_users
+
+        raw_cors = (self.cors_allowed_origins or os.getenv("CORS_ALLOWED_ORIGINS") or "").strip()
+        if raw_cors:
+            origins = [o.strip() for o in raw_cors.split(",") if o.strip()]
+        elif not self.server.is_production:
+            origins = [
+                "http://localhost:5000",
+                "http://localhost:8000",
+                "http://127.0.0.1:5000",
+                "http://127.0.0.1:8000",
+            ]
+        else:
+            origins = []
+        self.security.cors_allowed_origins = origins
+
         self.security.google_client_id = self.google_client_id
         self.security.google_client_secret = self.google_client_secret
         self.security.google_redirect_uri = self.google_redirect_uri

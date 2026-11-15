@@ -1,0 +1,49 @@
+{
+  "id": "foodsafety",
+  "title": "Food Safety",
+  "title_en": "Food Safety",
+  "title_vi": "Vệ sinh an toàn thực phẩm",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "food safety",
+    "foodborne illness prevention",
+    "safe food handling",
+    "cross contamination",
+    "cooking temperatures",
+    "an toàn thực phẩm",
+    "phòng ngừa ngộ độc thực phẩm",
+    "bảo quản thức ăn",
+    "vệ sinh ăn uống",
+    "nhiệt độ nấu chín an toàn"
+  ],
+  "keywords_en": [
+    "food safety",
+    "foodborne illness prevention",
+    "safe food handling",
+    "cross contamination",
+    "cooking temperatures"
+  ],
+  "keywords_vi": [
+    "an toàn thực phẩm",
+    "phòng ngừa ngộ độc thực phẩm",
+    "bảo quản thức ăn",
+    "vệ sinh ăn uống",
+    "nhiệt độ nấu chín an toàn"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/foodsafety.html",
+  "summary": "Safe steps in food handling, cooking, and storage can prevent foodborne illness . There are four basic steps to food safety at home: Clean - always wash your fruits and vegetables, hands, counters, and cooking utensils. Separate - keep raw foods to themselves. Germs can spread from one food to another. Cook - foods need to get hot and stay hot. Heat kills germs. Chill - put fresh food in the refrigerator right away. In the grocery store, avoid cans that are bulging or jars that have cracks or loose lids. Check packages to be sure food hasn't reached its expiration date. United States Department of Agriculture",
+  "page_content": "Safe steps in food handling, cooking, and storage can prevent foodborne illness . There are four basic steps to food safety at home: Clean - always wash your fruits and vegetables, hands, counters, and cooking utensils. Separate - keep raw foods to themselves. Germs can spread from one food to another. Cook - foods need to get hot and stay hot. Heat kills germs. Chill - put fresh food in the refrigerator right away. In the grocery store, avoid cans that are bulging or jars that have cracks or loose lids. Check packages to be sure food hasn't reached its expiration date. United States Department of Agriculture",
+  "content_sha256": "736988eaa7347f3b97e32c92878adac9c846e04c6ce1b38b2bde845bd732c58f",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

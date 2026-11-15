@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/menstruation.html",
   "medlineplus_id": "325",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Light periods",
+  "title_vi": "Kinh nguyệt ít (Thiểu kinh)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "light periods",
+    "hypomenorrhea",
+    "scant menstrual flow",
+    "short periods"
+  ],
+  "keywords_vi": [
+    "kinh nguyệt ít",
+    "thiểu kinh",
+    "lượng máu kinh ít",
+    "mỏng nội mạc tử cung",
+    "phụ khoa"
+  ],
+  "content_hash": "3e5b939f513312fed60b8529e88c262435ef783c0033f8d7807900995ed57fc2",
+  "content_sha256": "3e5b939f513312fed60b8529e88c262435ef783c0033f8d7807900995ed57fc2",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

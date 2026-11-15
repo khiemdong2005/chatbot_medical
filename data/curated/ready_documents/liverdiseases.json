@@ -1,0 +1,49 @@
+{
+  "id": "liverdiseases",
+  "title": "Liver Diseases",
+  "title_en": "Liver Diseases",
+  "title_vi": "Các bệnh lý về gan tổng quan",
+  "category": "Gastroenterology",
+  "category_en": "Gastroenterology",
+  "category_vi": "Tiêu hóa & Gan mật",
+  "search_phrases": [
+    "liver diseases",
+    "hepatic disorders",
+    "jaundice",
+    "elevated liver enzymes",
+    "liver health",
+    "bệnh về gan",
+    "vàng da",
+    "men gan tăng",
+    "chức năng gan suy giảm",
+    "bảo vệ gan"
+  ],
+  "keywords_en": [
+    "liver diseases",
+    "hepatic disorders",
+    "jaundice",
+    "elevated liver enzymes",
+    "liver health"
+  ],
+  "keywords_vi": [
+    "bệnh về gan",
+    "vàng da",
+    "men gan tăng",
+    "chức năng gan suy giảm",
+    "bảo vệ gan"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/liverdiseases.html",
+  "summary": "Your liver is the largest organ inside your body. It helps your body digest food, store energy, and remove poisons. There are many kinds of liver diseases: Diseases caused by viruses, such as hepatitis A , hepatitis B , and hepatitis C . Diseases caused by drugs, poisons, or too much alcohol. Examples include steatotic liver disease and cirrhosis . Liver cancer . Inherited diseases, such as hemochromatosis and Wilson disease . Symptoms of liver disease can vary, but they often include swelling of the abdomen and legs, bruising easily, changes in the color of your stool and urine, and jaundice , or yellowing of the skin and eyes. Sometimes there are no symptoms. Tests such as imaging tests and liver function tests can check for liver damage and help to diagnose liver diseases.",
+  "page_content": "Your liver is the largest organ inside your body. It helps your body digest food, store energy, and remove poisons. There are many kinds of liver diseases: Diseases caused by viruses, such as hepatitis A , hepatitis B , and hepatitis C . Diseases caused by drugs, poisons, or too much alcohol. Examples include steatotic liver disease and cirrhosis . Liver cancer . Inherited diseases, such as hemochromatosis and Wilson disease . Symptoms of liver disease can vary, but they often include swelling of the abdomen and legs, bruising easily, changes in the color of your stool and urine, and jaundice , or yellowing of the skin and eyes. Sometimes there are no symptoms. Tests such as imaging tests and liver function tests can check for liver damage and help to diagnose liver diseases.",
+  "content_sha256": "695929a4c77c37b45c82dc6ca05ebc37fe14a1f607f99fd1a9311179ca1ae981",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

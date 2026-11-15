@@ -25,7 +25,7 @@ from core.api_errors import ErrorCode
 @pytest.fixture
 def api_client():
     """TestClient cho FastAPI Gateway."""
-    return TestClient(app)
+    return TestClient(app, headers={"origin": "http://localhost:8000"})
 
 
 @pytest.fixture

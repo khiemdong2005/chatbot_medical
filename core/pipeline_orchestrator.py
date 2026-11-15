@@ -21,13 +21,13 @@ def process_medical_document_pipeline(
     original_filename: str = "",
     doc_type_hint: str = "auto",
     user_allergies: list = None,
-    mask_pii: bool = False
+    mask_pii: bool = False,
 ) -> Dict[str, Any]:
     """
     KIẾN TRÚC ĐỌC ĐƠN THUỐC & PHIẾU XÉT NGHIỆM 8 BƯỚC:
       [0] Intake & Phân loại + Kiểm tra chất lượng (mờ, tối, lóa)
       [1] Tiền xử lý nhẹ (giữ cả ảnh gốc, crop/deskew/perspective, chỉ CLAHE khi tối)
-      [2] Trích xuất song song (A: OCR EasyOCR bbox/rows + B: Gemini schema)
+      [2] OCR EasyOCR bbox/rows và Gemini schema
       [3] Đối chiếu A và B từng field (needs_review=True nếu lệch)
       [4] Chuẩn hóa & Grounding (Rule + CSDL, không dùng LLM)
       [5] Validate & Luật nghiệp vụ (Cờ cao/thấp, tương tác thuốc, dị ứng)
@@ -73,7 +73,7 @@ def process_medical_document_pipeline(
         active_image_path = mask_pii_on_image(active_image_path, [])
 
     # ==============================================================
-    # [2] TRÍCH XUẤT SONG SONG (PARALLEL EXTRACTION)
+    # [2] TRÍCH XUẤT OCR VÀ GEMINI
     #     Nhánh A: OCR Cục bộ (EasyOCR)
     #     Nhánh B: Gemini Vision Multimodal theo Response Schema
     # ==============================================================
@@ -91,6 +91,7 @@ def process_medical_document_pipeline(
 
     # 2.B: Gemini Schema extraction
     gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
+    gemini_succeeded = bool(gemini_data)
 
     if not gemini_data:
         # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
@@ -116,8 +117,14 @@ def process_medical_document_pipeline(
     key = "metrics" if doc_type == "lab_test" else "medications"
     fields = REVIEW_FIELDS[key]
     draft = {field: reconciled.get(field) or "" for field in HEADER_FIELDS}
-    draft[key] = [{field: str(row.get(field) or "") for field in fields}
-                  for row in reconciled.get(key, [])]
+    draft[key] = []
+    for row in reconciled.get(key, []):
+        review_row = {field: str(row.get(field) or "") for field in fields}
+        if key == "medications":
+            review_row["needs_review"] = bool(row.get("needs_review", False))
+            review_row["field_confidence"] = row.get("field_confidence")
+            review_row["ocr_matched_text"] = str(row.get("ocr_matched_text") or "")
+        draft[key].append(review_row)
     boxes = []
     if prep_res.get("to_original") and prep_res.get("orig_shape"):
         import numpy as np
@@ -133,10 +140,13 @@ def process_medical_document_pipeline(
             if len(points) == 4:
                 boxes.append({"text": line["text"], "points": points})
     return {"status": "review", "doc_type": doc_type, "data": draft, "boxes": boxes,
+            "header_alternatives": reconciled.get("header_alternatives", {}),
+            "review_schema_version": 3,
+            "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
             "requires_user_confirmation": True}
 
 
-HEADER_FIELDS = ("patient_name", "dob", "doctor", "facility", "date", "diagnosis")
+HEADER_FIELDS = ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis")
 REVIEW_FIELDS = {
     "medications": ("name", "strength", "dose", "frequency", "days", "usage"),
     "metrics": ("test_name", "result", "unit", "reference_range", "flag_on_paper")

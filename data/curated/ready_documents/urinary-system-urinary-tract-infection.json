@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/urinarytractinfections.html",
   "medlineplus_id": "448",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.979
+  "mapping_score": 0.979,
+  "title_en": "Urinary tract infection",
+  "title_vi": "Nhiễm trùng đường tiết niệu (UTI)",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "urinary tract infection",
+    "UTI",
+    "burning urination",
+    "dysuria",
+    "bladder infection"
+  ],
+  "keywords_vi": [
+    "nhiễm trùng đường tiết niệu",
+    "viêm đường tiết niệu",
+    "tiểu buốt rát",
+    "tiểu rắt",
+    "tiết niệu"
+  ],
+  "content_hash": "cf935d61934f70a32e6298f11da5202f630f1ede6c2ca3799850ba2eaaf3a89c",
+  "content_sha256": "cf935d61934f70a32e6298f11da5202f630f1ede6c2ca3799850ba2eaaf3a89c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

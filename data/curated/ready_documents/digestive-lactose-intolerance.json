@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/lactoseintolerance.html",
   "medlineplus_id": "898",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Lactose intolerance",
+  "title_vi": "Chứng không dung nạp đường lactose",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "lactose intolerance",
+    "dairy sensitivity",
+    "lactase deficiency",
+    "milk allergy digestive"
+  ],
+  "keywords_vi": [
+    "không dung nạp lactose",
+    "dị ứng sữa",
+    "đau bụng uống sữa",
+    "thiếu hụt lactase",
+    "tiêu chảy sau uống sữa"
+  ],
+  "content_hash": "9032dbe99de9b9b550c9d8ed0b4faf4e1b08a7ac24b7a154adc4602459827f1c",
+  "content_sha256": "9032dbe99de9b9b550c9d8ed0b4faf4e1b08a7ac24b7a154adc4602459827f1c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

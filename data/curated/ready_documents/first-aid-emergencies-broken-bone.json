@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/fractures.html",
   "medlineplus_id": "257",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Broken bone",
+  "title_vi": "Sơ cứu gãy xương",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "broken bone",
+    "bone fracture",
+    "immobilization fracture",
+    "first aid fracture",
+    "orthopedic emergency"
+  ],
+  "keywords_vi": [
+    "gãy xương",
+    "cố định xương gãy",
+    "sơ cứu chấn thương gãy xương",
+    "bất động chi",
+    "cấp cứu chấn thương"
+  ],
+  "content_hash": "337410aa9b89a476ad234dd1e12fcf337beaaae37eadb3307edbfdaa496d760d",
+  "content_sha256": "337410aa9b89a476ad234dd1e12fcf337beaaae37eadb3307edbfdaa496d760d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

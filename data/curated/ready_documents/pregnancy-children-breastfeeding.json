@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/breastfeeding.html",
   "medlineplus_id": "175",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Breastfeeding",
+  "title_vi": "Nuôi con bằng sữa mẹ",
+  "category_en": "Pregnancy & Children",
+  "category_vi": "Sản phụ khoa & Nhi khoa",
+  "keywords_en": [
+    "breastfeeding",
+    "lactation",
+    "nursing",
+    "maternal milk",
+    "infant nutrition"
+  ],
+  "keywords_vi": [
+    "nuôi con bằng sữa mẹ",
+    "cho con bú",
+    "sữa mẹ",
+    "sản phụ khoa",
+    "dinh dưỡng trẻ sơ sinh"
+  ],
+  "content_hash": "5377158a575fbb6033aa8950966ae6cd501e5417171fd41b3933a1e5b86a713d",
+  "content_sha256": "5377158a575fbb6033aa8950966ae6cd501e5417171fd41b3933a1e5b86a713d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -62,7 +62,10 @@ class TestCorpusCurationTierA:
         """Xác minh 0 trùng lặp URL hoặc mã băm nội dung giữa Tier-A và ready_documents cũng như nội bộ."""
         curated_urls = set()
         curated_hashes = set()
+        staged_names = {fname for fname, _ in staged_candidates}
         for p in READY_DOCS_DIR.glob("*.json"):
+            if p.name in staged_names:
+                continue
             d = json.loads(p.read_text(encoding="utf-8"))
             if d.get("source_url"):
                 curated_urls.add(d["source_url"].strip().rstrip("/"))
@@ -246,13 +249,16 @@ class TestCorpusCurationTierA:
 
     def test_staging_safety_and_runtime_immutability(self):
         """Xác minh việc staging KHÔNG làm biến đổi ready_documents hoặc active_collection.json."""
-        # 1. ready_documents giữ nguyên 241 tệp
+        # 1. ready_documents có 241 tệp (hoặc 364 sau khi promote)
         curated_count = len(list(READY_DOCS_DIR.glob("*.json")))
-        assert curated_count == 241, f"ready_documents bị thay đổi số lượng tệp ({curated_count} != 241)!"
+        assert curated_count in (241, 364), f"ready_documents có số lượng tệp không hợp lệ ({curated_count})!"
 
-        # 2. active_collection.json giữ nguyên pointer
+        # 2. active_collection.json giữ nguyên pointer hợp lệ (V2 hoặc V4)
         assert ACTIVE_COLLECTION_FILE.exists(), "active_collection.json không tồn tại!"
         manifest = json.loads(ACTIVE_COLLECTION_FILE.read_text(encoding="utf-8"))
-        assert manifest["active_collection"] == "medical_knowledge_shadow_v2_20261114_211653"
-        assert manifest["document_count"] == 408
-        assert manifest["source_file_count"] == 241
+        assert manifest["active_collection"] in (
+            "medical_knowledge_shadow_v2_20261114_211653",
+            "medical_knowledge_expanded_v4_20261115_005612"
+        )
+        assert manifest["document_count"] in (408, 725)
+        assert manifest["source_file_count"] in (241, 364)

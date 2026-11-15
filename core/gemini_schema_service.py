@@ -33,9 +33,11 @@ def extract_with_gemini_schema(image_path: str, doc_type: str = "auto", api_key:
             mime_type = "application/pdf"
 
         prompt = f"""
-Bạn là Hệ thống AI Chẩn đoán Y tế Lâm sàng. Hãy đọc tài liệu y khoa trong ảnh đính kèm và trích xuất dữ liệu chính xác 100%.
+Bạn là hệ thống trích xuất thông tin từ ảnh tài liệu y tế. Chỉ ghi nội dung đọc được trên ảnh; không suy đoán chẩn đoán, tên thuốc, liều dùng hay thông tin hành chính. Nếu một trường không đọc rõ, hãy để chuỗi rỗng; nếu một dòng thuốc không đủ căn cứ để xác định tên, đừng tạo dòng đó.
 
 LOẠI TÀI LIỆU DỰ ĐOÁN HOẶC YÊU CẦU: {doc_type}
+
+Với đơn thuốc: mỗi dòng thuốc được đánh số trong phần thân phiếu là một mục medications, theo đúng thứ tự trên ảnh. Không tạo mục riêng từ tên hoạt chất trong ngoặc, dòng cách dùng, tiêu đề, ngày tháng, mã hồ sơ, số lượng đứng riêng, chữ ký hoặc lời dặn. Số lượng ở cột bên phải phải được ghép với đúng dòng thuốc cùng hàng; nếu không đọc chắc, để trống. Trường patient_name lấy tên sau nhãn "Họ tên" của người bệnh. Trường doctor phải là tên bác sĩ ở phần ký tên; cụm "Bác sĩ điều trị" đứng một mình là nhãn, không phải tên. Trường facility chỉ chứa tên cơ sở y tế đọc rõ ở đầu phiếu, không lấy chuỗi OCR vô nghĩa hoặc tên thuốc. Phân biệt "liều mỗi lần" với tổng số lượng cấp phát. Không tự điền liều, tần suất hay cách dùng mặc định.
 
 YÊU CẦU SCHEMA TRẢ VỀ:
 1. Nếu là ĐƠN THUỐC (prescription):
@@ -53,11 +55,10 @@ YÊU CẦU SCHEMA TRẢ VỀ:
     {{
       "name": "Tên thuốc",
       "strength": "Hàm lượng (ví dụ: 500mg, 10mg)",
-      "purpose": "Công dụng chính ngắn gọn (ví dụ: Hạ đường huyết, Hạ mỡ máu / Bảo vệ tim, Bổ thần kinh ngoại biên, Giảm tiết axit dạ dày, Trị co thắt dạ dày)",
       "dose": "Liều dùng mỗi lần (ví dụ: 1 viên, 2 gói)",
       "frequency": "Tần suất (ví dụ: 2 lần / ngày (Sáng 1 - Chiều 1))",
-      "days": "Số ngày uống hoặc tổng số lượng (ví dụ: 60 viên (Đủ 30 ngày))",
-      "usage": "Lưu ý cách dùng chi tiết (ví dụ: Uống nguyên viên ngay sau bữa ăn chính. Không bẻ, không nhai viên thuốc kéo dài)"
+      "days": "Số ngày hoặc tổng số lượng cấp phát ghi trên đúng dòng thuốc; giữ nguyên đơn vị, không quy đổi hay suy tính",
+      "usage": "Chỉ ghi cách dùng thực sự in trên phiếu, hoặc để trống"
     }}
   ]
 }}
@@ -81,7 +82,10 @@ YÊU CẦU SCHEMA TRẢ VỀ:
 
 BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
 """
-        candidate_models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-lite", "gemini-flash-latest"]
+        # Ưu tiên model OCR được cấu hình; chỉ giữ một model dự phòng còn hỗ trợ.
+        # Các model 1.5/2.0 cũ khiến mỗi lần scan lỗi phải chờ thêm nhiều request.
+        preferred_model = llm_provider.get_default_model("prescription_ocr")
+        candidate_models = list(dict.fromkeys([preferred_model, "gemini-flash-latest"]))
         contents = [
             types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
             prompt

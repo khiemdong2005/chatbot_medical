@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/cpr.html",
   "medlineplus_id": "3639",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "CPR",
+  "title_vi": "Hồi sinh tim phổi (CPR)",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "CPR",
+    "cardiopulmonary resuscitation",
+    "chest compressions",
+    "cardiac arrest first aid",
+    "rescue breathing"
+  ],
+  "keywords_vi": [
+    "hồi sinh tim phổi",
+    "CPR",
+    "ép tim ngoài lồng ngực",
+    "ngừng tim ngưng thở",
+    "sơ cứu khẩn cấp"
+  ],
+  "content_hash": "e56def910f411e4f6d6a66db707c853d98fbf877a72e67521db8e56b91d7bf05",
+  "content_sha256": "e56def910f411e4f6d6a66db707c853d98fbf877a72e67521db8e56b91d7bf05",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

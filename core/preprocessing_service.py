@@ -129,6 +129,20 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
         except Exception:
             pass
 
+    # Giữ nguyên dữ liệu gốc khi không có phép biến đổi nào được áp dụng.
+    # Mã hóa JPEG lại một ảnh nhỏ có thể làm mất nét chữ, đặc biệt chữ ký.
+    if (w, h) == orig_shape and not perspective_corrected and not deskew_angle and not clahe_applied:
+        return {
+            "processed_path": image_path,
+            "to_original": np.eye(3).tolist(),
+            "original_path": image_path,
+            "orig_shape": orig_shape,
+            "current_shape": (w, h),
+            "perspective_corrected": False,
+            "deskew_angle": 0.0,
+            "clahe_applied": False,
+        }
+
     # Lưu ảnh đã tiền xử lý nhẹ
     out_dir = os.path.dirname(image_path)
     base_name = os.path.splitext(os.path.basename(image_path))[0]

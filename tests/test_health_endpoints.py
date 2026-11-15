@@ -7,7 +7,13 @@ from core.circuit_breaker import gemini_circuit_breaker
 
 @pytest.fixture
 def client():
-    return TestClient(fastapi_app)
+    c = TestClient(fastapi_app, headers={"origin": "http://localhost:8000"})
+    from app import app as flask_app
+    serializer = flask_app.session_interface.get_signing_serializer(flask_app)
+    if serializer:
+        cookie_val = serializer.dumps({"user_id": 999, "user_role": "admin"})
+        c.cookies.set("session", cookie_val)
+    return c
 
 
 def test_health_endpoint_liveness(client):
@@ -110,6 +116,10 @@ def test_flask_parity_endpoints():
         r = flask_client.get("/ready")
         assert r.status_code in (200, 503)
         assert "status" in r.get_json()
+
+        with flask_client.session_transaction() as sess:
+            sess["user_id"] = 999
+            sess["user_role"] = "admin"
 
         m = flask_client.get("/api/system/metrics")
         assert m.status_code == 200

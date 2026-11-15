@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/drugreactions.html",
   "medlineplus_id": "5603",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Drug interactions",
+  "title_vi": "Tương tác thuốc",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "drug interactions",
+    "medication interactions",
+    "drug food interaction",
+    "adverse drug reaction",
+    "polypharmacy"
+  ],
+  "keywords_vi": [
+    "tương tác thuốc",
+    "uống chung thuốc",
+    "tương tác thức ăn thuốc",
+    "an toàn dùng thuốc",
+    "dược lâm sàng"
+  ],
+  "content_hash": "c33b1d4ad5798385a05f5a8956006d92cda23b9563f7264dabe9914470aedcd0",
+  "content_sha256": "c33b1d4ad5798385a05f5a8956006d92cda23b9563f7264dabe9914470aedcd0",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

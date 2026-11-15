@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/coldsores.html",
   "medlineplus_id": "5147",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Cold sores",
+  "title_vi": "Mụn rộp môi (Herpes môi)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "cold sores",
+    "fever blisters",
+    "herpes simplex 1",
+    "HSV oral",
+    "lip blisters"
+  ],
+  "keywords_vi": [
+    "mụn rộp môi",
+    "herpes môi",
+    "virus HSV-1",
+    "mụn nước quanh miệng",
+    "thuốc kháng virus"
+  ],
+  "content_hash": "3820dd8005fbcb6e873e58b1c1412b6e0195feaf1778d16e46572b1cd8d9bf6b",
+  "content_sha256": "3820dd8005fbcb6e873e58b1c1412b6e0195feaf1778d16e46572b1cd8d9bf6b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

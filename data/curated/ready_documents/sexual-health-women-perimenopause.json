@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/menopause.html",
   "medlineplus_id": "62",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Perimenopause",
+  "title_vi": "Tiền mãn kinh",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "perimenopause",
+    "menopausal transition",
+    "premenopausal symptoms",
+    "fluctuating hormones"
+  ],
+  "keywords_vi": [
+    "tiền mãn kinh",
+    "giai đoạn tiền mãn kinh",
+    "bốc hỏa mất ngủ",
+    "chu kỳ kinh rối loạn",
+    "nội tiết nữ"
+  ],
+  "content_hash": "adc69239a1cb9245b61fdc1d97cc0908a619d69d854447b2dfaa1d516d7c872e",
+  "content_sha256": "adc69239a1cb9245b61fdc1d97cc0908a619d69d854447b2dfaa1d516d7c872e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

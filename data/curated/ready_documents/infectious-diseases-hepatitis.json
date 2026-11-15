@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/hepatitis.html",
   "medlineplus_id": "109",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hepatitis",
+  "title_vi": "Viêm gan (Viêm gan siêu vi)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "hepatitis",
+    "viral hepatitis",
+    "liver inflammation",
+    "jaundice",
+    "elevated liver enzymes"
+  ],
+  "keywords_vi": [
+    "viêm gan",
+    "viêm gan siêu vi",
+    "viêm gan B",
+    "viêm gan C",
+    "men gan tăng vàng da"
+  ],
+  "content_hash": "ef3a97b1e97314dd0b08e7e53aa59abb7ad8ee77d9be7d724636d88cb9925c2f",
+  "content_sha256": "ef3a97b1e97314dd0b08e7e53aa59abb7ad8ee77d9be7d724636d88cb9925c2f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

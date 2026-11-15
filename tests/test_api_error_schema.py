@@ -22,7 +22,7 @@ from app import create_app
 
 @pytest.fixture
 def api_client():
-    return TestClient(fastapi_app)
+    return TestClient(fastapi_app, headers={"origin": "http://localhost:8000"})
 
 
 @pytest.fixture
@@ -87,6 +87,9 @@ def test_fastapi_http_exception_normalized_schema(api_client):
 def test_fastapi_forbidden_exception_normalized(api_client):
     """Kiểm tra mã lỗi 403 trên FastAPI Gateway được chuẩn hóa mã FORBIDDEN."""
     from core.observability import metrics_collector
+    from app import app as flask_app
+    serializer = flask_app.session_interface.get_signing_serializer(flask_app)
+    api_client.cookies.set("session", serializer.dumps({"user_id": 999, "user_role": "admin"}))
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(metrics_collector, "is_enabled", lambda: False)
         res = api_client.get("/api/system/metrics")

@@ -109,7 +109,8 @@ class MedicalRAGService:
     def __init__(self, db_dir: Optional[Path] = None, acceptance_threshold: float = DEFAULT_ACCEPTANCE_THRESHOLD,
                  vector_search_enabled: Optional[bool] = None,
                  rerank_enabled: Optional[bool] = None,
-                 collection_name: Optional[str] = None):
+                 collection_name: Optional[str] = None,
+                 no_df_cutoff: Optional[bool] = None):
         self.db_dir = Path(db_dir) if db_dir else VECTOR_DB_DIR
         self.acceptance_threshold = acceptance_threshold
         # Querying query_texts can lazily download an embedding model. Keep the
@@ -118,6 +119,14 @@ class MedicalRAGService:
                                       if vector_search_enabled is None else vector_search_enabled is True)
         self.rerank_enabled = (os.getenv("RAG_RERANK_ENABLED", "").lower() in ("1", "true", "yes")
                                if rerank_enabled is None else rerank_enabled is True)
+        if no_df_cutoff is not None:
+            self.no_df_cutoff = no_df_cutoff
+        else:
+            try:
+                from core.settings import get_settings
+                self.no_df_cutoff = get_settings().rag.bm25_no_df_cutoff
+            except Exception:
+                self.no_df_cutoff = True
         self._lexical_index = None
         self.client = None
         self.collection = None
@@ -206,7 +215,8 @@ class MedicalRAGService:
             return expanded
         return query
 
-    def _bm25_matches(self, query, limit, no_df_cutoff: bool = False):
+    def _bm25_matches(self, query, limit, no_df_cutoff: Optional[bool] = None):
+        effective_no_df = self.no_df_cutoff if no_df_cutoff is None else no_df_cutoff
         key = (self.collection_name, self.collection.count())
         if not self._lexical_index or self._lexical_index[0] != key:
             corpus = self.collection.get(include=["documents", "metadatas"])
@@ -222,7 +232,7 @@ class MedicalRAGService:
         average = sum(lengths) / max(size, 1) or 1
         stop = {"va", "co", "la", "cua", "toi", "bi", "nay", "thi", "cho", "xin", "hoi", "gi",
                 "khong", "voi", "ve", "nhu", "nao", "the", "and", "of", "in", "to", "with", "is"}
-        if no_df_cutoff:
+        if effective_no_df:
             terms = {t for t in search_tokens(query) if t not in stop if len(t) > 1 and df[t] > 0}
         else:
             terms = {t for t in search_tokens(query) if t not in stop if len(t) > 1 and 0 < df[t] <= max(1, size * 0.4)}
@@ -243,11 +253,12 @@ class MedicalRAGService:
                 scores.append(((score or 1) * (2 if exact_title else 1), idx))
         return [rows[idx] for _, idx in sorted(scores, reverse=True)[:limit]]
 
-    def lexical_search(self, query: str, limit: int, no_df_cutoff: bool = False) -> List[Dict[str, Any]]:
+    def lexical_search(self, query: str, limit: int, no_df_cutoff: Optional[bool] = None) -> List[Dict[str, Any]]:
         """Search the local BM25 index; query is already expanded by the caller."""
+        effective_no_df = self.no_df_cutoff if no_df_cutoff is None else no_df_cutoff
         try:
             return [dict(content=content, metadata=meta or {}, rank=rank)
-                    for rank, (content, meta) in enumerate(self._bm25_matches(query, limit, no_df_cutoff=no_df_cutoff), 1)]
+                    for rank, (content, meta) in enumerate(self._bm25_matches(query, limit, no_df_cutoff=effective_no_df), 1)]
         except Exception as error:
             logger.warning("Local reference lookup unavailable (%s).", type(error).__name__)
             return []
@@ -361,16 +372,17 @@ class MedicalRAGService:
         return sorted(by_text.values(), key=lambda doc: doc["fusion_score"], reverse=True)[:limit]
 
     def retrieve_candidates(self, user_query: str, top_k: int = 20, lang: str = "vi",
-                            no_df_cutoff: bool = False, source_diversity: bool = False) -> List[Dict[str, Any]]:
+                            no_df_cutoff: Optional[bool] = None, source_diversity: bool = False) -> List[Dict[str, Any]]:
         """Retrieve ranked candidates, retaining branch metadata and scores for later stages."""
         if not isinstance(user_query, str) or not user_query.strip() or not self.is_available():
             return []
+        effective_no_df = self.no_df_cutoff if no_df_cutoff is None else no_df_cutoff
         top_k = max(1, min(20, top_k)) if type(top_k) is int else 2
         query = self.expand_query(user_query[:2000])
         pool = min(self.collection.count(), top_k * 3)
 
         # 1. Base lexical branch (bm25_original)
-        branches = [("bm25_original", self.lexical_search(query, pool, no_df_cutoff=no_df_cutoff))]
+        branches = [("bm25_original", self.lexical_search(query, pool, no_df_cutoff=effective_no_df))]
 
         # 2. Cross-language query expansion branch (bm25_expanded)
         used_expansion_branch = False
@@ -381,7 +393,7 @@ class MedicalRAGService:
             if expansion_res.used_expansion and expansion_res.expanded_query.strip():
                 exp_query = expansion_res.expanded_query.strip()[:2000]
                 if exp_query.lower() != user_query.strip().lower():
-                    branches.append(("bm25_expanded", self.lexical_search(exp_query, pool, no_df_cutoff=no_df_cutoff)))
+                    branches.append(("bm25_expanded", self.lexical_search(exp_query, pool, no_df_cutoff=effective_no_df)))
                     used_expansion_branch = True
                     metrics_collector.increment("retrieval_query_expansion_used_total")
 

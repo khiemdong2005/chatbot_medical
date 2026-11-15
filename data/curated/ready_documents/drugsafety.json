@@ -1,0 +1,49 @@
+{
+  "id": "drugsafety",
+  "title": "Drug Safety",
+  "title_en": "Drug Safety",
+  "title_vi": "An toàn khi sử dụng thuốc",
+  "category": "Pharmacology & Medication Safety",
+  "category_en": "Pharmacology & Medication Safety",
+  "category_vi": "Dược lý & An toàn thuốc",
+  "search_phrases": [
+    "drug safety",
+    "medication safety",
+    "adverse drug reaction",
+    "safe drug storage",
+    "FDA warnings",
+    "an toàn dùng thuốc",
+    "tác dụng phụ của thuốc",
+    "uống thuốc đúng cách",
+    "bảo quản thuốc",
+    "cảnh báo an toàn thuốc"
+  ],
+  "keywords_en": [
+    "drug safety",
+    "medication safety",
+    "adverse drug reaction",
+    "safe drug storage",
+    "FDA warnings"
+  ],
+  "keywords_vi": [
+    "an toàn dùng thuốc",
+    "tác dụng phụ của thuốc",
+    "uống thuốc đúng cách",
+    "bảo quản thuốc",
+    "cảnh báo an toàn thuốc"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/drugsafety.html",
+  "summary": "Before any drug can be sold in the United States, it must be approved by the U.S. Food and Drug Administration (FDA). This is true whether it's a prescription or an over-the-counter drug. The FDA evaluates both the effectiveness and safety of a drug by looking at: How animal testing and human clinical trials affect the condition the drug is treating If any side effects occur How it's manufactured What the labeling says The FDA also monitors a drug's safety after approval. Health care providers and patients can report drug side effects through the FDA's MedWatch website . For you, drug safety means buying online only from licensed pharmacies located in the United States. It also means knowing how to take your medicines correctly .",
+  "page_content": "Before any drug can be sold in the United States, it must be approved by the U.S. Food and Drug Administration (FDA). This is true whether it's a prescription or an over-the-counter drug. The FDA evaluates both the effectiveness and safety of a drug by looking at: How animal testing and human clinical trials affect the condition the drug is treating If any side effects occur How it's manufactured What the labeling says The FDA also monitors a drug's safety after approval. Health care providers and patients can report drug side effects through the FDA's MedWatch website . For you, drug safety means buying online only from licensed pharmacies located in the United States. It also means knowing how to take your medicines correctly .",
+  "content_sha256": "c691a83956124afb8e0e55eac38f33a2e3f7c23e3b06a0a3ec51610b9552d596",
+  "candidate_score": 0.97,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

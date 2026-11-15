@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/backpain.html",
   "medlineplus_id": "157",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pain between shoulder blades",
+  "title_vi": "Đau giữa hai bả vai",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "pain between shoulder blades",
+    "interscapular pain",
+    "upper back ache",
+    "rhomboid strain"
+  ],
+  "keywords_vi": [
+    "đau giữa hai bả vai",
+    "đau lưng giữa",
+    "căng cơ liên sườn",
+    "thoái hóa cột sống ngực",
+    "mỏi bả vai"
+  ],
+  "content_hash": "5a4ee9bc219a387fed1156f717ced33861a66f2481cfa76f143dcabe6b20de27",
+  "content_sha256": "5a4ee9bc219a387fed1156f717ced33861a66f2481cfa76f143dcabe6b20de27",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

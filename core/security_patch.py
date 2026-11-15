@@ -51,24 +51,20 @@ def generate_secure_otp(length: int = 6) -> str:
     return "".join(secrets.choice(digits) for _ in range(length))
 
 
+from core.rate_limit_service import rate_limit_service
+
 # 3. CHỐNG BRUTE-FORCE VÉT CẠN MÃ OTP (RATE LIMITING PER OTP)
 def check_otp_attempts(email: str, max_attempts: int = 5) -> bool:
     """
     Giới hạn tối đa 5 lần nhập sai OTP.
     Nếu vượt quá 5 lần, khóa xác thực mã OTP đó để chống vét cạn.
     """
-    attempt_key = f"otp_attempts:{email.lower().strip()}"
-    attempts = cache_service.get(attempt_key) or 0
-    if attempts >= max_attempts:
-        return False
-    cache_service.set(attempt_key, attempts + 1, ttl=300)
-    return True
+    return rate_limit_service.check_otp_rate_limit(email, max_attempts=max_attempts)
 
 
 def reset_otp_attempts(email: str):
     """Xóa bỏ bộ đếm sau khi người dùng nhập đúng OTP thành công."""
-    attempt_key = f"otp_attempts:{email.lower().strip()}"
-    cache_service.delete(attempt_key)
+    rate_limit_service.reset_otp_attempts(email)
 
 
 # 4. LỌC VÀ LÀM SẠCH KÝ TỰ ĐỘC HẠI CHỐNG XSS
@@ -91,11 +87,7 @@ def get_rate_limit_identity(
     2. Guest Token (nếu là khách có phiên)
     3. Client IP (fallback an toàn cuối cùng)
     """
-    if user_id is not None:
-        return f"user:{user_id}"
-    if guest_token:
-        return f"guest:{guest_token}"
-    return f"ip:{client_ip or '127.0.0.1'}"
+    return rate_limit_service.get_chat_identity(user_id=user_id, guest_token=guest_token, client_ip=client_ip)
 
 
 def check_chat_rate_limit(
@@ -110,16 +102,9 @@ def check_chat_rate_limit(
     Trả về True nếu được phép tiếp tục (Allowed);
     Trả về False nếu vượt quá ngưỡng (Rate Limited - HTTP 429).
     """
-    if not enforce:
-        return True
-
-    rate_key = f"chat_rate:{identity}"
-    blocked = cache_service.is_rate_limited(rate_key, max_requests=max_requests, window_seconds=window_seconds)
-    if blocked:
-        import logging
-        logging.getLogger("Security").warning(
-            "Tần suất gửi tin nhắn vượt ngưỡng cho phép (429 Rate Limit) đối với định danh %s.",
-            identity.split(":")[0]  # Privacy-safe: chỉ ghi nhận loại identity (user/guest/ip)
-        )
-        return False
-    return True
+    return rate_limit_service.check_chat_rate_limit(
+        identity=identity,
+        max_requests=max_requests,
+        window_seconds=window_seconds,
+        enforce=enforce
+    )

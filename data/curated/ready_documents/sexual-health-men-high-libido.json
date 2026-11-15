@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualhealth.html",
   "medlineplus_id": "1542",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "High libido",
+  "title_vi": "Nhu cầu tình dục cao ở nam giới",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "high libido male",
+    "increased male sex drive",
+    "male hypersexuality",
+    "strong libido"
+  ],
+  "keywords_vi": [
+    "nhu cầu tình dục cao nam",
+    "ham muốn tình dục nam giới",
+    "tăng ham muốn sinh lý",
+    "kiểm soát ham muốn nam",
+    "nam khoa"
+  ],
+  "content_hash": "6ab3ff6afb759df24a03252c1db17cf26bde52f63d952effbe755c4e2685e564",
+  "content_sha256": "6ab3ff6afb759df24a03252c1db17cf26bde52f63d952effbe755c4e2685e564",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

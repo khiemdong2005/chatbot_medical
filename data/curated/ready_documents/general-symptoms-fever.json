@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/fever.html",
   "medlineplus_id": "511",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Fever",
+  "title_vi": "Sốt (Thân nhiệt cao)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "fever",
+    "high temperature",
+    "pyrexia",
+    "febrile",
+    "antipyretic"
+  ],
+  "keywords_vi": [
+    "sốt",
+    "thân nhiệt cao",
+    "cơn sốt",
+    "hạ sốt",
+    "nhiệt độ cơ thể"
+  ],
+  "content_hash": "3964cdd320e74d0ed9ee61f5c14bd86d07fb6e943cf8f47b21336b3d8e52caad",
+  "content_sha256": "3964cdd320e74d0ed9ee61f5c14bd86d07fb6e943cf8f47b21336b3d8e52caad",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

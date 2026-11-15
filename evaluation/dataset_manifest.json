@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-11-15T07:15:00Z",
+  "description": "Frozen evaluation datasets manifest for CI/CD integrity validation",
+  "datasets": [
+    {
+      "filename": "evaluation/rag_dev_dataset.json",
+      "sha256": "e5b25cabc2d7ed431f07da00d7fbb466dcdca7a0209cfe32f39484ce55bb455b",
+      "query_count": 56,
+      "purpose": "RAG DEV retrieval evaluation queries"
+    },
+    {
+      "filename": "evaluation/rag_test_dataset.json",
+      "sha256": "6a5ceff833afc669309b4fb925adb91cdd8c1af9731928954884e43127d7de44",
+      "query_count": 102,
+      "purpose": "RAG HOLDOUT retrieval benchmark queries"
+    },
+    {
+      "filename": "evaluation/safety_eval_dataset.json",
+      "sha256": "c0baea9fd52520196f7960ba577d9200386375558449e6d451046f770b5a5e1d",
+      "query_count": 100,
+      "purpose": "Clinical safety red-line & triage evaluation scenarios"
+    },
+    {
+      "filename": "evaluation/answer_eval_dataset.json",
+      "sha256": "a8b3793e513b0c702f87eab57053936d4bf2d807154e8e978a10894e5bd6bfad",
+      "query_count": 50,
+      "purpose": "Answer quality and clinical accuracy evaluation cases"
+    }
+  ]
+}

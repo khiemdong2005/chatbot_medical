@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/stress.html",
   "medlineplus_id": "422",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Stress",
+  "title_vi": "Căng thẳng (Stress)",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "stress",
+    "chronic stress",
+    "stress management",
+    "mental strain",
+    "burnout"
+  ],
+  "keywords_vi": [
+    "căng thẳng",
+    "stress",
+    "giảm stress",
+    "áp lực tâm lý",
+    "kiệt sức mệt mỏi"
+  ],
+  "content_hash": "861a66c74d234f5b74965484c49341671d1364727dc1d5490e67afdc9e41ecfc",
+  "content_sha256": "861a66c74d234f5b74965484c49341671d1364727dc1d5490e67afdc9e41ecfc",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

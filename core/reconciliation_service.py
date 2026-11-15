@@ -1,5 +1,6 @@
 import re
 import difflib
+import unicodedata
 from typing import Dict, Any, List
 
 KNOWN_MEDS = [
@@ -74,6 +75,227 @@ def _extract_numbers(s: str) -> List[str]:
     found = re.findall(r"\d+(?:[.,]\d+)?", str(s))
     return [x.replace(",", ".") for x in found]
 
+
+_MEDICATION_LABEL = re.compile(
+    r"(?:đơn\s*thuốc|don\s*thuoc|chẩn\s*đoán|chan\s*doan|"
+    r"bác\s*sĩ|bac\s*si|điều\s*trị|dieu\s*tri|"
+    r"bệnh\s*viện|benh\s*vien|phòng\s*khám|phong\s*kham|sở\s*y\s*tế|so\s*y\s*te|"
+    r"cộng\s*khoản|cong\s*khoan|lời\s*dặn|loi\s*dan|"
+    r"tái\s*khám|tai\s*kham|ngày\s*khám|ngay\s*kham|"
+    r"ngày\s*sinh|ngay\s*sinh|họ\s*tên|ho\s*ten|"
+    r"địa\s*chỉ|dia\s*chi|số\s*hồ\s*sơ|so\s*ho\s*so)",
+    re.IGNORECASE,
+)
+_MEDICATION_UNITS = r"viên|vien|ven|gói|gôi|goi|chai|chal|lọ|lo|ống|ông|ong|hộp|hop|vỉ|vi|ml|mg|mcg|g"
+
+
+def is_plausible_medication_name(name: str) -> bool:
+    """Reject obvious OCR labels, dates and quantities without guessing a drug list."""
+    value = re.sub(r"\s+", " ", str(name or "")).strip(" \t\r\n\"'.,;:()[]")
+    if len(value) < 2 or not re.search(r"[A-Za-zÀ-ỹ]", value):
+        return False
+    if _MEDICATION_LABEL.search(value):
+        return False
+    if re.fullmatch(r"\d{1,2}\s*[/.-]\s*\d{2,4}", value):
+        return False
+    if re.fullmatch(rf"\d+(?:[.,]\d+)?\s*(?:{_MEDICATION_UNITS})?", value, re.IGNORECASE):
+        return False
+    if re.fullmatch(rf"(?:{_MEDICATION_UNITS})", value, re.IGNORECASE):
+        return False
+    return True
+
+
+def _normalized_entity(value: Any) -> str:
+    """Compare OCR/AI fields despite stray quotes and punctuation."""
+    return re.sub(r"\W+", " ", str(value or "").casefold(), flags=re.UNICODE).strip()
+
+
+def _header_values_agree(field: str, ocr_value: Any, model_value: Any) -> bool:
+    """Allow spelling/accent differences without hiding a real field conflict."""
+    ocr = str(ocr_value or "").strip()
+    model = str(model_value or "").strip()
+    if field in ("date", "dob"):
+        ocr_digits = re.findall(r"\d+", ocr)
+        model_digits = re.findall(r"\d+", model)
+        if len(ocr_digits) == len(model_digits) == 3:
+            return [int(part) for part in ocr_digits] == [int(part) for part in model_digits]
+    def fold(value: str) -> str:
+        value = unicodedata.normalize("NFD", value.casefold().replace("đ", "d"))
+        value = "".join(char for char in value if unicodedata.category(char) != "Mn")
+        return re.sub(r"\W+", " ", value, flags=re.UNICODE).strip()
+
+    left, right = fold(ocr), fold(model)
+    if not left or not right:
+        return False
+    if field == "doctor":
+        left = re.sub(r"^(?:bs|bac si)\s+", "", left)
+        right = re.sub(r"^(?:bs|bac si)\s+", "", right)
+    if left == right:
+        return True
+    if field in ("patient_name", "doctor", "age", "gender", "date", "dob"):
+        return False
+    if (len(left) >= 5 and left in right) or (len(right) >= 5 and right in left):
+        return True
+    if field == "diagnosis":
+        return difflib.SequenceMatcher(None, left, right).ratio() >= 0.75
+    return False
+
+
+def _is_role_only_doctor(value: Any) -> bool:
+    role = _normalized_entity(value)
+    return bool(role) and bool(re.fullmatch(
+        r"(?:bác sĩ|bac si|bs|thầy thuốc|thay thuoc)(?: điều trị| dieu tri| kê đơn| ke don)?|"
+        r"điều trị|dieu tri|kê đơn|ke don",
+        role,
+    ))
+
+
+def _is_malformed_facility(value: Any) -> bool:
+    facility = str(value or "").strip()
+    if not facility:
+        return False
+    # A dangling quote is an OCR fragment. A one-word facility name can be
+    # legitimate, so its length and casing alone are not grounds to remove it.
+    return bool(facility.count('"') % 2 or facility.count("'") % 2)
+
+
+def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
+                           model_meds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Use medicine rows read from the prescription body as count and order.
+
+    A model may supply fields for a matching row, but must not create an
+    additional medicine from an ingredient, header or date OCR fragment.
+    """
+    if not ocr_meds:
+        return model_meds
+
+    merged_rows = []
+    used_model_rows = set()
+    for ocr_med in ocr_meds:
+        ocr_name = _normalized_entity(ocr_med.get("name"))
+        best_index = None
+        best_score = 0.0
+        for index, model_med in enumerate(model_meds):
+            if index in used_model_rows or not isinstance(model_med, dict):
+                continue
+            model_name = _normalized_entity(model_med.get("name"))
+            if not ocr_name or not model_name:
+                continue
+            score = difflib.SequenceMatcher(None, ocr_name, model_name).ratio()
+            if len(ocr_name) >= 4 and (ocr_name in model_name or model_name in ocr_name):
+                score = 1.0
+            if score > best_score:
+                best_index, best_score = index, score
+
+        combined = dict(ocr_med)
+        if best_index is not None and best_score >= 0.72:
+            used_model_rows.add(best_index)
+            model_med = model_meds[best_index]
+            for field in ("strength", "dose", "frequency", "days", "usage"):
+                if not combined.get(field) and model_med.get(field):
+                    combined[field] = str(model_med[field])
+        merged_rows.append(combined)
+    return merged_rows
+
+
+def _prescription_medications_from_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    """Read drug names only inside the prescription body, never from its header/footer."""
+    start = None
+    end = len(rows)
+    for index, row in enumerate(rows):
+        text = row.get("text", "")
+        if re.search(r"chẩn\s*đoán|chan\s*doan|chân\s*doan", text, re.IGNORECASE):
+            start = index + 1
+        elif start is None and re.search(r"đơn\s*thuốc|don\s*thuoc", text, re.IGNORECASE):
+            start = index + 1
+        if start is not None and index >= start and re.search(
+            r"cộng\s*khoản|cong\s*kho[aà]n|bác\s*sĩ\s*điều\s*trị|"
+            r"bac\s*si\s*dieu\s*tri|lời\s*dặn|loi\s*dan|tái\s*khám|tai\s*kham",
+            text, re.IGNORECASE,
+        ):
+            end = index
+            break
+    if start is None or start >= end:
+        return []
+
+    groups: List[Dict[str, Any]] = []
+    for row in rows[start:end]:
+        items = [str(item.get("text", "")).strip() for item in row.get("items", [])]
+        if not items:
+            items = [part.strip() for part in row.get("text", "").split("|")]
+        candidate = ""
+        strength = ""
+        for item in items:
+            item = re.sub(r"^\s*\d{1,2}\s*[.)]\s*", "", item).strip()
+            prefix = item.split("(", 1)[0].strip()
+            words = prefix.split()
+            # A medicine heading has an uppercase brand token. Ingredient and
+            # administration lines below it are continuations, not new drugs.
+            if not words or not any(len(w) >= 3 and w.isupper() for w in words[:2]):
+                continue
+            brand_words = []
+            for word in words:
+                if re.fullmatch(r"\d+[oO0]*\s*(?:mg|mcg|ml|g)", word, re.IGNORECASE):
+                    break
+                if word.isupper() or re.fullmatch(r"\d{1,3}", word):
+                    brand_words.append(word)
+                else:
+                    break
+            proposed = " ".join(brand_words).strip()
+            if not is_plausible_medication_name(proposed):
+                continue
+            candidate = proposed
+            strength_match = re.search(r"\b(\d+[oO0]*\s*(?:mg|mcg|ml|g))\b", item, re.IGNORECASE)
+            if strength_match:
+                strength = re.sub(r"[oO]", "0", strength_match.group(1)).replace(" ", "")
+            break
+        if candidate:
+            groups.append({"name": candidate, "strength": strength, "rows": [row]})
+        elif groups:
+            groups[-1]["rows"].append(row)
+
+    medications = []
+    for group in groups:
+        first_text = group["rows"][0].get("text", "").replace("|", " ")
+        full_text = " ".join(r.get("text", "").replace("|", " ") for r in group["rows"])
+        quantity = ""
+        quantity_matches = list(re.finditer(
+            r"\b(\d{1,3})\s*(viên|vien|ven|gói|gôi|goi|chai|chal|lọ|lo|ống|ông|ong|hộp|hop|vỉ)\b",
+            first_text, re.IGNORECASE,
+        ))
+        if quantity_matches:
+            quantity_match = quantity_matches[-1]
+            unit = quantity_match.group(2).casefold()
+            unit = {
+                "vien": "viên", "ven": "viên", "gôi": "gói", "goi": "gói",
+                "chal": "chai", "lo": "lọ", "ông": "ống", "ong": "ống",
+                "hop": "hộp",
+            }.get(unit, unit)
+            quantity = f"{quantity_match.group(1)} {unit}"
+        dose = ""
+        dose_match = re.search(
+            r"mỗi\s*lần\s*(\d+(?:/\d+)?)\s*(viên|gói|chai|ống|ml)\b",
+            full_text, re.IGNORECASE,
+        )
+        if dose_match:
+            dose = f"{dose_match.group(1)} {dose_match.group(2)}"
+        frequency = ""
+        frequency_match = re.search(
+            r"(?:ngày\s*uống|ngay\s*uong|ngay\s*ucng).{0,35}?([1-9])\s*(?:lần|lan|làn|ian)\b",
+            full_text, re.IGNORECASE,
+        )
+        if frequency_match:
+            frequency = f"{frequency_match.group(1)} lần/ngày"
+        usage = ""
+        if re.search(r"uống\s*sau\s*ăn|uong\s*sau\s*an", full_text, re.IGNORECASE):
+            usage = "Uống sau ăn"
+        elif re.search(r"uống\s*trước\s*ăn|uong\s*truoc\s*an", full_text, re.IGNORECASE):
+            usage = "Uống trước ăn"
+        medications.append({"name": group["name"], "strength": group["strength"],
+                            "dose": dose, "frequency": frequency,
+                            "days": quantity, "usage": usage})
+    return medications
+
 def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescription") -> Dict[str, Any]:
     """
     Fallback bóc tách cấu trúc từ kết quả EasyOCR khi Cloud LLM (Gemini) không khả dụng.
@@ -87,6 +309,8 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         "doc_type": doc_type,
         "patient_name": "",
         "dob": "",
+        "age": "",
+        "gender": "",
         "doctor": "",
         "facility": "",
         "date": "",
@@ -95,32 +319,33 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         "metrics": [] if doc_type == "lab_test" else []
     }
 
-    # 1. Cơ sở khám chữa bệnh (tìm trong 5 dòng đầu tiên)
-    for r in rows[:5]:
+    # 1. Chỉ nhận tên cơ sở khi OCR đọc được nhãn cơ sở y tế rõ ràng.
+    for r in rows[:8]:
         r_txt = r.get("text", "")
         if re.search(r"đơn thuốc|don thuoc|phiếu xét nghiệm|phieu xet nghiem", r_txt, re.IGNORECASE):
             continue
-        if re.search(r"(?:bệnh viện|benh vien|phòng khám|phong kham|viện|sở y tế|so y te|trung tâm|ttyt|y dược|duoc hoc|yduochoc|duochoc)", r_txt, re.IGNORECASE):
-            parts = [p.strip() for p in r_txt.split("|") if len(p.strip()) > 3]
-            for p in parts:
-                if re.search(r"(?:bệnh viện|benh vien|phòng khám|phong kham|viện|sở y tế|so y te|trung tâm|ttyt|y dược|duoc hoc|duochoc)", p, re.IGNORECASE):
-                    fac = re.sub(r"^[^\w\s]+", "", p).strip()
-                    if "DUoCHoC" in fac or "duochoc" in fac.lower() or "y duoc hoc dan toc" in fac.lower():
-                        fac = "Viện Y Dược Học Dân Tộc"
-                    data["facility"] = fac
-                    break
-            if data["facility"]:
+        for part in r_txt.split("|"):
+            part = part.strip()
+            if re.search(r"\b(?:bệnh\s*viện|benh\s*vien|phòng\s*khám|phong\s*kham|trung\s*tâm|trung\s*tam|viện\s+y|vien\s+y)\b", part, re.IGNORECASE):
+                data["facility"] = part
                 break
-    if not data["facility"] and rows:
-        first_p = rows[0].get("text", "").split("|")[0].strip()
-        first_clean = re.sub(r"^[^\w\s]+", "", first_p).strip()
-        if len(first_clean) > 4 and not re.search(r"đơn thuốc|phiếu", first_clean, re.IGNORECASE):
-            if "DUoCHoC" in first_clean or "duochoc" in first_clean.lower() or "y duoc hoc dan toc" in first_clean.lower():
-                first_clean = "Viện Y Dược Học Dân Tộc"
-            data["facility"] = first_clean
+        if data["facility"]:
+            break
 
     # 2. Người bệnh (Họ tên, Ngày sinh/Tuổi)
     for r in rows:
+        for item in r.get("items", []):
+            match = re.search(r"(?:họ|ho)\s*tên\s*[:.]\s*([^|;\d]+)", item.get("text", ""), re.IGNORECASE)
+            if match:
+                candidate = match.group(1).strip()
+                if len(candidate.split()) >= 2:
+                    data["patient_name"] = candidate
+                    break
+        if data["patient_name"]:
+            break
+    for r in rows:
+        if data["patient_name"]:
+            break
         r_txt = r.get("text", "")
         items = [it.get("text", "").strip() for it in r.get("items", [])]
         if re.search(r"(?:ho\s*ten|họ\s*tên|người\s*bệnh|bệnh\s*nhân|nruvi\s*benh|ncuời\s*benh)", r_txt, re.IGNORECASE):
@@ -156,14 +381,29 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     else:
         age_m = re.search(r"(?:tuổi|tuoi|iuj[zi]|tuói|age)[\s:.\-]*(\d{1,3})", raw_text, re.IGNORECASE)
         if age_m:
-            data["dob"] = f"Tuổi: {age_m.group(1)}"
+            data["age"] = age_m.group(1)
+    gender_m = re.search(r"(?:phái|phai|phal)[^\n]{0,25}?\b(nam|nữ|nu)", raw_text, re.IGNORECASE)
+    if gender_m:
+        data["gender"] = "Nam" if gender_m.group(1).casefold() == "nam" else "Nữ"
 
-    # 3. Bác sĩ
-    doc_m = re.search(r"(?:bác\s*sĩ|bs\.?|thầy\s*thuốc|kê\s*đơn|bác\s*sĩ\s*điều\s*trị)[\s:.\-]*([^|;\n\d]+)", raw_text, re.IGNORECASE)
-    if doc_m:
-        cand_doc = doc_m.group(1).strip()
-        if len(cand_doc) > 2 and not re.search(r"chẩn đoán|lời dặn|ngày", cand_doc, re.IGNORECASE):
-            data["doctor"] = cand_doc
+    # 3. Bác sĩ: nhãn "Bác sĩ điều trị" không phải là tên người.
+    doctor_label_index = next((i for i, row in enumerate(rows) if re.search(
+        r"bác\s*sĩ|bac\s*si|\bbs\.?\b", row.get("text", ""), re.IGNORECASE)), None)
+    if doctor_label_index is not None:
+        for row in rows[doctor_label_index:]:
+            for item in row.get("items", []):
+                candidate = item.get("text", "").strip(" :.-")
+                candidate = re.sub(r"^(?:bác\s*sĩ(?:\s*điều\s*trị)?|bs\.?)\s*[:.-]?\s*", "", candidate, flags=re.IGNORECASE)
+                if len(candidate.split()) >= 2 and re.match(
+                    r"^(?:nguyễn|nguyen|trần|tran|lê|le|phạm|pham|"
+                    r"hoàng|hoang|huỳnh|huynh|phan|vũ|vu|võ|vo|"
+                    r"đặng|dang|bùi|bui|đỗ|do|hồ|ho|ngô|ngo|dương|duong)\b",
+                    candidate, re.IGNORECASE,
+                ):
+                    data["doctor"] = candidate
+                    break
+            if data["doctor"]:
+                break
 
     # 4. Ngày trên phiếu
     date_m = re.search(r"(?:ngày|ngay)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", raw_text, re.IGNORECASE)
@@ -173,16 +413,25 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         date_word_m = re.search(r"ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})", raw_text, re.IGNORECASE)
         if date_word_m:
             data["date"] = f"{date_word_m.group(1)}/{date_word_m.group(2)}/{date_word_m.group(3)}"
+    if not data["date"] and doctor_label_index is not None:
+        for row in reversed(rows[:doctor_label_index]):
+            candidate = row.get("text", "").strip()
+            if re.fullmatch(r"\d{1,2}[/-]\d{1,2}[/-]\d{4}", candidate):
+                data["date"] = candidate.replace("-", "/")
+                break
 
     # 5. Chẩn đoán
     for r in rows:
         r_txt = r.get("text", "")
+        # A poorly read diagnosis should remain blank for the review screen.
+        if max((float(it.get("confidence", 0)) for it in r.get("items", [])), default=0) < 0.5:
+            continue
         items = [it.get("text", "").strip() for it in r.get("items", [])]
-        if re.search(r"chẩn\s*đoán|ch[eê]n\s*8oun|chn\s*8oun|chuan\s*doan|cđ", r_txt, re.IGNORECASE):
+        if re.search(r"chẩn\s*đoán|chan\s*doan|ch[eê]n\s*8oun|chn\s*8oun|chuan\s*doan|cđ", r_txt, re.IGNORECASE):
             diag_items = []
             found_lbl = False
             for it in items:
-                if re.search(r"chẩn\s*đoán|ch[eê]n\s*8oun|chn\s*8oun|chuan\s*doan|cđ", it, re.IGNORECASE):
+                if re.search(r"chẩn\s*đoán|chan\s*doan|ch[eê]n\s*8oun|chn\s*8oun|chuan\s*doan|cđ", it, re.IGNORECASE):
                     found_lbl = True
                     continue
                 if found_lbl:
@@ -195,123 +444,23 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 data["diagnosis"] = diag_str
                 break
     if not data["diagnosis"]:
-        diag_m = re.search(r"(?:chẩn\s*đoán|cđ|ch[eê]n\s*8oun|chn\s*8oun)[\s:.\-]*([^|;\n]+)", raw_text, re.IGNORECASE)
-        if diag_m:
-            diag_str = diag_m.group(1).strip()
-            diag_str = re.sub(r"WCIK\s*I[OQA]+", "H/CTK TỌA", diag_str, flags=re.IGNORECASE)
-            diag_str = re.sub(r"IVDD", "TVDD", diag_str, flags=re.IGNORECASE)
-            data["diagnosis"] = diag_str
-
-    # 6. Danh mục thuốc (prescription)
-    if doc_type == "prescription":
-        meds = []
-        for r in rows:
-            r_txt = r.get("text", "").strip()
-            items = [it.get("text", "").strip() for it in r.get("items", [])]
-
-            if re.search(r"đơn thuốc|don thuoc|họ tên|ho ten|tuổi|tuoi|địa chỉ|dchls|mã bhyt|icd|chẩn đoán|chn 8oun|sở y tế", r_txt, re.IGNORECASE):
+        for row in rows:
+            # A short, low-resolution diagnosis can receive a weak OCR score
+            # even when both the label and a readable phrase are present.
+            # Keep the literal phrase for human review, without correcting or
+            # guessing a medical diagnosis.
+            if max((float(it.get("confidence", 0)) for it in row.get("items", [])), default=0) < 0.15:
                 continue
+            diag_m = re.search(r"(?:chẩn\s*đoán|chan\s*doan|cđ|ch[eê]n\s*8oun|chn\s*8oun)[\s:.\-]*([^|;\n]+)", row.get("text", ""), re.IGNORECASE)
+            if diag_m:
+                phrase = diag_m.group(1).strip()
+                if len(re.findall(r"[A-Za-zÀ-ỹ]{2,}", phrase)) >= 2:
+                    data["diagnosis"] = phrase
+                    break
 
-            has_num = bool(re.match(r"^\s*\d+[\.\,\/\)\s]\s*", r_txt))
-            has_units = bool(re.search(r"(?:mg|ml|viên|hộp|chai|lọ|gói|vỉ|ống|ivx|jvx|vicn|hon|char|vien|hop)", r_txt, re.IGNORECASE))
-            has_drg = bool(re.search(r"(?:scotol|shunorac|dxk|độc hoạt|tks|đại tần|rhcumatin|rheumatin|ginkobil|jex|cồn xoa|xoa bóp)", r_txt, re.IGNORECASE))
-
-            if has_num or has_units or has_drg:
-                matched_known = None
-                for km in KNOWN_MEDS:
-                    if re.search(km["pattern"], r_txt, re.IGNORECASE):
-                        matched_known = km
-                        break
-
-                # 1. Quantity / days (từ phải sang trái)
-                days_qty = ""
-                non_qty = []
-                for it in reversed(items):
-                    m_q = re.search(r"\b(\d+)\s*(?:viên|hộp|chai|lọ|gói|vỉ|ống|vicn|hon|char|vien|hop)\b", it, re.IGNORECASE)
-                    if m_q and not days_qty:
-                        val = m_q.group(1)
-                        u_raw = it.lower()
-                        if "hon" in u_raw or "hop" in u_raw: unit = "Hộp"
-                        elif "char" in u_raw or "chai" in u_raw: unit = "Chai"
-                        else: unit = "Viên"
-                        days_qty = f"{val} {unit}"
-                    elif re.search(r"\b(?:char|chai)\b", it, re.IGNORECASE) and not days_qty:
-                        days_qty = "3 Chai" if (matched_known and "Rheumatin" in matched_known["name"]) else "1 Chai"
-                    elif re.search(r"\b(?:vien|vicn)\b", it, re.IGNORECASE) and not days_qty:
-                        days_qty = "2 Viên"
-                    else:
-                        non_qty.insert(0, it)
-
-                first = non_qty[0] if non_qty else r_txt.split("|")[0].strip()
-                # Strip leading number: "1. ", "2 ", "3."
-                first = re.sub(r"^\s*\d+[\.\,\/\)\s]\s*", "", first).strip()
-
-                # Strength
-                norm_str = re.sub(r"2[oO0]{2}\s*mg", "200mg", first, flags=re.IGNORECASE)
-                norm_str = re.sub(r"5[oO0]{2}\s*mg", "500mg", norm_str, flags=re.IGNORECASE)
-                m_str = re.search(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|g|mcg|ml))\b", norm_str, re.IGNORECASE)
-                strength = m_str.group(1) if m_str else (matched_known["default_strength"] if matched_known else "")
-
-                # Name
-                if matched_known:
-                    name = matched_known["name"]
-                else:
-                    first = re.sub(r"Scotol[sn]?\(", "Scotolac (", first, flags=re.IGNORECASE)
-                    first = re.sub(r"D[kx] hoat", "Độc hoạt", first, flags=re.IGNORECASE)
-                    first = re.sub(r"Dai Lin gio", "Đại tần giao", first, flags=re.IGNORECASE)
-                    first = re.sub(r"Rhcumatin", "Rheumatin", first, flags=re.IGNORECASE)
-                    first = re.sub(r"Can xon bôp Visn", "Cồn xoa bóp Viện", first, flags=re.IGNORECASE)
-                    if strength:
-                        first = re.sub(r"\b" + re.escape(strength) + r"\b", "", first, flags=re.IGNORECASE)
-                    name = re.sub(r"\s+", " ", first).strip()
-
-                # Dose / Freq / Usage
-                rest = " | ".join(non_qty[1:]) if len(non_qty) > 1 else ""
-
-                # Dose
-                dose = ""
-                m_dose = re.search(r"(?:^|\s|\b)([1-9]|iv|jv|ur)\s*(?:v|viên|vien|vx|vr\}|v1)\b", rest, re.IGNORECASE)
-                if m_dose:
-                    raw_d = m_dose.group(1).lower()
-                    d_num = "1" if raw_d in ["iv", "ur"] else ("3" if raw_d == "jv" else raw_d)
-                    dose = f"{d_num} viên"
-                elif matched_known and matched_known["default_dose"]:
-                    dose = matched_known["default_dose"]
-
-                # Frequency
-                freq = ""
-                m_freq = re.search(r"(?:x\s*)?([1-9]|iv|jv)\s*(?:lần|lan|kan|nean|nxày|wxùy)[\s\/\-]*(?:ngày|ngay|nohn|nàv|kà\)|wxùy)?", rest, re.IGNORECASE)
-                if m_freq:
-                    raw_f = m_freq.group(1).lower()
-                    f_num = "1" if raw_f == "iv" else ("3" if raw_f == "jv" else raw_f)
-                    freq = f"{f_num} lần / ngày"
-                elif matched_known and matched_known["default_freq"]:
-                    freq = matched_known["default_freq"]
-
-                # Usage
-                usage = ""
-                if re.search(r"(?:sau|au|souan|sauàn|sau\s*ann|'au@|au\s*&n|sau\s*&n|sau\s*ăn|sau\s*an)", rest, re.IGNORECASE):
-                    usage = "Uống sau ăn"
-                elif re.search(r"(?:trước|ruoc)\s*(?:ăn|an|aw)", rest, re.IGNORECASE):
-                    usage = "Uống trước ăn"
-                elif re.search(r"(?:xoa|ung|dav|lưng|lung)", rest, re.IGNORECASE) or (matched_known and "Cồn" in matched_known["name"]):
-                    usage = "Xoa lưng đau"
-                    freq = "Khi đau"
-                elif matched_known and matched_known["default_usage"]:
-                    usage = matched_known["default_usage"]
-
-                if name and len(name) >= 2:
-                    meds.append({
-                        "name": name,
-                        "strength": strength,
-                        "dose": dose,
-                        "frequency": freq,
-                        "days": days_qty,
-                        "usage": usage
-                    })
-
-        data["medications"] = meds
-
+    # 6. Chỉ lấy dòng thuốc trong phần thân đơn; không suy đoán liều hoặc số lượng.
+    if doc_type == "prescription":
+        data["medications"] = _prescription_medications_from_rows(rows)
     elif doc_type == "lab_test":
         metrics = []
         for r in rows:
@@ -360,14 +509,31 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     ocr_text_lower = ocr_raw_text.lower()
 
     reconciled = dict(gemini_data) if gemini_data else {}
+    raw_facility = reconciled.get("facility", "")
+    if _is_role_only_doctor(reconciled.get("doctor")):
+        reconciled["doctor"] = ""
+    if _is_malformed_facility(raw_facility):
+        reconciled["facility"] = ""
     fields_review = []
     overall_confidence = 1.0
 
-    # Phục hồi thông tin hành chính từ OCR nếu thiếu
+    # The OCR parser reads labeled administrative fields from their positions
+    # on the paper. A conflicting nonempty model value must not silently win.
     ocr_fallback = extract_schema_from_ocr(ocr_data, doc_type=doc_type)
-    for field in ("patient_name", "dob", "doctor", "facility", "date", "diagnosis"):
-        if not reconciled.get(field) and ocr_fallback.get(field):
-            reconciled[field] = ocr_fallback[field]
+    header_alternatives = {}
+    for field in ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis"):
+        ocr_value = str(ocr_fallback.get(field) or "").strip()
+        model_value = str(reconciled.get(field) or "").strip()
+        if not ocr_value:
+            continue
+        if not model_value:
+            reconciled[field] = ocr_value
+        elif not _header_values_agree(field, ocr_value, model_value):
+            reconciled[field] = ocr_value
+            header_alternatives[field] = [model_value]
+            fields_review.append(f"{field}: OCR và model đọc khác nhau; cần đối chiếu ảnh gốc.")
+            overall_confidence = min(overall_confidence, 0.8)
+    reconciled["header_alternatives"] = header_alternatives
 
     # Đối soát & phục hồi thông tin hành chính từ OCR nếu thiếu
     if not reconciled.get("dob"):
@@ -392,9 +558,34 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
 
     if doc_type == "prescription":
         meds = reconciled.get("medications", [])
-        if not meds and ocr_fallback.get("medications"):
-            meds = ocr_fallback["medications"]
-            reconciled["medications"] = meds
+        body_start = next((i + 1 for i, row in enumerate(ocr_data.get("rows", [])) if re.search(
+            r"chẩn\s*đoán|chan\s*doan|chân\s*doan", row.get("text", ""), re.IGNORECASE)), 0)
+        body_end = next((i for i, row in enumerate(ocr_data.get("rows", [])) if i >= body_start and re.search(
+            r"cộng\s*khoản|cong\s*kho[aà]n|bác\s*sĩ\s*điều\s*trị|bac\s*si\s*dieu\s*tri",
+            row.get("text", ""), re.IGNORECASE)), len(ocr_data.get("rows", [])))
+        outside_rows = ocr_data.get("rows", [])[:body_start] + ocr_data.get("rows", [])[body_end:]
+        supported_meds = []
+        header_values = {
+            _normalized_entity(value)
+            for value in (raw_facility, reconciled.get("facility"),
+                          reconciled.get("doctor"), reconciled.get("patient_name"))
+            if value and len(_normalized_entity(value)) >= 5
+        }
+        for med in meds if isinstance(meds, list) else []:
+            if not isinstance(med, dict) or not is_plausible_medication_name(med.get("name", "")):
+                continue
+            if _normalized_entity(med["name"]) in header_values:
+                continue
+            name = _clean_str(med["name"])
+            # Only discard a model name that is visibly copied from the
+            # administrative header/footer. Unknown names inside the body stay
+            # available for human review instead of being silently lost.
+            if len(name) >= 5 and any(name in _clean_str(item.get("text", ""))
+                                      for row in outside_rows for item in row.get("items", [])):
+                continue
+            supported_meds.append(med)
+        meds = _merge_medication_rows(ocr_fallback.get("medications", []), supported_meds)
+        reconciled["medications"] = meds
 
         verified_meds = []
 
@@ -428,15 +619,15 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                         nums_strictly_matched = False
                         break
 
-            med_confidence = 0.95 if (name_in_ocr and nums_strictly_matched) else 0.80
             needs_review = not (name_in_ocr and nums_strictly_matched)
+            med_confidence = 0.95 if not needs_review else 0.80
 
             med_entry["field_confidence"] = round(med_confidence, 2)
             med_entry["needs_review"] = needs_review
             med_entry["ocr_matched_text"] = matched_ocr_str if matched_ocr_str else "Khớp từ nhận diện OCR"
             
-            if needs_review and gemini_data:
-                fields_review.append(f"Thuốc '{name}': số liều ({dose}) hoặc hàm lượng cần đối chiếu lại với đơn gốc.")
+            if needs_review:
+                fields_review.append(f"Thuốc '{name}': tên, liều hoặc tần suất cần đối chiếu lại với đơn gốc.")
                 overall_confidence = min(overall_confidence, 0.8)
 
             verified_meds.append(med_entry)

@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/bleeding.html",
   "medlineplus_id": "6039",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Bleeding",
+  "title_vi": "Sơ cứu cầm máu vết thương",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "bleeding",
+    "hemorrhage",
+    "wound care bleeding",
+    "direct pressure",
+    "stop bleeding"
+  ],
+  "keywords_vi": [
+    "cầm máu",
+    "chảy máu ngoài",
+    "băng ép cầm máu",
+    "sơ cứu vết thương hở",
+    "mất máu"
+  ],
+  "content_hash": "5204b7a4209387764f2bd090f8d6d3dc91e7f3c8205a71b704041a686c51a4ba",
+  "content_sha256": "5204b7a4209387764f2bd090f8d6d3dc91e7f3c8205a71b704041a686c51a4ba",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

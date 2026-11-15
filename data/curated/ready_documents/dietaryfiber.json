@@ -1,0 +1,49 @@
+{
+  "id": "dietaryfiber",
+  "title": "Dietary Fiber",
+  "title_en": "Dietary Fiber",
+  "title_vi": "Chất xơ trong chế độ ăn uống",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "dietary fiber",
+    "soluble fiber",
+    "insoluble fiber",
+    "digestive health",
+    "fiber rich foods",
+    "chất xơ",
+    "bổ sung chất xơ",
+    "chất xơ hòa tan",
+    "tiêu hóa khỏe mạnh",
+    "thực phẩm giàu chất xơ"
+  ],
+  "keywords_en": [
+    "dietary fiber",
+    "soluble fiber",
+    "insoluble fiber",
+    "digestive health",
+    "fiber rich foods"
+  ],
+  "keywords_vi": [
+    "chất xơ",
+    "bổ sung chất xơ",
+    "chất xơ hòa tan",
+    "tiêu hóa khỏe mạnh",
+    "thực phẩm giàu chất xơ"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/dietaryfiber.html",
+  "summary": "Fiber is a substance in plants. Dietary fiber is the kind you eat. It's a type of carbohydrate . You may also see it listed on a food label as soluble fiber or insoluble fiber. Both types have important health benefits. Good sources of dietary fiber include: Whole grains Nuts and seeds Fruit and vegetables Dietary fiber adds bulk to your diet and makes you feel full faster, helping you control your weight. It helps digestion and helps prevent constipation . Most Americans don't eat enough dietary fiber. But add it to your diet slowly. Increasing dietary fiber too quickly can lead to gas , bloating, and cramps. Centers for Disease Control and Prevention",
+  "page_content": "Fiber is a substance in plants. Dietary fiber is the kind you eat. It's a type of carbohydrate . You may also see it listed on a food label as soluble fiber or insoluble fiber. Both types have important health benefits. Good sources of dietary fiber include: Whole grains Nuts and seeds Fruit and vegetables Dietary fiber adds bulk to your diet and makes you feel full faster, helping you control your weight. It helps digestion and helps prevent constipation . Most Americans don't eat enough dietary fiber. But add it to your diet slowly. Increasing dietary fiber too quickly can lead to gas , bloating, and cramps. Centers for Disease Control and Prevention",
+  "content_sha256": "f50bf26be75e64300d03ecf3886855e5c32b85bd8197ad04bcbc4f7eedc9d2f8",
+  "candidate_score": 0.93,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

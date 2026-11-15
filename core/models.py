@@ -300,13 +300,39 @@ def init_db(app):
         from core.migrations import run_migrations
         run_migrations(db.engine)
 
-        seed_enabled = os.getenv("SEED_DEMO_ACCOUNTS", "false").lower() in ("true", "1", "yes")
-        if seed_enabled:
-            _seed_demo_accounts()
+        seed_default_users()
 
 
-def _seed_demo_accounts():
-    """Tạo sẵn 2 tài khoản Bác sĩ và Bệnh nhân mẫu nếu cấu hình SEED_DEMO_ACCOUNTS được bật."""
+def seed_default_users() -> bool:
+    """
+    Tạo sẵn tài khoản mẫu cho môi trường phát triển khi có cờ DEV_SEED_USERS rõ ràng (chỉ dev).
+    Tuyệt đối không seed tài khoản trong môi trường Production (FIND-04 hardening).
+    """
+    import secrets
+    from core.settings import get_settings
+
+    settings = get_settings()
+    is_prod = (
+        settings.server.is_production
+        or os.getenv("FLASK_ENV") == "production"
+        or os.getenv("ENV") == "production"
+        or os.getenv("APP_ENV") == "production"
+    )
+    if is_prod:
+        # Tuyệt đối không seed trong môi trường production
+        return False
+
+    seed_opt_in = (
+        os.getenv("DEV_SEED_USERS", "false").lower() in ("true", "1", "yes")
+        or os.getenv("SEED_DEMO_ACCOUNTS", "false").lower() in ("true", "1", "yes")
+    )
+    if not seed_opt_in:
+        return False
+
+    dev_password = (os.getenv("DEV_SEED_PASSWORD") or "").strip()
+    if not dev_password:
+        dev_password = secrets.token_urlsafe(16)
+
     # 1. Bác sĩ mẫu
     doctor = User.query.filter_by(email="bacsi.an@medimind.vn").first()
     if not doctor:
@@ -317,7 +343,7 @@ def _seed_demo_accounts():
             license_code="CCHN-8429/BYT",
             phone_number="0912345678"
         )
-        doctor.set_password("MatKhau123@")
+        doctor.set_password(dev_password)
         db.session.add(doctor)
 
     # 2. Bệnh nhân mẫu
@@ -331,7 +357,7 @@ def _seed_demo_accounts():
             dob="15/08/1995",
             gender="Nam"
         )
-        patient.set_password("MatKhau123@")
+        patient.set_password(dev_password)
         db.session.add(patient)
     else:
         if not patient.dob:
@@ -342,5 +368,10 @@ def _seed_demo_accounts():
 
     try:
         db.session.commit()
+        return True
     except Exception:
         db.session.rollback()
+        return False
+
+
+_seed_demo_accounts = seed_default_users

@@ -18,6 +18,7 @@ Tuân thủ nghiêm ngặt Quy chuẩn Lâm sàng (Mục 8, 9, 10, 13):
 ================================================================================
 """
 
+import os
 import re
 import uuid
 import datetime
@@ -1088,8 +1089,7 @@ class IntakeSessionManager:
 
 # Thể hiện Singleton dùng chung toàn bộ Backend
 intake_service = IntakeSessionManager()
-import os
-import re
+
 try:
     import cv2
 except ImportError:

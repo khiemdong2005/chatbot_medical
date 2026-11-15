@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hpv.html",
   "medlineplus_id": "1715",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "HPV",
+  "title_vi": "Virus u nhú ở người (HPV)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "HPV",
+    "human papillomavirus",
+    "genital warts",
+    "cervical cancer risk",
+    "HPV vaccine"
+  ],
+  "keywords_vi": [
+    "HPV",
+    "virus u nhú người",
+    "sùi mào gà",
+    "ung thư cổ tử cung",
+    "tiêm vắc-xin HPV"
+  ],
+  "content_hash": "be013a99df52d5df444c9fa672907aa3d3bc9675988019c7ace0306c03f219cf",
+  "content_sha256": "be013a99df52d5df444c9fa672907aa3d3bc9675988019c7ace0306c03f219cf",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

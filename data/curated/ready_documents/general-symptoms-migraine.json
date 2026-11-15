@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/migraine.html",
   "medlineplus_id": "3157",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Migraine",
+  "title_vi": "Đau nửa đầu (Migraine)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "migraine",
+    "migraine aura",
+    "unilateral headache",
+    "photophobia"
+  ],
+  "keywords_vi": [
+    "đau nửa đầu",
+    "migraine",
+    "đau đầu giật nhói",
+    "sợ ánh sáng",
+    "buồn nôn đau đầu"
+  ],
+  "content_hash": "70cb7d26b7cb4e9143d0085e235e96aa957b0203763e86c30375a964422fa380",
+  "content_sha256": "70cb7d26b7cb4e9143d0085e235e96aa957b0203763e86c30375a964422fa380",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

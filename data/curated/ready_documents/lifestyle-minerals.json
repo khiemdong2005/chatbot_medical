@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/minerals.html",
   "medlineplus_id": "4298",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Minerals",
+  "title_vi": "Khoáng chất vi lượng thiết yếu",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "minerals",
+    "essential minerals",
+    "dietary minerals",
+    "trace elements",
+    "mineral deficiency"
+  ],
+  "keywords_vi": [
+    "khoáng chất",
+    "khoáng chất vi lượng",
+    "bổ sung khoáng chất",
+    "sắt kẽm magie",
+    "dinh dưỡng vi chất"
+  ],
+  "content_hash": "8f15178b118b25987b982c0e471a984206b7cf9032da7611e9916c91bd3603ff",
+  "content_sha256": "8f15178b118b25987b982c0e471a984206b7cf9032da7611e9916c91bd3603ff",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

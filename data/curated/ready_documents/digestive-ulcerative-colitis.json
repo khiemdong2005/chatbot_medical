@@ -16,5 +16,27 @@
   "source_url": "https://medlineplus.gov/ulcerativecolitis.html",
   "medlineplus_id": "446",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Ulcerative colitis",
+  "title_vi": "Viêm loét đại tràng",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "ulcerative colitis",
+    "colitis",
+    "colon inflammation",
+    "bloody diarrhea",
+    "IBD"
+  ],
+  "keywords_vi": [
+    "viêm loét đại tràng",
+    "viêm đại tràng mạn tính",
+    "đi ngoài ra máu",
+    "bệnh IBD",
+    "tiêu hóa"
+  ],
+  "content_hash": "23105ae90e42cd64feb8d2fd9f72a8fa15fa9ed92122fde639b256ade9adbe47",
+  "content_sha256": "23105ae90e42cd64feb8d2fd9f72a8fa15fa9ed92122fde639b256ade9adbe47",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

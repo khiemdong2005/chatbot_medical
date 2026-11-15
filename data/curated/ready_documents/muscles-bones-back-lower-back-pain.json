@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/backpain.html",
   "medlineplus_id": "157",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Lower back pain",
+  "title_vi": "Đau thắt lưng (Đau lưng dưới)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "lower back pain",
+    "lumbago",
+    "lumbar strain",
+    "herniated disc",
+    "sciatica back"
+  ],
+  "keywords_vi": [
+    "đau thắt lưng",
+    "đau lưng dưới",
+    "thoát vị đĩa đệm",
+    "căng cơ thắt lưng",
+    "cột sống lưng"
+  ],
+  "content_hash": "c8f6b9de97c85d539b3e11b7e5837d85f4b6f3f363f03495d2a227659eb75a85",
+  "content_sha256": "c8f6b9de97c85d539b3e11b7e5837d85f4b6f3f363f03495d2a227659eb75a85",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

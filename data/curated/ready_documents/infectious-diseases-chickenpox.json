@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/chickenpox.html",
   "medlineplus_id": "182",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Chickenpox",
+  "title_vi": "Bệnh thủy đậu (Trái rạ)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "chickenpox",
+    "varicella",
+    "varicella zoster virus",
+    "blister rash"
+  ],
+  "keywords_vi": [
+    "thủy đậu",
+    "trái rạ",
+    "mụn nước thủy đậu",
+    "nhiễm virus varicella",
+    "ngứa phát ban"
+  ],
+  "content_hash": "cffe0e979c8e230200b33eaa1a1ede58ddb7de2a95eebaa958e53373b761ac16",
+  "content_sha256": "cffe0e979c8e230200b33eaa1a1ede58ddb7de2a95eebaa958e53373b761ac16",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

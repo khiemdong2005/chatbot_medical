@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/cough.html",
   "medlineplus_id": "1543",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Cough",
+  "title_vi": "Ho",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "cough",
+    "tussis",
+    "coughing fit",
+    "respiratory reflex",
+    "cough symptom"
+  ],
+  "keywords_vi": [
+    "ho",
+    "cơn ho",
+    "ho kích ứng",
+    "ho khàn tiếng",
+    "đường hô hấp"
+  ],
+  "content_hash": "5fce43305ee6e1a7f139c36495bc2c995d08c74713c8d28e0590b09c054a2b04",
+  "content_sha256": "5fce43305ee6e1a7f139c36495bc2c995d08c74713c8d28e0590b09c054a2b04",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

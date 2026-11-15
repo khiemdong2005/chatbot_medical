@@ -19,6 +19,7 @@ import os
 import json
 import logging
 import uuid
+import secrets
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
@@ -43,8 +44,26 @@ from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data
 from core.intake_service import intake_service
 from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
+from core.reconciliation_service import is_plausible_medication_name
+from core.api_errors import flask_api_error, ErrorCode
+from core.routers.deps import check_flask_admin
+from core.network_utils import get_trusted_client_ip, is_request_https
+from core.security_headers import get_security_headers
+from core.logging_redaction import setup_logging_redaction, redact_sensitive_text
+
+setup_logging_redaction()
 
 logger = logging.getLogger("MediMindApp")
+
+
+def get_request_client_ip() -> str:
+    """Xác định Client IP từ Flask request tuân thủ chính sách Proxy tin cậy (Phase 8.3)."""
+    return get_trusted_client_ip(
+        request.remote_addr,
+        dict(request.headers),
+        trust_proxy=settings.security.trust_proxy_headers,
+        trusted_proxy_count=settings.security.trusted_proxy_count
+    )
 
 class ServerMaskMiddleware:
     """WSGI Middleware ghi đè header Server để che giấu thông tin công nghệ nền tảng."""
@@ -104,7 +123,9 @@ def create_app(test_config=None):
     # Refresh edited templates locally even when the debugger is disabled.
     app.config["TEMPLATES_AUTO_RELOAD"] = not settings.server.is_production
 
-    # Cấu hình Cookie an toàn bảo vệ Session
+    # Cấu hình Cookie và Thời hạn phiên an toàn bảo vệ Session (Phase 8.2)
+    from datetime import timedelta
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=settings.security.session_lifetime_minutes)
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_COOKIE_SECURE"] = settings.server.is_production or settings.security.session_cookie_secure
@@ -112,45 +133,44 @@ def create_app(test_config=None):
 
     @app.before_request
     def validate_csrf_and_origin():
-        """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE)."""
-        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-            origin = request.headers.get("Origin")
-            if origin:
-                origin_clean = origin.split("://")[-1].rstrip("/").split(":")[0]
-                host_clean = request.host.split(":")[0]
-                if origin_clean != host_clean and origin_clean != "localhost" and origin_clean != "127.0.0.1":
-                    return jsonify({
-                        "error": "Yêu cầu bị từ chối do vi phạm chính sách cùng nguồn gốc (Origin Policy Mismatch)."
-                    }), 403
+        """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE, PATCH)."""
+        from core.csrf_protection import validate_csrf_request
+
+        is_valid, error_msg = validate_csrf_request(
+            request.method,
+            request.headers,
+            request.cookies,
+            request.host
+        )
+        if not is_valid:
+            return flask_api_error(
+                ErrorCode.FORBIDDEN,
+                error_msg or "Yêu cầu bị từ chối do vi phạm chính sách bảo vệ CSRF.",
+                status_code=403
+            )
 
     @app.after_request
     def apply_security_headers(response):
-        """Bơm bộ khiên bảo mật HTTP chống Clickjacking, MIME-Sniffing, XSS & Protocol Downgrade."""
-        # Che giấu thông tin công nghệ máy chủ (Information Disclosure Hardening)
-        response.headers["Server"] = "MediMind-Clinical-Engine"
-        response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
-        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), payment=()")
-        response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
-
-        # Content-Security-Policy (CSP) bảo vệ giao diện chống XSS và nạp tài nguyên trái phép
-        csp_policy = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; "
-            "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; "
-            "connect-src 'self' https://accounts.google.com/gsi/ https://maps.googleapis.com https://mapsresources-pa.googleapis.com https://maps.gstatic.com; "
-            "frame-src 'self' https://accounts.google.com/gsi/ https://www.google.com https://maps.google.com; "
-            "base-uri 'self';"
+        """Bơm bộ khiên bảo mật HTTP chống Clickjacking, MIME-Sniffing, XSS & Protocol Downgrade (Phase 8.3)."""
+        is_https = is_request_https(
+            request.is_secure,
+            dict(request.headers),
+            trust_proxy=settings.security.trust_proxy_headers
         )
-        response.headers.setdefault("Content-Security-Policy", csp_policy)
-
-        if settings.server.is_production or request.is_secure:
-            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-
+        for k, v in get_security_headers(is_https=is_https).items():
+            response.headers[k] = v
         return response
+
+    @app.errorhandler(500)
+    @app.errorhandler(Exception)
+    def handle_unhandled_exception(e):
+        """Bắt và chuẩn hóa toàn bộ lỗi ngoại lệ nội bộ, ngăn ngừa lộ lọt stack trace hay thông tin nhạy cảm."""
+        logger.error("Unhandled Flask exception (%s): %s", type(e).__name__, redact_sensitive_text(str(e)))
+        return flask_api_error(
+            ErrorCode.INTERNAL_ERROR,
+            "Đã có lỗi hệ thống xảy ra. Vui lòng thử lại sau.",
+            status_code=500
+        )
 
     # Thư mục lưu trữ tệp tin mặc định
     default_upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
@@ -159,6 +179,9 @@ def create_app(test_config=None):
     # Ghi đè cấu hình kiểm thử nếu có TRƯỚC KHI init_db
     if test_config:
         app.config.update(test_config)
+    elif settings.server.is_production:
+        app.config["DEBUG"] = False
+        app.debug = False
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
@@ -183,13 +206,14 @@ def create_app(test_config=None):
         if not raw_identifier or not password:
             return jsonify({"success": False, "error": "Vui lòng nhập định danh tài khoản và mật khẩu."}), 400
 
-        from core.security_patch import check_otp_attempts, reset_otp_attempts
-        rate_key = f"login:{raw_identifier.lower()}"
-        if not check_otp_attempts(rate_key, max_attempts=5):
-            return jsonify({
-                "success": False,
-                "error": "Tài khoản tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần liên tiếp. Vui lòng thử lại sau."
-            }), 429
+        from core.rate_limit_service import rate_limit_service
+        client_ip = get_request_client_ip()
+        if not rate_limit_service.check_login_rate_limit(client_ip, raw_identifier, max_attempts=5, window_seconds=300):
+            return flask_api_error(
+                ErrorCode.RATE_LIMITED,
+                "Tài khoản hoặc IP tạm khóa 5 phút do thử đăng nhập sai quá 5 lần liên tiếp. Vui lòng thử lại sau.",
+                status_code=429
+            )
 
         user = find_login_user(raw_identifier)
 
@@ -208,9 +232,11 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Mật khẩu không chính xác. Vui lòng kiểm tra lại."}), 401
 
         # Xóa bộ đếm sai mật khẩu sau khi đăng nhập thành công
-        reset_otp_attempts(rate_key)
+        rate_limit_service.reset_login_attempts(client_ip, raw_identifier)
 
-        # Khởi tạo phiên làm việc (Session)
+        # Khởi tạo phiên làm việc (Session) & Chống Session Fixation
+        session.permanent = True
+        session.clear()
         session["user_id"] = user.id
         session["user_role"] = user.role
 
@@ -232,7 +258,7 @@ def create_app(test_config=None):
         data = request.get_json(silent=True) or {}
         if not app.config.get("TESTING"):
             from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
+            client_ip = get_request_client_ip()
             reg_rate_key = f"register_ip:{client_ip}"
             if not check_otp_attempts(reg_rate_key, max_attempts=10):
                 return jsonify({
@@ -300,6 +326,8 @@ def create_app(test_config=None):
         except Exception:
             return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
+        session.permanent = True
+        session.clear()
         session["user_id"] = new_user.id
         session["user_role"] = new_user.role
 
@@ -443,7 +471,15 @@ def create_app(test_config=None):
     def auth_logout():
         """Đăng xuất và hủy phiên làm việc."""
         session.clear()
-        return jsonify({"success": True, "message": "Đã đăng xuất thành công."})
+        resp = jsonify({"success": True, "message": "Đã đăng xuất thành công."})
+        cookie_name = app.config.get("SESSION_COOKIE_NAME", "session")
+        resp.delete_cookie(
+            cookie_name,
+            httponly=True,
+            samesite="Lax",
+            secure=settings.server.is_production or settings.security.session_cookie_secure
+        )
+        return resp
 
     # ==============================================================
     # HỆ THỐNG XÁC THỰC OTP (EMAIL / SMS) & GOOGLE OAUTH 2.0
@@ -639,7 +675,6 @@ def create_app(test_config=None):
         import base64
         import hashlib
         import hmac
-        import secrets
         import time
 
         clean_intent = "register" if intent == "register" else "login"
@@ -735,7 +770,6 @@ def create_app(test_config=None):
           - Lấy hồ sơ xác thực từ Google UserInfo API
           - Phân nhánh Đăng nhập vs Đăng ký & kiểm tra hoàn tất hồ sơ (Onboarding)
         """
-        import secrets
         import urllib.request
         import urllib.parse
         import urllib.error
@@ -853,7 +887,6 @@ def create_app(test_config=None):
     @app.route("/api/auth/google/complete-registration", methods=["POST"])
     def auth_google_complete_registration():
         """Hoàn tất thông tin đăng ký Google và chính thức INSERT vào CSDL."""
-        import secrets
 
         pending = session.get("pending_google_register")
         if not pending or not pending.get("email"):
@@ -916,43 +949,64 @@ def create_app(test_config=None):
     @app.route("/api/auth/google", methods=["POST"])
     def auth_google():
         """
-        Cổng xác thực Google ID Token (Đã khóa chống giả mạo email trần - VULN-01):
-        Khi đã cấu hình GOOGLE_CLIENT_ID thực tế, bắt buộc xác minh chữ ký ID Token với máy chủ Google.
+        Cổng xác thực Google ID Token (Bảo mật Fail-Closed - VULN-01):
+        - Bắt buộc cấu hình GOOGLE_CLIENT_ID (nếu thiếu trả về HTTP 503).
+        - Bắt buộc cung cấp Google ID Token/Credential (nếu thiếu trả về HTTP 400).
+        - Xác minh chữ ký, audience, expiration với Google.
+        - Tuyệt đối không tin cậy email/name/avatar gửi trực tiếp trong body JSON.
         """
-        import urllib.request
-        import urllib.parse
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
 
         client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
+        if not client_id:
+            logger.warning("Google OAuth từ chối xác thực: GOOGLE_CLIENT_ID chưa được cấu hình.")
+            return flask_api_error(
+                ErrorCode.AI_UNAVAILABLE,
+                "Dịch vụ xác thực Google chưa được cấu hình trên máy chủ.",
+                status_code=503
+            )
+
         data = request.get_json(silent=True) or {}
-        credential = data.get("credential")
+        credential = data.get("credential") or data.get("token")
+        if not credential or not isinstance(credential, str) or not credential.strip():
+            return flask_api_error(
+                ErrorCode.VALIDATION_ERROR,
+                "Yêu cầu thiếu Google credential/token hợp lệ.",
+                status_code=400
+            )
 
-        if client_id and not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
-            if not credential or not isinstance(credential, str):
-                return jsonify({
-                    "success": False,
-                    "error": "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
-                }), 403
-            try:
-                verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={urllib.parse.quote(credential)}"
-                with urllib.request.urlopen(verify_url, timeout=8) as resp:
-                    token_info = json.loads(resp.read().decode("utf-8"))
-                if token_info.get("aud") != client_id:
-                    return jsonify({"success": False, "error": "Google ID Token không thuộc ứng dụng MediMind."}), 403
-                email = (token_info.get("email") or "").strip().lower()
-                full_name = (token_info.get("name") or "").strip()
-                avatar_url = (token_info.get("picture") or "").strip()
-            except Exception as ex:
-                logger.warning(f"Xác thực Google ID Token thất bại: {ex}")
-                return jsonify({"success": False, "error": "Google ID Token không hợp lệ hoặc đã hết hạn."}), 401
-        else:
-            email = (data.get("email") or "").strip().lower()
-            full_name = (data.get("name") or "").strip()
-            avatar_url = (data.get("avatar_url") or data.get("picture") or "").strip()
+        try:
+            token_info = id_token.verify_oauth2_token(
+                credential.strip(),
+                google_requests.Request(),
+                client_id
+            )
+        except Exception as ex:
+            logger.warning("Xác thực Google ID Token thất bại: %s", type(ex).__name__)
+            return flask_api_error(
+                ErrorCode.INVALID_CREDENTIALS,
+                "Google ID Token không hợp lệ hoặc đã hết hạn.",
+                status_code=401
+            )
 
+        if token_info.get("aud") != client_id:
+            return flask_api_error(
+                ErrorCode.FORBIDDEN,
+                "Google ID Token không thuộc ứng dụng MediMind.",
+                status_code=403
+            )
 
+        email = (token_info.get("email") or "").strip().lower()
+        full_name = (token_info.get("name") or "").strip()
+        avatar_url = (token_info.get("picture") or "").strip()
 
         if not email or "@" not in email:
-            return jsonify({"success": False, "error": "Email Google không hợp lệ hoặc không được cung cấp."}), 400
+            return flask_api_error(
+                ErrorCode.VALIDATION_ERROR,
+                "Google token không chứa địa chỉ email hợp lệ.",
+                status_code=400
+            )
 
         if not full_name:
             full_name = email.split("@")[0].capitalize()
@@ -977,7 +1031,9 @@ def create_app(test_config=None):
             db.session.add(user)
             commit_or_rollback()
 
-        # Khởi tạo Session
+        # Khởi tạo Session & Chống Session Fixation
+        session.permanent = True
+        session.clear()
         session["user_id"] = user.id
         session["user_role"] = user.role
 
@@ -1019,7 +1075,7 @@ def create_app(test_config=None):
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
 
-        client_ip = request.remote_addr or "127.0.0.1"
+        client_ip = get_request_client_ip()
         from core.security_patch import get_rate_limit_identity, check_chat_rate_limit
         rate_id = get_rate_limit_identity(user_id=user_id, guest_token=guest_token, client_ip=client_ip)
         if not check_chat_rate_limit(rate_id, max_requests=25, window_seconds=60, enforce=not app.config.get("TESTING")):
@@ -1479,6 +1535,11 @@ def create_app(test_config=None):
                 raise ValueError
         except ValueError:
             return jsonify({"message": "Hãy kiểm tra tên và dữ liệu từng dòng."}), 400
+        if kind == "prescription" and any(
+            not is_plausible_medication_name(row["name"])
+            for row in reviewed["medications"]
+        ):
+            return jsonify({"message": "Có dòng không phải tên thuốc (ví dụ ngày tháng hoặc nhãn trên phiếu). Vui lòng sửa hoặc xóa dòng đó."}), 400
         result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft["allergies"])
         result["document_id"] = doc.id
         changed = MedicalDocument.query.filter_by(id=doc.id, owner_id=owner, doc_type="ocr_draft").update({
@@ -1818,6 +1879,9 @@ def create_app(test_config=None):
 
     @app.route("/api/system/metrics", methods=["GET"])
     def get_system_metrics():
+        err = check_flask_admin()
+        if err:
+            return err
         from core.observability import metrics_collector
         if not metrics_collector.is_enabled():
             return jsonify({"error": "Metrics endpoint is disabled"}), 403
@@ -1825,6 +1889,9 @@ def create_app(test_config=None):
 
     @app.route("/api/system/metrics/reset", methods=["POST"])
     def reset_system_metrics():
+        err = check_flask_admin()
+        if err:
+            return err
         from core.observability import metrics_collector
         if not metrics_collector.is_enabled():
             return jsonify({"error": "Metrics endpoint is disabled"}), 403
@@ -1834,6 +1901,9 @@ def create_app(test_config=None):
     @app.route("/system")
     @app.route("/admin/system")
     def system_dashboard():
+        err = check_flask_admin()
+        if err:
+            return err
         return render_template("system_dashboard.html")
 
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)

@@ -612,7 +612,7 @@ const translations = {
     ocr_box_title: "Tải Lên Đơn Thuốc Hoặc Phiếu Xét Nghiệm",
     ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép tài liệu (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)",
     ocr_btn_choose: "Chọn tài liệu từ thiết bị",
-    ocr_privacy_note: "🔒 Tài liệu được bảo mật và chỉ lưu vào hồ sơ cá nhân sau khi bạn xác nhận kết quả.",
+    ocr_privacy_note: "Bạn có thể xem và sửa thông tin trích xuất trước khi xác nhận lưu vào hồ sơ.",
     ocr_preset_hint: "Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:",
     ocr_preset_gastro: "Đơn thuốc mẫu (Tiêu hóa)",
     ocr_preset_resp: "Đơn thuốc mẫu (Hô hấp)",
@@ -998,7 +998,7 @@ const translations = {
     ocr_box_title: "Upload Prescription or Lab Report",
     ocr_box_desc: "Clear text, adequate light, all edges visible (Supports JPG, PNG, PDF, up to 10MB)",
     ocr_btn_choose: "Select from Device",
-    ocr_privacy_note: "🔒 Your document is encrypted and only saved to your personal health record upon confirmation.",
+    ocr_privacy_note: "Review and edit extracted information before confirming it in your record.",
     ocr_preset_hint: "No document at hand? Try quick samples:",
     ocr_preset_gastro: "Sample Prescription (Gastro)",
     ocr_preset_resp: "Sample Prescription (Resp)",
@@ -4352,8 +4352,8 @@ async function handlePrescriptionFileSelected(e) {
 
   const formData = new FormData();
   formData.append('file', file);
-
-  showPrescriptionLoading(true, "AI đang nhận dạng văn bản & hình ảnh...", "Trích xuất danh mục thuốc, đối chiếu liều dùng và chuẩn hóa dược học...");
+  showPrescriptionLoading(true, 'Đang đọc nội dung tài liệu...',
+    'Trích xuất thông tin trên phiếu để bạn đối chiếu trước khi lưu.');
 
   try {
     const res = await fetch('/api/prescription/scan', {
@@ -4379,8 +4379,14 @@ async function handlePrescriptionFileSelected(e) {
       return;
     }
 
-    if (data.status === 'review') renderOcrReview(data, file);
-    else renderPrescriptionError(data);
+    if (data.status === 'review') {
+      if (data.review_schema_version !== 3) {
+        resetPrescriptionScan();
+        showMedicalToast('Kết quả quét đang dùng bản xử lý cũ. Hãy khởi động lại ứng dụng rồi tải lại ảnh.', 'error', 6500);
+        return;
+      }
+      renderOcrReview(data, file);
+    } else renderPrescriptionError(data);
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
@@ -4422,6 +4428,12 @@ function renderOcrReview(draft, file) {
   canvas.setAttribute('aria-label', 'Ảnh gốc và vùng chữ nhận diện');
   leftCol.append(canvas);
 
+  const sourceHint = document.createElement('p');
+  sourceHint.className = 'text-[11px] text-slate-500 dark:text-slate-400';
+  sourceHint.setAttribute('role', 'status');
+  sourceHint.textContent = 'Chọn một ô để đối chiếu vị trí chữ trên ảnh.';
+  leftCol.append(sourceHint);
+
   const image = new Image();
   const url = URL.createObjectURL(file);
   function draw(value = '') {
@@ -4431,16 +4443,20 @@ function renderOcrReview(draft, file) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     const boxesList = Array.isArray(draft.boxes) ? draft.boxes : [];
-    const matches = value ? boxesList.filter(box => box && box.text && box.text.toLowerCase().includes(value.toLowerCase())) : [];
-    for (const box of (matches.length === 1 ? matches : boxesList)) {
+    const query = String(value).trim().toLocaleLowerCase('vi');
+    const matches = query ? boxesList.filter(box => box && box.text && box.text.toLocaleLowerCase('vi').includes(query)) : [];
+    for (const box of (query ? matches : boxesList)) {
       if (!box || !Array.isArray(box.points)) continue;
       ctx.beginPath();
       box.points.forEach(([x,y], i) => i ? ctx.lineTo(x * canvas.width, y * canvas.height) : ctx.moveTo(x * canvas.width, y * canvas.height));
       ctx.closePath();
-      ctx.strokeStyle = matches.length === 1 ? '#0284c7' : 'rgba(2,132,199,.45)';
-      ctx.lineWidth = matches.length === 1 ? 3 : 1.5;
+      ctx.strokeStyle = query ? '#0284c7' : 'rgba(2,132,199,.45)';
+      ctx.lineWidth = query ? 3 : 1.5;
       ctx.stroke();
     }
+    sourceHint.textContent = query
+      ? (matches.length ? `Tìm thấy ${matches.length} vùng chữ khớp. Hãy kiểm tra vị trí trước khi lưu.` : 'Không tìm thấy chữ khớp trên ảnh. Hãy đối chiếu và sửa thủ công trước khi lưu.')
+      : 'Chọn một ô để đối chiếu vị trí chữ trên ảnh.';
   }
   image.onload = () => { draw(); URL.revokeObjectURL(url); };
   image.onerror = () => { URL.revokeObjectURL(url); canvas.replaceWith(document.createTextNode('Đối chiếu với tệp gốc trên thiết bị.')); };
@@ -4468,20 +4484,33 @@ function renderOcrReview(draft, file) {
   `;
   form.append(heading);
 
-  const labels = {patient_name:'Người bệnh', dob:'Ngày sinh', doctor:'Bác sĩ', facility:'Cơ sở khám', date:'Ngày trên phiếu', diagnosis:'Chẩn đoán ghi trên phiếu', name:'Tên thuốc', strength:'Hàm lượng', dose:'Liều mỗi lần', frequency:'Tần suất', days:'Thời gian / số lượng', usage:'Cách dùng', test_name:'Tên xét nghiệm', result:'Kết quả', unit:'Đơn vị', reference_range:'Khoảng tham chiếu', flag_on_paper:'Cờ trên phiếu'};
-  function field(parent, key, value, required = false) {
+  const labels = {patient_name:'Người bệnh', dob:'Ngày sinh', age:'Tuổi', gender:'Giới tính', doctor:'Bác sĩ', facility:'Cơ sở khám', date:'Ngày trên phiếu', diagnosis:'Chẩn đoán ghi trên phiếu', name:'Tên thuốc', strength:'Hàm lượng', dose:'Liều mỗi lần', frequency:'Tần suất', days:'Thời gian / số lượng', usage:'Cách dùng', test_name:'Tên xét nghiệm', result:'Kết quả', unit:'Đơn vị', reference_range:'Khoảng tham chiếu', flag_on_paper:'Cờ trên phiếu'};
+  function field(parent, key, value, required = false, alternatives = []) {
+    const wrapper = document.createElement('div');
     const label = document.createElement('label');
     label.className = 'block text-[11px] font-semibold text-slate-600 dark:text-slate-400 space-y-1';
-    label.textContent = labels[key];
+    label.textContent = labels[key] + (required ? ' *' : '');
     const input = document.createElement('input');
     input.name = key;
-    input.value = value || '';
+    input.value = value ?? '';
+    if (!input.value) input.placeholder = 'Chưa có dữ liệu — kiểm tra phiếu gốc';
     input.required = required;
     input.maxLength = 2000;
     input.className = 'block w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
     input.onfocus = () => draw(input.value);
+    input.oninput = () => draw(input.value);
     label.append(input);
-    parent.append(label);
+    wrapper.append(label);
+    for (const alternative of alternatives) {
+      const choice = document.createElement('button');
+      choice.type = 'button';
+      choice.className = 'block text-left text-[11px] font-normal text-sky-700 dark:text-sky-300 hover:underline';
+      choice.textContent = `Cách đọc khác: ${alternative}`;
+      choice.title = 'Dùng cách đọc này';
+      choice.onclick = () => { input.value = alternative; draw(alternative); input.focus(); };
+      wrapper.append(choice);
+    }
+    parent.append(wrapper);
   }
 
   const headerTitle = document.createElement('div');
@@ -4493,10 +4522,17 @@ function renderOcrReview(draft, file) {
   header.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-100 dark:border-slate-800';
   form.append(header);
   const dData = draft.data || {};
-  for (const key of ['patient_name','dob','doctor','facility','date','diagnosis']) field(header,key,dData[key]);
+  for (const key of ['patient_name','dob','age','gender','doctor','facility','date','diagnosis']) {
+    field(header, key, dData[key], false, draft.header_alternatives?.[key] || []);
+  }
 
   const key = draft.doc_type === 'lab_test' ? 'metrics' : 'medications';
   const keys = key === 'metrics' ? ['test_name','result','unit','reference_range','flag_on_paper'] : ['name','strength','dose','frequency','days','usage'];
+
+  const reviewGuidance = document.createElement('p');
+  reviewGuidance.className = 'rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200';
+  reviewGuidance.setAttribute('aria-live', 'polite');
+  form.append(reviewGuidance);
 
   const rowsTitle = document.createElement('div');
   rowsTitle.className = 'text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide pt-1';
@@ -4507,7 +4543,16 @@ function renderOcrReview(draft, file) {
   rows.className = 'space-y-3';
   form.append(rows);
 
-  function addRow(data, index = 0) {
+  function updateReviewGuidance() {
+    const itemName = key === 'metrics' ? 'chỉ số xét nghiệm' : 'dòng thuốc';
+    reviewGuidance.textContent = `Đã nhận diện ${rows.children.length} ${itemName}. Bạn có thể sửa chữ đọc sai, xóa dòng thừa hoặc thêm dòng còn thiếu trước khi xác nhận.`;
+    Array.from(rows.children).forEach((row, index) => {
+      const title = row.querySelector('[data-review-row-title]');
+      if (title) title.textContent = key === 'metrics' ? `Chỉ số ${index + 1}` : `Thuốc ${index + 1}`;
+    });
+  }
+
+  function addRow(data) {
     const row = document.createElement('fieldset');
     row.className = 'rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 p-3.5 space-y-2.5';
     rows.append(row);
@@ -4516,24 +4561,47 @@ function renderOcrReview(draft, file) {
     rowHeader.innerHTML = `
       <span class="inline-flex items-center gap-1.5">
         <span class="w-5 h-5 rounded-md bg-sky-600 text-white flex items-center justify-center text-[10px] font-mono">#</span>
-        Mục trích xuất
+        <span data-review-row-title></span>
       </span>
     `;
     const delBtn = document.createElement('button');
     delBtn.type = 'button';
     delBtn.className = 'text-[11px] text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer';
     delBtn.textContent = 'Xóa mục này';
-    delBtn.onclick = () => row.remove();
+    delBtn.onclick = () => { row.remove(); updateReviewGuidance(); };
     rowHeader.append(delBtn);
     row.append(rowHeader);
+
+    if (data.needs_review) {
+      const reviewWarning = document.createElement('p');
+      reviewWarning.className = 'text-[11px] font-semibold text-amber-700 dark:text-amber-300';
+      reviewWarning.textContent = 'Dòng này có chữ chưa chắc chắn. Hãy đối chiếu ảnh gốc và sửa nếu cần.';
+      row.append(reviewWarning);
+    }
 
     const rowGrid = document.createElement('div');
     rowGrid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5';
     row.append(rowGrid);
-    for (const k of keys) field(rowGrid,k,data[k],k === keys[0]);
+    const visibleKeys = keys.filter(k => k === keys[0] || String(data[k] ?? '').trim());
+    const missingKeys = keys.filter(k => !visibleKeys.includes(k));
+    for (const k of visibleKeys) field(rowGrid, k, data[k], k === keys[0]);
+    if (missingKeys.length) {
+      const optional = document.createElement('details');
+      optional.className = 'rounded-lg border border-dashed border-slate-200 px-3 py-2 dark:border-slate-700';
+      const toggle = document.createElement('summary');
+      toggle.className = 'cursor-pointer text-[11px] font-semibold text-sky-700 dark:text-sky-300';
+      toggle.textContent = 'Thêm thông tin khác';
+      optional.append(toggle);
+      const extraGrid = document.createElement('div');
+      extraGrid.className = 'mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5';
+      optional.append(extraGrid);
+      for (const k of missingKeys) field(extraGrid, k, data[k]);
+      row.append(optional);
+    }
   }
-  const rowsData = (dData[key] && Array.isArray(dData[key]) && dData[key].length) ? dData[key] : [{}];
-  rowsData.forEach((item, i) => addRow(item, i + 1));
+  const rowsData = Array.isArray(dData[key]) ? dData[key] : [];
+  rowsData.forEach(item => addRow(item));
+  updateReviewGuidance();
 
   const actions = document.createElement('div');
   actions.className = 'flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800';
@@ -4543,7 +4611,7 @@ function renderOcrReview(draft, file) {
   addBtn.type = 'button';
   addBtn.className = 'px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 text-xs font-semibold transition-all cursor-pointer';
   addBtn.textContent = '+ Thêm dòng';
-  addBtn.onclick = () => addRow({});
+  addBtn.onclick = () => { addRow({}); updateReviewGuidance(); };
   actions.append(addBtn);
 
   const rightActions = document.createElement('div');
@@ -4566,6 +4634,10 @@ function renderOcrReview(draft, file) {
   const values = group => Object.fromEntries(Array.from(group.querySelectorAll('input'), input => [input.name,input.value]));
   form.onsubmit = async event => {
     event.preventDefault();
+    if (!rows.children.length) {
+      showMedicalToast('Chưa có dòng dữ liệu nào để lưu. Hãy thêm dòng đúng theo phiếu gốc.', 'error');
+      return;
+    }
     save.disabled = true;
     try {
       const response = await fetch('/api/prescription/' + draft.document_id + '/confirm', {

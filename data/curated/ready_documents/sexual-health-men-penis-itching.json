@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/penisdisorders.html",
   "medlineplus_id": "1360",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Penis itching",
+  "title_vi": "Ngứa đầu dương vật",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "penis itching",
+    "itchy glans",
+    "balanitis itching",
+    "penile yeast infection"
+  ],
+  "keywords_vi": [
+    "ngứa đầu dương vật",
+    "ngứa bao quy đầu",
+    "nhiễm nấm bao quy đầu",
+    "viêm ngứa quy đầu",
+    "nam khoa"
+  ],
+  "content_hash": "3e0051f5c641df52e441adf524e33108866918a6f34944175aea7df66c1fe270",
+  "content_sha256": "3e0051f5c641df52e441adf524e33108866918a6f34944175aea7df66c1fe270",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/hiv.html",
   "medlineplus_id": "1",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "HIV",
+  "title_vi": "Nhiễm virus HIV",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "HIV",
+    "human immunodeficiency virus",
+    "HIV testing",
+    "antiretroviral therapy",
+    "ARV"
+  ],
+  "keywords_vi": [
+    "nhiễm HIV",
+    "virus suy giảm miễn dịch",
+    "xét nghiệm HIV",
+    "thuốc ARV",
+    "phòng lây nhiễm HIV"
+  ],
+  "content_hash": "c5a004cfbbbfc16283d0aa6cbbe9785749c7438bed3ee2d199608fec312f74aa",
+  "content_sha256": "c5a004cfbbbfc16283d0aa6cbbe9785749c7438bed3ee2d199608fec312f74aa",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

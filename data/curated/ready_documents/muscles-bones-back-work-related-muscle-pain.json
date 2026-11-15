@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/muscledisorders.html",
   "medlineplus_id": "510",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Work-related muscle pain",
+  "title_vi": "Đau cơ liên quan đến nghề nghiệp",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "work-related muscle pain",
+    "repetitive strain injury",
+    "RSI",
+    "occupational muscle pain"
+  ],
+  "keywords_vi": [
+    "đau cơ nghề nghiệp",
+    "chấn thương vi chấn lặp lại",
+    "mỏi cơ văn phòng",
+    "hội chứng RSI",
+    "lao động nặng"
+  ],
+  "content_hash": "d1e7ae8b05b911b7224dbdab303a97ce37e8a79e3fa4e2de8c6c3a8381d69e2a",
+  "content_sha256": "d1e7ae8b05b911b7224dbdab303a97ce37e8a79e3fa4e2de8c6c3a8381d69e2a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

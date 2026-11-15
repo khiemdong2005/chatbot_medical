@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/psoriasis.html",
   "medlineplus_id": "373",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Psoriasis",
+  "title_vi": "Bệnh vảy nến",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "psoriasis",
+    "plaque psoriasis",
+    "silvery scales",
+    "autoimmune skin",
+    "psoriasis flare"
+  ],
+  "keywords_vi": [
+    "vảy nến",
+    "mảng vảy bạc",
+    "viêm da vảy nến",
+    "bệnh da tự miễn",
+    "da liễu"
+  ],
+  "content_hash": "b56891019313bde2fa6c7f9a24c03b3bf618813720592fbc71a36d3b88139612",
+  "content_sha256": "b56891019313bde2fa6c7f9a24c03b3bf618813720592fbc71a36d3b88139612",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

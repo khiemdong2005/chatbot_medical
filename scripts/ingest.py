@@ -497,8 +497,7 @@ def main():
         curated_dirs = [Path(d) for d in args.curated_dirs]
     elif args.expanded:
         curated_dirs = [
-            DATA_DIR / "curated" / "ready_documents",
-            DATA_DIR / "curated" / "tier_a_candidates"
+            DATA_DIR / "curated" / "ready_documents"
         ]
 
     success, result = run_ingestion(

@@ -1,0 +1,49 @@
+{
+  "id": "maculardegeneration",
+  "title": "Age-Related Macular Degeneration (AMD)",
+  "title_en": "Age-Related Macular Degeneration (AMD)",
+  "title_vi": "Thoái hóa điểm vàng (Hoàng điểm)",
+  "category": "Ophthalmology",
+  "category_en": "Ophthalmology",
+  "category_vi": "Nhãn khoa",
+  "search_phrases": [
+    "macular degeneration",
+    "AMD",
+    "central vision loss",
+    "dry AMD",
+    "wet AMD anti VEGF",
+    "thoái hóa điểm vàng",
+    "thoái hóa hoàng điểm tuổi già",
+    "mất thị lực trung tâm",
+    "tiêm thuốc anti-vegf",
+    "bệnh lý mắt người cao tuổi"
+  ],
+  "keywords_en": [
+    "macular degeneration",
+    "AMD",
+    "central vision loss",
+    "dry AMD",
+    "wet AMD anti VEGF"
+  ],
+  "keywords_vi": [
+    "thoái hóa điểm vàng",
+    "thoái hóa hoàng điểm tuổi già",
+    "mất thị lực trung tâm",
+    "tiêm thuốc anti-vegf",
+    "bệnh lý mắt người cao tuổi"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/maculardegeneration.html",
+  "summary": "Macular degeneration, or age-related macular degeneration (AMD), is a leading cause of vision loss in Americans 60 and older. It is a disease that destroys your sharp, central vision. You need central vision to see objects clearly and to do tasks such as reading and driving. AMD affects the macula, the part of the eye that allows you to see fine detail. It does not hurt, but it causes cells in the macula to die. There are two types: wet and dry. Wet AMD happens when abnormal blood vessels grow under the macula. These new blood vessels often leak blood and fluid. Wet AMD damages the macula quickly. Blurred vision is a common early symptom. Dry AMD happens when the light-sensitive cells in the macula slowly break down. You gradually lose your central vision. A common early symptom is that straight lines appear crooked. Regular comprehensive eye exams can detect macular degeneration before the disease causes vision loss. Treatment can slow vision loss. It does not restore vision. NIH: National Eye Institute",
+  "page_content": "Macular degeneration, or age-related macular degeneration (AMD), is a leading cause of vision loss in Americans 60 and older. It is a disease that destroys your sharp, central vision. You need central vision to see objects clearly and to do tasks such as reading and driving. AMD affects the macula, the part of the eye that allows you to see fine detail. It does not hurt, but it causes cells in the macula to die. There are two types: wet and dry. Wet AMD happens when abnormal blood vessels grow under the macula. These new blood vessels often leak blood and fluid. Wet AMD damages the macula quickly. Blurred vision is a common early symptom. Dry AMD happens when the light-sensitive cells in the macula slowly break down. You gradually lose your central vision. A common early symptom is that straight lines appear crooked. Regular comprehensive eye exams can detect macular degeneration before the disease causes vision loss. Treatment can slow vision loss. It does not restore vision. NIH: National Eye Institute",
+  "content_sha256": "64b8058fc8ef9ad1bcb1174ece67511c6f98f4f5bbc896155de869778275dcf3",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

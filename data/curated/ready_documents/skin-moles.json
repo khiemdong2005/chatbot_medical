@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/moles.html",
   "medlineplus_id": "4491",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Moles",
+  "title_vi": "Nốt ruồi và dấu hiệu ung thư da",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "moles",
+    "skin nevi",
+    "melanoma warning signs",
+    "ABCDE mole",
+    "dermatology check"
+  ],
+  "keywords_vi": [
+    "nốt ruồi",
+    "nốt ruồi lạ",
+    "tầm soát ung thư da",
+    "dấu hiệu melanoma ABCDE",
+    "da liễu"
+  ],
+  "content_hash": "592b43d73db9be7b7c48077f30c3167d546bc5e6847dfb6092d1244943e61304",
+  "content_sha256": "592b43d73db9be7b7c48077f30c3167d546bc5e6847dfb6092d1244943e61304",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

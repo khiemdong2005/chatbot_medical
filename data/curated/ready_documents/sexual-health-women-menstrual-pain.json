@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/menstruation.html",
   "medlineplus_id": "325",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Menstrual pain",
+  "title_vi": "Đau bụng kinh (Thống kinh)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "menstrual pain",
+    "dysmenorrhea",
+    "period cramps",
+    "menstrual cramps relief"
+  ],
+  "keywords_vi": [
+    "đau bụng kinh",
+    "thống kinh",
+    "co thắt tử cung khi có kinh",
+    "giảm đau bụng kinh",
+    "kinh nguyệt"
+  ],
+  "content_hash": "da681831bd7db2657a6080aa61245b660fbba565936669238bff1f8a55e4f2e8",
+  "content_sha256": "da681831bd7db2657a6080aa61245b660fbba565936669238bff1f8a55e4f2e8",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

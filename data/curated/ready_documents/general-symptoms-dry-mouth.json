@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/drymouth.html",
   "medlineplus_id": "5798",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Dry mouth",
+  "title_vi": "Khô miệng",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "dry mouth",
+    "xerostomia",
+    "salivary glands",
+    "mouth dryness"
+  ],
+  "keywords_vi": [
+    "khô miệng",
+    "ít tiết nước bọt",
+    "rát lưỡi",
+    "tuyến nước bọt",
+    "nha khoa"
+  ],
+  "content_hash": "4acd8d4ca0e1bb06bb02297daef7579911f7e4080329145831e1f4accb502b98",
+  "content_sha256": "4acd8d4ca0e1bb06bb02297daef7579911f7e4080329145831e1f4accb502b98",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

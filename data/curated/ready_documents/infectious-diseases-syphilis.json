@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/syphilis.html",
   "medlineplus_id": "3017",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Syphilis",
+  "title_vi": "Bệnh giang mai",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "syphilis",
+    "treponema pallidum",
+    "chancre",
+    "STI syphilis",
+    "penicillin syphilis"
+  ],
+  "keywords_vi": [
+    "bệnh giang mai",
+    "xoắn khuẩn giang mai",
+    "săng giang mai",
+    "xét nghiệm giang mai",
+    "bệnh lây qua đường tình dục"
+  ],
+  "content_hash": "8406691e82cc05668e4a679892497509d6f261ad0d5976ecf747796203b4a337",
+  "content_sha256": "8406691e82cc05668e4a679892497509d6f261ad0d5976ecf747796203b4a337",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

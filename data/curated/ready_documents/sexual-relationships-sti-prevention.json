@@ -16,5 +16,27 @@
   "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
   "medlineplus_id": "400",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "STI prevention",
+  "title_vi": "Phòng ngừa bệnh lây truyền qua đường tình dục (STI)",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "STI prevention",
+    "safe sex practices",
+    "condom use",
+    "sexually transmitted infections",
+    "sexual protection"
+  ],
+  "keywords_vi": [
+    "phòng ngừa STI",
+    "bệnh lây qua đường tình dục",
+    "quan hệ tình dục an toàn",
+    "dùng bao cao su",
+    "sức khỏe sinh sản"
+  ],
+  "content_hash": "fbb548bd8a8e2635bfdaca1899a74ba17b5a3be974837ebf609bb2f6dc88bc85",
+  "content_sha256": "fbb548bd8a8e2635bfdaca1899a74ba17b5a3be974837ebf609bb2f6dc88bc85",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

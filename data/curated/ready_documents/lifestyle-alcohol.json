@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/alcohol.html",
   "medlineplus_id": "1558",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Alcohol",
+  "title_vi": "Tác hại của rượu bia đối với sức khỏe",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "alcohol health risks",
+    "alcohol misuse",
+    "liver damage alcohol",
+    "drinking limits",
+    "moderate drinking"
+  ],
+  "keywords_vi": [
+    "tác hại rượu bia",
+    "uống rượu có hại",
+    "ngộ độc rượu",
+    "bệnh gan do rượu",
+    "lối sống lành mạnh"
+  ],
+  "content_hash": "39dfdac4aaafad9ce1e28fc6b87ad2bffd26beee2009ac2124a4dd093bb56e41",
+  "content_sha256": "39dfdac4aaafad9ce1e28fc6b87ad2bffd26beee2009ac2124a4dd093bb56e41",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -41,6 +41,20 @@ from core.observability import metrics_collector
 logger = logging.getLogger("LLMProvider")
 
 
+def _is_model_unavailable_error(exc: Exception) -> bool:
+    """A missing model is the one deterministic client error worth trying elsewhere."""
+    code = (getattr(exc, "status_code", None) or getattr(exc, "code", None)
+            or getattr(exc, "http_status", None))
+    if code == 404:
+        return True
+    status = str(getattr(exc, "status", "") or "").upper()
+    if status in ("NOT_FOUND", "MODEL_NOT_FOUND"):
+        return True
+    message = str(exc).upper()
+    return ("MODEL_NOT_FOUND" in message or
+            ("NOT_FOUND" in message and "MODEL" in message))
+
+
 class LLMProviderError(Exception):
     """Ngoại lệ có cấu trúc của LLM Provider, bảo đảm an toàn quyền riêng tư (Zero-PHI)."""
     def __init__(
@@ -334,14 +348,21 @@ class LLMProvider:
 
             except Exception as e:
                 classification = classify_exception(e)
+                model_unavailable = _is_model_unavailable_error(e)
+                if classification == ErrorClassification.UNKNOWN and type(e).__name__ == "ClientError":
+                    classification = ErrorClassification.BAD_REQUEST
                 last_error = e
                 last_classification = classification
                 logger.warning(
                     "[%s][REQ-%s] Lỗi khi gọi model %s (%s).",
                     operation, req_id, current_model, classification.value
                 )
-                # Nếu còn candidate models khác và lỗi không phải do Circuit Open, thử model tiếp theo
-                continue
+                # Đổi model chỉ khi model hiện tại không tồn tại hoặc lỗi tạm thời.
+                # Lỗi tài khoản, payload, schema và ClientError UNKNOWN sẽ lặp lại
+                # với mọi model nên phải trả về OCR cục bộ ngay.
+                if model_unavailable or classification in policy.retryable_classes:
+                    continue
+                break
 
         # Đã thử hết candidate models hoặc hết lượt retry
         latency_ms = (time.time() - start_time) * 1000.0

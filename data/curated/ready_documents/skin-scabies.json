@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/scabies.html",
   "medlineplus_id": "1254",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Scabies",
+  "title_vi": "Bệnh ghẻ ngứa",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "scabies",
+    "sarcoptes scabiei",
+    "itch mite",
+    "severe night itching",
+    "scabies burrow"
+  ],
+  "keywords_vi": [
+    "bệnh ghẻ",
+    "ghẻ ngứa",
+    "cái ghẻ ký sinh",
+    "ngứa dữ dội ban đêm",
+    "lây nhiễm ghẻ"
+  ],
+  "content_hash": "cf49616b8b470fb3f926bc8ab3942ab8a5063a0e14a4e9dc1835d137b658ab20",
+  "content_sha256": "cf49616b8b470fb3f926bc8ab3942ab8a5063a0e14a4e9dc1835d137b658ab20",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

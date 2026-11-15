@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/medicines.html",
   "medlineplus_id": "31",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Missed dose",
+  "title_vi": "Xử trí khi quên uống thuốc",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "missed dose",
+    "forgot medication",
+    "make-up dose",
+    "dosage schedule",
+    "prescription adherence"
+  ],
+  "keywords_vi": [
+    "quên uống thuốc",
+    "bỏ lỡ liều thuốc",
+    "uống bù liều",
+    "hướng dẫn liều",
+    "dược phẩm"
+  ],
+  "content_hash": "d6293b22e88a6297d57bb4ba87adbaf42983f34f02c6382bf1e81d12b3d36f26",
+  "content_sha256": "d6293b22e88a6297d57bb4ba87adbaf42983f34f02c6382bf1e81d12b3d36f26",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

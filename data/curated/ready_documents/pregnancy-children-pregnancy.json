@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/pregnancy.html",
   "medlineplus_id": "368",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pregnancy",
+  "title_vi": "Mang thai (Thai kỳ)",
+  "category_en": "Pregnancy & Children",
+  "category_vi": "Sản phụ khoa & Nhi khoa",
+  "keywords_en": [
+    "pregnancy",
+    "prenatal care",
+    "gestation",
+    "pregnancy symptoms",
+    "obstetrics"
+  ],
+  "keywords_vi": [
+    "mang thai",
+    "thai kỳ",
+    "dấu hiệu mang thai",
+    "khám thai định kỳ",
+    "sản phụ khoa"
+  ],
+  "content_hash": "dfd2ddaccdb759784b54a500935f7dc4340cbdc604a50c03afc180bf242e1dce",
+  "content_sha256": "dfd2ddaccdb759784b54a500935f7dc4340cbdc604a50c03afc180bf242e1dce",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

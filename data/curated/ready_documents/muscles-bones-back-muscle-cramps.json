@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/musclecramps.html",
   "medlineplus_id": "1707",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Muscle cramps",
+  "title_vi": "Chuột rút cơ bắp (Vọp bẻ)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "muscle cramps",
+    "charley horse",
+    "muscle spasms",
+    "nocturnal leg cramps"
+  ],
+  "keywords_vi": [
+    "chuột rút",
+    "vọp bẻ",
+    "co rút bắp chân",
+    "thiếu canxi magie",
+    "chuột rút ban đêm"
+  ],
+  "content_hash": "0be3d7547b1af50a2f78e5bb6324d3fba846689f657ea4e7edb61f3fdb141d11",
+  "content_sha256": "0be3d7547b1af50a2f78e5bb6324d3fba846689f657ea4e7edb61f3fdb141d11",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

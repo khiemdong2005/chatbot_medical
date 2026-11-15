@@ -1,0 +1,49 @@
+{
+  "id": "multiplesclerosis",
+  "title": "Multiple Sclerosis (MS)",
+  "title_en": "Multiple Sclerosis (MS)",
+  "title_vi": "Bệnh xơ cứng rải rác",
+  "category": "Neurology",
+  "category_en": "Neurology",
+  "category_vi": "Thần kinh",
+  "search_phrases": [
+    "multiple sclerosis",
+    "MS",
+    "demyelinating disease",
+    "optic neuritis",
+    "autoimmune nervous system",
+    "xơ cứng rải rác",
+    "mất myelin",
+    "viêm thị thần kinh",
+    "yếu cơ co cứng",
+    "bệnh tự miễn thần kinh"
+  ],
+  "keywords_en": [
+    "multiple sclerosis",
+    "MS",
+    "demyelinating disease",
+    "optic neuritis",
+    "autoimmune nervous system"
+  ],
+  "keywords_vi": [
+    "xơ cứng rải rác",
+    "mất myelin",
+    "viêm thị thần kinh",
+    "yếu cơ co cứng",
+    "bệnh tự miễn thần kinh"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/multiplesclerosis.html",
+  "summary": "Multiple sclerosis (MS) is a nervous system disease that affects your brain and spinal cord. It damages the myelin sheath, the material that surrounds and protects your nerve cells. This damage slows down or blocks messages between your brain and your body, leading to the symptoms of MS. They can include: Visual disturbances Muscle weakness Trouble with coordination and balance Sensations such as numbness, prickling, or \"pins and needles\" Thinking and memory problems No one knows what causes MS. It may be an autoimmune disease, which happens when your immune system attacks healthy cells in your body by mistake. Multiple sclerosis affects women more than men. It often begins between the ages of 20 and 40. Usually, the disease is mild, but some people lose the ability to write, speak, or walk. There is no specific test for MS. Doctors use a medical history, physical exam, neurological exam, MRI, and other tests to diagnose it. There is no cure for MS, but medicines may slow it down and help control symptoms. Physical and occupational therapy may also help. NIH: National Institute of Neurological Disorders and Stroke",
+  "page_content": "Multiple sclerosis (MS) is a nervous system disease that affects your brain and spinal cord. It damages the myelin sheath, the material that surrounds and protects your nerve cells. This damage slows down or blocks messages between your brain and your body, leading to the symptoms of MS. They can include: Visual disturbances Muscle weakness Trouble with coordination and balance Sensations such as numbness, prickling, or \"pins and needles\" Thinking and memory problems No one knows what causes MS. It may be an autoimmune disease, which happens when your immune system attacks healthy cells in your body by mistake. Multiple sclerosis affects women more than men. It often begins between the ages of 20 and 40. Usually, the disease is mild, but some people lose the ability to write, speak, or walk. There is no specific test for MS. Doctors use a medical history, physical exam, neurological exam, MRI, and other tests to diagnose it. There is no cure for MS, but medicines may slow it down and help control symptoms. Physical and occupational therapy may also help. NIH: National Institute of Neurological Disorders and Stroke",
+  "content_sha256": "f423379710805c1c20d668da31d79fc28d8de2c0df4c0ab0435611d7214095d7",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

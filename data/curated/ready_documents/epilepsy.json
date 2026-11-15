@@ -1,0 +1,49 @@
+{
+  "id": "epilepsy",
+  "title": "Epilepsy",
+  "title_en": "Epilepsy",
+  "title_vi": "Bệnh động kinh",
+  "category": "Neurology",
+  "category_en": "Neurology",
+  "category_vi": "Thần kinh",
+  "search_phrases": [
+    "epilepsy",
+    "chronic seizures",
+    "anticonvulsants",
+    "epileptic syndromes",
+    "electroencephalogram EEG",
+    "bệnh động kinh",
+    "cơn động kinh lặp lại",
+    "thuốc chống động kinh",
+    "điện não đồ",
+    "co giật động kinh"
+  ],
+  "keywords_en": [
+    "epilepsy",
+    "chronic seizures",
+    "anticonvulsants",
+    "epileptic syndromes",
+    "electroencephalogram EEG"
+  ],
+  "keywords_vi": [
+    "bệnh động kinh",
+    "cơn động kinh lặp lại",
+    "thuốc chống động kinh",
+    "điện não đồ",
+    "co giật động kinh"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/epilepsy.html",
+  "summary": "Epilepsy is a brain disorder that causes people to have recurring seizures . The seizures happen when clusters of nerve cells, or neurons, in the brain send out the wrong signals. People may have strange sensations and emotions or behave strangely. They may have violent muscle spasms or lose consciousness. Epilepsy has many possible causes, including illness, brain injury, and abnormal brain development. In many cases, the cause is unknown. Doctors use brain scans and other tests to diagnose epilepsy. It is important to start treatment right away. There is no cure for epilepsy, but medicines can control seizures for most people. When medicines are not working well, surgery or implanted devices such as vagus nerve stimulators may help. Special diets can help some children with epilepsy. NIH: National Institute of Neurological Disorders and Stroke",
+  "page_content": "Epilepsy is a brain disorder that causes people to have recurring seizures . The seizures happen when clusters of nerve cells, or neurons, in the brain send out the wrong signals. People may have strange sensations and emotions or behave strangely. They may have violent muscle spasms or lose consciousness. Epilepsy has many possible causes, including illness, brain injury, and abnormal brain development. In many cases, the cause is unknown. Doctors use brain scans and other tests to diagnose epilepsy. It is important to start treatment right away. There is no cure for epilepsy, but medicines can control seizures for most people. When medicines are not working well, surgery or implanted devices such as vagus nerve stimulators may help. Special diets can help some children with epilepsy. NIH: National Institute of Neurological Disorders and Stroke",
+  "content_sha256": "d8c76f643703dd5b0f1c41c0048309f05bb7dd5a7781e164169b287a7dc348a9",
+  "candidate_score": 0.97,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

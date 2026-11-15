@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/heatillness.html",
   "medlineplus_id": "280",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heat stroke",
+  "title_vi": "Say nắng say nóng (Sốc nhiệt)",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "heat stroke",
+    "sunstroke",
+    "severe heat illness",
+    "hyperthermia emergency",
+    "cooling therapy"
+  ],
+  "keywords_vi": [
+    "say nắng say nóng",
+    "sốc nhiệt",
+    "cấp cứu đột quỵ nhiệt",
+    "hôn mê do nhiệt độ cao",
+    "sơ cứu say nắng"
+  ],
+  "content_hash": "03df0455cb2acbd7223239729090afff4a86aa1e99103032fbc1e15cb3328c57",
+  "content_sha256": "03df0455cb2acbd7223239729090afff4a86aa1e99103032fbc1e15cb3328c57",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

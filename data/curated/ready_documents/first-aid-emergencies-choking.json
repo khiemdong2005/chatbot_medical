@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/choking.html",
   "medlineplus_id": "1544",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Choking",
+  "title_vi": "Sơ cứu hóc nghẹn dị vật đường thở",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "choking",
+    "airway obstruction",
+    "Heimlich maneuver",
+    "foreign body airway",
+    "first aid choking"
+  ],
+  "keywords_vi": [
+    "hóc dị vật",
+    "nghẹn đường thở",
+    "thủ thuật heimlich",
+    "cấp cứu ngạt thở",
+    "sơ cứu hóc"
+  ],
+  "content_hash": "e968d6f9467cf85610a44e07d2312809fae3f2fe8f9439ac7281602397d0427e",
+  "content_sha256": "e968d6f9467cf85610a44e07d2312809fae3f2fe8f9439ac7281602397d0427e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

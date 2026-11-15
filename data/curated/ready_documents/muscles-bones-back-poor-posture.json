@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/backpain.html",
   "medlineplus_id": "157",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Poor posture",
+  "title_vi": "Sai tư thế cột sống",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "poor posture",
+    "bad posture",
+    "slouching",
+    "spinal alignment",
+    "ergonomic posture"
+  ],
+  "keywords_vi": [
+    "sai tư thế",
+    "gù lưng",
+    "cong vẹo cột sống",
+    "chỉnh dáng",
+    "tư thế ngồi làm việc"
+  ],
+  "content_hash": "f0a68e6071bc621248c8a0f8f818c25c5f6b2d863fb8cbd040dd2bbda0eda297",
+  "content_sha256": "f0a68e6071bc621248c8a0f8f818c25c5f6b2d863fb8cbd040dd2bbda0eda297",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/vitamins.html",
   "medlineplus_id": "456",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vitamins",
+  "title_vi": "Các loại vitamin và vai trò sức khỏe",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "vitamins",
+    "essential vitamins",
+    "multivitamin",
+    "vitamin benefits",
+    "vitamin deficiency"
+  ],
+  "keywords_vi": [
+    "vitamin",
+    "các loại vitamin",
+    "bổ sung vitamin",
+    "vai trò vitamin",
+    "thiếu hụt vitamin"
+  ],
+  "content_hash": "4f4bb60ec9844688e637a73db79485e14add4ba8f7f6152202d4b53b72bcb631",
+  "content_sha256": "4f4bb60ec9844688e637a73db79485e14add4ba8f7f6152202d4b53b72bcb631",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

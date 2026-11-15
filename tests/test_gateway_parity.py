@@ -28,7 +28,7 @@ from core.models import db, IntakeSessionRecord, User
 @pytest.fixture
 def api_client():
     """Client gọi trực tiếp qua FastAPI Gateway (không qua Flask client)."""
-    return TestClient(fastapi_app)
+    return TestClient(fastapi_app, headers={"origin": "http://localhost:8000"})
 
 
 # ==============================================================================
@@ -128,6 +128,9 @@ class TestNativeRoutePrecedence:
         assert "gemini" in data
 
     def test_system_metrics_is_native_fastapi(self, api_client):
+        from app import app as flask_app
+        serializer = flask_app.session_interface.get_signing_serializer(flask_app)
+        api_client.cookies.set("session", serializer.dumps({"user_id": 999, "user_role": "admin"}))
         res = api_client.get("/api/system/metrics")
         assert res.status_code == 200
         data = res.json()
@@ -136,6 +139,9 @@ class TestNativeRoutePrecedence:
         assert "components" in data
 
     def test_system_dashboard_page_is_native_fastapi(self, api_client):
+        from app import app as flask_app
+        serializer = flask_app.session_interface.get_signing_serializer(flask_app)
+        api_client.cookies.set("session", serializer.dumps({"user_id": 999, "user_role": "admin"}))
         res = api_client.get("/system")
         assert res.status_code == 200
         assert "text/html" in res.headers.get("content-type", "")

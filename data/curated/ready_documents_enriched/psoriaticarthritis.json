@@ -1,0 +1,49 @@
+{
+  "id": "psoriaticarthritis",
+  "title": "Psoriatic Arthritis",
+  "title_en": "Psoriatic Arthritis",
+  "title_vi": "Viêm khớp vảy nến",
+  "category": "Rheumatology & Bone",
+  "category_en": "Rheumatology & Bone",
+  "category_vi": "Cơ xương khớp & Thấp khớp",
+  "search_phrases": [
+    "psoriatic arthritis",
+    "joint pain with psoriasis",
+    "dactylitis sausage fingers",
+    "enthesitis",
+    "biologic therapy",
+    "viêm khớp vảy nến",
+    "viêm ngón hình khúc dồi",
+    "đau khớp kèm tổn thương da",
+    "điều trị sinh học",
+    "viêm điểm bám gân"
+  ],
+  "keywords_en": [
+    "psoriatic arthritis",
+    "joint pain with psoriasis",
+    "dactylitis sausage fingers",
+    "enthesitis",
+    "biologic therapy"
+  ],
+  "keywords_vi": [
+    "viêm khớp vảy nến",
+    "viêm ngón hình khúc dồi",
+    "đau khớp kèm tổn thương da",
+    "điều trị sinh học",
+    "viêm điểm bám gân"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/psoriaticarthritis.html",
+  "summary": "Psoriasis is a skin disease that causes itchy or sore patches of thick, red skin with silvery scales. You usually get them on your elbows, knees, scalp, back, face, palms and feet, but they can show up on other parts of your body. Some people with psoriasis have psoriatic arthritis. It causes pain, stiffness, and swelling of the joints. It is often mild, but can sometimes be serious and affect many joints. The joint and skin problems don't always happen at the same time. Your doctor will do a physical exam and imaging tests to diagnose psoriatic arthritis. There is no cure, but medicines can help control inflammation and pain. In rare cases, you might need surgery to repair or replace damaged joints.",
+  "page_content": "Psoriasis is a skin disease that causes itchy or sore patches of thick, red skin with silvery scales. You usually get them on your elbows, knees, scalp, back, face, palms and feet, but they can show up on other parts of your body. Some people with psoriasis have psoriatic arthritis. It causes pain, stiffness, and swelling of the joints. It is often mild, but can sometimes be serious and affect many joints. The joint and skin problems don't always happen at the same time. Your doctor will do a physical exam and imaging tests to diagnose psoriatic arthritis. There is no cure, but medicines can help control inflammation and pain. In rare cases, you might need surgery to repair or replace damaged joints.",
+  "content_sha256": "e3621e470a91041372b1e9e633f8d2d2d99af13a431567964a229442028fce0d",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

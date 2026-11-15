@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/tuberculosis.html",
   "medlineplus_id": "41",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Tuberculosis",
+  "title_vi": "Bệnh lao (Lao phổi)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "tuberculosis",
+    "TB",
+    "pulmonary tuberculosis",
+    "mycobacterium",
+    "coughing blood TB"
+  ],
+  "keywords_vi": [
+    "bệnh lao",
+    "lao phổi",
+    "vi khuẩn lao",
+    "ho ra máu gầy sút",
+    "điều trị thuốc lao"
+  ],
+  "content_hash": "a2a40f04f8db884f9aa5b7375d3cce9b442a2d9821c14d31961c74d2ba5102b6",
+  "content_sha256": "a2a40f04f8db884f9aa5b7375d3cce9b442a2d9821c14d31961c74d2ba5102b6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

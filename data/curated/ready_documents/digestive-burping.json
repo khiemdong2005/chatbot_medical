@@ -17,5 +17,26 @@
   "source_url": "https://medlineplus.gov/gas.html",
   "medlineplus_id": "4291",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Burping",
+  "title_vi": "Ợ hơi (Ợ chua)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "burping",
+    "belching",
+    "excessive gas",
+    "eructation"
+  ],
+  "keywords_vi": [
+    "ợ hơi",
+    "ợ chua",
+    "đầy hơi",
+    "chướng bụng",
+    "khó tiêu"
+  ],
+  "content_hash": "95f6c3674828276e6798761bc22c2f47c8a25a60016c6f979bdb911126dc8342",
+  "content_sha256": "95f6c3674828276e6798761bc22c2f47c8a25a60016c6f979bdb911126dc8342",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

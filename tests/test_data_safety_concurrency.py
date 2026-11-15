@@ -33,7 +33,7 @@ from core.models import db, User, IntakeSessionRecord, MedicalAppointment
 @pytest.fixture
 def api_client():
     """Client gọi trực tiếp qua FastAPI Gateway."""
-    return TestClient(fastapi_app)
+    return TestClient(fastapi_app, headers={"origin": "http://localhost:8000"})
 
 
 # ==============================================================================

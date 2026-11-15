@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/fever.html",
   "medlineplus_id": "511",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Low-grade fever",
+  "title_vi": "Sốt nhẹ",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "low-grade fever",
+    "mild fever",
+    "slight fever",
+    "subfebrile"
+  ],
+  "keywords_vi": [
+    "sốt nhẹ",
+    "sốt âm ỉ",
+    "nhiễm trùng mạn",
+    "sốt chiều tối",
+    "theo dõi sốt"
+  ],
+  "content_hash": "7100e4d23e8f4145ae7bece9b08df1579b7e281b152f791160132a0fb0257672",
+  "content_sha256": "7100e4d23e8f4145ae7bece9b08df1579b7e281b152f791160132a0fb0257672",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

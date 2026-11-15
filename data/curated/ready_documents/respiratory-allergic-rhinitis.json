@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/allergy.html",
   "medlineplus_id": "24",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Allergic rhinitis",
+  "title_vi": "Viêm mũi dị ứng",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "allergic rhinitis",
+    "nasal allergies",
+    "sneezing runny nose",
+    "allergy congestion"
+  ],
+  "keywords_vi": [
+    "viêm mũi dị ứng",
+    "hắt hơi sổ mũi",
+    "nghẹt mũi dị ứng",
+    "dị ứng thời tiết",
+    "tai mũi họng"
+  ],
+  "content_hash": "ff55325d2270f08de664a58ebabaa62ab63c0d9b8b159eff20540afb64211c93",
+  "content_sha256": "ff55325d2270f08de664a58ebabaa62ab63c0d9b8b159eff20540afb64211c93",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

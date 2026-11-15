@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/animalbites.html",
   "medlineplus_id": "161",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Animal bites",
+  "title_vi": "Sơ cứu vết động vật cắn",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "animal bites",
+    "dog bite",
+    "cat scratch",
+    "rabies prevention",
+    "wound cleaning"
+  ],
+  "keywords_vi": [
+    "vết động vật cắn",
+    "chó cắn mèo cào",
+    "sơ cứu vết cắn",
+    "tiêm phòng dại",
+    "nhiễm trùng vết thương"
+  ],
+  "content_hash": "a153f632328c27f4063632bd0ec99b24204f94e6345e42f20a363b08dc177ed5",
+  "content_sha256": "a153f632328c27f4063632bd0ec99b24204f94e6345e42f20a363b08dc177ed5",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

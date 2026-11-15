@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/badbreath.html",
   "medlineplus_id": "6033",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Bad breath",
+  "title_vi": "Hôi miệng",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "bad breath",
+    "halitosis",
+    "oral hygiene",
+    "mouth odor"
+  ],
+  "keywords_vi": [
+    "hôi miệng",
+    "hơi thở có mùi",
+    "viêm nha chu",
+    "vệ sinh răng miệng",
+    "nha khoa"
+  ],
+  "content_hash": "1f9399e097191018b02f3a262b67dc46dc41ca7f4f35eb3343e7dd901c016ac6",
+  "content_sha256": "1f9399e097191018b02f3a262b67dc46dc41ca7f4f35eb3343e7dd901c016ac6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

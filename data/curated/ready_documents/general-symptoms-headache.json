@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/headache.html",
   "medlineplus_id": "273",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Headache",
+  "title_vi": "Đau đầu (Nhức đầu)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "headache",
+    "cephalea",
+    "tension headache",
+    "head pain"
+  ],
+  "keywords_vi": [
+    "đau đầu",
+    "nhức đầu",
+    "đau nửa đầu",
+    "căng thẳng đầu",
+    "chóng mặt"
+  ],
+  "content_hash": "06ddf5409156145b0784cab24d00d4dde72f8f2a88430060a8b2b6fdb647c31e",
+  "content_sha256": "06ddf5409156145b0784cab24d00d4dde72f8f2a88430060a8b2b6fdb647c31e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }
