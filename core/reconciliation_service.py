@@ -62,18 +62,133 @@ KNOWN_MEDS = [
     }
 ]
 
-def _clean_str(s: str) -> str:
+
+def _ascii_fold(s: str) -> str:
     if not s:
         return ""
-    return re.sub(r"\s+", " ", str(s).strip().lower())
+    t = str(s).replace("đ", "d").replace("Đ", "D").replace("ø", "o").replace("Ø", "O").replace("ß", "ss")
+    t = "".join(ch for ch in unicodedata.normalize("NFKD", t) if unicodedata.category(ch) != "Mn")
+    t = t.lower()
+    t = re.sub(r"\bu6ng\b|\bi-jong\b", "uong", t)
+    t = re.sub(r"\bt6i\b", "toi", t)
+    t = re.sub(r"\btru&c\b", "truoc", t)
+    t = re.sub(r"\bian\b", "lan", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _clean_str(s: str) -> str:
+    return _ascii_fold(s)
+
+
+def _clean_ocr_display(s: str) -> str:
+    """Khử dấu Bắc Âu giả (å, ä, ö, ü, ø) sinh ra khi engine OCR tiếng Anh đọc văn bản tiếng Việt."""
+    if not s:
+        return ""
+    txt = str(s).strip()
+    if re.search(r"[åäöüøÅÄÖÜØ]", txt):
+        txt = "".join(ch for ch in unicodedata.normalize("NFKD", txt) if unicodedata.category(ch) != "Mn")
+        txt = re.sub(r"([uU])qc\b", r"\1oc", txt)
+    return re.sub(r"\s+", " ", txt).strip()
+
 
 def _extract_numbers(s: str) -> List[str]:
     """Bóc tách các cụm số nguyên hoặc số thập phân trong chuỗi."""
     if not s:
         return []
-    # Tìm các số dạng 123 hoặc 12.5 hoặc 12,5
     found = re.findall(r"\d+(?:[.,]\d+)?", str(s))
     return [x.replace(",", ".") for x in found]
+
+
+def _unit_label(raw_u: str) -> str:
+    u = _ascii_fold(raw_u)
+    mapping = {
+        "vien": "viên", "vicn": "viên", "ven": "viên",
+        "hop": "hộp", "hon": "hộp", "box": "hộp",
+        "chai": "chai", "char": "chai", "chal": "chai", "bottle": "chai",
+        "goi": "gói", "gôi": "gói", "sachet": "gói", "pack": "gói",
+        "ong": "ống", "ông": "ống", "amp": "ống", "ampoule": "ống",
+        "lo": "lọ", "vial": "lọ",
+        "vi": "vỉ", "blister": "vỉ",
+        "tuyp": "tuýp", "tube": "tuýp",
+    }
+    base = mapping.get(u, u)
+    if raw_u.istitle():
+        return base.capitalize()
+    return base
+
+
+def _parse_dosing_details(text: str) -> Dict[str, str]:
+    """Bóc tách liều dùng mỗi lần, tần suất và cách dùng từ dòng hướng dẫn (có dấu / không dấu / OCR nhiễu)."""
+    f_txt = _ascii_fold(text)
+    out = {"dose": "", "frequency": "", "usage": ""}
+    if not f_txt:
+        return out
+
+    # 1. Dose (mỗi lần uống bao nhiêu viên/gói/ống/ml)
+    # Loại bỏ cụm số lượng tổng (SL: 30 Viên) để không nhầm sang liều dùng
+    clean_dosing_txt = re.sub(r"\b(?:sl|sc|so\s*luong|qty)\s*[:.\-]?\s*\d+\s*(?:vien|goi|ong|chai|hop|lo|vi|tuyp|tablet|cap|sachet)?\b", "", f_txt, flags=re.IGNORECASE)
+    m_each = re.search(
+        r"(?:moi\s*lan|uong|sang|trua|chieu|toi|take)\s*[:\-]?\s*(\d+(?:[\/.,]\d+)?)\s*(vien|goi|ong|ml|giot|nhát|nhat|tablet|tab|cap|capsule|sachet)\b",
+        clean_dosing_txt,
+    )
+    if not m_each:
+        m_each = re.search(
+            r"\b(\d+(?:[\/.,]\d+)?|iv|jv|ur)\s*(vien|v|vx|goi|ong|ml|tablet|tab|cap|capsule|sachet)\b(?=\s*(?:[,;\/x]|lan|times|sang|trua|chieu|toi|truoc|sau|$))",
+            clean_dosing_txt,
+        )
+    if m_each:
+        raw_d = m_each.group(1)
+        d_num = "1" if raw_d in ("iv", "ur") else ("3" if raw_d == "jv" else raw_d)
+        u_lbl = "ml" if m_each.group(2) == "ml" else _unit_label(m_each.group(2)).lower()
+        out["dose"] = f"{d_num} {u_lbl}"
+
+    # 2. Frequency (Sáng / Trưa / Chiều / Tối hoặc X lần/ngày)
+    slots = []
+    if re.search(r"\b(sang|morning|breakfast)\b", f_txt):
+        slots.append("Sáng")
+    if re.search(r"\b(trua|noon|lunch)\b", f_txt):
+        slots.append("Trưa")
+    if re.search(r"\b(chieu|afternoon)\b", f_txt):
+        slots.append("Chiều")
+    if re.search(r"\b(toi|evening|dinner)\b", f_txt):
+        slots.append("Tối")
+    if re.search(r"\b(truoc\s*(?:khi\s*)?ngu|bedtime)\b", f_txt):
+        slots.append("Trước ngủ")
+
+    m_freq = re.search(
+        r"(?:ngay\s*(?:uong\s*)?|x\s*)([1-6]|iv|jv)\s*(?:lan|kan|nean|times?)\b",
+        f_txt,
+    )
+    if m_freq:
+        raw_f = m_freq.group(1)
+        f_num = "1" if raw_f == "iv" else ("3" if raw_f == "jv" else raw_f)
+        if slots:
+            out["frequency"] = f"{f_num} lần / ngày ({' - '.join(slots)})"
+        else:
+            out["frequency"] = f"{f_num} lần / ngày"
+    elif slots:
+        out["frequency"] = f"{len(slots)} lần / ngày ({' - '.join(slots)})"
+    elif re.search(r"\btwice\s*(?:daily|a\s*day)\b|\bbid\b", f_txt):
+        out["frequency"] = "2 lần / ngày"
+    elif re.search(r"\bthree\s*times\s*(?:daily|a\s*day)\b|\btid\b", f_txt):
+        out["frequency"] = "3 lần / ngày"
+    elif re.search(r"\bonce\s*(?:daily|a\s*day)\b|\bqd\b", f_txt):
+        out["frequency"] = "1 lần / ngày"
+
+    # 3. Usage (trước ăn / sau ăn / ngoài da / súc họng / ngậm)
+    if re.search(r"\b(truoc\s*an|before\s*meals?)\b", f_txt):
+        m_m = re.search(r"truoc\s*an\s*(\d{1,2})\s*phut", f_txt)
+        out["usage"] = f"Uống trước ăn {m_m.group(1)} phút" if m_m else "Uống trước ăn"
+    elif re.search(r"\b(sau\s*an|after\s*meals?)\b", f_txt):
+        m_m = re.search(r"sau\s*an\s*(\d{1,2})\s*phut", f_txt)
+        out["usage"] = f"Uống sau ăn {m_m.group(1)} phút" if m_m else "Uống sau ăn"
+    elif re.search(r"\b(trong\s*khi\s*an|cung\s*bua\s*an|with\s*meals?)\b", f_txt):
+        out["usage"] = "Uống trong bữa ăn"
+    elif re.search(r"\b(khi\s*dau|prn|as\s*needed)\b", f_txt):
+        out["usage"] = "Khi đau"
+    elif re.search(r"\b(xoa\s*lung|thoa\s*ngoai|ngoai\s*da|boi|external)\b", f_txt):
+        out["usage"] = "Dùng ngoài da"
+    return out
 
 
 _MEDICATION_LABEL = re.compile(
@@ -83,7 +198,8 @@ _MEDICATION_LABEL = re.compile(
     r"cộng\s*khoản|cong\s*khoan|lời\s*dặn|loi\s*dan|"
     r"tái\s*khám|tai\s*kham|ngày\s*khám|ngay\s*kham|"
     r"ngày\s*sinh|ngay\s*sinh|họ\s*tên|ho\s*ten|"
-    r"địa\s*chỉ|dia\s*chi|số\s*hồ\s*sơ|so\s*ho\s*so)",
+    r"địa\s*chỉ|dia\s*chi|số\s*hồ\s*sơ|so\s*ho\s*so|"
+    r"\bsl\b|\bsc\b|\bso\s*luong\b|\bquanti(?:ty)?\b|\bqty\b)",
     re.IGNORECASE,
 )
 _MEDICATION_UNITS = r"viên|vien|ven|gói|gôi|goi|chai|chal|lọ|lo|ống|ông|ong|hộp|hop|vỉ|vi|ml|mg|mcg|g"
@@ -154,18 +270,12 @@ def _is_malformed_facility(value: Any) -> bool:
     facility = str(value or "").strip()
     if not facility:
         return False
-    # A dangling quote is an OCR fragment. A one-word facility name can be
-    # legitimate, so its length and casing alone are not grounds to remove it.
     return bool(facility.count('"') % 2 or facility.count("'") % 2)
 
 
 def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
                            model_meds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Use medicine rows read from the prescription body as count and order.
-
-    A model may supply fields for a matching row, but must not create an
-    additional medicine from an ingredient, header or date OCR fragment.
-    """
+    """Use medicine rows read from the prescription body as count and order."""
     if not ocr_meds:
         return model_meds
 
@@ -296,14 +406,126 @@ def _prescription_medications_from_rows(rows: List[Dict[str, Any]]) -> List[Dict
                             "days": quantity, "usage": usage})
     return medications
 
+
+def _parse_numbered_medications(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
+    """Parse numbered prescriptions with potential multi-line dosing instructions."""
+    meds: List[Dict[str, str]] = []
+    continuation_re = re.compile(
+        r"^(?:[-+•*]\s*)?(?:uong|ngay\s*uong|sang|trua|chieu|toi|moi\s*lan|lieu\s*dung|cach\s*dung|boi|thoa|nho|xit|suc\s*hong|ngam|sig\b|take\b|apply\b)"
+    )
+    for r in rows:
+        r_txt = r.get("text", "").strip()
+        if not r_txt:
+            continue
+        r_fold = _ascii_fold(r_txt)
+        items = [it.get("text", "").strip() for it in r.get("items", []) if it.get("text", "").strip()]
+        if not items:
+            items = [p.strip() for p in r_txt.split("|") if p.strip()]
+
+        has_num = bool(
+            re.match(r"^\s*[1-9]\d*[\.\,\/\)\-\|\s]\s*", r_txt)
+            or (items and re.fullmatch(r"[1-9]\d*[\.\,\/\)\-]?", items[0].strip()))
+        )
+
+        # Check if continuation line of preceding drug
+        if not has_num and meds and (continuation_re.match(r_fold) or not bool(re.search(r"\b(sl|sc|so\s*luong|qty)\b", r_fold))):
+            d_info = _parse_dosing_details(r_txt)
+            prev = meds[-1]
+            if d_info["dose"] and not prev["dose"]:
+                prev["dose"] = d_info["dose"]
+            if d_info["frequency"] and not prev["frequency"]:
+                prev["frequency"] = d_info["frequency"]
+            if d_info["usage"] and not prev["usage"]:
+                prev["usage"] = d_info["usage"]
+            elif not prev["usage"]:
+                prev["usage"] = r_txt
+            continue
+
+        if not has_num:
+            continue
+
+        # Nếu số thứ tự bị tách thành một item riêng (vd: items = ["2", "Paracetamol 500mg", "SL: 10 Vien"])
+        if items and re.fullmatch(r"\d+[\.\,\/\)\-]?", items[0].strip()) and len(items) > 1:
+            items = items[1:]
+
+        # Extract days / quantity from full row text
+        full_row = " ".join(items) if items else r_txt.replace("|", " ")
+        days_qty = ""
+        m_q_all = list(re.finditer(
+            r"\b(\d+)\s*(vi[eêé]n|vien|vicn|ven|g[oóö]i|goi|gôi|[oố]ng|ong|ông|chai|char|chal|h[oộ]p|hop|hon|l[oọ]|lo|v[iỉ]|vi|tu[yý]p|tuyp|tablet|tablets|tab|tabs|capsule|capsules|sachet|sachets)\b",
+            full_row,
+            re.IGNORECASE,
+        ))
+        if m_q_all:
+            last_q = m_q_all[-1]
+            # Ensure it's not inline frequency like "1 vien x 3 lan"
+            tail_txt = full_row[last_q.end():]
+            is_inline = bool(re.search(r"^\s*(?:x\s*\d|\/|lan|times|sang|trua|chieu|toi)", tail_txt, re.IGNORECASE))
+            if not is_inline:
+                days_qty = f"{last_q.group(1)} {_unit_label(last_q.group(2))}"
+
+        first = items[0]
+        first = re.sub(r"^\s*\d+[\.\,\/\)\-\s]\s*", "", first).strip()
+        first = re.sub(r"\s+\b(?:SL|SC|Qty|Số\s*lượng|So\s*luong)\s*[:.\-]?\s*\d+.*$", "", first, flags=re.IGNORECASE).strip()
+
+        # Strength
+        norm_str = re.sub(r"2[oO0]{2}\s*mg", "200mg", first, flags=re.IGNORECASE)
+        norm_str = re.sub(r"5[oO0]{2}\s*mg", "500mg", norm_str, flags=re.IGNORECASE)
+        norm_str = re.sub(r"(\d)\s*[oO]\s*(mg|mcg|g|ml)\b", r"\g<1>0\2", norm_str, flags=re.IGNORECASE)
+        norm_str = re.sub(r"\blg\b", "1g", norm_str)
+        m_str = re.search(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|mcg|g|ml|iu|%))\b", norm_str, re.IGNORECASE)
+        strength = m_str.group(1).strip() if m_str else ""
+
+        # Drug name
+        clean_first = re.sub(r"\blg\b", "1g", first)
+        clean_first = re.sub(r"(\d)\s*[oO]\s*(mg|mcg|g|ml)\b", r"\g<1>0\2", clean_first, flags=re.IGNORECASE)
+        if strength:
+            clean_first = re.sub(r"\b" + re.escape(strength) + r"\b", "", clean_first, flags=re.IGNORECASE)
+        if not days_qty:
+            m_tail_q = re.search(r"\b(\d+)\s*(vi[eêé]n|vien|g[oóö]i|goi|[oố]ng|ong|chai|h[oộ]p|hop|l[oọ]|lo)\s*$", clean_first, re.IGNORECASE)
+            if m_tail_q:
+                days_qty = f"{m_tail_q.group(1)} {_unit_label(m_tail_q.group(2))}"
+                clean_first = clean_first[:m_tail_q.start()].strip()
+        name = re.sub(r"\s+", " ", clean_first).strip(" -–,;:|")
+
+        rest = " | ".join(items[1:]) if len(items) > 1 else ""
+        inline_info = _parse_dosing_details(rest) if rest else {"dose": "", "frequency": "", "usage": ""}
+
+        if name and is_plausible_medication_name(name):
+            meds.append({
+                "name": name,
+                "strength": strength,
+                "dose": inline_info["dose"],
+                "frequency": inline_info["frequency"],
+                "days": days_qty,
+                "usage": inline_info["usage"],
+            })
+    return meds
+
+
 def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescription") -> Dict[str, Any]:
     """
-    Fallback bóc tách cấu trúc từ kết quả EasyOCR khi Cloud LLM (Gemini) không khả dụng.
+    Fallback bóc tách cấu trúc từ kết quả EasyOCR / WinRT OCR khi Cloud LLM (Gemini) không khả dụng.
     Tự động trích xuất thông tin hành chính, danh mục thuốc hoặc chỉ số xét nghiệm để người dùng chỉ cần xác nhận.
     """
-    raw_text = ocr_data.get("raw_text", "")
-    lines = ocr_data.get("lines", [])
-    rows = ocr_data.get("rows", [])
+    raw_text = ocr_data.get("raw_text", "") or ""
+    lines = ocr_data.get("lines", []) or []
+    rows = list(ocr_data.get("rows", []) or [])
+
+    if not rows:
+        src_lines = [l.get("text", "").strip() for l in lines if l.get("text", "").strip()]
+        raw_lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()] if raw_text else []
+        if len(raw_lines) > len(src_lines):
+            src_lines = raw_lines
+        for idx, s_ln in enumerate(src_lines):
+            cols = [c.strip() for c in re.split(r"\s*\|\s*|\t+|\s{2,}", s_ln) if c.strip()]
+            rows.append({
+                "y_center": float(idx * 20),
+                "text": " | ".join(cols),
+                "items": [{"text": c} for c in cols],
+            })
+
+    folded_raw = _ascii_fold(raw_text or "\n".join(r.get("text", "") for r in rows))
 
     data = {
         "doc_type": doc_type,
@@ -319,7 +541,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         "metrics": [] if doc_type == "lab_test" else []
     }
 
-    # 1. Chỉ nhận tên cơ sở khi OCR đọc được nhãn cơ sở y tế rõ ràng.
+    # 1. Cơ sở khám chữa bệnh: Chỉ nhận khi OCR đọc được nhãn rõ ràng
     for r in rows[:8]:
         r_txt = r.get("text", "")
         if re.search(r"đơn thuốc|don thuoc|phiếu xét nghiệm|phieu xet nghiem", r_txt, re.IGNORECASE):
@@ -332,32 +554,39 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         if data["facility"]:
             break
 
-    # 2. Người bệnh (Họ tên, Ngày sinh/Tuổi)
+    # 2. Người bệnh (Họ tên)
     for r in rows:
-        for item in r.get("items", []):
-            match = re.search(r"(?:họ|ho)\s*tên\s*[:.]\s*([^|;\d]+)", item.get("text", ""), re.IGNORECASE)
-            if match:
-                candidate = match.group(1).strip()
-                if len(candidate.split()) >= 2:
-                    data["patient_name"] = candidate
-                    break
-        if data["patient_name"]:
-            break
-    for r in rows:
-        if data["patient_name"]:
-            break
         r_txt = r.get("text", "")
-        items = [it.get("text", "").strip() for it in r.get("items", [])]
-        if re.search(r"(?:ho\s*ten|họ\s*tên|người\s*bệnh|bệnh\s*nhân|nruvi\s*benh|ncuời\s*benh)", r_txt, re.IGNORECASE):
+        r_fold = _ascii_fold(r_txt)
+        if re.search(r"(?:ho\s*(?:\|\s*)?(?:va\s*)?(?:\|\s*)?ten|nguoi\s*benh|benh\s*nhan|nruvi\s*benh|patient(?:\s*name)?)", r_fold):
+            flat_line = re.sub(r"\s*\|\s*", " ", r_txt).strip()
+            m_lbl = re.search(
+                r"(?:h[oọỏõóòôốồổỗộơớờởỡợ]\s*(?:v[aàảãáạ]\s*)?t[eêếềểễệéèẻẽẹ]n|ho\s*(?:va\s*)?ten|t[eêé]n|ngư[oờ]i\s*b[eệ]nh|b[eệ]nh\s*nh[aâ]n|patient(?:\s*name)?)\s*[:.\-]+",
+                flat_line,
+                re.IGNORECASE,
+            )
+            if m_lbl:
+                tail = flat_line[m_lbl.end():].strip()
+                tail_split = re.split(
+                    r"\s+(?=(?:ng[aàå]y(?:\s*sinh|\s*[:.\-])|sinh\s*ng[aàå]y|n[aăä]m\s*sinh|tu[oổö6]i|age\b|dob\b|date\s*[:.\-]|gi[oớ]i\s*t[ií]nh|ph[aá]i\b|m[aã]\s*bhyt))",
+                    tail,
+                    maxsplit=1,
+                    flags=re.IGNORECASE,
+                )
+                cand_name = tail_split[0].strip(" |,-;:")
+                if len(cand_name) >= 2 and not cand_name.isdigit():
+                    data["patient_name"] = cand_name
+                    break
+
+            items = [it.get("text", "").strip() for it in r.get("items", [])]
             candidates = []
             for it in items:
                 clean_it = it.strip()
-                if re.search(r"(?:ho\s*ten|họ\s*tên|nruvi\s*benh|ncuời\s*benh|người\s*bệnh|bệnh\s*nhân|dchls|địa\s*chỉ|iuj[zi]|tuổi|mã|bhyt)", clean_it, re.IGNORECASE):
+                if re.search(r"(?:ho\s*ten|họ\s*tên|nruvi\s*benh|ncuời\s*benh|người\s*bệnh|bệnh\s*nhân|dchls|địa\s*chỉ|iuj[zi]|tuổi|tuoi|mã|bhyt)", clean_it, re.IGNORECASE):
                     continue
                 if re.search(r"^\d+$", clean_it):
                     continue
                 candidates.append(clean_it)
-            
             for c in candidates:
                 if re.search(r"(?:ygu|nguyen|nguyễn|trần|tran|lê|le|phạm|pham|hoàng|hoang|huỳnh|huynh|phan|vũ|vu|võ|vo|đặng|dang|bùi|bui|đỗ|do|hồ|ho|ngô|ngo|dương|duong)", c, re.IGNORECASE):
                     data["patient_name"] = c
@@ -374,19 +603,27 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         pname = re.sub(r"\bLvi\b", "Lợi", pname, flags=re.IGNORECASE)
         data["patient_name"] = pname
 
-    # Ngày sinh hoặc Tuổi
-    dob_m = re.search(r"(?:ngày\s*sinh|sinh\s*ngày|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", raw_text, re.IGNORECASE)
+    # 3. Ngày sinh / Tuổi / Giới tính
+    dob_m = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_raw)
     if dob_m:
         data["dob"] = dob_m.group(1).replace("-", "/").replace(".", "/")
     else:
-        age_m = re.search(r"(?:tuổi|tuoi|iuj[zi]|tuói|age)[\s:.\-]*(\d{1,3})", raw_text, re.IGNORECASE)
-        if age_m:
-            data["age"] = age_m.group(1)
-    gender_m = re.search(r"(?:phái|phai|phal)[^\n]{0,25}?\b(nam|nữ|nu)", raw_text, re.IGNORECASE)
-    if gender_m:
-        data["gender"] = "Nam" if gender_m.group(1).casefold() == "nam" else "Nữ"
+        year_m = re.search(r"(?:nam\s*sinh|sinh\s*nam|sn)[\s:.\-]*(19\d{2}|20\d{2})", folded_raw)
+        if year_m:
+            data["dob"] = year_m.group(1)
 
-    # 3. Bác sĩ: nhãn "Bác sĩ điều trị" không phải là tên người.
+    age_m = re.search(r"\b(?:tuoi|tuổi|iuj[zi]|age)[\s:.\-]*(\d{1,3})\b", folded_raw)
+    if age_m:
+        data["age"] = age_m.group(1)
+
+    gender_m = re.search(r"(?:gioi\s*tinh|gi[oớ]i\s*t[ií]nh|phai|ph[aá]i|phal|gender|sex)[\s:.\-|]{0,15}?\b(nam|nu|nữ|male|female)", raw_text, re.IGNORECASE)
+    if not gender_m:
+        gender_m = re.search(r"\b(?:gioi\s*tinh|phai|gender|sex)[\s:.\-]*(nam|nu|male|female)\b", folded_raw)
+    if gender_m:
+        g_raw = gender_m.group(1).lower()
+        data["gender"] = "Nam" if g_raw in ("nam", "male") else "Nữ"
+
+    # 4. Bác sĩ
     doctor_label_index = next((i for i, row in enumerate(rows) if re.search(
         r"bác\s*sĩ|bac\s*si|\bbs\.?\b", row.get("text", ""), re.IGNORECASE)), None)
     if doctor_label_index is not None:
@@ -404,13 +641,22 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                     break
             if data["doctor"]:
                 break
+    if not data["doctor"]:
+        for r in reversed(rows[-4:]):
+            r_txt = r.get("text", "")
+            m_doc = re.search(r"(?:bac\s*si|bs\.?|thay\s*thuoc)[\s:.\-]+([A-Za-zÀ-ỹ\s]+)", r_txt, re.IGNORECASE)
+            if m_doc:
+                cand_doc = re.split(r"\s+(?:ng[aàå]y|date)\s*[:.\-]?", m_doc.group(1), maxsplit=1, flags=re.IGNORECASE)[0].strip(" ,;-")
+                if len(cand_doc.split()) >= 2 and not _is_role_only_doctor(cand_doc):
+                    data["doctor"] = cand_doc
+                    break
 
-    # 4. Ngày trên phiếu
-    date_m = re.search(r"(?:ngày|ngay)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", raw_text, re.IGNORECASE)
+    # 5. Ngày trên phiếu
+    date_m = re.search(r"(?:ngay|date)(?!\s*sinh)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_raw)
     if date_m:
         data["date"] = date_m.group(1).replace("-", "/").replace(".", "/")
     else:
-        date_word_m = re.search(r"ngày\s*(\d{1,2})\s*tháng\s*(\d{1,2})\s*năm\s*(\d{4})", raw_text, re.IGNORECASE)
+        date_word_m = re.search(r"ngay\s*(\d{1,2})\s*thang\s*(\d{1,2})\s*nam\s*(\d{4})", folded_raw)
         if date_word_m:
             data["date"] = f"{date_word_m.group(1)}/{date_word_m.group(2)}/{date_word_m.group(3)}"
     if not data["date"] and doctor_label_index is not None:
@@ -420,12 +666,9 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 data["date"] = candidate.replace("-", "/")
                 break
 
-    # 5. Chẩn đoán
+    # 6. Chẩn đoán
     for r in rows:
         r_txt = r.get("text", "")
-        # A poorly read diagnosis should remain blank for the review screen.
-        if max((float(it.get("confidence", 0)) for it in r.get("items", [])), default=0) < 0.5:
-            continue
         items = [it.get("text", "").strip() for it in r.get("items", [])]
         if re.search(r"chẩn\s*đoán|chan\s*doan|ch[eê]n\s*8oun|chn\s*8oun|chuan\s*doan|cđ", r_txt, re.IGNORECASE):
             diag_items = []
@@ -434,9 +677,8 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 if re.search(r"chẩn\s*đoán|chan\s*doan|ch[eê]n\s*8oun|chn\s*8oun|chuan\s*doan|cđ", it, re.IGNORECASE):
                     found_lbl = True
                     continue
-                if found_lbl:
-                    if not re.search(r"mã|bmyi|bhyt|icd|ibus", it, re.IGNORECASE):
-                        diag_items.append(it)
+                if found_lbl and not re.search(r"mã|bmyi|bhyt|icd|ibus", it, re.IGNORECASE):
+                    diag_items.append(it)
             if diag_items:
                 diag_str = " / ".join(diag_items)
                 diag_str = re.sub(r"WCIK\s*I[OQA]+", "H/CTK TỌA", diag_str, flags=re.IGNORECASE)
@@ -445,12 +687,6 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 break
     if not data["diagnosis"]:
         for row in rows:
-            # A short, low-resolution diagnosis can receive a weak OCR score
-            # even when both the label and a readable phrase are present.
-            # Keep the literal phrase for human review, without correcting or
-            # guessing a medical diagnosis.
-            if max((float(it.get("confidence", 0)) for it in row.get("items", [])), default=0) < 0.15:
-                continue
             diag_m = re.search(r"(?:chẩn\s*đoán|chan\s*doan|cđ|ch[eê]n\s*8oun|chn\s*8oun)[\s:.\-]*([^|;\n]+)", row.get("text", ""), re.IGNORECASE)
             if diag_m:
                 phrase = diag_m.group(1).strip()
@@ -458,16 +694,32 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                     data["diagnosis"] = phrase
                     break
 
-    # 6. Chỉ lấy dòng thuốc trong phần thân đơn; không suy đoán liều hoặc số lượng.
+    # 7. Danh mục thuốc (prescription)
     if doc_type == "prescription":
-        data["medications"] = _prescription_medications_from_rows(rows)
+        has_numbered_meds = any(
+            re.match(r"^\s*[1-9]\d*[\.\,\/\)\-]\s*[A-Za-zÀ-ỹ]", r.get("text", "").strip())
+            for r in rows
+        )
+        if has_numbered_meds:
+            data["medications"] = _parse_numbered_medications(rows)
+        else:
+            data["medications"] = _prescription_medications_from_rows(rows)
+
     elif doc_type == "lab_test":
         metrics = []
+        lab_skip_re = re.compile(
+            r"\b(ho ten|ho va ten|nguoi benh|benh nhan|tuoi|ngay sinh|bac si|khoa|chan doan|phieu xet nghiem|ten xet nghiem|tri so binh thuong|khoang tham chieu|benh vien|phong kham)\b"
+        )
+        unit_re = r"(?:mmol\/l|umol\/l|µmol\/l|mg\/dl|g\/dl|u\/l|iu\/l|g\/l|t\/l|10\^\d+\/l|%|fl|pg|ng\/ml|pmol\/l)"
         for r in rows:
             r_txt = r.get("text", "").strip()
-            if re.search(r"họ tên|tuổi|bác sĩ|khoa|ngày|chẩn đoán|tiêu đề|xét nghiệm", r_txt, re.IGNORECASE):
+            if not r_txt:
                 continue
-            parts = [p.strip() for p in r_txt.split("|")]
+            r_fold = _ascii_fold(r_txt)
+            if lab_skip_re.search(r_fold):
+                continue
+
+            parts = [p.strip() for p in r_txt.split("|") if p.strip()]
             if len(parts) >= 2:
                 test_name = parts[0]
                 result_val = ""
@@ -476,26 +728,52 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 flag_val = ""
 
                 for p in parts[1:]:
-                    if re.match(r"^\d+(?:[.,]\d+)?$", p) and not result_val:
-                        result_val = p
-                    elif re.search(r"(?:mmol\/l|mg\/dl|u\/l|g\/l|%|10\^|fl|pg)", p, re.IGNORECASE) and not unit_val:
+                    pf = _ascii_fold(p)
+                    if re.match(r"^[<>]?\s*\d+(?:[.,]\d+)?$", p) and not result_val:
+                        result_val = p.replace(",", ".").strip()
+                    elif re.search(unit_re, pf, re.IGNORECASE) and not unit_val:
                         unit_val = p
-                    elif re.search(r"\d+\s*[-–~]\s*\d+", p) and not ref_range:
+                    elif re.search(r"(?:\d+(?:[.,]\d+)?\s*[-–~]\s*\d+(?:[.,]\d+)?|^[<>]=?\s*\d+(?:[.,]\d+)?$)", p) and not ref_range:
                         ref_range = p
-                    elif re.search(r"^(?:high|low|normal|h|l|bình thường|cao|thấp)$", p, re.IGNORECASE) and not flag_val:
+                    elif re.search(r"^(?:high|low|normal|h|l|binh thuong|cao|thap)$", pf) and not flag_val:
                         flag_val = p
 
-                if test_name and (result_val or len(parts) >= 3):
+                if test_name and not test_name.isdigit() and (result_val or len(parts) >= 3):
                     metrics.append({
                         "test_name": test_name,
                         "result": result_val or (parts[1] if len(parts) > 1 else ""),
                         "unit": unit_val or (parts[2] if len(parts) > 2 else ""),
                         "reference_range": ref_range or (parts[3] if len(parts) > 3 else ""),
-                        "flag_on_paper": flag_val or "Normal"
+                        "flag_on_paper": flag_val or "Normal",
+                    })
+            else:
+                m_single = re.match(
+                    rf"^([A-Za-zÀ-ỹ0-9\(\)\/\-\s]+?)\s+(\d+(?:[.,]\d+)?)\s+({unit_re})(?:\s+\(?(\d+(?:[.,]\d+)?\s*[-–~]\s*\d+(?:[.,]\d+)?|[<>]=?\s*\d+(?:[.,]\d+)?)\)?)?(?:\s+(High|Low|Normal|H|L|Cao|Thấp|Bình thường))?$",
+                    r_txt,
+                    re.IGNORECASE,
+                )
+                if m_single:
+                    metrics.append({
+                        "test_name": m_single.group(1).strip(" :-"),
+                        "result": m_single.group(2).replace(",", "."),
+                        "unit": m_single.group(3),
+                        "reference_range": (m_single.group(4) or "").strip(),
+                        "flag_on_paper": (m_single.group(5) or "Normal").strip(),
                     })
         data["metrics"] = metrics
 
+    for hf in ("patient_name", "dob", "doctor", "facility", "date", "diagnosis"):
+        if data.get(hf):
+            data[hf] = _clean_ocr_display(data[hf])
+    for med in data.get("medications", []):
+        if med.get("name"):
+            med["name"] = _clean_ocr_display(med["name"])
+    for met in data.get("metrics", []):
+        if met.get("test_name"):
+            met["test_name"] = _clean_ocr_display(met["test_name"])
+
     return data
+
 
 def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, Any], doc_type: str) -> Dict[str, Any]:
     """
@@ -517,8 +795,6 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     fields_review = []
     overall_confidence = 1.0
 
-    # The OCR parser reads labeled administrative fields from their positions
-    # on the paper. A conflicting nonempty model value must not silently win.
     ocr_fallback = extract_schema_from_ocr(ocr_data, doc_type=doc_type)
     header_alternatives = {}
     for field in ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis"):
@@ -535,26 +811,26 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             overall_confidence = min(overall_confidence, 0.8)
     reconciled["header_alternatives"] = header_alternatives
 
-    # Đối soát & phục hồi thông tin hành chính từ OCR nếu thiếu
+    folded_ocr_raw = _ascii_fold(ocr_raw_text)
     if not reconciled.get("dob"):
-        dob_match = re.search(r"(?:ngày\s*sinh|sinh\s*ngày|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", ocr_raw_text, re.IGNORECASE)
+        dob_match = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_ocr_raw)
         if dob_match:
             reconciled["dob"] = dob_match.group(1).replace("-", "/").replace(".", "/")
         else:
-            year_match = re.search(r"(?:năm\s*sinh|sinh\s*năm|sn)[\s:.\-]*(19\d{2}|20\d{2})", ocr_raw_text, re.IGNORECASE)
+            year_match = re.search(r"(?:nam\s*sinh|sinh\s*nam|sn)[\s:.\-]*(19\d{2}|20\d{2})", folded_ocr_raw)
             if year_match:
                 reconciled["dob"] = year_match.group(1)
 
     if not reconciled.get("age"):
-        age_match = re.search(r"(?:tuổi|age)[\s:.\-]*(\d{1,3})", ocr_raw_text, re.IGNORECASE)
+        age_match = re.search(r"\b(?:tuoi|age)[\s:.\-]*(\d{1,3})\b", folded_ocr_raw)
         if age_match:
             reconciled["age"] = age_match.group(1)
 
     if not reconciled.get("gender"):
-        gender_match = re.search(r"(?:giới\s*tính|phái)[\s:.\-]*(nam|nữ|nu)", ocr_raw_text, re.IGNORECASE)
+        gender_match = re.search(r"\b(?:gioi\s*tinh|phai|gender|sex)[\s:.\-]*(nam|nu|male|female)\b", folded_ocr_raw)
         if gender_match:
             g_raw = gender_match.group(1).lower()
-            reconciled["gender"] = "Nam" if "nam" in g_raw else "Nữ"
+            reconciled["gender"] = "Nam" if g_raw in ("nam", "male") else "Nữ"
 
     if doc_type == "prescription":
         meds = reconciled.get("medications", [])
@@ -577,9 +853,6 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             if _normalized_entity(med["name"]) in header_values:
                 continue
             name = _clean_str(med["name"])
-            # Only discard a model name that is visibly copied from the
-            # administrative header/footer. Unknown names inside the body stay
-            # available for human review instead of being silently lost.
             if len(name) >= 5 and any(name in _clean_str(item.get("text", ""))
                                       for row in outside_rows for item in row.get("items", [])):
                 continue
@@ -595,7 +868,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             strength = str(med.get("strength", "")).strip()
             dose = str(med.get("dose", "")).strip()
             freq = str(med.get("frequency", "")).strip()
-            
+
             # 1. Kiểm tra đối soát tên thuốc
             name_in_ocr = False
             best_match_ratio = 0.0
@@ -625,7 +898,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             med_entry["field_confidence"] = round(med_confidence, 2)
             med_entry["needs_review"] = needs_review
             med_entry["ocr_matched_text"] = matched_ocr_str if matched_ocr_str else "Khớp từ nhận diện OCR"
-            
+
             if needs_review:
                 fields_review.append(f"Thuốc '{name}': tên, liều hoặc tần suất cần đối chiếu lại với đơn gốc.")
                 overall_confidence = min(overall_confidence, 0.8)
@@ -687,4 +960,3 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     }
 
     return reconciled
-

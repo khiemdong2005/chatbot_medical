@@ -1123,18 +1123,24 @@ def check_image_quality(image_path: str) -> Dict[str, Any]:
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
-    # 1. Đo độ sắc nét (Laplacian Variance)
-    laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
-    is_blur = laplacian_var < 45.0  # Ngưỡng mờ
+    # 1. Đo độ sắc nét (Laplacian Variance + cường độ biên ký tự p99.9 tránh phạt tờ A4 nền trắng nhiều khoảng trống)
+    lap = cv2.Laplacian(gray, cv2.CV_64F)
+    laplacian_var = float(lap.var())
+    edge_p999 = float(np.percentile(np.abs(lap), 99.9))
+    is_blur = (laplacian_var < 18.0 and edge_p999 < 110.0) or (laplacian_var < 45.0 and edge_p999 < 90.0)
 
-    # 2. Đo độ sáng trung bình (0-255)
+    # 2. Đo độ sáng trung bình & dải tương phản thực tế đến nét mực (p98 - p0.05)
     mean_brightness = float(np.mean(gray))
-    is_too_dark = mean_brightness < 40.0
+    p_ink, p98 = np.percentile(gray, [0.05, 98])
+    dynamic_range = float(p98 - p_ink)
+    is_too_dark = mean_brightness < 35.0 and float(p98) < 110.0
     is_dark = mean_brightness < 90.0  # Cần CLAHE
 
-    # 3. Đo tỉ lệ lóa sáng (Glare)
-    glare_ratio = float(np.sum(gray > 250)) / float(gray.size)
-    is_glare = glare_ratio > 0.15
+    # 3. Đo tỉ lệ lóa sáng (Glare): phân biệt nền giấy trắng A4 có nét mực đen rõ với ảnh cháy sáng/trắng xóa
+    glare_ratio = float(np.mean(gray > 250))
+    dark_pixel_count = int(np.sum(gray < 160))
+    has_readable_ink = dark_pixel_count >= 120 and dynamic_range >= 55.0 and edge_p999 >= 110.0
+    is_glare = glare_ratio > 0.35 and not has_readable_ink
 
     passed = True
     issues = []

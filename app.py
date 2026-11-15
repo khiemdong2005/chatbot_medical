@@ -16,6 +16,7 @@ if hasattr(sys.stderr, 'reconfigure'):
 # ==============================================================
 
 import os
+import time
 import json
 import logging
 import uuid
@@ -134,6 +135,7 @@ def create_app(test_config=None):
     @app.before_request
     def validate_csrf_and_origin():
         """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE, PATCH)."""
+        request._start_time = time.time()
         from core.csrf_protection import validate_csrf_request
 
         is_valid, error_msg = validate_csrf_request(
@@ -159,12 +161,21 @@ def create_app(test_config=None):
         )
         for k, v in get_security_headers(is_https=is_https).items():
             response.headers[k] = v
+
+        if hasattr(request, "_start_time"):
+            duration = time.time() - request._start_time
+            from core.observability import record_http_metrics
+            record_http_metrics(request.method, request.path, response.status_code, duration)
+
         return response
 
     @app.errorhandler(500)
     @app.errorhandler(Exception)
     def handle_unhandled_exception(e):
         """Bắt và chuẩn hóa toàn bộ lỗi ngoại lệ nội bộ, ngăn ngừa lộ lọt stack trace hay thông tin nhạy cảm."""
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            return e
         logger.error("Unhandled Flask exception (%s): %s", type(e).__name__, redact_sensitive_text(str(e)))
         return flask_api_error(
             ErrorCode.INTERNAL_ERROR,
@@ -1369,7 +1380,12 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách tài liệu."}), 401
 
-        docs = MedicalDocument.query.filter_by(owner_id=user_id).order_by(MedicalDocument.created_at.desc()).all()
+        docs = (
+            MedicalDocument.query.filter_by(owner_id=user_id)
+            .filter(MedicalDocument.doc_type != "ocr_draft")
+            .order_by(MedicalDocument.created_at.desc())
+            .all()
+        )
         files = [d.to_dict() for d in docs]
         return jsonify({"status": "success", "files": files})
 
@@ -1518,11 +1534,16 @@ def create_app(test_config=None):
         if doc.doc_type != "ocr_draft" or not doc.parsed_data:
             return jsonify({"message": "Tài liệu không còn chờ xác nhận."}), 409
         draft = json.loads(doc.parsed_data)
-        kind = draft["type"]
+        override_kind = payload.get("doc_type")
+        kind = override_kind if override_kind in ("prescription", "lab_test") else draft["type"]
         key = "medications" if kind == "prescription" else "metrics"
         fields = REVIEW_FIELDS[key]
-        rows = payload.get(key)
-        if not isinstance(rows, list) or not 1 <= len(rows) <= 200:
+        raw_rows = payload.get(key)
+        if isinstance(raw_rows, list):
+            rows = [r for r in raw_rows if isinstance(r, dict) and any(str(r.get(k, "")).strip() for k in fields)]
+        else:
+            rows = []
+        if not 1 <= len(rows) <= 200:
             return jsonify({"message": "Cần ít nhất một dòng dữ liệu đã kiểm tra."}), 400
         def clean(row, keys):
             if not isinstance(row, dict) or any(not isinstance(row.get(k, ""), str) or len(row.get(k, "")) > 2000 for k in keys):
@@ -1905,6 +1926,36 @@ def create_app(test_config=None):
         if err:
             return err
         return render_template("system_dashboard.html")
+
+    @app.route("/metrics", methods=["GET"])
+    def prometheus_metrics():
+        """Cổng Scraping chuẩn OpenMetrics cho Prometheus TSDB & Grafana."""
+        import ipaddress
+        from core.observability import get_prometheus_metrics_response
+        client_ip = (request.remote_addr or "").strip()
+        expected_key = os.getenv("PROMETHEUS_SCRAPE_KEY", os.getenv("ADMIN_MONITORING_KEY", ""))
+        req_key = request.headers.get("X-Metrics-Key") or request.headers.get("X-Admin-Key") or request.args.get("key")
+        is_internal = client_ip in ("localhost", "testclient")
+        if not is_internal and client_ip:
+            try:
+                addr = ipaddress.ip_address(client_ip)
+                is_internal = any(
+                    addr in net for net in (
+                        ipaddress.ip_network("127.0.0.0/8"),
+                        ipaddress.ip_network("::1/128"),
+                        ipaddress.ip_network("10.0.0.0/8"),
+                        ipaddress.ip_network("172.16.0.0/12"),
+                        ipaddress.ip_network("192.168.0.0/16"),
+                    )
+                )
+            except ValueError:
+                is_internal = False
+        is_auth = bool(expected_key and req_key == expected_key)
+        if not is_internal and not is_auth:
+            return jsonify({
+                "error": "Forbidden: Metrics endpoint is restricted to Prometheus scrapers."
+            }), 403
+        return get_prometheus_metrics_response()
 
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)
     return app

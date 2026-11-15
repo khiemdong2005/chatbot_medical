@@ -47,26 +47,60 @@ def process_medical_document_pipeline(
         }
 
     # ==============================================================
-    # [0] INTAKE & PHÂN LOẠI & KIỂM TRA CHẤT LƯỢNG
+    # [0] & [1] INTAKE QUALITY CHECK & TIỀN XỬ LÝ NHẸ
     # ==============================================================
-    quality_check = check_image_quality(file_path)
-    if not quality_check.get("passed", True):
-        return {
-            "status": "rejected",
-            "needs_review": True,
-            "stage": "[0] Intake Quality Check",
-            "error_code": "POOR_IMAGE_QUALITY",
-            "message": quality_check.get("recommendation", "Ảnh chụp không đạt yêu cầu rõ nét."),
-            "quality_details": quality_check,
-            "uploaded_filename": filename_clean
-        }
+    is_pdf = file_path.lower().endswith(".pdf")
+    if is_pdf:
+        prep_res = {}
+        active_image_path = file_path
+        pdf_text = ""
+        embedded_img_path = None
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(file_path)
+            bounded_pages = list(reader.pages[:20])
+            pdf_text = "\n".join((page.extract_text() or "") for page in bounded_pages).strip()[:100_000]
+            if not pdf_text:
+                for page in bounded_pages[:2]:
+                    for img_obj in getattr(page, "images", ()):
+                        raw_img_data = getattr(img_obj, "data", b"") or b""
+                        if not (0 < len(raw_img_data) <= 10 * 1024 * 1024):
+                            continue
+                        img_ext = os.path.splitext(getattr(img_obj, "name", "") or "")[1].lower()
+                        if img_ext not in (".png", ".jpg", ".jpeg", ".bmp", ".webp"):
+                            img_ext = ".png"
+                        cand_path = f"{os.path.splitext(file_path)[0]}_pdf_img{img_ext}"
+                        with open(cand_path, "wb") as img_f:
+                            img_f.write(raw_img_data)
+                        embedded_img_path = cand_path
+                        break
+                    if embedded_img_path:
+                        break
+        except Exception:
+            pdf_text = ""
 
-    # ==============================================================
-    # [1] TIỀN XỬ LÝ NHẸ (GIỮ NGUYÊN ẢNH GỐC)
-    # ==============================================================
-    need_clahe = quality_check.get("need_clahe", False)
-    prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
-    active_image_path = prep_res.get("processed_path", file_path)
+        if embedded_img_path and os.path.exists(embedded_img_path):
+            q_pdf = check_image_quality(embedded_img_path)
+            prep_res = preprocess_lightweight(embedded_img_path, need_clahe=q_pdf.get("need_clahe", False))
+            active_image_path = prep_res.get("processed_path", embedded_img_path)
+        else:
+            prep_res = {"processed_path": file_path, "deskew_angle": 0.0, "perspective_corrected": False}
+            active_image_path = file_path
+    else:
+        quality_check = check_image_quality(file_path)
+        if not quality_check.get("passed", True):
+            return {
+                "status": "rejected",
+                "needs_review": True,
+                "stage": "[0] Intake Quality Check",
+                "error_code": "POOR_IMAGE_QUALITY",
+                "message": quality_check.get("recommendation", "Ảnh chụp không đạt yêu cầu rõ nét."),
+                "quality_details": quality_check,
+                "uploaded_filename": filename_clean
+            }
+        need_clahe = quality_check.get("need_clahe", False)
+        prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
+        active_image_path = prep_res.get("processed_path", file_path)
 
     # (Tùy chọn) Che PII trước khi gửi đi nếu người dùng bật
     if mask_pii:
@@ -83,11 +117,18 @@ def process_medical_document_pipeline(
     # Phân loại tự động nếu chưa có doc_type_hint
     doc_type = doc_type_hint
     if doc_type == "auto":
-        comb_text = (ocr_result.get("raw_text") or "").lower()
-        if any(k in comb_text for k in ["xét nghiệm", "huyết học", "sinh hóa", "glucose", "cholesterol", "kết quả", "trị số bình thường", "chỉ số"]):
-            doc_type = "lab_test"
-        else:
-            doc_type = "prescription"
+        from core.grounding_service import _fold_ascii
+        comb_ascii = _fold_ascii(ocr_result.get("raw_text", "") + " " + (pdf_text if is_pdf else ""))
+        lab_score = (
+            sum(3 for k in ("xet nghiem", "laboratory", "ket qua", "chi so", "don vi", "tri so bth") if k in comb_ascii)
+            + sum(1 for k in ("glucose", "cholesterol", "triglyceride", "creatinine", "hba1c", "wbc", "rbc", "hgb", "plt") if k in comb_ascii)
+        )
+        rx_score = (
+            sum(3 for k in ("don thuoc", "toa thuoc", "prescription") if k in comb_ascii)
+            + sum(2 for k in ("vien", "uong", "lieu dung", "cach dung", "sl:") if k in comb_ascii)
+            + sum(1 for k in ("sang", "trua", "chieu", "toi", "goi", "ong", "tuyp", "chan doan") if k in comb_ascii)
+        )
+        doc_type = "lab_test" if (lab_score >= 3 and lab_score > rx_score) else "prescription"
 
     # 2.B: Gemini Schema extraction
     gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
@@ -155,6 +196,7 @@ REVIEW_FIELDS = {
 
 def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allergies):
     start_all = time.time()
+    reconciled["doc_type"] = doc_type
     # ==============================================================
     # [4] CHUẨN HÓA & GROUNDING (RULE + CSDL - KHÔNG DÙNG LLM)
     # ==============================================================
@@ -234,7 +276,7 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         m_dose = med.get("dose") if has_dose else "Chưa rõ liều (Cần đối chiếu đơn)"
         needs_review_item = med.get("needs_review", False) or not has_dose
 
-        for slot_key in ["morning", "noon", "evening", "bedtime"]:
+        for slot_key in ["morning", "noon", "evening", "bedtime", "external"]:
             s_info = sched.get(slot_key)
             if s_info and s_info.get("active"):
                 # Không gán bừa "Uống sau ăn" nếu đơn thuốc không chỉ định
@@ -245,6 +287,19 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
                     "note": slot_note,
                     "needs_review": needs_review_item
                 })
+
+    inferred_duration = reconciled.get("duration") or ""
+    if not inferred_duration and medications_list:
+        import re as _re_dur
+        day_nums = []
+        for med in medications_list:
+            m_dur = _re_dur.search(r"(\d+)\s*(?:ng[aà]y|days?)", str(med.get("days") or ""), _re_dur.IGNORECASE)
+            if m_dur:
+                day_nums.append(int(m_dur.group(1)))
+        if day_nums:
+            inferred_duration = f"{max(day_nums)} ngày"
+    if not inferred_duration:
+        inferred_duration = "Theo đơn cấp"
 
     output = {
         "status": "success",
@@ -260,7 +315,7 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         "gender": reconciled.get("gender", ""),
         "diagnosis": reconciled.get("diagnosis", "Theo dõi điều trị"),
         "date": reconciled.get("date", "Hôm nay"),
-        "duration": reconciled.get("duration", "Theo đơn cấp"),
+        "duration": inferred_duration,
         "medications": medications_list,
         "metrics": metrics_list,
         "timeline": ui_timeline,

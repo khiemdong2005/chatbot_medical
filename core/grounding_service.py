@@ -1,16 +1,48 @@
 import re
 import difflib
+import unicodedata
 from typing import Dict, Any, List, Tuple
+
+
+def _fold_ascii(text: str) -> str:
+    if not text:
+        return ""
+    s = str(text).replace("đ", "d").replace("Đ", "D")
+    s = "".join(ch for ch in unicodedata.normalize("NFKD", s) if unicodedata.category(ch) != "Mn")
+    s = s.lower()
+    s = re.sub(r"\bu6ng\b|\bi-jong\b", "uong", s)
+    s = re.sub(r"\bt6i\b", "toi", s)
+    s = re.sub(r"\btru&c\b", "truoc", s)
+    s = re.sub(r"\bian\b", "lan", s)
+    return re.sub(r"\s+", " ", s).strip()
+
 
 # Danh mục thuốc cơ bản Việt Nam / Hoạt chất thông dụng
 VN_DRUG_DATABASE = [
-    {"name": "Paracetamol", "aliases": ["hapacol", "panadol", "efferalgan", "acetaminophen"], "active_ingredient": "Paracetamol", "category": "Hạ sốt, giảm đau", "purpose": "Hạ sốt, giảm đau nhức"},
+    {"name": "Paracetamol", "aliases": ["hapacol", "panadol", "efferalgan", "acetaminophen", "tylenol"], "active_ingredient": "Paracetamol", "category": "Hạ sốt, giảm đau", "purpose": "Hạ sốt, giảm đau nhức"},
     {"name": "Ibuprofen", "aliases": ["gofen", "advil", "alaxan"], "active_ingredient": "Ibuprofen", "category": "Kháng viêm NSAID", "purpose": "Kháng viêm, giảm đau cơ khớp"},
-    {"name": "Amoxicillin", "aliases": ["augmentin", "clamentin", "amox"], "active_ingredient": "Amoxicillin", "category": "Kháng sinh Penicillin", "purpose": "Kháng sinh trị nhiễm trùng"},
+    {"name": "Celecoxib", "aliases": ["celebrex"], "active_ingredient": "Celecoxib", "category": "Kháng viêm NSAID chọn lọc COX-2", "purpose": "Giảm đau, kháng viêm cơ xương khớp"},
+    {"name": "Meloxicam", "aliases": ["mobic"], "active_ingredient": "Meloxicam", "category": "Kháng viêm NSAID", "purpose": "Kháng viêm, giảm đau xương khớp"},
+    {"name": "Amoxicillin", "aliases": ["augmentin", "clamentin", "amox", "klamentin"], "active_ingredient": "Amoxicillin", "category": "Kháng sinh Penicillin", "purpose": "Kháng sinh trị nhiễm trùng"},
     {"name": "Cefixime", "aliases": ["cefixim", "fixime"], "active_ingredient": "Cefixime", "category": "Kháng sinh Cephalosporin thế hệ 3", "purpose": "Kháng sinh trị nhiễm khuẩn hô hấp/tiết niệu"},
+    {"name": "Cefuroxime", "aliases": ["zinnat", "cefuroxim"], "active_ingredient": "Cefuroxime", "category": "Kháng sinh Cephalosporin thế hệ 2", "purpose": "Kháng sinh trị nhiễm khuẩn hô hấp"},
     {"name": "Azithromycin", "aliases": ["zithromax", "azimax"], "active_ingredient": "Azithromycin", "category": "Kháng sinh Macrolide", "purpose": "Kháng sinh trị nhiễm trùng đường thở"},
     {"name": "Omeprazole", "aliases": ["losec", "omeprazol"], "active_ingredient": "Omeprazole", "category": "Ức chế bơm Proton", "purpose": "Giảm tiết axit dạ dày / Chống loét"},
     {"name": "Esomeprazole", "aliases": ["nexium", "esomeprazol", "yesom"], "active_ingredient": "Esomeprazole", "category": "Ức chế bơm Proton", "purpose": "Giảm tiết axit dạ dày / Trào ngược dạ dày"},
+    {"name": "Pantoprazole", "aliases": ["pantoloc", "pantoprazol"], "active_ingredient": "Pantoprazole", "category": "Ức chế bơm Proton", "purpose": "Giảm tiết axit dạ dày / Trào ngược"},
+    {"name": "Rabeprazole", "aliases": ["pariet", "rabeprazol"], "active_ingredient": "Rabeprazole", "category": "Ức chế bơm Proton", "purpose": "Giảm tiết axit dạ dày"},
+    {"name": "Domperidone", "aliases": ["motilium", "domperidon"], "active_ingredient": "Domperidone", "category": "Chống nôn & Trợ vận động tiêu hóa", "purpose": "Giảm đầy bụng, buồn nôn, khó tiêu"},
+    {"name": "Diosmectite", "aliases": ["smecta"], "active_ingredient": "Diosmectite", "category": "Bảo vệ niêm mạc tiêu hóa", "purpose": "Cầm tiêu chảy, bảo vệ niêm mạc ruột"},
+    {"name": "Oresol", "aliases": ["oresol", "ors", "hydrite"], "active_ingredient": "Điện giải Oresol", "category": "Bù nước & Điện giải", "purpose": "Bù nước và điện giải"},
+    {"name": "Cetirizine", "aliases": ["zyrtec", "cetirizin"], "active_ingredient": "Cetirizine HCl", "category": "Kháng dị ứng Histamin H1", "purpose": "Giảm ngứa, sổ mũi, viêm mũi dị ứng"},
+    {"name": "Loratadine", "aliases": ["claritin", "loratadin"], "active_ingredient": "Loratadine", "category": "Kháng dị ứng Histamin H1", "purpose": "Chống dị ứng, mề đay, viêm mũi"},
+    {"name": "Fexofenadine", "aliases": ["telfast", "fexofenadin"], "active_ingredient": "Fexofenadine HCl", "category": "Kháng dị ứng Histamin H1", "purpose": "Giảm hắt hơi, sổ mũi, dị ứng"},
+    {"name": "Acetylcysteine", "aliases": ["acemuc", "mitux", "acetylcystein"], "active_ingredient": "N-Acetylcysteine", "category": "Tiêu nhầy đường hô hấp", "purpose": "Làm loãng đờm, giảm ho có đờm"},
+    {"name": "Ambroxol", "aliases": ["mucosolvan"], "active_ingredient": "Ambroxol HCl", "category": "Long đờm hô hấp", "purpose": "Làm loãng dịch nhầy đường thở"},
+    {"name": "Methylprednisolone", "aliases": ["medrol", "methylprednisolon"], "active_ingredient": "Methylprednisolone", "category": "Corticosteroid kháng viêm", "purpose": "Kháng viêm mạnh, chống dị ứng theo chỉ định"},
+    {"name": "Losartan", "aliases": ["cozaar"], "active_ingredient": "Losartan Potassium", "category": "Hạ huyết áp (ARB)", "purpose": "Kiểm soát huyết áp, bảo vệ tim thận"},
+    {"name": "Clopidogrel", "aliases": ["plavix"], "active_ingredient": "Clopidogrel", "category": "Chống kết tập tiểu cầu", "purpose": "Dự phòng huyết khối tim mạch"},
+    {"name": "Vitamin C", "aliases": ["ascorbic acid", "ceelin", "upsa c"], "active_ingredient": "Acid Ascorbic", "category": "Vitamin & Đề kháng", "purpose": "Tăng cường sức đề kháng"},
     {"name": "Sucralfate", "aliases": ["sucrate", "sucrate gel", "sucralfat"], "active_ingredient": "Sucralfate", "category": "Bảo vệ niêm mạc dạ dày", "purpose": "Băng bao vết loét, bảo vệ niêm mạc dạ dày"},
     {"name": "Trimebutine", "aliases": ["arthur", "debridat", "trimebutin"], "active_ingredient": "Trimebutine Maleate", "category": "Điều hòa nhu động đường tiêu hóa", "purpose": "Chống co thắt dạ dày, giảm đầy bụng khó tiêu"},
     {"name": "Magnesi & Nhôm Hydroxide", "aliases": ["biocid", "biocid mh", "papaze", "maalox", "gastropulgite"], "active_ingredient": "Antacid (Nhôm Hydroxide + Magnesi)", "category": "Thuốc kháng Axit (Antacid)", "purpose": "Trung hòa dịch vị dạ dày, giảm đau rát thượng vị"},
@@ -144,57 +176,65 @@ def parse_frequency_to_schedule(frequency_str: str, usage_str: str = "") -> Dict
       - Tối: 18:30
       - Trước ngủ: 21:30
     """
-    comb = f"{frequency_str} {usage_str}".lower()
+    comb = _fold_ascii(f"{frequency_str} {usage_str}")
     schedule = {
         "morning": {"time": "07:00", "active": False, "note": ""},
         "noon": {"time": "12:00", "active": False, "note": ""},
         "evening": {"time": "18:30", "active": False, "note": ""},
-        "bedtime": {"time": "21:30", "active": False, "note": ""}
+        "bedtime": {"time": "21:30", "active": False, "note": ""},
+        "external": {"time": "Khi cần", "active": False, "note": ""},
     }
 
-    # Bóc tách trước ăn / sau ăn
+    # Bóc tách trước ăn / sau ăn / cách dùng đặc biệt
+    is_topical = any(k in comb for k in ("boi", "thoa", "xoa", "dung ngoai", "ngoai da", "apply", "topical"))
     timing_note = "Sau khi ăn 30 phút"
-    if "trước ăn" in comb or "truoc an" in comb:
+    if "truoc an" in comb or "before meal" in comb:
         timing_note = "Trước khi ăn 30 phút"
-    elif "ngậm" in comb:
+    elif "ngam" in comb or "sublingual" in comb:
         timing_note = "Ngậm dưới lưỡi"
-    elif "bôi" in comb or "dung ngoai" in comb:
+    elif "suc hong" in comb or "gargle" in comb:
+        timing_note = "Súc họng"
+    elif is_topical:
         timing_note = "Dùng ngoài da"
 
-    # Rule phân bổ theo số lần
-    if any(k in comb for k in ["1 lần", "1 lan", "buổi sáng", "sang"]):
-        if "tối" in comb or "toi" in comb or "trước ngủ" in comb:
-            schedule["evening"]["active"] = True
-            schedule["evening"]["note"] = timing_note
-        else:
+    # Ưu tiên các buổi được ghi tường minh (Sáng / Trưa / Chiều-Tối / Trước ngủ)
+    has_morning = bool(re.search(r"\b(sang|morning|breakfast)\b", comb))
+    has_noon = bool(re.search(r"\b(trua|noon|lunch)\b", comb))
+    has_evening = bool(re.search(r"\b(chieu|toi|evening|dinner)\b", comb))
+    has_bedtime = bool(re.search(r"\b(truoc\s*(?:khi\s*)?ngu|bedtime)\b", comb))
+
+    if has_morning or has_noon or has_evening or has_bedtime:
+        if has_morning:
             schedule["morning"]["active"] = True
             schedule["morning"]["note"] = timing_note
+        if has_noon:
+            schedule["noon"]["active"] = True
+            schedule["noon"]["note"] = timing_note
+        if has_evening:
+            schedule["evening"]["active"] = True
+            schedule["evening"]["note"] = timing_note
+        if has_bedtime:
+            schedule["bedtime"]["active"] = True
+            schedule["bedtime"]["note"] = timing_note
+        return schedule
 
-    elif any(k in comb for k in ["2 lần", "2 lan", "sáng, tối", "sang toi", "cách 12h"]):
-        schedule["morning"]["active"] = True
-        schedule["morning"]["note"] = timing_note
-        schedule["evening"]["active"] = True
-        schedule["evening"]["note"] = timing_note
-
-    elif any(k in comb for k in ["3 lần", "3 lan", "sáng, trưa, tối", "sang trua toi", "cách 8h"]):
-        schedule["morning"]["active"] = True
-        schedule["morning"]["note"] = timing_note
-        schedule["noon"]["active"] = True
-        schedule["noon"]["note"] = timing_note
-        schedule["evening"]["active"] = True
-        schedule["evening"]["note"] = timing_note
-
-    elif any(k in comb for k in ["4 lần", "4 lan", "cách 6h"]):
-        schedule["morning"]["active"] = True
-        schedule["morning"]["note"] = timing_note
-        schedule["noon"]["active"] = True
-        schedule["noon"]["note"] = timing_note
-        schedule["evening"]["active"] = True
-        schedule["evening"]["note"] = timing_note
-        schedule["bedtime"]["active"] = True
-        schedule["bedtime"]["note"] = timing_note
+    # Rule phân bổ theo tổng số lần / ngày (xét từ 4 -> 1)
+    if any(k in comb for k in ("4 lan", "4 times", "four times", "qid", "cach 6h")):
+        for slot in ("morning", "noon", "evening", "bedtime"):
+            schedule[slot]["active"] = True
+            schedule[slot]["note"] = timing_note
+    elif any(k in comb for k in ("3 lan", "3 times", "three times", "tid", "cach 8h")):
+        for slot in ("morning", "noon", "evening"):
+            schedule[slot]["active"] = True
+            schedule[slot]["note"] = timing_note
+    elif any(k in comb for k in ("2 lan", "2 times", "twice", "bid", "cach 12h")):
+        for slot in ("morning", "evening"):
+            schedule[slot]["active"] = True
+            schedule[slot]["note"] = timing_note
+    elif is_topical:
+        schedule["external"]["active"] = True
+        schedule["external"]["note"] = usage_str.strip() or "Dùng ngoài da khi cần"
     else:
-        # Mặc định an toàn: Sáng
         schedule["morning"]["active"] = True
         schedule["morning"]["note"] = timing_note
 
