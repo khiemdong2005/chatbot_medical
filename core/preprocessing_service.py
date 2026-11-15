@@ -41,21 +41,29 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
     perspective_corrected = False
 
     # 2. Phát hiện khung viền 4 điểm và căn phối cảnh (Perspective Transform)
+    # Chỉ kích hoạt khi ảnh chụp thực tế có nền viền ngoài tối/khác màu (tránh cắt nhầm bảng kẻ khung bên trong tờ A4 nền trắng)
     try:
         gray_for_contour = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blurred = cv2.GaussianBlur(gray_for_contour, (5, 5), 0)
-        edged = cv2.Canny(blurred, 50, 150)
-        
-        contours, _ = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
-        
+        border_pixels = np.concatenate([
+            gray_for_contour[:4, :].ravel(),
+            gray_for_contour[-4:, :].ravel(),
+            gray_for_contour[:, :4].ravel(),
+            gray_for_contour[:, -4:].ravel(),
+        ])
+        border_already_white = float(np.mean(border_pixels)) > 235.0
         doc_contour = None
-        for c in contours:
-            peri = cv2.arcLength(c, True)
-            approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-            if len(approx) == 4 and cv2.contourArea(c) > (w * h * 0.35): # Chiếm ít nhất 35% diện tích ảnh
-                doc_contour = approx
-                break
+        if not border_already_white:
+            blurred = cv2.GaussianBlur(gray_for_contour, (5, 5), 0)
+            edged = cv2.Canny(blurred, 50, 150)
+            contours, _ = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
+            for c in contours:
+                peri = cv2.arcLength(c, True)
+                approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+                area = cv2.contourArea(c)
+                if len(approx) == 4 and cv2.isContourConvex(approx) and (w * h * 0.55) <= area <= (w * h * 0.95):
+                    doc_contour = approx
+                    break
 
         if doc_contour is not None:
             pts = doc_contour.reshape(4, 2)
@@ -91,27 +99,33 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
     except Exception as e:
         print(f"[PERSPECTIVE LOG] Bỏ qua căn chỉnh viền tự động: {e}")
 
-    # 3. Tính góc xoay nghiêng (Deskewing)
+    # 3. Tính góc xoay nghiêng theo dòng văn bản ngang (HoughLinesP) — tránh lỗi xoay lệch tài liệu thẳng của minAreaRect
     deskew_angle = 0.0
     try:
         gray_for_deskew = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh = cv2.threshold(gray_for_deskew, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-        coords = np.column_stack(np.where(thresh > 0))
-        if len(coords) > 200:
-            angle = cv2.minAreaRect(coords)[-1]
-            if angle < -45:
-                angle = -(90 + angle)
-            elif angle > 45:
-                angle = 90 - angle
-            else:
-                angle = -angle
-
-            if 0.5 < abs(angle) < 25.0:
-                deskew_angle = round(float(angle), 2)
-                (cX, cY) = (w // 2, h // 2)
-                M = cv2.getRotationMatrix2D((cX, cY), deskew_angle, 1.0)
-                img = cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
-                transform = np.vstack([M, [0, 0, 1]]) @ transform
+        horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (max(15, w // 35), 1))
+        merged_lines = cv2.dilate(thresh, horiz_kernel, iterations=1)
+        lines_p = cv2.HoughLinesP(
+            merged_lines, 1, np.pi / 180.0, threshold=80, minLineLength=max(40, w // 6), maxLineGap=20
+        )
+        if lines_p is not None and len(lines_p) >= 3:
+            angles = []
+            for seg in lines_p[:, 0, :]:
+                x1, y1, x2, y2 = int(seg[0]), int(seg[1]), int(seg[2]), int(seg[3])
+                if x2 == x1:
+                    continue
+                deg = float(np.degrees(np.arctan2(y2 - y1, x2 - x1)))
+                if abs(deg) <= 15.0:
+                    angles.append(deg)
+            if len(angles) >= 3:
+                med_angle = float(np.median(angles))
+                if 0.5 < abs(med_angle) <= 12.0:
+                    deskew_angle = round(med_angle, 2)
+                    (cX, cY) = (w // 2, h // 2)
+                    M = cv2.getRotationMatrix2D((cX, cY), deskew_angle, 1.0)
+                    img = cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+                    transform = np.vstack([M, [0, 0, 1]]) @ transform
     except Exception as e:
         print(f"[DESKEW LOG] Bỏ qua deskew: {e}")
 

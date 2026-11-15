@@ -459,6 +459,223 @@ class AuthSystemRegressionTest(unittest.TestCase):
             victim = db.session.get(User, victim_id)
             self.assertEqual(victim.google_sub, "google-sub-collision-111")
 
+    def test_07_google_oauth_no_hardcoded_accounts_and_requires_real_oauth(self):
+        """Không bao giờ hiển thị danh sách Gmail cá nhân gắn cứng; khi có OAuth thì mở accounts.google.com, khi thiếu .env thì báo chưa cấu hình."""
+        home_html = self.client.get("/").get_data(as_text=True)
+        for leaked in (
+            "google-account-modal",
+            "startGoogleAccountSelection",
+            "Mô phỏng trải nghiệm Google Identity",
+        ):
+            self.assertNotIn(leaked, home_html)
+
+        with patch.dict(os.environ, {"GOOGLE_CLIENT_ID": "", "GOOGLE_CLIENT_SECRET": ""}):
+            unconf = self.client.get("/api/auth/google/login?format=json")
+            self.assertEqual(unconf.status_code, 503)
+            self.assertFalse(unconf.get_json()["configured"])
+            spoof = self.client.post("/api/auth/google", json={"email": "anyone@gmail.com", "name": "Spoof"})
+            self.assertEqual(spoof.status_code, 503)
+
+        with patch.dict(
+            os.environ,
+            {
+                "GOOGLE_CLIENT_ID": "real-client.apps.googleusercontent.com",
+                "GOOGLE_CLIENT_SECRET": "real-secret-xyz",
+            },
+        ):
+            conf = self.client.get("/api/auth/google/login?format=json")
+            self.assertEqual(conf.status_code, 200)
+            body = conf.get_json()
+            self.assertTrue(body["configured"])
+            self.assertIn("https://accounts.google.com/o/oauth2/v2/auth", body["auth_url"])
+            self.assertIn("prompt=select_account", body["auth_url"])
+
+    def test_08_google_link_identity_requires_verified_oidc_and_booking_facilities_validation(self):
+        """Liên kết Google đòi hỏi credential OIDC hợp lệ; đặt lịch chặn ngày quá khứ/SĐT sai; lọc Quận 1 không lọt Quận 10/11/12."""
+        from datetime import datetime, timedelta
+
+        reg = self.client.post(
+            "/api/auth/register",
+            json={
+                "identifier": "link.guard@medimind.vn",
+                "password": "SafePassword123!",
+                "full_name": "Bệnh Nhân Kiểm Định",
+            },
+        )
+        self.assertEqual(reg.status_code, 201)
+
+        with patch.dict(os.environ, {"GOOGLE_CLIENT_ID": "medimind-client.apps.googleusercontent.com"}):
+            spoof_link = self.client.post(
+                "/api/auth/link-identity",
+                json={"provider": "google", "google_sub": "spoofed-sub-999", "email": "spoof@gmail.com"},
+            )
+            self.assertEqual(spoof_link.status_code, 400)
+
+            wrong_aud = self.client.post(
+                "/api/auth/link-identity",
+                json={
+                    "provider": "google",
+                    "credential": "wrong-aud-token",
+                    "_mock_token_info": {
+                        "iss": "https://accounts.google.com",
+                        "aud": "evil.apps.googleusercontent.com",
+                        "exp": 4102444800,
+                        "email_verified": True,
+                        "sub": "verified-sub-777",
+                        "email": "link.guard@medimind.vn",
+                    },
+                },
+            )
+            self.assertEqual(wrong_aud.status_code, 403)
+
+            ok_link = self.client.post(
+                "/api/auth/link-identity",
+                json={
+                    "provider": "google",
+                    "credential": "valid-google-token",
+                    "_mock_token_info": {
+                        "iss": "https://accounts.google.com",
+                        "aud": "medimind-client.apps.googleusercontent.com",
+                        "exp": 4102444800,
+                        "email_verified": True,
+                        "sub": "verified-sub-777",
+                        "email": "link.guard@medimind.vn",
+                    },
+                },
+            )
+            self.assertEqual(ok_link.status_code, 200)
+
+        past_appt = self.client.post(
+            "/api/appointments",
+            json={
+                "facility_id": "1",
+                "facility_name": "BV Đa Khoa",
+                "appointment_date": "2000-01-01",
+                "appointment_time": "09:00",
+                "patient_name": "Bệnh Nhân Kiểm Định",
+                "patient_phone": "0912345678",
+            },
+        )
+        self.assertEqual(past_appt.status_code, 400)
+
+        tomorrow = (datetime.now().date() + timedelta(days=1)).isoformat()
+        bad_phone_appt = self.client.post(
+            "/api/appointments",
+            json={
+                "facility_id": "1",
+                "facility_name": "BV Đa Khoa",
+                "appointment_date": tomorrow,
+                "appointment_time": "09:00",
+                "patient_name": "Bệnh Nhân Kiểm Định",
+                "patient_phone": "abc-invalid",
+            },
+        )
+        self.assertEqual(bad_phone_appt.status_code, 400)
+
+        ok_appt = self.client.post(
+            "/api/appointments",
+            json={
+                "facility_id": "1",
+                "facility_name": "BV Đa Khoa",
+                "appointment_date": tomorrow,
+                "appointment_time": "09:00",
+                "patient_name": "Bệnh Nhân Kiểm Định",
+                "patient_phone": "0912345678",
+            },
+        )
+        self.assertEqual(ok_appt.status_code, 201)
+
+        q1_res = self.client.get("/api/facilities?quan_huyen=Qu%E1%BA%ADn+1&limit=50")
+        self.assertEqual(q1_res.status_code, 200)
+        q1_items = q1_res.get_json()["data"]
+        self.assertTrue(len(q1_items) > 0)
+        for item in q1_items:
+            self.assertEqual(item.get("quan_huyen"), "Quận 1")
+
+        td_res = self.client.get("/api/facilities?quan_huyen=TP.+Th%E1%BB%A7+%C4%90%E1%BB%A9c&limit=20")
+        self.assertEqual(td_res.status_code, 200)
+        self.assertGreater(td_res.get_json()["total"], 0)
+
+    def test_12_security_locked_account_csrf_csp_and_input_bounds(self):
+        """19. Kiểm thử bảo mật tổng hợp: Khóa tài khoản tức thì, OTP purpose, Fetch-Metadata CSRF, CSP, CRLF & giới hạn đầu vào."""
+        # 1. Chặn mục đích OTP trái phép & liên kết khi chưa đăng nhập (V-01)
+        bad_otp = self.client.post("/api/auth/otp/send", json={"identifier": "a@b.com", "purpose": "admin_escalate"})
+        self.assertEqual(bad_otp.status_code, 400)
+        unauth_link_otp = self.client.post("/api/auth/otp/send", json={"identifier": "a@b.com", "purpose": "link_identity"})
+        self.assertEqual(unauth_link_otp.status_code, 401)
+
+        # 2. Tạo User A, tạo guest_token rồi chuyển sang User B -> không lộ guest_token cũ (V-09)
+        reg_a = self.client.post(
+            "/api/auth/register",
+            json={"identifier": "sec.user.a@gmail.com", "password": "PasswordA123!", "full_name": "Sec User A"},
+        )
+        self.assertEqual(reg_a.status_code, 201)
+        uid_a = reg_a.get_json()["user"]["id"]
+        with self.client.session_transaction() as sess:
+            sess["guest_token"] = "gst_user_a_private"
+
+        reg_b = self.client.post(
+            "/api/auth/register",
+            json={"identifier": "sec.user.b@gmail.com", "password": "PasswordB123!", "full_name": "Sec User B"},
+        )
+        self.assertEqual(reg_b.status_code, 201)
+        with self.client.session_transaction() as sess:
+            self.assertNotEqual(sess.get("guest_token"), "gst_user_a_private")
+
+        # 3. Khóa tài khoản User A -> thu hồi phiên tức thì & chặn OTP login_2fa / reset_pwd (V-01, V-09)
+        self.client.post("/api/auth/login", json={"identifier": "sec.user.a@gmail.com", "password": "PasswordA123!"})
+        from core.otp_service import otp_manager
+        ok_req, _, _ = otp_manager.request_otp("sec.user.a@gmail.com", "email", purpose="login_2fa")
+        self.assertTrue(ok_req)
+        active_code = otp_manager.get_active_code("sec.user.a@gmail.com", "email")
+
+        user_a = db.session.get(User, uid_a)
+        user_a.account_status = "locked"
+        db.session.commit()
+
+        self.assertEqual(self.client.get("/api/appointments").status_code, 401)
+        self.assertFalse(self.client.get("/api/auth/me").get_json()["authenticated"])
+        self.assertEqual(
+            self.client.post("/api/auth/otp/send", json={"identifier": "sec.user.a@gmail.com", "purpose": "login_2fa"}).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.post(
+                "/api/auth/otp/verify",
+                json={"identifier": "sec.user.a@gmail.com", "channel": "email", "code": active_code, "purpose": "login_2fa"},
+            ).status_code,
+            403,
+        )
+
+        # 4. Fetch Metadata Cross-Site CSRF & CSP Directives (V-08, V-10)
+        csrf_res = self.client.post(
+            "/api/auth/logout",
+            headers={"Sec-Fetch-Site": "cross-site"},
+        )
+        self.assertEqual(csrf_res.status_code, 403)
+        csp = csrf_res.headers.get("Content-Security-Policy", "")
+        self.assertIn("object-src 'none'", csp)
+        self.assertIn("frame-ancestors 'self'", csp)
+        self.assertIn("form-action 'self'", csp)
+
+        # 5. Giới hạn độ dài & ảnh lỗi tại /api/intake/message và /api/nutrition/analyze (V-05)
+        self.assertEqual(
+            self.client.post("/api/intake/message", json={"message": "x" * 2005}).status_code,
+            400,
+        )
+        self.assertEqual(
+            self.client.post("/api/intake/message", json={"message": "Đau đầu", "image": "not_base64_!!!"}).status_code,
+            400,
+        )
+        self.assertEqual(
+            self.client.post("/api/nutrition/analyze", json={"condition": "c" * 505}).status_code,
+            400,
+        )
+
+        # 6. Chống tiêm header SMTP CRLF (V-10)
+        from core.email_service import EmailService
+        self.assertEqual(EmailService._strip_crlf("victim@x.com\r\nBcc:leak@evil.com"), "victim@x.com  Bcc:leak@evil.com")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

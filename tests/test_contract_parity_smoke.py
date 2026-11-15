@@ -68,3 +68,33 @@ def test_emergency_parity_across_backends(client):
     assert fastapi_res.json()["is_emergency"] is True
     assert fastapi_res.json()["risk_score"] == 90
 
+
+def test_fastapi_gateway_security_headers_and_csrf_protection():
+    """Kiểm thử 8c: FastAPI Gateway áp dụng đầy đủ Security Headers & chặn Cross-Origin / Cross-Site CSRF."""
+    fastapi_client = TestClient(fastapi_app)
+
+    idx_res = fastapi_client.get("/")
+    assert idx_res.status_code == 200
+    assert idx_res.headers.get("X-Content-Type-Options") == "nosniff"
+    assert idx_res.headers.get("X-Frame-Options") == "SAMEORIGIN"
+    assert idx_res.headers.get("Server") == "MediMind-Clinical-Engine"
+    csp = idx_res.headers.get("Content-Security-Policy", "")
+    assert "object-src 'none'" in csp
+    assert "frame-ancestors 'self'" in csp
+    assert "form-action 'self'" in csp
+
+    cross_origin_res = fastapi_client.post(
+        "/api/chat",
+        json={"message": "Sốt nhẹ", "history": []},
+        headers={"Origin": "https://attacker.evil.example"},
+    )
+    assert cross_origin_res.status_code == 403
+
+    cross_site_fetch = fastapi_client.post(
+        "/api/chat",
+        json={"message": "Sốt nhẹ", "history": []},
+        headers={"Sec-Fetch-Site": "cross-site"},
+    )
+    assert cross_site_fetch.status_code == 403
+
+

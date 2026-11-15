@@ -12,6 +12,7 @@ Mục đích:
 
 import os
 import sys
+import urllib.parse
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
@@ -46,6 +47,8 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
+_is_prod = os.getenv("FLASK_ENV", "development").lower() == "production" or os.getenv("APP_ENV", "").lower() == "production"
+
 # Khởi tạo FastAPI App
 app = FastAPI(
     title="🩺 MediMind Clinical AI - Trợ lý Sức khỏe Toàn diện",
@@ -59,9 +62,61 @@ app = FastAPI(
 * **Storage Protection:** Giới hạn request size, kiểm tra magic bytes và chống path traversal.
     """,
     version="2.5.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    docs_url=None if _is_prod else "/docs",
+    redoc_url=None if _is_prod else "/redoc",
+    openapi_url=None if _is_prod else "/openapi.json",
 )
+
+_CSP_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; "
+    "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+    "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://unpkg.com https://image.cooky.vn https://monngonmoingay.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; "
+    "connect-src 'self' https://accounts.google.com/gsi/ https://maps.googleapis.com https://mapsresources-pa.googleapis.com https://maps.gstatic.com; "
+    "frame-src 'self' https://accounts.google.com/gsi/ https://www.google.com https://maps.google.com; "
+    "object-src 'none'; "
+    "frame-ancestors 'self'; "
+    "form-action 'self'; "
+    "base-uri 'self';"
+)
+
+
+def _apply_gateway_security_headers(response, is_https: bool = False):
+    response.headers["Server"] = "MediMind-Clinical-Engine"
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), payment=()")
+    response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
+    response.headers.setdefault("Content-Security-Policy", _CSP_POLICY)
+    if _is_prod or is_https:
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return response
+
+
+@app.middleware("http")
+async def gateway_csrf_and_headers_middleware(request: Request, call_next):
+    is_https = request.url.scheme == "https"
+    if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+        if (request.headers.get("sec-fetch-site") or "").strip().lower() == "cross-site":
+            return _apply_gateway_security_headers(
+                JSONResponse(status_code=403, content={"error": "Yêu cầu bị từ chối do vi phạm chính sách cùng nguồn gốc (Cross-Site Fetch Blocked)."}),
+                is_https,
+            )
+        source = request.headers.get("origin") or request.headers.get("referer")
+        if source:
+            origin_host = (urllib.parse.urlparse(source).hostname or "").lower()
+            req_host = ((request.headers.get("host") or request.url.hostname or "").split(":")[0]).lower()
+            loopbacks = {"localhost", "127.0.0.1"}
+            same_loopback = origin_host in loopbacks and req_host in loopbacks
+            if not origin_host or (origin_host != req_host and not same_loopback):
+                return _apply_gateway_security_headers(
+                    JSONResponse(status_code=403, content={"error": "Yêu cầu bị từ chối do vi phạm chính sách cùng nguồn gốc (Origin Policy Mismatch)."}),
+                    is_https,
+                )
+    response = await call_next(request)
+    return _apply_gateway_security_headers(response, is_https)
 
 # Cấu hình CORS an toàn (chống lộ Cookie phiên qua Wildcard Origin)
 _allowed_origins = [
@@ -146,7 +201,7 @@ async def get_index(request: Request):
 # ==============================================================================
 
 @app.post("/api/chat", summary="Tư vấn Triệu chứng Y tế (RAG + Gemini Vision + Double Guardrails)", tags=["1. Tư vấn Lâm sàng (Chatbot)"])
-async def chat_endpoint(req: ChatMessageRequest):
+async def chat_endpoint(req: ChatMessageRequest, request: Request):
     """
     Sử dụng chung dịch vụ process_clinical_chat và offload sang thread pool để không block asyncio loop:
     1. Tiền kiểm cờ đỏ cấp cứu
@@ -154,6 +209,12 @@ async def chat_endpoint(req: ChatMessageRequest):
     3. Bộ não AI Gemini Flash + Fallback nội bộ
     4. Hậu kiểm màng lọc chặn kê đơn kháng sinh
     """
+    if not (flask_app_instance.config.get("TESTING") or os.getenv("PYTEST_CURRENT_TEST")):
+        from core.security_patch import check_otp_attempts
+        client_ip = (request.client.host if request.client else None) or "127.0.0.1"
+        if not check_otp_attempts(f"fastapi_chat:{client_ip}", max_attempts=25):
+            return JSONResponse(status_code=429, content={"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."})
+
     try:
         payload = validate_chat_request(req.model_dump())
     except ValueError as error:

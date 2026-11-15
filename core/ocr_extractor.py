@@ -1,4 +1,6 @@
+import json
 import os
+import subprocess
 import sys
 import time
 from typing import Dict, Any, List, Optional
@@ -20,10 +22,100 @@ from core.image_preprocessor import preprocess_prescription_image
 # Global singleton EasyOCR Reader để tránh nạp lại mô hình nhiều lần gây chậm
 _OCR_READER = None
 
+_WINRT_OCR_PS = r"""
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Add-Type -AssemblyName System.Runtime.WindowsRuntime
+$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
+    $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
+})[0]
+function Await($op, $t) {
+    $netTask = $asTaskGeneric.MakeGenericMethod($t).Invoke($null, @($op))
+    $netTask.Wait(-1) | Out-Null
+    return $netTask.Result
+}
+[void][Windows.Storage.StorageFile,Windows.Storage,ContentType=WindowsRuntime]
+[void][Windows.Graphics.Imaging.BitmapDecoder,Windows.Graphics.Imaging,ContentType=WindowsRuntime]
+[void][Windows.Media.Ocr.OcrEngine,Windows.Foundation,ContentType=WindowsRuntime]
+[void][Windows.Globalization.Language,Windows.Foundation,ContentType=WindowsRuntime]
+
+$file = Await ([Windows.Storage.StorageFile]::GetFileFromPathAsync($env:MEDIMIND_OCR_IMAGE)) ([Windows.Storage.StorageFile])
+$stream = Await ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
+$decoder = Await ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
+$bmp = Await ($decoder.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
+$engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromUserProfileLanguages()
+if ($null -eq $engine) {
+    $engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromLanguage([Windows.Globalization.Language]::new('en-US'))
+}
+$ocr = Await ($engine.RecognizeAsync($bmp)) ([Windows.Media.Ocr.OcrResult])
+$out = foreach ($ln in $ocr.Lines) {
+    $ws = foreach ($w in $ln.Words) {
+        $r = $w.BoundingRect
+        @{ t = $w.Text; x = [double]$r.X; y = [double]$r.Y; w = [double]$r.Width; h = [double]$r.Height }
+    }
+    @{ words = @($ws) }
+}
+ConvertTo-Json -InputObject @($out) -Depth 5 -Compress
+"""
+
+
+class _WinRtOcrReader:
+    """ponytail: OS-native Windows.Media.Ocr fallback when EasyOCR/PyTorch is absent; swap to EasyOCR when Python 3.15 wheels ship."""
+
+    def readtext(self, image_path: str):
+        abs_path = os.path.abspath(image_path)
+        if not os.path.exists(abs_path):
+            return []
+        env = os.environ.copy()
+        env["MEDIMIND_OCR_IMAGE"] = abs_path
+        proc = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", _WINRT_OCR_PS],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=env,
+            timeout=12,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        if proc.returncode != 0 or not proc.stdout.strip():
+            return []
+        raw_json = proc.stdout.strip()
+        parsed = json.loads(raw_json)
+        if isinstance(parsed, dict):
+            parsed = [parsed]
+        results = []
+        for ln in parsed or []:
+            words = ln.get("words") or []
+            if isinstance(words, dict):
+                words = [words]
+            if not words:
+                continue
+            segments: List[List[Dict[str, Any]]] = [[words[0]]]
+            for w in words[1:]:
+                prev = segments[-1][-1]
+                prev_right = float(prev["x"]) + float(prev["w"])
+                gap = float(w["x"]) - prev_right
+                gap_limit = max(26.0, float(prev["h"]) * 1.6)
+                if gap > gap_limit:
+                    segments.append([w])
+                else:
+                    segments[-1].append(w)
+            for seg in segments:
+                txt = " ".join(str(x.get("t", "")).strip() for x in seg if str(x.get("t", "")).strip())
+                if not txt:
+                    continue
+                x1 = int(round(min(float(x["x"]) for x in seg)))
+                y1 = int(round(min(float(x["y"]) for x in seg)))
+                x2 = int(round(max(float(x["x"]) + float(x["w"]) for x in seg)))
+                y2 = int(round(max(float(x["y"]) + float(x["h"]) for x in seg)))
+                bbox = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
+                results.append((bbox, txt, 0.88))
+        return results
+
 
 def get_ocr_reader():
     """
-    Khởi tạo hoặc trả về bộ đọc EasyOCR tiếng Việt + tiếng Anh.
+    Khởi tạo hoặc trả về bộ đọc EasyOCR tiếng Việt + tiếng Anh (hoặc Windows WinRT OCR dự phòng).
     Singleton pattern: Tải trọng số 1 lần duy nhất trong suốt vòng đời ứng dụng.
     """
     global _OCR_READER
@@ -35,8 +127,12 @@ def get_ocr_reader():
             _OCR_READER = easyocr.Reader(['vi', 'en'], gpu=False, verbose=False)
             print(f"[OCR ENGINE] Mô hình OCR sẵn sàng ({time.time() - start_t:.2f}s)!")
         except Exception as e:
-            print(f"[OCR ENGINE ERROR] Không thể khởi tạo EasyOCR: {e}")
-            _OCR_READER = None
+            if os.name == "nt":
+                print(f"[OCR ENGINE] EasyOCR chưa cài đặt ({e}) -> Kích hoạt Windows Native WinRT OCR.")
+                _OCR_READER = _WinRtOcrReader()
+            else:
+                print(f"[OCR ENGINE ERROR] Không thể khởi tạo EasyOCR: {e}")
+                _OCR_READER = None
     return _OCR_READER
 
 

@@ -377,6 +377,22 @@ body.light-glass #profile-tab select {
   background-color: #FFFFFF !important;
   border: 1px solid #CBD5E1 !important;
   font-weight: 500 !important;
+  color-scheme: light;
+}
+
+body:not(.light-glass) #profile-tab select,
+body:not(.light-glass) #settings-tab select {
+  color-scheme: dark;
+}
+
+body:not(.light-glass) #profile-tab select option,
+body:not(.light-glass) #settings-tab select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+body.light-glass #settings-tab select {
+  color-scheme: light;
 }
 
 body.light-glass #profile-tab input::placeholder {
@@ -1020,18 +1036,10 @@ body:not(.light-glass) .auth-segmented-tabs button:not(.active) {
    UI AUDIT v16.6.0: COMPREHENSIVE CONTRAST, TYPOGRAPHY & BACKGROUND FIXES
    ============================================================================== */
 
-/* 1. Protect Google Account Modal (Always Google Dark #131314) & Medical Toasts */
-body.light-glass #google-account-modal .text-white,
-body.light-glass #google-account-modal input.text-white,
+/* 1. Protect Medical Toasts in Light Mode */
 body.light-glass #medical-toast-container .text-white,
 body.light-glass #medical-toast-container div {
   color: #FFFFFF !important;
-}
-body.light-glass #google-account-modal .text-\[\#e3e3e3\] {
-  color: #E3E3E3 !important;
-}
-body.light-glass #google-account-modal .text-\[\#8e918f\] {
-  color: #8E918F !important;
 }
 
 /* 2. Protect Copilot Dark Card (.bg-sky-950) in Light Mode */

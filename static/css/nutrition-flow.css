@@ -196,6 +196,15 @@ html.dark #doctor-tab .nf-condition-banner > strong,
 #doctor-tab .nf-avoid { margin-top: 23px; padding: 15px; border: 1px solid #f1d7d5; border-radius: 15px; background: #fff7f5; color: #8b5652; font-size: 12px; line-height: 1.6; }
 #doctor-tab .nf-avoid strong { display: block; margin-bottom: 4px; color: #ad615a; font-size: 10px; letter-spacing: .1em; }
 #doctor-tab .nf-disclaimer { color: #758c9c; font-size: 11px; margin-top: 20px; text-align: center; }
+body:not(.light-glass) #doctor-tab.nutrition-flow { color: #e2e8f0; }
+body:not(.light-glass) #doctor-tab h1, body:not(.light-glass) #doctor-tab .nf-type-card strong, body:not(.light-glass) #doctor-tab .nf-card-content strong, body:not(.light-glass) #doctor-tab .nf-detail-copy h2 { color: #f8fafc; }
+body:not(.light-glass) #doctor-tab .nf-overline, body:not(.light-glass) #doctor-tab .nf-subtitle strong, body:not(.light-glass) #doctor-tab .nf-card-footer b, body:not(.light-glass) #doctor-tab .nf-ingredient b { color: #38bdf8; }
+body:not(.light-glass) #doctor-tab .nf-subtitle, body:not(.light-glass) #doctor-tab .nf-search-hint, body:not(.light-glass) #doctor-tab .nf-type-card small, body:not(.light-glass) #doctor-tab .nf-card-content p, body:not(.light-glass) #doctor-tab .nf-card-footer, body:not(.light-glass) #doctor-tab .nf-status, body:not(.light-glass) #doctor-tab .nf-disclaimer { color: #94a3b8; }
+body:not(.light-glass) #doctor-tab .nf-search-box, body:not(.light-glass) #doctor-tab .nf-type-card, body:not(.light-glass) #doctor-tab .nf-card, body:not(.light-glass) #doctor-tab .nf-detail-visual, body:not(.light-glass) #doctor-tab .nf-detail-copy { background: #0f172a; border-color: #1e293b; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+body:not(.light-glass) #doctor-tab .nf-search-box input { color: #f8fafc; }
+body:not(.light-glass) #doctor-tab .nf-back, body:not(.light-glass) #doctor-tab .nf-load-more { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+body:not(.light-glass) #doctor-tab .nf-back:hover, body:not(.light-glass) #doctor-tab .nf-load-more:hover { border-color: #38bdf8; color: #38bdf8; }
+body:not(.light-glass) #doctor-tab .nf-card-footer { border-top-color: #1e293b; }
 @media (max-width: 900px) { #doctor-tab .nf-cards { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 650px) { #doctor-tab.nutrition-flow { padding: 0 14px 40px; } #doctor-tab .nf-search-screen { min-height: calc(100vh - 185px); } #doctor-tab .nf-search-box { height: 58px; padding-left: 14px; } #doctor-tab .nf-search-box button { height: 42px; width: 42px; flex-basis: 42px; } #doctor-tab .nf-search-box input { font-size: 13px; } #doctor-tab .nf-type-grid, #doctor-tab .nf-detail-grid { grid-template-columns: 1fr; } #doctor-tab .nf-type-card { min-height: 110px; padding: 18px; } #doctor-tab .nf-card-content strong { font-size: 13px; } #doctor-tab .nf-art { height: 120px; } #doctor-tab .nf-detail-visual .nf-art { height: auto; } #doctor-tab .nf-detail-copy { padding: 20px; } }
 

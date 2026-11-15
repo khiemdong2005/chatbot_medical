@@ -207,6 +207,13 @@ def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str
                     continue
                 
                 if lang == "en":
+                    en_scope = re.split(r"[,;]|\b(?:but|however|although|yet|though|while)\b", before)[-1]
+                    if re.search(
+                        r"\b(?:(?:not|un)\s*sure\s+(?:if|whether)|uncertain\s+(?:if|whether))\s+(?:(?:i|we|he|she|they|have|has|am|is|are|experiencing|having)\s+)*$",
+                        en_scope,
+                    ):
+                        uncertain.append(label)
+                        continue
                     if is_negated_english(before, after):
                         continue
                 else:

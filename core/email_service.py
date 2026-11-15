@@ -25,21 +25,30 @@ class EmailService:
     def is_configured(self) -> bool:
         return bool(self.server and self.username and self.password)
 
+    @staticmethod
+    def _strip_crlf(value: str) -> str:
+        return (value or "").replace("\r", " ").replace("\n", " ").strip()
+
     def send_email(self, to_email: str, subject: str, html_body: str, text_body: Optional[str] = None) -> bool:
         """Gửi thư điện tử qua giao thức SMTP. Nếu chưa cấu hình, in ra terminal để test."""
+        safe_to = self._strip_crlf(to_email)
+        safe_subject = self._strip_crlf(subject)
+        safe_sender_name = self._strip_crlf(self.sender_name)
+        safe_sender_email = self._strip_crlf(self.sender_email)
+
         if not self.is_configured():
             print("\n" + "=" * 70, flush=True)
-            print(f"📧 [DEV EMAIL SIMULATOR] Gửi tới: {to_email}", flush=True)
-            print(f"📌 Tiêu đề: {subject}", flush=True)
+            print(f"📧 [DEV EMAIL SIMULATOR] Gửi tới: {safe_to}", flush=True)
+            print(f"📌 Tiêu đề: {safe_subject}", flush=True)
             print(f"📝 Nội dung:\n{text_body or html_body}", flush=True)
             print("=" * 70 + "\n", flush=True)
             return True
 
         try:
             msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = f"{self.sender_name} <{self.sender_email}>"
-            msg["To"] = to_email
+            msg["Subject"] = safe_subject
+            msg["From"] = f"{safe_sender_name} <{safe_sender_email}>"
+            msg["To"] = safe_to
 
             if text_body:
                 msg.attach(MIMEText(text_body, "plain", "utf-8"))
@@ -49,12 +58,12 @@ class EmailService:
                 if self.use_tls:
                     s.starttls()
                 s.login(self.username, self.password)
-                s.sendmail(self.sender_email, [to_email], msg.as_string())
+                s.sendmail(safe_sender_email, [safe_to], msg.as_string())
 
-            print(f"✅ [Email Service] Đã gửi thư thành công tới: {to_email}")
+            print(f"✅ [Email Service] Đã gửi thư thành công tới: {safe_to}")
             return True
         except Exception as e:
-            print(f"❌ [Email Service] Lỗi khi gửi thư tới {to_email}: {e}")
+            print(f"❌ [Email Service] Lỗi khi gửi thư tới {safe_to}: {e}")
             return False
 
     def send_verification_otp(self, to_email: str, otp_code: str, full_name: Optional[str] = None, purpose: str = "register") -> bool:

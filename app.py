@@ -16,11 +16,13 @@ if hasattr(sys.stderr, 'reconfigure'):
 # ==============================================================
 
 import os
+import re
 import time
 import json
 import logging
 import uuid
 import urllib.parse
+import urllib.request
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
@@ -198,6 +200,25 @@ def create_app(test_config=None):
     app.config["SESSION_COOKIE_SECURE"] = is_prod or (os.getenv("SESSION_COOKIE_SECURE", "false").lower() in ("true", "1"))
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Giới hạn 16MB chống tràn bộ nhớ DoS (VULN-04)
 
+    def _get_client_ip() -> str:
+        # ponytail: trust X-Forwarded-For only when TRUST_PROXY_HEADERS=true behind reverse proxy; switch to ProxyFix if multi-hop LB is added
+        if os.getenv("TRUST_PROXY_HEADERS", "false").lower() in ("true", "1"):
+            xff = (request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+            if xff:
+                return xff
+        return request.remote_addr or "127.0.0.1"
+
+    def _is_rate_limited(rate_key: str, max_attempts: int) -> bool:
+        if app.config.get("TESTING"):
+            return False
+        from core.security_patch import check_otp_attempts
+        return not check_otp_attempts(rate_key, max_attempts=max_attempts)
+
+    def _allow_dev_otp_exposure() -> bool:
+        if is_prod:
+            return False
+        return bool(app.debug or app.config.get("TESTING") or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true"))
+
     @app.before_request
     def record_request_start_time():
         """Đo đạc chính xác thời gian bắt đầu tiếp nhận gói tin (Latency Tracking)."""
@@ -207,7 +228,11 @@ def create_app(test_config=None):
     def validate_csrf_and_origin():
         """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE)."""
         if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-            # ponytail: Origin + Referer hostname check covers browser CSRF; add per-session CSRF token if cross-subdomain forms are added
+            # ponytail: Origin/Referer + Fetch Metadata check covers browser CSRF; add per-session CSRF token if cross-subdomain forms are added
+            if (request.headers.get("Sec-Fetch-Site") or "").strip().lower() == "cross-site":
+                return jsonify({
+                    "error": "Yêu cầu bị từ chối do vi phạm chính sách cùng nguồn gốc (Cross-Site Fetch Blocked)."
+                }), 403
             source = request.headers.get("Origin") or request.headers.get("Referer")
             if source:
                 parsed = urllib.parse.urlparse(source)
@@ -240,6 +265,9 @@ def create_app(test_config=None):
             "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://unpkg.com https://image.cooky.vn https://monngonmoingay.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; "
             "connect-src 'self' https://accounts.google.com/gsi/ https://maps.googleapis.com https://mapsresources-pa.googleapis.com https://maps.gstatic.com; "
             "frame-src 'self' https://accounts.google.com/gsi/ https://www.google.com https://maps.google.com; "
+            "object-src 'none'; "
+            "frame-ancestors 'self'; "
+            "form-action 'self'; "
             "base-uri 'self';"
         )
         response.headers.setdefault("Content-Security-Policy", csp_policy)
@@ -267,6 +295,27 @@ def create_app(test_config=None):
     # Khởi tạo cơ sở dữ liệu an toàn theo đúng URI đã cấu hình
     init_db(app)
 
+    def _is_active_account(user_obj) -> bool:
+        return bool(user_obj and getattr(user_obj, "account_status", "active") in (None, "active"))
+
+    def _establish_authenticated_session(user_obj: User) -> None:
+        prev_user_id = session.get("user_id")
+        preserved_guest_token = session.get("guest_token") if prev_user_id is None else None
+        session.clear()
+        if preserved_guest_token:
+            session["guest_token"] = preserved_guest_token
+        session["user_id"] = user_obj.id
+        session["user_role"] = user_obj.role
+
+    @app.before_request
+    def enforce_active_session_user():
+        """Thu hồi tức thì phiên làm việc nếu tài khoản bị khóa hoặc không còn tồn tại."""
+        uid = session.get("user_id")
+        if uid is not None and not request.path.startswith("/static/"):
+            u = db.session.get(User, uid)
+            if not _is_active_account(u):
+                session.clear()
+
     # Khởi tạo dịch vụ trí tuệ nhân tạo Gemini
     gemini_service = GeminiMedicalService()
 
@@ -291,7 +340,7 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Vui lòng nhập định danh tài khoản và mật khẩu."}), 400
 
         from core.security_patch import check_otp_attempts, reset_otp_attempts
-        client_ip = request.headers.get("X-Forwarded-For", request.remote_addr or "127.0.0.1").split(",")[0].strip()
+        client_ip = _get_client_ip()
         rate_key = normalize_login_rate_key(raw_identifier)
         if not check_otp_attempts(rate_key, max_attempts=5):
             record_security_event(
@@ -358,8 +407,7 @@ def create_app(test_config=None):
         reset_otp_attempts(rate_key)
 
         # Khởi tạo phiên làm việc (Session)
-        session["user_id"] = user.id
-        session["user_role"] = user.role
+        _establish_authenticated_session(user)
 
         return jsonify({
             "success": True,
@@ -378,15 +426,11 @@ def create_app(test_config=None):
           - Luôn tạo tài khoản với vai trò 'patient', đồng bộ bảng auth_identities trong cùng transaction.
         """
         data = request.get_json(silent=True) or {}
-        if not app.config.get("TESTING"):
-            from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
-            reg_rate_key = f"register_ip:{client_ip}"
-            if not check_otp_attempts(reg_rate_key, max_attempts=10):
-                return jsonify({
-                    "success": False,
-                    "error": "Bạn đã gửi quá nhiều yêu cầu tạo tài khoản từ địa chỉ IP này. Vui lòng thử lại sau 5 phút."
-                }), 429
+        if _is_rate_limited(f"register_ip:{_get_client_ip()}", max_attempts=10):
+            return jsonify({
+                "success": False,
+                "error": "Bạn đã gửi quá nhiều yêu cầu tạo tài khoản từ địa chỉ IP này. Vui lòng thử lại sau 5 phút."
+            }), 429
 
         raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
         password = (data.get("password") or "").strip()
@@ -480,8 +524,7 @@ def create_app(test_config=None):
             db.session.rollback()
             return jsonify({"success": False, "error": "Tài khoản (Email hoặc Số điện thoại) này đã được sử dụng."}), 409
 
-        session["user_id"] = new_user.id
-        session["user_role"] = new_user.role
+        _establish_authenticated_session(new_user)
 
         return jsonify({
             "success": True,
@@ -607,6 +650,9 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập để đổi mật khẩu."}), 401
 
+        if _is_rate_limited(f"change_pwd:{user_id}:{_get_client_ip()}", max_attempts=8):
+            return jsonify({"success": False, "error": "Bạn đã thử đổi mật khẩu quá nhiều lần. Vui lòng thử lại sau 5 phút."}), 429
+
         user = db.session.get(User, user_id)
         if not user:
             session.clear()
@@ -637,6 +683,9 @@ def create_app(test_config=None):
           - Giới hạn tần suất chống spam.
           - Không tiết lộ sự tồn tại của tài khoản ra thông báo lỗi.
         """
+        if _is_rate_limited(f"forgot_pwd_ip:{_get_client_ip()}", max_attempts=8):
+            return jsonify({"success": False, "error": "Bạn đã gửi quá nhiều yêu cầu khôi phục mật khẩu. Vui lòng thử lại sau 5 phút."}), 429
+
         data = request.get_json(silent=True) or {}
         raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
         if not raw_identifier:
@@ -654,7 +703,7 @@ def create_app(test_config=None):
             channel = "sms"
 
         user = find_login_user(norm_id)
-        if not user:
+        if not user or not _is_active_account(user):
             # Phản hồi thành công giả định để chống dò tài khoản (Anti-Enumeration)
             return jsonify({
                 "success": True,
@@ -681,7 +730,7 @@ def create_app(test_config=None):
         from core.email_service import email_service
         from core.sms_service import sms_service
         is_real_channel = email_service.is_configured() if channel == "email" else sms_service.is_configured()
-        if not is_real_channel and (app.debug or app.config.get("TESTING") or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")):
+        if not is_real_channel and _allow_dev_otp_exposure():
             res_data["dev_otp"] = otp_manager.get_active_code(norm_id, channel)
         return jsonify(res_data), 200
 
@@ -689,6 +738,9 @@ def create_app(test_config=None):
     @app.route("/api/auth/reset-password", methods=["POST"])
     def auth_reset_password():
         """Xác minh mã OTP khôi phục và đặt lại mật khẩu mới, bảo toàn 100% user_id và dữ liệu y tế."""
+        if _is_rate_limited(f"reset_pwd_ip:{_get_client_ip()}", max_attempts=10):
+            return jsonify({"success": False, "error": "Quá nhiều lần thử đặt lại mật khẩu. Vui lòng thử lại sau 5 phút."}), 429
+
         data = request.get_json(silent=True) or {}
         raw_identifier = (data.get("identifier") or data.get("email") or data.get("phone_number") or "").strip()
         code = (data.get("code") or "").strip()
@@ -725,7 +777,7 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": err_msg}), 400
 
         user = find_login_user(norm_id)
-        if not user:
+        if not user or not _is_active_account(user):
             return jsonify({"success": False, "error": "Không thể đặt lại mật khẩu cho tài khoản này."}), 400
 
         user.set_password(new_password)
@@ -820,10 +872,32 @@ def create_app(test_config=None):
             user.phone_number = norm_phone
 
         elif provider == "google":
-            google_sub = (data.get("google_sub") or data.get("sub") or "").strip()
-            google_email = normalize_email(data.get("email"))
-            if not google_sub:
-                return jsonify({"success": False, "error": "Thiếu định danh Google Subject ID (sub)."}), 400
+            client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
+            credential = data.get("credential")
+            if not credential or not isinstance(credential, str) or not credential.strip():
+                return jsonify({
+                    "success": False,
+                    "error": "Vui lòng cung cấp Google ID Token (credential) hợp lệ để liên kết tài khoản Google."
+                }), 400
+
+            if app.config.get("TESTING") and isinstance(data.get("_mock_token_info"), dict):
+                token_info = data["_mock_token_info"]
+            else:
+                try:
+                    verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={urllib.parse.quote(credential.strip())}"
+                    with urllib.request.urlopen(verify_url, timeout=8) as resp:
+                        token_info = json.loads(resp.read().decode("utf-8"))
+                except Exception as ex:
+                    logger.warning(f"Xác thực Google ID Token khi liên kết thất bại: {ex}")
+                    return jsonify({"success": False, "error": "Google ID Token không hợp lệ hoặc đã hết hạn."}), 401
+
+            valid_claims, claim_res = _validate_google_oidc_claims(token_info, expected_client_id=client_id)
+            if not valid_claims:
+                status_code = 403 if "audience" in str(claim_res) else 401
+                return jsonify({"success": False, "error": claim_res}), status_code
+
+            google_sub = claim_res["sub"]
+            google_email = claim_res["email"]
 
             dup_sub = User.query.filter((User.id != user.id) & (User.google_sub == google_sub)).first()
             dup_id = AuthIdentity.query.filter(
@@ -868,21 +942,34 @@ def create_app(test_config=None):
     # HỆ THỐNG XÁC THỰC OTP (EMAIL / SMS) & GOOGLE OAUTH 2.0 (OIDC)
     # ==============================================================
 
+    _ALLOWED_OTP_PURPOSES = {"register", "login_2fa", "reset_pwd", "link_identity", "verify"}
+
     @app.route("/api/auth/otp/send", methods=["POST"])
     def auth_send_otp():
         """
         Gửi mã xác thực OTP 6 số qua Gmail hoặc SMS Twilio / SpeedSMS.
         Rate-limit: cooldown 60s, TTL 5 phút, CSPRNG.
         """
+        if _is_rate_limited(f"otp_send_ip:{_get_client_ip()}", max_attempts=8):
+            return jsonify({"success": False, "error": "Bạn đã gửi quá nhiều yêu cầu mã OTP. Vui lòng thử lại sau 5 phút."}), 429
+
         data = request.get_json(silent=True) or {}
         identifier = (data.get("identifier") or data.get("email") or data.get("phone") or "").strip()
         channel = (data.get("channel") or "").strip().lower()
         purpose = (data.get("purpose") or "register").strip()
-        full_name = (data.get("full_name") or data.get("name") or "").strip()
+        full_name = (data.get("full_name") or data.get("name") or "").strip()[:120]
+
+        if purpose not in _ALLOWED_OTP_PURPOSES:
+            return jsonify({"success": False, "error": "Mục đích xác thực OTP không hợp lệ."}), 400
+
+        if purpose == "link_identity" and not session.get("user_id"):
+            return jsonify({"success": False, "error": "Vui lòng đăng nhập trước khi liên kết định danh."}), 401
 
         if not identifier:
             return jsonify({"success": False, "error": "Vui lòng nhập Email hoặc Số điện thoại."}), 400
 
+        if channel and channel not in ("email", "sms"):
+            return jsonify({"success": False, "error": "Kênh nhận mã OTP không hợp lệ."}), 400
         if not channel:
             channel = "email" if "@" in identifier else "sms"
 
@@ -912,6 +999,11 @@ def create_app(test_config=None):
                     "success": False,
                     "error": "Tài khoản không tồn tại trên hệ thống. Vui lòng đăng ký tài khoản mới!"
                 }), 404
+            if not _is_active_account(exist_acc):
+                return jsonify({
+                    "success": False,
+                    "error": "Tài khoản này hiện đang bị khóa hoặc tạm ngưng hoạt động."
+                }), 403
 
         success, msg, cooldown = otp_manager.request_otp(
             identifier=identifier,
@@ -935,7 +1027,7 @@ def create_app(test_config=None):
         from core.email_service import email_service
         from core.sms_service import sms_service
         is_real_channel = email_service.is_configured() if channel == "email" else sms_service.is_configured()
-        if not is_real_channel and (app.debug or app.config.get("TESTING") or os.getenv("FLASK_DEBUG", "0").lower() in ("1", "true")):
+        if not is_real_channel and _allow_dev_otp_exposure():
             res_data["dev_otp"] = otp_manager.get_active_code(identifier, channel)
 
         return jsonify(res_data)
@@ -950,16 +1042,24 @@ def create_app(test_config=None):
           - purpose='login_2fa': Xác thực OTP và đăng nhập cấp session
           - purpose='reset_pwd' / 'link_identity' / 'verify': Xác minh OTP theo mục đích
         """
+        if _is_rate_limited(f"otp_verify_ip:{_get_client_ip()}", max_attempts=12):
+            return jsonify({"success": False, "error": "Quá nhiều lần xác minh OTP. Vui lòng thử lại sau 5 phút."}), 429
+
         data = request.get_json(silent=True) or {}
         raw_identifier = (data.get("identifier") or "").strip()
         channel = (data.get("channel") or "").strip().lower()
         code = (data.get("code") or "").strip()
         purpose = (data.get("purpose") or "register").strip()
-        user_data = data.get("user_data") or {}
+        user_data = data.get("user_data") if isinstance(data.get("user_data"), dict) else {}
+
+        if purpose not in _ALLOWED_OTP_PURPOSES:
+            return jsonify({"success": False, "error": "Mục đích xác thực OTP không hợp lệ."}), 400
 
         if not raw_identifier or not code:
             return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ thông tin và mã OTP 6 chữ số."}), 400
 
+        if channel and channel not in ("email", "sms"):
+            return jsonify({"success": False, "error": "Kênh xác thực OTP không hợp lệ."}), 400
         if not channel:
             channel = "email" if "@" in raw_identifier else "sms"
 
@@ -977,6 +1077,17 @@ def create_app(test_config=None):
         dob = (user_data.get("dob") or "").strip()
         if purpose == "register" and dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
             return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
+
+        reg_password = (user_data.get("password") or "").strip() if purpose == "register" else ""
+        if purpose == "register" and user_data and reg_password and len(reg_password) < 6:
+            return jsonify({"success": False, "error": "Mật khẩu phải có tối thiểu 6 ký tự."}), 400
+
+        if purpose == "login_2fa":
+            pre_user = find_login_user(identifier)
+            if not pre_user:
+                return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
+            if not _is_active_account(pre_user):
+                return jsonify({"success": False, "error": "Tài khoản này hiện đang bị khóa hoặc tạm ngưng hoạt động."}), 403
 
         success = False
         err_msg = "Mã xác thực không hợp lệ."
@@ -997,9 +1108,9 @@ def create_app(test_config=None):
 
         # Kịch bản Đăng ký (Register with OTP)
         if purpose == "register" and user_data:
-            full_name = (user_data.get("full_name") or user_data.get("name") or "Bệnh nhân mới").strip()
-            password = (user_data.get("password") or "").strip()
-            gender = (user_data.get("gender") or "Nam").strip()
+            full_name = (user_data.get("full_name") or user_data.get("name") or "Bệnh nhân mới").strip()[:120] or "Bệnh nhân mới"
+            password = reg_password
+            gender = (user_data.get("gender") or "Nam").strip()[:20] or "Nam"
 
             if channel == "email":
                 email = identifier
@@ -1038,8 +1149,7 @@ def create_app(test_config=None):
                 db.session.rollback()
                 return jsonify({"success": False, "error": "Tài khoản này đã tồn tại trên hệ thống."}), 409
 
-            session["user_id"] = new_user.id
-            session["user_role"] = new_user.role
+            _establish_authenticated_session(new_user)
 
             return jsonify({
                 "success": True,
@@ -1052,9 +1162,10 @@ def create_app(test_config=None):
             user = find_login_user(identifier)
             if not user:
                 return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
+            if not _is_active_account(user):
+                return jsonify({"success": False, "error": "Tài khoản này hiện đang bị khóa hoặc tạm ngưng hoạt động."}), 403
 
-            session["user_id"] = user.id
-            session["user_role"] = user.role
+            _establish_authenticated_session(user)
 
             return jsonify({
                 "success": True,
@@ -1225,12 +1336,11 @@ def create_app(test_config=None):
         code = (request.args.get("code") or "").strip()
         state_token = (request.args.get("state") or "").strip()
 
+        saved_state = session.pop("google_oauth_state", None)
         intent = _verify_google_oauth_state(state_token)
-        if not intent or not code:
+        if (saved_state and saved_state != state_token) or not intent or not code:
             logger.warning("Google OAuth callback thất bại: state không hợp lệ hoặc thiếu code.")
             return redirect("/?google_auth=error&error_reason=invalid_state")
-
-        session.pop("google_oauth_state", None)
 
         client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
         client_secret = (os.getenv("GOOGLE_CLIENT_SECRET") or "").strip()
@@ -1287,6 +1397,8 @@ def create_app(test_config=None):
         # 1. Tra cứu ưu tiên theo Google Subject ID (sub)
         user = _find_user_by_google_sub(google_sub)
         if user:
+            if not _is_active_account(user):
+                return redirect("/?google_auth=error&error_reason=account_locked")
             if avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
@@ -1294,14 +1406,14 @@ def create_app(test_config=None):
             sync_user_identities(user, verified=True)
             db.session.commit()
 
-            session.pop("pending_google_register", None)
-            session["user_id"] = user.id
-            session["user_role"] = user.role
+            _establish_authenticated_session(user)
             return redirect("/?google_auth=success&existing=1")
 
         # 2. Kiểm tra nếu email đã tồn tại trên một tài khoản chưa liên kết Google
         existing_email_user = User.query.filter_by(email=email).first()
         if existing_email_user:
+            if not _is_active_account(existing_email_user):
+                return redirect("/?google_auth=error&error_reason=account_locked")
             # Nếu người dùng đang đăng nhập sẵn đúng tài khoản đó thì cho phép liên kết
             if session.get("user_id") == existing_email_user.id and not existing_email_user.google_sub:
                 existing_email_user.google_sub = google_sub
@@ -1366,9 +1478,10 @@ def create_app(test_config=None):
         if google_sub:
             existing_sub_user = _find_user_by_google_sub(google_sub)
             if existing_sub_user:
-                session.pop("pending_google_register", None)
-                session["user_id"] = existing_sub_user.id
-                session["user_role"] = existing_sub_user.role
+                if not _is_active_account(existing_sub_user):
+                    session.pop("pending_google_register", None)
+                    return jsonify({"success": False, "error": "Tài khoản này hiện đang bị khóa."}), 403
+                _establish_authenticated_session(existing_sub_user)
                 return jsonify({"success": True, "user": existing_sub_user.to_dict()})
 
         existing_email_user = User.query.filter_by(email=email).first()
@@ -1405,9 +1518,7 @@ def create_app(test_config=None):
             db.session.rollback()
             return jsonify({"success": False, "error": "Định danh tài khoản Google hoặc SĐT đã tồn tại."}), 409
 
-        session.pop("pending_google_register", None)
-        session["user_id"] = user.id
-        session["user_role"] = user.role
+        _establish_authenticated_session(user)
 
         return jsonify({
             "success": True,
@@ -1461,11 +1572,14 @@ def create_app(test_config=None):
             email = claim_res["email"]
             full_name = (token_info.get("name") or "").strip()
             avatar_url = (token_info.get("picture") or "").strip()
-        elif client_id and not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
-            return jsonify({
-                "success": False,
-                "error": "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
-            }), 403
+        elif not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
+            status_code = 403 if client_id else 503
+            err_msg = (
+                "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
+                if client_id
+                else "Chưa cấu hình GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET trong .env để xác thực tài khoản Google thật."
+            )
+            return jsonify({"success": False, "configured": bool(client_id), "error": err_msg}), status_code
         else:
             # Chế độ Dev / Test Simulator khi chưa cấu hình GOOGLE_CLIENT_ID
             raw_claims = {
@@ -1510,6 +1624,8 @@ def create_app(test_config=None):
             # 2. Kiểm tra xem email có trùng với tài khoản hiện có chưa liên kết Google hay không
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
+                if not _is_active_account(existing_user):
+                    return jsonify({"success": False, "error": "Tài khoản này hiện đang bị khóa."}), 403
                 if existing_user.google_sub and existing_user.google_sub != google_sub:
                     return jsonify({
                         "success": False,
@@ -1556,8 +1672,7 @@ def create_app(test_config=None):
                     db.session.rollback()
                     return jsonify({"success": False, "error": "Không thể tạo tài khoản Google do xung đột định danh."}), 409
 
-        session["user_id"] = user.id
-        session["user_role"] = user.role
+        _establish_authenticated_session(user)
 
         return jsonify({
             "success": True,
@@ -1598,12 +1713,8 @@ def create_app(test_config=None):
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
 
-        if not app.config.get("TESTING"):
-            from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
-            chat_rate_key = f"ai_chat:{session.get('user_id') or client_ip}"
-            if not check_otp_attempts(chat_rate_key, max_attempts=25):
-                return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
+        if _is_rate_limited(f"ai_chat:{session.get('user_id') or _get_client_ip()}", max_attempts=25):
+            return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
 
         image_bytes = None
         image_mime_type = "image/jpeg"
@@ -1738,7 +1849,12 @@ def create_app(test_config=None):
         """
         data = request.get_json(silent=True) or {}
         conversation_id = data.get("conversation_id")
-        user_message = (data.get("message") or "").strip()
+        raw_message = data.get("message")
+        if raw_message is not None and not isinstance(raw_message, str):
+            return jsonify({"error": "Nội dung tin nhắn không hợp lệ."}), 400
+        user_message = (raw_message or "").strip()
+        if len(user_message) > 2000:
+            return jsonify({"error": "Nội dung mô tả không được vượt quá 2000 ký tự."}), 400
         image_str = data.get("image")
 
         if not user_message and not image_str:
@@ -1746,18 +1862,16 @@ def create_app(test_config=None):
 
         image_bytes = None
         if image_str:
+            if not isinstance(image_str, str):
+                return jsonify({"error": "Tệp ảnh không hợp lệ."}), 400
             img_bytes, mime, err = decode_and_validate_base64_image(image_str)
-            if not err:
-                image_bytes = img_bytes
-
+            if err:
+                return jsonify({"error": f"Tệp ảnh không hợp lệ: {err}"}), 400
+            image_bytes = img_bytes
 
         user_id, guest_token = _get_request_identity()
-        if not app.config.get("TESTING"):
-            from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
-            intake_rate_key = f"intake_msg:{user_id or guest_token or client_ip}"
-            if not check_otp_attempts(intake_rate_key, max_attempts=30):
-                return jsonify({"error": "Bạn đang gửi thông tin quá nhanh. Vui lòng thử lại sau ít phút."}), 429
+        if _is_rate_limited(f"intake_msg:{user_id or guest_token or _get_client_ip()}", max_attempts=30):
+            return jsonify({"error": "Bạn đang gửi thông tin quá nhanh. Vui lòng thử lại sau ít phút."}), 429
 
         try:
             result = intake_service.process_message(
@@ -1881,15 +1995,11 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để tải lên tài liệu y tế."}), 401
 
-        if not app.config.get("TESTING"):
-            from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
-            upload_rate_key = f"upload_rate:{user_id or client_ip}"
-            if not check_otp_attempts(upload_rate_key, max_attempts=15):
-                return jsonify({
-                    "status": "error",
-                    "message": "Bạn đã gửi yêu cầu tải lên quá nhiều lần liên tiếp. Vui lòng thử lại sau 5 phút."
-                }), 429
+        if _is_rate_limited(f"upload_rate:{user_id or _get_client_ip()}", max_attempts=15):
+            return jsonify({
+                "status": "error",
+                "message": "Bạn đã gửi yêu cầu tải lên quá nhiều lần liên tiếp. Vui lòng thử lại sau 5 phút."
+            }), 429
 
         if "file" not in request.files:
             return jsonify({"status": "error", "message": "Không tìm thấy tệp đính kèm."}), 400
@@ -1901,7 +2011,7 @@ def create_app(test_config=None):
             record_security_event(
                 "MALICIOUS_FILE_UPLOAD_BLOCKED",
                 severity="CRITICAL",
-                client_ip=request.remote_addr or "127.0.0.1",
+                client_ip=_get_client_ip(),
                 identifier=str(user_id),
                 endpoint="/api/upload-lab",
                 status_code=400,
@@ -1935,12 +2045,13 @@ def create_app(test_config=None):
             })
         except Exception as e:
             db.session.rollback()
+            logger.error(f"Lỗi lưu MedicalDocument trong /api/upload-lab: {e}")
             if os.path.exists(meta["absolute_path"]):
                 try:
                     os.remove(meta["absolute_path"])
                 except Exception:
                     pass
-            return jsonify({"status": "error", "message": f"Không thể lưu thông tin tài liệu: {e}"}), 500
+            return jsonify({"status": "error", "message": "Không thể lưu thông tin tài liệu vào lúc này. Vui lòng thử lại."}), 500
 
 
     @app.route("/api/scan-files", methods=["GET"])
@@ -1952,7 +2063,12 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách tài liệu."}), 401
 
-        docs = MedicalDocument.query.filter_by(owner_id=user_id).order_by(MedicalDocument.created_at.desc()).all()
+        docs = (
+            MedicalDocument.query.filter_by(owner_id=user_id)
+            .filter(MedicalDocument.doc_type != "ocr_draft")
+            .order_by(MedicalDocument.created_at.desc())
+            .all()
+        )
         files = [d.to_dict() for d in docs]
         return jsonify({"status": "success", "files": files})
 
@@ -2021,15 +2137,11 @@ def create_app(test_config=None):
                     "message": "Vui lòng đăng nhập để tải lên và phân tích tài liệu y tế."
                 }), 401
 
-            if not app.config.get("TESTING"):
-                from core.security_patch import check_otp_attempts
-                client_ip = request.remote_addr or "local"
-                scan_rate_key = f"scan_rate:{user_id or client_ip}"
-                if not check_otp_attempts(scan_rate_key, max_attempts=10):
-                    return jsonify({
-                        "status": "error",
-                        "message": "Bạn đã gửi yêu cầu phân tích tài liệu quá nhiều lần liên tiếp. Vui lòng thử lại sau 5 phút."
-                    }), 429
+            if _is_rate_limited(f"scan_rate:{user_id or _get_client_ip()}", max_attempts=10):
+                return jsonify({
+                    "status": "error",
+                    "message": "Bạn đã gửi yêu cầu phân tích tài liệu quá nhiều lần liên tiếp. Vui lòng thử lại sau 5 phút."
+                }), 429
 
             file = request.files["file"]
             if not file or file.filename == "":
@@ -2110,7 +2222,8 @@ def create_app(test_config=None):
         if doc.doc_type != "ocr_draft" or not doc.parsed_data:
             return jsonify({"message": "Tài liệu không còn chờ xác nhận."}), 409
         draft = json.loads(doc.parsed_data)
-        kind = draft["type"]
+        override_kind = payload.get("doc_type")
+        kind = override_kind if override_kind in ("prescription", "lab_test") else draft["type"]
         key = "medications" if kind == "prescription" else "metrics"
         fields = REVIEW_FIELDS[key]
         rows = payload.get(key)
@@ -2122,9 +2235,11 @@ def create_app(test_config=None):
             return {k: row.get(k, "").strip() for k in keys}
         try:
             reviewed = clean(payload, HEADER_FIELDS)
-            reviewed[key] = [clean(row, fields) for row in rows]
-            if any(not row[fields[0]] for row in reviewed[key]):
+            cleaned_rows = [clean(row, fields) for row in rows]
+            non_empty_rows = [r for r in cleaned_rows if any(r.values())]
+            if not non_empty_rows or any(not row[fields[0]] for row in non_empty_rows):
                 raise ValueError
+            reviewed[key] = non_empty_rows
         except ValueError:
             return jsonify({"message": "Hãy kiểm tra tên và dữ liệu từng dòng."}), 400
         result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft["allergies"])
@@ -2294,6 +2409,9 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập hoặc tạo tài khoản để đặt lịch khám."}), 401
 
+        if _is_rate_limited(f"appt_create:{user_id}:{_get_client_ip()}", max_attempts=15):
+            return jsonify({"success": False, "error": "Bạn đã gửi quá nhiều yêu cầu đặt lịch. Vui lòng thử lại sau ít phút."}), 429
+
         data = request.get_json(silent=True)
         if not isinstance(data, dict):
             return jsonify({"success": False, "error": "Dữ liệu đặt lịch không hợp lệ."}), 400
@@ -2324,6 +2442,23 @@ def create_app(test_config=None):
 
         if not appointment_date or not appointment_time or not patient_name or not patient_phone:
             return jsonify({"success": False, "error": "Vui lòng điền đầy đủ ngày khám, giờ khám, họ tên và số điện thoại."}), 400
+
+        parsed_appt_date = None
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
+            try:
+                parsed_appt_date = datetime.strptime(appointment_date, fmt).date()
+                break
+            except ValueError:
+                continue
+        if not parsed_appt_date:
+            return jsonify({"success": False, "error": "Ngày khám không hợp lệ (định dạng YYYY-MM-DD)."}), 400
+        if parsed_appt_date < datetime.now().date():
+            return jsonify({"success": False, "error": "Ngày đặt lịch khám không được nằm trong quá khứ."}), 400
+        appointment_date = parsed_appt_date.isoformat()
+
+        phone_digits = re.sub(r"\D", "", patient_phone)
+        if len(phone_digits) < 9 or len(phone_digits) > 15:
+            return jsonify({"success": False, "error": "Số điện thoại liên hệ không hợp lệ (cần từ 9 đến 15 chữ số)."}), 400
 
         new_appt = MedicalAppointment(
             user_id=user_id,
@@ -2396,6 +2531,8 @@ def create_app(test_config=None):
     @app.route("/api/nutrition/options", methods=["POST"])
     def nutrition_options():
         """Trả về danh sách món hoặc thức uống để người dùng tự chọn."""
+        if _is_rate_limited(f"nutrition_opt:{session.get('user_id') or _get_client_ip()}", max_attempts=20):
+            return jsonify({"success": False, "error": "Bạn đang gửi yêu cầu quá nhanh. Vui lòng thử lại sau ít phút."}), 429
         payload = request.get_json(silent=True) or {}
         condition = str(payload.get("condition") or "").strip()
         recipe_type = payload.get("recipe_type")
@@ -2421,11 +2558,18 @@ def create_app(test_config=None):
         - foods_to_avoid (Nên né)
         - recipe (Công thức 3 bước)
         """
+        if _is_rate_limited(f"nutrition_analyze:{session.get('user_id') or _get_client_ip()}", max_attempts=20):
+            return jsonify({"success": False, "error": "Bạn đang gửi yêu cầu quá nhanh. Vui lòng thử lại sau ít phút."}), 429
         data = request.get_json(silent=True) or {}
-        condition = (data.get("condition") or data.get("query") or "").strip()
+        raw_cond = data.get("condition") if data.get("condition") is not None else data.get("query")
+        if raw_cond is not None and not isinstance(raw_cond, str):
+            return jsonify({"success": False, "error": "Tên bệnh lý hoặc thể trạng không hợp lệ."}), 400
+        condition = (raw_cond or "").strip()
         recipe_type = "drink" if data.get("recipe_type") == "drink" else "food"
         if not condition:
             return jsonify({"success": False, "error": "Vui lòng nhập tên bệnh lý hoặc thể trạng."}), 400
+        if len(condition) > 500:
+            return jsonify({"success": False, "error": "Vui lòng mô tả thể trạng trong tối đa 500 ký tự."}), 400
 
         from core.nutrition_service import get_nutrition_recommendation
         try:
@@ -2487,6 +2631,7 @@ def create_app(test_config=None):
                         "name": x.get("ten_ngan") or x.get("ten"),
                         "type": x.get("loai_hinh") or "",
                         "spec": ck_str,
+                        "district": x.get("quan_huyen") or "",
                         "address": x.get("dia_chi_hien_thi_tren_web") or x.get("dia_chi") or "",
                         "lat": float(lat),
                         "lng": float(lng),
@@ -2550,6 +2695,12 @@ def create_app(test_config=None):
         use_qh = bool(quan_huyen and quan_huyen != "all")
         use_s = bool(search)
 
+        qh_pattern = None
+        if use_qh:
+            norm_qh = re.sub(r"\s+", " ", quan_huyen.replace("tp.", "tp")).strip()
+            # ponytail: regex boundary prevents "Quận 1" matching "Quận 10/11/12"; swap to canonical district code column when schema normalizes
+            qh_pattern = re.compile(rf"(?<!\w){re.escape(norm_qh)}(?!\w)")
+
         if not (use_lh or use_ck or use_qh or use_s):
             filtered = _FACILITIES_CACHE
         else:
@@ -2557,7 +2708,7 @@ def create_app(test_config=None):
                 item for item, lh_l, ck_l, qh_l, s_blob in _FACILITIES_INDEX
                 if (not use_lh or loai_hinh in lh_l)
                 and (not use_ck or chuyen_khoa in ck_l)
-                and (not use_qh or quan_huyen in qh_l)
+                and (not qh_pattern or qh_pattern.search(re.sub(r"\s+", " ", qh_l.replace("tp.", "tp")).strip()))
                 and (not use_s or search in s_blob)
             ]
 

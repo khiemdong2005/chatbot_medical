@@ -89,3 +89,15 @@ def test_no_invented_visual_findings_without_image():
     res_with_img = analyze_symptoms(message="Da tôi bị mẩn ngứa", history=[], has_image=True)
     assert len(res_with_img["visual_findings"]) > 0
 
+
+def test_english_uncertain_red_flag_triggers_clarification_then_confirms():
+    """Câu tiếng Anh chưa chắc chắn cờ đỏ phải hỏi xác nhận thay vì báo động nhầm ngay."""
+    first = assess_emergency_risk("I have a mild cough and I am not sure if I have chest pain", lang="en")
+    assert first["is_emergency"] is False
+    assert "chest pain" in first.get("clarification", "").lower()
+
+    confirmed = assess_emergency_risk("Yes", lang="en", previous_question=first["clarification"])
+    assert confirmed["is_emergency"] is True
+    assert "Chest pain" in confirmed["symptoms"]
+
+
