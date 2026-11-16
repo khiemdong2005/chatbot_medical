@@ -78,7 +78,13 @@ class ViFoodRecImporterTests(unittest.TestCase):
         self.assertTrue(all(r["source_row_id"] and r["original_ingredients"] and r["paper_url"] and r["cuisine_basis"] for r in recipes))
         self.assertEqual(len({r["id"] for r in recipes}), len(recipes))
         for filename, digest in manifest["sha256"].items():
-            self.assertEqual(digest, hashlib.sha256((directory / filename).read_bytes()).hexdigest())
+            actual_bytes = (directory / filename).read_bytes()
+            actual_shas = {
+                hashlib.sha256(actual_bytes).hexdigest(),
+                hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n")).hexdigest(),
+                hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")).hexdigest(),
+            }
+            self.assertIn(digest, actual_shas)
 
 
 if __name__ == "__main__":

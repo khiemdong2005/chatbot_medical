@@ -140,10 +140,14 @@ def test_dataset_freeze_integrity():
         target_path = ROOT / fn
         assert target_path.exists(), f"Tệp đánh giá {fn} không tồn tại trên đĩa!"
         
-        # Kiểm tra SHA-256 thực tế
+        # Kiểm tra SHA-256 thực tế (chuẩn hóa dòng tương thích cả Windows CRLF và Linux LF)
         actual_bytes = target_path.read_bytes()
-        actual_sha = hashlib.sha256(actual_bytes).hexdigest()
-        assert actual_sha == item["sha256"], f"Tệp {fn} bị sai lệch SHA-256! (Mong đợi: {item['sha256']}, Thực tế: {actual_sha})"
+        actual_shas = {
+            hashlib.sha256(actual_bytes).hexdigest(),
+            hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n")).hexdigest(),
+            hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")).hexdigest(),
+        }
+        assert item["sha256"] in actual_shas, f"Tệp {fn} bị sai lệch SHA-256! (Mong đợi: {item['sha256']}, Thực tế: {hashlib.sha256(actual_bytes).hexdigest()})"
         
         # Kiểm tra số lượng queries/cases
         assert item["query_count"] == expected_counts[fn], f"Tệp {fn} sai lệch query_count: {item['query_count']} != {expected_counts[fn]}"

@@ -27,6 +27,16 @@ READY_DIR = ROOT / "data" / "curated" / "ready_documents"
 V2_NAME = "medical_knowledge_shadow_v2_20261114_211653"
 V4_NAME = "medical_knowledge_expanded_v4_20261115_005612"
 
+def _has_seeded_vectordb():
+    p = ROOT / "medical_vectordb" / "chroma.sqlite3"
+    return p.exists() and p.stat().st_size > 1_000_000
+
+
+requires_chromadb = pytest.mark.skipif(
+    not _has_seeded_vectordb(),
+    reason="Requires local pre-built ChromaDB vector database (>1MB)"
+)
+
 
 def test_v4_active_manifest_provenance():
     """Verify active manifest records complete provenance and frozen winner config."""
@@ -49,6 +59,7 @@ def test_v4_active_manifest_provenance():
     assert frozen.get("source_diversity") is False
 
 
+@requires_chromadb
 def test_fresh_runtime_resolves_v4():
     """Verify fresh MedicalRAGService initializes against active V4 with 725 chunks."""
     rag = MedicalRAGService()
@@ -58,6 +69,7 @@ def test_fresh_runtime_resolves_v4():
     assert rag.no_df_cutoff is True
 
 
+@requires_chromadb
 def test_bm25_chroma_alignment():
     """Verify BM25 corpus builds with exactly 725 documents aligning with Chroma."""
     rag = MedicalRAGService()
@@ -95,6 +107,7 @@ def test_canonical_source_bilingual_symmetry():
         assert isinstance(kw_vi, list) and len(kw_vi) >= 3, f"Insufficient keywords_vi in {f.name}"
 
 
+@requires_chromadb
 def test_rebuild_dry_run_and_id_reproducibility():
     """Verify dry-run on canonical 364 sources produces exact 725 chunks matching V4 IDs."""
     raw_chunks = load_curated_medlineplus_documents(curated_dirs=[READY_DIR])
@@ -108,6 +121,7 @@ def test_rebuild_dry_run_and_id_reproducibility():
     assert len(diff) == 0, f"Chunk ID discrepancy: {len(diff)} IDs differ"
 
 
+@requires_chromadb
 def test_atomic_rollback_and_restore_cycle():
     """Verify atomic pointer rollback to V2 and safe restoration to V4."""
     orig_manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -137,6 +151,7 @@ def test_atomic_rollback_and_restore_cycle():
         save_manifest_atomic(orig_manifest, MANIFEST_PATH)
 
 
+@requires_chromadb
 def test_representative_smoke_queries():
     """Verify representative clinical queries retrieve expected targets in Top-5 on V4."""
     rag = MedicalRAGService()

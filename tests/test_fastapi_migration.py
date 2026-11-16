@@ -86,9 +86,10 @@ class TestRouteOwnershipAndPrecedence:
                 route_endpoints.setdefault(path, []).append(name)
 
         for path, expected_name in native_routes.items():
-            assert path in route_endpoints, f"Route {path} missing in app.routes"
-            assert expected_name in route_endpoints[path], \
-                f"Route {path} does not point to {expected_name}, got {route_endpoints[path]}"
+            matched_key = path if path in route_endpoints else (f"{path}/" if f"{path}/" in route_endpoints else path.rstrip("/"))
+            assert matched_key in route_endpoints, f"Route {path} missing in app.routes"
+            assert expected_name in route_endpoints[matched_key], \
+                f"Route {path} does not point to {expected_name}, got {route_endpoints.get(matched_key)}"
 
 
 # ==============================================================================

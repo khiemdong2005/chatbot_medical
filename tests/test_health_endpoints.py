@@ -38,12 +38,14 @@ def test_ready_endpoint_readiness(client):
 def test_ready_endpoint_degraded_when_circuit_open(client):
     gemini_circuit_breaker.trip_for_test()
     try:
-        response = client.get("/ready")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "degraded"
-        assert data["gemini"] == "degraded"
-        assert data["circuit_breaker"] == "OPEN"
+        from unittest.mock import patch
+        with patch("core.main_fastapi.medical_rag_service.is_available", return_value=True):
+            response = client.get("/ready")
+            assert response.status_code == 200
+            data = response.json()
+            assert data["status"] == "degraded"
+            assert data["gemini"] == "degraded"
+            assert data["circuit_breaker"] == "OPEN"
     finally:
         gemini_circuit_breaker.reset()
 

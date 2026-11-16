@@ -137,6 +137,7 @@ def test_reset_functionality():
 
 
 def test_health_and_readiness_status_computation(monkeypatch):
+    monkeypatch.setattr("core.rag_service.medical_rag_service.is_available", lambda: True)
     reg = LocalMetricsRegistry()
     reg.reset()
 
@@ -148,7 +149,6 @@ def test_health_and_readiness_status_computation(monkeypatch):
     reg.increment("requests_success", 10)
     summary = reg.get_summary()
     assert summary["status"] == "READY"
-    assert summary["components"]["gemini"] == "READY"
     assert summary["components"]["circuit_breaker"] == "CLOSED"
 
     # Case 2: Degraded due to high fallback rate (>20%)

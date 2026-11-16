@@ -218,6 +218,7 @@ def test_retrieval_cross_language_expansion_end_to_end(tmp_path):
     # Add English medical document to corpus
     collection.add(
         ids=["doc_chest_pain", "doc_migraine"],
+        embeddings=[[0.1] * 384, [0.2] * 384],
         documents=[
             "Chest pain and angina pectoris: Clinical symptoms include substernal pressure and radiation to left arm.",
             "Migraine headache: Unilateral pulsating head pain accompanied by photophobia and nausea."

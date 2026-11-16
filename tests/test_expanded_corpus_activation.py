@@ -21,6 +21,16 @@ HOLDOUT_DATASET_PATH = ROOT / "evaluation" / "rag_test_dataset.json"
 SHADOW_COLLECTION = "medical_knowledge_expanded_v3_20261115_000308"
 ACTIVE_V2_COLLECTION = "medical_knowledge_shadow_v2_20261114_211653"
 
+def _has_seeded_vectordb():
+    p = ROOT / "medical_vectordb" / "chroma.sqlite3"
+    return p.exists() and p.stat().st_size > 1_000_000
+
+
+requires_chromadb = pytest.mark.skipif(
+    not _has_seeded_vectordb(),
+    reason="Requires local pre-built ChromaDB vector database (>1MB)"
+)
+
 
 def test_merged_source_counts():
     """Verify source files in ready_documents and tier_a_candidates equal 364 total."""
@@ -35,6 +45,7 @@ def test_merged_source_counts():
         assert len(ready_files) == 364
 
 
+@requires_chromadb
 def test_shadow_collection_integrity():
     """Verify expanded v3 collection chunk count, length boundaries, and provenance."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)
@@ -56,6 +67,7 @@ def test_shadow_collection_integrity():
         assert not doc.startswith(" ")
 
 
+@requires_chromadb
 def test_safety_flag_preservation():
     """Verify all 4 approved-with-flag documents retain their safety flags in the collection."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)
@@ -76,6 +88,7 @@ def test_safety_flag_preservation():
     assert flagged_urls == expected_urls, f"Expected {expected_urls}, got {flagged_urls}"
 
 
+@requires_chromadb
 def test_ground_truth_url_coverage():
     """Verify 100% of ground-truth URLs in DEV and HOLDOUT exist in the expanded shadow collection."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)
@@ -92,6 +105,7 @@ def test_ground_truth_url_coverage():
     assert len(holdout_missing) == 0, f"Missing HOLDOUT ground truth URLs: {holdout_missing}"
 
 
+@requires_chromadb
 def test_active_pointer_invariant():
     """Verify active_collection.json maintains a verified active collection."""
     assert ACTIVE_CONFIG.exists(), "active_collection.json must exist"
@@ -104,6 +118,7 @@ def test_active_pointer_invariant():
     assert rag.collection.count() in (408, 725)
 
 
+@requires_chromadb
 def test_safe_activation_and_rollback_cycle():
     """Verify atomic activation of shadow collection and instant rollback restore."""
     orig_content = ACTIVE_CONFIG.read_text(encoding="utf-8")
@@ -131,6 +146,7 @@ def test_safe_activation_and_rollback_cycle():
         save_manifest_atomic(orig_data, ACTIVE_CONFIG)
 
 
+@requires_chromadb
 def test_smoke_queries_on_expanded_collection():
     """Verify 5 representative queries return valid results on expanded collection."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)
@@ -149,6 +165,7 @@ def test_smoke_queries_on_expanded_collection():
             assert h.get("source_url") and h["source_url"].startswith("https://medlineplus.gov/")
 
 
+@requires_chromadb
 def test_privacy_and_phi_absence():
     """Verify no PHI or patient identifier in collection chunk metadatas."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)

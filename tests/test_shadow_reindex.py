@@ -31,6 +31,16 @@ DEV_DATASET_PATH = ROOT / "evaluation" / "rag_dev_dataset.json"
 HOLDOUT_DATASET_PATH = ROOT / "evaluation" / "rag_test_dataset.json"
 SHADOW_COL_NAME = "medical_knowledge_shadow_v2_20261114_211653"
 
+def _has_seeded_vectordb():
+    p = ROOT / "medical_vectordb" / "chroma.sqlite3"
+    return p.exists() and p.stat().st_size > 1_000_000
+
+
+pytestmark = pytest.mark.skipif(
+    not _has_seeded_vectordb(),
+    reason="Requires local pre-built ChromaDB vector database (>1MB)"
+)
+
 
 class TestShadowCollectionIntegrity:
     """Kiểm tra sự tồn tại và tính hợp lệ của Shadow Collection."""
