@@ -244,6 +244,21 @@ def retrieve_candidates(condition, recipes, limit=32):
         if len(imported) >= 8:
             originals = [r for r in ranked if not r.get("imported")][:2]
             chosen = originals + [r for r in interleaved if r.get("imported")][:max(0, limit - len(originals))]
+            if len(chosen) < limit:
+                chosen_ids = {r["id"] for r in chosen}
+                for r in ranked:
+                    if r.get("imported") and r["id"] not in chosen_ids:
+                        chosen.append(r)
+                        chosen_ids.add(r["id"])
+                        if len(chosen) >= limit:
+                            break
+                if len(chosen) < limit:
+                    for r in ranked:
+                        if r["id"] not in chosen_ids:
+                            chosen.append(r)
+                            chosen_ids.add(r["id"])
+                            if len(chosen) >= limit:
+                                break
             return chosen
         return interleaved[:limit]
 

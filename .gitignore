@@ -68,6 +68,7 @@ data/recipes/**/rejected-*
 data/recipes/**/*.bak
 
 # Generated knowledge index and downloaded local models.
+medical_vectordb/
 models/bge-reranker-v2-m3/
 /models/
 /_quarantine_trash/
