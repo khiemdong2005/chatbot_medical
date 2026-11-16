@@ -68,7 +68,9 @@ data/recipes/**/rejected-*
 data/recipes/**/*.bak
 
 # Generated knowledge index and downloaded local models.
-medical_vectordb/
+medical_vectordb/*
+!medical_vectordb/active_collection.json
+!medical_vectordb/.gitkeep
 models/bge-reranker-v2-m3/
 /models/
 /_quarantine_trash/

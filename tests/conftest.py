@@ -12,6 +12,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# Đảm bảo thư mục instance luôn tồn tại cho các tiến trình SQLite cục bộ
+(PROJECT_ROOT / "instance").mkdir(parents=True, exist_ok=True)
+
 # ==============================================================================
 # CẤU HÌNH MÔI TRƯỜNG KIỂM THỬ TẤT ĐỊNH & ZERO-SECRETS
 # ==============================================================================

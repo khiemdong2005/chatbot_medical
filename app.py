@@ -196,6 +196,13 @@ def create_app(test_config=None):
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+    # Đảm bảo thư mục CSDL tồn tại nếu dùng SQLite cục bộ
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if db_uri and str(db_uri).startswith("sqlite:///"):
+        sqlite_file = str(db_uri).replace("sqlite:///", "")
+        if sqlite_file and sqlite_file != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(sqlite_file)), exist_ok=True)
+
     # Khởi tạo cơ sở dữ liệu an toàn theo đúng URI đã cấu hình
     init_db(app)
 

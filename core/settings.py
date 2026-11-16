@@ -147,6 +147,10 @@ class PathSettings(BaseModel):
     database_url: str = Field(default="")
 
     def model_post_init(self, __context: Any) -> None:
+        try:
+            self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
         if not self.database_url:
             # Chuẩn hóa path SQLite bền vững tương thích cả Host và Docker
             db_file = self.database_path.resolve().as_posix()

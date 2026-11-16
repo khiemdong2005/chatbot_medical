@@ -294,6 +294,11 @@ class MedicalAppointment(db.Model):
 
 def init_db(app):
     """Khởi tạo cơ sở dữ liệu và tự động nâng cấp cấu trúc bảng nếu cần."""
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if db_uri and str(db_uri).startswith("sqlite:///"):
+        raw_path = str(db_uri).replace("sqlite:///", "")
+        if raw_path and raw_path != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(raw_path)), exist_ok=True)
     db.init_app(app)
     with app.app_context():
         db.create_all()

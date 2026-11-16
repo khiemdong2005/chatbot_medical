@@ -22,6 +22,8 @@ DESIGN_HISTORY = (
 
 def path_problem(name: str) -> str | None:
     path = PurePosixPath(name)
+    if name in ("medical_vectordb/active_collection.json", "medical_vectordb/.gitkeep"):
+        return None
     if set(path.parts).intersection(LOCAL_DIRECTORIES):
         return "local configuration, cache or generated database"
     if path.name in LOCAL_FILES or name.startswith(DESIGN_HISTORY):
