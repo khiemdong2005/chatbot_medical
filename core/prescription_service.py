@@ -400,66 +400,93 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
             ]
         }
 
-    elif preset_key == "lab_blood":
+    elif preset_key in ["cardio", "tim_mach", "lab_blood"]:
         return {
             "status": "demo",
             "is_demo": True,
-            "type": "lab_test",
-            "doc_title": "Phiếu Kết quả Xét nghiệm Sinh hóa & Huyết học (Dữ liệu Demo)",
-            "facility": "Trung tâm Xét nghiệm Y khoa MediLab (DEMO)",
-            "department": "Khoa Hóa sinh - Miễn dịch",
+            "type": "prescription",
+            "doc_title": "Đơn thuốc Tim mạch & Tăng Huyết Áp (Dữ liệu Demo)",
+            "facility": "BỆNH VIỆN TIM TÂM ĐỨC (DEMO)",
+            "department": "Khoa Nội Tim Mạch & Lão Học",
             "doctor": "BS. CKI Lê Thị Mai",
-            "patient_name": "Nguyễn Thành Khiêm (Mẫu)",
-            "diagnosis": "Kiểm tra sức khỏe định kỳ & Đánh giá hội chứng chuyển hóa",
+            "patient_name": "NGUYỄN VĂN HÙNG",
+            "dob": "12/04/1972",
+            "age": "54",
+            "gender": "Nam",
+            "diagnosis": "Tăng huyết áp nguyên phát (vô căn) / Rối loạn lipid máu hỗn hợp (Mã ICD: I10 / E78.2)",
             "date": today,
-            "duration": "Có giá trị đối chiếu trong 3 tháng",
-            "metrics": [
+            "duration": "30 ngày (Đợt điều trị bệnh mạn tính)",
+            "timeline": {
+                "morning": [
+                    {"name": "Amlodipine 5mg", "dosage": "1 viên", "time": "07:30", "note": "Uống sau ăn sáng, duy trì huyết áp mục tiêu", "tag": "Hạ áp chẹn kênh Calci", "color": "blue"},
+                    {"name": "Losartan Potassium 50mg", "dosage": "1 viên", "time": "07:30", "note": "Uống cùng nước lọc vào buổi sáng", "tag": "Ức chế thụ thể ARB", "color": "emerald"},
+                    {"name": "Aspirin 81mg", "dosage": "1 viên", "time": "08:00", "note": "Uống sau ăn no để bảo vệ niêm mạc dạ dày", "tag": "Chống kết tập tiểu cầu", "color": "amber"}
+                ],
+                "noon": [
+                    {"name": "Uống đủ nước lọc", "dosage": "1-2 ly", "time": "12:00", "note": "Duy trì tuần hoàn và thanh thải thận", "tag": "Chế độ sinh hoạt", "color": "sky"}
+                ],
+                "evening": [
+                    {"name": "Atorvastatin 20mg", "dosage": "1 viên", "time": "20:00", "note": "Uống vào buổi tối trước khi ngủ", "tag": "Hạ mỡ máu nhóm Statin", "color": "indigo"}
+                ],
+                "bedtime": [
+                    {"name": "Đo huyết áp & Ghi nhật ký", "dosage": "Đo huyết áp tại nhà", "time": "21:30", "note": "Nghỉ ngơi 15 phút trước khi đo, ghi lại chỉ số HA", "tag": "Theo dõi lâm sàng", "color": "purple"}
+                ]
+            },
+            "medications": [
                 {
-                    "name": "Glucose (Đường huyết lúc đói)",
-                    "value": "7.8",
-                    "unit": "mmol/L",
-                    "reference": "3.9 - 6.4",
-                    "status": "High",
-                    "status_label": "Vượt ngưỡng an toàn",
-                    "advice": "Chỉ số đường huyết vượt ngưỡng, cần hạn chế tinh bột trắng và kiểm tra định kỳ."
+                    "name": "Amlodipine 5mg (Amlor) - 30 Viên",
+                    "strength": "5mg",
+                    "ingredient": "Amlodipine besilate 5mg",
+                    "category": "Thuốc chẹn kênh calci nhóm Dihydropyridine",
+                    "purpose": "Giãn cơ trơn mạch máu ngoại vi, giảm sức cản ngoại biên, hạ huyết áp.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống 1 viên vào buổi sáng sau ăn."
                 },
                 {
-                    "name": "Cholesterol Toàn phần",
-                    "value": "5.9",
-                    "unit": "mmol/L",
-                    "reference": "< 5.2",
-                    "status": "High",
-                    "status_label": "Hơi cao",
-                    "advice": "Mỡ máu toàn phần vượt ngưỡng, nên tập luyện thể dục thường xuyên."
+                    "name": "Losartan Potassium 50mg (Cozaar) - 30 Viên",
+                    "strength": "50mg",
+                    "ingredient": "Losartan potassium 50mg",
+                    "category": "Thuốc đối kháng thụ thể Angiotensin II (ARB)",
+                    "purpose": "Hạ huyết áp và bảo vệ chức năng thận ở bệnh nhân tăng huyết áp.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống 1 viên vào buổi sáng cùng Amlodipine."
                 },
                 {
-                    "name": "AST / SGOT (Men gan)",
-                    "value": "26",
-                    "unit": "U/L",
-                    "reference": "< 40",
-                    "status": "Normal",
-                    "status_label": "Bình thường",
-                    "advice": "Men gan trong giới hạn bình thường."
+                    "name": "Atorvastatin 20mg (Lipitor) - 30 Viên",
+                    "strength": "20mg",
+                    "ingredient": "Atorvastatin calcium 20mg",
+                    "category": "Thuốc ức chế men HMG-CoA reductase (Statin)",
+                    "purpose": "Hạ cholesterol toàn phần, LDL-C và bảo vệ thành mạch chống xơ vữa.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Tối)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống 1 viên vào buổi tối sau ăn hoặc trước khi đi ngủ."
                 },
                 {
-                    "name": "Creatinine (Chức năng thận)",
-                    "value": "72",
-                    "unit": "µmol/L",
-                    "reference": "53 - 106",
-                    "status": "Normal",
-                    "status_label": "Bình thường",
-                    "advice": "Chức năng lọc cầu thận bình thường."
+                    "name": "Aspirin 81mg (Aspirin pH8) - 30 Viên",
+                    "strength": "81mg",
+                    "ingredient": "Acid Acetylsalicylic 81mg",
+                    "category": "Thuốc kháng kết tập tiểu cầu liều thấp",
+                    "purpose": "Ngừa hình thành huyết khối vi mạch, phòng ngừa tai biến tim mạch.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống sau bữa ăn sáng no. Uống nguyên viên với nhiều nước, không bẻ viên."
                 }
             ],
-            "ai_summary": "[DỮ LIỆU MẪU DEMO]: Kết quả xét nghiệm mẫu minh họa chỉ số đường huyết và mỡ máu hơi cao.",
-            "lifestyle_recommendations": [
-                "Tăng cường rau xanh và thực phẩm giàu chất xơ hòa tan.",
-                "Tập thể dục ít nhất 30 phút mỗi ngày."
+            "warnings": [
+                "[DỮ LIỆU MẪU DEMO]: Đây là đơn thuốc mẫu minh họa điều trị tăng huyết áp và rối loạn lipid máu.",
+                "Uống thuốc hạ áp đều đặn mỗi ngày vào cùng một thời điểm, không được tự ý ngưng thuốc ngay cả khi huyết áp đã về bình thường.",
+                "Hạn chế ăn mặn (giảm muối dưới 5g/ngày), kiêng rượu bia, thuốc lá và tập thể dục nhẹ nhàng 30 phút mỗi ngày."
             ]
         }
 
     return {
         "status": "error",
         "is_demo": True,
-        "message": f"Kịch bản mẫu '{preset_key}' không tồn tại. Vui lòng chọn 'binh_dan' hoặc 'lab_blood'."
+        "message": f"Kịch bản mẫu '{preset_key}' không tồn tại. Vui lòng chọn 'binh_dan' hoặc 'throat' hoặc 'cardio'."
     }

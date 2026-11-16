@@ -53,8 +53,9 @@ YÊU CẦU SCHEMA TRẢ VỀ:
   "date": "Ngày kê đơn",
   "medications": [
     {{
-      "name": "Tên thuốc",
-      "strength": "Hàm lượng (ví dụ: 500mg, 10mg)",
+      "name": "Tên biệt dược hoặc hoạt chất thuốc",
+      "strength": "Hàm lượng (ví dụ: 500mg, 40mg, 1g, 200mg)",
+      "purpose": "Công dụng chính ngắn gọn (ví dụ: Giảm tiết acid dạ dày, Trị trào ngược dạ dày, Bảo vệ niêm mạc, Giảm co thắt, Bổ gan)",
       "dose": "Liều dùng mỗi lần (ví dụ: 1 viên, 2 gói)",
       "frequency": "Tần suất (ví dụ: 2 lần / ngày (Sáng 1 - Chiều 1))",
       "days": "Số ngày hoặc tổng số lượng cấp phát ghi trên đúng dòng thuốc; giữ nguyên đơn vị, không quy đổi hay suy tính",

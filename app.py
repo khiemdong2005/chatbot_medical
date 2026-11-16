@@ -1511,8 +1511,10 @@ def create_app(test_config=None):
             if not doc_id:
                 return jsonify({"status": "error", "message": "Không tạo được bản nháp."}), 500
             res["document_id"] = doc_id
+            if meta and meta.get("storage_filename"):
+                res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
             if res.get("status") == "review":
-                doc.parsed_data = json.dumps({"type": res["doc_type"], "allergies": user_allergies}, ensure_ascii=False)
+                doc.parsed_data = json.dumps({"type": res.get("doc_type", "prescription"), "allergies": user_allergies}, ensure_ascii=False)
                 commit_or_rollback()
             return jsonify(res)
 
@@ -1523,7 +1525,7 @@ def create_app(test_config=None):
         # Không có file và không có preset -> Báo lỗi Bad Request
         return jsonify({
             "status": "error",
-            "message": "Vui lòng đính kèm tệp đơn thuốc/xét nghiệm hoặc chỉ định kịch bản mẫu thử nghiệm hợp lệ."
+            "message": "Vui lòng đính kèm tệp đơn thuốc hợp lệ hoặc chọn đơn thuốc mẫu để thử nghiệm."
         }), 400
 
 
@@ -1618,6 +1620,8 @@ def create_app(test_config=None):
                 parsed_json["document_id"] = doc.id
                 parsed_json["uploaded_filename"] = doc.original_filename
                 parsed_json["uploaded_at"] = doc.created_at.strftime("%H:%M %d/%m/%Y") if doc.created_at else ""
+                if doc.storage_filename:
+                    parsed_json["preview_image_url"] = f"/uploads/{doc.storage_filename}"
                 return jsonify({"status": "success", "data": parsed_json})
             except Exception as json_err:
                 logger.warning(f"Lỗi parse JSON doc {doc_id}: {json_err}")
@@ -1627,6 +1631,59 @@ def create_app(test_config=None):
             "message": "Đơn thuốc này chưa có dữ liệu bóc tách chi tiết.",
             "doc": doc.to_dict()
         })
+
+
+    @app.route("/api/prescription/confirm", methods=["POST"])
+    def confirm_prescription():
+        """
+        Lưu dữ liệu đơn thuốc sau khi người dùng đã dò lại và xác nhận chính xác.
+        Cho phép cập nhật thông tin đã chỉnh sửa (nếu có) vào MedicalDocument.
+        """
+        user_id = session.get("user_id")
+        data = request.get_json(silent=True) or {}
+        doc_id = data.get("document_id")
+
+        if doc_id and user_id:
+            try:
+                doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+                if doc:
+                    if doc.doc_type == "ocr_draft":
+                        doc.doc_type = "prescription"
+                    if data.get("patient_name"):
+                        doc.patient_name = data["patient_name"]
+                    if data.get("diagnosis"):
+                        doc.diagnosis = data["diagnosis"]
+                    if data.get("facility"):
+                        doc.facility = data["facility"]
+                    if data.get("doctor"):
+                        doc.doctor = data["doctor"]
+
+                    meds = data.get("medications", [])
+                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                    sum_text = f"{len(meds)} loại thuốc"
+                    if med_names:
+                        sum_text += f": {', '.join(med_names)}"
+                        if len(meds) > 3:
+                            sum_text += f" và {len(meds) - 3} thuốc khác"
+
+                    doc.summary = sum_text
+                    doc.parsed_data = json.dumps(data, ensure_ascii=False)
+                    commit_or_rollback()
+            except Exception as e:
+                db.session.rollback()
+                logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
+
+        return jsonify({"status": "success", "message": "Đã xác nhận đơn thuốc thành công.", "data": data})
+
+
+    @app.route("/uploads/<filename>")
+    def serve_uploaded_file(filename):
+        """Phục vụ file ảnh đơn thuốc an toàn cho người dùng xem và đối soát."""
+        from flask import send_from_directory
+        from werkzeug.utils import secure_filename
+        clean_name = secure_filename(filename)
+        upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
+        return send_from_directory(upload_folder, clean_name)
 
 
     @app.route("/api/prescription/history/<int:doc_id>", methods=["DELETE"])

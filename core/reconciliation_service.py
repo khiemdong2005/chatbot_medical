@@ -798,21 +798,35 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         data["patient_name"] = pname
 
     # 3. Ngày sinh / Tuổi / Giới tính
-    dob_m = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_raw)
+    dob_m = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|nam\s*sinh|sinh\s*nam|ns|sn|d\.o\.b|dob)[|\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_raw)
     if dob_m:
         data["dob"] = dob_m.group(1).replace("-", "/").replace(".", "/")
     else:
-        year_m = re.search(r"(?:nam\s*sinh|sinh\s*nam|sn)[\s:.\-]*(19\d{2}|20\d{2})", folded_raw)
+        year_m = re.search(r"(?:nam\s*sinh|sinh\s*nam|ngay\s*sinh|sinh\s*ngay|sn|ns)[|\s:.\-]*(19\d{2}|20\d{2})", folded_raw)
         if year_m:
             data["dob"] = year_m.group(1)
 
-    age_m = re.search(r"\b(?:tuoi|tuổi|iuj[zi]|age)[\s:.\-]*(\d{1,3})\b", folded_raw)
+    age_m = re.search(r"\b(?:tuoi|tuổi|iuj[zi]|age)[|\s:.\-]*(\d{1,3})\b", folded_raw)
     if age_m:
         data["age"] = age_m.group(1)
 
-    gender_m = re.search(r"(?:gioi\s*tinh|gi[oớ]i\s*t[ií]nh|phai|ph[aá]i|phal|gender|sex)[\s:.\-|]{0,15}?\b(nam|nu|nữ|male|female)", raw_text, re.IGNORECASE)
+    # Tự động tính tuổi từ ngày tháng năm sinh nếu chưa có tuổi
+    import datetime
+    current_year = datetime.datetime.now().year
+    dob_str = str(data.get("dob") or "").strip()
+    if dob_str and not data.get("age"):
+        y_m = re.search(r"(19\d{2}|20\d{2})", dob_str)
+        if y_m:
+            try:
+                birth_year = int(y_m.group(1))
+                if 1900 <= birth_year <= current_year:
+                    data["age"] = str(current_year - birth_year)
+            except Exception:
+                pass
+
+    gender_m = re.search(r"(?:gioi\s*tinh|gi[oớ]i\s*t[ií]nh|phai|ph[aá]i|phal|gender|sex)[|\s:.\-|]{0,15}?\b(nam|nu|nữ|male|female)", raw_text, re.IGNORECASE)
     if not gender_m:
-        gender_m = re.search(r"\b(?:gioi\s*tinh|phai|gender|sex)[\s:.\-]*(nam|nu|male|female)\b", folded_raw)
+        gender_m = re.search(r"\b(?:gioi\s*tinh|phai|gender|sex)[|\s:.\-]*(nam|nu|male|female)\b", folded_raw)
     if gender_m:
         g_raw = gender_m.group(1).lower()
         data["gender"] = "Nam" if g_raw in ("nam", "male") else "Nữ"
@@ -1015,21 +1029,35 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
 
     folded_ocr_raw = _ascii_fold(ocr_raw_text)
     if not reconciled.get("dob"):
-        dob_match = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|ns|d\.o\.b|dob)[\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_ocr_raw)
+        dob_match = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|nam\s*sinh|sinh\s*nam|ns|sn|d\.o\.b|dob)[|\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_ocr_raw)
         if dob_match:
             reconciled["dob"] = dob_match.group(1).replace("-", "/").replace(".", "/")
         else:
-            year_match = re.search(r"(?:nam\s*sinh|sinh\s*nam|sn)[\s:.\-]*(19\d{2}|20\d{2})", folded_ocr_raw)
+            year_match = re.search(r"(?:nam\s*sinh|sinh\s*nam|ngay\s*sinh|sinh\s*ngay|sn|ns)[|\s:.\-]*(19\d{2}|20\d{2})", folded_ocr_raw)
             if year_match:
                 reconciled["dob"] = year_match.group(1)
 
     if not reconciled.get("age"):
-        age_match = re.search(r"\b(?:tuoi|age)[\s:.\-]*(\d{1,3})\b", folded_ocr_raw)
+        age_match = re.search(r"\b(?:tuoi|age)[|\s:.\-]*(\d{1,3})\b", folded_ocr_raw)
         if age_match:
             reconciled["age"] = age_match.group(1)
 
+    # Tự động tính tuổi từ ngày tháng năm sinh nếu chưa có tuổi
+    import datetime
+    current_year = datetime.datetime.now().year
+    dob_val = str(reconciled.get("dob") or "").strip()
+    if dob_val and not reconciled.get("age"):
+        y_m = re.search(r"(19\d{2}|20\d{2})", dob_val)
+        if y_m:
+            try:
+                birth_year = int(y_m.group(1))
+                if 1900 <= birth_year <= current_year:
+                    reconciled["age"] = str(current_year - birth_year)
+            except Exception:
+                pass
+
     if not reconciled.get("gender"):
-        gender_match = re.search(r"\b(?:gioi\s*tinh|phai|gender|sex)[\s:.\-]*(nam|nu|male|female)\b", folded_ocr_raw)
+        gender_match = re.search(r"\b(?:gioi\s*tinh|phai|gender|sex)[|\s:.\-]*(nam|nu|male|female)\b", folded_ocr_raw)
         if gender_match:
             g_raw = gender_match.group(1).lower()
             reconciled["gender"] = "Nam" if g_raw in ("nam", "male") else "Nữ"
