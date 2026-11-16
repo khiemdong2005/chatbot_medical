@@ -172,7 +172,7 @@ def process_medical_document_pipeline(
         "status": "success",
         "type": doc_type,
         "doc_type": doc_type,
-        "doc_title": f"Đơn thuốc {reconciled.get('facility', 'Bệnh viện')}" if doc_type == "prescription" else f"Phiếu Xét Nghiệm {reconciled.get('facility', '')}",
+        "doc_title": f"Đơn thuốc {reconciled.get('facility', 'Bệnh viện')}",
         "facility": reconciled.get("facility", "Bệnh viện"),
         "department": reconciled.get("department", "Khoa Khám bệnh"),
         "doctor": reconciled.get("doctor", "Bác sĩ chuyên khoa"),

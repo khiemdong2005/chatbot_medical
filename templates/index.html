@@ -497,13 +497,13 @@ background: #94A3B8;
       <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat1_desc">Mô tả triệu chứng của bạn để nhận gợi ý sơ bộ và biết nên khám chuyên khoa nào.</p>
     </div>
 
-    <!-- Card 2: Giải thích thuật ngữ y khoa -->
+    <!-- Card 2: Số hóa đơn thuốc lâm sàng -->
     <div onclick="switchTab('ocr-tab')" class="home-card bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-md hover:shadow-xl hover:border-sky-400/50 transition-all cursor-pointer group">
       <div class="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
       </div>
-      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" data-i18n="home_feat2_title">Giải thích thuật ngữ y khoa</h3>
-      <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat2_desc">Hiểu rõ kết quả xét nghiệm, chẩn đoán và các thuật ngữ trong hồ sơ khám bệnh.</p>
+      <h3 class="text-slate-900 dark:text-white font-extrabold text-base mb-2 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" data-i18n="home_feat2_title">Số hóa đơn thuốc lâm sàng</h3>
+      <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed" data-i18n="home_feat2_desc">Số hóa đơn thuốc y tế, trích xuất danh mục hoạt chất, liều dùng và gợi ý lịch uống thông minh.</p>
     </div>
 
     <!-- Card 3: Lưu lịch sử tư vấn -->
@@ -1181,7 +1181,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
 <!-- ============================================================== -->
 
-<!-- TAB 3: ĐỌC ĐƠN THUỐC & XÉT NGHIỆM -->
+<!-- TAB 3: ĐỌC ĐƠN THUỐC LÂM SÀNG -->
 
 <!-- ============================================================== -->
 
@@ -1487,7 +1487,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
 <button onclick="openNewPrescriptionUpload()" class="glass-pill px-6 py-2.5 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer">
 
-<span data-i18n="ehr_btn_upload">Tải đơn thuốc / xét nghiệm</span>
+<span data-i18n="ehr_btn_upload">Tải đơn thuốc</span>
 
 </button>
 
@@ -1662,12 +1662,12 @@ Triage: Trung bình (35/100)
 </div>
 
 
-<!-- Card: Lịch sử Đơn thuốc & Xét nghiệm đã Import -->
+<!-- Card: Lịch sử Đơn thuốc đã Import -->
 <div id="ehr-prescription-history-card" class="glass-card border border-teal-400/30 rounded-2xl p-5 space-y-3 shadow-2xl bg-teal-950/20 text-white">
 <div class="flex items-center justify-between pb-2 border-b border-white/10">
 <div class="flex items-center space-x-2">
 <span class="text-base">💊</span>
-<h4 class="text-xs font-bold text-white">Toa thuốc &amp; Bệnh án đã Import</h4>
+<h4 class="text-xs font-bold text-white">Lịch sử Đơn thuốc đã Import</h4>
 </div>
 <button type="button" onclick="switchTab('ocr-tab')" class="text-[11px] text-teal-300 hover:text-white font-bold transition-colors cursor-pointer">
 + Thêm đơn mới →
@@ -3458,7 +3458,7 @@ Hủy bỏ
           <span>🩺</span>
           <span>Chào bạn, tôi là Trợ lý AI MediMind!</span>
         </div>
-        <p class="leading-relaxed">Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé!</p>
+        <p class="leading-relaxed">Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, phân bổ cữ uống theo đơn hoặc gợi ý chuyên khoa khám nhé!</p>
       </div>
     </div>
 
@@ -3493,7 +3493,7 @@ Hủy bỏ
   </button>
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=2.9.0"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=2.9.2"></script>
 
 </body>
 

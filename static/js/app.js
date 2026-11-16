@@ -281,8 +281,8 @@ const translations = {
     home_badge_history: "Lưu lịch sử trò chuyện",
     home_feat1_title: "Hỏi đáp triệu chứng",
     home_feat1_desc: "Mô tả triệu chứng của bạn để nhận gợi ý sơ bộ và biết nên khám chuyên khoa nào.",
-    home_feat2_title: "Giải thích thuật ngữ y khoa",
-    home_feat2_desc: "Hiểu rõ kết quả xét nghiệm, chẩn đoán và các thuật ngữ trong hồ sơ khám bệnh.",
+    home_feat2_title: "Số hóa đơn thuốc lâm sàng",
+    home_feat2_desc: "Số hóa đơn thuốc y tế, trích xuất danh mục hoạt chất, liều dùng và gợi ý lịch uống thông minh.",
     home_feat3_title: "Lưu lịch sử tư vấn",
     home_feat3_desc: "Mọi cuộc trò chuyện được lưu lại để bạn xem lại bất cứ lúc nào.",
     home_feat4_title: "Kết nối hồ sơ bệnh án",
@@ -377,7 +377,7 @@ const translations = {
     p_avatar_change: "Đổi ảnh",
     brand_subtitle: "Bảo mật thông tin cá nhân • Phác đồ MedlinePlus",
     nav_chat: "Trợ lý sức khỏe",
-    nav_ocr: "Đọc đơn thuốc & xét nghiệm",
+    nav_ocr: "Đọc đơn thuốc lâm sàng",
     nav_booking: "Cơ sở y tế",
     nav_doctor: "Hồ sơ của tôi",
     nav_admin: "Hạ tầng Cloud",
@@ -385,24 +385,24 @@ const translations = {
     nav_start: "Bắt đầu ngay",
     user_role: "Bác sĩ lâm sàng",
     dock_chat: "Trợ lý sức khỏe",
-    dock_ocr: "Đọc đơn thuốc & xét nghiệm",
+    dock_ocr: "Đọc đơn thuốc lâm sàng",
     dock_booking: "Cơ sở y tế & Bệnh viện",
     dock_doctor: "Hồ sơ của tôi",
     dock_wallpaper: "Đổi không gian Y tế",
     dock_theme: "Kính Sáng / Kính Khói",
     dock_reset: "Cuộc trò chuyện mới",
-    ocr_title: "Đọc Đơn Thuốc & Xét Nghiệm",
+    ocr_title: "Đọc Đơn Thuốc Lâm Sàng",
     ocr_subtitle: "Bóc tách danh mục thuốc, đối chiếu liều dùng và gợi ý lịch uống sau khi bạn xác nhận",
-    ocr_btn_upload_new: "Tải tài liệu mới",
+    ocr_btn_upload_new: "Tải đơn thuốc mới",
     ocr_btn_home: "Trang chủ",
-    ocr_box_title: "Tải Lên Đơn Thuốc Hoặc Phiếu Xét Nghiệm",
-    ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép tài liệu (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)",
-    ocr_btn_choose: "Chọn tài liệu từ thiết bị",
-    ocr_privacy_note: "🔒 Tài liệu được bảo mật và chỉ lưu vào hồ sơ cá nhân sau khi bạn xác nhận kết quả.",
+    ocr_box_title: "Tải Lên Đơn Thuốc Lâm Sàng",
+    ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép đơn thuốc (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)",
+    ocr_btn_choose: "Chọn đơn thuốc từ thiết bị",
+    ocr_privacy_note: "🔒 Đơn thuốc được bảo mật y tế và chỉ lưu vào hồ sơ cá nhân sau khi bạn đối chiếu xác nhận kết quả.",
     ocr_preset_hint: "Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:",
     ocr_preset_gastro: "Đơn thuốc mẫu (Tiêu hóa)",
     ocr_preset_resp: "Đơn thuốc mẫu (Hô hấp)",
-    ocr_preset_blood: "Phiếu xét nghiệm mẫu (Máu)",
+    ocr_preset_blood: "Đơn thuốc mẫu (Hô hấp)",
     modal_login_title: "Đăng nhập MediMind AI",
     modal_register_title: "Đăng ký tài khoản MediMind",
     modal_auth_subtitle: "Hệ thống Trợ lý Y tế & Phân tầng Lâm sàng",
@@ -475,7 +475,7 @@ const translations = {
     ehr_empty_title: "Bạn chưa có bản tóm tắt trước khám",
     ehr_empty_desc: "Chưa có dữ liệu tư vấn nào được ghi nhận. Hãy trao đổi với Trợ lý sức khỏe AI hoặc tải ảnh đơn thuốc để hệ thống tự động tổng hợp thông tin trước khám cho bạn.",
     ehr_btn_start_chat: "Bắt đầu tư vấn triệu chứng →",
-    ehr_btn_upload: "Tải đơn thuốc / xét nghiệm",
+    ehr_btn_upload: "Tải đơn thuốc",
     vital_bp: "Huyết áp",
     vital_hr: "Nhịp tim",
     vital_temp: "Thân nhiệt",
@@ -542,8 +542,8 @@ const translations = {
     home_badge_history: "Chat History Saved",
     home_feat1_title: "Symptom Q&A",
     home_feat1_desc: "Describe your symptoms for preliminary guidance and specialty recommendations.",
-    home_feat2_title: "Medical Terminology",
-    home_feat2_desc: "Understand lab results, clinical diagnoses, and prescriptions clearly.",
+    home_feat2_title: "Prescription Digitization",
+    home_feat2_desc: "Digitize medical prescriptions, verify dosages, and generate smart intake schedules.",
     home_feat3_title: "Consultation History",
     home_feat3_desc: "All triage discussions are securely saved for your future reference.",
     home_feat4_title: "Electronic Health Records",
@@ -638,7 +638,7 @@ const translations = {
     p_avatar_change: "Change",
     brand_subtitle: "HIPAA Compliant • MedlinePlus Protocols",
     nav_chat: "Health Assistant",
-    nav_ocr: "Prescriptions & Labs",
+    nav_ocr: "Prescription OCR",
     nav_booking: "Hospitals & Clinics",
     nav_doctor: "My Health Record",
     nav_admin: "Cloud Infrastructure",
@@ -646,24 +646,24 @@ const translations = {
     nav_start: "Get Started",
     user_role: "Clinical Physician",
     dock_chat: "Health Assistant",
-    dock_ocr: "Prescriptions & Labs",
+    dock_ocr: "Prescription OCR",
     dock_booking: "Hospitals & Clinics",
     dock_doctor: "My Health Record",
     dock_wallpaper: "Change Wallpaper",
     dock_theme: "Light / Dark Glass",
     dock_reset: "New Conversation",
-    ocr_title: "Prescription & Lab OCR",
+    ocr_title: "Prescription Clinical OCR",
     ocr_subtitle: "Extract drug lists, verify dosages, and generate intake schedules after confirmation",
-    ocr_btn_upload_new: "Upload New Document",
+    ocr_btn_upload_new: "Upload New Prescription",
     ocr_btn_home: "Home",
-    ocr_box_title: "Upload Prescription or Lab Report",
+    ocr_box_title: "Upload Clinical Prescription",
     ocr_box_desc: "Clear text, adequate light, all edges visible (Supports JPG, PNG, PDF, up to 10MB)",
-    ocr_btn_choose: "Select from Device",
-    ocr_privacy_note: "🔒 Your document is encrypted and only saved to your personal health record upon confirmation.",
-    ocr_preset_hint: "No document at hand? Try quick samples:",
+    ocr_btn_choose: "Select Prescription from Device",
+    ocr_privacy_note: "🔒 Your prescription is encrypted and only saved to your personal health record upon confirmation.",
+    ocr_preset_hint: "No prescription at hand? Try quick samples:",
     ocr_preset_gastro: "Sample Prescription (Gastro)",
     ocr_preset_resp: "Sample Prescription (Resp)",
-    ocr_preset_blood: "Sample Lab Report (Blood)",
+    ocr_preset_blood: "Sample Prescription (Cardio)",
     modal_login_title: "Sign In to MediMind AI",
     modal_register_title: "Create MediMind Account",
     modal_auth_subtitle: "Clinical Decision Support & Health Assistant",
@@ -736,7 +736,7 @@ const translations = {
     ehr_empty_title: "No Pre-Visit Summary Available",
     ehr_empty_desc: "No consultation data recorded yet. Talk with our AI Health Assistant or upload a prescription to generate your summary.",
     ehr_btn_start_chat: "Start Symptom Consultation →",
-    ehr_btn_upload: "Upload Prescription / Lab",
+    ehr_btn_upload: "Upload Prescription",
     vital_bp: "Blood Pressure",
     vital_hr: "Heart Rate",
     vital_temp: "Body Temp",
@@ -2350,7 +2350,7 @@ function resetPrescriptionScan() {
 }
 
 // ==============================================================================
-// LỊCH SỬ ĐƠN THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT (DATA NGƯỜI DÙNG)
+// LỊCH SỬ ĐƠN THUỐC ĐÃ IMPORT (DATA NGƯỜI DÙNG)
 // ==============================================================================
 let cachedPrescriptionHistory = [];
 
@@ -2376,7 +2376,7 @@ async function loadPrescriptionHistory() {
 
     if (countBadge) countBadge.innerText = `${history.length} hồ sơ`;
 
-    // 1. Cập nhật trong tab OCR (Đọc đơn thuốc & xét nghiệm)
+    // 1. Cập nhật trong tab OCR (Đọc đơn thuốc lâm sàng)
     if (history.length === 0) {
       if (listEl) listEl.innerHTML = '';
       if (emptyEl) emptyEl.classList.remove('hidden');
@@ -2384,14 +2384,8 @@ async function loadPrescriptionHistory() {
       if (emptyEl) emptyEl.classList.add('hidden');
       if (listEl) {
         listEl.innerHTML = history.map(item => {
-          const isLab = item.doc_type === 'lab_test';
-          const badgeType = isLab 
-            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">🔬 Phiếu Xét Nghiệm</span>'
-            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">💊 Đơn Thuốc</span>';
-
-          const iconSvg = isLab
-            ? `<svg class="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
-            : `<svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+          const badgeType = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">💊 Đơn Thuốc Lâm Sàng</span>';
+          const iconSvg = `<svg class="w-5 h-5 text-teal-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
 
           const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Theo dõi & Điều trị theo chỉ định';
           const facility = item.facility && item.facility !== 'Cơ sở Y tế' ? item.facility : 'Cơ sở Y tế';
@@ -2400,7 +2394,7 @@ async function loadPrescriptionHistory() {
             <div class="glass-card p-4 rounded-2xl border border-white/10 hover:border-teal-400/40 bg-white/[0.04] transition-all space-y-2.5">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-start gap-3">
-                  <div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-500/20 border-purple-400/30' : 'bg-teal-500/20 border-teal-400/30'} border flex items-center justify-center shrink-0 mt-0.5">
+                  <div class="w-10 h-10 rounded-xl bg-teal-500/20 border-teal-400/30 border flex items-center justify-center shrink-0 mt-0.5">
                     ${iconSvg}
                   </div>
                   <div class="space-y-1">
@@ -2459,13 +2453,12 @@ async function loadPrescriptionHistory() {
         ehrPrescriptionList.innerHTML = '<p class="text-slate-400 text-[11px] italic">Chưa có đơn thuốc nào được lưu. Bạn có thể import đơn thuốc mới bất kỳ lúc nào.</p>';
       } else {
         ehrPrescriptionList.innerHTML = history.slice(0, 5).map(item => {
-          const isLab = item.doc_type === 'lab_test';
           const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Đơn thuốc khám bệnh';
           return `
             <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/30 transition-all flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${isLab ? 'bg-purple-500/20 text-purple-300' : 'bg-teal-500/20 text-teal-300'}">${isLab ? 'XÉT NGHIỆM' : 'ĐƠN THUỐC'}</span>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-teal-500/20 text-teal-300">ĐƠN THUỐC</span>
                   <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(item.uploaded_at || '')}</span>
                 </div>
                 <h5 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(diag)}">${escapeHtml(diag)}</h5>

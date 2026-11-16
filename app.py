@@ -443,13 +443,13 @@ def create_app(test_config=None):
 
 
     # ==============================================================
-    # QUÉT & PHÂN TÍCH ĐƠN THUỐC / KẾT QUẢ XÉT NGHIỆM AI
+    # QUÉT & PHÂN TÍCH ĐƠN THUỐC LÂM SÀNG AI
     # ==============================================================
 
     @app.route("/api/prescription/scan", methods=["POST"])
     def scan_prescription():
         """
-        Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm:
+        Quét và phân tích đơn thuốc lâm sàng:
         BẢO MẬT & TRUNG THỰC:
           - Bắt buộc đăng nhập khi tải file lên; lưu bản ghi MedicalDocument liên kết owner_id.
           - Khi OCR / AI thất bại, trả về status failed/needs_review; không bịa dữ liệu mẫu.
@@ -547,19 +547,19 @@ def create_app(test_config=None):
         # Không có file và không có preset -> Báo lỗi Bad Request
         return jsonify({
             "status": "error",
-            "message": "Vui lòng đính kèm tệp đơn thuốc/xét nghiệm hoặc chỉ định kịch bản mẫu thử nghiệm hợp lệ."
+            "message": "Vui lòng đính kèm tệp đơn thuốc hợp lệ hoặc chọn đơn thuốc mẫu để thử nghiệm."
         }), 400
 
 
     # ==============================================================
-    # QUẢN LÝ LỊCH SỬ TOA THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT
+    # QUẢN LÝ LỊCH SỬ ĐƠN THUỐC ĐÃ IMPORT
     # ==============================================================
 
     @app.route("/api/prescription/history", methods=["GET"])
     def get_prescription_history():
         """
-        Lấy danh sách lịch sử các đơn thuốc và phiếu xét nghiệm mà user đã import:
-        Bao gồm thời gian import, chẩn đoán bệnh, tóm tắt thuốc/chỉ số, cơ sở y tế.
+        Lấy danh sách lịch sử các đơn thuốc mà user đã import:
+        Bao gồm thời gian import, chẩn đoán bệnh, tóm tắt thuốc, cơ sở y tế.
         """
         user_id = session.get("user_id")
         if not user_id:
@@ -573,7 +573,7 @@ def create_app(test_config=None):
     @app.route("/api/prescription/history/<int:doc_id>", methods=["GET"])
     def get_prescription_history_detail(doc_id):
         """
-        Xem lại chi tiết toàn bộ dữ liệu đơn thuốc / xét nghiệm đã được bóc tách trước đó.
+        Xem lại chi tiết toàn bộ dữ liệu đơn thuốc đã được bóc tách trước đó.
         Cho phép người dùng xem lại ngay kết quả phân tích mà không cần chụp/quét lại ảnh.
         """
         user_id = session.get("user_id")
@@ -657,7 +657,7 @@ def create_app(test_config=None):
     @app.route("/api/prescription/history/<int:doc_id>", methods=["DELETE"])
     def delete_prescription_history_item(doc_id):
         """
-        Xóa một đơn thuốc/phiếu xét nghiệm khỏi lịch sử hồ sơ của người dùng.
+        Xóa một đơn thuốc khỏi lịch sử hồ sơ của người dùng.
         """
         user_id = session.get("user_id")
         if not user_id:
