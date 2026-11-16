@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/autismspectrumdisorder.html",
   "medlineplus_id": "153",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Autism",
+  "title_vi": "Rối loạn phổ tự kỷ (ASD)",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "autism",
+    "autism spectrum disorder",
+    "ASD",
+    "social communication",
+    "repetitive behaviors"
+  ],
+  "keywords_vi": [
+    "tự kỷ",
+    "rối loạn phổ tự kỷ",
+    "giao tiếp xã hội",
+    "hành vi lặp lại",
+    "tâm bệnh nhi"
+  ],
+  "content_hash": "b3032a19b5e939d07593dd2749907c1ee324908a732b9c491e6d1fa118f1ee38",
+  "content_sha256": "b3032a19b5e939d07593dd2749907c1ee324908a732b9c491e6d1fa118f1ee38",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

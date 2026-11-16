@@ -1,0 +1,49 @@
+{
+  "id": "carbonmonoxidepoisoning",
+  "title": "Carbon Monoxide Poisoning",
+  "title_en": "Carbon Monoxide Poisoning",
+  "title_vi": "Ngộ độc khí Carbon Monoxide (CO)",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "carbon monoxide poisoning",
+    "CO poisoning",
+    "smoke inhalation",
+    "hypoxia",
+    "toxic gas emergency",
+    "ngộ độc khí CO",
+    "ngạt khí than",
+    "ngộ độc khí độc",
+    "thiếu oxy não",
+    "cấp cứu ngạt khí"
+  ],
+  "keywords_en": [
+    "carbon monoxide poisoning",
+    "CO poisoning",
+    "smoke inhalation",
+    "hypoxia",
+    "toxic gas emergency"
+  ],
+  "keywords_vi": [
+    "ngộ độc khí CO",
+    "ngạt khí than",
+    "ngộ độc khí độc",
+    "thiếu oxy não",
+    "cấp cứu ngạt khí"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/carbonmonoxidepoisoning.html",
+  "summary": "Carbon monoxide (CO) is a gas that has no odor or color. But it is very dangerous. It can cause sudden illness and death. CO is found in combustion fumes, such as those made by cars and trucks, lanterns, stoves, gas ranges and heating systems. CO from these fumes can build up in places that don't have a good flow of fresh air. You can be poisoned by breathing them in. The most common symptoms of CO poisoning are: Headache Dizziness Weakness Nausea Vomiting Chest pain Confusion It is often hard to tell if someone has CO poisoning, because the symptoms may be like those of other illnesses. People who are sleeping or intoxicated can die from CO poisoning before they have symptoms. A CO detector can warn you if you have high levels of CO in your home. Centers for Disease Control and Prevention",
+  "page_content": "Carbon monoxide (CO) is a gas that has no odor or color. But it is very dangerous. It can cause sudden illness and death. CO is found in combustion fumes, such as those made by cars and trucks, lanterns, stoves, gas ranges and heating systems. CO from these fumes can build up in places that don't have a good flow of fresh air. You can be poisoned by breathing them in. The most common symptoms of CO poisoning are: Headache Dizziness Weakness Nausea Vomiting Chest pain Confusion It is often hard to tell if someone has CO poisoning, because the symptoms may be like those of other illnesses. People who are sleeping or intoxicated can die from CO poisoning before they have symptoms. A CO detector can warn you if you have high levels of CO in your home. Centers for Disease Control and Prevention",
+  "content_sha256": "e710f874a57310d30106dc38e0884b15b35da3ebcd4d5d4125b70a5de23a623c",
+  "candidate_score": 0.98,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

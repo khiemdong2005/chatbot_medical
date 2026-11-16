@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/earinfections.html",
   "medlineplus_id": "115",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.963
+  "mapping_score": 0.963,
+  "title_en": "Ear infection",
+  "title_vi": "Viêm tai (Nhiễm trùng tai)",
+  "category_en": "Eye, Ear & Mouth",
+  "category_vi": "Mắt, Tai & Răng miệng",
+  "keywords_en": [
+    "ear infection",
+    "otitis media",
+    "ear pain",
+    "ear discharge",
+    "middle ear"
+  ],
+  "keywords_vi": [
+    "viêm tai",
+    "nhiễm trùng tai",
+    "viêm tai giữa",
+    "đau tai",
+    "chảy dịch tai"
+  ],
+  "content_hash": "933af3f4ea9d20184a213f24bd92f919b096d4674285cae0c33666bf4c1b5c9d",
+  "content_sha256": "933af3f4ea9d20184a213f24bd92f919b096d4674285cae0c33666bf4c1b5c9d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

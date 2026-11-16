@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
   "medlineplus_id": "367",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "PTSD",
+  "title_vi": "Rối loạn căng thẳng sau sang chấn (PTSD)",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "PTSD",
+    "post traumatic stress disorder",
+    "trauma flashbacks",
+    "nightmares",
+    "psychological trauma"
+  ],
+  "keywords_vi": [
+    "PTSD",
+    "căng thẳng sau sang chấn",
+    "hồi tưởng sang chấn",
+    "ác mộng chấn thương",
+    "sức khỏe tâm thần"
+  ],
+  "content_hash": "f0b0745bfbad85374285cc0a2e81d22066f86ce7e4b8c948e51beaf0e8995b85",
+  "content_sha256": "f0b0745bfbad85374285cc0a2e81d22066f86ce7e4b8c948e51beaf0e8995b85",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

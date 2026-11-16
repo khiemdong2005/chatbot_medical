@@ -1,0 +1,39 @@
+{
+  "id": "rubella",
+  "title": "Rubella",
+  "category": "Infectious Diseases",
+  "mapped_title": "Rubella",
+  "page_content": "User topic: Rubella\nCategory: Infectious Diseases\nTrusted medical topic: Rubella\nSearch phrases: Rubella, German measles, Three day measles\nMedical groups: Children and Teenagers, Infections, Skin, Hair and Nails\n\nMedical information:\nRubella is an infection caused by a virus. It is usually mild with fever and a rash. About half of the people who get rubella do not have symptoms. If you do get them, symptoms may include: A rash that starts on the face and spreads to the body Mild fever Aching joints, especially in young women Swollen glands Rubella is most dangerous for a pregnant woman's baby. It can cause miscarriage or birth defects. Rubella spreads when an infected person coughs or sneezes. People without symptoms can still spread it. There is no treatment, but the measles-mumps-rubella (MMR) vaccine can prevent it. Centers for Disease Control and Prevention",
+  "search_phrases": [
+    "Rubella",
+    "German measles",
+    "Three day measles"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/rubella.html",
+  "medlineplus_id": "387",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Rubella",
+  "title_vi": "Bệnh Rubella (Sởi Đức)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "rubella",
+    "German measles",
+    "rubella rash",
+    "congenital rubella",
+    "MMR vaccine"
+  ],
+  "keywords_vi": [
+    "rubella",
+    "sởi đức",
+    "phát ban rubella",
+    "hội chứng rubella bẩm sinh",
+    "vắc-xin MMR"
+  ],
+  "content_hash": "0c3f69a7092ea2d86ca9e9afe3eb6743b22df118a8fbd3cd1bc833e5d5e5c729",
+  "content_sha256": "0c3f69a7092ea2d86ca9e9afe3eb6743b22df118a8fbd3cd1bc833e5d5e5c729",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

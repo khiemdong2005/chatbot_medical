@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-labelledby="title desc">
+<title id="title">Nước lê ấm</title><desc id="desc">Minh họa ly nước lê màu vàng nhạt cùng quả lê tươi và một lát lê bên cạnh.</desc>
+<defs><linearGradient id="water" x1="0" x2="1"><stop stop-color="#e5e7be"/><stop offset=".5" stop-color="#f4efce"/><stop offset="1" stop-color="#d8d6a2"/></linearGradient></defs>
+<rect width="640" height="440" fill="#edf5f4"/><path d="M0 342c197-16 437-16 640 0v98H0Z" fill="#e7ede6"/><ellipse cx="318" cy="350" rx="156" ry="20" fill="#35585b" opacity=".09"/>
+<ellipse cx="304" cy="337" rx="102" ry="17" fill="#fffdf7" stroke="#ccd8cc" stroke-width="2"/>
+<path d="M234 133h144l-12 183c-1 14-24 23-60 23s-59-9-60-23Z" fill="#edf2e6" stroke="#35585b" stroke-width="3"/><path d="m241 176 11 136c1 10 21 17 54 17s53-7 54-17l11-136Z" fill="url(#water)"/><ellipse cx="306" cy="176" rx="65" ry="12" fill="#f0edce" stroke="#c6c59c" stroke-width="2"/>
+<path d="M301 227c-5-9-7-21-3-28 5-5 11-4 15 3 2 11 5 17 12 28 11 18 7 36-9 42-18 6-33-5-32-22 1-9 11-16 17-23Z" fill="#f7f2dc" stroke="#c9c397" stroke-width="2"/><path d="M308 215v40" stroke="#d8cfaa" stroke-width="2"/>
+<ellipse cx="306" cy="133" rx="72" ry="15" fill="#f6f7ed" stroke="#35585b" stroke-width="3"/><ellipse cx="306" cy="133" rx="62" ry="8" fill="#e9edda"/><path d="m255 153 10 140" stroke="#fffdf7" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+<path d="M431 239c-9-12-16-24-14-39 1-12 11-18 22-15 14 5 11 24 15 36 7 13 22 24 30 39 16 31 3 61-28 67-36 8-65-15-61-46 1-16 24-29 36-42Z" fill="#c8cf91" stroke="#66806b" stroke-width="2.5"/>
+<path d="M435 193c1-14 6-24 14-29" stroke="#7e7753" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M444 181c1-15 14-24 32-20-4 17-17 25-32 20Z" fill="#a5ba8e" stroke="#66806b" stroke-width="2"/>
+<path d="M415 276c-9 15-5 30 10 37" fill="none" stroke="#e2e4b5" stroke-width="5" stroke-linecap="round"/>
+<g fill="none" stroke="#a3b1a3" stroke-width="3" stroke-linecap="round"><path d="M284 111c-11-17 13-22 0-39"/><path d="M320 107c-10-17 13-23 1-41"/></g>
+</svg>

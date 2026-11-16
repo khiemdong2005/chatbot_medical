@@ -1,0 +1,49 @@
+{
+  "id": "chronickidneydisease",
+  "title": "Chronic Kidney Disease (CKD)",
+  "title_en": "Chronic Kidney Disease (CKD)",
+  "title_vi": "Bệnh thận mạn tính",
+  "category": "Nephrology",
+  "category_en": "Nephrology",
+  "category_vi": "Thận & Tiết niệu",
+  "search_phrases": [
+    "chronic kidney disease",
+    "CKD",
+    "renal insufficiency",
+    "glomerular filtration rate GFR",
+    "proteinuria",
+    "bệnh thận mạn",
+    "suy thận mạn",
+    "độ lọc cầu thận gfr",
+    "đạm niệu",
+    "chế độ ăn suy thận"
+  ],
+  "keywords_en": [
+    "chronic kidney disease",
+    "CKD",
+    "renal insufficiency",
+    "glomerular filtration rate GFR",
+    "proteinuria"
+  ],
+  "keywords_vi": [
+    "bệnh thận mạn",
+    "suy thận mạn",
+    "độ lọc cầu thận gfr",
+    "đạm niệu",
+    "chế độ ăn suy thận"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/chronickidneydisease.html",
+  "summary": "You have two kidneys, each about the size of your fist. Their main job is to filter your blood. They remove wastes and extra water, which become urine. They also keep the body's chemicals balanced, help control blood pressure, and make hormones. Chronic kidney disease (CKD) means that your kidneys are damaged and can't filter blood as they should. This damage can cause wastes to build up in your body. It can also cause other problems that can harm your health. Diabetes and high blood pressure are the most common causes of CKD. The kidney damage occurs slowly over many years. Many people don't have any symptoms until their kidney disease is very advanced. Blood and urine tests are the only way to know if you have kidney disease. Treatments cannot cure kidney disease, but they may slow kidney disease. They include medicines to lower blood pressure , control blood sugar , and lower cholesterol . CKD may still get worse over time. Sometimes it can lead to kidney failure . If your kidneys fail, you will need dialysis or a kidney transplantation . You can take steps to keep your kidneys healthier longer: Choose foods with less salt (sodium) Control your blood pressure ; your health care provider can tell you what your blood pressure should be Keep your blood sugar in the target range, if you have diabetes Limit the amount of alcohol you drink Choose foods that are healthy for your heart: fruits, vegetables, whole grains, and low-fat dairy foods Lose weight if you are overweight Be physically active Don't smoke NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "page_content": "You have two kidneys, each about the size of your fist. Their main job is to filter your blood. They remove wastes and extra water, which become urine. They also keep the body's chemicals balanced, help control blood pressure, and make hormones. Chronic kidney disease (CKD) means that your kidneys are damaged and can't filter blood as they should. This damage can cause wastes to build up in your body. It can also cause other problems that can harm your health. Diabetes and high blood pressure are the most common causes of CKD. The kidney damage occurs slowly over many years. Many people don't have any symptoms until their kidney disease is very advanced. Blood and urine tests are the only way to know if you have kidney disease. Treatments cannot cure kidney disease, but they may slow kidney disease. They include medicines to lower blood pressure , control blood sugar , and lower cholesterol . CKD may still get worse over time. Sometimes it can lead to kidney failure . If your kidneys fail, you will need dialysis or a kidney transplantation . You can take steps to keep your kidneys healthier longer: Choose foods with less salt (sodium) Control your blood pressure ; your health care provider can tell you what your blood pressure should be Keep your blood sugar in the target range, if you have diabetes Limit the amount of alcohol you drink Choose foods that are healthy for your heart: fruits, vegetables, whole grains, and low-fat dairy foods Lose weight if you are overweight Be physically active Don't smoke NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "content_sha256": "3e9b03cc9027e23b3260db45cfbf869fadb74fb165cadb724e13c6e93a706957",
+  "candidate_score": 0.98,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

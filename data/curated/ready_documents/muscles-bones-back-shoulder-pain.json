@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/shoulderinjuriesanddisorders.html",
   "medlineplus_id": "505",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Shoulder pain",
+  "title_vi": "Đau khớp vai",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "shoulder pain",
+    "rotator cuff tendinitis",
+    "shoulder impingement",
+    "shoulder joint pain"
+  ],
+  "keywords_vi": [
+    "đau khớp vai",
+    "viêm gân chóp xoay",
+    "sưng khớp vai",
+    "khó nhấc cánh tay",
+    "chấn thương vai"
+  ],
+  "content_hash": "50b25e881a142c1af2e071c4d751fe220c889a11f961fe16778964bac6db1a1d",
+  "content_sha256": "50b25e881a142c1af2e071c4d751fe220c889a11f961fe16778964bac6db1a1d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

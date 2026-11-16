@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hypothermia.html",
   "medlineplus_id": "291",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hypothermia",
+  "title_vi": "Hạ thân nhiệt",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "hypothermia",
+    "low body temperature",
+    "cold exposure",
+    "rewarming",
+    "freezing emergency"
+  ],
+  "keywords_vi": [
+    "hạ thân nhiệt",
+    "nhiễm lạnh nguy hiểm",
+    "thân nhiệt giảm sâu",
+    "ủ ấm cơ thể",
+    "cấp cứu rét buốt"
+  ],
+  "content_hash": "6d0f796cda625ae7eb6719511a498501cd63598d5075e9947d54a30375d4738b",
+  "content_sha256": "6d0f796cda625ae7eb6719511a498501cd63598d5075e9947d54a30375d4738b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

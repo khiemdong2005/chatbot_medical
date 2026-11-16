@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/cough.html",
   "medlineplus_id": "1543",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Dry cough",
+  "title_vi": "Ho khan",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "dry cough",
+    "nonproductive cough",
+    "tickly cough",
+    "irritating cough"
+  ],
+  "keywords_vi": [
+    "ho khan",
+    "ho không có đờm",
+    "rát họng ho khan",
+    "kích ứng phế quản",
+    "thuốc giảm ho"
+  ],
+  "content_hash": "f4b38641b1274165d1fc313eae891940263b373b343d1553860dc0a380dd0282",
+  "content_sha256": "f4b38641b1274165d1fc313eae891940263b373b343d1553860dc0a380dd0282",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

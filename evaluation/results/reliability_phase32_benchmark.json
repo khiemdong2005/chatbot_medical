@@ -1,0 +1,90 @@
+[
+  {
+    "scenario": "Normal Traffic",
+    "runs": 30,
+    "success_rate": 100.0,
+    "fallback_rate": 0.0,
+    "retries": 0,
+    "mean_attempts": 1.0,
+    "mean_ms": 10.29,
+    "p50_ms": 10.29,
+    "p95_ms": 10.56
+  },
+  {
+    "scenario": "429 Rate Limit Burst",
+    "runs": 25,
+    "success_rate": 100.0,
+    "fallback_rate": 0.0,
+    "retries": 25,
+    "mean_attempts": 2.0,
+    "mean_ms": 32.04,
+    "p50_ms": 32.13,
+    "p95_ms": 33.06
+  },
+  {
+    "scenario": "503 Server Error Burst",
+    "runs": 25,
+    "success_rate": 100.0,
+    "fallback_rate": 0.0,
+    "retries": 50,
+    "mean_attempts": 3.0,
+    "mean_ms": 170.21,
+    "p50_ms": 168.66,
+    "p95_ms": 175.01
+  },
+  {
+    "scenario": "Timeout Burst",
+    "runs": 20,
+    "success_rate": 100.0,
+    "fallback_rate": 0.0,
+    "retries": 20,
+    "mean_attempts": 2.0,
+    "mean_ms": 63.17,
+    "p50_ms": 62.84,
+    "p95_ms": 65.58
+  },
+  {
+    "scenario": "Persistent 503 Outage",
+    "runs": 20,
+    "success_rate": 0.0,
+    "fallback_rate": 100.0,
+    "retries": 4,
+    "mean_attempts": 0.3,
+    "mean_ms": 16.29,
+    "p50_ms": 0.08,
+    "p95_ms": 161.74
+  },
+  {
+    "scenario": "401 Auth Failure",
+    "runs": 15,
+    "success_rate": 0.0,
+    "fallback_rate": 100.0,
+    "retries": 0,
+    "mean_attempts": 1.0,
+    "mean_ms": 0.04,
+    "p50_ms": 0.03,
+    "p95_ms": 0.1
+  },
+  {
+    "scenario": "Circuit Breaker OPEN",
+    "runs": 25,
+    "success_rate": 0.0,
+    "fallback_rate": 100.0,
+    "retries": 0,
+    "mean_attempts": 0.0,
+    "mean_ms": 0.02,
+    "p50_ms": 0.02,
+    "p95_ms": 0.04
+  },
+  {
+    "scenario": "Emergency During Outage",
+    "runs": 20,
+    "success_rate": 100.0,
+    "fallback_rate": 0.0,
+    "retries": 0,
+    "mean_attempts": 1.0,
+    "mean_ms": 502.23,
+    "p50_ms": 500.38,
+    "p95_ms": 549.05
+  }
+]

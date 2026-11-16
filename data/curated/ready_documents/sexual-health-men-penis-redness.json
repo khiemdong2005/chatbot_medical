@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/penisdisorders.html",
   "medlineplus_id": "1360",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Penis redness",
+  "title_vi": "Đỏ da và viêm bao quy đầu",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "penis redness",
+    "balanitis",
+    "inflamed foreskin",
+    "penile erythema"
+  ],
+  "keywords_vi": [
+    "đỏ bao quy đầu",
+    "viêm quy đầu",
+    "sưng đỏ đầu dương vật",
+    "kích ứng da quy đầu",
+    "nam khoa"
+  ],
+  "content_hash": "57e83d2d2a0194995f824dae4d894d4eeaa40d5a7956a689bfa1cf6b8c945100",
+  "content_sha256": "57e83d2d2a0194995f824dae4d894d4eeaa40d5a7956a689bfa1cf6b8c945100",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

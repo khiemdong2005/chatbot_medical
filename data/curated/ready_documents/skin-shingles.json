@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/shingles.html",
   "medlineplus_id": "90",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Shingles",
+  "title_vi": "Bệnh Zona thần kinh",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "shingles",
+    "herpes zoster",
+    "painful nerve rash",
+    "blister band",
+    "postherpetic neuralgia"
+  ],
+  "keywords_vi": [
+    "zona thần kinh",
+    "bệnh giời leo",
+    "mụn nước đau rát theo dây thần kinh",
+    "virus herpes zoster",
+    "di chứng đau sau zona"
+  ],
+  "content_hash": "d29b51cb616c4a4f06b2878f7ad3e410a82e242951fc712512890688e326ee38",
+  "content_sha256": "d29b51cb616c4a4f06b2878f7ad3e410a82e242951fc712512890688e326ee38",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

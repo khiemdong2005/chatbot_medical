@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/breastdiseases.html",
   "medlineplus_id": "474",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Breast pain",
+  "title_vi": "Đau vú (Đau tức ngực ở nữ giới)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "breast pain",
+    "mastalgia",
+    "breast tenderness",
+    "hormonal breast pain"
+  ],
+  "keywords_vi": [
+    "đau vú",
+    "tức ngực nữ",
+    "đau tuyến vú",
+    "thay đổi nội tiết vú",
+    "phụ khoa"
+  ],
+  "content_hash": "dce107e95615cc59770b81809edbbae4053696c4226f4e6c1125e533227e2f62",
+  "content_sha256": "dce107e95615cc59770b81809edbbae4053696c4226f4e6c1125e533227e2f62",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

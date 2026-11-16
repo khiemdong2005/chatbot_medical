@@ -1,0 +1,45 @@
+{
+  "candidate_count": 123,
+  "original_selected": 123,
+  "approved_count": 119,
+  "approved_with_safety_flag_count": 4,
+  "excluded_count": 0,
+  "final_retained_count": 123,
+  "source": "MedlinePlus English raw corpus",
+  "language": "en",
+  "metadata_languages": [
+    "en",
+    "vi"
+  ],
+  "tier": "TIER_A",
+  "qa_status_distribution": {
+    "APPROVED": 119,
+    "APPROVED_WITH_SAFETY_FLAG": 4,
+    "EXCLUDED": 0
+  },
+  "qa_flags_distribution": {
+    "pediatric_device_safety_guidance": 1,
+    "dietary_reference_intake": 1,
+    "public_health_immunization_schedule": 1,
+    "clinical_treatment_adherence_counseling": 1
+  },
+  "category_distribution": {
+    "Emergency Care": 12,
+    "Pharmacology & Medication Safety": 9,
+    "Preventive Medicine": 13,
+    "Cardiology": 11,
+    "Neurology": 10,
+    "Pulmonology": 4,
+    "Gastroenterology": 8,
+    "Nephrology": 5,
+    "Endocrinology & Metabolic": 4,
+    "Mental Health": 5,
+    "Rheumatology & Bone": 8,
+    "Infectious Diseases": 8,
+    "Oncology": 10,
+    "Ophthalmology": 5,
+    "Pediatrics & Maternal Health": 11
+  },
+  "sha256_match_count": 123,
+  "staging_directory": "D:\\Ki_6\\Vide code\\chatbot_medical\\data\\curated\\tier_a_candidates"
+}

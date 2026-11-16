@@ -1,32 +1,55 @@
-# Git and version control
+# Git and Version Control
 .git
 .gitignore
-.github
+.gitattributes
 
-# Python bytecode and virtual environments
+# Environment and Secrets (CRITICAL: Do NOT copy .env into image)
+.env
+.env.*
+!.env.example
+
+# Python Bytecode and Caches
 __pycache__/
 *.py[cod]
 *$py.class
-.venv/
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
 venv/
+.venv/
 env/
+.env/
 ENV/
 
-# Local databases and secrets
-.env
-instance/*.db
-instance/*.sqlite
-instance/*.sqlite3
-
-# Uploaded files and temporary datasets
-uploads/*
-!uploads/.gitkeep
-
-# Chroma vector database (if huge, mounted separately)
-medical_vectordb/
-
-# Logs and IDE configs
-*.log
+# IDE and Editor Files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Scratch and Developer Notes
+scratch/
+tmp/
+*.tmp
+*.log
+
+# Large Evaluation Artefacts (Mounted via volumes if needed, not baked into image)
+evaluation/results/
+evaluation/cache/
+
+# Large Model weights (Optional reranker weights; mounted via volume if needed)
+models/
+
+# Agent/IDE local metadata
+.agents/
+.claude/
 .gemini/
+_quarantine_trash/
+docs/
+designs/
+

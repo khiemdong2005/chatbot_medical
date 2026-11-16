@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/drugreactions.html",
   "medlineplus_id": "5603",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Side effects",
+  "title_vi": "Tác dụng phụ của thuốc",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "side effects",
+    "adverse effects",
+    "drug reactions",
+    "allergic reaction to medication",
+    "ADR"
+  ],
+  "keywords_vi": [
+    "tác dụng phụ của thuốc",
+    "phản ứng có hại ADR",
+    "dị ứng thuốc",
+    "buồn nôn phát ban",
+    "dược lâm sàng"
+  ],
+  "content_hash": "80c6782b64ef4124ec9a9b807cc1c285f9a25aaf2215c0381d831f4f007b40ef",
+  "content_sha256": "80c6782b64ef4124ec9a9b807cc1c285f9a25aaf2215c0381d831f4f007b40ef",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

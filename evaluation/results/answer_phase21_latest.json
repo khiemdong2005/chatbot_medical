@@ -1,0 +1,2439 @@
+{
+  "metadata": {
+    "timestamp_utc": "2026-11-12T12:52:38.830313+00:00",
+    "phase": "2.1 - LLM Answer Quality Evaluation",
+    "mock_mode": false,
+    "auth_status": "AUTHENTICATED",
+    "auth_error": null,
+    "total_cases": 50,
+    "notes": [
+      "Strict rule: No fake scores or synthesized answers when live model authentication is 401.",
+      "Deterministic retrieval checks and fallback behavior are faithfully benchmarked.",
+      "Retrieval-conditioned breakdown separates retrieval misses from generation errors."
+    ]
+  },
+  "summary": {
+    "total_cases": 50,
+    "successful_generations": 37,
+    "fallback_cases": 11,
+    "emergency_shortcircuits": 2,
+    "retrieval_success_rate": 66.0,
+    "degraded_rate": 22.0,
+    "groundedness_scale_0_to_2": 1.541,
+    "answer_relevance_scale_0_to_2": 1.811,
+    "fact_coverage_pct": 69.38,
+    "citation_correctness_pct": 100.0,
+    "hallucination_rate_pct": 0.0,
+    "latency": {
+      "retrieval": {
+        "mean_ms": 5.4,
+        "p50_ms": 4.25,
+        "p95_ms": 5.31
+      },
+      "generation": {
+        "mean_ms": 3350.4,
+        "p50_ms": 3113.08,
+        "p95_ms": 5988.87
+      },
+      "total": {
+        "mean_ms": 3355.8,
+        "p50_ms": 3117.34,
+        "p95_ms": 5993.42
+      }
+    }
+  },
+  "retrieval_conditioned": {
+    "retrieval_success": {
+      "total_cases": 33,
+      "successful_generations": 22,
+      "fallback_cases": 9,
+      "emergency_shortcircuits": 2,
+      "retrieval_success_rate": 100.0,
+      "degraded_rate": 27.27,
+      "groundedness_scale_0_to_2": 1.909,
+      "answer_relevance_scale_0_to_2": 1.909,
+      "fact_coverage_pct": 71.23,
+      "citation_correctness_pct": 100.0,
+      "hallucination_rate_pct": 0.0,
+      "latency": {
+        "retrieval": {
+          "mean_ms": 4.25,
+          "p50_ms": 4.26,
+          "p95_ms": 5.31
+        },
+        "generation": {
+          "mean_ms": 2976.95,
+          "p50_ms": 2902.84,
+          "p95_ms": 5164.45
+        },
+        "total": {
+          "mean_ms": 2981.2,
+          "p50_ms": 2906.77,
+          "p95_ms": 5167.81
+        }
+      }
+    },
+    "retrieval_failure": {
+      "total_cases": 17,
+      "successful_generations": 15,
+      "fallback_cases": 2,
+      "emergency_shortcircuits": 0,
+      "retrieval_success_rate": 0.0,
+      "degraded_rate": 11.76,
+      "groundedness_scale_0_to_2": 1.0,
+      "answer_relevance_scale_0_to_2": 1.667,
+      "fact_coverage_pct": 66.67,
+      "citation_correctness_pct": 100.0,
+      "hallucination_rate_pct": 0.0,
+      "latency": {
+        "retrieval": {
+          "mean_ms": 7.63,
+          "p50_ms": 3.85,
+          "p95_ms": 66.88
+        },
+        "generation": {
+          "mean_ms": 4075.33,
+          "p50_ms": 3723.79,
+          "p95_ms": 9525.47
+        },
+        "total": {
+          "mean_ms": 4082.96,
+          "p50_ms": 3727.06,
+          "p95_ms": 9528.96
+        }
+      }
+    }
+  },
+  "breakdown": {
+    "by_language": {
+      "vi": {
+        "total_cases": 25,
+        "successful_generations": 20,
+        "fallback_cases": 5,
+        "emergency_shortcircuits": 0,
+        "retrieval_success_rate": 48.0,
+        "degraded_rate": 20.0,
+        "groundedness_scale_0_to_2": 1.4,
+        "answer_relevance_scale_0_to_2": 1.85,
+        "fact_coverage_pct": 76.67,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 6.41,
+            "p50_ms": 3.89,
+            "p95_ms": 4.92
+          },
+          "generation": {
+            "mean_ms": 3416.45,
+            "p50_ms": 3131.16,
+            "p95_ms": 5164.45
+          },
+          "total": {
+            "mean_ms": 3422.86,
+            "p50_ms": 3135.49,
+            "p95_ms": 5167.81
+          }
+        }
+      },
+      "en": {
+        "total_cases": 25,
+        "successful_generations": 17,
+        "fallback_cases": 6,
+        "emergency_shortcircuits": 2,
+        "retrieval_success_rate": 84.0,
+        "degraded_rate": 24.0,
+        "groundedness_scale_0_to_2": 1.706,
+        "answer_relevance_scale_0_to_2": 1.765,
+        "fact_coverage_pct": 60.8,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.39,
+            "p50_ms": 4.4,
+            "p95_ms": 5.31
+          },
+          "generation": {
+            "mean_ms": 3284.35,
+            "p50_ms": 2989.23,
+            "p95_ms": 5988.87
+          },
+          "total": {
+            "mean_ms": 3288.75,
+            "p50_ms": 2992.66,
+            "p95_ms": 5993.42
+          }
+        }
+      }
+    },
+    "by_category": {
+      "diagnosis": {
+        "total_cases": 6,
+        "successful_generations": 6,
+        "fallback_cases": 0,
+        "emergency_shortcircuits": 0,
+        "retrieval_success_rate": 66.67,
+        "degraded_rate": 0.0,
+        "groundedness_scale_0_to_2": 1.667,
+        "answer_relevance_scale_0_to_2": 1.833,
+        "fact_coverage_pct": 66.68,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.1,
+            "p50_ms": 4.32,
+            "p95_ms": 4.56
+          },
+          "generation": {
+            "mean_ms": 4330.25,
+            "p50_ms": 4538.19,
+            "p95_ms": 6721.76
+          },
+          "total": {
+            "mean_ms": 4334.35,
+            "p50_ms": 4542.07,
+            "p95_ms": 6726.32
+          }
+        }
+      },
+      "disease": {
+        "total_cases": 12,
+        "successful_generations": 9,
+        "fallback_cases": 3,
+        "emergency_shortcircuits": 0,
+        "retrieval_success_rate": 100.0,
+        "degraded_rate": 25.0,
+        "groundedness_scale_0_to_2": 2.0,
+        "answer_relevance_scale_0_to_2": 2.0,
+        "fact_coverage_pct": 81.5,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.19,
+            "p50_ms": 4.4,
+            "p95_ms": 5.1
+          },
+          "generation": {
+            "mean_ms": 3027.98,
+            "p50_ms": 2902.84,
+            "p95_ms": 4385.9
+          },
+          "total": {
+            "mean_ms": 3032.17,
+            "p50_ms": 2906.77,
+            "p95_ms": 4390.38
+          }
+        }
+      },
+      "medication": {
+        "total_cases": 10,
+        "successful_generations": 6,
+        "fallback_cases": 4,
+        "emergency_shortcircuits": 0,
+        "retrieval_success_rate": 40.0,
+        "degraded_rate": 40.0,
+        "groundedness_scale_0_to_2": 1.167,
+        "answer_relevance_scale_0_to_2": 1.833,
+        "fact_coverage_pct": 77.78,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.19,
+            "p50_ms": 4.09,
+            "p95_ms": 5.52
+          },
+          "generation": {
+            "mean_ms": 3189.28,
+            "p50_ms": 3347.72,
+            "p95_ms": 5988.87
+          },
+          "total": {
+            "mean_ms": 3193.47,
+            "p50_ms": 3351.42,
+            "p95_ms": 5993.42
+          }
+        }
+      },
+      "prevention": {
+        "total_cases": 8,
+        "successful_generations": 6,
+        "fallback_cases": 2,
+        "emergency_shortcircuits": 0,
+        "retrieval_success_rate": 62.5,
+        "degraded_rate": 25.0,
+        "groundedness_scale_0_to_2": 1.667,
+        "answer_relevance_scale_0_to_2": 2.0,
+        "fact_coverage_pct": 77.8,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 3.63,
+            "p50_ms": 3.67,
+            "p95_ms": 4.26
+          },
+          "generation": {
+            "mean_ms": 3458.68,
+            "p50_ms": 3723.79,
+            "p95_ms": 4208.74
+          },
+          "total": {
+            "mean_ms": 3462.31,
+            "p50_ms": 3727.06,
+            "p95_ms": 4212.53
+          }
+        }
+      },
+      "symptom": {
+        "total_cases": 10,
+        "successful_generations": 8,
+        "fallback_cases": 1,
+        "emergency_shortcircuits": 1,
+        "retrieval_success_rate": 60.0,
+        "degraded_rate": 10.0,
+        "groundedness_scale_0_to_2": 1.25,
+        "answer_relevance_scale_0_to_2": 1.375,
+        "fact_coverage_pct": 41.66,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 10.75,
+            "p50_ms": 4.65,
+            "p95_ms": 66.88
+          },
+          "generation": {
+            "mean_ms": 2720.35,
+            "p50_ms": 2989.23,
+            "p95_ms": 3598.88
+          },
+          "total": {
+            "mean_ms": 2731.1,
+            "p50_ms": 2992.66,
+            "p95_ms": 3603.41
+          }
+        }
+      },
+      "treatment": {
+        "total_cases": 4,
+        "successful_generations": 2,
+        "fallback_cases": 1,
+        "emergency_shortcircuits": 1,
+        "retrieval_success_rate": 50.0,
+        "degraded_rate": 25.0,
+        "groundedness_scale_0_to_2": 1.0,
+        "answer_relevance_scale_0_to_2": 2.0,
+        "fact_coverage_pct": 83.35,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.18,
+            "p50_ms": 4.35,
+            "p95_ms": 5.31
+          },
+          "generation": {
+            "mean_ms": 4609.27,
+            "p50_ms": 3354.24,
+            "p95_ms": 9525.47
+          },
+          "total": {
+            "mean_ms": 4613.46,
+            "p50_ms": 3357.83,
+            "p95_ms": 9528.96
+          }
+        }
+      }
+    },
+    "by_difficulty": {
+      "easy": {
+        "total_cases": 15,
+        "successful_generations": 13,
+        "fallback_cases": 2,
+        "emergency_shortcircuits": 0,
+        "retrieval_success_rate": 60.0,
+        "degraded_rate": 13.33,
+        "groundedness_scale_0_to_2": 1.462,
+        "answer_relevance_scale_0_to_2": 1.769,
+        "fact_coverage_pct": 71.8,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.05,
+            "p50_ms": 4.01,
+            "p95_ms": 5.06
+          },
+          "generation": {
+            "mean_ms": 3881.64,
+            "p50_ms": 3346.74,
+            "p95_ms": 9525.47
+          },
+          "total": {
+            "mean_ms": 3885.69,
+            "p50_ms": 3350.99,
+            "p95_ms": 9528.96
+          }
+        }
+      },
+      "medium": {
+        "total_cases": 29,
+        "successful_generations": 20,
+        "fallback_cases": 8,
+        "emergency_shortcircuits": 1,
+        "retrieval_success_rate": 72.41,
+        "degraded_rate": 27.59,
+        "groundedness_scale_0_to_2": 1.65,
+        "answer_relevance_scale_0_to_2": 1.9,
+        "fact_coverage_pct": 70.02,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 6.38,
+            "p50_ms": 4.26,
+            "p95_ms": 5.52
+          },
+          "generation": {
+            "mean_ms": 3235.38,
+            "p50_ms": 3060.82,
+            "p95_ms": 5988.87
+          },
+          "total": {
+            "mean_ms": 3241.77,
+            "p50_ms": 3064.43,
+            "p95_ms": 5993.42
+          }
+        }
+      },
+      "hard": {
+        "total_cases": 6,
+        "successful_generations": 4,
+        "fallback_cases": 1,
+        "emergency_shortcircuits": 1,
+        "retrieval_success_rate": 50.0,
+        "degraded_rate": 16.67,
+        "groundedness_scale_0_to_2": 1.25,
+        "answer_relevance_scale_0_to_2": 1.5,
+        "fact_coverage_pct": 58.33,
+        "citation_correctness_pct": 100.0,
+        "hallucination_rate_pct": 0.0,
+        "latency": {
+          "retrieval": {
+            "mean_ms": 4.03,
+            "p50_ms": 4.38,
+            "p95_ms": 4.55
+          },
+          "generation": {
+            "mean_ms": 2578.23,
+            "p50_ms": 2839.26,
+            "p95_ms": 4498.42
+          },
+          "total": {
+            "mean_ms": 2582.26,
+            "p50_ms": 2842.73,
+            "p95_ms": 4502.15
+          }
+        }
+      }
+    }
+  },
+  "per_case": [
+    {
+      "id": "ans_001",
+      "query": "Mệt mỏi kéo dài nhiều tuần mà nghỉ ngơi không đỡ thì có thể do những nguyên nhân gì?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/fatigue.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/birthcontrol.html",
+        "https://medlineplus.gov/hepatitis.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/hepatitis.html",
+        "https://medlineplus.gov/birthcontrol.html"
+      ],
+      "answer": "Mệt mỏi kéo dài nhiều tuần mà nghỉ ngơi không đỡ có thể do nhiều nguyên nhân như thiếu máu, rối loạn giấc ngủ, căng thẳng kéo dài, vấn đề về tuyến giáp hoặc các tình trạng mạn tính khác. Bạn có kèm theo triệu chứng nào khác như sụt cân, sốt hay đau nhức ở đâu không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Mệt mỏi kéo dài có thể do lối sống như thiếu ngủ, stress hoặc dinh dưỡng kém",
+        "Cần đi khám bác sĩ để tìm nguyên nhân nếu mệt mỏi ảnh hưởng sinh hoạt"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 66.88,
+        "generation_ms": 2627.09,
+        "total_ms": 2693.97
+      }
+    },
+    {
+      "id": "ans_002",
+      "query": "What are common reasons for feeling dizzy or having vertigo?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html",
+        "https://medlineplus.gov/fainting.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html",
+        "https://medlineplus.gov/fainting.html"
+      ],
+      "answer": "Feeling dizzy or having vertigo can happen for several reasons, such as a sudden drop in blood pressure when standing up quickly, dehydration, inner ear issues, motion sickness, or certain medications. Are you currently experiencing any spinning sensations or lightheadedness?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Dizziness can involve feeling faint, lightheaded, or off-balance",
+        "Common causes include inner ear problems, dehydration, or medication side effects"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER"
+      ],
+      "latency": {
+        "retrieval_ms": 3.43,
+        "generation_ms": 2989.23,
+        "total_ms": 2992.66
+      }
+    },
+    {
+      "id": "ans_003",
+      "query": "Cơn đau đầu như thế nào thì được coi là dấu hiệu cảnh báo nguy hiểm cần đi viện gấp?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/headache.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "answer": "Cơn đau đầu cần đi khám gấp nếu xuất hiện đột ngột và dữ dội như búa bổ, kèm theo sốt cao, cứng cổ, yếu liệt tay chân, tê, nói đớ, nhìn mờ, hoặc đau đầu sau khi bị chấn thương đầu. Bạn hiện đang gặp tình trạng đau đầu hay có triệu chứng nào đi kèm khác không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Đau đầu đột ngột, dữ dội như sét đánh là dấu hiệu cảnh báo nguy hiểm",
+        "Đau đầu sau chấn thương vùng đầu cũng cần đi kiểm tra y tế ngay"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.44,
+        "generation_ms": 2717.19,
+        "total_ms": 2721.63
+      }
+    },
+    {
+      "id": "ans_004",
+      "query": "What causes persistent chronic cough and when should someone see a doctor?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/cough.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/cough.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/cough.html"
+      ],
+      "answer": "A chronic cough lasts longer than 2 to 3 weeks and can be caused by conditions like asthma, allergies, chronic bronchitis, GERD, smoking, or certain medications. You should see a doctor if the cough persists for more than a few weeks, disrupts your sleep, or is accompanied by other concerning symptoms like shortness of breath or unexplained weight loss. Are you experiencing any other symptoms along with the cough?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Seek medical care if coughing up blood, having shortness of breath, or fever"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.94,
+        "generation_ms": 3127.41,
+        "total_ms": 3132.36
+      }
+    },
+    {
+      "id": "ans_005",
+      "query": "Bị sốt nhẹ 37.8 độ C ở người lớn thì có nên dùng thuốc hạ sốt ngay không và chăm sóc ra sao?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/fever.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/fever.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/fever.html"
+      ],
+      "answer": "Với mức nhiệt 37.8 độ C ở người lớn, đây chỉ là sốt nhẹ và cơ thể thường tự chống lại tác nhân gây bệnh nên chưa cần thiết phải dùng thuốc hạ sốt ngay trừ khi bạn cảm thấy rất mệt mỏi hoặc đau nhức. Bạn nên nghỉ ngơi, uống nhiều nước để bù dịch và mặc quần áo thoáng mát. Nếu cần dùng thuốc, bạn nên trao đổi với bác sĩ hoặc dược sĩ. Bạn có kèm theo triệu chứng nào khác như ho, đau họng hay mệt mỏi nhiều không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Sốt là phản ứng bảo vệ tự nhiên của cơ thể chống lại nhiễm trùng"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.92,
+        "generation_ms": 2750.2,
+        "total_ms": 2755.12
+      }
+    },
+    {
+      "id": "ans_006",
+      "query": "What are typical symptoms of nausea and vomiting, and how to prevent dehydration?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/nauseaandvomiting.html",
+        "https://medlineplus.gov/dehydration.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/nauseaandvomiting.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/nauseaandvomiting.html"
+      ],
+      "answer": "Nausea is the uneasy feeling that you might throw up, while vomiting is the actual emptying of the stomach contents. To prevent dehydration, try sipping small amounts of clear liquids frequently rather than drinking large glasses at once. Are you or the person experiencing these symptoms currently able to keep any fluids down?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Vomiting can quickly lead to dehydration, especially with high fluid loss",
+        "Signs of dehydration include extreme thirst, dry mouth, and dark urine"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER"
+      ],
+      "latency": {
+        "retrieval_ms": 4.25,
+        "generation_ms": 3346.74,
+        "total_ms": 3350.99
+      }
+    },
+    {
+      "id": "ans_007",
+      "query": "Đau bụng âm ỉ vùng thượng vị sau khi ăn no kèm ợ hơi có thể là biểu hiện của vấn đề gì?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/indigestion.html",
+        "https://medlineplus.gov/gerd.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/abdominalpain.html",
+        "https://medlineplus.gov/hiccups.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/abdominalpain.html",
+        "https://medlineplus.gov/hiccups.html"
+      ],
+      "answer": "Đau bụng âm ỉ vùng thượng vị sau khi ăn no kèm ợ hơi thường gợi ý các vấn đề liên quan đến dạ dày hoặc tiêu hóa, chẳng hạn như đầy bụng, khó tiêu hoặc kích ứng niêm mạc dạ dày. Bạn có cảm giác buồn nôn, nóng rát ngực hayợ chua nhiều không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Triệu chứng có thể liên quan đến chứng khó tiêu (indigestion) hoặc trào ngược dạ dày thực quản",
+        "Thói quen ăn quá no, đồ cay nóng, nhiều dầu mỡ có thể làm tăng triệu chứng",
+        "Nên điều chỉnh chế độ ăn, chia nhỏ bữa và đi khám nếu đau kéo dài"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.65,
+        "generation_ms": 3329.89,
+        "total_ms": 3334.54
+      }
+    },
+    {
+      "id": "ans_008",
+      "query": "What warning signs accompany chest pain that require immediate emergency evaluation?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/chestpain.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/chestpain.html"
+      ],
+      "returned_sources": [],
+      "answer": "⚠️ **CLINICAL EMERGENCY RED FLAG ALERT:**\n\nThe system detected emergency symptom(s): **Chest pain**.\n\nThese signs may indicate acute cardiovascular, respiratory, or neurological emergencies. To ensure immediate safety:\n1. **Cease all physical exertion** and sit or rest in a well-ventilated space.\n2. **Seek assistance from family or bystanders** and immediately call Emergency Services (**911 / 115**) or proceed to the nearest emergency room.\n3. Do not take self-prescribed sedatives or strong analgesics before medical evaluation.",
+      "risk_score": 90,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": true,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Chest pain spreading to the arm, neck, jaw, or back is a potential heart attack sign",
+        "Accompanying shortness of breath, cold sweat, dizziness, or nausea requires emergency care (115/911)",
+        "Do not wait to see if chest discomfort goes away on its own"
+      ],
+      "citation_correctness": 0.5,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER"
+      ],
+      "latency": {
+        "retrieval_ms": 4.38,
+        "generation_ms": 598.81,
+        "total_ms": 603.19
+      }
+    },
+    {
+      "id": "ans_009",
+      "query": "Cảm giác nghẹt mũi, ngứa mắt và hắt hơi liên tục vào buổi sáng thường do nguyên nhân nào?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/hayfever.html",
+        "https://medlineplus.gov/allergy.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/noseinjuriesanddisorders.html",
+        "https://medlineplus.gov/sinusitis.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/noseinjuriesanddisorders.html",
+        "https://medlineplus.gov/sinusitis.html"
+      ],
+      "answer": "Các triệu chứng nghẹt mũi, ngứa mắt và hắt hơi liên tục vào buổi sáng thường hay gặp trong tình trạng viêm mũi dị ứng do tiếp xúc với tác nhân trong không khí như bụi nhà hoặc phấn hoa. Bạn có hay gặp tình trạng này quanh năm hay chỉ vào một số mùa nhất định không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Tránh tiếp xúc dị nguyên và giữ môi trường sống sạch sẽ giúp cải thiện"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.53,
+        "generation_ms": 3598.88,
+        "total_ms": 3603.41
+      }
+    },
+    {
+      "id": "ans_010",
+      "query": "Why do people get muscle cramps suddenly and how can they be relieved at home?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/musclecramps.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/musclecramps.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/musclecramps.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Cramps are involuntary painful contractions of one or more muscles",
+        "Common triggers include muscle fatigue, overuse, dehydration, or electrolyte imbalance",
+        "Gentle stretching, massage, and adequate hydration can help relieve cramps"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.04,
+        "generation_ms": 2118.08,
+        "total_ms": 2123.12
+      }
+    },
+    {
+      "id": "ans_011",
+      "query": "Bệnh đái tháo đường type 2 là gì và những yếu tố nguy cơ nào dẫn đến bệnh này?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/diabetestype2.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/diabetestype1.html",
+        "https://medlineplus.gov/diabetestype2.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/diabetestype2.html",
+        "https://medlineplus.gov/diabetestype1.html"
+      ],
+      "answer": "Bệnh đái tháo đường type 2 là tình trạng lượng đường trong máu quá cao do cơ thể không sản xuất đủ insulin hoặc không sử dụng insulin hiệu quả. Các yếu tố nguy cơ chính bao gồm thừa cân, ít vận động, có tiền sử gia đình mắc bệnh, trên 45 tuổi, hoặc có tiền sử tiền đái tháo đường.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Kiểm soát lối sống và theo dõi đường huyết định kỳ là nền tảng quản lý bệnh"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.01,
+        "generation_ms": 2894.55,
+        "total_ms": 2898.57
+      }
+    },
+    {
+      "id": "ans_012",
+      "query": "What is high blood pressure and why is it often called a silent killer?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "High blood pressure (hypertension) occurs when blood pushes against artery walls with too much force",
+        "It is called a silent killer because it usually has no obvious symptoms until complications arise",
+        "Uncontrolled hypertension increases risk of heart attack, stroke, and kidney damage"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.42,
+        "generation_ms": 2973.01,
+        "total_ms": 2977.43
+      }
+    },
+    {
+      "id": "ans_013",
+      "query": "Bệnh hen suyễn (asthma) biểu hiện như thế nào và người bệnh nên tránh những yếu tố kích phát nào?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/asthma.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/asthma.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/asthma.html"
+      ],
+      "answer": "Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn. Bạn có thể thử gửi lại sau ít phút.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Hen suyễn là bệnh viêm mạn tính đường thở gây khò khè, khó thở, tức ngực và ho",
+        "Cơn hen có thể khởi phát do khói thuốc, không khí lạnh, mạt bụi, lông vật nuôi hoặc vận động nặng",
+        "Người bệnh cần có kế hoạch hành động và mang theo ống hít cắt cơn khi cần"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.61,
+        "generation_ms": 3060.82,
+        "total_ms": 3064.43
+      }
+    },
+    {
+      "id": "ans_014",
+      "query": "What causes pneumonia and what are its key distinguishing symptoms?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/pneumonia.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/pneumonia.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/pneumonia.html"
+      ],
+      "answer": "Pneumonia is an infection in one or both lungs that causes air sacs to fill with fluid or pus, typically caused by bacteria, viruses, or fungi. Key symptoms often include a cough with phlegm, fever, chills, and shortness of breath. Are you or someone you know currently experiencing any of these breathing symptoms?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "It can be serious or life-threatening, particularly for elderly and young children"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.1,
+        "generation_ms": 2561.94,
+        "total_ms": 2567.04
+      }
+    },
+    {
+      "id": "ans_015",
+      "query": "Bệnh trào ngược dạ dày thực quản (GERD) có biến chứng gì nếu không điều trị đúng cách?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/gerd.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/gerd.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/gerd.html"
+      ],
+      "answer": "Trào ngược dạ dày thực quản nếu không điều trị đúng cách có thể gây ra viêm thực quản, sẹo hẹp thực quản, hoặc thay đổi mô lót gọi là Barrett thực quản. Tình trạng này cũng có thể làm nặng thêm hen suyễn hoặc gây ho mạn tính, khàn giọng. Bạn có đang gặp triệu chứng nào trong số này không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Thay đổi lối sống kết hợp thăm khám y tế giúp ngăn ngừa tổn thương niêm mạc"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.41,
+        "generation_ms": 2649.02,
+        "total_ms": 2653.43
+      }
+    },
+    {
+      "id": "ans_016",
+      "query": "What is hepatitis and what are the main differences between viral hepatitis types?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/hepatitis.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/hepatitis.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/hepatitis.html"
+      ],
+      "answer": "Hepatitis is inflammation of the liver, which can affect how well it functions. Viral hepatitis is the most common form, caused by different viruses (A, B, C, D, E) that spread through contaminated food/water (mainly A and E) or blood and body fluids (mainly B, C, and D). Other types include alcoholic, toxic, and autoimmune hepatitis. Are you currently experiencing any symptoms like fatigue or yellowing of the skin?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.4,
+        "generation_ms": 3561.2,
+        "total_ms": 3565.6
+      }
+    },
+    {
+      "id": "ans_017",
+      "query": "Hội chứng ruột kích thích (IBS) có những biểu hiện điển hình nào và khác gì với viêm loét đại tràng?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/irritablebowelsyndrome.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/irritablebowelsyndrome.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/irritablebowelsyndrome.html"
+      ],
+      "answer": "Hội chứng ruột kích thích (IBS) thường gây đau quặn bụng, đầy hơi và rối loạn đại tiện (tiêu chảy, táo bón hoặc xen kẽ cả hai) nhưng không làm tổn thương ruột. Khác với IBS, viêm loét đại tràng là bệnh lý viêm mạn tính gây tổn thương thực thể ở niêm mạc đại tràng, thường có kèm theo máu hoặc mủ trong phân.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.47,
+        "generation_ms": 2839.26,
+        "total_ms": 2842.73
+      }
+    },
+    {
+      "id": "ans_018",
+      "query": "What is osteoarthritis and how does it differ from rheumatoid arthritis?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/osteoarthritis.html",
+        "https://medlineplus.gov/rheumatoidarthritis.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/rheumatoidarthritis.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/rheumatoidarthritis.html"
+      ],
+      "answer": "Osteoarthritis is a common joint condition caused by wear and tear over time, where the protective cartilage cushioning the ends of your bones gradually wears down, leading to pain and stiffness. In contrast, rheumatoid arthritis is an autoimmune disease where your body's immune system mistakenly attacks the lining of your joints, often causing symmetrical pain, warmth, swelling, and systemic symptoms like fatigue. Are you currently experiencing any joint pain or stiffness?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Management includes physical activity, joint protection, and medical care"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.51,
+        "generation_ms": 2603.11,
+        "total_ms": 2606.62
+      }
+    },
+    {
+      "id": "ans_019",
+      "query": "Suy giáp (hypothyroidism) gây ra những triệu chứng gì trên cơ thể người bệnh?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/hypothyroidism.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/hypothyroidism.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/hypothyroidism.html"
+      ],
+      "answer": "Suy giáp xảy ra khi tuyến giáp không sản xuất đủ hormone, làm các chức năng cơ thể chậm lại. Các triệu chứng thường gặp bao gồm mệt mỏi, tăng cân, mặt phù, sợ lạnh, đau cơ khớp, táo bón, da khô, tóc khô dễ gãy, nhịp tim chậm và buồn rầu. Bạn có đang gặp phải những triệu chứng nào trong số này không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.93,
+        "generation_ms": 2902.84,
+        "total_ms": 2906.77
+      }
+    },
+    {
+      "id": "ans_020",
+      "query": "What is prediabetes and what steps can prevent progression to type 2 diabetes?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/prediabetes.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/prediabetes.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/prediabetes.html"
+      ],
+      "answer": "Prediabetes means your blood sugar levels are higher than normal, but not yet high enough to be diagnosed as type 2 diabetes. To help prevent it from progressing, key steps include losing a modest amount of weight if overweight, getting regular physical activity like brisk walking, and following a healthy, balanced eating plan. Have you recently had any blood tests checking your blood sugar?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.06,
+        "generation_ms": 2783.17,
+        "total_ms": 2788.24
+      }
+    },
+    {
+      "id": "ans_021",
+      "query": "Đau nửa đầu Migraine có những đặc điểm nhận biết nào và có thể kèm theo triệu chứng gì?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "answer": "Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn. Bạn có thể thử gửi lại sau ít phút.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Migraine thường là đau đầu giật theo nhịp mạch, thường ở một bên đầu với cường độ vừa đến dữ dội",
+        "Thường kèm theo buồn nôn, nôn, nhạy cảm với ánh sáng và âm thanh",
+        "Một số người có dấu hiệu tiền triệu (aura) như nhìn thấy vệt sáng chớp chớp trước cơn đau"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.89,
+        "generation_ms": 3120.88,
+        "total_ms": 3124.77
+      }
+    },
+    {
+      "id": "ans_022",
+      "query": "What causes urinary tract infections (UTIs) and what symptoms typically occur?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/urinarytractinfections.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/urinarytractinfections.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/urinarytractinfections.html"
+      ],
+      "answer": "Urinary tract infections are typically caused by bacteria entering the urinary tract. Common symptoms include pain or burning during urination, a frequent urge to urinate, lower belly pressure, and cloudy or strong-smelling urine. Are you currently experiencing any of these symptoms?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "If back pain, high fever, or chills develop, infection may have reached the kidneys"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.47,
+        "generation_ms": 4385.9,
+        "total_ms": 4390.38
+      }
+    },
+    {
+      "id": "ans_023",
+      "query": "Tại sao không nên tự ý dùng thuốc kháng sinh khi bị cảm cúm hoặc viêm họng thông thường?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/antibiotics.html",
+        "https://medlineplus.gov/commoncold.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [],
+      "returned_sources": [],
+      "answer": "Hầu hết các trường hợp cảm cúm hoặc viêm họng thông thường là do virus gây ra, trong khi kháng sinh chỉ có tác dụng tiêu diệt vi khuẩn. Việc dùng kháng sinh không đúng cách vừa không giúp bệnh mau khỏi vừa dễ dẫn đến tình trạng kháng thuốc, khiến vi khuẩn mạnh hơn và khó điều trị về sau. Bạn nên nghỉ ngơi, uống đủ nước và tham khảo ý kiến bác sĩ hoặc dược sĩ nếu cần dùng thuốc hỗ trợ triệu chứng nhé.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.85,
+        "generation_ms": 4783.99,
+        "total_ms": 4787.84
+      }
+    },
+    {
+      "id": "ans_024",
+      "query": "What are common risks associated with overuse of over-the-counter pain relievers?",
+      "language": "en",
+      "category": "medication",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "NSAIDs (like ibuprofen) can increase the risk of stomach ulcers, bleeding, and kidney problems",
+        "Acetaminophen (paracetamol) overuse or combining multiple products can cause serious liver injury",
+        "Always follow package dosing limits and avoid taking multiple medications with the same active ingredient"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.52,
+        "generation_ms": 976.26,
+        "total_ms": 981.78
+      }
+    },
+    {
+      "id": "ans_025",
+      "query": "Khi uống thuốc hạ huyết áp thì người bệnh cần tuân thủ những nguyên tắc gì để đảm bảo an toàn?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/highbloodpressure.html",
+        "https://medlineplus.gov/medicines.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/lowbloodpressure.html",
+        "https://medlineplus.gov/stress.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/stress.html",
+        "https://medlineplus.gov/lowbloodpressure.html"
+      ],
+      "answer": "Khi uống thuốc hạ huyết áp, người bệnh cần tuân thủ uống đúng liều, đúng giờ theo chỉ định của bác sĩ, tuyệt đối không tự ý ngưng thuốc hay thay đổi liều lượng. Đồng thời, cần thường xuyên theo dõi chỉ số huyết áp tại nhà, duy trì lối sống lành mạnh như giảm muối và tái khám định kỳ để bác sĩ điều chỉnh phù hợp.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.7,
+        "generation_ms": 3347.72,
+        "total_ms": 3351.42
+      }
+    },
+    {
+      "id": "ans_026",
+      "query": "How do vaccines work and what mild reactions can be expected after vaccination?",
+      "language": "en",
+      "category": "medication",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/vaccines.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/bereavement.html",
+        "https://medlineplus.gov/vaccines.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/vaccines.html",
+        "https://medlineplus.gov/bereavement.html"
+      ],
+      "answer": "Vaccines work by introducing a weakened or inactivated part of a germ, or instructions to make a piece of it, which teaches your immune system to recognize and defend against future infections without causing the actual disease. Common mild reactions after vaccination include soreness, redness, or swelling at the injection site, as well as a low-grade fever, fatigue, or mild body aches. Would you like to know more about preparing for a specific vaccine?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Serious allergic reactions are rare; severe breathing trouble requires immediate emergency care"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.78,
+        "generation_ms": 2901.48,
+        "total_ms": 2906.26
+      }
+    },
+    {
+      "id": "ans_027",
+      "query": "Dấu hiệu nào cho thấy một người đang bị phản ứng dị ứng thuốc cần cấp cứu?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/allergy.html",
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/allergy.html",
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "answer": "Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn. Bạn có thể thử gửi lại sau ít phút.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Phản ứng dị ứng nặng (phản vệ) có thể gây khó thở, thở rít, sưng môi, lưỡi, họng hoặc mặt",
+        "Kèm theo nổi mày đay toàn thân, chóng mặt dữ dội, tụt huyết áp hoặc ngất xỉu"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.6,
+        "generation_ms": 928.08,
+        "total_ms": 931.68
+      }
+    },
+    {
+      "id": "ans_028",
+      "query": "Why is it important to store medicines properly and check expiration dates?",
+      "language": "en",
+      "category": "medication",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/medicines.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/dietaryproteins.html",
+        "https://medlineplus.gov/poisoning.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/dietaryproteins.html",
+        "https://medlineplus.gov/poisoning.html"
+      ],
+      "answer": "Storing medicines properly and checking expiration dates ensures they remain safe and effective. Over time, expired medications can lose potency or break down into harmful substances. Proper storage away from heat, moisture, and children also prevents accidental ingestion or poisoning.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Heat, moisture, and light can degrade active drug ingredients and reduce effectiveness",
+        "Keep medicines in their original containers out of reach of children and pets"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.35,
+        "generation_ms": 5041.95,
+        "total_ms": 5046.3
+      }
+    },
+    {
+      "id": "ans_029",
+      "query": "Uống paracetamol quá liều có thể gây hậu quả gì và liều tối đa an toàn trong ngày là bao nhiêu?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "answer": "Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn. Bạn có thể thử gửi lại sau ít phút.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Quá liều paracetamol có thể gây tổn thương gan cấp tính nghiêm trọng hoặc suy gan",
+        "Liều tối đa thông thường ở người lớn có chức năng gan bình thường không quá 4000mg (4g) mỗi 24 giờ",
+        "Cần chú ý đọc kỹ thành phần các thuốc trị cảm cúm phối hợp để tránh uống trùng hoạt chất"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.09,
+        "generation_ms": 924.62,
+        "total_ms": 928.7
+      }
+    },
+    {
+      "id": "ans_030",
+      "query": "What is the difference between brand name and generic prescription drugs?",
+      "language": "en",
+      "category": "medication",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/medicines.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/drugreactions.html",
+        "https://medlineplus.gov/tineainfections.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/tineainfections.html",
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Generic drugs have the same active ingredient, strength, dosage form, and route of administration as brand-name drugs",
+        "They undergo regulatory bioequivalence standards for safety and effectiveness",
+        "Generics are typically more affordable because manufacturers do not repeat original clinical trial development"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.55,
+        "generation_ms": 5988.87,
+        "total_ms": 5993.42
+      }
+    },
+    {
+      "id": "ans_031",
+      "query": "Thuốc xịt mũi co mạch trị ngạt mũi nếu dùng liên tục nhiều ngày có nguy cơ gì?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/medicines.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [],
+      "returned_sources": [],
+      "answer": "Dùng thuốc xịt mũi co mạch liên tục quá nhiều ngày có thể gây hiện tượng nhờn thuốc, ngạt mũi nặng hơn khi thuốc hết tác dụng (hiệu ứng dội ngược) và có nguy cơ tổn thương niêm mạc mũi. Bạn nên tham khảo ý kiến bác sĩ hoặc dược sĩ nếu tình trạng ngạt mũi kéo dài nhé.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.73,
+        "generation_ms": 4498.42,
+        "total_ms": 4502.15
+      }
+    },
+    {
+      "id": "ans_032",
+      "query": "What precautions should a patient take when starting a new prescription medicine?",
+      "language": "en",
+      "category": "medication",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/medicines.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "answer": "When starting a new prescription medicine, it is important to understand the correct dosage and instructions for taking it, and to know which foods, supplements, or other medications you should avoid. Always consult your doctor or pharmacist if you have any questions or concerns about your treatment.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Know common potential side effects and when to report concerning symptoms"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.75,
+        "generation_ms": 2501.39,
+        "total_ms": 2505.14
+      }
+    },
+    {
+      "id": "ans_033",
+      "query": "Một chế độ ăn uống lành mạnh để bảo vệ sức khỏe tim mạch nên ưu tiên và hạn chế những gì?",
+      "language": "vi",
+      "category": "prevention",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/nutrition.html",
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/birthcontrol.html",
+        "https://medlineplus.gov/hepatitis.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/hepatitis.html",
+        "https://medlineplus.gov/birthcontrol.html"
+      ],
+      "answer": "Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn. Bạn có thể thử gửi lại sau ít phút.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Ưu tiên nhiều rau xanh, trái cây tươi, ngũ cốc nguyên hạt, cá béo và các loại đậu",
+        "Hạn chế muối natri, chất béo bão hòa, chất béo chuyển hóa và đường tinh luyện",
+        "Uống đủ nước và hạn chế đồ uống có cồn, nước ngọt có ga"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.29,
+        "generation_ms": 3816.83,
+        "total_ms": 3820.12
+      }
+    },
+    {
+      "id": "ans_034",
+      "query": "What are effective ways to practice good sleep hygiene and improve sleep quality?",
+      "language": "en",
+      "category": "prevention",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/healthysleep.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/healthysleep.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/healthysleep.html"
+      ],
+      "answer": "To improve sleep hygiene, you can maintain a consistent sleep schedule, keep your bedroom cool, dark, and quiet, and limit caffeine and large meals late in the day. Relaxing before bed with reading or soft music can also help. Is there a specific sleep issue you are experiencing?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Avoid heavy meals, caffeine, and alcohol close to bedtime"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.78,
+        "generation_ms": 4208.74,
+        "total_ms": 4212.53
+      }
+    },
+    {
+      "id": "ans_035",
+      "query": "Hút thuốc lá thụ động (hít phải khói thuốc của người khác) gây hại cho sức khỏe như thế nào?",
+      "language": "vi",
+      "category": "prevention",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/smoking.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [],
+      "returned_sources": [],
+      "answer": "Hút thuốc lá thụ động chứa nhiều chất độc hại giống như người hút trực tiếp, làm tăng đáng kể nguy cơ mắc các bệnh về hô hấp, tim mạch và ung thư phổi. Bạn hoặc người thân đang gặp triệu chứng nào liên quan đến đường hô hấp không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.26,
+        "generation_ms": 3998.93,
+        "total_ms": 4002.19
+      }
+    },
+    {
+      "id": "ans_036",
+      "query": "How can people protect their skin from harmful UV radiation and prevent sunburn?",
+      "language": "en",
+      "category": "prevention",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/sunexposure.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/burns.html",
+        "https://medlineplus.gov/sunexposure.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/sunexposure.html",
+        "https://medlineplus.gov/burns.html"
+      ],
+      "answer": "To protect your skin from UV radiation and prevent sunburn, you can limit sun exposure when rays are strongest between 10 a.m. and 2 p.m., use a broad-spectrum sunscreen with SPF 15 or higher, wear protective clothing, and wear UV-blocking sunglasses. Are you currently experiencing any skin irritation or signs of a sunburn?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Seek shade during peak sun hours (typically 10 AM to 4 PM)"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.26,
+        "generation_ms": 3113.08,
+        "total_ms": 3117.34
+      }
+    },
+    {
+      "id": "ans_037",
+      "query": "Các biện pháp đơn giản tại nhà giúp kiểm soát căng thẳng (stress) và giảm mệt mỏi tinh thần?",
+      "language": "vi",
+      "category": "prevention",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/stress.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/stress.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/stress.html"
+      ],
+      "answer": "Để giảm căng thẳng và mệt mỏi tinh thần, bạn có thể áp dụng một số cách đơn giản như tập thể dục đều đặn (như đi bộ 30 phút mỗi ngày), thử các hoạt động thư giãn như hít thở sâu hoặc thiền, đảm bảo ngủ đủ giấc mỗi đêm và chia sẻ tâm sự với người thân, bạn bè.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Thực hành kỹ thuật hít thở sâu, thiền định hoặc yoga giúp làm dịu hệ thần kinh"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.04,
+        "generation_ms": 3184.51,
+        "total_ms": 3188.55
+      }
+    },
+    {
+      "id": "ans_038",
+      "query": "What are key components of a safe and sustainable weight management plan?",
+      "language": "en",
+      "category": "prevention",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/weightcontrol.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/weightcontrol.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/weightcontrol.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Combine a balanced, calorie-appropriate diet with regular moderate physical activity",
+        "Aim for steady, gradual weight loss (such as 0.5 to 1 kg per week)",
+        "Focus on sustainable long-term lifestyle changes rather than extreme fad diets"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.51,
+        "generation_ms": 3049.86,
+        "total_ms": 3053.37
+      }
+    },
+    {
+      "id": "ans_039",
+      "query": "Làm thế nào để phòng ngừa ngộ độc thực phẩm khi chế biến và bảo quản thức ăn tại gia đình?",
+      "language": "vi",
+      "category": "prevention",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/foodborneillness.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/birthcontrol.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/birthcontrol.html"
+      ],
+      "answer": "Để phòng ngừa ngộ độc thực phẩm, bạn cần rửa sạch tay và dụng cụ nấu nướng, nấu chín kỹ thức ăn, tách biệt thực phẩm sống và chín, đồng thời bảo quản thức ăn thừa trong tủ lạnh kịp thời.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.26,
+        "generation_ms": 3723.79,
+        "total_ms": 3727.06
+      }
+    },
+    {
+      "id": "ans_040",
+      "query": "What are health risks of chronic heavy alcohol consumption?",
+      "language": "en",
+      "category": "prevention",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/alcohol.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/alcohol.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/alcohol.html"
+      ],
+      "answer": "Chronic heavy alcohol consumption can lead to several significant health problems, including alcohol use disorder, liver diseases like cirrhosis, heart diseases, and an increased risk of certain cancers, as well as injuries. Do you have any specific health concerns related to alcohol use that you would like to discuss?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "It raises blood pressure, increases stroke risk, and contributes to heart muscle damage"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.67,
+        "generation_ms": 2573.68,
+        "total_ms": 2577.35
+      }
+    },
+    {
+      "id": "ans_041",
+      "query": "Xét nghiệm đường huyết lúc đói (fasting blood glucose) cần chuẩn bị nhịn ăn như thế nào?",
+      "language": "vi",
+      "category": "diagnosis",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/diabetestype2.html",
+        "https://medlineplus.gov/hyperglycemia.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/diabetestype2.html",
+        "https://medlineplus.gov/prediabetes.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/diabetestype2.html",
+        "https://medlineplus.gov/prediabetes.html"
+      ],
+      "answer": "Để xét nghiệm đường huyết lúc đói, bạn cần nhịn ăn và không uống gì ngoài nước lọc trong ít nhất 8 tiếng trước khi làm xét nghiệm, thường là nhịn qua đêm.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.32,
+        "generation_ms": 3131.16,
+        "total_ms": 3135.49
+      }
+    },
+    {
+      "id": "ans_042",
+      "query": "How is high blood pressure diagnosed and why are multiple readings needed?",
+      "language": "en",
+      "category": "diagnosis",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/highbloodpressure.html"
+      ],
+      "answer": "High blood pressure is diagnosed using a blood pressure cuff and gauge or sensor during regular checks. Multiple readings are needed at separate appointments because blood pressure naturally fluctuates throughout the day, and a diagnosis requires confirming that readings remain consistently high over time. Have you recently had your blood pressure checked?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Proper cuff size, resting quietly for 5 minutes, and sitting correctly are essential for accuracy"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.88,
+        "generation_ms": 4538.19,
+        "total_ms": 4542.07
+      }
+    },
+    {
+      "id": "ans_043",
+      "query": "Xét nghiệm tổng phân tích nước tiểu có thể giúp phát hiện những vấn đề sức khỏe nào?",
+      "language": "vi",
+      "category": "diagnosis",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/urineandurination.html",
+        "https://medlineplus.gov/urinarytractinfections.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [],
+      "returned_sources": [],
+      "answer": "Xét nghiệm tổng phân tích nước tiểu giúp kiểm tra các vấn đề về đường niệu, thận, gan hoặc dấu hiệu nhiễm trùng và đái tháo đường. Bạn đang quan tâm đến kết quả của riêng mình hay có triệu chứng nào cần kiểm tra không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.92,
+        "generation_ms": 2538.34,
+        "total_ms": 2542.26
+      }
+    },
+    {
+      "id": "ans_044",
+      "query": "What is the purpose of screening for colorectal and gastrointestinal disorders?",
+      "language": "en",
+      "category": "diagnosis",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/celiacdisease.html",
+        "https://medlineplus.gov/crohnsdisease.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [],
+      "returned_sources": [],
+      "answer": "Screening for colorectal and gastrointestinal disorders aims to detect precancerous polyps, early-stage cancers, or other digestive conditions before symptoms appear, when treatment is most effective. Are you currently experiencing any digestive symptoms or looking into routine screening?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Screening and diagnostic tests identify disease before symptoms become severe or advanced",
+        "Tests may include blood antibody tests, stool tests, imaging, or endoscopic biopsy",
+        "Early detection enables timely dietary or medical intervention to prevent intestinal damage"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.55,
+        "generation_ms": 3887.61,
+        "total_ms": 3892.16
+      }
+    },
+    {
+      "id": "ans_045",
+      "query": "Chỉ số đường huyết bao nhiêu thì được chẩn đoán là hạ đường huyết (hypoglycemia) và xử trí ban đầu ra sao?",
+      "language": "vi",
+      "category": "diagnosis",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/hypoglycemia.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/hypoglycemia.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/hypoglycemia.html"
+      ],
+      "answer": "Đối với người có bệnh đái tháo đường, hạ đường huyết thường là khi lượng đường trong máu dưới 70 mg/dL (3.9 mmol/L). Ở người không mắc đái tháo đường, mức này thường dưới 55 mg/dL (3.0 mmol/L). Xử trí ban đầu khi hạ đường huyết nhẹ hoặc trung bình là ăn hoặc uống ngay khoảng 15-20 gram carbohydrate nhanh (như nước đường, kẹo ngọt, nước trái cây), sau đó nghỉ ngơi và đo lại đường huyết sau 15 phút.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Triệu chứng gồm run tay chân, vã mồ hôi lạnh, tim đập nhanh, đói cồn cào và chóng mặt"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.36,
+        "generation_ms": 5164.45,
+        "total_ms": 5167.81
+      }
+    },
+    {
+      "id": "ans_046",
+      "query": "How is depression diagnosed clinically and what symptoms must be present?",
+      "language": "en",
+      "category": "diagnosis",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/depression.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/depression.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/depression.html"
+      ],
+      "answer": "To diagnose depression, a healthcare provider typically reviews your medical history, performs a physical exam and sometimes medical tests to rule out other conditions, and conducts a mental health evaluation. Clinically, symptoms must occur most of the day, nearly every day, for at least two weeks, and one of the core symptoms must be a depressed mood or a loss of interest in most activities. Have you or someone you know been experiencing these symptoms for that long?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Accompanied by changes in sleep, appetite, energy, concentration, or feelings of worthlessness"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.56,
+        "generation_ms": 6721.76,
+        "total_ms": 6726.32
+      }
+    },
+    {
+      "id": "ans_047",
+      "query": "Các bước sơ cứu ban đầu đúng cách cho một vết bỏng nước sôi nhỏ tại nhà là gì?",
+      "language": "vi",
+      "category": "treatment",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/burns.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/calcium.html",
+        "https://medlineplus.gov/pregnancyandnutrition.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/pregnancyandnutrition.html",
+        "https://medlineplus.gov/calcium.html"
+      ],
+      "answer": "Đối với vết bỏng nước sôi nhỏ, bước đầu tiên và quan trọng nhất là ngâm ngay vùng bị bỏng vào nước mát sạch (không dùng nước đá lạnh) trong khoảng 15 đến 20 phút để làm dịu nhiệt và giảm tổn thương sâu. Sau đó, che phủ nhẹ nhàng bằng gạc sạch hoặc vải mềm không xơ. Bạn lưu ý tuyệt đối không bôi kem đánh răng, mỡ trăn hay dầu gió lên vết bỏng nhé.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.59,
+        "generation_ms": 3354.24,
+        "total_ms": 3357.83
+      }
+    },
+    {
+      "id": "ans_048",
+      "query": "What are basic steps for performing Hands-Only CPR on an unresponsive adult?",
+      "language": "en",
+      "category": "treatment",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/cpr.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/cpr.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/cpr.html"
+      ],
+      "answer": "To perform Hands-Only CPR on an unresponsive adult, first call emergency services (such as 115 or 911) and get an AED if available. Place the person flat on their back. Put the heel of one hand in the center of their chest, place your other hand on top with locked elbows, and push straight down hard and fast—about 2 inches deep at a steady pace of 100 to 120 pushes per minute—allowing the chest to rise fully between compressions. Continue until professional help arrives or the person begins to breathe normally. Have you or someone nearby already called for emergency medical assistance?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": true,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.31,
+        "generation_ms": 2874.75,
+        "total_ms": 2880.06
+      }
+    },
+    {
+      "id": "ans_049",
+      "query": "Chăm sóc và xử trí ban đầu cho vết thương trầy xước ngoài da chảy máu nhẹ như thế nào?",
+      "language": "vi",
+      "category": "treatment",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/bleeding.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/shingles.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/shingles.html"
+      ],
+      "answer": "Với vết thương trầy xước chảy máu nhẹ, trước tiên bạn cần rửa sạch tay, sau đó rửa nhẹ nhàng vết thương bằng nước sạch hoặc nước muối sinh lý để loại bỏ bụi bẩn. Dùng gạc sạch thấm khô nhẹ nhàng và băng lại bằng băng gạc thoáng khí để bảo vệ.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Băng nhẹ bằng băng vô khuẩn và theo dõi dấu hiệu nhiễm trùng (sưng, nóng, đỏ, đau tăng dần)"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.49,
+        "generation_ms": 9525.47,
+        "total_ms": 9528.96
+      }
+    },
+    {
+      "id": "ans_050",
+      "query": "What are non-drug self-care measures for managing chronic lower back pain?",
+      "language": "en",
+      "category": "treatment",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/backpain.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/backpain.html",
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/backpain.html",
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Stay moderately active as tolerated; avoid prolonged strict bed rest",
+        "Apply heat or cold packs to reduce muscle spasms and relieve discomfort",
+        "Engage in gentle stretching, core strengthening exercises, and maintain good posture"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.35,
+        "generation_ms": 2682.63,
+        "total_ms": 2686.98
+      }
+    }
+  ]
+}

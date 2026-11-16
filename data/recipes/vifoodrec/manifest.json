@@ -1,0 +1,50 @@
+{
+  "source": "ViFoodRec",
+  "repository_url": "https://github.com/QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System",
+  "dataset_url": "https://github.com/QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System/blob/main/Data/Clean%20Dataset/foods.csv",
+  "download_url": "https://raw.githubusercontent.com/QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System/main/Data/Clean%20Dataset/foods.csv",
+  "paper_url": "https://aclanthology.org/2024.paclic-1.4/",
+  "retrieved_at": "2026-11-11T07:10:59.283409+00:00",
+  "input_count": 4000,
+  "total": 2462,
+  "counts": {
+    "food": 2367,
+    "drink": 95
+  },
+  "rejected": {
+    "alcohol_ingredient": 227,
+    "explicit_foreign_dish": 254,
+    "cuisine_unresolved": 986,
+    "fermented_recipe_title": 43,
+    "raw_hazard_title": 10,
+    "medical_or_infant_title": 18
+  },
+  "language": "vi",
+  "cuisine_scope": "Vietnamese home-cooking candidates selected heuristically, not certified geographic origin",
+  "license": "not_declared",
+  "license_note": "No explicit data reuse license found. Free research access described in the paper does not verify production redistribution rights.",
+  "images_downloaded": false,
+  "ratings_downloaded": false,
+  "nutrient_values_used": false,
+  "clinical_labels_inferred": false,
+  "limitations": [
+    "This downloaded clean foods.csv has 4000 rows; 5509 in the paper describes the earlier full collection.",
+    "Titles and complete source ingredients/method are retained; no quantities or nutrients inferred.",
+    "Vietnamese home-cooking classification is a documented title heuristic, not independent origin verification.",
+    "Recipes, allergen absence and medical suitability are not independently verified."
+  ],
+  "sha256": {
+    "foods.csv": "21bdc60be855507b1ddf3517fafb0ca85e69b8b9e6206de47ecea75257c237bc",
+    "recipes.json": "4905ee0d3f71e3afca85aa58199cee5719fc30b261a50e7f6091f446a63b6fac"
+  },
+  "status": "complete",
+  "extraction_version": 2,
+  "original_source_sha256": "79a8135e108a6ff1b66338737b816aa1021522b44ae902c98b439398194fcadb",
+  "image_recovery": {
+    "source": "https://kingfoodmart.com",
+    "method": "exact normalized title + verified image",
+    "recovered": 1215,
+    "license": "not_declared",
+    "backup": "image-backup-20261111-210331"
+  }
+}

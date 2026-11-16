@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/fatigue.html",
   "medlineplus_id": "5324",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Fatigue",
+  "title_vi": "Mệt mỏi kéo dài (Suy nhược cơ thể)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "fatigue",
+    "chronic fatigue",
+    "exhaustion",
+    "low energy"
+  ],
+  "keywords_vi": [
+    "mệt mỏi",
+    "suy nhược cơ thể",
+    "đuối sức",
+    "kiệt sức",
+    "uể oải"
+  ],
+  "content_hash": "0cf643b70b43a274b1a3776bd4728a8b0f3680c1e117df1c7710edc12369e2e8",
+  "content_sha256": "0cf643b70b43a274b1a3776bd4728a8b0f3680c1e117df1c7710edc12369e2e8",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

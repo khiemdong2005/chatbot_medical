@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/nauseaandvomiting.html",
   "medlineplus_id": "489",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vomiting",
+  "title_vi": "Buồn nôn và nôn ói",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "vomiting",
+    "nausea",
+    "emesis",
+    "upset stomach",
+    "rehydration after vomiting"
+  ],
+  "keywords_vi": [
+    "buồn nôn",
+    "nôn ói",
+    "nôn mửa",
+    "chống nôn",
+    "mất nước do nôn"
+  ],
+  "content_hash": "5ddd5070b49fc09894d4bf8b104fc6e0ceb2c598b846dffe2dd2bf707e05a1c6",
+  "content_sha256": "5ddd5070b49fc09894d4bf8b104fc6e0ceb2c598b846dffe2dd2bf707e05a1c6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

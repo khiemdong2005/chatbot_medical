@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/burns.html",
   "medlineplus_id": "176",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Burns",
+  "title_vi": "Sơ cứu bỏng",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "burns",
+    "thermal burn",
+    "burn first aid",
+    "cool water burn",
+    "burn degrees"
+  ],
+  "keywords_vi": [
+    "sơ cứu bỏng",
+    "bỏng nước sôi bỏng lửa",
+    "ngâm nước mát vết bỏng",
+    "phỏng da",
+    "phân độ bỏng"
+  ],
+  "content_hash": "f8adbaf4c1e86413782e9d70ce60cd697fe3e41b72f3b0bae78e9385c22ea91f",
+  "content_sha256": "f8adbaf4c1e86413782e9d70ce60cd697fe3e41b72f3b0bae78e9385c22ea91f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

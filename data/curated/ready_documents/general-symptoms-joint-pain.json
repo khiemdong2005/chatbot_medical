@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/jointdisorders.html",
   "medlineplus_id": "4621",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Joint pain",
+  "title_vi": "Đau nhức khớp",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "joint pain",
+    "arthralgia",
+    "joint stiffness",
+    "joint swelling"
+  ],
+  "keywords_vi": [
+    "đau nhức khớp",
+    "viêm khớp",
+    "sưng khớp",
+    "cứng khớp",
+    "cơ xương khớp"
+  ],
+  "content_hash": "c3c1d16afc8d4ca266e64db2a51580967d43744c94ab9dbd01f81fe7fbf81e4d",
+  "content_sha256": "c3c1d16afc8d4ca266e64db2a51580967d43744c94ab9dbd01f81fe7fbf81e4d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

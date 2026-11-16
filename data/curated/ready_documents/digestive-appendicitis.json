@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/appendicitis.html",
   "medlineplus_id": "1223",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Appendicitis",
+  "title_vi": "Viêm ruột thừa",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "appendicitis",
+    "acute appendicitis",
+    "lower right abdominal pain",
+    "appendectomy"
+  ],
+  "keywords_vi": [
+    "viêm ruột thừa",
+    "đau hố chậu phải",
+    "cấp cứu ngoại khoa",
+    "vỡ ruột thừa",
+    "sốt đau bụng"
+  ],
+  "content_hash": "c406a0852c811f1a37c4970046f09dfc242d635ec21b37a1869e6474f50ecea4",
+  "content_sha256": "c406a0852c811f1a37c4970046f09dfc242d635ec21b37a1869e6474f50ecea4",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

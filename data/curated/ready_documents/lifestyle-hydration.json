@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/dehydration.html",
   "medlineplus_id": "6051",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hydration",
+  "title_vi": "Bổ sung đủ nước cho cơ thể",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "hydration",
+    "drinking water",
+    "daily fluid intake",
+    "adequate hydration",
+    "water balance"
+  ],
+  "keywords_vi": [
+    "uống đủ nước",
+    "nhu cầu nước hàng ngày",
+    "ngừa mất nước",
+    "lợi ích uống nước",
+    "lối sống khỏe"
+  ],
+  "content_hash": "48faf9a8a451b9e8fee6d3d4aafb1907763bb2fd9f4847b7e306f200e6962972",
+  "content_sha256": "48faf9a8a451b9e8fee6d3d4aafb1907763bb2fd9f4847b7e306f200e6962972",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

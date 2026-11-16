@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/tineainfections.html",
   "medlineplus_id": "1228",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Ringworm",
+  "title_vi": "Hắc lào (Lác đồng tiền / Nấm da)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "ringworm",
+    "tinea corporis",
+    "fungal ring rash",
+    "dermatophyte",
+    "itchy ring lesion"
+  ],
+  "keywords_vi": [
+    "hắc lào",
+    "lác đồng tiền",
+    "nấm da hình tròn",
+    "ngứa rát da",
+    "thuốc trị nấm"
+  ],
+  "content_hash": "9cc661a80daf7ac0796ab1af21ff13bbd35e088c509f9a9116aed718f1019468",
+  "content_sha256": "9cc661a80daf7ac0796ab1af21ff13bbd35e088c509f9a9116aed718f1019468",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

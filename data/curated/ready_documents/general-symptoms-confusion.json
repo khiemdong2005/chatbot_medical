@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/delirium.html",
   "medlineplus_id": "5562",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Confusion",
+  "title_vi": "Lú lẫn (Rối loạn ý thức)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "confusion",
+    "disorientation",
+    "delirium",
+    "altered mental state"
+  ],
+  "keywords_vi": [
+    "lú lẫn",
+    "mất phương hướng",
+    "rối loạn ý thức",
+    "mê sảng",
+    "thần kinh"
+  ],
+  "content_hash": "1b5717a54db96cf18ab9003cde537fb86d91f60828fba32e361735835d732778",
+  "content_sha256": "1b5717a54db96cf18ab9003cde537fb86d91f60828fba32e361735835d732778",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -42,12 +42,13 @@ def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filenam
       - Phân tích tương tác thuốc đối kháng, tác dụng phụ và cảnh báo an toàn
     """
     raw_text = ocr_data.get("raw_text", "").strip()
+    from core.circuit_breaker import gemini_circuit_breaker
+    if not gemini_circuit_breaker.can_execute():
+        return None
 
     try:
-        from google import genai
+        from core.llm_provider import llm_provider
         from google.genai import types
-
-        client = genai.Client(api_key=GEMINI_API_KEY)
 
         prompt = f"""
 Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI hàng đầu tại Việt Nam.
@@ -108,39 +109,13 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
         contents_payload.append(prompt)
 
         candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-        config = types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.1
+        data = llm_provider.generate_json(
+            contents=contents_payload,
+            candidate_models=candidate_models,
+            api_key=GEMINI_API_KEY,
+            temperature=0.1,
+            operation="prescription_ocr"
         )
-
-        raw_json_str = None
-        for model_name in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model_name,
-                    contents=contents_payload,
-                    config=config
-                )
-                if res and res.text:
-                    raw_json_str = res.text.strip()
-                    break
-            except Exception:
-                continue
-
-        if not raw_json_str:
-            return None
-
-        cleaned = raw_json_str
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-            cleaned = re.sub(r"\s*```$", "", cleaned)
-            cleaned = cleaned.strip()
-
-        match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-        if match:
-            cleaned = match.group(1).strip()
-
-        data = json.loads(cleaned)
         if isinstance(data, dict):
             data.setdefault("status", "success")
             data.setdefault("type", "prescription")
@@ -170,11 +145,13 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
     DỰ PHÒNG CẤP 2 (Fallback Vision Multimodal):
     Dùng trực tiếp Gemini Vision khi ảnh scan quá mờ, chữ viết tay khó hoặc file PDF nhiều trang.
     """
-    try:
-        from google import genai
-        from google.genai import types
+    from core.circuit_breaker import gemini_circuit_breaker
+    if not gemini_circuit_breaker.can_execute():
+        return None
 
-        client = genai.Client(api_key=GEMINI_API_KEY)
+    try:
+        from core.llm_provider import llm_provider
+        from google.genai import types
 
         with open(file_path, 'rb') as f:
             file_bytes = f.read()
@@ -194,31 +171,21 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         """
 
         candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-        for model_name in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model_name,
-                    contents=[
-                        types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
-                        prompt
-                    ]
-                )
-                if res and res.text:
-                    cleaned = res.text.strip()
-                    if cleaned.startswith("```"):
-                        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-                        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
-                    match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-                    if match:
-                        cleaned = match.group(1).strip()
-                    data = json.loads(cleaned)
-                    if isinstance(data, dict):
-                        data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
-                        data["pipeline_mode"] = "End-to-End Vision Fallback"
-                        data["uploaded_filename"] = original_filename or os.path.basename(file_path)
-                        return data
-            except Exception:
-                continue
+        contents = [
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+            prompt
+        ]
+        data = llm_provider.generate_json(
+            contents=contents,
+            candidate_models=candidate_models,
+            api_key=GEMINI_API_KEY,
+            operation="prescription_ocr"
+        )
+        if isinstance(data, dict):
+            data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
+            data["pipeline_mode"] = "End-to-End Vision Fallback"
+            data["uploaded_filename"] = original_filename or os.path.basename(file_path)
+            return data
 
     except Exception as e:
         print(f"[VISION FALLBACK ERROR] {e}")
@@ -228,13 +195,16 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
 
 def analyze_uploaded_document(file_path: str, original_filename: str = "") -> Dict[str, Any]:
     """
-    BỘ ĐIỀU PHỐI KIẾN TRÚC HYBRID:
-      1. Tiền xử lý OpenCV + Bóc tách EasyOCR cục bộ.
-      2. Chuyển văn bản sang Gemini để chuẩn hóa dược học.
-      3. Dự phòng Gemini Vision nếu OCR không đọc được text.
-      4. BẢO MẬT & TRUNG THỰC: Khi cả OCR và Gemini thất bại, KHÔNG tự bịa dữ liệu mẫu hoặc trả preset.
-         Trả về trạng thái failed/needs_review kèm mã lỗi rõ ràng để người bệnh chụp lại.
+    [DEPRECATED] Hàm phân tích tài liệu legacy.
+    Production runtime hiện đã chuyển sang pipeline_orchestrator.process_medical_document_pipeline.
+    Hàm này được duy trì để đảm bảo tương thích ngược cho test fixtures và legacy callers.
     """
+    import warnings
+    warnings.warn(
+        "analyze_uploaded_document() is deprecated; use core.pipeline_orchestrator.process_medical_document_pipeline() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     filename_clean = original_filename or os.path.basename(file_path)
 
     if not os.path.exists(file_path):

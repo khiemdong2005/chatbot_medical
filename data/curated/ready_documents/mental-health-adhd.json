@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/attentiondeficithyperactivitydisorder.html",
   "medlineplus_id": "152",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "ADHD",
+  "title_vi": "Rối loạn tăng động giảm chú ý (ADHD)",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "ADHD",
+    "attention deficit hyperactivity disorder",
+    "inattention",
+    "hyperactivity",
+    "impulsivity"
+  ],
+  "keywords_vi": [
+    "ADHD",
+    "tăng động giảm chú ý",
+    "mất tập trung",
+    "hành vi hiếu động",
+    "tâm thần học"
+  ],
+  "content_hash": "1a1417e52f8f0920b753eef2c2a4e0d3a31b9d756bb0b75f9d2ef37bf10411e6",
+  "content_sha256": "1a1417e52f8f0920b753eef2c2a4e0d3a31b9d756bb0b75f9d2ef37bf10411e6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

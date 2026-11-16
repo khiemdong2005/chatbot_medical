@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/pepticulcer.html",
   "medlineplus_id": "357",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Stomach ulcer",
+  "title_vi": "Viêm loét dạ dày tá tràng",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "stomach ulcer",
+    "peptic ulcer",
+    "gastric ulcer",
+    "H pylori",
+    "upper abdominal pain"
+  ],
+  "keywords_vi": [
+    "viêm loét dạ dày",
+    "loét tá tràng",
+    "đau thượng vị",
+    "vi khuẩn HP",
+    "xuất huyết dạ dày"
+  ],
+  "content_hash": "144c94c767cc3b08ecb7afc631f5c86fdaaf1a6530c6a145413834bd4ab586b9",
+  "content_sha256": "144c94c767cc3b08ecb7afc631f5c86fdaaf1a6530c6a145413834bd4ab586b9",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

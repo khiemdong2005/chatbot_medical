@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/animalbites.html",
   "medlineplus_id": "161",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Snake bites",
+  "title_vi": "Sơ cứu rắn cắn",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "snake bites",
+    "venomous snake bite",
+    "immobilize limb",
+    "antivenom",
+    "first aid snake"
+  ],
+  "keywords_vi": [
+    "rắn cắn",
+    "sơ cứu rắn độc cắn",
+    "bất động chi bị cắn",
+    "huyết thanh kháng nọc rắn",
+    "cấp cứu rắn cắn"
+  ],
+  "content_hash": "c9998db950b59de8a5287167ebddb3f5b3939d6c3519c063fbe57d39881a65fb",
+  "content_sha256": "c9998db950b59de8a5287167ebddb3f5b3939d6c3519c063fbe57d39881a65fb",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

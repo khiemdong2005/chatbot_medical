@@ -1,0 +1,38 @@
+{
+  "id": "protein",
+  "title": "Protein",
+  "category": "Lifestyle",
+  "mapped_title": "Dietary Proteins",
+  "page_content": "User topic: Protein\nCategory: Lifestyle\nTrusted medical topic: Dietary Proteins\nSearch phrases: Protein, Dietary Proteins\nMedical groups: Food and Nutrition\n\nMedical information:\nProtein is in every cell in the body. Our bodies need protein from the foods we eat to build and maintain bones, muscles and skin. We get proteins in our diet from meat, dairy products, nuts, and certain grains and beans. Proteins from meat and other animal products are complete proteins. This means they supply all of the amino acids the body can't make on its own. Most plant proteins are incomplete. You should eat different types of plant proteins every day to get all of the amino acids your body needs. It is important to get enough dietary protein. You need to eat protein every day, because your body doesn't store it the way it stores fats or carbohydrates. How much you need depends on your age, sex, health, and level of physical activity. Most Americans eat enough protein in their diet.",
+  "search_phrases": [
+    "Protein",
+    "Dietary Proteins"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/dietaryproteins.html",
+  "medlineplus_id": "3668",
+  "mapping_type": "manual",
+  "mapping_score": 1.0,
+  "title_en": "Protein",
+  "title_vi": "Nhu cầu protein và dinh dưỡng",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "protein",
+    "dietary protein",
+    "protein intake",
+    "muscle synthesis",
+    "daily amino acids"
+  ],
+  "keywords_vi": [
+    "protein",
+    "nhu cầu chất đạm",
+    "đạm động vật thực vật",
+    "phát triển cơ bắp",
+    "dinh dưỡng hàng ngày"
+  ],
+  "content_hash": "0fd6fb2b50ad86c5f023372e969a37a0fcb43e9805b49781a6b4db34e9e73f43",
+  "content_sha256": "0fd6fb2b50ad86c5f023372e969a37a0fcb43e9805b49781a6b4db34e9e73f43",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

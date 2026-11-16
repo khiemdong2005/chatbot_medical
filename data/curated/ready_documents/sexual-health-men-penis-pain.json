@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/penisdisorders.html",
   "medlineplus_id": "1360",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Penis pain",
+  "title_vi": "Đau dương vật",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "penis pain",
+    "penile pain",
+    "penile trauma",
+    "genital ache male"
+  ],
+  "keywords_vi": [
+    "đau dương vật",
+    "đau buốt dương vật",
+    "chấn thương dương vật",
+    "đau niệu đạo nam",
+    "nam khoa"
+  ],
+  "content_hash": "940d45d4b9f189bf7a38e8a3a82bac4e597acf414c2008731c9f27cec6480104",
+  "content_sha256": "940d45d4b9f189bf7a38e8a3a82bac4e597acf414c2008731c9f27cec6480104",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

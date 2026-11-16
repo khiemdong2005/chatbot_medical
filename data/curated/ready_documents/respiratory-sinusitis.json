@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/sinusitis.html",
   "medlineplus_id": "404",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Sinusitis",
+  "title_vi": "Viêm xoang",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "sinusitis",
+    "sinus infection",
+    "facial pressure",
+    "rhinosinusitis"
+  ],
+  "keywords_vi": [
+    "viêm xoang",
+    "viêm xoang mũi",
+    "đau nhức vùng mặt",
+    "chảy dịch mũi vàng",
+    "nghẹt mũi xoang"
+  ],
+  "content_hash": "23cb339ba4f02b7ce3f1f886c5c305754d8bdadd4b05e5151329562a0c1cb1d9",
+  "content_sha256": "23cb339ba4f02b7ce3f1f886c5c305754d8bdadd4b05e5151329562a0c1cb1d9",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

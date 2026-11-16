@@ -5,6 +5,7 @@
 import os
 import time
 import json
+import threading
 from functools import wraps
 from typing import Any, Optional, Dict
 from flask import request, jsonify
@@ -19,49 +20,60 @@ except ImportError:
 
 
 class InMemoryCache:
-    """Bộ nhớ đệm trong RAM (In-Memory Dictionary) dự phòng khi không có Redis."""
+    """Bộ nhớ đệm trong RAM (In-Memory Dictionary) dự phòng khi không có Redis, hỗ trợ đa luồng an toàn (Thread-safe)."""
     def __init__(self):
+        self._lock = threading.RLock()
         self._store: Dict[str, Dict[str, Any]] = {}
 
     def get(self, key: str) -> Optional[Any]:
-        item = self._store.get(key)
-        if not item:
-            return None
-        if time.time() > item["expires_at"]:
-            del self._store[key]
-            return None
-        return item["value"]
+        with self._lock:
+            item = self._store.get(key)
+            if not item:
+                return None
+            if time.time() > item["expires_at"]:
+                self._store.pop(key, None)
+                return None
+            return item["value"]
 
     def set(self, key: str, value: Any, ttl: int = 60):
-        self._store[key] = {
-            "value": value,
-            "expires_at": time.time() + ttl
-        }
+        with self._lock:
+            self._store[key] = {
+                "value": value,
+                "expires_at": time.time() + ttl
+            }
 
     def delete(self, key: str):
-        self._store.pop(key, None)
+        with self._lock:
+            self._store.pop(key, None)
 
     def delete_pattern(self, pattern: str):
-        prefix = pattern.replace("*", "")
-        keys_to_delete = [k for k in self._store if k.startswith(prefix)]
-        for k in keys_to_delete:
-            self._store.pop(k, None)
+        with self._lock:
+            prefix = pattern.replace("*", "")
+            keys_to_delete = [k for k in list(self._store.keys()) if k.startswith(prefix)]
+            for k in keys_to_delete:
+                self._store.pop(k, None)
 
     def check_rate_limit(self, identifier: str, max_requests: int = 30, window_seconds: int = 60) -> bool:
         """Kiểm tra giới hạn tần suất yêu cầu (Rate Limiting). Trả về True nếu bị chặn."""
-        now = time.time()
-        key = f"rate_limit:{identifier}"
-        record = self._store.get(key)
+        with self._lock:
+            now = time.time()
+            key = f"rate_limit:{identifier}"
+            record = self._store.get(key)
 
-        if not record or now > record["expires_at"]:
-            self._store[key] = {"count": 1, "expires_at": now + window_seconds}
+            if not record or now > record["expires_at"]:
+                self._store[key] = {"count": 1, "expires_at": now + window_seconds}
+                return False
+
+            if record["count"] >= max_requests:
+                return True
+
+            record["count"] += 1
             return False
 
-        if record["count"] >= max_requests:
-            return True
-
-        record["count"] += 1
-        return False
+    def clear(self):
+        """Xóa toàn bộ cache an toàn."""
+        with self._lock:
+            self._store.clear()
 
 
 class CacheService:
@@ -133,6 +145,16 @@ class CacheService:
             except Exception:
                 pass
         return self.memory_cache.check_rate_limit(identifier, max_requests, window_seconds)
+
+
+    def clear(self):
+        """Xóa toàn bộ cache (hỗ trợ cả Redis và In-Memory)."""
+        if self.redis_client:
+            try:
+                self.redis_client.flushdb()
+            except Exception:
+                pass
+        self.memory_cache.clear()
 
 
 # Khởi tạo thể hiện Singleton

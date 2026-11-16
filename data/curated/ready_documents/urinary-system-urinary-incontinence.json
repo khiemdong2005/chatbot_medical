@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/urinaryincontinence.html",
   "medlineplus_id": "114",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Urinary incontinence",
+  "title_vi": "Tiểu không tự chủ (Són tiểu)",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "urinary incontinence",
+    "bladder leakage",
+    "stress incontinence",
+    "urge incontinence",
+    "pelvic floor"
+  ],
+  "keywords_vi": [
+    "tiểu không tự chủ",
+    "són tiểu",
+    "mất kiểm soát tiểu tiện",
+    "tiết niệu",
+    "cơ sàn chậu"
+  ],
+  "content_hash": "001a245026cd56628eed8ae1ae05fa410bc9dda4ae276564219b21aab6b4ccd9",
+  "content_sha256": "001a245026cd56628eed8ae1ae05fa410bc9dda4ae276564219b21aab6b4ccd9",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

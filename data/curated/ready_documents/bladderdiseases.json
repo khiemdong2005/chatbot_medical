@@ -1,0 +1,49 @@
+{
+  "id": "bladderdiseases",
+  "title": "Bladder Diseases",
+  "title_en": "Bladder Diseases",
+  "title_vi": "Các bệnh bàng quang",
+  "category": "Nephrology",
+  "category_en": "Nephrology",
+  "category_vi": "Thận & Tiết niệu",
+  "search_phrases": [
+    "bladder diseases",
+    "overactive bladder",
+    "urinary incontinence",
+    "bladder dysfunction",
+    "frequent urination",
+    "bệnh bàng quang",
+    "bàng quang tăng hoạt",
+    "tiểu không tự chủ",
+    "tiểu nhiều lần",
+    "tiểu đêm"
+  ],
+  "keywords_en": [
+    "bladder diseases",
+    "overactive bladder",
+    "urinary incontinence",
+    "bladder dysfunction",
+    "frequent urination"
+  ],
+  "keywords_vi": [
+    "bệnh bàng quang",
+    "bàng quang tăng hoạt",
+    "tiểu không tự chủ",
+    "tiểu nhiều lần",
+    "tiểu đêm"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/bladderdiseases.html",
+  "summary": "The bladder is a hollow organ in your lower abdomen that stores urine. Many conditions can affect your bladder. Some common ones are: Cystitis - inflammation of the bladder, often from an infection Urinary incontinence - loss of bladder control Overactive bladder - a condition in which the bladder squeezes urine out at the wrong time Interstitial cystitis - a chronic problem that causes bladder pain and frequent, urgent urination Bladder cancer Doctors diagnose bladder diseases using different tests. These include urine tests , x-rays, and an examination of the bladder wall with a scope called a cystoscope. Treatment depends on the cause of the problem. It may include medicines and, in severe cases, surgery. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "page_content": "The bladder is a hollow organ in your lower abdomen that stores urine. Many conditions can affect your bladder. Some common ones are: Cystitis - inflammation of the bladder, often from an infection Urinary incontinence - loss of bladder control Overactive bladder - a condition in which the bladder squeezes urine out at the wrong time Interstitial cystitis - a chronic problem that causes bladder pain and frequent, urgent urination Bladder cancer Doctors diagnose bladder diseases using different tests. These include urine tests , x-rays, and an examination of the bladder wall with a scope called a cystoscope. Treatment depends on the cause of the problem. It may include medicines and, in severe cases, surgery. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "content_sha256": "188382b2e1c1b28b5a151a4bcc3523b4c0be501372245a90d2df3287a927118c",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

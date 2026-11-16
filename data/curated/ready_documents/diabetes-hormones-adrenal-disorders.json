@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/adrenalglanddisorders.html",
   "medlineplus_id": "128",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Adrenal disorders",
+  "title_vi": "Rối loạn tuyến thượng thận",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "adrenal disorders",
+    "adrenal gland",
+    "adrenal insufficiency",
+    "cortisol",
+    "endocrine disease"
+  ],
+  "keywords_vi": [
+    "rối loạn tuyến thượng thận",
+    "tuyến thượng thận",
+    "suy thượng thận",
+    "cortisol",
+    "nội tiết"
+  ],
+  "content_hash": "9dc02948cae08db8eec7609457313eaed49b8a6322003aa70aff9eeed6668745",
+  "content_sha256": "9dc02948cae08db8eec7609457313eaed49b8a6322003aa70aff9eeed6668745",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

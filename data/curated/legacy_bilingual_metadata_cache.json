@@ -1,0 +1,5191 @@
+{
+  "diabetes-hormones-adrenal-disorders.json": {
+    "source_url": "https://medlineplus.gov/adrenalglanddisorders.html",
+    "content_sha256": "9dc02948cae08db8eec7609457313eaed49b8a6322003aa70aff9eeed6668745",
+    "title_en": "Adrenal disorders",
+    "title_vi": "Rối loạn tuyến thượng thận",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "adrenal disorders",
+      "adrenal gland",
+      "adrenal insufficiency",
+      "cortisol",
+      "endocrine disease"
+    ],
+    "keywords_vi": [
+      "rối loạn tuyến thượng thận",
+      "tuyến thượng thận",
+      "suy thượng thận",
+      "cortisol",
+      "nội tiết"
+    ]
+  },
+  "diabetes-hormones-hyperglycemia.json": {
+    "source_url": "https://medlineplus.gov/hyperglycemia.html",
+    "content_sha256": "d3d47e2c975d669876bbf0ea6d87f6a44d95a36fcc0d6bed441001c767ce2106",
+    "title_en": "Hyperglycemia",
+    "title_vi": "Tăng đường huyết (Đường huyết cao)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "hyperglycemia",
+      "high blood sugar",
+      "high blood glucose",
+      "diabetes symptom",
+      "glucose spike"
+    ],
+    "keywords_vi": [
+      "tăng đường huyết",
+      "đường huyết cao",
+      "đái tháo đường",
+      "khát nước tiểu nhiều",
+      "chỉ số glucose"
+    ]
+  },
+  "diabetes-hormones-hyperthyroidism.json": {
+    "source_url": "https://medlineplus.gov/hyperthyroidism.html",
+    "content_sha256": "16c1225412ae12a0fc27b5dd12015d9009d87b02d8d0f58684b4add85ad855bd",
+    "title_en": "Hyperthyroidism",
+    "title_vi": "Cường giáp (Tuyến giáp hoạt động quá mức)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "hyperthyroidism",
+      "overactive thyroid",
+      "rapid heart rate",
+      "weight loss",
+      "thyroid hormone"
+    ],
+    "keywords_vi": [
+      "cường giáp",
+      "tuyến giáp hoạt động quá mức",
+      "tim đập nhanh sụt cân",
+      "bướu giáp",
+      "nội tiết"
+    ]
+  },
+  "diabetes-hormones-hypoglycemia.json": {
+    "source_url": "https://medlineplus.gov/hypoglycemia.html",
+    "content_sha256": "d4316b88e9d0592231fce648b0aaa3f8639f2967fadc896e99239c349e9e8eb2",
+    "title_en": "Hypoglycemia",
+    "title_vi": "Hạ đường huyết (Đường huyết thấp)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "hypoglycemia",
+      "low blood sugar",
+      "low blood glucose",
+      "shakiness sweating",
+      "glucose drop"
+    ],
+    "keywords_vi": [
+      "hạ đường huyết",
+      "đường huyết thấp",
+      "tụt đường huyết",
+      "run tay đói lả",
+      "glucose máu thấp"
+    ]
+  },
+  "diabetes-hormones-hypothyroidism.json": {
+    "source_url": "https://medlineplus.gov/hypothyroidism.html",
+    "content_sha256": "3388b547bed680b54839869c803464d6ee81a0044e982277a6fd7280954f6b31",
+    "title_en": "Hypothyroidism",
+    "title_vi": "Suy giáp (Tuyến giáp hoạt động kém)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "hypothyroidism",
+      "underactive thyroid",
+      "fatigue weight gain",
+      "cold sensitivity",
+      "thyroid deficiency"
+    ],
+    "keywords_vi": [
+      "suy giáp",
+      "tuyến giáp hoạt động kém",
+      "mệt mỏi tăng cân sợ lạnh",
+      "nội tiết",
+      "hormone tuyến giáp"
+    ]
+  },
+  "diabetes-hormones-insulin-resistance.json": {
+    "source_url": "https://medlineplus.gov/metabolicsyndrome.html",
+    "content_sha256": "e60c91a870354ce9d34a299201705d48ac051f5a376c3d46e17a375ddf6f0d26",
+    "title_en": "Insulin resistance",
+    "title_vi": "Kháng insulin",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "insulin resistance",
+      "metabolic syndrome",
+      "pre-diabetes risk",
+      "hyperinsulinemia",
+      "glucose uptake"
+    ],
+    "keywords_vi": [
+      "kháng insulin",
+      "nhạy cảm insulin",
+      "hội chứng chuyển hóa",
+      "nguy cơ tiểu đường",
+      "nội tiết"
+    ]
+  },
+  "diabetes-hormones-prediabetes.json": {
+    "source_url": "https://medlineplus.gov/prediabetes.html",
+    "content_sha256": "fd09b95a3ab82c6e22e069abd0c7dd40b278a7a1df0ef7a979a911a37596b2c6",
+    "title_en": "Prediabetes",
+    "title_vi": "Tiền đái tháo đường (Tiền tiểu đường)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "prediabetes",
+      "borderline diabetes",
+      "impaired glucose tolerance",
+      "diabetes prevention",
+      "fasting glucose"
+    ],
+    "keywords_vi": [
+      "tiền đái tháo đường",
+      "tiền tiểu đường",
+      "rối loạn dung nạp glucose",
+      "phòng ngừa tiểu đường",
+      "đường huyết lúc đói"
+    ]
+  },
+  "diabetes-hormones-thyroid-disease.json": {
+    "source_url": "https://medlineplus.gov/thyroiddiseases.html",
+    "content_sha256": "93bb64b461dce96103e2c68c6767b8af1dae1d14546dcd9cdbfb72a5f87b281d",
+    "title_en": "Thyroid disease",
+    "title_vi": "Bệnh lý tuyến giáp",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "thyroid disease",
+      "thyroid disorders",
+      "goiter",
+      "thyroid nodules",
+      "endocrine gland"
+    ],
+    "keywords_vi": [
+      "bệnh lý tuyến giáp",
+      "tuyến giáp",
+      "bướu cổ",
+      "nhân tuyến giáp",
+      "nội tiết"
+    ]
+  },
+  "diabetes-hormones-type-1-diabetes.json": {
+    "source_url": "https://medlineplus.gov/diabetestype1.html",
+    "content_sha256": "b77840e0b26da167742ab37c1dc6379bd545f28a729f2dbbe6bab9c4ba8aa290",
+    "title_en": "Type 1 diabetes",
+    "title_vi": "Đái tháo đường tuýp 1 (Tiểu đường tuýp 1)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "type 1 diabetes",
+      "juvenile diabetes",
+      "insulin dependent",
+      "insulin therapy",
+      "autoimmune diabetes"
+    ],
+    "keywords_vi": [
+      "đái tháo đường tuýp 1",
+      "tiểu đường tuýp 1",
+      "tiêm insulin",
+      "thiếu hụt insulin",
+      "đái tháo đường tự miễn"
+    ]
+  },
+  "diabetes-hormones-type-2-diabetes.json": {
+    "source_url": "https://medlineplus.gov/diabetestype2.html",
+    "content_sha256": "7c02f8bb63515a76bec916774cc4f4f1b30350ca162951c03ea3f2a17032db9b",
+    "title_en": "Type 2 diabetes",
+    "title_vi": "Đái tháo đường tuýp 2 (Tiểu đường tuýp 2)",
+    "category_en": "Diabetes & Hormones",
+    "category_vi": "Nội tiết & Đái tháo đường",
+    "keywords_en": [
+      "type 2 diabetes",
+      "adult onset diabetes",
+      "blood sugar control",
+      "metformin",
+      "lifestyle management"
+    ],
+    "keywords_vi": [
+      "đái tháo đường tuýp 2",
+      "tiểu đường tuýp 2",
+      "kiểm soát đường huyết",
+      "hạ đường huyết ăn uống",
+      "nội tiết"
+    ]
+  },
+  "digestive-abdominal-pain.json": {
+    "source_url": "https://medlineplus.gov/abdominalpain.html",
+    "content_sha256": "dda90a6b524f267bb833b2d74373eeeca650eeceb21a1181306ba688bcdb8304",
+    "title_en": "Abdominal pain",
+    "title_vi": "Đau bụng",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "abdominal pain",
+      "stomach pain",
+      "belly ache",
+      "abdominal cramps"
+    ],
+    "keywords_vi": [
+      "đau bụng",
+      "đau dạ dày",
+      "đau vùng bụng",
+      "khó tiêu",
+      "co thắt bụng"
+    ]
+  },
+  "digestive-acid-reflux.json": {
+    "source_url": "https://medlineplus.gov/heartburn.html",
+    "content_sha256": "882cc9f4b9a282572ecc93720da0ed575fe5da68a47a88c6d50f5dfc7d64594a",
+    "title_en": "Acid reflux",
+    "title_vi": "Trào ngược axit dạ dày",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "acid reflux",
+      "gastric acid",
+      "acid regurgitation",
+      "esophageal burning"
+    ],
+    "keywords_vi": [
+      "trào ngược axit",
+      "axit dạ dày",
+      "ợ chua",
+      "nóng rát thực quản",
+      "tiêu hóa"
+    ]
+  },
+  "digestive-appendicitis.json": {
+    "source_url": "https://medlineplus.gov/appendicitis.html",
+    "content_sha256": "c406a0852c811f1a37c4970046f09dfc242d635ec21b37a1869e6474f50ecea4",
+    "title_en": "Appendicitis",
+    "title_vi": "Viêm ruột thừa",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "appendicitis",
+      "acute appendicitis",
+      "lower right abdominal pain",
+      "appendectomy"
+    ],
+    "keywords_vi": [
+      "viêm ruột thừa",
+      "đau hố chậu phải",
+      "cấp cứu ngoại khoa",
+      "vỡ ruột thừa",
+      "sốt đau bụng"
+    ]
+  },
+  "digestive-burping.json": {
+    "source_url": "https://medlineplus.gov/gas.html",
+    "content_sha256": "95f6c3674828276e6798761bc22c2f47c8a25a60016c6f979bdb911126dc8342",
+    "title_en": "Burping",
+    "title_vi": "Ợ hơi (Ợ chua)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "burping",
+      "belching",
+      "excessive gas",
+      "eructation"
+    ],
+    "keywords_vi": [
+      "ợ hơi",
+      "ợ chua",
+      "đầy hơi",
+      "chướng bụng",
+      "khó tiêu"
+    ]
+  },
+  "digestive-celiac-disease.json": {
+    "source_url": "https://medlineplus.gov/celiacdisease.html",
+    "content_sha256": "24d0d8dca0c04e25b640bf7daf2c0a92f5aab0ce5cdf8b0a24ab8df78e6c76eb",
+    "title_en": "Celiac disease",
+    "title_vi": "Bệnh Celiac (Không dung nạp gluten)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "celiac disease",
+      "gluten intolerance",
+      "gluten free",
+      "small intestine damage"
+    ],
+    "keywords_vi": [
+      "bệnh celiac",
+      "không dung nạp gluten",
+      "viêm ruột non",
+      "dị ứng lúa mì",
+      "tiêu hóa"
+    ]
+  },
+  "digestive-constipation.json": {
+    "source_url": "https://medlineplus.gov/constipation.html",
+    "content_sha256": "7fd51764f0e535f9e2ab93644113875d6e53166a5808b4944bbb256ff5e6718e",
+    "title_en": "Constipation",
+    "title_vi": "Táo bón",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "constipation",
+      "infrequent bowel movements",
+      "hard stool",
+      "dietary fiber constipation"
+    ],
+    "keywords_vi": [
+      "táo bón",
+      "khó đại tiện",
+      "phân khô cứng",
+      "chất xơ",
+      "tiêu hóa"
+    ]
+  },
+  "digestive-crohn-s-disease.json": {
+    "source_url": "https://medlineplus.gov/crohnsdisease.html",
+    "content_sha256": "82a1f1c764c175ca18f6555dd68e89d68d953d5a77a157da9753124956565861",
+    "title_en": "Crohn's disease",
+    "title_vi": "Bệnh Crohn (Viêm ruột từng vùng)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "Crohn's disease",
+      "inflammatory bowel disease",
+      "IBD",
+      "intestinal inflammation"
+    ],
+    "keywords_vi": [
+      "bệnh crohn",
+      "viêm ruột từng vùng",
+      "viêm đại tràng",
+      "đau bụng tiêu chảy",
+      "bệnh IBD"
+    ]
+  },
+  "digestive-diarrhea.json": {
+    "source_url": "https://medlineplus.gov/diarrhea.html",
+    "content_sha256": "575ed3d4002c9d33c073b6b8e9b8adc2efcab822469c94c472db99eb4e364119",
+    "title_en": "Diarrhea",
+    "title_vi": "Tiêu chảy",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "diarrhea",
+      "loose stools",
+      "watery diarrhea",
+      "gastroenteritis"
+    ],
+    "keywords_vi": [
+      "tiêu chảy",
+      "đi ngoài phân lỏng",
+      "mất nước tiêu chảy",
+      "tiêu chảy nhiễm trùng",
+      "men vi sinh"
+    ]
+  },
+  "digestive-food-poisoning.json": {
+    "source_url": "https://medlineplus.gov/foodborneillness.html",
+    "content_sha256": "ead867b06830a5a174de4c4b50a3e716d3109ad79c0d7ad52babddfab21cd90a",
+    "title_en": "Food poisoning",
+    "title_vi": "Ngộ độc thực phẩm",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "food poisoning",
+      "foodborne illness",
+      "food toxicity",
+      "bacterial food contamination"
+    ],
+    "keywords_vi": [
+      "ngộ độc thực phẩm",
+      "ăn phải thức ăn ôi thiu",
+      "buồn nôn tiêu chảy",
+      "đau bụng cấp",
+      "nhiễm khuẩn đường ruột"
+    ]
+  },
+  "digestive-gallstones.json": {
+    "source_url": "https://medlineplus.gov/gallstones.html",
+    "content_sha256": "dd495867bce6834672460b914d635691ff664c398aaf59d6f56f3fe9db343142",
+    "title_en": "Gallstones",
+    "title_vi": "Sỏi túi mật (Sỏi mật)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "gallstones",
+      "cholelithiasis",
+      "biliary colic",
+      "gallbladder stones"
+    ],
+    "keywords_vi": [
+      "sỏi túi mật",
+      "sỏi mật",
+      "cơn đau quặn mật",
+      "đau hạ sườn phải",
+      "túi mật"
+    ]
+  },
+  "digestive-gas.json": {
+    "source_url": "https://medlineplus.gov/gas.html",
+    "content_sha256": "97e1a0b764c5d425dbbb549f2c220a0128ee57f9a196dd3a29b8f846a7d5336c",
+    "title_en": "Gas",
+    "title_vi": "Đầy hơi chướng bụng",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "gas",
+      "bloating",
+      "intestinal gas",
+      "flatulence",
+      "abdominal fullness"
+    ],
+    "keywords_vi": [
+      "đầy hơi",
+      "chướng bụng",
+      "sinh khí đường ruột",
+      "sình bụng",
+      "khó tiêu"
+    ]
+  },
+  "digestive-gerd.json": {
+    "source_url": "https://medlineplus.gov/gerd.html",
+    "content_sha256": "acc61f947ba3f136cf90862b04f52c0e3e3ca2befa63d3a5c20aa002b12899b8",
+    "title_en": "GERD",
+    "title_vi": "Trào ngược dạ dày thực quản (GERD)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "GERD",
+      "gastroesophageal reflux",
+      "heartburn",
+      "acid reflux disease"
+    ],
+    "keywords_vi": [
+      "trào ngược dạ dày thực quản",
+      "GERD",
+      "ợ nóng ợ chua",
+      "viêm thực quản",
+      "axit dạ dày"
+    ]
+  },
+  "digestive-heartburn.json": {
+    "source_url": "https://medlineplus.gov/heartburn.html",
+    "content_sha256": "f283e97fefb4abb75193d42a5fab2c5c49e5acb50240aaeb9bab0335a57d7762",
+    "title_en": "Heartburn",
+    "title_vi": "Ợ nóng (Nóng rát thượng vị)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "heartburn",
+      "pyrosis",
+      "acid indigestion",
+      "burning chest sensation"
+    ],
+    "keywords_vi": [
+      "ợ nóng",
+      "nóng rát thượng vị",
+      "nóng sau xương ức",
+      "trào ngược axit",
+      "khó tiêu"
+    ]
+  },
+  "digestive-hemorrhoids.json": {
+    "source_url": "https://medlineplus.gov/hemorrhoids.html",
+    "content_sha256": "5a2b30fb0d0aeba77020cf3dfb1494c2a3c85b1852d2cdcc5d3b1986ceb9afae",
+    "title_en": "Hemorrhoids",
+    "title_vi": "Bệnh trĩ",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "hemorrhoids",
+      "piles",
+      "rectal bleeding",
+      "anal itching",
+      "hemorrhoidal cushion"
+    ],
+    "keywords_vi": [
+      "bệnh trĩ",
+      "trĩ nội",
+      "trĩ ngoại",
+      "chảy máu hậu môn",
+      "búi trĩ"
+    ]
+  },
+  "digestive-hiccups.json": {
+    "source_url": "https://medlineplus.gov/hiccups.html",
+    "content_sha256": "6f4badc8bd84025f6f6a19f0238e1c0827ddc88f2148560a9e793de853384675",
+    "title_en": "Hiccups",
+    "title_vi": "Nấc cụt kéo dài",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "hiccups",
+      "singultus",
+      "diaphragm spasms",
+      "persistent hiccups"
+    ],
+    "keywords_vi": [
+      "nấc cụt",
+      "cơn nấc",
+      "co thắt cơ hoành",
+      "nấc kéo dài",
+      "tiêu hóa"
+    ]
+  },
+  "digestive-ibs.json": {
+    "source_url": "https://medlineplus.gov/irritablebowelsyndrome.html",
+    "content_sha256": "88f768c3f8bb233c9ed162819eeaba55936c04a7131d3e1f7e6583b67d3664b0",
+    "title_en": "IBS",
+    "title_vi": "Hội chứng ruột kích thích (IBS)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "IBS",
+      "irritable bowel syndrome",
+      "spastic colon",
+      "abdominal cramping"
+    ],
+    "keywords_vi": [
+      "hội chứng ruột kích thích",
+      "IBS",
+      "đại tràng co thắt",
+      "rối loạn tiêu hóa",
+      "đau bụng đi ngoài"
+    ]
+  },
+  "digestive-indigestion.json": {
+    "source_url": "https://medlineplus.gov/indigestion.html",
+    "content_sha256": "3c190d5ec909a1c36d7d88ed4311de9fdd24778eac7763f3dc0d8273ecc141cc",
+    "title_en": "Indigestion",
+    "title_vi": "Chứng khó tiêu (Đầy bụng)",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "indigestion",
+      "dyspepsia",
+      "upset stomach",
+      "bloated feeling"
+    ],
+    "keywords_vi": [
+      "khó tiêu",
+      "đầy bụng",
+      "ăn không tiêu",
+      "chậm tiêu",
+      "nặng bụng"
+    ]
+  },
+  "digestive-lactose-intolerance.json": {
+    "source_url": "https://medlineplus.gov/lactoseintolerance.html",
+    "content_sha256": "9032dbe99de9b9b550c9d8ed0b4faf4e1b08a7ac24b7a154adc4602459827f1c",
+    "title_en": "Lactose intolerance",
+    "title_vi": "Chứng không dung nạp đường lactose",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "lactose intolerance",
+      "dairy sensitivity",
+      "lactase deficiency",
+      "milk allergy digestive"
+    ],
+    "keywords_vi": [
+      "không dung nạp lactose",
+      "dị ứng sữa",
+      "đau bụng uống sữa",
+      "thiếu hụt lactase",
+      "tiêu chảy sau uống sữa"
+    ]
+  },
+  "digestive-stomach-ulcer.json": {
+    "source_url": "https://medlineplus.gov/pepticulcer.html",
+    "content_sha256": "144c94c767cc3b08ecb7afc631f5c86fdaaf1a6530c6a145413834bd4ab586b9",
+    "title_en": "Stomach ulcer",
+    "title_vi": "Viêm loét dạ dày tá tràng",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "stomach ulcer",
+      "peptic ulcer",
+      "gastric ulcer",
+      "H pylori",
+      "upper abdominal pain"
+    ],
+    "keywords_vi": [
+      "viêm loét dạ dày",
+      "loét tá tràng",
+      "đau thượng vị",
+      "vi khuẩn HP",
+      "xuất huyết dạ dày"
+    ]
+  },
+  "digestive-ulcerative-colitis.json": {
+    "source_url": "https://medlineplus.gov/ulcerativecolitis.html",
+    "content_sha256": "23105ae90e42cd64feb8d2fd9f72a8fa15fa9ed92122fde639b256ade9adbe47",
+    "title_en": "Ulcerative colitis",
+    "title_vi": "Viêm loét đại tràng",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "ulcerative colitis",
+      "colitis",
+      "colon inflammation",
+      "bloody diarrhea",
+      "IBD"
+    ],
+    "keywords_vi": [
+      "viêm loét đại tràng",
+      "viêm đại tràng mạn tính",
+      "đi ngoài ra máu",
+      "bệnh IBD",
+      "tiêu hóa"
+    ]
+  },
+  "digestive-vomiting.json": {
+    "source_url": "https://medlineplus.gov/nauseaandvomiting.html",
+    "content_sha256": "5ddd5070b49fc09894d4bf8b104fc6e0ceb2c598b846dffe2dd2bf707e05a1c6",
+    "title_en": "Vomiting",
+    "title_vi": "Buồn nôn và nôn ói",
+    "category_en": "Digestive",
+    "category_vi": "Tiêu hóa",
+    "keywords_en": [
+      "vomiting",
+      "nausea",
+      "emesis",
+      "upset stomach",
+      "rehydration after vomiting"
+    ],
+    "keywords_vi": [
+      "buồn nôn",
+      "nôn ói",
+      "nôn mửa",
+      "chống nôn",
+      "mất nước do nôn"
+    ]
+  },
+  "eye-ear-mouth-bad-breath.json": {
+    "source_url": "https://medlineplus.gov/badbreath.html",
+    "content_sha256": "f65539c58c90f363da3571a53af764a9f0a246744f6f8138c1cd6d4586f1a479",
+    "title_en": "Bad breath",
+    "title_vi": "Hôi miệng",
+    "category_en": "Eye, Ear & Mouth",
+    "category_vi": "Mắt, Tai & Răng miệng",
+    "keywords_en": [
+      "bad breath",
+      "halitosis",
+      "oral hygiene",
+      "mouth odor"
+    ],
+    "keywords_vi": [
+      "hôi miệng",
+      "hơi thở có mùi",
+      "viêm nha chu",
+      "vệ sinh răng miệng",
+      "nha khoa"
+    ]
+  },
+  "eye-ear-mouth-dry-eyes.json": {
+    "source_url": "https://medlineplus.gov/tears.html",
+    "content_sha256": "de149e65fe7c6dfe3a463831c31c21cb2ca44cdabcda0fec70445ee10b58898b",
+    "title_en": "Dry eyes",
+    "title_vi": "Khô mắt",
+    "category_en": "Eye, Ear & Mouth",
+    "category_vi": "Mắt, Tai & Răng miệng",
+    "keywords_en": [
+      "dry eyes",
+      "dry eye syndrome",
+      "artificial tears",
+      "eye irritation",
+      "tear film"
+    ],
+    "keywords_vi": [
+      "khô mắt",
+      "mỏi mắt",
+      "rát mắt",
+      "nước mắt nhân tạo",
+      "nhãn khoa"
+    ]
+  },
+  "eye-ear-mouth-ear-infection.json": {
+    "source_url": "https://medlineplus.gov/earinfections.html",
+    "content_sha256": "933af3f4ea9d20184a213f24bd92f919b096d4674285cae0c33666bf4c1b5c9d",
+    "title_en": "Ear infection",
+    "title_vi": "Viêm tai (Nhiễm trùng tai)",
+    "category_en": "Eye, Ear & Mouth",
+    "category_vi": "Mắt, Tai & Răng miệng",
+    "keywords_en": [
+      "ear infection",
+      "otitis media",
+      "ear pain",
+      "ear discharge",
+      "middle ear"
+    ],
+    "keywords_vi": [
+      "viêm tai",
+      "nhiễm trùng tai",
+      "viêm tai giữa",
+      "đau tai",
+      "chảy dịch tai"
+    ]
+  },
+  "eye-ear-mouth-hearing-loss.json": {
+    "source_url": "https://medlineplus.gov/hearingdisordersanddeafness.html",
+    "content_sha256": "fd5bb0084e1e5f839c240f6da9c9057d7cb1fcc5ea91d4008080219f7e471ba5",
+    "title_en": "Hearing loss",
+    "title_vi": "Suy giảm thính lực (Mất thính lực)",
+    "category_en": "Eye, Ear & Mouth",
+    "category_vi": "Mắt, Tai & Răng miệng",
+    "keywords_en": [
+      "hearing loss",
+      "deafness",
+      "tinnitus",
+      "hearing impairment",
+      "audiology"
+    ],
+    "keywords_vi": [
+      "suy giảm thính lực",
+      "mất thính lực",
+      "nghe kém",
+      "ù tai",
+      "tai mũi họng"
+    ]
+  },
+  "first-aid-emergencies-animal-bites.json": {
+    "source_url": "https://medlineplus.gov/animalbites.html",
+    "content_sha256": "a153f632328c27f4063632bd0ec99b24204f94e6345e42f20a363b08dc177ed5",
+    "title_en": "Animal bites",
+    "title_vi": "Sơ cứu vết động vật cắn",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "animal bites",
+      "dog bite",
+      "cat scratch",
+      "rabies prevention",
+      "wound cleaning"
+    ],
+    "keywords_vi": [
+      "vết động vật cắn",
+      "chó cắn mèo cào",
+      "sơ cứu vết cắn",
+      "tiêm phòng dại",
+      "nhiễm trùng vết thương"
+    ]
+  },
+  "first-aid-emergencies-bleeding.json": {
+    "source_url": "https://medlineplus.gov/bleeding.html",
+    "content_sha256": "5204b7a4209387764f2bd090f8d6d3dc91e7f3c8205a71b704041a686c51a4ba",
+    "title_en": "Bleeding",
+    "title_vi": "Sơ cứu cầm máu vết thương",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "bleeding",
+      "hemorrhage",
+      "wound care bleeding",
+      "direct pressure",
+      "stop bleeding"
+    ],
+    "keywords_vi": [
+      "cầm máu",
+      "chảy máu ngoài",
+      "băng ép cầm máu",
+      "sơ cứu vết thương hở",
+      "mất máu"
+    ]
+  },
+  "first-aid-emergencies-broken-bone.json": {
+    "source_url": "https://medlineplus.gov/fractures.html",
+    "content_sha256": "337410aa9b89a476ad234dd1e12fcf337beaaae37eadb3307edbfdaa496d760d",
+    "title_en": "Broken bone",
+    "title_vi": "Sơ cứu gãy xương",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "broken bone",
+      "bone fracture",
+      "immobilization fracture",
+      "first aid fracture",
+      "orthopedic emergency"
+    ],
+    "keywords_vi": [
+      "gãy xương",
+      "cố định xương gãy",
+      "sơ cứu chấn thương gãy xương",
+      "bất động chi",
+      "cấp cứu chấn thương"
+    ]
+  },
+  "first-aid-emergencies-burns.json": {
+    "source_url": "https://medlineplus.gov/burns.html",
+    "content_sha256": "f8adbaf4c1e86413782e9d70ce60cd697fe3e41b72f3b0bae78e9385c22ea91f",
+    "title_en": "Burns",
+    "title_vi": "Sơ cứu bỏng",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "burns",
+      "thermal burn",
+      "burn first aid",
+      "cool water burn",
+      "burn degrees"
+    ],
+    "keywords_vi": [
+      "sơ cứu bỏng",
+      "bỏng nước sôi bỏng lửa",
+      "ngâm nước mát vết bỏng",
+      "phỏng da",
+      "phân độ bỏng"
+    ]
+  },
+  "first-aid-emergencies-choking.json": {
+    "source_url": "https://medlineplus.gov/choking.html",
+    "content_sha256": "e968d6f9467cf85610a44e07d2312809fae3f2fe8f9439ac7281602397d0427e",
+    "title_en": "Choking",
+    "title_vi": "Sơ cứu hóc nghẹn dị vật đường thở",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "choking",
+      "airway obstruction",
+      "Heimlich maneuver",
+      "foreign body airway",
+      "first aid choking"
+    ],
+    "keywords_vi": [
+      "hóc dị vật",
+      "nghẹn đường thở",
+      "thủ thuật heimlich",
+      "cấp cứu ngạt thở",
+      "sơ cứu hóc"
+    ]
+  },
+  "first-aid-emergencies-cpr.json": {
+    "source_url": "https://medlineplus.gov/cpr.html",
+    "content_sha256": "e56def910f411e4f6d6a66db707c853d98fbf877a72e67521db8e56b91d7bf05",
+    "title_en": "CPR",
+    "title_vi": "Hồi sinh tim phổi (CPR)",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "CPR",
+      "cardiopulmonary resuscitation",
+      "chest compressions",
+      "cardiac arrest first aid",
+      "rescue breathing"
+    ],
+    "keywords_vi": [
+      "hồi sinh tim phổi",
+      "CPR",
+      "ép tim ngoài lồng ngực",
+      "ngừng tim ngưng thở",
+      "sơ cứu khẩn cấp"
+    ]
+  },
+  "first-aid-emergencies-electric-shock.json": {
+    "source_url": "https://medlineplus.gov/electricalinjuries.html",
+    "content_sha256": "3aeacc16f7fd35b94a4bee88d067635928fe6dc9421c3c19248bf867d83c7c8e",
+    "title_en": "Electric shock",
+    "title_vi": "Sơ cứu giật điện",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "electric shock",
+      "electrical injury",
+      "first aid electric shock",
+      "power disconnection",
+      "electrocution"
+    ],
+    "keywords_vi": [
+      "giật điện",
+      "tai nạn điện giật",
+      "sơ cứu bỏng điện",
+      "ngắt nguồn điện",
+      "ngừng tuần hoàn do điện"
+    ]
+  },
+  "first-aid-emergencies-heat-exhaustion.json": {
+    "source_url": "https://medlineplus.gov/heatillness.html",
+    "content_sha256": "04d7a4222676ec61be8215b7906ac6e69b53e24a8bd98df1546815f625b13332",
+    "title_en": "Heat exhaustion",
+    "title_vi": "Kiệt sức do nhiệt",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "heat exhaustion",
+      "heat illness",
+      "dehydration heat",
+      "cool down",
+      "heat fatigue"
+    ],
+    "keywords_vi": [
+      "kiệt sức do nhiệt",
+      "say nắng nhẹ",
+      "mất nước do nóng",
+      "hạ nhiệt nghỉ ngơi",
+      "thân nhiệt cao"
+    ]
+  },
+  "first-aid-emergencies-heat-stroke.json": {
+    "source_url": "https://medlineplus.gov/heatillness.html",
+    "content_sha256": "03df0455cb2acbd7223239729090afff4a86aa1e99103032fbc1e15cb3328c57",
+    "title_en": "Heat stroke",
+    "title_vi": "Say nắng say nóng (Sốc nhiệt)",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "heat stroke",
+      "sunstroke",
+      "severe heat illness",
+      "hyperthermia emergency",
+      "cooling therapy"
+    ],
+    "keywords_vi": [
+      "say nắng say nóng",
+      "sốc nhiệt",
+      "cấp cứu đột quỵ nhiệt",
+      "hôn mê do nhiệt độ cao",
+      "sơ cứu say nắng"
+    ]
+  },
+  "first-aid-emergencies-hypothermia.json": {
+    "source_url": "https://medlineplus.gov/hypothermia.html",
+    "content_sha256": "6d0f796cda625ae7eb6719511a498501cd63598d5075e9947d54a30375d4738b",
+    "title_en": "Hypothermia",
+    "title_vi": "Hạ thân nhiệt",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "hypothermia",
+      "low body temperature",
+      "cold exposure",
+      "rewarming",
+      "freezing emergency"
+    ],
+    "keywords_vi": [
+      "hạ thân nhiệt",
+      "nhiễm lạnh nguy hiểm",
+      "thân nhiệt giảm sâu",
+      "ủ ấm cơ thể",
+      "cấp cứu rét buốt"
+    ]
+  },
+  "first-aid-emergencies-nosebleed.json": {
+    "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
+    "content_sha256": "57ff135169d55753fd88740521f586fc5df0a25500c988c0392ed3066540f98b",
+    "title_en": "Nosebleed",
+    "title_vi": "Sơ cứu chảy máu cam",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "nosebleed",
+      "epistaxis",
+      "first aid nosebleed",
+      "pinch nose",
+      "nasal bleeding"
+    ],
+    "keywords_vi": [
+      "chảy máu cam",
+      "chảy máu mũi",
+      "sơ cứu cúi đầu ép mũi",
+      "chảy máu mao mạch mũi",
+      "cầm máu mũi"
+    ]
+  },
+  "first-aid-emergencies-poisoning.json": {
+    "source_url": "https://medlineplus.gov/poisoning.html",
+    "content_sha256": "fc041e69453b430af0ba21e39c41e73db769465f169a3e7dfa0f1f7c27a7356f",
+    "title_en": "Poisoning",
+    "title_vi": "Sơ cứu ngộ độc cấp tính",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "poisoning",
+      "toxic ingestion",
+      "poison control",
+      "accidental poisoning",
+      "first aid toxins"
+    ],
+    "keywords_vi": [
+      "ngộ độc cấp",
+      "uống nhầm hóa chất độc",
+      "cấp cứu ngộ độc",
+      "trung tâm chống độc",
+      "sơ cứu nuốt độc"
+    ]
+  },
+  "first-aid-emergencies-snake-bites.json": {
+    "source_url": "https://medlineplus.gov/animalbites.html",
+    "content_sha256": "c9998db950b59de8a5287167ebddb3f5b3939d6c3519c063fbe57d39881a65fb",
+    "title_en": "Snake bites",
+    "title_vi": "Sơ cứu rắn cắn",
+    "category_en": "First Aid & Emergencies",
+    "category_vi": "Cấp cứu & Sơ cứu",
+    "keywords_en": [
+      "snake bites",
+      "venomous snake bite",
+      "immobilize limb",
+      "antivenom",
+      "first aid snake"
+    ],
+    "keywords_vi": [
+      "rắn cắn",
+      "sơ cứu rắn độc cắn",
+      "bất động chi bị cắn",
+      "huyết thanh kháng nọc rắn",
+      "cấp cứu rắn cắn"
+    ]
+  },
+  "general-symptoms-bad-breath.json": {
+    "source_url": "https://medlineplus.gov/badbreath.html",
+    "content_sha256": "1f9399e097191018b02f3a262b67dc46dc41ca7f4f35eb3343e7dd901c016ac6",
+    "title_en": "Bad breath",
+    "title_vi": "Hôi miệng",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "bad breath",
+      "halitosis",
+      "oral hygiene",
+      "mouth odor"
+    ],
+    "keywords_vi": [
+      "hôi miệng",
+      "hơi thở có mùi",
+      "viêm nha chu",
+      "vệ sinh răng miệng",
+      "nha khoa"
+    ]
+  },
+  "general-symptoms-chills.json": {
+    "source_url": "https://medlineplus.gov/fever.html",
+    "content_sha256": "82b10c7e3588dd38ceb657061bda3665f9a5150148e196ff3990b97016bb0dbc",
+    "title_en": "Chills",
+    "title_vi": "Ớn lạnh (Rét run)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "chills",
+      "shivering",
+      "fever chills",
+      "cold sensations"
+    ],
+    "keywords_vi": [
+      "ớn lạnh",
+      "rét run",
+      "sốt rét",
+      "nhiễm trùng",
+      "thân nhiệt"
+    ]
+  },
+  "general-symptoms-confusion.json": {
+    "source_url": "https://medlineplus.gov/delirium.html",
+    "content_sha256": "1b5717a54db96cf18ab9003cde537fb86d91f60828fba32e361735835d732778",
+    "title_en": "Confusion",
+    "title_vi": "Lú lẫn (Rối loạn ý thức)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "confusion",
+      "disorientation",
+      "delirium",
+      "altered mental state"
+    ],
+    "keywords_vi": [
+      "lú lẫn",
+      "mất phương hướng",
+      "rối loạn ý thức",
+      "mê sảng",
+      "thần kinh"
+    ]
+  },
+  "general-symptoms-dehydration.json": {
+    "source_url": "https://medlineplus.gov/dehydration.html",
+    "content_sha256": "54dd500990f8d3ca59dc996cede462773c97c8a25c69de1bf0b1b23cfbad718c",
+    "title_en": "Dehydration",
+    "title_vi": "Mất nước",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "dehydration",
+      "fluid loss",
+      "electrolyte imbalance",
+      "rehydration"
+    ],
+    "keywords_vi": [
+      "mất nước",
+      "thiếu nước",
+      "khát nước",
+      "bù điện giải",
+      "chống mất nước"
+    ]
+  },
+  "general-symptoms-dry-mouth.json": {
+    "source_url": "https://medlineplus.gov/drymouth.html",
+    "content_sha256": "4acd8d4ca0e1bb06bb02297daef7579911f7e4080329145831e1f4accb502b98",
+    "title_en": "Dry mouth",
+    "title_vi": "Khô miệng",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "dry mouth",
+      "xerostomia",
+      "salivary glands",
+      "mouth dryness"
+    ],
+    "keywords_vi": [
+      "khô miệng",
+      "ít tiết nước bọt",
+      "rát lưỡi",
+      "tuyến nước bọt",
+      "nha khoa"
+    ]
+  },
+  "general-symptoms-fainting.json": {
+    "source_url": "https://medlineplus.gov/fainting.html",
+    "content_sha256": "168d7d37ee381c1a0259b27cec565c2c402136bbd43919b96ae1e69f2765c9dc",
+    "title_en": "Fainting",
+    "title_vi": "Ngất xỉu (Bất tỉnh)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "fainting",
+      "syncope",
+      "loss of consciousness",
+      "lightheadedness"
+    ],
+    "keywords_vi": [
+      "ngất xỉu",
+      "bất tỉnh",
+      "choáng váng",
+      "tụt huyết áp",
+      "ngất"
+    ]
+  },
+  "general-symptoms-fatigue.json": {
+    "source_url": "https://medlineplus.gov/fatigue.html",
+    "content_sha256": "0cf643b70b43a274b1a3776bd4728a8b0f3680c1e117df1c7710edc12369e2e8",
+    "title_en": "Fatigue",
+    "title_vi": "Mệt mỏi kéo dài (Suy nhược cơ thể)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "fatigue",
+      "chronic fatigue",
+      "exhaustion",
+      "low energy"
+    ],
+    "keywords_vi": [
+      "mệt mỏi",
+      "suy nhược cơ thể",
+      "đuối sức",
+      "kiệt sức",
+      "uể oải"
+    ]
+  },
+  "general-symptoms-fever.json": {
+    "source_url": "https://medlineplus.gov/fever.html",
+    "content_sha256": "3964cdd320e74d0ed9ee61f5c14bd86d07fb6e943cf8f47b21336b3d8e52caad",
+    "title_en": "Fever",
+    "title_vi": "Sốt (Thân nhiệt cao)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "fever",
+      "high temperature",
+      "pyrexia",
+      "febrile",
+      "antipyretic"
+    ],
+    "keywords_vi": [
+      "sốt",
+      "thân nhiệt cao",
+      "cơn sốt",
+      "hạ sốt",
+      "nhiệt độ cơ thể"
+    ]
+  },
+  "general-symptoms-headache.json": {
+    "source_url": "https://medlineplus.gov/headache.html",
+    "content_sha256": "06ddf5409156145b0784cab24d00d4dde72f8f2a88430060a8b2b6fdb647c31e",
+    "title_en": "Headache",
+    "title_vi": "Đau đầu (Nhức đầu)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "headache",
+      "cephalea",
+      "tension headache",
+      "head pain"
+    ],
+    "keywords_vi": [
+      "đau đầu",
+      "nhức đầu",
+      "đau nửa đầu",
+      "căng thẳng đầu",
+      "chóng mặt"
+    ]
+  },
+  "general-symptoms-high-fever.json": {
+    "source_url": "https://medlineplus.gov/fever.html",
+    "content_sha256": "ceb1fece8e2a2ae9118d93b6c04e06ac6d11d088fbe2b191340a142143eecef6",
+    "title_en": "High fever",
+    "title_vi": "Sốt cao",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "high fever",
+      "severe fever",
+      "hyperpyrexia",
+      "febrile seizure"
+    ],
+    "keywords_vi": [
+      "sốt cao",
+      "sốt trên 39 độ",
+      "co giật do sốt",
+      "cấp cứu sốt cao",
+      "hạ sốt nhanh"
+    ]
+  },
+  "general-symptoms-hot-flashes.json": {
+    "source_url": "https://medlineplus.gov/menopause.html",
+    "content_sha256": "66164707d52734f9fb52d7c0bc7fdd26ab49dbf6c8a77896b150a1c298567c43",
+    "title_en": "Hot flashes",
+    "title_vi": "Bốc hỏa (Cơn nóng bừng)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "hot flashes",
+      "hot flushes",
+      "night sweats",
+      "menopausal symptom"
+    ],
+    "keywords_vi": [
+      "bốc hỏa",
+      "cơn nóng bừng",
+      "tiền mãn kinh",
+      "đổ mồ hôi đêm",
+      "nội tiết nữ"
+    ]
+  },
+  "general-symptoms-itching.json": {
+    "source_url": "https://medlineplus.gov/itching.html",
+    "content_sha256": "0aec1d6c37e2d0166397fe02369561f0b87d5c3d8acc236d4f20283414eddb53",
+    "title_en": "Itching",
+    "title_vi": "Ngứa ngáy (Ngứa toàn thân)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "itching",
+      "pruritus",
+      "itchy skin",
+      "allergic itch"
+    ],
+    "keywords_vi": [
+      "ngứa ngáy",
+      "ngứa da",
+      "dị ứng ngứa",
+      "mẩn ngứa",
+      "da liễu"
+    ]
+  },
+  "general-symptoms-joint-pain.json": {
+    "source_url": "https://medlineplus.gov/jointdisorders.html",
+    "content_sha256": "c3c1d16afc8d4ca266e64db2a51580967d43744c94ab9dbd01f81fe7fbf81e4d",
+    "title_en": "Joint pain",
+    "title_vi": "Đau nhức khớp",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "joint pain",
+      "arthralgia",
+      "joint stiffness",
+      "joint swelling"
+    ],
+    "keywords_vi": [
+      "đau nhức khớp",
+      "viêm khớp",
+      "sưng khớp",
+      "cứng khớp",
+      "cơ xương khớp"
+    ]
+  },
+  "general-symptoms-low-grade-fever.json": {
+    "source_url": "https://medlineplus.gov/fever.html",
+    "content_sha256": "7100e4d23e8f4145ae7bece9b08df1579b7e281b152f791160132a0fb0257672",
+    "title_en": "Low-grade fever",
+    "title_vi": "Sốt nhẹ",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "low-grade fever",
+      "mild fever",
+      "slight fever",
+      "subfebrile"
+    ],
+    "keywords_vi": [
+      "sốt nhẹ",
+      "sốt âm ỉ",
+      "nhiễm trùng mạn",
+      "sốt chiều tối",
+      "theo dõi sốt"
+    ]
+  },
+  "general-symptoms-migraine.json": {
+    "source_url": "https://medlineplus.gov/migraine.html",
+    "content_sha256": "70cb7d26b7cb4e9143d0085e235e96aa957b0203763e86c30375a964422fa380",
+    "title_en": "Migraine",
+    "title_vi": "Đau nửa đầu (Migraine)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "migraine",
+      "migraine aura",
+      "unilateral headache",
+      "photophobia"
+    ],
+    "keywords_vi": [
+      "đau nửa đầu",
+      "migraine",
+      "đau đầu giật nhói",
+      "sợ ánh sáng",
+      "buồn nôn đau đầu"
+    ]
+  },
+  "general-symptoms-muscle-pain.json": {
+    "source_url": "https://medlineplus.gov/muscledisorders.html",
+    "content_sha256": "2191a8d3b85ba60d005e8cfbcad2f5662c73c7643723a2d4e6611be4d2411865",
+    "title_en": "Muscle pain",
+    "title_vi": "Đau cơ (Đau nhức bắp thịt)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "muscle pain",
+      "myalgia",
+      "muscle soreness",
+      "muscle aches"
+    ],
+    "keywords_vi": [
+      "đau cơ",
+      "đau bắp thịt",
+      "mỏi cơ",
+      "viêm cơ",
+      "cơ xương khớp"
+    ]
+  },
+  "general-symptoms-swelling.json": {
+    "source_url": "https://medlineplus.gov/edema.html",
+    "content_sha256": "3ee435a6a07631c77acfbf80fb8c6e9ed1e87801a8b3f998d8fd2bb24e21aaf8",
+    "title_en": "Swelling",
+    "title_vi": "Sưng phù (Phù nề)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "swelling",
+      "edema",
+      "fluid retention",
+      "puffiness"
+    ],
+    "keywords_vi": [
+      "sưng phù",
+      "phù nề",
+      "ứ dịch",
+      "phù chân",
+      "viêm sưng"
+    ]
+  },
+  "general-symptoms-swollen-glands.json": {
+    "source_url": "https://medlineplus.gov/lymphaticdiseases.html",
+    "content_sha256": "026ce051162de081d081c77daec014499d60371d322be7b7a3b3abc140e36849",
+    "title_en": "Swollen glands",
+    "title_vi": "Sưng hạch (Nổi hạch)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "swollen glands",
+      "swollen lymph nodes",
+      "lymphadenopathy",
+      "lymph node swelling"
+    ],
+    "keywords_vi": [
+      "sưng hạch",
+      "nổi hạch",
+      "hạch cổ",
+      "hạch bạch huyết",
+      "nhiễm trùng hạch"
+    ]
+  },
+  "general-symptoms-tremor.json": {
+    "source_url": "https://medlineplus.gov/tremor.html",
+    "content_sha256": "c008fe1bd35bed105e519ed3641d45b9bea286e9e961ffb689f8ae54c4d36602",
+    "title_en": "Tremor",
+    "title_vi": "Run tay chân (Run cơ)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "tremor",
+      "shaking hands",
+      "involuntary shaking",
+      "essential tremor"
+    ],
+    "keywords_vi": [
+      "run tay chân",
+      "run cơ",
+      "run vô căn",
+      "bệnh parkinson",
+      "thần kinh"
+    ]
+  },
+  "general-symptoms-vertigo.json": {
+    "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+    "content_sha256": "ca1303d9e0c08e0287fc684cf4e9f0291016b5a60ee4427cb6d689cebf43f728",
+    "title_en": "Vertigo",
+    "title_vi": "Chóng mặt hoa mắt (Chóng mặt kịch phát)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "vertigo",
+      "dizziness",
+      "vestibular disorder",
+      "spinning sensation"
+    ],
+    "keywords_vi": [
+      "chóng mặt",
+      "chóng mặt hoa mắt",
+      "tiền đình",
+      "chóng mặt kịch phát",
+      "mất thăng bằng"
+    ]
+  },
+  "general-symptoms-weakness.json": {
+    "source_url": "https://medlineplus.gov/fatigue.html",
+    "content_sha256": "63a098731f08cb1491596646a73b476dcfcc92c5f14c0fdbaf055123fb97a484",
+    "title_en": "Weakness",
+    "title_vi": "Yếu sức (Yếu cơ)",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "weakness",
+      "muscle weakness",
+      "asthenia",
+      "lack of strength"
+    ],
+    "keywords_vi": [
+      "yếu sức",
+      "yếu cơ",
+      "suy nhược",
+      "mất sức lực",
+      "liệt cơ"
+    ]
+  },
+  "general-symptoms-weight-gain.json": {
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "content_sha256": "6b51c1ea39925e7acfc94fd47b943f9de576969415ac7f9c6127409620cbf7d4",
+    "title_en": "Weight gain",
+    "title_vi": "Phương pháp tăng cân an toàn",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "weight gain healthy",
+      "healthy weight increase",
+      "underweight diet",
+      "calorie surplus"
+    ],
+    "keywords_vi": [
+      "tăng cân lành mạnh",
+      "cách tăng cân an toàn",
+      "người gầy khó tăng cân",
+      "dinh dưỡng tăng cân",
+      "thực đơn giàu năng lượng"
+    ]
+  },
+  "general-symptoms-weight-loss.json": {
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "content_sha256": "7ce53f99be4762cc1e43ae10aed1fc89b77a5ea4049b3bdc4667c3b68406ee36",
+    "title_en": "Weight loss",
+    "title_vi": "Phương pháp giảm cân khoa học",
+    "category_en": "General Symptoms",
+    "category_vi": "Triệu chứng toàn thân",
+    "keywords_en": [
+      "weight loss healthy",
+      "safe weight loss",
+      "calorie deficit",
+      "fat loss diet",
+      "healthy slimming"
+    ],
+    "keywords_vi": [
+      "giảm cân khoa học",
+      "cách giảm cân an toàn",
+      "thâm hụt calo",
+      "đốt mỡ thừa",
+      "chế độ ăn giảm mỡ"
+    ]
+  },
+  "heart-blood-pressure-chest-pain.json": {
+    "source_url": "https://medlineplus.gov/chestpain.html",
+    "content_sha256": "b533914106ffeb9066a19eb94a75f9acf0cc5d81953cd93aefbf211116745a2e",
+    "title_en": "Chest pain",
+    "title_vi": "Đau ngực kiểu màng phổi",
+    "category_en": "Heart & Blood Pressure",
+    "category_vi": "Tim mạch & Huyết áp",
+    "keywords_en": [
+      "chest pain respiratory",
+      "pleuritic chest pain",
+      "pain on deep breath",
+      "pleurisy"
+    ],
+    "keywords_vi": [
+      "đau ngực hô hấp",
+      "đau khi hít sâu",
+      "viêm màng phổi",
+      "đau thành ngực",
+      "hô hấp"
+    ]
+  },
+  "heart-blood-pressure-heart-failure.json": {
+    "source_url": "https://medlineplus.gov/heartfailure.html",
+    "content_sha256": "7a22ec6fef1273f7958ff02a73d4e3b6fd517dca635ca61080a66c676b220ee8",
+    "title_en": "Heart failure",
+    "title_vi": "Suy tim",
+    "category_en": "Heart & Blood Pressure",
+    "category_vi": "Tim mạch & Huyết áp",
+    "keywords_en": [
+      "heart failure",
+      "congestive heart failure",
+      "shortness of breath",
+      "fluid retention",
+      "cardiomyopathy"
+    ],
+    "keywords_vi": [
+      "suy tim",
+      "khó thở khi nằm",
+      "phù chân",
+      "suy tim sung huyết",
+      "tim mạch"
+    ]
+  },
+  "heart-blood-pressure-high-blood-pressure.json": {
+    "source_url": "https://medlineplus.gov/highbloodpressure.html",
+    "content_sha256": "ac10cc7b2876f0886656622539066888febc5175de15974564543f3041cb8d5b",
+    "title_en": "High blood pressure",
+    "title_vi": "Tăng huyết áp (Huyết áp cao)",
+    "category_en": "Heart & Blood Pressure",
+    "category_vi": "Tim mạch & Huyết áp",
+    "keywords_en": [
+      "high blood pressure",
+      "hypertension",
+      "blood pressure reading",
+      "systolic",
+      "cardiovascular disease"
+    ],
+    "keywords_vi": [
+      "tăng huyết áp",
+      "huyết áp cao",
+      "đo huyết áp",
+      "chỉ số huyết áp",
+      "tim mạch"
+    ]
+  },
+  "heart-blood-pressure-low-blood-pressure.json": {
+    "source_url": "https://medlineplus.gov/lowbloodpressure.html",
+    "content_sha256": "161a5c8d15e8194a7533500eec2900ec4760cc9715b3d731a76430de4e4ebe7e",
+    "title_en": "Low blood pressure",
+    "title_vi": "Hạ huyết áp (Huyết áp thấp)",
+    "category_en": "Heart & Blood Pressure",
+    "category_vi": "Tim mạch & Huyết áp",
+    "keywords_en": [
+      "low blood pressure",
+      "hypotension",
+      "dizziness",
+      "fainting",
+      "orthostatic hypotension"
+    ],
+    "keywords_vi": [
+      "hạ huyết áp",
+      "huyết áp thấp",
+      "tụt huyết áp",
+      "chóng mặt hoa mắt",
+      "huyết áp"
+    ]
+  },
+  "infectious-diseases-aids.json": {
+    "source_url": "https://medlineplus.gov/hiv.html",
+    "content_sha256": "ff8dca3f11d85aac98622bf2ef265ce2a170e72dab77950cbdb0d13bb30d0d27",
+    "title_en": "AIDS",
+    "title_vi": "Hội chứng suy giảm miễn dịch mắc phải (AIDS)",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "AIDS",
+      "acquired immunodeficiency",
+      "advanced HIV",
+      "opportunistic infections"
+    ],
+    "keywords_vi": [
+      "AIDS",
+      "suy giảm miễn dịch",
+      "giai đoạn cuối HIV",
+      "nhiễm trùng cơ hội",
+      "bệnh truyền nhiễm"
+    ]
+  },
+  "infectious-diseases-chickenpox.json": {
+    "source_url": "https://medlineplus.gov/chickenpox.html",
+    "content_sha256": "cffe0e979c8e230200b33eaa1a1ede58ddb7de2a95eebaa958e53373b761ac16",
+    "title_en": "Chickenpox",
+    "title_vi": "Bệnh thủy đậu (Trái rạ)",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "chickenpox",
+      "varicella",
+      "varicella zoster virus",
+      "blister rash"
+    ],
+    "keywords_vi": [
+      "thủy đậu",
+      "trái rạ",
+      "mụn nước thủy đậu",
+      "nhiễm virus varicella",
+      "ngứa phát ban"
+    ]
+  },
+  "infectious-diseases-dengue.json": {
+    "source_url": "https://medlineplus.gov/dengue.html",
+    "content_sha256": "ab3856f7748ad3e3421385202677ef5647adb89895b40704e06c3df6ae884741",
+    "title_en": "Dengue",
+    "title_vi": "Sốt xuất huyết Dengue",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "dengue",
+      "dengue fever",
+      "aedes mosquito",
+      "thrombocytopenia",
+      "hemorrhagic fever"
+    ],
+    "keywords_vi": [
+      "sốt xuất huyết",
+      "sốt dengue",
+      "muỗi vằn truyền bệnh",
+      "giảm tiểu cầu",
+      "sốt xuất huyết cấp"
+    ]
+  },
+  "infectious-diseases-gonorrhea.json": {
+    "source_url": "https://medlineplus.gov/gonorrhea.html",
+    "content_sha256": "7eb0d6ec5224d14ad7f18056dff650e3d5aa72b9c5450943e196477e3d9166d7",
+    "title_en": "Gonorrhea",
+    "title_vi": "Bệnh lậu",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "gonorrhea",
+      "neisseria gonorrhoeae",
+      "STI gonorrhea",
+      "urethral discharge"
+    ],
+    "keywords_vi": [
+      "bệnh lậu",
+      "vi khuẩn lậu cầu",
+      "tiểu buốt ra mủ",
+      "bệnh lây qua đường tình dục",
+      "điều trị lậu"
+    ]
+  },
+  "infectious-diseases-hepatitis.json": {
+    "source_url": "https://medlineplus.gov/hepatitis.html",
+    "content_sha256": "ef3a97b1e97314dd0b08e7e53aa59abb7ad8ee77d9be7d724636d88cb9925c2f",
+    "title_en": "Hepatitis",
+    "title_vi": "Viêm gan (Viêm gan siêu vi)",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "hepatitis",
+      "viral hepatitis",
+      "liver inflammation",
+      "jaundice",
+      "elevated liver enzymes"
+    ],
+    "keywords_vi": [
+      "viêm gan",
+      "viêm gan siêu vi",
+      "viêm gan B",
+      "viêm gan C",
+      "men gan tăng vàng da"
+    ]
+  },
+  "infectious-diseases-hiv.json": {
+    "source_url": "https://medlineplus.gov/hiv.html",
+    "content_sha256": "c5a004cfbbbfc16283d0aa6cbbe9785749c7438bed3ee2d199608fec312f74aa",
+    "title_en": "HIV",
+    "title_vi": "Nhiễm virus HIV",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "HIV",
+      "human immunodeficiency virus",
+      "HIV testing",
+      "antiretroviral therapy",
+      "ARV"
+    ],
+    "keywords_vi": [
+      "nhiễm HIV",
+      "virus suy giảm miễn dịch",
+      "xét nghiệm HIV",
+      "thuốc ARV",
+      "phòng lây nhiễm HIV"
+    ]
+  },
+  "infectious-diseases-hpv.json": {
+    "source_url": "https://medlineplus.gov/hpv.html",
+    "content_sha256": "be013a99df52d5df444c9fa672907aa3d3bc9675988019c7ace0306c03f219cf",
+    "title_en": "HPV",
+    "title_vi": "Virus u nhú ở người (HPV)",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "HPV",
+      "human papillomavirus",
+      "genital warts",
+      "cervical cancer risk",
+      "HPV vaccine"
+    ],
+    "keywords_vi": [
+      "HPV",
+      "virus u nhú người",
+      "sùi mào gà",
+      "ung thư cổ tử cung",
+      "tiêm vắc-xin HPV"
+    ]
+  },
+  "infectious-diseases-lyme-disease.json": {
+    "source_url": "https://medlineplus.gov/lymedisease.html",
+    "content_sha256": "6ed7a00ad4f1e0dc4b3d34be266bc03509ad80729485c6ed59c242f4d27ffc21",
+    "title_en": "Lyme disease",
+    "title_vi": "Bệnh Lyme",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "Lyme disease",
+      "borrelia infection",
+      "tick bite",
+      "bullseye rash",
+      "erythema migrans"
+    ],
+    "keywords_vi": [
+      "bệnh lyme",
+      "bọ ve đốt",
+      "phát ban mắt bò",
+      "nhiễm vi khuẩn borrelia",
+      "đau nhức khớp lyme"
+    ]
+  },
+  "infectious-diseases-malaria.json": {
+    "source_url": "https://medlineplus.gov/malaria.html",
+    "content_sha256": "ad9072c368773c1e067c5569d61c677c8e706705832183451505649d5ddfacf9",
+    "title_en": "Malaria",
+    "title_vi": "Bệnh sốt rét",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "malaria",
+      "plasmodium parasite",
+      "anopheles mosquito",
+      "malarial paroxysm",
+      "chills fever"
+    ],
+    "keywords_vi": [
+      "sốt rét",
+      "ký sinh trùng sốt rét",
+      "muỗi anopheles",
+      "cơn sốt rét run",
+      "phòng chống sốt rét"
+    ]
+  },
+  "infectious-diseases-measles.json": {
+    "source_url": "https://medlineplus.gov/measles.html",
+    "content_sha256": "ee97152bb0ac0606cc89537cee9048aa3cd47717901edcd15e9b14b707b22b0b",
+    "title_en": "Measles",
+    "title_vi": "Bệnh sởi",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "measles",
+      "rubeola",
+      "measles rash",
+      "koplik spots",
+      "measles vaccine"
+    ],
+    "keywords_vi": [
+      "bệnh sởi",
+      "virus sởi",
+      "phát ban sởi",
+      "sốt phát ban ở trẻ",
+      "vắc-xin sởi"
+    ]
+  },
+  "infectious-diseases-mononucleosis.json": {
+    "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
+    "content_sha256": "d4be16f44b040289c24a83383850b6cd3158d62884572928a6c59acb610cc882",
+    "title_en": "Mononucleosis",
+    "title_vi": "Bệnh bạch cầu đơn nhân nhiễm trùng",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "mononucleosis",
+      "mono",
+      "Epstein Barr virus",
+      "glandular fever",
+      "swollen tonsils"
+    ],
+    "keywords_vi": [
+      "bạch cầu đơn nhân nhiễm trùng",
+      "virus EBV",
+      "bệnh sốt tuyến",
+      "sưng hạch viêm họng",
+      "mệt mỏi kéo dài"
+    ]
+  },
+  "infectious-diseases-mumps.json": {
+    "source_url": "https://medlineplus.gov/mumps.html",
+    "content_sha256": "fd86b3724a265c40803bcfa7b02e343b780e9549050adf911ace0cce8d7b6432",
+    "title_en": "Mumps",
+    "title_vi": "Bệnh quai bị",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "mumps",
+      "parotitis",
+      "swollen salivary glands",
+      "orchitis complication",
+      "mumps vaccine"
+    ],
+    "keywords_vi": [
+      "bệnh quai bị",
+      "viêm tuyến nước bọt mang tai",
+      "sưng mang tai",
+      "biến chứng viêm tinh hoàn",
+      "vắc-xin quai bị"
+    ]
+  },
+  "infectious-diseases-rubella.json": {
+    "source_url": "https://medlineplus.gov/rubella.html",
+    "content_sha256": "0c3f69a7092ea2d86ca9e9afe3eb6743b22df118a8fbd3cd1bc833e5d5e5c729",
+    "title_en": "Rubella",
+    "title_vi": "Bệnh Rubella (Sởi Đức)",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "rubella",
+      "German measles",
+      "rubella rash",
+      "congenital rubella",
+      "MMR vaccine"
+    ],
+    "keywords_vi": [
+      "rubella",
+      "sởi đức",
+      "phát ban rubella",
+      "hội chứng rubella bẩm sinh",
+      "vắc-xin MMR"
+    ]
+  },
+  "infectious-diseases-strep-throat.json": {
+    "source_url": "https://medlineplus.gov/streptococcalinfections.html",
+    "content_sha256": "0938db43014853fa74825adea849a0d5148bf84bbf409ac3f1797701810b229f",
+    "title_en": "Strep throat",
+    "title_vi": "Viêm họng do liên cầu khuẩn",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "strep throat",
+      "streptococcal pharyngitis",
+      "group A strep",
+      "bacterial sore throat"
+    ],
+    "keywords_vi": [
+      "viêm họng liên cầu",
+      "liên cầu khuẩn nhóm A",
+      "sốt đau rát họng",
+      "kháng sinh viêm họng",
+      "tai mũi họng"
+    ]
+  },
+  "infectious-diseases-syphilis.json": {
+    "source_url": "https://medlineplus.gov/syphilis.html",
+    "content_sha256": "8406691e82cc05668e4a679892497509d6f261ad0d5976ecf747796203b4a337",
+    "title_en": "Syphilis",
+    "title_vi": "Bệnh giang mai",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "syphilis",
+      "treponema pallidum",
+      "chancre",
+      "STI syphilis",
+      "penicillin syphilis"
+    ],
+    "keywords_vi": [
+      "bệnh giang mai",
+      "xoắn khuẩn giang mai",
+      "săng giang mai",
+      "xét nghiệm giang mai",
+      "bệnh lây qua đường tình dục"
+    ]
+  },
+  "infectious-diseases-tuberculosis.json": {
+    "source_url": "https://medlineplus.gov/tuberculosis.html",
+    "content_sha256": "a2a40f04f8db884f9aa5b7375d3cce9b442a2d9821c14d31961c74d2ba5102b6",
+    "title_en": "Tuberculosis",
+    "title_vi": "Bệnh lao (Lao phổi)",
+    "category_en": "Infectious Diseases",
+    "category_vi": "Bệnh truyền nhiễm",
+    "keywords_en": [
+      "tuberculosis",
+      "TB",
+      "pulmonary tuberculosis",
+      "mycobacterium",
+      "coughing blood TB"
+    ],
+    "keywords_vi": [
+      "bệnh lao",
+      "lao phổi",
+      "vi khuẩn lao",
+      "ho ra máu gầy sút",
+      "điều trị thuốc lao"
+    ]
+  },
+  "lifestyle-alcohol.json": {
+    "source_url": "https://medlineplus.gov/alcohol.html",
+    "content_sha256": "39dfdac4aaafad9ce1e28fc6b87ad2bffd26beee2009ac2124a4dd093bb56e41",
+    "title_en": "Alcohol",
+    "title_vi": "Tác hại của rượu bia đối với sức khỏe",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "alcohol health risks",
+      "alcohol misuse",
+      "liver damage alcohol",
+      "drinking limits",
+      "moderate drinking"
+    ],
+    "keywords_vi": [
+      "tác hại rượu bia",
+      "uống rượu có hại",
+      "ngộ độc rượu",
+      "bệnh gan do rượu",
+      "lối sống lành mạnh"
+    ]
+  },
+  "lifestyle-energy-drinks.json": {
+    "source_url": "https://medlineplus.gov/caffeine.html",
+    "content_sha256": "35e64428cb2cab528d47d0589de8d98ee4ebaa3f69bce6ac266c81d48ada3b0f",
+    "title_en": "Energy drinks",
+    "title_vi": "Nước tăng lực và sức khỏe tim mạch",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "energy drinks",
+      "high caffeine drinks",
+      "heart palpitations caffeine",
+      "energy beverage risk"
+    ],
+    "keywords_vi": [
+      "nước tăng lực",
+      "tác hại nước tăng lực",
+      "thừa caffeine",
+      "tim đập nhanh mất ngủ",
+      "nước ngọt có gas"
+    ]
+  },
+  "lifestyle-healthy-eating.json": {
+    "source_url": "https://medlineplus.gov/nutrition.html",
+    "content_sha256": "aba5761583978637d486eec3932422f7f8bbee63989785d2d12666d3869bd175",
+    "title_en": "Healthy eating",
+    "title_vi": "Chế độ ăn uống cân bằng",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "healthy eating",
+      "balanced diet",
+      "nutritious food",
+      "daily nutrition",
+      "dietary guidelines"
+    ],
+    "keywords_vi": [
+      "ăn uống cân bằng",
+      "dinh dưỡng khoa học",
+      "bữa ăn lành mạnh",
+      "đủ nhóm chất",
+      "sức khỏe lối sống"
+    ]
+  },
+  "lifestyle-hydration.json": {
+    "source_url": "https://medlineplus.gov/dehydration.html",
+    "content_sha256": "48faf9a8a451b9e8fee6d3d4aafb1907763bb2fd9f4847b7e306f200e6962972",
+    "title_en": "Hydration",
+    "title_vi": "Bổ sung đủ nước cho cơ thể",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "hydration",
+      "drinking water",
+      "daily fluid intake",
+      "adequate hydration",
+      "water balance"
+    ],
+    "keywords_vi": [
+      "uống đủ nước",
+      "nhu cầu nước hàng ngày",
+      "ngừa mất nước",
+      "lợi ích uống nước",
+      "lối sống khỏe"
+    ]
+  },
+  "lifestyle-minerals.json": {
+    "source_url": "https://medlineplus.gov/minerals.html",
+    "content_sha256": "8f15178b118b25987b982c0e471a984206b7cf9032da7611e9916c91bd3603ff",
+    "title_en": "Minerals",
+    "title_vi": "Khoáng chất vi lượng thiết yếu",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "minerals",
+      "essential minerals",
+      "dietary minerals",
+      "trace elements",
+      "mineral deficiency"
+    ],
+    "keywords_vi": [
+      "khoáng chất",
+      "khoáng chất vi lượng",
+      "bổ sung khoáng chất",
+      "sắt kẽm magie",
+      "dinh dưỡng vi chất"
+    ]
+  },
+  "lifestyle-obesity.json": {
+    "source_url": "https://medlineplus.gov/obesity.html",
+    "content_sha256": "8817e2665160f3180544c51d343fb2716a1b39ee3d0694d9d32e0b3ec963646a",
+    "title_en": "Obesity",
+    "title_vi": "Bệnh béo phì và kiểm soát cân nặng",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "obesity",
+      "overweight",
+      "high BMI",
+      "weight management",
+      "obesity health risks"
+    ],
+    "keywords_vi": [
+      "béo phì",
+      "thừa cân béo phì",
+      "chỉ số BMI cao",
+      "giảm cân ngừa bệnh",
+      "bệnh chuyển hóa"
+    ]
+  },
+  "lifestyle-protein.json": {
+    "source_url": "https://medlineplus.gov/dietaryproteins.html",
+    "content_sha256": "0fd6fb2b50ad86c5f023372e969a37a0fcb43e9805b49781a6b4db34e9e73f43",
+    "title_en": "Protein",
+    "title_vi": "Nhu cầu protein và dinh dưỡng",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "protein",
+      "dietary protein",
+      "protein intake",
+      "muscle synthesis",
+      "daily amino acids"
+    ],
+    "keywords_vi": [
+      "protein",
+      "nhu cầu chất đạm",
+      "đạm động vật thực vật",
+      "phát triển cơ bắp",
+      "dinh dưỡng hàng ngày"
+    ]
+  },
+  "lifestyle-sleep-hygiene.json": {
+    "source_url": "https://medlineplus.gov/healthysleep.html",
+    "content_sha256": "f9b21e797a504dbb15ef107bab813427e5563248320c43dadcd17481b7744293",
+    "title_en": "Sleep hygiene",
+    "title_vi": "Vệ sinh giấc ngủ và thói quen ngủ tốt",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "sleep hygiene",
+      "healthy sleep habits",
+      "better sleep",
+      "sleep schedule",
+      "restful sleep"
+    ],
+    "keywords_vi": [
+      "vệ sinh giấc ngủ",
+      "thói quen ngủ tốt",
+      "ngủ đủ giấc",
+      "cải thiện giấc ngủ",
+      "chữa khó ngủ"
+    ]
+  },
+  "lifestyle-smoking.json": {
+    "source_url": "https://medlineplus.gov/smoking.html",
+    "content_sha256": "52d697beb2d0d7a3836fd3407c8c9e9c9a67746771bd24b1588ee33e83962d8c",
+    "title_en": "Smoking",
+    "title_vi": "Tác hại thuốc lá và phương pháp cai nghiện",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "smoking hazards",
+      "tobacco risks",
+      "smoking cessation",
+      "quit smoking",
+      "lung cancer prevention"
+    ],
+    "keywords_vi": [
+      "tác hại thuốc lá",
+      "hút thuốc lá có hại",
+      "cai thuốc lá",
+      "ung thư phổi",
+      "chất độc nicotine"
+    ]
+  },
+  "lifestyle-vaping.json": {
+    "source_url": "https://medlineplus.gov/ecigarettes.html",
+    "content_sha256": "e70953b2cc8514fcff76256b4de1d5402f8f0152024858b93b7f689eec20e476",
+    "title_en": "Vaping",
+    "title_vi": "Tác hại của thuốc lá điện tử (Vaping)",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "vaping",
+      "e-cigarettes",
+      "vape health risks",
+      "nicotine addiction vaping",
+      "lung injury vaping"
+    ],
+    "keywords_vi": [
+      "thuốc lá điện tử",
+      "vaping",
+      "tác hại khói vape",
+      "nghiện nicotine vape",
+      "tổn thương phổi do vape"
+    ]
+  },
+  "lifestyle-vitamins.json": {
+    "source_url": "https://medlineplus.gov/vitamins.html",
+    "content_sha256": "4f4bb60ec9844688e637a73db79485e14add4ba8f7f6152202d4b53b72bcb631",
+    "title_en": "Vitamins",
+    "title_vi": "Các loại vitamin và vai trò sức khỏe",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "vitamins",
+      "essential vitamins",
+      "multivitamin",
+      "vitamin benefits",
+      "vitamin deficiency"
+    ],
+    "keywords_vi": [
+      "vitamin",
+      "các loại vitamin",
+      "bổ sung vitamin",
+      "vai trò vitamin",
+      "thiếu hụt vitamin"
+    ]
+  },
+  "lifestyle-weight-gain.json": {
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "content_sha256": "5afd895a988d088beb4cbb235e0c2e9e8c65006da90cb8d65720de213761e7fc",
+    "title_en": "Weight gain",
+    "title_vi": "Phương pháp tăng cân an toàn",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "weight gain healthy",
+      "healthy weight increase",
+      "underweight diet",
+      "calorie surplus"
+    ],
+    "keywords_vi": [
+      "tăng cân lành mạnh",
+      "cách tăng cân an toàn",
+      "người gầy khó tăng cân",
+      "dinh dưỡng tăng cân",
+      "thực đơn giàu năng lượng"
+    ]
+  },
+  "lifestyle-weight-loss.json": {
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "content_sha256": "2609c4f6c2fc8222e0dfb000716bb23d061beefc14f7f7aa9e335848cbe8e8e6",
+    "title_en": "Weight loss",
+    "title_vi": "Phương pháp giảm cân khoa học",
+    "category_en": "Lifestyle",
+    "category_vi": "Lối sống & Sức khỏe",
+    "keywords_en": [
+      "weight loss healthy",
+      "safe weight loss",
+      "calorie deficit",
+      "fat loss diet",
+      "healthy slimming"
+    ],
+    "keywords_vi": [
+      "giảm cân khoa học",
+      "cách giảm cân an toàn",
+      "thâm hụt calo",
+      "đốt mỡ thừa",
+      "chế độ ăn giảm mỡ"
+    ]
+  },
+  "medicines-antibiotics.json": {
+    "source_url": "https://medlineplus.gov/antibiotics.html",
+    "content_sha256": "2b85bb6bf97611fe8d730c02fcc03a13aac6a9f84cdb8b7b8476fdd1d022d66a",
+    "title_en": "Antibiotics",
+    "title_vi": "Kháng sinh và lưu ý sử dụng",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "antibiotics",
+      "antibiotic resistance",
+      "bacterial infection",
+      "prescription antibiotics",
+      "medication compliance"
+    ],
+    "keywords_vi": [
+      "kháng sinh",
+      "dùng thuốc kháng sinh",
+      "kháng kháng sinh",
+      "nhiễm khuẩn",
+      "đủ liều"
+    ]
+  },
+  "medicines-drug-interactions.json": {
+    "source_url": "https://medlineplus.gov/drugreactions.html",
+    "content_sha256": "c33b1d4ad5798385a05f5a8956006d92cda23b9563f7264dabe9914470aedcd0",
+    "title_en": "Drug interactions",
+    "title_vi": "Tương tác thuốc",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "drug interactions",
+      "medication interactions",
+      "drug food interaction",
+      "adverse drug reaction",
+      "polypharmacy"
+    ],
+    "keywords_vi": [
+      "tương tác thuốc",
+      "uống chung thuốc",
+      "tương tác thức ăn thuốc",
+      "an toàn dùng thuốc",
+      "dược lâm sàng"
+    ]
+  },
+  "medicines-ibuprofen.json": {
+    "source_url": "https://medlineplus.gov/painrelievers.html",
+    "content_sha256": "77bfce002da10c6b728a7dd8406caebad0d668deaa0835d0bc7bd565dc3dad1f",
+    "title_en": "Ibuprofen",
+    "title_vi": "Thuốc Ibuprofen",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "ibuprofen",
+      "NSAID",
+      "anti-inflammatory",
+      "pain relief",
+      "fever reducer"
+    ],
+    "keywords_vi": [
+      "ibuprofen",
+      "thuốc kháng viêm NSAID",
+      "giảm đau hạ sốt",
+      "loét dạ dày",
+      "dược phẩm"
+    ]
+  },
+  "medicines-medicine-safety.json": {
+    "source_url": "https://medlineplus.gov/medicines.html",
+    "content_sha256": "17ffff406aa38668f0b887714796b8af595a6109b59dad12079251b5cc95c6be",
+    "title_en": "Medicine safety",
+    "title_vi": "An toàn khi dùng thuốc",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "medicine safety",
+      "safe medication use",
+      "drug storage",
+      "expiration date",
+      "dosage guidelines"
+    ],
+    "keywords_vi": [
+      "an toàn khi dùng thuốc",
+      "bảo quản thuốc",
+      "hạn sử dụng thuốc",
+      "đúng chỉ định",
+      "dược phẩm"
+    ]
+  },
+  "medicines-missed-dose.json": {
+    "source_url": "https://medlineplus.gov/medicines.html",
+    "content_sha256": "d6293b22e88a6297d57bb4ba87adbaf42983f34f02c6382bf1e81d12b3d36f26",
+    "title_en": "Missed dose",
+    "title_vi": "Xử trí khi quên uống thuốc",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "missed dose",
+      "forgot medication",
+      "make-up dose",
+      "dosage schedule",
+      "prescription adherence"
+    ],
+    "keywords_vi": [
+      "quên uống thuốc",
+      "bỏ lỡ liều thuốc",
+      "uống bù liều",
+      "hướng dẫn liều",
+      "dược phẩm"
+    ]
+  },
+  "medicines-painkillers.json": {
+    "source_url": "https://medlineplus.gov/painrelievers.html",
+    "content_sha256": "20e279042d790f174655741aa1388c57974b679d939125a13c285897c29295a6",
+    "title_en": "Painkillers",
+    "title_vi": "Thuốc giảm đau",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "painkillers",
+      "analgesics",
+      "pain relievers",
+      "OTC pain medication",
+      "chronic pain relief"
+    ],
+    "keywords_vi": [
+      "thuốc giảm đau",
+      "thuốc giảm đau không kê đơn",
+      "giảm đau nhức",
+      "tác dụng phụ",
+      "dược lâm sàng"
+    ]
+  },
+  "medicines-paracetamol.json": {
+    "source_url": "https://medlineplus.gov/painrelievers.html",
+    "content_sha256": "fd7f08f72320ba300a31fc2b99f83ea38751d91afde542ac62a38067950dfa1b",
+    "title_en": "Paracetamol",
+    "title_vi": "Thuốc Paracetamol (Acetaminophen)",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "paracetamol",
+      "acetaminophen",
+      "fever reducer",
+      "pain relief",
+      "liver toxicity risk"
+    ],
+    "keywords_vi": [
+      "paracetamol",
+      "acetaminophen",
+      "hạ sốt giảm đau",
+      "ngộ độc gan do paracetamol",
+      "liều paracetamol"
+    ]
+  },
+  "medicines-side-effects.json": {
+    "source_url": "https://medlineplus.gov/drugreactions.html",
+    "content_sha256": "80c6782b64ef4124ec9a9b807cc1c285f9a25aaf2215c0381d831f4f007b40ef",
+    "title_en": "Side effects",
+    "title_vi": "Tác dụng phụ của thuốc",
+    "category_en": "Medicines",
+    "category_vi": "Thuốc & Dược phẩm",
+    "keywords_en": [
+      "side effects",
+      "adverse effects",
+      "drug reactions",
+      "allergic reaction to medication",
+      "ADR"
+    ],
+    "keywords_vi": [
+      "tác dụng phụ của thuốc",
+      "phản ứng có hại ADR",
+      "dị ứng thuốc",
+      "buồn nôn phát ban",
+      "dược lâm sàng"
+    ]
+  },
+  "mental-health-adhd.json": {
+    "source_url": "https://medlineplus.gov/attentiondeficithyperactivitydisorder.html",
+    "content_sha256": "1a1417e52f8f0920b753eef2c2a4e0d3a31b9d756bb0b75f9d2ef37bf10411e6",
+    "title_en": "ADHD",
+    "title_vi": "Rối loạn tăng động giảm chú ý (ADHD)",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "ADHD",
+      "attention deficit hyperactivity disorder",
+      "inattention",
+      "hyperactivity",
+      "impulsivity"
+    ],
+    "keywords_vi": [
+      "ADHD",
+      "tăng động giảm chú ý",
+      "mất tập trung",
+      "hành vi hiếu động",
+      "tâm thần học"
+    ]
+  },
+  "mental-health-anxiety.json": {
+    "source_url": "https://medlineplus.gov/anxiety.html",
+    "content_sha256": "5728587b26a023b6d30a71f1a290e81a1e2a653b3036491a033f78d1b75da108",
+    "title_en": "Anxiety",
+    "title_vi": "Rối loạn lo âu",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "anxiety",
+      "generalized anxiety disorder",
+      "panic attack",
+      "excessive worrying",
+      "nervousness"
+    ],
+    "keywords_vi": [
+      "rối loạn lo âu",
+      "lo âu lan tỏa",
+      "cơn hoảng loạn",
+      "hồi hộp lo sợ",
+      "sức khỏe tâm thần"
+    ]
+  },
+  "mental-health-autism.json": {
+    "source_url": "https://medlineplus.gov/autismspectrumdisorder.html",
+    "content_sha256": "b3032a19b5e939d07593dd2749907c1ee324908a732b9c491e6d1fa118f1ee38",
+    "title_en": "Autism",
+    "title_vi": "Rối loạn phổ tự kỷ (ASD)",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "autism",
+      "autism spectrum disorder",
+      "ASD",
+      "social communication",
+      "repetitive behaviors"
+    ],
+    "keywords_vi": [
+      "tự kỷ",
+      "rối loạn phổ tự kỷ",
+      "giao tiếp xã hội",
+      "hành vi lặp lại",
+      "tâm bệnh nhi"
+    ]
+  },
+  "mental-health-depression.json": {
+    "source_url": "https://medlineplus.gov/depression.html",
+    "content_sha256": "c748dd0eec146d587b2447b14e0f9ca2813aa9b6aa6b3fd8c9fb8832c5c87f6a",
+    "title_en": "Depression",
+    "title_vi": "Bệnh trầm cảm",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "depression",
+      "major depressive disorder",
+      "low mood",
+      "loss of interest",
+      "mental wellness"
+    ],
+    "keywords_vi": [
+      "trầm cảm",
+      "rối loạn trầm cảm",
+      "buồn chán mất hứng thú",
+      "mệt mỏi u uất",
+      "sức khỏe tâm thần"
+    ]
+  },
+  "mental-health-grief.json": {
+    "source_url": "https://medlineplus.gov/bereavement.html",
+    "content_sha256": "f49ae6ada48d2aa91b8b4b92d4de6449ac1f0d2ff03ede75ea1ca2dd431258cf",
+    "title_en": "Grief",
+    "title_vi": "Nỗi đau mất mát và đau buồn",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "grief",
+      "bereavement",
+      "mourning",
+      "loss of loved one",
+      "emotional healing"
+    ],
+    "keywords_vi": [
+      "nỗi đau mất mát",
+      "đau buồn",
+      "mất người thân",
+      "vượt qua mất mát",
+      "tâm lý trị liệu"
+    ]
+  },
+  "mental-health-insomnia.json": {
+    "source_url": "https://medlineplus.gov/insomnia.html",
+    "content_sha256": "052f488d5b799eb6235a715fdd3abfaca1564971012c0259967ae38576222aab",
+    "title_en": "Insomnia",
+    "title_vi": "Mất ngủ (Rối loạn giấc ngủ)",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "insomnia",
+      "sleep disorder",
+      "trouble sleeping",
+      "sleeplessness",
+      "sleep quality"
+    ],
+    "keywords_vi": [
+      "mất ngủ",
+      "khó ngủ",
+      "thức giấc nửa đêm",
+      "thiếu ngủ",
+      "giấc ngủ"
+    ]
+  },
+  "mental-health-ocd.json": {
+    "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
+    "content_sha256": "939157d006d17b4e7b184de7e0506ac965b59595c6d4bc536e44586dacaaa92c",
+    "title_en": "OCD",
+    "title_vi": "Rối loạn ám ảnh cưỡng chế (OCD)",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "OCD",
+      "obsessive compulsive disorder",
+      "obsessions",
+      "compulsions",
+      "intrusive thoughts"
+    ],
+    "keywords_vi": [
+      "OCD",
+      "ám ảnh cưỡng chế",
+      "suy nghĩ ám ảnh",
+      "hành vi cưỡng chế",
+      "sức khỏe tâm thần"
+    ]
+  },
+  "mental-health-ptsd.json": {
+    "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+    "content_sha256": "f0b0745bfbad85374285cc0a2e81d22066f86ce7e4b8c948e51beaf0e8995b85",
+    "title_en": "PTSD",
+    "title_vi": "Rối loạn căng thẳng sau sang chấn (PTSD)",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "PTSD",
+      "post traumatic stress disorder",
+      "trauma flashbacks",
+      "nightmares",
+      "psychological trauma"
+    ],
+    "keywords_vi": [
+      "PTSD",
+      "căng thẳng sau sang chấn",
+      "hồi tưởng sang chấn",
+      "ác mộng chấn thương",
+      "sức khỏe tâm thần"
+    ]
+  },
+  "mental-health-stress.json": {
+    "source_url": "https://medlineplus.gov/stress.html",
+    "content_sha256": "861a66c74d234f5b74965484c49341671d1364727dc1d5490e67afdc9e41ecfc",
+    "title_en": "Stress",
+    "title_vi": "Căng thẳng (Stress)",
+    "category_en": "Mental Health",
+    "category_vi": "Sức khỏe tâm thần",
+    "keywords_en": [
+      "stress",
+      "chronic stress",
+      "stress management",
+      "mental strain",
+      "burnout"
+    ],
+    "keywords_vi": [
+      "căng thẳng",
+      "stress",
+      "giảm stress",
+      "áp lực tâm lý",
+      "kiệt sức mệt mỏi"
+    ]
+  },
+  "muscles-bones-back-ankle-pain.json": {
+    "source_url": "https://medlineplus.gov/ankleinjuriesanddisorders.html",
+    "content_sha256": "d6cfdaf35dfe5f8a708f3bd0cba0a4a72676d651778c67afe68f5b01d498515f",
+    "title_en": "Ankle pain",
+    "title_vi": "Đau cổ chân (Đau mắt cá chân)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "ankle pain",
+      "sprained ankle",
+      "ankle joint",
+      "ankle swelling"
+    ],
+    "keywords_vi": [
+      "đau cổ chân",
+      "đau mắt cá chân",
+      "trật khớp cổ chân",
+      "bong gân",
+      "chấn thương cổ chân"
+    ]
+  },
+  "muscles-bones-back-arthritis.json": {
+    "source_url": "https://medlineplus.gov/arthritis.html",
+    "content_sha256": "2b79d7ff7e22a0010444afad954ce3def816894db3aacaa3e534551a89744d6c",
+    "title_en": "Arthritis",
+    "title_vi": "Viêm khớp",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "arthritis",
+      "joint inflammation",
+      "joint stiffness",
+      "rheumatic disease"
+    ],
+    "keywords_vi": [
+      "viêm khớp",
+      "thoái hóa khớp",
+      "sưng đau khớp",
+      "cứng khớp buổi sáng",
+      "cơ xương khớp"
+    ]
+  },
+  "muscles-bones-back-carpal-tunnel-syndrome.json": {
+    "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+    "content_sha256": "fd42ed6b4090211f796908d860d98876c1cc87dd52c049b558952507fb5386e1",
+    "title_en": "Carpal tunnel syndrome",
+    "title_vi": "Hội chứng ống cổ tay",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "carpal tunnel syndrome",
+      "median nerve compression",
+      "hand numbness",
+      "wrist pain"
+    ],
+    "keywords_vi": [
+      "hội chứng ống cổ tay",
+      "tê bàn tay",
+      "chèn ép thần kinh giữa",
+      "đau cổ tay",
+      "tê ngón tay"
+    ]
+  },
+  "muscles-bones-back-frozen-shoulder.json": {
+    "source_url": "https://medlineplus.gov/shoulderinjuriesanddisorders.html",
+    "content_sha256": "f8f5e54b9593e6fb4a46fb1edf702c9a801990c76360c77ff9f1645dbe5bc3f3",
+    "title_en": "Frozen shoulder",
+    "title_vi": "Đông cứng khớp vai (Viêm quanh khớp vai)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "frozen shoulder",
+      "adhesive capsulitis",
+      "shoulder stiffness",
+      "limited shoulder motion"
+    ],
+    "keywords_vi": [
+      "đông cứng khớp vai",
+      "viêm quanh khớp vai",
+      "kẹt khớp vai",
+      "khó giơ tay",
+      "cơ xương khớp"
+    ]
+  },
+  "muscles-bones-back-heavy-lifting-injuries.json": {
+    "source_url": "https://medlineplus.gov/backinjuries.html",
+    "content_sha256": "4fdad8c91e2b13e1a0a2a1de8a2f8f0e91d801b0168843c0b1f161b9ccaf0fdc",
+    "title_en": "Heavy lifting injuries",
+    "title_vi": "Chấn thương do mang vác nặng",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "heavy lifting injuries",
+      "lifting strain",
+      "back injury",
+      "spine injury",
+      "ergonomics"
+    ],
+    "keywords_vi": [
+      "chấn thương mang vác",
+      "căng cơ do vác nặng",
+      "chấn thương lưng",
+      "thoát vị đĩa đệm",
+      "bảo vệ cột sống"
+    ]
+  },
+  "muscles-bones-back-heel-pain.json": {
+    "source_url": "https://medlineplus.gov/heelinjuriesanddisorders.html",
+    "content_sha256": "46cdb8c70c96b0c0613c4832128a069977096ecf8422b6b63ec673ac3c12f5ed",
+    "title_en": "Heel pain",
+    "title_vi": "Đau gót chân (Viêm cân gan chân)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "heel pain",
+      "plantar fasciitis",
+      "heel spur",
+      "morning heel pain",
+      "foot arch"
+    ],
+    "keywords_vi": [
+      "đau gót chân",
+      "viêm cân gan chân",
+      "gai gót chân",
+      "đau bước chân sáng",
+      "bàn chân"
+    ]
+  },
+  "muscles-bones-back-lower-back-pain.json": {
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "content_sha256": "c8f6b9de97c85d539b3e11b7e5837d85f4b6f3f363f03495d2a227659eb75a85",
+    "title_en": "Lower back pain",
+    "title_vi": "Đau thắt lưng (Đau lưng dưới)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "lower back pain",
+      "lumbago",
+      "lumbar strain",
+      "herniated disc",
+      "sciatica back"
+    ],
+    "keywords_vi": [
+      "đau thắt lưng",
+      "đau lưng dưới",
+      "thoát vị đĩa đệm",
+      "căng cơ thắt lưng",
+      "cột sống lưng"
+    ]
+  },
+  "muscles-bones-back-muscle-cramps.json": {
+    "source_url": "https://medlineplus.gov/musclecramps.html",
+    "content_sha256": "0be3d7547b1af50a2f78e5bb6324d3fba846689f657ea4e7edb61f3fdb141d11",
+    "title_en": "Muscle cramps",
+    "title_vi": "Chuột rút cơ bắp (Vọp bẻ)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "muscle cramps",
+      "charley horse",
+      "muscle spasms",
+      "nocturnal leg cramps"
+    ],
+    "keywords_vi": [
+      "chuột rút",
+      "vọp bẻ",
+      "co rút bắp chân",
+      "thiếu canxi magie",
+      "chuột rút ban đêm"
+    ]
+  },
+  "muscles-bones-back-muscle-stiffness.json": {
+    "source_url": "https://medlineplus.gov/muscledisorders.html",
+    "content_sha256": "2c67facb8c71c0008347536690aeafdd6f7ed084b58eb689c2331ce014a9a9d5",
+    "title_en": "Muscle stiffness",
+    "title_vi": "Cứng cơ (Cứng khớp)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "muscle stiffness",
+      "stiff muscles",
+      "inflexibility",
+      "muscle tightness"
+    ],
+    "keywords_vi": [
+      "cứng cơ",
+      "căng cứng bắp thịt",
+      "cứng khớp",
+      "mỏi cơ",
+      "giãn cơ"
+    ]
+  },
+  "muscles-bones-back-muscle-strain.json": {
+    "source_url": "https://medlineplus.gov/sprainsandstrains.html",
+    "content_sha256": "9198f4237dc82366e6e6aeee22ab272a0ad7a1b84e5ced9bdf0b4924ce715a64",
+    "title_en": "Muscle strain",
+    "title_vi": "Căng cơ (Giãn cơ)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "muscle strain",
+      "pulled muscle",
+      "torn muscle",
+      "sports injury strain"
+    ],
+    "keywords_vi": [
+      "căng cơ",
+      "giãn cơ",
+      "rách sợi cơ",
+      "chấn thương thể thao",
+      "nghỉ ngơi chườm lạnh"
+    ]
+  },
+  "muscles-bones-back-neck-pain.json": {
+    "source_url": "https://medlineplus.gov/neckinjuriesanddisorders.html",
+    "content_sha256": "8214f3e42080e77da6bbc6b8851f1b8d691b5a97db20636469029dba8783b092",
+    "title_en": "Neck pain",
+    "title_vi": "Đau cổ vai gáy",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "neck pain",
+      "cervical spine",
+      "cervical spondylosis",
+      "stiff neck",
+      "neck strain"
+    ],
+    "keywords_vi": [
+      "đau cổ vai gáy",
+      "thoái hóa đốt sống cổ",
+      "căng cứng cổ",
+      "đau gáy",
+      "cơ xương khớp"
+    ]
+  },
+  "muscles-bones-back-osteoarthritis.json": {
+    "source_url": "https://medlineplus.gov/osteoarthritis.html",
+    "content_sha256": "d076a97653d75cfa3f803db331e2a48b4d247c9430579c78a52c8539071f2fbb",
+    "title_en": "Osteoarthritis",
+    "title_vi": "Thoái hóa khớp",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "osteoarthritis",
+      "degenerative joint disease",
+      "knee osteoarthritis",
+      "cartilage loss"
+    ],
+    "keywords_vi": [
+      "thoái hóa khớp",
+      "mòn sụn khớp",
+      "thoái hóa khớp gối",
+      "đau khớp khi vận động",
+      "khớp thoái hóa"
+    ]
+  },
+  "muscles-bones-back-pain-between-shoulder-blades.json": {
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "content_sha256": "5a4ee9bc219a387fed1156f717ced33861a66f2481cfa76f143dcabe6b20de27",
+    "title_en": "Pain between shoulder blades",
+    "title_vi": "Đau giữa hai bả vai",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "pain between shoulder blades",
+      "interscapular pain",
+      "upper back ache",
+      "rhomboid strain"
+    ],
+    "keywords_vi": [
+      "đau giữa hai bả vai",
+      "đau lưng giữa",
+      "căng cơ liên sườn",
+      "thoái hóa cột sống ngực",
+      "mỏi bả vai"
+    ]
+  },
+  "muscles-bones-back-poor-posture.json": {
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "content_sha256": "f0a68e6071bc621248c8a0f8f818c25c5f6b2d863fb8cbd040dd2bbda0eda297",
+    "title_en": "Poor posture",
+    "title_vi": "Sai tư thế cột sống",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "poor posture",
+      "bad posture",
+      "slouching",
+      "spinal alignment",
+      "ergonomic posture"
+    ],
+    "keywords_vi": [
+      "sai tư thế",
+      "gù lưng",
+      "cong vẹo cột sống",
+      "chỉnh dáng",
+      "tư thế ngồi làm việc"
+    ]
+  },
+  "muscles-bones-back-rheumatoid-arthritis.json": {
+    "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+    "content_sha256": "87cbc1f865b6a72599d1e608db4d4247e0dace041d68e1719bd7e3736e2f493b",
+    "title_en": "Rheumatoid arthritis",
+    "title_vi": "Viêm khớp dạng thấp",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "rheumatoid arthritis",
+      "autoimmune arthritis",
+      "symmetric joint swelling",
+      "rheumatic disease"
+    ],
+    "keywords_vi": [
+      "viêm khớp dạng thấp",
+      "viêm khớp tự miễn",
+      "biến dạng khớp",
+      "sưng khớp đối xứng",
+      "thấp khớp"
+    ]
+  },
+  "muscles-bones-back-sciatica.json": {
+    "source_url": "https://medlineplus.gov/sciatica.html",
+    "content_sha256": "1e2ebda55f52e15418d07e331dee30c28ccafa1cf21e731f5e101c687c7c571b",
+    "title_en": "Sciatica",
+    "title_vi": "Đau thần kinh tọa",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "sciatica",
+      "sciatic nerve pain",
+      "lumbar radiculopathy",
+      "radiating leg pain"
+    ],
+    "keywords_vi": [
+      "đau thần kinh tọa",
+      "đau lan xuống chân",
+      "chèn ép rễ thần kinh",
+      "thoát vị đĩa đệm lưng",
+      "tê chân"
+    ]
+  },
+  "muscles-bones-back-shoulder-pain.json": {
+    "source_url": "https://medlineplus.gov/shoulderinjuriesanddisorders.html",
+    "content_sha256": "50b25e881a142c1af2e071c4d751fe220c889a11f961fe16778964bac6db1a1d",
+    "title_en": "Shoulder pain",
+    "title_vi": "Đau khớp vai",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "shoulder pain",
+      "rotator cuff tendinitis",
+      "shoulder impingement",
+      "shoulder joint pain"
+    ],
+    "keywords_vi": [
+      "đau khớp vai",
+      "viêm gân chóp xoay",
+      "sưng khớp vai",
+      "khó nhấc cánh tay",
+      "chấn thương vai"
+    ]
+  },
+  "muscles-bones-back-tennis-elbow.json": {
+    "source_url": "https://medlineplus.gov/elbowinjuriesanddisorders.html",
+    "content_sha256": "8cadc512b7fab155669e2ac7b4e2335c8f39742d2ba0a14dab684472405e278d",
+    "title_en": "Tennis elbow",
+    "title_vi": "Viêm lồi cầu ngoài xương cánh tay (Tennis elbow)",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "tennis elbow",
+      "lateral epicondylitis",
+      "elbow tendinitis",
+      "forearm strain"
+    ],
+    "keywords_vi": [
+      "tennis elbow",
+      "viêm lồi cầu ngoài",
+      "đau khuỷu tay",
+      "chấn thương gân khuỷu",
+      "cơ xương khớp"
+    ]
+  },
+  "muscles-bones-back-upper-back-pain.json": {
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "content_sha256": "37ed2c6fa44437d8e956259593d01099c0dc5cc40ad4c6e6679d495e704a9a3b",
+    "title_en": "Upper back pain",
+    "title_vi": "Đau lưng trên",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "upper back pain",
+      "thoracic spine pain",
+      "upper spine ache",
+      "scapular discomfort"
+    ],
+    "keywords_vi": [
+      "đau lưng trên",
+      "căng cơ lưng trên",
+      "đau cột sống ngực",
+      "nhức mỏi lưng",
+      "cột sống ngực"
+    ]
+  },
+  "muscles-bones-back-work-related-muscle-pain.json": {
+    "source_url": "https://medlineplus.gov/muscledisorders.html",
+    "content_sha256": "d1e7ae8b05b911b7224dbdab303a97ce37e8a79e3fa4e2de8c6c3a8381d69e2a",
+    "title_en": "Work-related muscle pain",
+    "title_vi": "Đau cơ liên quan đến nghề nghiệp",
+    "category_en": "Muscles, Bones & Back",
+    "category_vi": "Cơ xương khớp",
+    "keywords_en": [
+      "work-related muscle pain",
+      "repetitive strain injury",
+      "RSI",
+      "occupational muscle pain"
+    ],
+    "keywords_vi": [
+      "đau cơ nghề nghiệp",
+      "chấn thương vi chấn lặp lại",
+      "mỏi cơ văn phòng",
+      "hội chứng RSI",
+      "lao động nặng"
+    ]
+  },
+  "nutrition-calcium.json": {
+    "source_url": "https://medlineplus.gov/calcium.html",
+    "content_sha256": "7b8439a103f9698e9bf19e0a845ea2c440046adb6c7aef47a4e5cfa91d0a317a",
+    "title_en": "Calcium",
+    "title_vi": "Canxi và sức khỏe",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "calcium",
+      "bone health",
+      "calcium supplement",
+      "osteoporosis prevention",
+      "dietary minerals"
+    ],
+    "keywords_vi": [
+      "canxi",
+      "bổ sung canxi",
+      "chắc khỏe xương",
+      "loãng xương",
+      "khoáng chất"
+    ]
+  },
+  "nutrition-healthy-eating.json": {
+    "source_url": "https://medlineplus.gov/nutrition.html",
+    "content_sha256": "0e5e30c078182229c83db745df8512ad5d815c4ba25869d9ab61a955d16d86d5",
+    "title_en": "Healthy eating",
+    "title_vi": "Chế độ ăn uống cân bằng",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "healthy eating",
+      "balanced diet",
+      "nutritious food",
+      "daily nutrition",
+      "dietary guidelines"
+    ],
+    "keywords_vi": [
+      "ăn uống cân bằng",
+      "dinh dưỡng khoa học",
+      "bữa ăn lành mạnh",
+      "đủ nhóm chất",
+      "sức khỏe lối sống"
+    ]
+  },
+  "nutrition-magnesium.json": {
+    "source_url": "https://medlineplus.gov/minerals.html",
+    "content_sha256": "32a9f9f5cfb456701446ce3837c03eede30e3901ee271f70724d07b3640cab8d",
+    "title_en": "Magnesium",
+    "title_vi": "Magiê (Magnesium)",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "magnesium",
+      "dietary magnesium",
+      "muscle cramps",
+      "essential minerals",
+      "electrolyte balance"
+    ],
+    "keywords_vi": [
+      "magiê",
+      "magnesium",
+      "chuột rút cơ bắp",
+      "khoáng chất thiết yếu",
+      "dinh dưỡng"
+    ]
+  },
+  "nutrition-vegan-diet.json": {
+    "source_url": "https://medlineplus.gov/vegetariandiet.html",
+    "content_sha256": "622377b062be97eb07b1b038b1d8c8056ea7430888007599273d20ae5786f918",
+    "title_en": "Vegan diet",
+    "title_vi": "Chế độ ăn thuần chay",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "vegan diet",
+      "plant-based nutrition",
+      "plant protein",
+      "vegan health",
+      "b12 supplementation"
+    ],
+    "keywords_vi": [
+      "chế độ ăn thuần chay",
+      "ăn chay trường",
+      "nguồn đạm thực vật",
+      "thiếu vitamin B12",
+      "dinh dưỡng"
+    ]
+  },
+  "nutrition-vegetarian-diet.json": {
+    "source_url": "https://medlineplus.gov/vegetariandiet.html",
+    "content_sha256": "d98bd503dbb28523bc18869c4189fd9573745c9809102941212dd109b7b83b24",
+    "title_en": "Vegetarian diet",
+    "title_vi": "Chế độ ăn chay",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "vegetarian diet",
+      "vegetarian nutrition",
+      "plant-based diet",
+      "iron absorption",
+      "heart health"
+    ],
+    "keywords_vi": [
+      "chế độ ăn chay",
+      "ăn chay",
+      "dinh dưỡng thực vật",
+      "chất sắt",
+      "sức khỏe tim mạch"
+    ]
+  },
+  "nutrition-vitamin-b12.json": {
+    "source_url": "https://medlineplus.gov/bvitamins.html",
+    "content_sha256": "f76a45c51362e8f1e3d042cf5a69bad94a0a65c7c8c0cb76eefd0d3297f882cc",
+    "title_en": "Vitamin B12",
+    "title_vi": "Vitamin B12 (Cobalamin)",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "vitamin B12",
+      "cobalamin",
+      "b complex",
+      "pernicious anemia",
+      "neurological health"
+    ],
+    "keywords_vi": [
+      "vitamin B12",
+      "vitamin nhóm B",
+      "thiếu máu ác tính",
+      "bổ sung vitamin",
+      "thần kinh dinh dưỡng"
+    ]
+  },
+  "nutrition-vitamin-d.json": {
+    "source_url": "https://medlineplus.gov/vitamind.html",
+    "content_sha256": "57ca29e6a374139c2cc4a4bb1911362e637f0092b7f49fb6b75544a7d74dd010",
+    "title_en": "Vitamin D",
+    "title_vi": "Vitamin D",
+    "category_en": "Nutrition",
+    "category_vi": "Dinh dưỡng",
+    "keywords_en": [
+      "vitamin D",
+      "sunlight vitamin",
+      "calcium absorption",
+      "bone density",
+      "immune support"
+    ],
+    "keywords_vi": [
+      "vitamin D",
+      "hấp thụ canxi",
+      "loãng xương",
+      "ánh nắng mặt trời",
+      "miễn dịch"
+    ]
+  },
+  "pregnancy-children-breastfeeding.json": {
+    "source_url": "https://medlineplus.gov/breastfeeding.html",
+    "content_sha256": "5377158a575fbb6033aa8950966ae6cd501e5417171fd41b3933a1e5b86a713d",
+    "title_en": "Breastfeeding",
+    "title_vi": "Nuôi con bằng sữa mẹ",
+    "category_en": "Pregnancy & Children",
+    "category_vi": "Sản phụ khoa & Nhi khoa",
+    "keywords_en": [
+      "breastfeeding",
+      "lactation",
+      "nursing",
+      "maternal milk",
+      "infant nutrition"
+    ],
+    "keywords_vi": [
+      "nuôi con bằng sữa mẹ",
+      "cho con bú",
+      "sữa mẹ",
+      "sản phụ khoa",
+      "dinh dưỡng trẻ sơ sinh"
+    ]
+  },
+  "pregnancy-children-child-development.json": {
+    "source_url": "https://medlineplus.gov/childdevelopment.html",
+    "content_sha256": "5fd1fda54ea0c063e3aefc6c32608c90932ef0465d8e7ee6feb9e502b141d8be",
+    "title_en": "Child development",
+    "title_vi": "Phát triển ở trẻ em",
+    "category_en": "Pregnancy & Children",
+    "category_vi": "Sản phụ khoa & Nhi khoa",
+    "keywords_en": [
+      "child development",
+      "developmental milestones",
+      "growth milestones",
+      "pediatric development",
+      "motor skills"
+    ],
+    "keywords_vi": [
+      "phát triển ở trẻ em",
+      "mốc phát triển",
+      "tăng trưởng trẻ em",
+      "nhi khoa",
+      "kỹ năng vận động"
+    ]
+  },
+  "pregnancy-children-pregnancy-nutrition.json": {
+    "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+    "content_sha256": "f3c277d2f29327f26dd533913753a9c1aa2ba2043da75f6c19b2854ce157120b",
+    "title_en": "Pregnancy nutrition",
+    "title_vi": "Dinh dưỡng khi mang thai",
+    "category_en": "Pregnancy & Children",
+    "category_vi": "Sản phụ khoa & Nhi khoa",
+    "keywords_en": [
+      "pregnancy nutrition",
+      "prenatal diet",
+      "folic acid",
+      "prenatal vitamins",
+      "maternal health"
+    ],
+    "keywords_vi": [
+      "dinh dưỡng khi mang thai",
+      "ăn uống thai kỳ",
+      "bổ sung axit folic",
+      "vitamin cho bà bầu",
+      "sản khoa"
+    ]
+  },
+  "pregnancy-children-pregnancy.json": {
+    "source_url": "https://medlineplus.gov/pregnancy.html",
+    "content_sha256": "dfd2ddaccdb759784b54a500935f7dc4340cbdc604a50c03afc180bf242e1dce",
+    "title_en": "Pregnancy",
+    "title_vi": "Mang thai (Thai kỳ)",
+    "category_en": "Pregnancy & Children",
+    "category_vi": "Sản phụ khoa & Nhi khoa",
+    "keywords_en": [
+      "pregnancy",
+      "prenatal care",
+      "gestation",
+      "pregnancy symptoms",
+      "obstetrics"
+    ],
+    "keywords_vi": [
+      "mang thai",
+      "thai kỳ",
+      "dấu hiệu mang thai",
+      "khám thai định kỳ",
+      "sản phụ khoa"
+    ]
+  },
+  "pregnancy-children-vaccinations.json": {
+    "source_url": "https://medlineplus.gov/vaccines.html",
+    "content_sha256": "b0361f170fd943af69f1a37ea5e6722e121379997c581c6eca1251ff0a8fbbcd",
+    "title_en": "Vaccinations",
+    "title_vi": "Tiêm chủng ở trẻ em",
+    "category_en": "Pregnancy & Children",
+    "category_vi": "Sản phụ khoa & Nhi khoa",
+    "keywords_en": [
+      "childhood vaccinations",
+      "immunization schedule",
+      "vaccines",
+      "pediatric immunization",
+      "disease prevention"
+    ],
+    "keywords_vi": [
+      "tiêm chủng ở trẻ em",
+      "vắc-xin trẻ em",
+      "lịch tiêm chủng",
+      "phòng ngừa bệnh",
+      "nhi khoa"
+    ]
+  },
+  "respiratory-allergic-rhinitis.json": {
+    "source_url": "https://medlineplus.gov/allergy.html",
+    "content_sha256": "ff55325d2270f08de664a58ebabaa62ab63c0d9b8b159eff20540afb64211c93",
+    "title_en": "Allergic rhinitis",
+    "title_vi": "Viêm mũi dị ứng",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "allergic rhinitis",
+      "nasal allergies",
+      "sneezing runny nose",
+      "allergy congestion"
+    ],
+    "keywords_vi": [
+      "viêm mũi dị ứng",
+      "hắt hơi sổ mũi",
+      "nghẹt mũi dị ứng",
+      "dị ứng thời tiết",
+      "tai mũi họng"
+    ]
+  },
+  "respiratory-asthma.json": {
+    "source_url": "https://medlineplus.gov/asthma.html",
+    "content_sha256": "070b936998aea3c45abb15a343e5be8f7bfc6fb0a172837f245325368db80b12",
+    "title_en": "Asthma",
+    "title_vi": "Hen suyễn (Hen phế quản)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "asthma",
+      "bronchial asthma",
+      "wheezing",
+      "asthma attack",
+      "inhaler"
+    ],
+    "keywords_vi": [
+      "hen suyễn",
+      "hen phế quản",
+      "cơn khó thở",
+      "khò khè",
+      "thuốc xịt cắt cơn"
+    ]
+  },
+  "respiratory-blocked-nose.json": {
+    "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
+    "content_sha256": "d6df3c5225ea9e0100bd4d25efa6a1c59be14f1d011bf57b628a185f90e47394",
+    "title_en": "Blocked nose",
+    "title_vi": "Nghẹt mũi (Tắc mũi)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "blocked nose",
+      "nasal congestion",
+      "stuffy nose",
+      "sinus blockage"
+    ],
+    "keywords_vi": [
+      "nghẹt mũi",
+      "tắc mũi",
+      "ngạt mũi",
+      "khó thở bằng mũi",
+      "viêm mũi"
+    ]
+  },
+  "respiratory-bronchitis.json": {
+    "source_url": "https://medlineplus.gov/chronicbronchitis.html",
+    "content_sha256": "9b1210e294ca8238610d46d9df4eb02b1cf55493bc7734e3cc18d4e5fbe4d380",
+    "title_en": "Bronchitis",
+    "title_vi": "Viêm phế quản",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "bronchitis",
+      "acute bronchitis",
+      "chest cold",
+      "coughing mucus",
+      "bronchial tubes"
+    ],
+    "keywords_vi": [
+      "viêm phế quản",
+      "viêm phế quản cấp",
+      "ho có đờm",
+      "viêm đường hô hấp dưới",
+      "khó thở rát ngực"
+    ]
+  },
+  "respiratory-chest-pain.json": {
+    "source_url": "https://medlineplus.gov/chestpain.html",
+    "content_sha256": "a395b83049c5e788dcffe3f6a92bbe1d4cfb1e9bd771b6ac8848f1c2c7d58e42",
+    "title_en": "Chest pain",
+    "title_vi": "Đau ngực kiểu màng phổi",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "chest pain respiratory",
+      "pleuritic chest pain",
+      "pain on deep breath",
+      "pleurisy"
+    ],
+    "keywords_vi": [
+      "đau ngực hô hấp",
+      "đau khi hít sâu",
+      "viêm màng phổi",
+      "đau thành ngực",
+      "hô hấp"
+    ]
+  },
+  "respiratory-common-cold.json": {
+    "source_url": "https://medlineplus.gov/commoncold.html",
+    "content_sha256": "457484810b5bdad102e9954608fa460e1ba27867d17f900a58726de453a32a0e",
+    "title_en": "Common cold",
+    "title_vi": "Cảm lạnh thông thường",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "common cold",
+      "head cold",
+      "rhinovirus",
+      "runny nose sore throat"
+    ],
+    "keywords_vi": [
+      "cảm lạnh thông thường",
+      "cảm lạnh",
+      "sổ mũi hắt hơi",
+      "nghẹt mũi nhẹ",
+      "virus cảm lạnh"
+    ]
+  },
+  "respiratory-cough.json": {
+    "source_url": "https://medlineplus.gov/cough.html",
+    "content_sha256": "5fce43305ee6e1a7f139c36495bc2c995d08c74713c8d28e0590b09c054a2b04",
+    "title_en": "Cough",
+    "title_vi": "Ho",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "cough",
+      "tussis",
+      "coughing fit",
+      "respiratory reflex",
+      "cough symptom"
+    ],
+    "keywords_vi": [
+      "ho",
+      "cơn ho",
+      "ho kích ứng",
+      "ho khàn tiếng",
+      "đường hô hấp"
+    ]
+  },
+  "respiratory-covid-19.json": {
+    "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
+    "content_sha256": "dde1d5213cab0d08c4e4e0dcd59ec2c6de3e2f5d0ba790191d999756283b3eee",
+    "title_en": "COVID-19",
+    "title_vi": "Bệnh COVID-19",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "COVID-19",
+      "coronavirus",
+      "SARS-CoV-2",
+      "loss of taste smell",
+      "viral respiratory"
+    ],
+    "keywords_vi": [
+      "COVID-19",
+      "nhiễm virus SARS-CoV-2",
+      "mất khứu giác",
+      "sốt ho khó thở",
+      "nhiễm trùng hô hấp"
+    ]
+  },
+  "respiratory-dry-cough.json": {
+    "source_url": "https://medlineplus.gov/cough.html",
+    "content_sha256": "f4b38641b1274165d1fc313eae891940263b373b343d1553860dc0a380dd0282",
+    "title_en": "Dry cough",
+    "title_vi": "Ho khan",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "dry cough",
+      "nonproductive cough",
+      "tickly cough",
+      "irritating cough"
+    ],
+    "keywords_vi": [
+      "ho khan",
+      "ho không có đờm",
+      "rát họng ho khan",
+      "kích ứng phế quản",
+      "thuốc giảm ho"
+    ]
+  },
+  "respiratory-hay-fever.json": {
+    "source_url": "https://medlineplus.gov/hayfever.html",
+    "content_sha256": "cab09a1a67a95845898976bdca21dbc2799958eb76a10af28538eb78b5e1ec1e",
+    "title_en": "Hay fever",
+    "title_vi": "Sốt cỏ khô (Dị ứng phấn hoa)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "hay fever",
+      "pollinosis",
+      "pollen allergy",
+      "seasonal rhinitis"
+    ],
+    "keywords_vi": [
+      "sốt cỏ khô",
+      "dị ứng phấn hoa",
+      "ngứa mắt hắt hơi",
+      "chảy nước mũi",
+      "dị ứng theo mùa"
+    ]
+  },
+  "respiratory-influenza.json": {
+    "source_url": "https://medlineplus.gov/flu.html",
+    "content_sha256": "e8094fbb74c80364695f3cf7d4391c8cb69bf166ab338b8772c99c4ab1d58510",
+    "title_en": "Influenza",
+    "title_vi": "Cúm mùa (Cúm A/B)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "influenza",
+      "flu",
+      "seasonal flu",
+      "flu virus",
+      "body aches fever"
+    ],
+    "keywords_vi": [
+      "cúm mùa",
+      "cúm A",
+      "cúm B",
+      "sốt cao đau nhức mình mẩy",
+      "virus cúm"
+    ]
+  },
+  "respiratory-nosebleed.json": {
+    "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
+    "content_sha256": "ff809f844c05b8f3421f8cefef756be6b3fb6c85dc2eac6942cffd9288532150",
+    "title_en": "Nosebleed",
+    "title_vi": "Sơ cứu chảy máu cam",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "nosebleed",
+      "epistaxis",
+      "first aid nosebleed",
+      "pinch nose",
+      "nasal bleeding"
+    ],
+    "keywords_vi": [
+      "chảy máu cam",
+      "chảy máu mũi",
+      "sơ cứu cúi đầu ép mũi",
+      "chảy máu mao mạch mũi",
+      "cầm máu mũi"
+    ]
+  },
+  "respiratory-persistent-cough.json": {
+    "source_url": "https://medlineplus.gov/cough.html",
+    "content_sha256": "529365df0c2fd0f0ca64a31096a00d2b19795517a4c5e074d0fbfa72411e8f3e",
+    "title_en": "Persistent cough",
+    "title_vi": "Ho kéo dài (Ho mạn tính)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "persistent cough",
+      "chronic cough",
+      "lingering cough",
+      "cough lasting weeks"
+    ],
+    "keywords_vi": [
+      "ho kéo dài",
+      "ho mạn tính",
+      "ho trên 3 tuần",
+      "tầm soát lao phổi",
+      "viêm phế quản mạn"
+    ]
+  },
+  "respiratory-pneumonia.json": {
+    "source_url": "https://medlineplus.gov/pneumonia.html",
+    "content_sha256": "f9f99f9bef9c04f00e7068684d3b0ceb9a9a6b7ad11828f681c028e8f09a553d",
+    "title_en": "Pneumonia",
+    "title_vi": "Viêm phổi",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "pneumonia",
+      "lung infection",
+      "pulmonary infection",
+      "shortness of breath pneumonia"
+    ],
+    "keywords_vi": [
+      "viêm phổi",
+      "nhiễm trùng phổi",
+      "sốt cao khó thở",
+      "đau ngực khi ho",
+      "nhiễm khuẩn hô hấp"
+    ]
+  },
+  "respiratory-productive-cough.json": {
+    "source_url": "https://medlineplus.gov/cough.html",
+    "content_sha256": "fbca8004b4013e7e24cda6026d15a3cb18defb1eb3b68a8adb1a668321265841",
+    "title_en": "Productive cough",
+    "title_vi": "Ho có đờm",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "productive cough",
+      "wet cough",
+      "cough with phlegm",
+      "expectorant",
+      "mucus cough"
+    ],
+    "keywords_vi": [
+      "ho có đờm",
+      "đờm xanh đờm vàng",
+      "tống đờm",
+      "thuốc long đờm",
+      "hô hấp"
+    ]
+  },
+  "respiratory-seasonal-allergies.json": {
+    "source_url": "https://medlineplus.gov/hayfever.html",
+    "content_sha256": "41ebf5b6d0cdb0d1b03fc7d167059ff2845c66d3a2ddcd4245708582a853e96f",
+    "title_en": "Seasonal allergies",
+    "title_vi": "Dị ứng theo mùa",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "seasonal allergies",
+      "seasonal allergic rhinitis",
+      "weather allergy",
+      "antihistamine"
+    ],
+    "keywords_vi": [
+      "dị ứng theo mùa",
+      "viêm mũi mùa xuân",
+      "ngứa mũi mắt",
+      "dị ứng thời tiết",
+      "kháng histamin"
+    ]
+  },
+  "respiratory-shortness-of-breath.json": {
+    "source_url": "https://medlineplus.gov/breathingproblems.html",
+    "content_sha256": "694c54531adac41984b70568ab73de5a9cbb1c6e74ebb3ab547f84400fe08890",
+    "title_en": "Shortness of breath",
+    "title_vi": "Khó thở (Hụt hơi)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "shortness of breath",
+      "dyspnea",
+      "breathlessness",
+      "difficulty breathing"
+    ],
+    "keywords_vi": [
+      "khó thở",
+      "hụt hơi",
+      "thở dốc",
+      "thiếu oxy",
+      "cấp cứu khó thở"
+    ]
+  },
+  "respiratory-sinusitis.json": {
+    "source_url": "https://medlineplus.gov/sinusitis.html",
+    "content_sha256": "23cb339ba4f02b7ce3f1f886c5c305754d8bdadd4b05e5151329562a0c1cb1d9",
+    "title_en": "Sinusitis",
+    "title_vi": "Viêm xoang",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "sinusitis",
+      "sinus infection",
+      "facial pressure",
+      "rhinosinusitis"
+    ],
+    "keywords_vi": [
+      "viêm xoang",
+      "viêm xoang mũi",
+      "đau nhức vùng mặt",
+      "chảy dịch mũi vàng",
+      "nghẹt mũi xoang"
+    ]
+  },
+  "respiratory-sore-throat.json": {
+    "source_url": "https://medlineplus.gov/sorethroat.html",
+    "content_sha256": "8716b6880d10aef6370066bf0213d5de21bd40e923b7932b6974b4a9fcd1fb1b",
+    "title_en": "Sore throat",
+    "title_vi": "Đau họng (Rát họng)",
+    "category_en": "Respiratory",
+    "category_vi": "Hô hấp",
+    "keywords_en": [
+      "sore throat",
+      "pharyngitis",
+      "throat pain",
+      "painful swallowing"
+    ],
+    "keywords_vi": [
+      "đau họng",
+      "rát họng",
+      "viêm họng",
+      "nuốt đau",
+      "nhiễm trùng hầu họng"
+    ]
+  },
+  "sexual-health-men-erectile-dysfunction.json": {
+    "source_url": "https://medlineplus.gov/erectiledysfunction.html",
+    "content_sha256": "f8a8c37883150c8f3d3810bf4ffb664a0fe80d58c6e714a999ef2a5caccbc1ba",
+    "title_en": "Erectile dysfunction",
+    "title_vi": "Rối loạn cương dương",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "erectile dysfunction",
+      "ED",
+      "impotence",
+      "erectile difficulty",
+      "male sexual performance"
+    ],
+    "keywords_vi": [
+      "rối loạn cương dương",
+      "liệt dương",
+      "yếu sinh lý nam",
+      "khó cương cứng",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-high-libido.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "6ab3ff6afb759df24a03252c1db17cf26bde52f63d952effbe755c4e2685e564",
+    "title_en": "High libido",
+    "title_vi": "Nhu cầu tình dục cao ở nam giới",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "high libido male",
+      "increased male sex drive",
+      "male hypersexuality",
+      "strong libido"
+    ],
+    "keywords_vi": [
+      "nhu cầu tình dục cao nam",
+      "ham muốn tình dục nam giới",
+      "tăng ham muốn sinh lý",
+      "kiểm soát ham muốn nam",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-hydrocele.json": {
+    "source_url": "https://medlineplus.gov/testiculardisorders.html",
+    "content_sha256": "265b38eb5a0c4640e31731180297e2e12a69ac7c01f4c9ac26d8e8d3fd30beb6",
+    "title_en": "Hydrocele",
+    "title_vi": "Tràn dịch màng tinh hoàn",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "hydrocele",
+      "scrotal fluid accumulation",
+      "scrotal swelling",
+      "testicular fluid"
+    ],
+    "keywords_vi": [
+      "tràn dịch màng tinh hoàn",
+      "sưng bìu tinh hoàn",
+      "tụ dịch tinh hoàn",
+      "khối u bìu lành tính",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-infertility.json": {
+    "source_url": "https://medlineplus.gov/infertility.html",
+    "content_sha256": "34a0d984f2e2931436416e70533095c88ecf8d349dc344ded8cff40bf442eee1",
+    "title_en": "Infertility",
+    "title_vi": "Vô sinh nam",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "male infertility",
+      "low sperm count",
+      "semen analysis",
+      "male fertility evaluation"
+    ],
+    "keywords_vi": [
+      "vô sinh nam",
+      "hiếm muộn nam",
+      "tinh trùng yếu",
+      "xét nghiệm tinh dịch đồ",
+      "sinh sản nam"
+    ]
+  },
+  "sexual-health-men-male-fertility.json": {
+    "source_url": "https://medlineplus.gov/maleinfertility.html",
+    "content_sha256": "8902d1daa6ba8284af5b8bf714ddda99d9bdc7be79b71ae8f23ae941e6c316a6",
+    "title_en": "Male fertility",
+    "title_vi": "Khả năng sinh sản ở nam giới",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "male fertility",
+      "sperm quality",
+      "sperm motility",
+      "reproductive health men"
+    ],
+    "keywords_vi": [
+      "khả năng sinh sản nam",
+      "chất lượng tinh trùng",
+      "tăng cường sinh sản nam",
+      "tinh trùng khỏe mạnh",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-morning-erections.json": {
+    "source_url": "https://medlineplus.gov/erectiledysfunction.html",
+    "content_sha256": "178562bd2bbf9b592c49838e73521d5870fac5bc6cc89b956ca2721169413e56",
+    "title_en": "Morning erections",
+    "title_vi": "Hiện tượng cương dương buổi sáng",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "morning erections",
+      "nocturnal penile tumescence",
+      "NPT",
+      "healthy male erection"
+    ],
+    "keywords_vi": [
+      "cương dương buổi sáng",
+      "hiện tượng chào cờ",
+      "cương dương sinh lý",
+      "chức năng cương dương",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-pain-during-erection.json": {
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "content_sha256": "7fb3aee2debb77908dfda76156e126db45ca152c8c0336a2df5dae1925cf8e31",
+    "title_en": "Pain during erection",
+    "title_vi": "Đau khi cương cứng",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "pain during erection",
+      "painful erection",
+      "priapism symptom",
+      "penile pain erection"
+    ],
+    "keywords_vi": [
+      "đau khi cương cứng",
+      "đau dương vật khi cương",
+      "cong dương vật đau",
+      "viêm thể hang",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-penis-discharge.json": {
+    "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+    "content_sha256": "0d9caeea8d8eb8ec9a80a1ac9d45aab3ff06533ab2fdf9968a81adbee4101372",
+    "title_en": "Penis discharge",
+    "title_vi": "Chảy mủ hoặc dịch tiết bất thường ở dương vật",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "penis discharge",
+      "urethral discharge male",
+      "pus from penis",
+      "urethritis male"
+    ],
+    "keywords_vi": [
+      "chảy mủ dương vật",
+      "tiết dịch niệu đạo nam",
+      "viêm niệu đạo mủ",
+      "dấu hiệu bệnh lậu",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-penis-itching.json": {
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "content_sha256": "3e0051f5c641df52e441adf524e33108866918a6f34944175aea7df66c1fe270",
+    "title_en": "Penis itching",
+    "title_vi": "Ngứa đầu dương vật",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "penis itching",
+      "itchy glans",
+      "balanitis itching",
+      "penile yeast infection"
+    ],
+    "keywords_vi": [
+      "ngứa đầu dương vật",
+      "ngứa bao quy đầu",
+      "nhiễm nấm bao quy đầu",
+      "viêm ngứa quy đầu",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-penis-pain.json": {
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "content_sha256": "940d45d4b9f189bf7a38e8a3a82bac4e597acf414c2008731c9f27cec6480104",
+    "title_en": "Penis pain",
+    "title_vi": "Đau dương vật",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "penis pain",
+      "penile pain",
+      "penile trauma",
+      "genital ache male"
+    ],
+    "keywords_vi": [
+      "đau dương vật",
+      "đau buốt dương vật",
+      "chấn thương dương vật",
+      "đau niệu đạo nam",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-penis-redness.json": {
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "content_sha256": "57e83d2d2a0194995f824dae4d894d4eeaa40d5a7956a689bfa1cf6b8c945100",
+    "title_en": "Penis redness",
+    "title_vi": "Đỏ da và viêm bao quy đầu",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "penis redness",
+      "balanitis",
+      "inflamed foreskin",
+      "penile erythema"
+    ],
+    "keywords_vi": [
+      "đỏ bao quy đầu",
+      "viêm quy đầu",
+      "sưng đỏ đầu dương vật",
+      "kích ứng da quy đầu",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-penis-swelling.json": {
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "content_sha256": "e8bd0384ec2f601dac31d7aef4ab2ed3d2715cfb8a9f73d0cb99ddcd68430464",
+    "title_en": "Penis swelling",
+    "title_vi": "Sưng dương vật",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "penis swelling",
+      "penile edema",
+      "swollen foreskin",
+      "paraphimosis"
+    ],
+    "keywords_vi": [
+      "sưng dương vật",
+      "phù nề dương vật",
+      "sưng bao quy đầu",
+      "nghẹt bao quy đầu",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-peyronie-s-disease.json": {
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "content_sha256": "aa374ca46f209afcf94ddef1f0c67ef5495043dd2cefb6acee7fdc07bb11016a",
+    "title_en": "Peyronie's disease",
+    "title_vi": "Bệnh xơ cứng vật hang (Cong dương vật Peyronie)",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "Peyronie's disease",
+      "penile curvature",
+      "penile plaque",
+      "bent penis"
+    ],
+    "keywords_vi": [
+      "bệnh peyronie",
+      "cong dương vật",
+      "mảng xơ vật hang",
+      "đau khi cương cong",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-premature-ejaculation.json": {
+    "source_url": "https://medlineplus.gov/sexualproblemsinmen.html",
+    "content_sha256": "8de95200cb018d33d17d2af12c4fc5e9bf1a9b8c5d2409cfa362479ffdf9f28c",
+    "title_en": "Premature ejaculation",
+    "title_vi": "Xuất tinh sớm",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "premature ejaculation",
+      "rapid ejaculation",
+      "PE male",
+      "ejaculatory latency"
+    ],
+    "keywords_vi": [
+      "xuất tinh sớm",
+      "chống xuất tinh sớm",
+      "thời gian quan hệ ngắn",
+      "kiểm soát xuất tinh",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-prostatitis.json": {
+    "source_url": "https://medlineplus.gov/prostatediseases.html",
+    "content_sha256": "cd72d1508e96a29db03d0a37f7536d64aae967615e822c0b27ee4d13babe5885",
+    "title_en": "Prostatitis",
+    "title_vi": "Viêm tuyến tiền liệt",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "prostatitis",
+      "prostate inflammation",
+      "pelvic discomfort male",
+      "urinary pain male"
+    ],
+    "keywords_vi": [
+      "viêm tuyến tiền liệt",
+      "đau vùng đáy chậu",
+      "tiểu buốt tiểu rắt nam",
+      "tuyến tiền liệt sưng",
+      "tiết niệu nam khoa"
+    ]
+  },
+  "sexual-health-men-testicular-pain.json": {
+    "source_url": "https://medlineplus.gov/testiculardisorders.html",
+    "content_sha256": "9f0638ff49498c7b114581e4e69e8bb231353fdbc2cf34c71546220704cf1123",
+    "title_en": "Testicular pain",
+    "title_vi": "Đau tinh hoàn",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "testicular pain",
+      "scrotal pain",
+      "testicular torsion",
+      "epididymitis",
+      "acute scrotum"
+    ],
+    "keywords_vi": [
+      "đau tinh hoàn",
+      "đau tức bìu",
+      "xoắn tinh hoàn cấp",
+      "viêm mào tinh hoàn",
+      "cấp cứu nam khoa"
+    ]
+  },
+  "sexual-health-men-varicocele.json": {
+    "source_url": "https://medlineplus.gov/testiculardisorders.html",
+    "content_sha256": "5d87d7a3b005c85ccd2db16b77445c9b7b1df3486502a35108c21165595de73a",
+    "title_en": "Varicocele",
+    "title_vi": "Giãn tĩnh mạch thừng tinh",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "varicocele",
+      "scrotal varicose veins",
+      "scrotal dragging pain",
+      "male subfertility varicocele"
+    ],
+    "keywords_vi": [
+      "giãn tĩnh mạch thừng tinh",
+      "búi tĩnh mạch bìu",
+      "đau tức tinh hoàn âm ỉ",
+      "ảnh hưởng tinh trùng",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-men-weak-erection.json": {
+    "source_url": "https://medlineplus.gov/erectiledysfunction.html",
+    "content_sha256": "c300db6e50bd40fa12247ff51a6f95c34904164a3f5afeb557a6013c3bff93da",
+    "title_en": "Weak erection",
+    "title_vi": "Cương cứng yếu",
+    "category_en": "Sexual Health (Men)",
+    "category_vi": "Sức khỏe nam khoa",
+    "keywords_en": [
+      "weak erection",
+      "soft erection",
+      "poor erectile rigidity",
+      "mild ED"
+    ],
+    "keywords_vi": [
+      "cương cứng yếu",
+      "không đủ độ cứng",
+      "xìu sớm khi quan hệ",
+      "yếu sinh lý nam",
+      "nam khoa"
+    ]
+  },
+  "sexual-health-women-breast-pain.json": {
+    "source_url": "https://medlineplus.gov/breastdiseases.html",
+    "content_sha256": "dce107e95615cc59770b81809edbbae4053696c4226f4e6c1125e533227e2f62",
+    "title_en": "Breast pain",
+    "title_vi": "Đau vú (Đau tức ngực ở nữ giới)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "breast pain",
+      "mastalgia",
+      "breast tenderness",
+      "hormonal breast pain"
+    ],
+    "keywords_vi": [
+      "đau vú",
+      "tức ngực nữ",
+      "đau tuyến vú",
+      "thay đổi nội tiết vú",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-endometriosis.json": {
+    "source_url": "https://medlineplus.gov/endometriosis.html",
+    "content_sha256": "7e02f4a595e03337f2e339e0a9084198a2be9e001bb4d48ea248086498aa7a56",
+    "title_en": "Endometriosis",
+    "title_vi": "Lạc nội mạc tử cung",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "endometriosis",
+      "pelvic pain endometriosis",
+      "uterine lining",
+      "painful menstruation"
+    ],
+    "keywords_vi": [
+      "lạc nội mạc tử cung",
+      "đau bụng kinh dữ dội",
+      "hiếm muộn nữ",
+      "viêm nội mạc",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-heavy-periods.json": {
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "content_sha256": "6335ce7523b3b893792e566a2975523282f1219b442268dc28f99f40a9aa36ac",
+    "title_en": "Heavy periods",
+    "title_vi": "Kinh nguyệt ra nhiều (Rong kinh)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "heavy periods",
+      "menorrhagia",
+      "heavy menstrual bleeding",
+      "prolonged periods"
+    ],
+    "keywords_vi": [
+      "kinh nguyệt nhiều",
+      "rong kinh",
+      "chảy máu kinh nặng",
+      "thiếu máu do rong kinh",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-irregular-periods.json": {
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "content_sha256": "7239f2fd75a853b5ed1361004b1529108689dc31f27f28885f734470613ea592",
+    "title_en": "Irregular periods",
+    "title_vi": "Rối loạn kinh nguyệt (Kinh không đều)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "irregular periods",
+      "abnormal menstruation",
+      "irregular menstrual cycle",
+      "hormonal imbalance female"
+    ],
+    "keywords_vi": [
+      "kinh nguyệt không đều",
+      "rối loạn kinh nguyệt",
+      "chu kỳ kinh thất thường",
+      "nội tiết nữ",
+      "buồng trứng"
+    ]
+  },
+  "sexual-health-women-late-period.json": {
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "content_sha256": "f68d5ec1489a8d5142bc7e30d1b9b838925301be4932fea0440b6743a74f35df",
+    "title_en": "Late period",
+    "title_vi": "Chậm kinh (Trễ kinh)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "late period",
+      "delayed menstruation",
+      "missed period pregnancy test",
+      "menstrual delay"
+    ],
+    "keywords_vi": [
+      "chậm kinh",
+      "trễ kinh",
+      "chậm kinh thử que",
+      "nguyên nhân trễ kinh",
+      "nội tiết buồng trứng"
+    ]
+  },
+  "sexual-health-women-light-periods.json": {
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "content_sha256": "3e5b939f513312fed60b8529e88c262435ef783c0033f8d7807900995ed57fc2",
+    "title_en": "Light periods",
+    "title_vi": "Kinh nguyệt ít (Thiểu kinh)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "light periods",
+      "hypomenorrhea",
+      "scant menstrual flow",
+      "short periods"
+    ],
+    "keywords_vi": [
+      "kinh nguyệt ít",
+      "thiểu kinh",
+      "lượng máu kinh ít",
+      "mỏng nội mạc tử cung",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-menopause.json": {
+    "source_url": "https://medlineplus.gov/menopause.html",
+    "content_sha256": "38386d4589c5616fffac7dee6cc214a45ab796566dbbe2f5af06eace5e3af03d",
+    "title_en": "Menopause",
+    "title_vi": "Mãn kinh",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "menopause",
+      "postmenopause",
+      "cessation of menses",
+      "low estrogen",
+      "female aging"
+    ],
+    "keywords_vi": [
+      "mãn kinh",
+      "tuổi mãn kinh",
+      "hết kinh",
+      "suy giảm estrogen",
+      "nội tiết tố nữ"
+    ]
+  },
+  "sexual-health-women-menstrual-pain.json": {
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "content_sha256": "da681831bd7db2657a6080aa61245b660fbba565936669238bff1f8a55e4f2e8",
+    "title_en": "Menstrual pain",
+    "title_vi": "Đau bụng kinh (Thống kinh)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "menstrual pain",
+      "dysmenorrhea",
+      "period cramps",
+      "menstrual cramps relief"
+    ],
+    "keywords_vi": [
+      "đau bụng kinh",
+      "thống kinh",
+      "co thắt tử cung khi có kinh",
+      "giảm đau bụng kinh",
+      "kinh nguyệt"
+    ]
+  },
+  "sexual-health-women-missed-period.json": {
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "content_sha256": "3b33fe21c7708441ad2bf682c446bccd7ebaca3e6f171ffba02dd4c545b8a63a",
+    "title_en": "Missed period",
+    "title_vi": "Mất kinh (Vô kinh)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "missed period",
+      "amenorrhea",
+      "absence of menstruation",
+      "missed period evaluation"
+    ],
+    "keywords_vi": [
+      "mất kinh",
+      "vô kinh",
+      "không có kinh nguyệt",
+      "kiểm tra thai kỳ",
+      "rối loạn buồng trứng"
+    ]
+  },
+  "sexual-health-women-ovarian-cyst.json": {
+    "source_url": "https://medlineplus.gov/ovariancysts.html",
+    "content_sha256": "7bf51c5639c9194c6c615db2ce90fcc57de5ee6e5fae50cae3b08c983a0a090d",
+    "title_en": "Ovarian cyst",
+    "title_vi": "U nang buồng trứng",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "ovarian cyst",
+      "ovarian swelling",
+      "pelvic cyst",
+      "ovarian follicle cyst"
+    ],
+    "keywords_vi": [
+      "u nang buồng trứng",
+      "nang buồng trứng",
+      "đau vùng chậu",
+      "xoắn nang buồng trứng",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-pain-during-sex.json": {
+    "source_url": "https://medlineplus.gov/sexualproblemsinwomen.html",
+    "content_sha256": "ff3e079d2789391a77cd03e4e57e0ba977fd4f4b6e0b0bcb1a234ac023533cc9",
+    "title_en": "Pain during sex",
+    "title_vi": "Đau khi quan hệ tình dục ở nữ (Chứng giao hợp đau)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "pain during sex female",
+      "dyspareunia",
+      "vaginal dryness pain",
+      "painful intercourse"
+    ],
+    "keywords_vi": [
+      "đau khi quan hệ nữ",
+      "chứng giao hợp đau",
+      "khô âm đạo đau rát",
+      "co thắt âm đạo",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-pcos.json": {
+    "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+    "content_sha256": "f6381192041d76793a261cdf03d44bee1617bcee73a6dc19a002c1676785ed0c",
+    "title_en": "PCOS",
+    "title_vi": "Hội chứng buồng trứng đa nang (PCOS)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "PCOS",
+      "polycystic ovary syndrome",
+      "anovulation",
+      "hyperandrogenism",
+      "irregular ovulation"
+    ],
+    "keywords_vi": [
+      "buồng trứng đa nang",
+      "PCOS",
+      "rối loạn rụng trứng",
+      "kinh nguyệt thưa rậm lông",
+      "kháng insulin nữ"
+    ]
+  },
+  "sexual-health-women-pelvic-pain.json": {
+    "source_url": "https://medlineplus.gov/pelvicpain.html",
+    "content_sha256": "b921f9b49e9b01145471015f143020bd9fe5c9fd79b2ae3b696ea6a0812c7c28",
+    "title_en": "Pelvic pain",
+    "title_vi": "Đau vùng chậu ở nữ giới",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "pelvic pain female",
+      "chronic pelvic pain",
+      "lower abdominal pain female",
+      "pelvic inflammatory"
+    ],
+    "keywords_vi": [
+      "đau vùng chậu nữ",
+      "đau bụng dưới nữ",
+      "viêm vùng chậu PID",
+      "đau mạn tính vùng chậu",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-perimenopause.json": {
+    "source_url": "https://medlineplus.gov/menopause.html",
+    "content_sha256": "adc69239a1cb9245b61fdc1d97cc0908a619d69d854447b2dfaa1d516d7c872e",
+    "title_en": "Perimenopause",
+    "title_vi": "Tiền mãn kinh",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "perimenopause",
+      "menopausal transition",
+      "premenopausal symptoms",
+      "fluctuating hormones"
+    ],
+    "keywords_vi": [
+      "tiền mãn kinh",
+      "giai đoạn tiền mãn kinh",
+      "bốc hỏa mất ngủ",
+      "chu kỳ kinh rối loạn",
+      "nội tiết nữ"
+    ]
+  },
+  "sexual-health-women-postpartum-care.json": {
+    "source_url": "https://medlineplus.gov/postpartumcare.html",
+    "content_sha256": "0b74e3c81de2f1e9c25197d421a2cfaa626f701e6921562ddf70c449d12ce83e",
+    "title_en": "Postpartum care",
+    "title_vi": "Chăm sóc phụ nữ sau sinh",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "postpartum care",
+      "postnatal recovery",
+      "puerperium",
+      "postpartum wellness",
+      "postpartum depression"
+    ],
+    "keywords_vi": [
+      "chăm sóc sau sinh",
+      "hậu sản",
+      "phục hồi sau sinh",
+      "trầm cảm sau sinh",
+      "sản phụ khoa"
+    ]
+  },
+  "sexual-health-women-pregnancy-symptoms.json": {
+    "source_url": "https://medlineplus.gov/pregnancy.html",
+    "content_sha256": "bb50fa3cd8ed2465be20e416e1dc15a44d26857f40bcaf6b11bef79bb353ae1d",
+    "title_en": "Pregnancy symptoms",
+    "title_vi": "Dấu hiệu nhận biết mang thai sớm",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "pregnancy symptoms",
+      "early pregnancy signs",
+      "morning sickness",
+      "missed period nausea"
+    ],
+    "keywords_vi": [
+      "dấu hiệu mang thai sớm",
+      "triệu chứng có thai",
+      "ốm nghén buồn nôn",
+      "trễ kinh thử thai",
+      "sản khoa"
+    ]
+  },
+  "sexual-health-women-vaginal-discharge.json": {
+    "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+    "content_sha256": "54e4dc18019ade432bf89130093d2a1d702af19306e6e98f3262679ac4cdc40f",
+    "title_en": "Vaginal discharge",
+    "title_vi": "Khí hư bất thường (Huyết trắng)",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "vaginal discharge",
+      "abnormal discharge",
+      "leukorrhea",
+      "vaginitis discharge",
+      "vaginal health"
+    ],
+    "keywords_vi": [
+      "khí hư bất thường",
+      "huyết trắng bệnh lý",
+      "khí hư màu vàng xanh",
+      "viêm âm đạo",
+      "phụ khoa"
+    ]
+  },
+  "sexual-health-women-vaginal-itching.json": {
+    "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+    "content_sha256": "3b4dd129c03b1d51f01030f6689ccda17ffe020da030579c772e7fe2141570df",
+    "title_en": "Vaginal itching",
+    "title_vi": "Ngứa âm đạo",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "vaginal itching",
+      "vulvar pruritus",
+      "vaginal yeast infection",
+      "candidiasis vaginal",
+      "vaginal irritation"
+    ],
+    "keywords_vi": [
+      "ngứa âm đạo",
+      "ngứa vùng kín nữ",
+      "nhiễm nấm candida âm đạo",
+      "rát ngứa phụ khoa",
+      "viêm âm hộ"
+    ]
+  },
+  "sexual-health-women-vaginal-odor.json": {
+    "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+    "content_sha256": "e519a1e3988baf49bfc4905ebf07735926adc8fb5f7077c2de7dad8472404a98",
+    "title_en": "Vaginal odor",
+    "title_vi": "Mùi hôi âm đạo bất thường",
+    "category_en": "Sexual Health (Women)",
+    "category_vi": "Sức khỏe phụ khoa",
+    "keywords_en": [
+      "vaginal odor",
+      "foul vaginal smell",
+      "bacterial vaginosis",
+      "fishy odor discharge"
+    ],
+    "keywords_vi": [
+      "mùi hôi âm đạo",
+      "vùng kín có mùi hôi",
+      "viêm âm đạo do vi khuẩn",
+      "mùi tanh cá âm đạo",
+      "phụ khoa"
+    ]
+  },
+  "sexual-relationships-anxiety-and-sex.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "32d7c217bfc432a09a1396866f319842e44af7931848cab3fa698763f48a618e",
+    "title_en": "Anxiety and sex",
+    "title_vi": "Lo âu và chức năng tình dục",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "anxiety and sex",
+      "sexual performance anxiety",
+      "psychological sexual issues",
+      "intimacy stress"
+    ],
+    "keywords_vi": [
+      "lo âu tình dục",
+      "áp lực tâm lý khi quan hệ",
+      "rối loạn chức năng tình dục",
+      "tâm lý phòng the",
+      "sức khỏe sinh lý"
+    ]
+  },
+  "sexual-relationships-birth-control.json": {
+    "source_url": "https://medlineplus.gov/birthcontrol.html",
+    "content_sha256": "4d1b2c94abf48a7ab3a1d99509005fa3d71b226a2099c851e2eafce0b7f6a048",
+    "title_en": "Birth control",
+    "title_vi": "Các biện pháp tránh thai",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "birth control",
+      "contraception",
+      "contraceptive methods",
+      "family planning",
+      "safe sex"
+    ],
+    "keywords_vi": [
+      "biện pháp tránh thai",
+      "ngừa thai an toàn",
+      "thuốc tránh thai",
+      "bao cao su",
+      "kế hoạch hóa gia đình"
+    ]
+  },
+  "sexual-relationships-communication-with-partner.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "5df9a6ab9b0e9a1f5b16dfc5fb657f9548ee8d0daba7eaaf2aa4153bf2f79dd9",
+    "title_en": "Communication with partner",
+    "title_vi": "Giao tiếp về tình dục với bạn đời",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "communication with partner",
+      "intimate communication",
+      "relationship talk",
+      "sexual communication"
+    ],
+    "keywords_vi": [
+      "giao tiếp với bạn đời",
+      "chia sẻ tình cảm",
+      "nói chuyện về tình dục",
+      "hòa hợp tình cảm",
+      "mối quan hệ"
+    ]
+  },
+  "sexual-relationships-different-sex-drives.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "74aa590a3c61bcaadf39eba0b3d2b2e9518452fbe31b2d4383bede1960b4d620",
+    "title_en": "Different sex drives",
+    "title_vi": "Sự chênh lệch nhu cầu tình dục",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "different sex drives",
+      "libido mismatch",
+      "sexual desire discrepancy",
+      "partner intimacy"
+    ],
+    "keywords_vi": [
+      "chênh lệch nhu cầu tình dục",
+      "khác biệt ham muốn",
+      "hòa hợp tình dục",
+      "giải quyết bất đồng",
+      "quan hệ vợ chồng"
+    ]
+  },
+  "sexual-relationships-emergency-contraception.json": {
+    "source_url": "https://medlineplus.gov/birthcontrol.html",
+    "content_sha256": "944548e7be64915e28369e586fa7604bd385fa578b528919bba41c46f96a8514",
+    "title_en": "Emergency contraception",
+    "title_vi": "Tránh thai khẩn cấp",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "emergency contraception",
+      "morning after pill",
+      "post-coital contraception",
+      "emergency birth control"
+    ],
+    "keywords_vi": [
+      "tránh thai khẩn cấp",
+      "thuốc tránh thai khẩn cấp",
+      "uống thuốc ngừa thai sau quan hệ",
+      "hiệu quả ngừa thai",
+      "sản phụ khoa"
+    ]
+  },
+  "sexual-relationships-high-libido.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "1d708bd050f945e2c3ab63b8b7e84f9d31c5f752f27611701c02671aa38716a2",
+    "title_en": "High libido",
+    "title_vi": "Nhu cầu tình dục cao ở nam giới",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "high libido male",
+      "increased male sex drive",
+      "male hypersexuality",
+      "strong libido"
+    ],
+    "keywords_vi": [
+      "nhu cầu tình dục cao nam",
+      "ham muốn tình dục nam giới",
+      "tăng ham muốn sinh lý",
+      "kiểm soát ham muốn nam",
+      "nam khoa"
+    ]
+  },
+  "sexual-relationships-masturbation.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "44801b4f79d6b2cfcddea2544213241c58fd8e3aa7453ab6e6607fc510181118",
+    "title_en": "Masturbation",
+    "title_vi": "Thủ dâm và sức khỏe sinh lý",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "masturbation",
+      "sexual self-pleasure",
+      "masturbation health",
+      "sexual wellness"
+    ],
+    "keywords_vi": [
+      "thủ dâm",
+      "tự sướng",
+      "sức khỏe tình dục",
+      "thủ dâm điều độ",
+      "giải tỏa sinh lý"
+    ]
+  },
+  "sexual-relationships-partner-wants-more-sex.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "6ba391d2232309fe525e967d028fbc2bb6810cf37daaba7b4cf12f3fdf844671",
+    "title_en": "Partner wants more sex",
+    "title_vi": "Giải quyết bất đồng nhu cầu tình dục",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "partner wants more sex",
+      "sexual frequency mismatch",
+      "couple sexual harmony",
+      "partner expectations"
+    ],
+    "keywords_vi": [
+      "đối tác muốn quan hệ nhiều hơn",
+      "bất đồng ham muốn",
+      "thấu hiểu bạn đời",
+      "cân bằng tình dục",
+      "hạnh phúc lứa đôi"
+    ]
+  },
+  "sexual-relationships-pornography-and-sexual-function.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "496f770eaffcbeb1d9b943f23bfd2c318d79128c8e100416af02e942d2cf6c1f",
+    "title_en": "Pornography and sexual function",
+    "title_vi": "Phim ảnh khiêu dâm và chức năng tình dục",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "pornography effects",
+      "porn and sexual health",
+      "compulsive sexual behavior",
+      "erectile function porn"
+    ],
+    "keywords_vi": [
+      "phim khiêu dâm",
+      "tác hại phim đen",
+      "ảnh hưởng chức năng tình dục",
+      "nghiện phim khiêu dâm",
+      "tâm lý tình dục"
+    ]
+  },
+  "sexual-relationships-relationship-intimacy.json": {
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "content_sha256": "313eb93f2f1e37fdc3ff97e4cbce73f749e377e494a5162f0f78b0fef5013f37",
+    "title_en": "Relationship intimacy",
+    "title_vi": "Sự thân mật trong mối quan hệ tình cảm",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "relationship intimacy",
+      "emotional closeness",
+      "couple bonding",
+      "romantic intimacy"
+    ],
+    "keywords_vi": [
+      "thân mật tình cảm",
+      "gắn kết lứa đôi",
+      "xây dựng mối quan hệ",
+      "hòa hợp cảm xúc",
+      "hạnh phúc gia đình"
+    ]
+  },
+  "sexual-relationships-sti-prevention.json": {
+    "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+    "content_sha256": "fbb548bd8a8e2635bfdaca1899a74ba17b5a3be974837ebf609bb2f6dc88bc85",
+    "title_en": "STI prevention",
+    "title_vi": "Phòng ngừa bệnh lây truyền qua đường tình dục (STI)",
+    "category_en": "Sexual Relationships",
+    "category_vi": "Sức khỏe tình dục",
+    "keywords_en": [
+      "STI prevention",
+      "safe sex practices",
+      "condom use",
+      "sexually transmitted infections",
+      "sexual protection"
+    ],
+    "keywords_vi": [
+      "phòng ngừa STI",
+      "bệnh lây qua đường tình dục",
+      "quan hệ tình dục an toàn",
+      "dùng bao cao su",
+      "sức khỏe sinh sản"
+    ]
+  },
+  "skin-acne.json": {
+    "source_url": "https://medlineplus.gov/acne.html",
+    "content_sha256": "8f599914ae80355d4dec78e1420fa7111ec592b20acf0f6f94f673a4ef3e28b6",
+    "title_en": "Acne",
+    "title_vi": "Mụn trứng cá",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "acne",
+      "acne vulgaris",
+      "pimples",
+      "blackheads",
+      "skin breakouts"
+    ],
+    "keywords_vi": [
+      "mụn trứng cá",
+      "mụn bọc mụn mủ",
+      "bít tắc lỗ chân lông",
+      "chăm sóc da mụn",
+      "da liễu"
+    ]
+  },
+  "skin-cellulitis.json": {
+    "source_url": "https://medlineplus.gov/cellulitis.html",
+    "content_sha256": "0ce1efe3f825d4736707445591618a638502608fbfee056353eb67cfe7da0751",
+    "title_en": "Cellulitis",
+    "title_vi": "Viêm mô tế bào da",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "cellulitis",
+      "bacterial skin infection",
+      "red swollen skin",
+      "skin inflammation"
+    ],
+    "keywords_vi": [
+      "viêm mô tế bào",
+      "nhiễm trùng da sâu",
+      "sưng nóng đỏ đau da",
+      "kháng sinh điều trị",
+      "da liễu"
+    ]
+  },
+  "skin-cold-sores.json": {
+    "source_url": "https://medlineplus.gov/coldsores.html",
+    "content_sha256": "3820dd8005fbcb6e873e58b1c1412b6e0195feaf1778d16e46572b1cd8d9bf6b",
+    "title_en": "Cold sores",
+    "title_vi": "Mụn rộp môi (Herpes môi)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "cold sores",
+      "fever blisters",
+      "herpes simplex 1",
+      "HSV oral",
+      "lip blisters"
+    ],
+    "keywords_vi": [
+      "mụn rộp môi",
+      "herpes môi",
+      "virus HSV-1",
+      "mụn nước quanh miệng",
+      "thuốc kháng virus"
+    ]
+  },
+  "skin-eczema.json": {
+    "source_url": "https://medlineplus.gov/eczema.html",
+    "content_sha256": "092761c2f2d46817b6477519a2c50ccf80d54f6e9481ba410ff597850066be2e",
+    "title_en": "Eczema",
+    "title_vi": "Chàm da (Eczema / Viêm da cơ địa)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "eczema",
+      "atopic dermatitis",
+      "dry itchy skin",
+      "skin barrier",
+      "eczema flare"
+    ],
+    "keywords_vi": [
+      "chàm da",
+      "viêm da cơ địa",
+      "eczema",
+      "ngứa khô da",
+      "dưỡng ẩm da"
+    ]
+  },
+  "skin-fungal-infection.json": {
+    "source_url": "https://medlineplus.gov/fungalinfections.html",
+    "content_sha256": "c9fc2c66351935583f918aae6a26ce2d15a9c80fd8f3c92d96cd73a25aaacea6",
+    "title_en": "Fungal infection",
+    "title_vi": "Nhiễm nấm da",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "fungal infection",
+      "mycosis",
+      "fungal skin infection",
+      "antifungal cream"
+    ],
+    "keywords_vi": [
+      "nấm da",
+      "nhiễm nấm ngoài da",
+      "ngứa ngáy vùng nấm",
+      "thuốc kháng nấm bôi",
+      "da liễu"
+    ]
+  },
+  "skin-hives.json": {
+    "source_url": "https://medlineplus.gov/hives.html",
+    "content_sha256": "684e238f18d92e31fbcc3f6eeb057a57a00bf0867fc76e9a48654a63da7819d4",
+    "title_en": "Hives",
+    "title_vi": "Mề đay (Mày đay dị ứng)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "hives",
+      "urticaria",
+      "allergic welts",
+      "itchy wheals",
+      "skin rash hives"
+    ],
+    "keywords_vi": [
+      "mề đay",
+      "mày đay",
+      "dị ứng nổi sẩn ngứa",
+      "phù mạch",
+      "kháng histamin"
+    ]
+  },
+  "skin-moles.json": {
+    "source_url": "https://medlineplus.gov/moles.html",
+    "content_sha256": "592b43d73db9be7b7c48077f30c3167d546bc5e6847dfb6092d1244943e61304",
+    "title_en": "Moles",
+    "title_vi": "Nốt ruồi và dấu hiệu ung thư da",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "moles",
+      "skin nevi",
+      "melanoma warning signs",
+      "ABCDE mole",
+      "dermatology check"
+    ],
+    "keywords_vi": [
+      "nốt ruồi",
+      "nốt ruồi lạ",
+      "tầm soát ung thư da",
+      "dấu hiệu melanoma ABCDE",
+      "da liễu"
+    ]
+  },
+  "skin-psoriasis.json": {
+    "source_url": "https://medlineplus.gov/psoriasis.html",
+    "content_sha256": "b56891019313bde2fa6c7f9a24c03b3bf618813720592fbc71a36d3b88139612",
+    "title_en": "Psoriasis",
+    "title_vi": "Bệnh vảy nến",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "psoriasis",
+      "plaque psoriasis",
+      "silvery scales",
+      "autoimmune skin",
+      "psoriasis flare"
+    ],
+    "keywords_vi": [
+      "vảy nến",
+      "mảng vảy bạc",
+      "viêm da vảy nến",
+      "bệnh da tự miễn",
+      "da liễu"
+    ]
+  },
+  "skin-ringworm.json": {
+    "source_url": "https://medlineplus.gov/tineainfections.html",
+    "content_sha256": "9cc661a80daf7ac0796ab1af21ff13bbd35e088c509f9a9116aed718f1019468",
+    "title_en": "Ringworm",
+    "title_vi": "Hắc lào (Lác đồng tiền / Nấm da)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "ringworm",
+      "tinea corporis",
+      "fungal ring rash",
+      "dermatophyte",
+      "itchy ring lesion"
+    ],
+    "keywords_vi": [
+      "hắc lào",
+      "lác đồng tiền",
+      "nấm da hình tròn",
+      "ngứa rát da",
+      "thuốc trị nấm"
+    ]
+  },
+  "skin-rosacea.json": {
+    "source_url": "https://medlineplus.gov/rosacea.html",
+    "content_sha256": "7d397582444df7e4d1248472919d99ba042600073c16200afc88af57a3601b4f",
+    "title_en": "Rosacea",
+    "title_vi": "Chứng đỏ mặt (Rosacea)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "rosacea",
+      "facial redness",
+      "flushed skin",
+      "telangiectasia",
+      "sensitive facial skin"
+    ],
+    "keywords_vi": [
+      "chứng đỏ mặt",
+      "rosacea",
+      "đỏ ửng mặt",
+      "giãn mao mạch da mặt",
+      "da nhạy cảm"
+    ]
+  },
+  "skin-scabies.json": {
+    "source_url": "https://medlineplus.gov/scabies.html",
+    "content_sha256": "cf49616b8b470fb3f926bc8ab3942ab8a5063a0e14a4e9dc1835d137b658ab20",
+    "title_en": "Scabies",
+    "title_vi": "Bệnh ghẻ ngứa",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "scabies",
+      "sarcoptes scabiei",
+      "itch mite",
+      "severe night itching",
+      "scabies burrow"
+    ],
+    "keywords_vi": [
+      "bệnh ghẻ",
+      "ghẻ ngứa",
+      "cái ghẻ ký sinh",
+      "ngứa dữ dội ban đêm",
+      "lây nhiễm ghẻ"
+    ]
+  },
+  "skin-shingles.json": {
+    "source_url": "https://medlineplus.gov/shingles.html",
+    "content_sha256": "d29b51cb616c4a4f06b2878f7ad3e410a82e242951fc712512890688e326ee38",
+    "title_en": "Shingles",
+    "title_vi": "Bệnh Zona thần kinh",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "shingles",
+      "herpes zoster",
+      "painful nerve rash",
+      "blister band",
+      "postherpetic neuralgia"
+    ],
+    "keywords_vi": [
+      "zona thần kinh",
+      "bệnh giời leo",
+      "mụn nước đau rát theo dây thần kinh",
+      "virus herpes zoster",
+      "di chứng đau sau zona"
+    ]
+  },
+  "skin-skin-infection.json": {
+    "source_url": "https://medlineplus.gov/skininfections.html",
+    "content_sha256": "ad4bf9708ea0a944e8f2446dc3fb5c279dcfc46b2b946451cf0c5f2d330765d4",
+    "title_en": "Skin infection",
+    "title_vi": "Nhiễm trùng da (Viêm da mủ)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "skin infection",
+      "cutaneous infection",
+      "impetigo",
+      "boils",
+      "bacterial derm"
+    ],
+    "keywords_vi": [
+      "nhiễm trùng da",
+      "viêm da mủ",
+      "nhọt da",
+      "chốc lở",
+      "nhiễm tụ cầu da"
+    ]
+  },
+  "skin-sunburn.json": {
+    "source_url": "https://medlineplus.gov/sunexposure.html",
+    "content_sha256": "c6796b972b16e88cdb8d9fa78173d1d2cf17deddcd31bc082b248e2b4aab06c0",
+    "title_en": "Sunburn",
+    "title_vi": "Cháy nắng (Bỏng nắng)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "sunburn",
+      "solar erythema",
+      "UV radiation damage",
+      "sun protection",
+      "skin peeling"
+    ],
+    "keywords_vi": [
+      "cháy nắng",
+      "bỏng nắng",
+      "đỏ rát da do nắng",
+      "tác hại tia UV",
+      "chống nắng"
+    ]
+  },
+  "skin-warts.json": {
+    "source_url": "https://medlineplus.gov/warts.html",
+    "content_sha256": "ed76227157362d98ac7991b14421c3d75bf599e50c3b750004354dc323242551",
+    "title_en": "Warts",
+    "title_vi": "Mụn cóc (Hạt cơm)",
+    "category_en": "Skin",
+    "category_vi": "Da liễu",
+    "keywords_en": [
+      "warts",
+      "verruca",
+      "plantar warts",
+      "HPV skin lesions",
+      "wart removal"
+    ],
+    "keywords_vi": [
+      "mụn cóc",
+      "hạt cơm",
+      "mụn cóc do HPV",
+      "mụn cóc lòng bàn chân",
+      "tẩy mụn cóc"
+    ]
+  },
+  "urinary-system-blood-in-urine.json": {
+    "source_url": "https://medlineplus.gov/urineandurination.html",
+    "content_sha256": "749c248a569223c915d4dff5c422c36bdf721f7b223962918708fa60ae9d2f20",
+    "title_en": "Blood in urine",
+    "title_vi": "Tiểu ra máu (Đái máu)",
+    "category_en": "Urinary System",
+    "category_vi": "Tiết niệu & Thận",
+    "keywords_en": [
+      "blood in urine",
+      "hematuria",
+      "urinary tract",
+      "kidney bleeding",
+      "red urine"
+    ],
+    "keywords_vi": [
+      "tiểu ra máu",
+      "đái máu",
+      "nước tiểu có máu",
+      "tiết niệu",
+      "nhiễm trùng đường tiểu"
+    ]
+  },
+  "urinary-system-kidney-infection.json": {
+    "source_url": "https://medlineplus.gov/urinarytractinfections.html",
+    "content_sha256": "8284b2661cb4e6de768ebff31e540490b04937e08fa69497adaf1529f3b4a61a",
+    "title_en": "Kidney infection",
+    "title_vi": "Nhiễm trùng thận (Viêm đài bể thận)",
+    "category_en": "Urinary System",
+    "category_vi": "Tiết niệu & Thận",
+    "keywords_en": [
+      "kidney infection",
+      "pyelonephritis",
+      "flank pain",
+      "urinary infection",
+      "renal infection"
+    ],
+    "keywords_vi": [
+      "nhiễm trùng thận",
+      "viêm đài bể thận",
+      "đau hông lưng",
+      "sốt rét run",
+      "tiết niệu"
+    ]
+  },
+  "urinary-system-kidney-stones.json": {
+    "source_url": "https://medlineplus.gov/kidneystones.html",
+    "content_sha256": "086b3a5751301b0a6b15b667f3013d0a8551432999ebf031c927ef052f0d2c12",
+    "title_en": "Kidney stones",
+    "title_vi": "Sỏi thận",
+    "category_en": "Urinary System",
+    "category_vi": "Tiết niệu & Thận",
+    "keywords_en": [
+      "kidney stones",
+      "renal calculi",
+      "nephrolithiasis",
+      "renal colic",
+      "urinary stones"
+    ],
+    "keywords_vi": [
+      "sỏi thận",
+      "cơn đau quặn thận",
+      "tiểu buốt",
+      "tán sỏi",
+      "tiết niệu"
+    ]
+  },
+  "urinary-system-overactive-bladder.json": {
+    "source_url": "https://medlineplus.gov/overactivebladder.html",
+    "content_sha256": "aa6bc8c35c6c5768a7a89becaebe93d060e1fa5f7a9844ca45129f93e96c89c1",
+    "title_en": "Overactive bladder",
+    "title_vi": "Bàng quang tăng hoạt (OAB)",
+    "category_en": "Urinary System",
+    "category_vi": "Tiết niệu & Thận",
+    "keywords_en": [
+      "overactive bladder",
+      "urinary urgency",
+      "frequent urination",
+      "bladder spasms",
+      "nocturia"
+    ],
+    "keywords_vi": [
+      "bàng quang tăng hoạt",
+      "tiểu gấp",
+      "tiểu nhiều lần",
+      "tiểu đêm",
+      "tiết niệu"
+    ]
+  },
+  "urinary-system-urinary-incontinence.json": {
+    "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+    "content_sha256": "001a245026cd56628eed8ae1ae05fa410bc9dda4ae276564219b21aab6b4ccd9",
+    "title_en": "Urinary incontinence",
+    "title_vi": "Tiểu không tự chủ (Són tiểu)",
+    "category_en": "Urinary System",
+    "category_vi": "Tiết niệu & Thận",
+    "keywords_en": [
+      "urinary incontinence",
+      "bladder leakage",
+      "stress incontinence",
+      "urge incontinence",
+      "pelvic floor"
+    ],
+    "keywords_vi": [
+      "tiểu không tự chủ",
+      "són tiểu",
+      "mất kiểm soát tiểu tiện",
+      "tiết niệu",
+      "cơ sàn chậu"
+    ]
+  },
+  "urinary-system-urinary-tract-infection.json": {
+    "source_url": "https://medlineplus.gov/urinarytractinfections.html",
+    "content_sha256": "cf935d61934f70a32e6298f11da5202f630f1ede6c2ca3799850ba2eaaf3a89c",
+    "title_en": "Urinary tract infection",
+    "title_vi": "Nhiễm trùng đường tiết niệu (UTI)",
+    "category_en": "Urinary System",
+    "category_vi": "Tiết niệu & Thận",
+    "keywords_en": [
+      "urinary tract infection",
+      "UTI",
+      "burning urination",
+      "dysuria",
+      "bladder infection"
+    ],
+    "keywords_vi": [
+      "nhiễm trùng đường tiết niệu",
+      "viêm đường tiết niệu",
+      "tiểu buốt rát",
+      "tiểu rắt",
+      "tiết niệu"
+    ]
+  }
+}

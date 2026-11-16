@@ -1,0 +1,49 @@
+{
+  "id": "bursitis",
+  "title": "Bursitis",
+  "title_en": "Bursitis",
+  "title_vi": "Viêm bao hoạt dịch",
+  "category": "Rheumatology & Bone",
+  "category_en": "Rheumatology & Bone",
+  "category_vi": "Cơ xương khớp & Thấp khớp",
+  "search_phrases": [
+    "bursitis",
+    "bursa inflammation",
+    "joint swelling and pain",
+    "shoulder bursitis",
+    "knee bursitis",
+    "viêm bao hoạt dịch",
+    "sưng đau khớp",
+    "viêm bao hoạt dịch khớp vai",
+    "viêm bao hoạt dịch khớp gối",
+    "tràn dịch khớp"
+  ],
+  "keywords_en": [
+    "bursitis",
+    "bursa inflammation",
+    "joint swelling and pain",
+    "shoulder bursitis",
+    "knee bursitis"
+  ],
+  "keywords_vi": [
+    "viêm bao hoạt dịch",
+    "sưng đau khớp",
+    "viêm bao hoạt dịch khớp vai",
+    "viêm bao hoạt dịch khớp gối",
+    "tràn dịch khớp"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/bursitis.html",
+  "summary": "A bursa is a small, fluid-filled sac that acts as a cushion between a bone and other moving parts, such as muscles, tendons, or skin. Bursitis occurs when a bursa becomes inflamed. People get bursitis by overusing a joint. It can also be caused by an injury. It usually occurs at the knee or elbow. Kneeling or leaning your elbows on a hard surface for a long time can make bursitis start. Doing the same kinds of movements every day or putting stress on joints increases your risk. Symptoms of bursitis include pain and swelling. Your doctor will diagnose bursitis with a physical exam and tests such as x-rays and MRIs. He or she may also take fluid from the swollen area to be sure the problem isn't an infection. Treatment of bursitis includes rest, pain medicines, or ice. If there is no improvement, your doctor may inject a drug into the area around the swollen bursa. If the joint still does not improve after 6 to 12 months, you may need surgery to repair damage and relieve pressure on the bursa. NIH: National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+  "page_content": "A bursa is a small, fluid-filled sac that acts as a cushion between a bone and other moving parts, such as muscles, tendons, or skin. Bursitis occurs when a bursa becomes inflamed. People get bursitis by overusing a joint. It can also be caused by an injury. It usually occurs at the knee or elbow. Kneeling or leaning your elbows on a hard surface for a long time can make bursitis start. Doing the same kinds of movements every day or putting stress on joints increases your risk. Symptoms of bursitis include pain and swelling. Your doctor will diagnose bursitis with a physical exam and tests such as x-rays and MRIs. He or she may also take fluid from the swollen area to be sure the problem isn't an infection. Treatment of bursitis includes rest, pain medicines, or ice. If there is no improvement, your doctor may inject a drug into the area around the swollen bursa. If the joint still does not improve after 6 to 12 months, you may need surgery to repair damage and relieve pressure on the bursa. NIH: National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+  "content_sha256": "50803890faf4fe94af8e02b05d66d75e3ff1176d3d5c74711a90d5db200eb80c",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

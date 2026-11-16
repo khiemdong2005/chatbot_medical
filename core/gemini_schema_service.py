@@ -1,42 +1,47 @@
 import os
 import json
 import re
+import logging
 from typing import Dict, Any, Optional
-from google import genai
-from google.genai import types
+
+logger = logging.getLogger("GeminiSchemaService")
 
 def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", api_key: str = "") -> Optional[Dict[str, Any]]:
     """
-    [2.B] Gemini đọc thẳng ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng:
+    [2.B] Gemini đọc thẳng ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng qua Unified LLM Provider:
       - Đơn thuốc: patient_name, dob, age, gender, diagnosis, facility, doctor, date, medications
     """
+    from core.llm_provider import llm_provider
+
     if not api_key:
-        api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
-    if not api_key:
+        api_key = llm_provider.resolve_api_key(profile="ocr")
+    if not llm_provider.is_configured(profile="ocr", explicit_key=api_key):
         return None
 
     try:
-        client = genai.Client(api_key=api_key)
+        from google.genai import types
 
         with open(image_path, "rb") as f:
             file_bytes = f.read()
 
-        ext = os.path.splitext(image_path)[1].lower()
         mime_type = "image/jpeg"
+        ext = os.path.splitext(image_path)[1].lower()
         if ext == ".png":
             mime_type = "image/png"
         elif ext == ".pdf":
             mime_type = "application/pdf"
 
         prompt = """
-Bạn là Hệ thống AI Chuyên gia Đọc & Bóc tách Đơn Thuốc Y Tế Lâm Sàng. Hãy đọc toàn bộ thông tin trên đơn thuốc trong hình ảnh đính kèm và trích xuất dữ liệu chính xác 100%.
+Bạn là Hệ thống AI Chuyên gia Đọc & Bóc tách Đơn Thuốc Y Tế Lâm Sàng. Chỉ ghi nội dung đọc được trên ảnh; không suy đoán chẩn đoán, tên thuốc, liều dùng hay thông tin hành chính. Nếu một trường không đọc rõ, hãy để chuỗi rỗng; nếu một dòng thuốc không đủ căn cứ để xác định tên, đừng tạo dòng đó.
+
+Với đơn thuốc: đọc ảnh theo chiều đúng trước khi tách bảng. Mỗi hàng thuốc thực sự trong phần thân phiếu là một mục medications, có hoặc không có số thứ tự; giữ đúng thứ tự trên ảnh. Phải phân biệt nhãn cột STT/Tên thuốc/Hàm lượng/Số lượng với dữ liệu của hàng. Không tạo mục riêng từ tên hoạt chất trong ngoặc, dòng cách dùng, tiêu đề, ngày tháng, mã chẩn đoán, mã hồ sơ, số lượng đứng riêng, chữ ký hoặc lời dặn. Số lượng ở cột bên phải phải được ghép với đúng dòng thuốc cùng hàng; nếu không đọc chắc, để trống. Chỉ thêm thuốc khi đọc được tên ở hàng thuốc trên ảnh, không suy từ chẩn đoán hay kiến thức y khoa. Trường patient_name chỉ là tên nằm sau nhãn "Họ tên" hoặc "Tên bệnh nhân", bỏ nhãn khỏi giá trị. Trường doctor phải là tên bác sĩ ở phần ký tên; cụm "Bác sĩ điều trị" đứng một mình là nhãn, không phải tên. Trường facility chỉ chứa tên cơ sở y tế đọc rõ ở đầu phiếu.
 
 YÊU CẦU SCHEMA JSON TRẢ VỀ:
 {
   "doc_type": "prescription",
   "patient_name": "Họ và tên bệnh nhân (viết chữ in hoa theo đơn hoặc để trống)",
   "dob": "Ngày tháng năm sinh ghi trên đơn (ví dụ: 20/11/2010 hoặc 1982 nếu chỉ có năm sinh, hoặc để trống)",
-  "age": "Tuổi bệnh nhân nếu ghi rõ trên đơn (ví dụ: 45 hoặc để trống nếu đơn chỉ ghi ngày sinh)",
+  "age": "Tuổi bệnh nhân nếu ghi rõ trên đơn (ví dụ: 40 hoặc để trống)",
   "gender": "Giới tính (Nam hoặc Nữ nếu có trên đơn, hoặc để trống)",
   "diagnosis": "Chẩn đoán bệnh (ghi đầy đủ tên bệnh và mã ICD nếu có trên đơn)",
   "facility": "Tên bệnh viện hoặc phòng khám",
@@ -49,38 +54,29 @@ YÊU CẦU SCHEMA JSON TRẢ VỀ:
       "purpose": "Công dụng chính ngắn gọn (ví dụ: Giảm tiết acid dạ dày, Trị trào ngược dạ dày, Bảo vệ niêm mạc, Giảm co thắt, Bổ gan)",
       "dose": "Liều dùng mỗi lần (ví dụ: 1 viên, 1 gói, 1 ống)",
       "frequency": "Tần suất uống trong ngày (ví dụ: 2 lần / ngày (Sáng 1 - Chiều 1))",
-      "days": "Số ngày uống hoặc tổng số lượng (ví dụ: 60 viên (Đủ 30 ngày))",
-      "usage": "Lưu ý và hướng dẫn cách dùng chi tiết (ví dụ: Uống trước bữa ăn 30 phút. Không bẻ, không nhai viên thuốc giải phóng chậm)"
+      "days": "Số ngày uống hoặc tổng số lượng cấp phát (ví dụ: 20 viên, 10 ngày)",
+      "usage": "Chỉ ghi cách dùng thực sự in trên phiếu hoặc hướng dẫn chi tiết, hoặc để trống"
     }
   ]
 }
 
 BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
 """
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest"]
-        for model in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model,
-                    contents=[
-                        types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
-                        prompt
-                    ]
-                )
-                if res and res.text:
-                    cleaned = res.text.strip()
-                    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-                    cleaned = re.sub(r"\s*```$", "", cleaned).strip()
-                    match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-                    if match:
-                        cleaned = match.group(1).strip()
-                    return json.loads(cleaned)
-            except Exception as me:
-                print(f"[GEMINI SCHEMA MODEL FAIL {model}] {me}")
-                continue
+        # Ưu tiên model OCR được cấu hình; chỉ giữ một model dự phòng còn hỗ trợ.
+        preferred_model = llm_provider.get_default_model("prescription_ocr")
+        candidate_models = list(dict.fromkeys([preferred_model, "gemini-flash-latest"]))
+        contents = [
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+            prompt
+        ]
+        return llm_provider.generate_json(
+            contents=contents,
+            candidate_models=candidate_models,
+            api_key=api_key,
+            operation="prescription_ocr"
+        )
 
     except Exception as e:
-        print(f"[GEMINI SCHEMA EXTRACTION ERROR] {e}")
+        logger.warning("Gemini schema extraction failed (%s).", type(e).__name__)
 
     return None
-

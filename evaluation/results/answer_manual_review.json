@@ -1,0 +1,494 @@
+{
+  "metadata": {
+    "created_at_utc": "2026-11-12T12:52:38.832831+00:00",
+    "audit_sample_size": 12,
+    "selection_criteria": "Diverse cross-section of categories (symptom, disease, medication, emergency treatment) across easy, medium, and hard difficulties in VI and EN."
+  },
+  "cases": [
+    {
+      "id": "ans_001",
+      "query": "Mệt mỏi kéo dài nhiều tuần mà nghỉ ngơi không đỡ thì có thể do những nguyên nhân gì?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/fatigue.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/birthcontrol.html",
+        "https://medlineplus.gov/hepatitis.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/hepatitis.html",
+        "https://medlineplus.gov/birthcontrol.html"
+      ],
+      "answer": "Mệt mỏi kéo dài nhiều tuần mà nghỉ ngơi không đỡ có thể do nhiều nguyên nhân như thiếu máu, rối loạn giấc ngủ, căng thẳng kéo dài, vấn đề về tuyến giáp hoặc các tình trạng mạn tính khác. Bạn có kèm theo triệu chứng nào khác như sụt cân, sốt hay đau nhức ở đâu không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Mệt mỏi kéo dài có thể do lối sống như thiếu ngủ, stress hoặc dinh dưỡng kém",
+        "Cần đi khám bác sĩ để tìm nguyên nhân nếu mệt mỏi ảnh hưởng sinh hoạt"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 66.88,
+        "generation_ms": 2627.09,
+        "total_ms": 2693.97
+      }
+    },
+    {
+      "id": "ans_002",
+      "query": "What are common reasons for feeling dizzy or having vertigo?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html",
+        "https://medlineplus.gov/fainting.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html",
+        "https://medlineplus.gov/fainting.html"
+      ],
+      "answer": "Feeling dizzy or having vertigo can happen for several reasons, such as a sudden drop in blood pressure when standing up quickly, dehydration, inner ear issues, motion sickness, or certain medications. Are you currently experiencing any spinning sensations or lightheadedness?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Dizziness can involve feeling faint, lightheaded, or off-balance",
+        "Common causes include inner ear problems, dehydration, or medication side effects"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER"
+      ],
+      "latency": {
+        "retrieval_ms": 3.43,
+        "generation_ms": 2989.23,
+        "total_ms": 2992.66
+      }
+    },
+    {
+      "id": "ans_003",
+      "query": "Cơn đau đầu như thế nào thì được coi là dấu hiệu cảnh báo nguy hiểm cần đi viện gấp?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/headache.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/migraine.html"
+      ],
+      "answer": "Cơn đau đầu cần đi khám gấp nếu xuất hiện đột ngột và dữ dội như búa bổ, kèm theo sốt cao, cứng cổ, yếu liệt tay chân, tê, nói đớ, nhìn mờ, hoặc đau đầu sau khi bị chấn thương đầu. Bạn hiện đang gặp tình trạng đau đầu hay có triệu chứng nào đi kèm khác không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.333,
+      "missing_facts": [
+        "Đau đầu đột ngột, dữ dội như sét đánh là dấu hiệu cảnh báo nguy hiểm",
+        "Đau đầu sau chấn thương vùng đầu cũng cần đi kiểm tra y tế ngay"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.44,
+        "generation_ms": 2717.19,
+        "total_ms": 2721.63
+      }
+    },
+    {
+      "id": "ans_004",
+      "query": "What causes persistent chronic cough and when should someone see a doctor?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/cough.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/cough.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/cough.html"
+      ],
+      "answer": "A chronic cough lasts longer than 2 to 3 weeks and can be caused by conditions like asthma, allergies, chronic bronchitis, GERD, smoking, or certain medications. You should see a doctor if the cough persists for more than a few weeks, disrupts your sleep, or is accompanied by other concerning symptoms like shortness of breath or unexplained weight loss. Are you experiencing any other symptoms along with the cough?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Seek medical care if coughing up blood, having shortness of breath, or fever"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.94,
+        "generation_ms": 3127.41,
+        "total_ms": 3132.36
+      }
+    },
+    {
+      "id": "ans_007",
+      "query": "Đau bụng âm ỉ vùng thượng vị sau khi ăn no kèm ợ hơi có thể là biểu hiện của vấn đề gì?",
+      "language": "vi",
+      "category": "symptom",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/indigestion.html",
+        "https://medlineplus.gov/gerd.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [
+        "https://medlineplus.gov/abdominalpain.html",
+        "https://medlineplus.gov/hiccups.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/abdominalpain.html",
+        "https://medlineplus.gov/hiccups.html"
+      ],
+      "answer": "Đau bụng âm ỉ vùng thượng vị sau khi ăn no kèm ợ hơi thường gợi ý các vấn đề liên quan đến dạ dày hoặc tiêu hóa, chẳng hạn như đầy bụng, khó tiêu hoặc kích ứng niêm mạc dạ dày. Bạn có cảm giác buồn nôn, nóng rát ngực hayợ chua nhiều không?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 1,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Triệu chứng có thể liên quan đến chứng khó tiêu (indigestion) hoặc trào ngược dạ dày thực quản",
+        "Thói quen ăn quá no, đồ cay nóng, nhiều dầu mỡ có thể làm tăng triệu chứng",
+        "Nên điều chỉnh chế độ ăn, chia nhỏ bữa và đi khám nếu đau kéo dài"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 4.65,
+        "generation_ms": 3329.89,
+        "total_ms": 3334.54
+      }
+    },
+    {
+      "id": "ans_008",
+      "query": "What warning signs accompany chest pain that require immediate emergency evaluation?",
+      "language": "en",
+      "category": "symptom",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/chestpain.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/chestpain.html"
+      ],
+      "returned_sources": [],
+      "answer": "⚠️ **CLINICAL EMERGENCY RED FLAG ALERT:**\n\nThe system detected emergency symptom(s): **Chest pain**.\n\nThese signs may indicate acute cardiovascular, respiratory, or neurological emergencies. To ensure immediate safety:\n1. **Cease all physical exertion** and sit or rest in a well-ventilated space.\n2. **Seek assistance from family or bystanders** and immediately call Emergency Services (**911 / 115**) or proceed to the nearest emergency room.\n3. Do not take self-prescribed sedatives or strong analgesics before medical evaluation.",
+      "risk_score": 90,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": true,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Chest pain spreading to the arm, neck, jaw, or back is a potential heart attack sign",
+        "Accompanying shortness of breath, cold sweat, dizziness, or nausea requires emergency care (115/911)",
+        "Do not wait to see if chest discomfort goes away on its own"
+      ],
+      "citation_correctness": 0.5,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER"
+      ],
+      "latency": {
+        "retrieval_ms": 4.38,
+        "generation_ms": 598.81,
+        "total_ms": 603.19
+      }
+    },
+    {
+      "id": "ans_011",
+      "query": "Bệnh đái tháo đường type 2 là gì và những yếu tố nguy cơ nào dẫn đến bệnh này?",
+      "language": "vi",
+      "category": "disease",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/diabetestype2.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/diabetestype1.html",
+        "https://medlineplus.gov/diabetestype2.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/diabetestype2.html",
+        "https://medlineplus.gov/diabetestype1.html"
+      ],
+      "answer": "Bệnh đái tháo đường type 2 là tình trạng lượng đường trong máu quá cao do cơ thể không sản xuất đủ insulin hoặc không sử dụng insulin hiệu quả. Các yếu tố nguy cơ chính bao gồm thừa cân, ít vận động, có tiền sử gia đình mắc bệnh, trên 45 tuổi, hoặc có tiền sử tiền đái tháo đường.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "Kiểm soát lối sống và theo dõi đường huyết định kỳ là nền tảng quản lý bệnh"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 4.01,
+        "generation_ms": 2894.55,
+        "total_ms": 2898.57
+      }
+    },
+    {
+      "id": "ans_014",
+      "query": "What causes pneumonia and what are its key distinguishing symptoms?",
+      "language": "en",
+      "category": "disease",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/pneumonia.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/pneumonia.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/pneumonia.html"
+      ],
+      "answer": "Pneumonia is an infection in one or both lungs that causes air sacs to fill with fluid or pus, typically caused by bacteria, viruses, or fungi. Key symptoms often include a cough with phlegm, fever, chills, and shortness of breath. Are you or someone you know currently experiencing any of these breathing symptoms?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.667,
+      "missing_facts": [
+        "It can be serious or life-threatening, particularly for elderly and young children"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.1,
+        "generation_ms": 2561.94,
+        "total_ms": 2567.04
+      }
+    },
+    {
+      "id": "ans_023",
+      "query": "Tại sao không nên tự ý dùng thuốc kháng sinh khi bị cảm cúm hoặc viêm họng thông thường?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "easy",
+      "relevant_sources": [
+        "https://medlineplus.gov/antibiotics.html",
+        "https://medlineplus.gov/commoncold.html"
+      ],
+      "retrieval_success": false,
+      "retrieved_sources": [],
+      "returned_sources": [],
+      "answer": "Hầu hết các trường hợp cảm cúm hoặc viêm họng thông thường là do virus gây ra, trong khi kháng sinh chỉ có tác dụng tiêu diệt vi khuẩn. Việc dùng kháng sinh không đúng cách vừa không giúp bệnh mau khỏi vừa dễ dẫn đến tình trạng kháng thuốc, khiến vi khuẩn mạnh hơn và khó điều trị về sau. Bạn nên nghỉ ngơi, uống đủ nước và tham khảo ý kiến bác sĩ hoặc dược sĩ nếu cần dùng thuốc hỗ trợ triệu chứng nhé.",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": true,
+      "is_empty": false,
+      "groundedness": 1,
+      "relevance": 2,
+      "fact_coverage": 1.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "RETRIEVAL_MISS"
+      ],
+      "latency": {
+        "retrieval_ms": 3.85,
+        "generation_ms": 4783.99,
+        "total_ms": 4787.84
+      }
+    },
+    {
+      "id": "ans_024",
+      "query": "What are common risks associated with overuse of over-the-counter pain relievers?",
+      "language": "en",
+      "category": "medication",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/painrelievers.html"
+      ],
+      "answer": "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines. Please try again in a few minutes.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "NSAIDs (like ibuprofen) can increase the risk of stomach ulcers, bleeding, and kidney problems",
+        "Acetaminophen (paracetamol) overuse or combining multiple products can cause serious liver injury",
+        "Always follow package dosing limits and avoid taking multiple medications with the same active ingredient"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.52,
+        "generation_ms": 976.26,
+        "total_ms": 981.78
+      }
+    },
+    {
+      "id": "ans_027",
+      "query": "Dấu hiệu nào cho thấy một người đang bị phản ứng dị ứng thuốc cần cấp cứu?",
+      "language": "vi",
+      "category": "medication",
+      "difficulty": "hard",
+      "relevant_sources": [
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/allergy.html",
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/allergy.html",
+        "https://medlineplus.gov/drugreactions.html"
+      ],
+      "answer": "Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn. Bạn có thể thử gửi lại sau ít phút.",
+      "risk_score": null,
+      "is_degraded": true,
+      "is_emergency_shortcircuit": false,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": null,
+      "relevance": null,
+      "fact_coverage": 0.0,
+      "missing_facts": [
+        "Phản ứng dị ứng nặng (phản vệ) có thể gây khó thở, thở rít, sưng môi, lưỡi, họng hoặc mặt",
+        "Kèm theo nổi mày đay toàn thân, chóng mặt dữ dội, tụt huyết áp hoặc ngất xỉu"
+      ],
+      "citation_correctness": 1.0,
+      "hallucinated": null,
+      "error_taxonomy": [
+        "INCOMPLETE_ANSWER",
+        "MODEL_FAILURE"
+      ],
+      "latency": {
+        "retrieval_ms": 3.6,
+        "generation_ms": 928.08,
+        "total_ms": 931.68
+      }
+    },
+    {
+      "id": "ans_048",
+      "query": "What are basic steps for performing Hands-Only CPR on an unresponsive adult?",
+      "language": "en",
+      "category": "treatment",
+      "difficulty": "medium",
+      "relevant_sources": [
+        "https://medlineplus.gov/cpr.html"
+      ],
+      "retrieval_success": true,
+      "retrieved_sources": [
+        "https://medlineplus.gov/cpr.html"
+      ],
+      "returned_sources": [
+        "https://medlineplus.gov/cpr.html"
+      ],
+      "answer": "To perform Hands-Only CPR on an unresponsive adult, first call emergency services (such as 115 or 911) and get an AED if available. Place the person flat on their back. Put the heel of one hand in the center of their chest, place your other hand on top with locked elbows, and push straight down hard and fast—about 2 inches deep at a steady pace of 100 to 120 pushes per minute—allowing the chest to rise fully between compressions. Continue until professional help arrives or the person begins to breathe normally. Have you or someone nearby already called for emergency medical assistance?",
+      "risk_score": null,
+      "is_degraded": false,
+      "is_emergency_shortcircuit": true,
+      "is_successful_generation": false,
+      "is_empty": false,
+      "groundedness": 2,
+      "relevance": 2,
+      "fact_coverage": 0.0,
+      "missing_facts": [],
+      "citation_correctness": 1.0,
+      "hallucinated": false,
+      "error_taxonomy": [
+        "NONE"
+      ],
+      "latency": {
+        "retrieval_ms": 5.31,
+        "generation_ms": 2874.75,
+        "total_ms": 2880.06
+      }
+    }
+  ]
+}

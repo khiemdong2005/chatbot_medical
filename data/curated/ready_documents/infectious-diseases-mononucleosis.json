@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
   "medlineplus_id": "298",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Mononucleosis",
+  "title_vi": "Bệnh bạch cầu đơn nhân nhiễm trùng",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "mononucleosis",
+    "mono",
+    "Epstein Barr virus",
+    "glandular fever",
+    "swollen tonsils"
+  ],
+  "keywords_vi": [
+    "bạch cầu đơn nhân nhiễm trùng",
+    "virus EBV",
+    "bệnh sốt tuyến",
+    "sưng hạch viêm họng",
+    "mệt mỏi kéo dài"
+  ],
+  "content_hash": "d4be16f44b040289c24a83383850b6cd3158d62884572928a6c59acb610cc882",
+  "content_sha256": "d4be16f44b040289c24a83383850b6cd3158d62884572928a6c59acb610cc882",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

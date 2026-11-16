@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/elbowinjuriesanddisorders.html",
   "medlineplus_id": "506",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Tennis elbow",
+  "title_vi": "Viêm lồi cầu ngoài xương cánh tay (Tennis elbow)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "tennis elbow",
+    "lateral epicondylitis",
+    "elbow tendinitis",
+    "forearm strain"
+  ],
+  "keywords_vi": [
+    "tennis elbow",
+    "viêm lồi cầu ngoài",
+    "đau khuỷu tay",
+    "chấn thương gân khuỷu",
+    "cơ xương khớp"
+  ],
+  "content_hash": "8cadc512b7fab155669e2ac7b4e2335c8f39742d2ba0a14dab684472405e278d",
+  "content_sha256": "8cadc512b7fab155669e2ac7b4e2335c8f39742d2ba0a14dab684472405e278d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

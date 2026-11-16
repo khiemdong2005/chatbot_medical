@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hypoglycemia.html",
   "medlineplus_id": "1264",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hypoglycemia",
+  "title_vi": "Hạ đường huyết (Đường huyết thấp)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "hypoglycemia",
+    "low blood sugar",
+    "low blood glucose",
+    "shakiness sweating",
+    "glucose drop"
+  ],
+  "keywords_vi": [
+    "hạ đường huyết",
+    "đường huyết thấp",
+    "tụt đường huyết",
+    "run tay đói lả",
+    "glucose máu thấp"
+  ],
+  "content_hash": "d4316b88e9d0592231fce648b0aaa3f8639f2967fadc896e99239c349e9e8eb2",
+  "content_sha256": "d4316b88e9d0592231fce648b0aaa3f8639f2967fadc896e99239c349e9e8eb2",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

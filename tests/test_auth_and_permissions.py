@@ -148,3 +148,45 @@ def test_prescription_scan_requires_login_and_links_owner(client, test_users):
         assert doc.owner_id == user_a_id
 
 
+def test_cannot_access_or_modify_other_user_intake_session(client, test_users):
+    """Kiểm thử: User B không thể đọc, sửa hoặc xác nhận phiên hỏi bệnh của User A."""
+    user_a_id = test_users["user_a_id"]
+    user_b_id = test_users["user_b_id"]
+
+    # 1. User A tạo phiên tư vấn
+    with client.session_transaction() as sess:
+        sess["user_id"] = user_a_id
+    res_a = client.post("/api/intake/session", json={})
+    assert res_a.status_code == 200
+    cid_a = res_a.get_json()["conversation_id"]
+
+    # User A cập nhật dữ kiện
+    client.post("/api/intake/update-fact", json={"conversation_id": cid_a, "field": "chief_complaint", "value": "Đau bụng cấp"})
+
+    # 2. User B đăng nhập và thử đọc tóm tắt của User A
+    with client.session_transaction() as sess:
+        sess["user_id"] = user_b_id
+
+    res_b_get = client.get(f"/api/intake/summary/{cid_a}")
+    assert res_b_get.status_code == 403
+
+    # User B thử sửa dữ kiện của User A
+    res_b_update = client.post("/api/intake/update-fact", json={
+        "conversation_id": cid_a,
+        "field": "chief_complaint",
+        "value": "Đã bị User B sửa lậu"
+    })
+    assert res_b_update.status_code == 403
+
+    # User B thử xác nhận thay cho User A
+    res_b_confirm = client.post("/api/intake/confirm-summary", json={"conversation_id": cid_a})
+    assert res_b_confirm.status_code == 403
+
+    # 3. Khách lạ (chưa đăng nhập) cũng bị từ chối 403
+    with client.session_transaction() as sess:
+        sess.clear()
+
+    res_guest_get = client.get(f"/api/intake/summary/{cid_a}")
+    assert res_guest_get.status_code == 403
+
+

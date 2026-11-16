@@ -1,0 +1,49 @@
+{
+  "id": "eyeinjuries",
+  "title": "Eye Injuries",
+  "title_en": "Eye Injuries",
+  "title_vi": "Chấn thương mắt",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "eye injuries",
+    "corneal abrasion",
+    "chemical eye burn",
+    "foreign object in eye",
+    "eye trauma",
+    "chấn thương mắt",
+    "dị vật vào mắt",
+    "rách giác mạc",
+    "bỏng mắt do hóa chất",
+    "sơ cứu mắt"
+  ],
+  "keywords_en": [
+    "eye injuries",
+    "corneal abrasion",
+    "chemical eye burn",
+    "foreign object in eye",
+    "eye trauma"
+  ],
+  "keywords_vi": [
+    "chấn thương mắt",
+    "dị vật vào mắt",
+    "rách giác mạc",
+    "bỏng mắt do hóa chất",
+    "sơ cứu mắt"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/eyeinjuries.html",
+  "summary": "The structure of your face helps protect your eyes from injury. Still, injuries can damage your eye, sometimes severely enough that you could lose your vision. Most eye injuries are preventable. If you play sports or work in certain jobs, you may need protection. The most common type of injury happens when something irritates the outer surface of your eye. Certain jobs such as industrial jobs or hobbies such as carpentry make this type of injury more likely. It's also more likely if you wear contact lenses. Chemicals or heat can burn your eyes. With chemicals, the pain may cause you to close your eyes. This traps the irritant next to the eye and may cause more damage. You should wash out your eye right away while you wait for medical help.",
+  "page_content": "The structure of your face helps protect your eyes from injury. Still, injuries can damage your eye, sometimes severely enough that you could lose your vision. Most eye injuries are preventable. If you play sports or work in certain jobs, you may need protection. The most common type of injury happens when something irritates the outer surface of your eye. Certain jobs such as industrial jobs or hobbies such as carpentry make this type of injury more likely. It's also more likely if you wear contact lenses. Chemicals or heat can burn your eyes. With chemicals, the pain may cause you to close your eyes. This traps the irritant next to the eye and may cause more damage. You should wash out your eye right away while you wait for medical help.",
+  "content_sha256": "71e1acf9dcd801dcb293680fb3b007d7a16f126e6918ce888439d4f5058e0339",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

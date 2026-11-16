@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/postpartumcare.html",
   "medlineplus_id": "4919",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Postpartum care",
+  "title_vi": "Chăm sóc phụ nữ sau sinh",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "postpartum care",
+    "postnatal recovery",
+    "puerperium",
+    "postpartum wellness",
+    "postpartum depression"
+  ],
+  "keywords_vi": [
+    "chăm sóc sau sinh",
+    "hậu sản",
+    "phục hồi sau sinh",
+    "trầm cảm sau sinh",
+    "sản phụ khoa"
+  ],
+  "content_hash": "0b74e3c81de2f1e9c25197d421a2cfaa626f701e6921562ddf70c449d12ce83e",
+  "content_sha256": "0b74e3c81de2f1e9c25197d421a2cfaa626f701e6921562ddf70c449d12ce83e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

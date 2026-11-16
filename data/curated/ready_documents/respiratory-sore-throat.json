@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/sorethroat.html",
   "medlineplus_id": "4748",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Sore throat",
+  "title_vi": "Đau họng (Rát họng)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "sore throat",
+    "pharyngitis",
+    "throat pain",
+    "painful swallowing"
+  ],
+  "keywords_vi": [
+    "đau họng",
+    "rát họng",
+    "viêm họng",
+    "nuốt đau",
+    "nhiễm trùng hầu họng"
+  ],
+  "content_hash": "8716b6880d10aef6370066bf0213d5de21bd40e923b7932b6974b4a9fcd1fb1b",
+  "content_sha256": "8716b6880d10aef6370066bf0213d5de21bd40e923b7932b6974b4a9fcd1fb1b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

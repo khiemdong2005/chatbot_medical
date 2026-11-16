@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/fever.html",
   "medlineplus_id": "511",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "High fever",
+  "title_vi": "Sốt cao",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "high fever",
+    "severe fever",
+    "hyperpyrexia",
+    "febrile seizure"
+  ],
+  "keywords_vi": [
+    "sốt cao",
+    "sốt trên 39 độ",
+    "co giật do sốt",
+    "cấp cứu sốt cao",
+    "hạ sốt nhanh"
+  ],
+  "content_hash": "ceb1fece8e2a2ae9118d93b6c04e06ac6d11d088fbe2b191340a142143eecef6",
+  "content_sha256": "ceb1fece8e2a2ae9118d93b6c04e06ac6d11d088fbe2b191340a142143eecef6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

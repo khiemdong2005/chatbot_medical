@@ -1,0 +1,49 @@
+{
+  "id": "salmonellainfections",
+  "title": "Salmonella Infections (Salmonellosis)",
+  "title_en": "Salmonella Infections (Salmonellosis)",
+  "title_vi": "Nhiễm khuẩn Salmonella (Ngộ độc thực phẩm do Salmonella)",
+  "category": "Infectious Diseases",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "search_phrases": [
+    "salmonella infections",
+    "food poisoning",
+    "gastroenteritis",
+    "contaminated food and poultry",
+    "diarrhea and fever",
+    "nhiễm khuẩn salmonella",
+    "ngộ độc thực phẩm",
+    "tiêu chảy cấp do nhiễm khuẩn",
+    "sốt thương hàn",
+    "nhiễm trùng đường ruột"
+  ],
+  "keywords_en": [
+    "salmonella infections",
+    "food poisoning",
+    "gastroenteritis",
+    "contaminated food and poultry",
+    "diarrhea and fever"
+  ],
+  "keywords_vi": [
+    "nhiễm khuẩn salmonella",
+    "ngộ độc thực phẩm",
+    "tiêu chảy cấp do nhiễm khuẩn",
+    "sốt thương hàn",
+    "nhiễm trùng đường ruột"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/salmonellainfections.html",
+  "summary": "Salmonella is the name of a group of bacteria. In the United States, it is a common cause of foodborne illness . Salmonella occurs in raw poultry, eggs, beef, and sometimes on unwashed fruit and vegetables. You also can get infected after handling pets, especially reptiles like snakes, turtles, and lizards. Symptoms include: Fever Diarrhea Abdominal cramps Headache Possible nausea, vomiting , and loss of appetite Symptoms usually last 4-7 days. Your health care provider diagnoses the infection with a stool test. Most people get better without treatment. Infection can be more serious in older adults, infants, and people with chronic health problems. If Salmonella gets into the bloodstream, it can be serious. The usual treatment is antibiotics. Typhoid fever, a more serious disease caused by Salmonella, is not common in the United States. It frequently occurs in developing countries. NIH: National Institute of Allergy and Infectious Diseases",
+  "page_content": "Salmonella is the name of a group of bacteria. In the United States, it is a common cause of foodborne illness . Salmonella occurs in raw poultry, eggs, beef, and sometimes on unwashed fruit and vegetables. You also can get infected after handling pets, especially reptiles like snakes, turtles, and lizards. Symptoms include: Fever Diarrhea Abdominal cramps Headache Possible nausea, vomiting , and loss of appetite Symptoms usually last 4-7 days. Your health care provider diagnoses the infection with a stool test. Most people get better without treatment. Infection can be more serious in older adults, infants, and people with chronic health problems. If Salmonella gets into the bloodstream, it can be serious. The usual treatment is antibiotics. Typhoid fever, a more serious disease caused by Salmonella, is not common in the United States. It frequently occurs in developing countries. NIH: National Institute of Allergy and Infectious Diseases",
+  "content_sha256": "567a68c11fa6a89440a4bdb15dcd3eb09ebfe9fc28daf580909e7677a7a7353e",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/depression.html",
   "medlineplus_id": "113",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Depression",
+  "title_vi": "Bệnh trầm cảm",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "depression",
+    "major depressive disorder",
+    "low mood",
+    "loss of interest",
+    "mental wellness"
+  ],
+  "keywords_vi": [
+    "trầm cảm",
+    "rối loạn trầm cảm",
+    "buồn chán mất hứng thú",
+    "mệt mỏi u uất",
+    "sức khỏe tâm thần"
+  ],
+  "content_hash": "c748dd0eec146d587b2447b14e0f9ca2813aa9b6aa6b3fd8c9fb8832c5c87f6a",
+  "content_sha256": "c748dd0eec146d587b2447b14e0f9ca2813aa9b6aa6b3fd8c9fb8832c5c87f6a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

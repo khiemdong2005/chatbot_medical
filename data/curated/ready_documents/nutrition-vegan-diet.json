@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/vegetariandiet.html",
   "medlineplus_id": "1613",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vegan diet",
+  "title_vi": "Chế độ ăn thuần chay",
+  "category_en": "Nutrition",
+  "category_vi": "Dinh dưỡng",
+  "keywords_en": [
+    "vegan diet",
+    "plant-based nutrition",
+    "plant protein",
+    "vegan health",
+    "b12 supplementation"
+  ],
+  "keywords_vi": [
+    "chế độ ăn thuần chay",
+    "ăn chay trường",
+    "nguồn đạm thực vật",
+    "thiếu vitamin B12",
+    "dinh dưỡng"
+  ],
+  "content_hash": "622377b062be97eb07b1b038b1d8c8056ea7430888007599273d20ae5786f918",
+  "content_sha256": "622377b062be97eb07b1b038b1d8c8056ea7430888007599273d20ae5786f918",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

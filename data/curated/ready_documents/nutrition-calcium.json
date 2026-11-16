@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/calcium.html",
   "medlineplus_id": "2780",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Calcium",
+  "title_vi": "Canxi và sức khỏe",
+  "category_en": "Nutrition",
+  "category_vi": "Dinh dưỡng",
+  "keywords_en": [
+    "calcium",
+    "bone health",
+    "calcium supplement",
+    "osteoporosis prevention",
+    "dietary minerals"
+  ],
+  "keywords_vi": [
+    "canxi",
+    "bổ sung canxi",
+    "chắc khỏe xương",
+    "loãng xương",
+    "khoáng chất"
+  ],
+  "content_hash": "7b8439a103f9698e9bf19e0a845ea2c440046adb6c7aef47a4e5cfa91d0a317a",
+  "content_sha256": "7b8439a103f9698e9bf19e0a845ea2c440046adb6c7aef47a4e5cfa91d0a317a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

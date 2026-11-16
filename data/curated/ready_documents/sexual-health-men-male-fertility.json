@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/maleinfertility.html",
   "medlineplus_id": "5656",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.933
+  "mapping_score": 0.933,
+  "title_en": "Male fertility",
+  "title_vi": "Khả năng sinh sản ở nam giới",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "male fertility",
+    "sperm quality",
+    "sperm motility",
+    "reproductive health men"
+  ],
+  "keywords_vi": [
+    "khả năng sinh sản nam",
+    "chất lượng tinh trùng",
+    "tăng cường sinh sản nam",
+    "tinh trùng khỏe mạnh",
+    "nam khoa"
+  ],
+  "content_hash": "8902d1daa6ba8284af5b8bf714ddda99d9bdc7be79b71ae8f23ae941e6c316a6",
+  "content_sha256": "8902d1daa6ba8284af5b8bf714ddda99d9bdc7be79b71ae8f23ae941e6c316a6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

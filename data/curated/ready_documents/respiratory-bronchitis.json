@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/chronicbronchitis.html",
   "medlineplus_id": "1608",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Bronchitis",
+  "title_vi": "Viêm phế quản",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "bronchitis",
+    "acute bronchitis",
+    "chest cold",
+    "coughing mucus",
+    "bronchial tubes"
+  ],
+  "keywords_vi": [
+    "viêm phế quản",
+    "viêm phế quản cấp",
+    "ho có đờm",
+    "viêm đường hô hấp dưới",
+    "khó thở rát ngực"
+  ],
+  "content_hash": "9b1210e294ca8238610d46d9df4eb02b1cf55493bc7734e3cc18d4e5fbe4d380",
+  "content_sha256": "9b1210e294ca8238610d46d9df4eb02b1cf55493bc7734e3cc18d4e5fbe4d380",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

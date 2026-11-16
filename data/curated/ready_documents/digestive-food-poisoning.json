@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/foodborneillness.html",
   "medlineplus_id": "254",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Food poisoning",
+  "title_vi": "Ngộ độc thực phẩm",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "food poisoning",
+    "foodborne illness",
+    "food toxicity",
+    "bacterial food contamination"
+  ],
+  "keywords_vi": [
+    "ngộ độc thực phẩm",
+    "ăn phải thức ăn ôi thiu",
+    "buồn nôn tiêu chảy",
+    "đau bụng cấp",
+    "nhiễm khuẩn đường ruột"
+  ],
+  "content_hash": "ead867b06830a5a174de4c4b50a3e716d3109ad79c0d7ad52babddfab21cd90a",
+  "content_sha256": "ead867b06830a5a174de4c4b50a3e716d3109ad79c0d7ad52babddfab21cd90a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

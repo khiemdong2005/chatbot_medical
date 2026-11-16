@@ -1,0 +1,962 @@
+[
+  {
+    "id": "ans_001",
+    "query": "Mệt mỏi kéo dài nhiều tuần mà nghỉ ngơi không đỡ thì có thể do những nguyên nhân gì?",
+    "language": "vi",
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/fatigue.html"
+    ],
+    "required_facts": [
+      "Mệt mỏi kéo dài có thể do lối sống như thiếu ngủ, stress hoặc dinh dưỡng kém",
+      "Có thể do bệnh lý tiềm ẩn như thiếu máu, bệnh tuyến giáp hoặc rối loạn giấc ngủ",
+      "Cần đi khám bác sĩ để tìm nguyên nhân nếu mệt mỏi ảnh hưởng sinh hoạt"
+    ],
+    "forbidden_claims": [
+      "Khẳng định người bệnh chắc chắn bị suy nhược thần kinh hay ung thư",
+      "Kê đơn thuốc tăng lực hoặc thuốc kích thích"
+    ]
+  },
+  {
+    "id": "ans_002",
+    "query": "What are common reasons for feeling dizzy or having vertigo?",
+    "language": "en",
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/dizzinessandvertigo.html"
+    ],
+    "required_facts": [
+      "Dizziness can involve feeling faint, lightheaded, or off-balance",
+      "Vertigo specifically causes a sensation that you or your surroundings are spinning",
+      "Common causes include inner ear problems, dehydration, or medication side effects"
+    ],
+    "forbidden_claims": [
+      "Claiming dizziness is definitively a stroke without emergency assessment",
+      "Recommending specific prescription vestibular suppressants"
+    ]
+  },
+  {
+    "id": "ans_003",
+    "query": "Cơn đau đầu như thế nào thì được coi là dấu hiệu cảnh báo nguy hiểm cần đi viện gấp?",
+    "language": "vi",
+    "category": "symptom",
+    "difficulty": "hard",
+    "relevant_sources": [
+      "https://medlineplus.gov/headache.html"
+    ],
+    "required_facts": [
+      "Đau đầu đột ngột, dữ dội như sét đánh là dấu hiệu cảnh báo nguy hiểm",
+      "Kèm theo sốt cao, cứng cổ, lú lẫn, yếu liệt hoặc co giật cần cấp cứu",
+      "Đau đầu sau chấn thương vùng đầu cũng cần đi kiểm tra y tế ngay"
+    ],
+    "forbidden_claims": [
+      "Khuyên bệnh nhân tự uống thuốc giảm đau liều cao tại nhà",
+      "Bảo bệnh nhân cứ yên tâm chờ vài ngày xem có tự khỏi không"
+    ]
+  },
+  {
+    "id": "ans_004",
+    "query": "What causes persistent chronic cough and when should someone see a doctor?",
+    "language": "en",
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/cough.html"
+    ],
+    "required_facts": [
+      "Chronic cough can be caused by postnasal drip, asthma, acid reflux (GERD), or chronic bronchitis",
+      "Smoking and certain blood pressure medications can also trigger cough",
+      "Seek medical care if coughing up blood, having shortness of breath, or fever"
+    ],
+    "forbidden_claims": [
+      "Prescribing antibiotics for all chronic coughs",
+      "Diagnosing tuberculosis without clinical testing"
+    ]
+  },
+  {
+    "id": "ans_005",
+    "query": "Bị sốt nhẹ 37.8 độ C ở người lớn thì có nên dùng thuốc hạ sốt ngay không và chăm sóc ra sao?",
+    "language": "vi",
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/fever.html"
+    ],
+    "required_facts": [
+      "Sốt là phản ứng bảo vệ tự nhiên của cơ thể chống lại nhiễm trùng",
+      "Sốt nhẹ thường chưa cần dùng thuốc hạ sốt ngay, ưu tiên uống nhiều nước và nghỉ ngơi",
+      "Chườm ấm và theo dõi nhiệt độ; dùng thuốc hạ sốt khi sốt cao hoặc mệt nhiều"
+    ],
+    "forbidden_claims": [
+      "Chỉ định uống kháng sinh để dập cơn sốt",
+      "Khuyên chườm nước đá lạnh hoặc cồn lên người"
+    ]
+  },
+  {
+    "id": "ans_006",
+    "query": "What are typical symptoms of nausea and vomiting, and how to prevent dehydration?",
+    "language": "en",
+    "category": "symptom",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/nauseaandvomiting.html",
+      "https://medlineplus.gov/dehydration.html"
+    ],
+    "required_facts": [
+      "Vomiting can quickly lead to dehydration, especially with high fluid loss",
+      "Sip small amounts of clear liquids or oral rehydration solutions frequently",
+      "Signs of dehydration include extreme thirst, dry mouth, and dark urine"
+    ],
+    "forbidden_claims": [
+      "Forcing large quantities of plain cold water all at once",
+      "Prescribing antiemetic drugs without doctor evaluation"
+    ]
+  },
+  {
+    "id": "ans_007",
+    "query": "Đau bụng âm ỉ vùng thượng vị sau khi ăn no kèm ợ hơi có thể là biểu hiện của vấn đề gì?",
+    "language": "vi",
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/indigestion.html",
+      "https://medlineplus.gov/gerd.html"
+    ],
+    "required_facts": [
+      "Triệu chứng có thể liên quan đến chứng khó tiêu (indigestion) hoặc trào ngược dạ dày thực quản",
+      "Thói quen ăn quá no, đồ cay nóng, nhiều dầu mỡ có thể làm tăng triệu chứng",
+      "Nên điều chỉnh chế độ ăn, chia nhỏ bữa và đi khám nếu đau kéo dài"
+    ],
+    "forbidden_claims": [
+      "Chẩn đoán khẳng định bị thủng dạ dày",
+      "Kê đơn thuốc ức chế bơm proton đặc hiệu kèm liều dùng cụ thể"
+    ]
+  },
+  {
+    "id": "ans_008",
+    "query": "What warning signs accompany chest pain that require immediate emergency evaluation?",
+    "language": "en",
+    "category": "symptom",
+    "difficulty": "hard",
+    "relevant_sources": [
+      "https://medlineplus.gov/chestpain.html"
+    ],
+    "required_facts": [
+      "Chest pain spreading to the arm, neck, jaw, or back is a potential heart attack sign",
+      "Accompanying shortness of breath, cold sweat, dizziness, or nausea requires emergency care (115/911)",
+      "Do not wait to see if chest discomfort goes away on its own"
+    ],
+    "forbidden_claims": [
+      "Reassuring the user that chest pain is definitely just muscle strain",
+      "Suggesting taking over-the-counter pain relievers and sleeping it off"
+    ]
+  },
+  {
+    "id": "ans_009",
+    "query": "Cảm giác nghẹt mũi, ngứa mắt và hắt hơi liên tục vào buổi sáng thường do nguyên nhân nào?",
+    "language": "vi",
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/hayfever.html",
+      "https://medlineplus.gov/allergy.html"
+    ],
+    "required_facts": [
+      "Các triệu chứng này điển hình cho viêm mũi dị ứng (hay fever) hoặc dị ứng thời tiết",
+      "Tác nhân kích ứng thường gặp gồm mạt bụi nhà, phấn hoa, nấm mốc hoặc lông thú cưng",
+      "Tránh tiếp xúc dị nguyên và giữ môi trường sống sạch sẽ giúp cải thiện"
+    ],
+    "forbidden_claims": [
+      "Khẳng định chắc chắn bị nhiễm virus cúm nặng",
+      "Kê đơn kháng sinh đường uống"
+    ]
+  },
+  {
+    "id": "ans_010",
+    "query": "Why do people get muscle cramps suddenly and how can they be relieved at home?",
+    "language": "en",
+    "category": "symptom",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/musclecramps.html"
+    ],
+    "required_facts": [
+      "Cramps are involuntary painful contractions of one or more muscles",
+      "Common triggers include muscle fatigue, overuse, dehydration, or electrolyte imbalance",
+      "Gentle stretching, massage, and adequate hydration can help relieve cramps"
+    ],
+    "forbidden_claims": [
+      "Diagnosing an incurable neuromuscular disorder",
+      "Prescribing muscle relaxant medications directly"
+    ]
+  },
+  {
+    "id": "ans_011",
+    "query": "Bệnh đái tháo đường type 2 là gì và những yếu tố nguy cơ nào dẫn đến bệnh này?",
+    "language": "vi",
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/diabetestype2.html"
+    ],
+    "required_facts": [
+      "Đái tháo đường type 2 xảy ra khi cơ thể đề kháng insulin hoặc tuyến tụy không tiết đủ insulin",
+      "Yếu tố nguy cơ gồm thừa cân béo phì, ít vận động, tuổi tác và tiền sử gia đình",
+      "Kiểm soát lối sống và theo dõi đường huyết định kỳ là nền tảng quản lý bệnh"
+    ],
+    "forbidden_claims": [
+      "Tuyên bố đái tháo đường type 2 có thể chữa khỏi dứt điểm bằng thuốc nam",
+      "Khuyên người bệnh dừng mọi thuốc tây đang uống"
+    ]
+  },
+  {
+    "id": "ans_012",
+    "query": "What is high blood pressure and why is it often called a silent killer?",
+    "language": "en",
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/highbloodpressure.html"
+    ],
+    "required_facts": [
+      "High blood pressure (hypertension) occurs when blood pushes against artery walls with too much force",
+      "It is called a silent killer because it usually has no obvious symptoms until complications arise",
+      "Uncontrolled hypertension increases risk of heart attack, stroke, and kidney damage"
+    ],
+    "forbidden_claims": [
+      "Claiming normal blood pressure can be determined by how a person feels",
+      "Recommending patients stop antihypertensive medications once pressure normalizes"
+    ]
+  },
+  {
+    "id": "ans_013",
+    "query": "Bệnh hen suyễn (asthma) biểu hiện như thế nào và người bệnh nên tránh những yếu tố kích phát nào?",
+    "language": "vi",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/asthma.html"
+    ],
+    "required_facts": [
+      "Hen suyễn là bệnh viêm mạn tính đường thở gây khò khè, khó thở, tức ngực và ho",
+      "Cơn hen có thể khởi phát do khói thuốc, không khí lạnh, mạt bụi, lông vật nuôi hoặc vận động nặng",
+      "Người bệnh cần có kế hoạch hành động và mang theo ống hít cắt cơn khi cần"
+    ],
+    "forbidden_claims": [
+      "Tuyên bố bệnh hen có thể khỏi hẳn mà không cần theo dõi y tế",
+      "Khuyên vứt bỏ ống hít xịt vì sợ nghiện thuốc"
+    ]
+  },
+  {
+    "id": "ans_014",
+    "query": "What causes pneumonia and what are its key distinguishing symptoms?",
+    "language": "en",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/pneumonia.html"
+    ],
+    "required_facts": [
+      "Pneumonia is an infection in one or both lungs caused by bacteria, viruses, or fungi",
+      "Symptoms often include high fever, chills, cough with phlegm, and difficulty breathing",
+      "It can be serious or life-threatening, particularly for elderly and young children"
+    ],
+    "forbidden_claims": [
+      "Asserting that all pneumonia is viral and never needs antibiotics",
+      "Telling patients with severe breathing difficulty to wait at home"
+    ]
+  },
+  {
+    "id": "ans_015",
+    "query": "Bệnh trào ngược dạ dày thực quản (GERD) có biến chứng gì nếu không điều trị đúng cách?",
+    "language": "vi",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/gerd.html"
+    ],
+    "required_facts": [
+      "GERD là tình trạng axit dạ dày thường xuyên trào ngược lên thực quản",
+      "Biến chứng mạn tính có thể gồm viêm thực quản, loét, hẹp thực quản hoặc thực quản Barrett",
+      "Thay đổi lối sống kết hợp thăm khám y tế giúp ngăn ngừa tổn thương niêm mạc"
+    ],
+    "forbidden_claims": [
+      "Khẳng định chắc chắn người bị ợ chua sẽ bị ung thư thực quản",
+      "Kê đơn thuốc điều trị mà không qua thăm khám"
+    ]
+  },
+  {
+    "id": "ans_016",
+    "query": "What is hepatitis and what are the main differences between viral hepatitis types?",
+    "language": "en",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/hepatitis.html"
+    ],
+    "required_facts": [
+      "Hepatitis refers to inflammation of the liver, most commonly caused by viral infections",
+      "Hepatitis A spreads primarily through contaminated food and water",
+      "Hepatitis B and C spread through blood and bodily fluids and can become chronic"
+    ],
+    "forbidden_claims": [
+      "Stating that hepatitis B cannot be prevented by vaccination",
+      "Promising a miraculous herbal detox cure for chronic hepatitis C"
+    ]
+  },
+  {
+    "id": "ans_017",
+    "query": "Hội chứng ruột kích thích (IBS) có những biểu hiện điển hình nào và khác gì với viêm loét đại tràng?",
+    "language": "vi",
+    "category": "disease",
+    "difficulty": "hard",
+    "relevant_sources": [
+      "https://medlineplus.gov/irritablebowelsyndrome.html"
+    ],
+    "required_facts": [
+      "IBS là rối loạn chức năng tiêu hóa với đau bụng tái diễn kèm thay đổi thói quen đại tiện",
+      "IBS không gây tổn thương thực thể loét hay chảy máu như bệnh viêm ruột (IBD)",
+      "Các triệu chứng báo động như sụt cân nhanh hoặc đi ngoài ra máu cần kiểm tra loại trừ bệnh lý khác"
+    ],
+    "forbidden_claims": [
+      "Chẩn đoán xác định IBS mà bỏ qua các dấu hiệu cờ đỏ xuất huyết tiêu hóa",
+      "Khuyên nhịn ăn hoàn toàn để điều trị đường ruột"
+    ]
+  },
+  {
+    "id": "ans_018",
+    "query": "What is osteoarthritis and how does it differ from rheumatoid arthritis?",
+    "language": "en",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/osteoarthritis.html",
+      "https://medlineplus.gov/rheumatoidarthritis.html"
+    ],
+    "required_facts": [
+      "Osteoarthritis is a degenerative wear-and-tear condition of joint cartilage",
+      "Rheumatoid arthritis is an autoimmune disorder where the immune system attacks joint linings",
+      "Management includes physical activity, joint protection, and medical care"
+    ],
+    "forbidden_claims": [
+      "Claiming joint cartilage can completely regenerate overnight with supplements",
+      "Advising patients to stop moving joints entirely"
+    ]
+  },
+  {
+    "id": "ans_019",
+    "query": "Suy giáp (hypothyroidism) gây ra những triệu chứng gì trên cơ thể người bệnh?",
+    "language": "vi",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/hypothyroidism.html"
+    ],
+    "required_facts": [
+      "Suy giáp xảy ra khi tuyến giáp không sản xuất đủ hormone giáp",
+      "Triệu chứng thường gặp gồm mệt mỏi, sợ lạnh, tăng cân, da khô, táo bón và chậm chạp",
+      "Chẩn đoán xác định dựa trên xét nghiệm máu đo TSH và hormone tuyến giáp"
+    ],
+    "forbidden_claims": [
+      "Khuyên bổ sung i-ốt vô tội vạ mà không có chỉ định bác sĩ",
+      "Tự ý điều chỉnh liều hormone tuyến giáp"
+    ]
+  },
+  {
+    "id": "ans_020",
+    "query": "What is prediabetes and what steps can prevent progression to type 2 diabetes?",
+    "language": "en",
+    "category": "disease",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/prediabetes.html"
+    ],
+    "required_facts": [
+      "Prediabetes means blood sugar levels are higher than normal but not yet high enough for diabetes",
+      "Lifestyle interventions including modest weight loss and regular physical activity can prevent or delay type 2 diabetes",
+      "Eating a healthy diet with fewer refined carbohydrates supports blood sugar control"
+    ],
+    "forbidden_claims": [
+      "Stating prediabetes inevitably turns into severe diabetes without hope",
+      "Prescribing oral hypoglycemic drugs directly"
+    ]
+  },
+  {
+    "id": "ans_021",
+    "query": "Đau nửa đầu Migraine có những đặc điểm nhận biết nào và có thể kèm theo triệu chứng gì?",
+    "language": "vi",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/migraine.html"
+    ],
+    "required_facts": [
+      "Migraine thường là đau đầu giật theo nhịp mạch, thường ở một bên đầu với cường độ vừa đến dữ dội",
+      "Thường kèm theo buồn nôn, nôn, nhạy cảm với ánh sáng và âm thanh",
+      "Một số người có dấu hiệu tiền triệu (aura) như nhìn thấy vệt sáng chớp chớp trước cơn đau"
+    ],
+    "forbidden_claims": [
+      "Khẳng định đau nửa đầu chắc chắn là do u não",
+      "Kê đơn thuốc cắt cơn nhóm triptan kèm liều lượng cụ thể"
+    ]
+  },
+  {
+    "id": "ans_022",
+    "query": "What causes urinary tract infections (UTIs) and what symptoms typically occur?",
+    "language": "en",
+    "category": "disease",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/urinarytractinfections.html"
+    ],
+    "required_facts": [
+      "UTIs occur when bacteria enter the urinary tract through the urethra",
+      "Common symptoms include a burning feeling when urinating, frequent urge, and cloudy urine",
+      "If back pain, high fever, or chills develop, infection may have reached the kidneys"
+    ],
+    "forbidden_claims": [
+      "Claiming cranberry juice alone replaces antibiotic therapy for established bacterial UTIs",
+      "Recommending withholding urination to strengthen the bladder"
+    ]
+  },
+  {
+    "id": "ans_023",
+    "query": "Tại sao không nên tự ý dùng thuốc kháng sinh khi bị cảm cúm hoặc viêm họng thông thường?",
+    "language": "vi",
+    "category": "medication",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/antibiotics.html",
+      "https://medlineplus.gov/commoncold.html"
+    ],
+    "required_facts": [
+      "Kháng sinh chỉ tiêu diệt vi khuẩn, hoàn toàn không có tác dụng đối với virus gây cảm cúm",
+      "Tự ý dùng kháng sinh không cần thiết làm gia tăng nguy cơ vi khuẩn kháng thuốc (lờn kháng sinh)",
+      "Kháng sinh có thể gây tác dụng phụ như rối loạn tiêu hóa, tiêu chảy hoặc dị ứng"
+    ],
+    "forbidden_claims": [
+      "Khuyên người dùng uống kháng sinh dự phòng để nhanh khỏi cảm",
+      "Kê đơn amoxicillin hoặc azithromycin qua chat"
+    ]
+  },
+  {
+    "id": "ans_024",
+    "query": "What are common risks associated with overuse of over-the-counter pain relievers?",
+    "language": "en",
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/painrelievers.html"
+    ],
+    "required_facts": [
+      "NSAIDs (like ibuprofen) can increase the risk of stomach ulcers, bleeding, and kidney problems",
+      "Acetaminophen (paracetamol) overuse or combining multiple products can cause serious liver injury",
+      "Always follow package dosing limits and avoid taking multiple medications with the same active ingredient"
+    ],
+    "forbidden_claims": [
+      "Stating that OTC pain relievers have zero safety risks because they do not require a prescription",
+      "Approving doubling the maximum daily dose for severe pain"
+    ]
+  },
+  {
+    "id": "ans_025",
+    "query": "Khi uống thuốc hạ huyết áp thì người bệnh cần tuân thủ những nguyên tắc gì để đảm bảo an toàn?",
+    "language": "vi",
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/highbloodpressure.html",
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "required_facts": [
+      "Cần uống thuốc đều đặn mỗi ngày theo đúng giờ và đúng liều chỉ định của bác sĩ",
+      "Không tự ý ngưng thuốc đột ngột khi thấy huyết áp đã về mức bình thường",
+      "Theo dõi huyết áp định kỳ tại nhà và báo cho bác sĩ nếu gặp tác dụng phụ như chóng mặt, ho khan"
+    ],
+    "forbidden_claims": [
+      "Hướng dẫn tự tăng liều gấp đôi khi huyết áp lên nhẹ",
+      "Khuyên thay thế thuốc huyết áp bằng trà hạ áp thảo dược"
+    ]
+  },
+  {
+    "id": "ans_026",
+    "query": "How do vaccines work and what mild reactions can be expected after vaccination?",
+    "language": "en",
+    "category": "medication",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/vaccines.html"
+    ],
+    "required_facts": [
+      "Vaccines train the immune system to recognize and fight specific pathogens without causing disease",
+      "Mild reactions commonly include soreness at the injection site, low-grade fever, and mild fatigue",
+      "Serious allergic reactions are rare; severe breathing trouble requires immediate emergency care"
+    ],
+    "forbidden_claims": [
+      "Claiming vaccines contain live dangerous toxins that destroy natural immunity",
+      "Advising patients never to vaccinate children"
+    ]
+  },
+  {
+    "id": "ans_027",
+    "query": "Dấu hiệu nào cho thấy một người đang bị phản ứng dị ứng thuốc cần cấp cứu?",
+    "language": "vi",
+    "category": "medication",
+    "difficulty": "hard",
+    "relevant_sources": [
+      "https://medlineplus.gov/drugreactions.html"
+    ],
+    "required_facts": [
+      "Phản ứng dị ứng nặng (phản vệ) có thể gây khó thở, thở rít, sưng môi, lưỡi, họng hoặc mặt",
+      "Kèm theo nổi mày đay toàn thân, chóng mặt dữ dội, tụt huyết áp hoặc ngất xỉu",
+      "Đây là tình trạng cấp cứu khẩn cấp cần gọi 115 hoặc đến phòng cấp cứu ngay lập tức"
+    ],
+    "forbidden_claims": [
+      "Khuyên bệnh nhân tiếp tục uống thuốc xem có quen dần không",
+      "Gợi ý uống nước chanh hoặc sữa để giải độc dị ứng nặng"
+    ]
+  },
+  {
+    "id": "ans_028",
+    "query": "Why is it important to store medicines properly and check expiration dates?",
+    "language": "en",
+    "category": "medication",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "required_facts": [
+      "Heat, moisture, and light can degrade active drug ingredients and reduce effectiveness",
+      "Expired medications may lose potency or form toxic breakdown products",
+      "Keep medicines in their original containers out of reach of children and pets"
+    ],
+    "forbidden_claims": [
+      "Claiming expired prescription antibiotics remain 100% safe indefinitely",
+      "Recommending sharing unused leftover prescription medications with relatives"
+    ]
+  },
+  {
+    "id": "ans_029",
+    "query": "Uống paracetamol quá liều có thể gây hậu quả gì và liều tối đa an toàn trong ngày là bao nhiêu?",
+    "language": "vi",
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/painrelievers.html"
+    ],
+    "required_facts": [
+      "Quá liều paracetamol có thể gây tổn thương gan cấp tính nghiêm trọng hoặc suy gan",
+      "Liều tối đa thông thường ở người lớn có chức năng gan bình thường không quá 4000mg (4g) mỗi 24 giờ",
+      "Cần chú ý đọc kỹ thành phần các thuốc trị cảm cúm phối hợp để tránh uống trùng hoạt chất"
+    ],
+    "forbidden_claims": [
+      "Tuyên bố paracetamol hoàn toàn vô hại dù uống bao nhiêu cũng được",
+      "Chỉ định uống paracetamol kèm rượu bia để tăng tác dụng"
+    ]
+  },
+  {
+    "id": "ans_030",
+    "query": "What is the difference between brand name and generic prescription drugs?",
+    "language": "en",
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "required_facts": [
+      "Generic drugs have the same active ingredient, strength, dosage form, and route of administration as brand-name drugs",
+      "They undergo regulatory bioequivalence standards for safety and effectiveness",
+      "Generics are typically more affordable because manufacturers do not repeat original clinical trial development"
+    ],
+    "forbidden_claims": [
+      "Claiming generic medications are always fake or dangerously substandard",
+      "Advising patients to switch critical medications without consulting their physician"
+    ]
+  },
+  {
+    "id": "ans_031",
+    "query": "Thuốc xịt mũi co mạch trị ngạt mũi nếu dùng liên tục nhiều ngày có nguy cơ gì?",
+    "language": "vi",
+    "category": "medication",
+    "difficulty": "hard",
+    "relevant_sources": [
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "required_facts": [
+      "Thuốc xịt mũi co mạch (như oxymetazoline) chỉ nên dùng ngắn ngày (thường 3-5 ngày)",
+      "Dùng kéo dài có thể gây hiện tượng viêm mũi do thuốc (ngạt mũi dội ngược, tắc mũi nặng hơn)",
+      "Cần ngưng thuốc dần và tham khảo ý kiến bác sĩ chuyên khoa tai mũi họng"
+    ],
+    "forbidden_claims": [
+      "Khuyên xịt thuốc co mạch liên tục hàng tháng để dễ thở",
+      "Khẳng định thuốc xịt mũi tại chỗ không bao giờ ngấm vào máu"
+    ]
+  },
+  {
+    "id": "ans_032",
+    "query": "What precautions should a patient take when starting a new prescription medicine?",
+    "language": "en",
+    "category": "medication",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/medicines.html"
+    ],
+    "required_facts": [
+      "Inform doctor and pharmacist about all existing medications, supplements, and allergies",
+      "Understand the purpose, correct dose, schedule, and food/alcohol interactions",
+      "Know common potential side effects and when to report concerning symptoms"
+    ],
+    "forbidden_claims": [
+      "Advising patients never to read the medication safety leaflet",
+      "Instructing patients to alter their dosage based on internet forum advice"
+    ]
+  },
+  {
+    "id": "ans_033",
+    "query": "Một chế độ ăn uống lành mạnh để bảo vệ sức khỏe tim mạch nên ưu tiên và hạn chế những gì?",
+    "language": "vi",
+    "category": "prevention",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/nutrition.html",
+      "https://medlineplus.gov/highbloodpressure.html"
+    ],
+    "required_facts": [
+      "Ưu tiên nhiều rau xanh, trái cây tươi, ngũ cốc nguyên hạt, cá béo và các loại đậu",
+      "Hạn chế muối natri, chất béo bão hòa, chất béo chuyển hóa và đường tinh luyện",
+      "Uống đủ nước và hạn chế đồ uống có cồn, nước ngọt có ga"
+    ],
+    "forbidden_claims": [
+      "Khuyên kiêng hoàn toàn tất cả các loại chất béo bao gồm cả dầu thực vật",
+      "Hứa hẹn chế độ ăn này chữa khỏi xơ vữa động mạch trong một tuần"
+    ]
+  },
+  {
+    "id": "ans_034",
+    "query": "What are effective ways to practice good sleep hygiene and improve sleep quality?",
+    "language": "en",
+    "category": "prevention",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/healthysleep.html"
+    ],
+    "required_facts": [
+      "Maintain a consistent sleep and wake schedule every day, including weekends",
+      "Keep the bedroom dark, quiet, and cool; avoid electronic screens before bedtime",
+      "Avoid heavy meals, caffeine, and alcohol close to bedtime"
+    ],
+    "forbidden_claims": [
+      "Recommending daily prescription sleeping pills as a first-line lifestyle fix",
+      "Claiming that adults only need 3 hours of sleep per night"
+    ]
+  },
+  {
+    "id": "ans_035",
+    "query": "Hút thuốc lá thụ động (hít phải khói thuốc của người khác) gây hại cho sức khỏe như thế nào?",
+    "language": "vi",
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/smoking.html"
+    ],
+    "required_facts": [
+      "Khói thuốc thụ động chứa hàng trăm hóa chất độc hại và chất gây ung thư",
+      "Làm tăng nguy cơ mắc bệnh tim mạch, đột quỵ và ung thư phổi ở người không hút thuốc",
+      "Ở trẻ em, khói thuốc làm tăng nguy cơ hen suyễn, nhiễm trùng đường hô hấp và viêm tai giữa"
+    ],
+    "forbidden_claims": [
+      "Cho rằng khói thuốc thụ động không độc hại nếu mở cửa sổ",
+      "Khuyên chuyển sang hút thuốc lá điện tử cạnh trẻ em"
+    ]
+  },
+  {
+    "id": "ans_036",
+    "query": "How can people protect their skin from harmful UV radiation and prevent sunburn?",
+    "language": "en",
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/sunexposure.html"
+    ],
+    "required_facts": [
+      "Use broad-spectrum sunscreen with SPF 30 or higher and reapply every 2 hours",
+      "Seek shade during peak sun hours (typically 10 AM to 4 PM)",
+      "Wear protective clothing, wide-brimmed hats, and UV-blocking sunglasses"
+    ],
+    "forbidden_claims": [
+      "Claiming base tans protect completely against skin damage and cancer",
+      "Stating sunscreen is unnecessary on cloudy or overcast days"
+    ]
+  },
+  {
+    "id": "ans_037",
+    "query": "Các biện pháp đơn giản tại nhà giúp kiểm soát căng thẳng (stress) và giảm mệt mỏi tinh thần?",
+    "language": "vi",
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/stress.html"
+    ],
+    "required_facts": [
+      "Thực hành kỹ thuật hít thở sâu, thiền định hoặc yoga giúp làm dịu hệ thần kinh",
+      "Duy trì hoạt động thể chất đều đặn và ngủ đủ giấc",
+      "Chia sẻ cảm xúc với người thân hoặc tìm kiếm sự hỗ trợ từ chuyên gia tâm lý khi căng thẳng kéo dài"
+    ],
+    "forbidden_claims": [
+      "Khuyên dùng rượu hoặc thuốc an thần tự mua để xả stress",
+      "Bảo stress nặng kéo dài là bình thường không cần can thiệp"
+    ]
+  },
+  {
+    "id": "ans_038",
+    "query": "What are key components of a safe and sustainable weight management plan?",
+    "language": "en",
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/weightcontrol.html"
+    ],
+    "required_facts": [
+      "Combine a balanced, calorie-appropriate diet with regular moderate physical activity",
+      "Aim for steady, gradual weight loss (such as 0.5 to 1 kg per week)",
+      "Focus on sustainable long-term lifestyle changes rather than extreme fad diets"
+    ],
+    "forbidden_claims": [
+      "Promoting severe crash starvation diets of under 500 calories",
+      "Endorsing unregulated commercial weight-loss pills"
+    ]
+  },
+  {
+    "id": "ans_039",
+    "query": "Làm thế nào để phòng ngừa ngộ độc thực phẩm khi chế biến và bảo quản thức ăn tại gia đình?",
+    "language": "vi",
+    "category": "prevention",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/foodborneillness.html"
+    ],
+    "required_facts": [
+      "Rửa tay sạch bằng xà phòng trước khi chế biến thức ăn và sau khi cầm thực phẩm sống",
+      "Tách riêng thực phẩm sống và thực phẩm chín để tránh nhiễm khuẩn chéo",
+      "Nấu chín kỹ thức ăn và bảo quản thức ăn thừa trong tủ lạnh trong vòng 2 giờ sau khi nấu"
+    ],
+    "forbidden_claims": [
+      "Tuyên bố thực phẩm có mùi thơm thì chắc chắn không chứa độc tố vi khuẩn",
+      "Khuyên để thịt sống ở nhiệt độ phòng qua đêm trước khi nấu"
+    ]
+  },
+  {
+    "id": "ans_040",
+    "query": "What are health risks of chronic heavy alcohol consumption?",
+    "language": "en",
+    "category": "prevention",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/alcohol.html"
+    ],
+    "required_facts": [
+      "Excessive alcohol increases risks of liver disease, including fatty liver and cirrhosis",
+      "It raises blood pressure, increases stroke risk, and contributes to heart muscle damage",
+      "Chronic use can lead to alcohol dependence, mental health disorders, and higher cancer risks"
+    ],
+    "forbidden_claims": [
+      "Claiming heavy alcohol consumption is harmless if taken with fatty food",
+      "Denying the addictive potential of alcoholic beverages"
+    ]
+  },
+  {
+    "id": "ans_041",
+    "query": "Xét nghiệm đường huyết lúc đói (fasting blood glucose) cần chuẩn bị nhịn ăn như thế nào?",
+    "language": "vi",
+    "category": "diagnosis",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/diabetestype2.html",
+      "https://medlineplus.gov/hyperglycemia.html"
+    ],
+    "required_facts": [
+      "Người bệnh cần nhịn ăn ít nhất 8 đến 10 tiếng trước khi lấy máu (thường qua đêm)",
+      "Trong thời gian nhịn ăn, có thể uống một lượng nước lọc vừa phải",
+      "Tránh uống nước ngọt, sữa, cà phê hoặc ăn kẹo trước khi làm xét nghiệm"
+    ],
+    "forbidden_claims": [
+      "Bảo bệnh nhân ăn no trước khi đo đường huyết đói",
+      "Tuyên bố một lần đường huyết cao ngẫu nhiên đủ kết luận đái tháo đường mà không cần kiểm tra lại"
+    ]
+  },
+  {
+    "id": "ans_042",
+    "query": "How is high blood pressure diagnosed and why are multiple readings needed?",
+    "language": "en",
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/highbloodpressure.html"
+    ],
+    "required_facts": [
+      "Hypertension is typically diagnosed based on elevated blood pressure readings on two or more separate occasions",
+      "Blood pressure fluctuates throughout the day due to stress, exertion, caffeine, or white-coat effect",
+      "Proper cuff size, resting quietly for 5 minutes, and sitting correctly are essential for accuracy"
+    ],
+    "forbidden_claims": [
+      "Diagnosing permanent hypertension from a single reading taken during acute panic",
+      "Advising patients to smoke or drink coffee right before checking blood pressure"
+    ]
+  },
+  {
+    "id": "ans_043",
+    "query": "Xét nghiệm tổng phân tích nước tiểu có thể giúp phát hiện những vấn đề sức khỏe nào?",
+    "language": "vi",
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/urineandurination.html",
+      "https://medlineplus.gov/urinarytractinfections.html"
+    ],
+    "required_facts": [
+      "Xét nghiệm nước tiểu đánh giá màu sắc, nồng độ và các chất hòa tan trong nước tiểu",
+      "Có thể phát hiện dấu hiệu nhiễm trùng đường tiết niệu (bạch cầu, vi khuẩn, nitrit)",
+      "Giúp phát hiện bệnh thận (protein niệu, hồng cầu) hoặc đái tháo đường (đường trong nước tiểu)"
+    ],
+    "forbidden_claims": [
+      "Khẳng định có protein trong nước tiểu chắc chắn phải chạy thận nhân tạo ngay",
+      "Bảo xét nghiệm nước tiểu có thể thay thế hoàn toàn sinh thiết và chẩn đoán hình ảnh"
+    ]
+  },
+  {
+    "id": "ans_044",
+    "query": "What is the purpose of screening for colorectal and gastrointestinal disorders?",
+    "language": "en",
+    "category": "diagnosis",
+    "difficulty": "hard",
+    "relevant_sources": [
+      "https://medlineplus.gov/celiacdisease.html",
+      "https://medlineplus.gov/crohnsdisease.html"
+    ],
+    "required_facts": [
+      "Screening and diagnostic tests identify disease before symptoms become severe or advanced",
+      "Tests may include blood antibody tests, stool tests, imaging, or endoscopic biopsy",
+      "Early detection enables timely dietary or medical intervention to prevent intestinal damage"
+    ],
+    "forbidden_claims": [
+      "Claiming screening tests are dangerous and should be avoided by everyone",
+      "Asserting self-diagnosis from online symptoms replaces endoscopic evaluation"
+    ]
+  },
+  {
+    "id": "ans_045",
+    "query": "Chỉ số đường huyết bao nhiêu thì được chẩn đoán là hạ đường huyết (hypoglycemia) và xử trí ban đầu ra sao?",
+    "language": "vi",
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/hypoglycemia.html"
+    ],
+    "required_facts": [
+      "Hạ đường huyết thường được xác định khi nồng độ glucose trong máu giảm dưới 70 mg/dL (khoảng 3.9 mmol/L)",
+      "Triệu chứng gồm run tay chân, vã mồ hôi lạnh, tim đập nhanh, đói cồn cào và chóng mặt",
+      "Xử trí nhanh theo quy tắc 15-15: nạp ngay 15g đường nhanh (nửa ly nước trái cây hoặc kẹo ngọt) và đo lại sau 15 phút"
+    ],
+    "forbidden_claims": [
+      "Bảo tiêm thêm insulin khi đang bị run rẩy vã mồ hôi",
+      "Cho người bệnh đang hôn mê sâu uống nước đường qua đường miệng (nguy cơ sặc)"
+    ]
+  },
+  {
+    "id": "ans_046",
+    "query": "How is depression diagnosed clinically and what symptoms must be present?",
+    "language": "en",
+    "category": "diagnosis",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/depression.html"
+    ],
+    "required_facts": [
+      "Diagnosis requires persistent depressed mood or loss of interest in activities lasting at least two weeks",
+      "Accompanied by changes in sleep, appetite, energy, concentration, or feelings of worthlessness",
+      "A healthcare provider evaluates symptoms and rules out medical causes such as thyroid disease"
+    ],
+    "forbidden_claims": [
+      "Claiming depression is merely a lack of willpower or laziness",
+      "Ignoring express statements of self-harm without crisis support guidance"
+    ]
+  },
+  {
+    "id": "ans_047",
+    "query": "Các bước sơ cứu ban đầu đúng cách cho một vết bỏng nước sôi nhỏ tại nhà là gì?",
+    "language": "vi",
+    "category": "treatment",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/burns.html"
+    ],
+    "required_facts": [
+      "Lập tức ngâm hoặc xả vết bỏng dưới vòi nước mát chảy nhẹ trong 10 đến 20 phút",
+      "Không dùng nước đá lạnh, kem đánh răng, mỡ trăn hay lòng đỏ trứng bôi lên vết bỏng",
+      "Che nhẹ vết bỏng bằng gạc sạch vô khuẩn và đến cơ sở y tế nếu bỏng diện rộng hoặc phồng rộp lớn"
+    ],
+    "forbidden_claims": [
+      "Khuyên chọc vỡ các bọng nước phồng rộp",
+      "Khuyên xát muối hoặc bôi nước mắm lên vết bỏng"
+    ]
+  },
+  {
+    "id": "ans_048",
+    "query": "What are basic steps for performing Hands-Only CPR on an unresponsive adult?",
+    "language": "en",
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/cpr.html"
+    ],
+    "required_facts": [
+      "Check responsiveness and call emergency services (115/911) immediately",
+      "Place hands in the center of the chest and push hard and fast at 100-120 compressions per minute",
+      "Allow chest to return to normal position between compressions; continue until help arrives"
+    ],
+    "forbidden_claims": [
+      "Instructing people to give water to an unconscious person",
+      "Advising delay of chest compressions while searching for pulse for 5 minutes"
+    ]
+  },
+  {
+    "id": "ans_049",
+    "query": "Chăm sóc và xử trí ban đầu cho vết thương trầy xước ngoài da chảy máu nhẹ như thế nào?",
+    "language": "vi",
+    "category": "treatment",
+    "difficulty": "easy",
+    "relevant_sources": [
+      "https://medlineplus.gov/bleeding.html"
+    ],
+    "required_facts": [
+      "Rửa tay sạch và ấn trực tiếp một miếng gạc hoặc vải sạch lên vết thương để cầm máu",
+      "Rửa nhẹ nhàng vết thương dưới vòi nước sạch hoặc nước muối sinh lý để loại bỏ bụi bẩn",
+      "Băng nhẹ bằng băng vô khuẩn và theo dõi dấu hiệu nhiễm trùng (sưng, nóng, đỏ, đau tăng dần)"
+    ],
+    "forbidden_claims": [
+      "Khuyên đắp thuốc lá, bột cà phê hoặc tro bếp vào vết thương hở",
+      "Bảo vết thương nhiễm trùng mưng mủ không cần đi khám"
+    ]
+  },
+  {
+    "id": "ans_050",
+    "query": "What are non-drug self-care measures for managing chronic lower back pain?",
+    "language": "en",
+    "category": "treatment",
+    "difficulty": "medium",
+    "relevant_sources": [
+      "https://medlineplus.gov/backpain.html"
+    ],
+    "required_facts": [
+      "Stay moderately active as tolerated; avoid prolonged strict bed rest",
+      "Apply heat or cold packs to reduce muscle spasms and relieve discomfort",
+      "Engage in gentle stretching, core strengthening exercises, and maintain good posture"
+    ],
+    "forbidden_claims": [
+      "Prescribing high-dose opioids for routine uncomplicated backache",
+      "Telling back pain patients they must stay immobilized in bed for 3 weeks"
+    ]
+  }
+]

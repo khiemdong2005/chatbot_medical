@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/vaginaldiseases.html",
   "medlineplus_id": "451",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vaginal discharge",
+  "title_vi": "Khí hư bất thường (Huyết trắng)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "vaginal discharge",
+    "abnormal discharge",
+    "leukorrhea",
+    "vaginitis discharge",
+    "vaginal health"
+  ],
+  "keywords_vi": [
+    "khí hư bất thường",
+    "huyết trắng bệnh lý",
+    "khí hư màu vàng xanh",
+    "viêm âm đạo",
+    "phụ khoa"
+  ],
+  "content_hash": "54e4dc18019ade432bf89130093d2a1d702af19306e6e98f3262679ac4cdc40f",
+  "content_sha256": "54e4dc18019ade432bf89130093d2a1d702af19306e6e98f3262679ac4cdc40f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

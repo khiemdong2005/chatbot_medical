@@ -1,0 +1,39 @@
+{
+  "id": "dry-eyes",
+  "title": "Dry eyes",
+  "category": "Eye, Ear & Mouth",
+  "mapped_title": "Tears",
+  "page_content": "User topic: Dry eyes\nCategory: Eye, Ear & Mouth\nTrusted medical topic: Tears\nSearch phrases: Dry eyes, Tears, Lacrimation\nMedical groups: Eyes and Vision\n\nMedical information:\nYou may only think of tears as those salty drops that fall from your eyes when you cry. Actually, your tears clean your eyes every time you blink. Tears also keep your eyes moist, which is important for your vision. Tear glands produce tears, and tear ducts carry the tears from the glands to the surface of your eye. Problems with the tear system can include too many tears, too few tears, or problems with the tear ducts. Treatment of the problem depends on the cause.",
+  "search_phrases": [
+    "Dry eyes",
+    "Tears",
+    "Lacrimation"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/tears.html",
+  "medlineplus_id": "5410",
+  "mapping_type": "manual",
+  "mapping_score": 1.0,
+  "title_en": "Dry eyes",
+  "title_vi": "Khô mắt",
+  "category_en": "Eye, Ear & Mouth",
+  "category_vi": "Mắt, Tai & Răng miệng",
+  "keywords_en": [
+    "dry eyes",
+    "dry eye syndrome",
+    "artificial tears",
+    "eye irritation",
+    "tear film"
+  ],
+  "keywords_vi": [
+    "khô mắt",
+    "mỏi mắt",
+    "rát mắt",
+    "nước mắt nhân tạo",
+    "nhãn khoa"
+  ],
+  "content_hash": "de149e65fe7c6dfe3a463831c31c21cb2ca44cdabcda0fec70445ee10b58898b",
+  "content_sha256": "de149e65fe7c6dfe3a463831c31c21cb2ca44cdabcda0fec70445ee10b58898b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

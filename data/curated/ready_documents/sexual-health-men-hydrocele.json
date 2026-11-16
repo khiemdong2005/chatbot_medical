@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/testiculardisorders.html",
   "medlineplus_id": "4280",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hydrocele",
+  "title_vi": "Tràn dịch màng tinh hoàn",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "hydrocele",
+    "scrotal fluid accumulation",
+    "scrotal swelling",
+    "testicular fluid"
+  ],
+  "keywords_vi": [
+    "tràn dịch màng tinh hoàn",
+    "sưng bìu tinh hoàn",
+    "tụ dịch tinh hoàn",
+    "khối u bìu lành tính",
+    "nam khoa"
+  ],
+  "content_hash": "265b38eb5a0c4640e31731180297e2e12a69ac7c01f4c9ac26d8e8d3fd30beb6",
+  "content_sha256": "265b38eb5a0c4640e31731180297e2e12a69ac7c01f4c9ac26d8e8d3fd30beb6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

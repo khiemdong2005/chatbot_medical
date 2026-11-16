@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/endometriosis.html",
   "medlineplus_id": "243",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Endometriosis",
+  "title_vi": "Lạc nội mạc tử cung",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "endometriosis",
+    "pelvic pain endometriosis",
+    "uterine lining",
+    "painful menstruation"
+  ],
+  "keywords_vi": [
+    "lạc nội mạc tử cung",
+    "đau bụng kinh dữ dội",
+    "hiếm muộn nữ",
+    "viêm nội mạc",
+    "phụ khoa"
+  ],
+  "content_hash": "7e02f4a595e03337f2e339e0a9084198a2be9e001bb4d48ea248086498aa7a56",
+  "content_sha256": "7e02f4a595e03337f2e339e0a9084198a2be9e001bb4d48ea248086498aa7a56",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

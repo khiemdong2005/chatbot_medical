@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/shoulderinjuriesanddisorders.html",
   "medlineplus_id": "505",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Frozen shoulder",
+  "title_vi": "Đông cứng khớp vai (Viêm quanh khớp vai)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "frozen shoulder",
+    "adhesive capsulitis",
+    "shoulder stiffness",
+    "limited shoulder motion"
+  ],
+  "keywords_vi": [
+    "đông cứng khớp vai",
+    "viêm quanh khớp vai",
+    "kẹt khớp vai",
+    "khó giơ tay",
+    "cơ xương khớp"
+  ],
+  "content_hash": "f8f5e54b9593e6fb4a46fb1edf702c9a801990c76360c77ff9f1645dbe5bc3f3",
+  "content_sha256": "f8f5e54b9593e6fb4a46fb1edf702c9a801990c76360c77ff9f1645dbe5bc3f3",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -1,0 +1,49 @@
+{
+  "id": "livercancer",
+  "title": "Liver Cancer (Hepatocellular Carcinoma)",
+  "title_en": "Liver Cancer (Hepatocellular Carcinoma)",
+  "title_vi": "Ung thư gan nguyên phát",
+  "category": "Oncology",
+  "category_en": "Oncology",
+  "category_vi": "Ung bướu",
+  "search_phrases": [
+    "liver cancer",
+    "hepatocellular carcinoma HCC",
+    "liver tumor",
+    "alpha fetoprotein AFP",
+    "cirrhosis complication",
+    "ung thư gan",
+    "ung thư biểu mô tế bào gan hcc",
+    "xét nghiệm afp",
+    "khối u gan",
+    "biến chứng xơ gan thành ung thư"
+  ],
+  "keywords_en": [
+    "liver cancer",
+    "hepatocellular carcinoma HCC",
+    "liver tumor",
+    "alpha fetoprotein AFP",
+    "cirrhosis complication"
+  ],
+  "keywords_vi": [
+    "ung thư gan",
+    "ung thư biểu mô tế bào gan hcc",
+    "xét nghiệm afp",
+    "khối u gan",
+    "biến chứng xơ gan thành ung thư"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/livercancer.html",
+  "summary": "Your liver is the largest organ inside your body. It helps your body digest food, store energy, and remove poisons. Primary liver cancer starts in the liver. Metastatic liver cancer starts somewhere else and spreads to your liver. Risk factors for primary liver cancer include : Having hepatitis B or C Heavy alcohol use Having cirrhosis , or scarring of the liver Having hemochromatosis , an iron storage disease Obesity and diabetes Symptoms can include a lump or pain on the right side of your abdomen and yellowing of the skin. However, you may not have symptoms until the cancer is advanced. This makes it harder to treat. Doctors use tests that examine the liver and the blood to diagnose liver cancer. Treatment options include surgery, radiation, chemotherapy, or liver transplantation . NIH: National Cancer Institute",
+  "page_content": "Your liver is the largest organ inside your body. It helps your body digest food, store energy, and remove poisons. Primary liver cancer starts in the liver. Metastatic liver cancer starts somewhere else and spreads to your liver. Risk factors for primary liver cancer include : Having hepatitis B or C Heavy alcohol use Having cirrhosis , or scarring of the liver Having hemochromatosis , an iron storage disease Obesity and diabetes Symptoms can include a lump or pain on the right side of your abdomen and yellowing of the skin. However, you may not have symptoms until the cancer is advanced. This makes it harder to treat. Doctors use tests that examine the liver and the blood to diagnose liver cancer. Treatment options include surgery, radiation, chemotherapy, or liver transplantation . NIH: National Cancer Institute",
+  "content_sha256": "32f0eecc7a992895d8de56913e884a79c441e51c63794090cf807b30624416d1",
+  "candidate_score": 0.97,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

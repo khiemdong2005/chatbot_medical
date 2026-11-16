@@ -1,0 +1,49 @@
+{
+  "id": "melanoma",
+  "title": "Melanoma (Skin Cancer)",
+  "title_en": "Melanoma (Skin Cancer)",
+  "title_vi": "Ung thư hắc tố da (Melanoma)",
+  "category": "Oncology",
+  "category_en": "Oncology",
+  "category_vi": "Ung bướu",
+  "search_phrases": [
+    "melanoma",
+    "skin cancer",
+    "ABCDE mole check",
+    "atypical mole",
+    "ultraviolet radiation",
+    "ung thư hắc tố da",
+    "melanoma",
+    "nốt ruồi ác tính",
+    "quy tắc abcde kiểm tra nốt ruồi",
+    "tác hại tia cực tím uv"
+  ],
+  "keywords_en": [
+    "melanoma",
+    "skin cancer",
+    "ABCDE mole check",
+    "atypical mole",
+    "ultraviolet radiation"
+  ],
+  "keywords_vi": [
+    "ung thư hắc tố da",
+    "melanoma",
+    "nốt ruồi ác tính",
+    "quy tắc abcde kiểm tra nốt ruồi",
+    "tác hại tia cực tím uv"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/melanoma.html",
+  "summary": "Melanoma is the most serious type of skin cancer . Often the first sign of melanoma is a change in the size, shape, color, or feel of a mole. Most melanomas have a black or black-blue area. Melanoma may also appear as a new mole. It may be black, abnormal, or \"ugly looking.\" Thinking of \"ABCDE\" can help you remember what to watch for: Asymmetry - the shape of one half does not match the other Border - the edges are ragged, blurred or irregular Color - the color is uneven and may include shades of black, brown and tan Diameter - there is a change in size, usually an increase Evolving - the mole has changed over the past few weeks or months Surgery is the first treatment of all stages of melanoma. Other treatments include chemotherapy and radiation, biologic, and targeted therapies. Biologic therapy boosts your body's own ability to fight cancer. Targeted therapy uses substances that attack cancer cells without harming normal cells. NIH: National Cancer Institute",
+  "page_content": "Melanoma is the most serious type of skin cancer . Often the first sign of melanoma is a change in the size, shape, color, or feel of a mole. Most melanomas have a black or black-blue area. Melanoma may also appear as a new mole. It may be black, abnormal, or \"ugly looking.\" Thinking of \"ABCDE\" can help you remember what to watch for: Asymmetry - the shape of one half does not match the other Border - the edges are ragged, blurred or irregular Color - the color is uneven and may include shades of black, brown and tan Diameter - there is a change in size, usually an increase Evolving - the mole has changed over the past few weeks or months Surgery is the first treatment of all stages of melanoma. Other treatments include chemotherapy and radiation, biologic, and targeted therapies. Biologic therapy boosts your body's own ability to fight cancer. Targeted therapy uses substances that attack cancer cells without harming normal cells. NIH: National Cancer Institute",
+  "content_sha256": "dc959f4d126da5ca33fae36e3384be6e9672aa3f6b261c9e877b78f87be528e9",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

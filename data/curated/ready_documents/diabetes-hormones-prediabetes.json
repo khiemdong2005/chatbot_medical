@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/prediabetes.html",
   "medlineplus_id": "5784",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Prediabetes",
+  "title_vi": "Tiền đái tháo đường (Tiền tiểu đường)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "prediabetes",
+    "borderline diabetes",
+    "impaired glucose tolerance",
+    "diabetes prevention",
+    "fasting glucose"
+  ],
+  "keywords_vi": [
+    "tiền đái tháo đường",
+    "tiền tiểu đường",
+    "rối loạn dung nạp glucose",
+    "phòng ngừa tiểu đường",
+    "đường huyết lúc đói"
+  ],
+  "content_hash": "fd09b95a3ab82c6e22e069abd0c7dd40b278a7a1df0ef7a979a911a37596b2c6",
+  "content_sha256": "fd09b95a3ab82c6e22e069abd0c7dd40b278a7a1df0ef7a979a911a37596b2c6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

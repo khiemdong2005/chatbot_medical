@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/heelinjuriesanddisorders.html",
   "medlineplus_id": "3650",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heel pain",
+  "title_vi": "Đau gót chân (Viêm cân gan chân)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "heel pain",
+    "plantar fasciitis",
+    "heel spur",
+    "morning heel pain",
+    "foot arch"
+  ],
+  "keywords_vi": [
+    "đau gót chân",
+    "viêm cân gan chân",
+    "gai gót chân",
+    "đau bước chân sáng",
+    "bàn chân"
+  ],
+  "content_hash": "46cdb8c70c96b0c0613c4832128a069977096ecf8422b6b63ec673ac3c12f5ed",
+  "content_sha256": "46cdb8c70c96b0c0613c4832128a069977096ecf8422b6b63ec673ac3c12f5ed",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

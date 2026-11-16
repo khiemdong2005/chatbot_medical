@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/smoking.html",
   "medlineplus_id": "108",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Smoking",
+  "title_vi": "Tác hại thuốc lá và phương pháp cai nghiện",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "smoking hazards",
+    "tobacco risks",
+    "smoking cessation",
+    "quit smoking",
+    "lung cancer prevention"
+  ],
+  "keywords_vi": [
+    "tác hại thuốc lá",
+    "hút thuốc lá có hại",
+    "cai thuốc lá",
+    "ung thư phổi",
+    "chất độc nicotine"
+  ],
+  "content_hash": "52d697beb2d0d7a3836fd3407c8c9e9c9a67746771bd24b1588ee33e83962d8c",
+  "content_sha256": "52d697beb2d0d7a3836fd3407c8c9e9c9a67746771bd24b1588ee33e83962d8c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

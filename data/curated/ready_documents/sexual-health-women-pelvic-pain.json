@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/pelvicpain.html",
   "medlineplus_id": "4486",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pelvic pain",
+  "title_vi": "Đau vùng chậu ở nữ giới",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "pelvic pain female",
+    "chronic pelvic pain",
+    "lower abdominal pain female",
+    "pelvic inflammatory"
+  ],
+  "keywords_vi": [
+    "đau vùng chậu nữ",
+    "đau bụng dưới nữ",
+    "viêm vùng chậu PID",
+    "đau mạn tính vùng chậu",
+    "phụ khoa"
+  ],
+  "content_hash": "b921f9b49e9b01145471015f143020bd9fe5c9fd79b2ae3b696ea6a0812c7c28",
+  "content_sha256": "b921f9b49e9b01145471015f143020bd9fe5c9fd79b2ae3b696ea6a0812c7c28",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

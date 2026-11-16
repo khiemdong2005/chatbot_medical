@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/hiccups.html",
   "medlineplus_id": "6084",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hiccups",
+  "title_vi": "Nấc cụt kéo dài",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "hiccups",
+    "singultus",
+    "diaphragm spasms",
+    "persistent hiccups"
+  ],
+  "keywords_vi": [
+    "nấc cụt",
+    "cơn nấc",
+    "co thắt cơ hoành",
+    "nấc kéo dài",
+    "tiêu hóa"
+  ],
+  "content_hash": "6f4badc8bd84025f6f6a19f0238e1c0827ddc88f2148560a9e793de853384675",
+  "content_sha256": "6f4badc8bd84025f6f6a19f0238e1c0827ddc88f2148560a9e793de853384675",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

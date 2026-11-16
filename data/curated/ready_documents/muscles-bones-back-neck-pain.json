@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/neckinjuriesanddisorders.html",
   "medlineplus_id": "339",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Neck pain",
+  "title_vi": "Đau cổ vai gáy",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "neck pain",
+    "cervical spine",
+    "cervical spondylosis",
+    "stiff neck",
+    "neck strain"
+  ],
+  "keywords_vi": [
+    "đau cổ vai gáy",
+    "thoái hóa đốt sống cổ",
+    "căng cứng cổ",
+    "đau gáy",
+    "cơ xương khớp"
+  ],
+  "content_hash": "8214f3e42080e77da6bbc6b8851f1b8d691b5a97db20636469029dba8783b092",
+  "content_sha256": "8214f3e42080e77da6bbc6b8851f1b8d691b5a97db20636469029dba8783b092",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

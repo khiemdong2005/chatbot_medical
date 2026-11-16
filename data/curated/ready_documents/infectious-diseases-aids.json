@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/hiv.html",
   "medlineplus_id": "1",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "AIDS",
+  "title_vi": "Hội chứng suy giảm miễn dịch mắc phải (AIDS)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "AIDS",
+    "acquired immunodeficiency",
+    "advanced HIV",
+    "opportunistic infections"
+  ],
+  "keywords_vi": [
+    "AIDS",
+    "suy giảm miễn dịch",
+    "giai đoạn cuối HIV",
+    "nhiễm trùng cơ hội",
+    "bệnh truyền nhiễm"
+  ],
+  "content_hash": "ff8dca3f11d85aac98622bf2ef265ce2a170e72dab77950cbdb0d13bb30d0d27",
+  "content_sha256": "ff8dca3f11d85aac98622bf2ef265ce2a170e72dab77950cbdb0d13bb30d0d27",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

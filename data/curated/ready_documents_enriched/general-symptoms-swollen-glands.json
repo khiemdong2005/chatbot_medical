@@ -1,0 +1,37 @@
+{
+  "id": "swollen-glands",
+  "title": "Swollen glands",
+  "category": "General Symptoms",
+  "mapped_title": "Lymphatic Diseases",
+  "page_content": "User topic: Swollen glands\nCategory: General Symptoms\nTrusted medical topic: Lymphatic Diseases\nSearch phrases: Swollen glands, Lymphatic Diseases\nMedical groups: Immune System\n\nMedical information:\nThe lymphatic system is a network of tissues and organs. It is made up of: Lymph - a fluid that contains white blood cells that defend against germs Lymph vessels - vessels that carry lymph throughout your body. They are different from blood vessels. Lymph nodes - glands found throughout the lymph vessels. Along with your spleen , these nodes are where white blood cells fight infection. Your bone marrow and thymus produce the cells in lymph. They are part of the system, too. The lymphatic system clears away infection and keeps your body fluids in balance. If it's not working properly, fluid builds in your tissues and causes swelling, called lymphedema . Other lymphatic system problems can include infections, blockage, and cancer .",
+  "search_phrases": [
+    "Swollen glands",
+    "Lymphatic Diseases"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/lymphaticdiseases.html",
+  "medlineplus_id": "591",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Swollen glands",
+  "title_vi": "Sưng hạch (Nổi hạch)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "swollen glands",
+    "swollen lymph nodes",
+    "lymphadenopathy",
+    "lymph node swelling"
+  ],
+  "keywords_vi": [
+    "sưng hạch",
+    "nổi hạch",
+    "hạch cổ",
+    "hạch bạch huyết",
+    "nhiễm trùng hạch"
+  ],
+  "content_hash": "026ce051162de081d081c77daec014499d60371d322be7b7a3b3abc140e36849",
+  "content_sha256": "026ce051162de081d081c77daec014499d60371d322be7b7a3b3abc140e36849",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

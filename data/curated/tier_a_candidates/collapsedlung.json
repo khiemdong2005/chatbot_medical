@@ -1,0 +1,49 @@
+{
+  "id": "collapsedlung",
+  "title": "Collapsed Lung (Pneumothorax)",
+  "title_en": "Collapsed Lung (Pneumothorax)",
+  "title_vi": "Tràn khí màng phổi (Xẹp phổi)",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "collapsed lung",
+    "pneumothorax",
+    "chest tube",
+    "sudden chest pain",
+    "air in pleural space",
+    "tràn khí màng phổi",
+    "xẹp phổi",
+    "khó thở đột ngột",
+    "đau nhói ngực",
+    "cấp cứu hô hấp"
+  ],
+  "keywords_en": [
+    "collapsed lung",
+    "pneumothorax",
+    "chest tube",
+    "sudden chest pain",
+    "air in pleural space"
+  ],
+  "keywords_vi": [
+    "tràn khí màng phổi",
+    "xẹp phổi",
+    "khó thở đột ngột",
+    "đau nhói ngực",
+    "cấp cứu hô hấp"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/collapsedlung.html",
+  "summary": "A collapsed lung happens when air enters the pleural space, the area between the lung and the chest wall. If it is a total collapse, it is called pneumothorax. If only part of the lung is affected, it is called atelectasis. Causes of a collapsed lung include: Lung diseases such as pneumonia or lung cancer Being on a breathing machine Surgery on the chest or abdomen A blocked airway If only a small area of the lung is affected, you may not have symptoms. If a large area is affected, you may feel short of breath and have a rapid heart rate. A chest x-ray can tell if you have it. Treatment depends on the underlying cause. NIH: National Heart, Lung, and Blood Institute",
+  "page_content": "A collapsed lung happens when air enters the pleural space, the area between the lung and the chest wall. If it is a total collapse, it is called pneumothorax. If only part of the lung is affected, it is called atelectasis. Causes of a collapsed lung include: Lung diseases such as pneumonia or lung cancer Being on a breathing machine Surgery on the chest or abdomen A blocked airway If only a small area of the lung is affected, you may not have symptoms. If a large area is affected, you may feel short of breath and have a rapid heart rate. A chest x-ray can tell if you have it. Treatment depends on the underlying cause. NIH: National Heart, Lung, and Blood Institute",
+  "content_sha256": "7b3b117c6f1affa7828c81f18496f56b83aa829b48e8b7c88651718bf825b292",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

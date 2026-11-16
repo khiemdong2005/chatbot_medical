@@ -1,0 +1,38 @@
+{
+  "id": "vegan-diet",
+  "title": "Vegan diet",
+  "category": "Nutrition",
+  "mapped_title": "Vegetarian Diet",
+  "page_content": "User topic: Vegan diet\nCategory: Nutrition\nTrusted medical topic: Vegetarian Diet\nSearch phrases: Vegan diet, Vegetarian Diet\nMedical groups: Food and Nutrition\n\nMedical information:\nA vegetarian diet focuses on plants for food. These include fruits, vegetables, dried beans and peas, grains, seeds and nuts. There is no single type of vegetarian diet. Instead, vegetarian eating patterns usually fall into the following groups: The vegan diet, which excludes all meat and animal products The lacto vegetarian diet, which includes plant foods plus dairy products The lacto-ovo vegetarian diet, which includes both dairy products and eggs People who follow vegetarian diets can get all the nutrients they need. However, they must be careful to eat a wide variety of foods to meet their nutritional needs. Nutrients vegetarians may need to focus on include protein , iron , calcium , zinc and vitamin B12 . United States Department of Agriculture",
+  "search_phrases": [
+    "Vegan diet",
+    "Vegetarian Diet"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/vegetariandiet.html",
+  "medlineplus_id": "1613",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Vegan diet",
+  "title_vi": "Chế độ ăn thuần chay",
+  "category_en": "Nutrition",
+  "category_vi": "Dinh dưỡng",
+  "keywords_en": [
+    "vegan diet",
+    "plant-based nutrition",
+    "plant protein",
+    "vegan health",
+    "b12 supplementation"
+  ],
+  "keywords_vi": [
+    "chế độ ăn thuần chay",
+    "ăn chay trường",
+    "nguồn đạm thực vật",
+    "thiếu vitamin B12",
+    "dinh dưỡng"
+  ],
+  "content_hash": "622377b062be97eb07b1b038b1d8c8056ea7430888007599273d20ae5786f918",
+  "content_sha256": "622377b062be97eb07b1b038b1d8c8056ea7430888007599273d20ae5786f918",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

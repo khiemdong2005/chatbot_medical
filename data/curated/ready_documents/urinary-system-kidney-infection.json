@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/urinarytractinfections.html",
   "medlineplus_id": "448",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.97
+  "mapping_score": 0.97,
+  "title_en": "Kidney infection",
+  "title_vi": "Nhiễm trùng thận (Viêm đài bể thận)",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "kidney infection",
+    "pyelonephritis",
+    "flank pain",
+    "urinary infection",
+    "renal infection"
+  ],
+  "keywords_vi": [
+    "nhiễm trùng thận",
+    "viêm đài bể thận",
+    "đau hông lưng",
+    "sốt rét run",
+    "tiết niệu"
+  ],
+  "content_hash": "8284b2661cb4e6de768ebff31e540490b04937e08fa69497adaf1529f3b4a61a",
+  "content_sha256": "8284b2661cb4e6de768ebff31e540490b04937e08fa69497adaf1529f3b4a61a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

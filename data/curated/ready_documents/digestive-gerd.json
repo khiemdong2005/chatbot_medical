@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/gerd.html",
   "medlineplus_id": "512",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "GERD",
+  "title_vi": "Trào ngược dạ dày thực quản (GERD)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "GERD",
+    "gastroesophageal reflux",
+    "heartburn",
+    "acid reflux disease"
+  ],
+  "keywords_vi": [
+    "trào ngược dạ dày thực quản",
+    "GERD",
+    "ợ nóng ợ chua",
+    "viêm thực quản",
+    "axit dạ dày"
+  ],
+  "content_hash": "acc61f947ba3f136cf90862b04f52c0e3e3ca2befa63d3a5c20aa002b12899b8",
+  "content_sha256": "acc61f947ba3f136cf90862b04f52c0e3e3ca2befa63d3a5c20aa002b12899b8",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

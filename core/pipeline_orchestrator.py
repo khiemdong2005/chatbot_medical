@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import re
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -11,23 +12,69 @@ from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
 from core.ocr_parallel_service import extract_ocr_parallel
 from core.gemini_schema_service import extract_with_gemini_schema
-from core.reconciliation_service import reconcile_parallel_results
+from core.reconciliation_service import reconcile_parallel_results, extract_schema_from_ocr
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
 from core.interpretation_service import generate_clinical_interpretation
+
+def _ocr_variant_score(result: Dict[str, Any], doc_type: str) -> float:
+    """Prefer the image pass that exposes actual table rows, not just more noise."""
+    if not result or not result.get("success", True):
+        return -1.0
+    parsed = extract_schema_from_ocr(result, doc_type=doc_type)
+    key = "metrics" if doc_type == "lab_test" else "medications"
+    items = parsed.get(key) or []
+    text = str(result.get("raw_text") or "")
+    readable = len(re.findall(r"[\wÀ-ỹ]", text))
+    confidence = result.get("avg_confidence")
+    try:
+        confidence = max(0.0, min(1.0, float(confidence)))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    return (len(items) * 100 +
+            sum(bool(parsed.get(field)) for field in HEADER_FIELDS) * 12 +
+            min(readable, 1200) / 30 + confidence * 10)
+
+
+def _ocr_needs_second_pass(result: Dict[str, Any], doc_type_hint: str) -> bool:
+    if not result or not result.get("success", True):
+        return True
+    text = str(result.get("raw_text") or "")
+    if len(re.findall(r"[\wÀ-ỹ]", text)) < 50:
+        return True
+    confidence = result.get("avg_confidence")
+    if confidence is not None:
+        try:
+            if float(confidence) < 0.72:
+                return True
+        except (TypeError, ValueError):
+            pass
+    kinds = ("prescription", "lab_test") if doc_type_hint == "auto" else (doc_type_hint,)
+    for kind in kinds:
+        if kind not in ("prescription", "lab_test"):
+            continue
+        parsed = extract_schema_from_ocr(result, doc_type=kind)
+        key = "medications" if kind == "prescription" else "metrics"
+        if parsed.get(key):
+            if kind == "prescription":
+                expected = re.search(r"(?:cộng|cong)\s*(?:khoản|khoan)\s*[:.]?\s*(\d+)", text, re.IGNORECASE)
+                if expected and len(parsed[key]) < int(expected.group(1)):
+                    continue
+            return False
+    return True
 
 def process_medical_document_pipeline(
     file_path: str,
     original_filename: str = "",
     doc_type_hint: str = "auto",
     user_allergies: list = None,
-    mask_pii: bool = False
+    mask_pii: bool = False,
 ) -> Dict[str, Any]:
     """
     KIẾN TRÚC ĐỌC ĐƠN THUỐC & PHIẾU XÉT NGHIỆM 8 BƯỚC:
       [0] Intake & Phân loại + Kiểm tra chất lượng (mờ, tối, lóa)
       [1] Tiền xử lý nhẹ (giữ cả ảnh gốc, crop/deskew/perspective, chỉ CLAHE khi tối)
-      [2] Trích xuất song song (A: OCR EasyOCR bbox/rows + B: Gemini schema)
+      [2] OCR EasyOCR bbox/rows và Gemini schema
       [3] Đối chiếu A và B từng field (needs_review=True nếu lệch)
       [4] Chuẩn hóa & Grounding (Rule + CSDL, không dùng LLM)
       [5] Validate & Luật nghiệp vụ (Cờ cao/thấp, tương tác thuốc, dị ứng)
@@ -47,86 +94,267 @@ def process_medical_document_pipeline(
         }
 
     # ==============================================================
-    # [0] INTAKE & PHÂN LOẠI & KIỂM TRA CHẤT LƯỢNG
+    # [0] & [1] INTAKE QUALITY CHECK & TIỀN XỬ LÝ NHẸ
     # ==============================================================
-    quality_check = check_image_quality(file_path)
-    if not quality_check.get("passed", True):
-        return {
-            "status": "rejected",
-            "needs_review": True,
-            "stage": "[0] Intake Quality Check",
-            "error_code": "POOR_IMAGE_QUALITY",
-            "message": quality_check.get("recommendation", "Ảnh chụp không đạt yêu cầu rõ nét."),
-            "quality_details": quality_check,
-            "uploaded_filename": filename_clean
-        }
+    is_pdf = file_path.lower().endswith(".pdf")
+    if is_pdf:
+        prep_res = {}
+        active_image_path = file_path
+        pdf_text = ""
+        embedded_img_path = None
+        try:
+            from pypdf import PdfReader
+            reader = PdfReader(file_path)
+            bounded_pages = list(reader.pages[:20])
+            pdf_text = "\n".join((page.extract_text() or "") for page in bounded_pages).strip()[:100_000]
+            if not pdf_text:
+                for page in bounded_pages[:2]:
+                    for img_obj in getattr(page, "images", ()):
+                        raw_img_data = getattr(img_obj, "data", b"") or b""
+                        if not (0 < len(raw_img_data) <= 10 * 1024 * 1024):
+                            continue
+                        img_ext = os.path.splitext(getattr(img_obj, "name", "") or "")[1].lower()
+                        if img_ext not in (".png", ".jpg", ".jpeg", ".bmp", ".webp"):
+                            img_ext = ".png"
+                        cand_path = f"{os.path.splitext(file_path)[0]}_pdf_img{img_ext}"
+                        with open(cand_path, "wb") as img_f:
+                            img_f.write(raw_img_data)
+                        embedded_img_path = cand_path
+                        break
+                    if embedded_img_path:
+                        break
+        except Exception:
+            pdf_text = ""
 
-    # ==============================================================
-    # [1] TIỀN XỬ LÝ NHẸ (GIỮ NGUYÊN ẢNH GỐC)
-    # ==============================================================
-    need_clahe = quality_check.get("need_clahe", False)
-    prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
-    active_image_path = prep_res.get("processed_path", file_path)
+        if embedded_img_path and os.path.exists(embedded_img_path):
+            q_pdf = check_image_quality(embedded_img_path)
+            prep_res = preprocess_lightweight(embedded_img_path, need_clahe=q_pdf.get("need_clahe", False))
+            active_image_path = prep_res.get("processed_path", embedded_img_path)
+        else:
+            prep_res = {"processed_path": file_path, "deskew_angle": 0.0, "perspective_corrected": False}
+            active_image_path = file_path
+    else:
+        quality_check = check_image_quality(file_path)
+        if not quality_check.get("passed", True):
+            return {
+                "status": "rejected",
+                "needs_review": True,
+                "stage": "[0] Intake Quality Check",
+                "error_code": "POOR_IMAGE_QUALITY",
+                "message": quality_check.get("recommendation", "Ảnh chụp không đạt yêu cầu rõ nét."),
+                "quality_details": quality_check,
+                "uploaded_filename": filename_clean
+            }
+        need_clahe = quality_check.get("need_clahe", False)
+        prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
+        active_image_path = prep_res.get("processed_path", file_path)
 
     # (Tùy chọn) Che PII trước khi gửi đi nếu người dùng bật
     if mask_pii:
         active_image_path = mask_pii_on_image(active_image_path, [])
 
     # ==============================================================
-    # [2] TRÍCH XUẤT SONG SONG (PARALLEL EXTRACTION)
+    # [2] TRÍCH XUẤT OCR VÀ GEMINI
     #     Nhánh A: OCR Cục bộ (EasyOCR)
     #     Nhánh B: Gemini Vision Multimodal theo Response Schema
     # ==============================================================
-    # 2.A: OCR cục bộ (Tập trung 100% vào Đơn thuốc)
-    ocr_result = extract_ocr_parallel(active_image_path, doc_type="prescription")
-    doc_type = "prescription"
+    # 2.A: OCR cục bộ
+    ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
+    ocr_candidates = [(active_image_path, ocr_result)]
+    # Geometric correction and resizing can erase small text. Keep an
+    # independent reading of the original image for comparison.
+    original_image_path = embedded_img_path if is_pdf and embedded_img_path else file_path
+    if (not mask_pii and original_image_path != active_image_path
+            and _ocr_needs_second_pass(ocr_result, doc_type_hint)
+            and os.path.splitext(original_image_path)[1].lower() != ".pdf"):
+        original_ocr = extract_ocr_parallel(original_image_path, doc_type=doc_type_hint)
+        ocr_candidates.append((original_image_path, original_ocr))
 
-    # 2.B: Gemini Schema extraction (Đơn thuốc y tế lâm sàng)
-    gemini_data = extract_with_gemini_schema(active_image_path, doc_type="prescription")
+    # Phân loại tự động nếu chưa có doc_type_hint
+    doc_type = doc_type_hint
+    if doc_type == "auto":
+        from core.grounding_service import _fold_ascii
+        comb_ascii = _fold_ascii(" ".join(
+            candidate.get("raw_text", "") for _, candidate in ocr_candidates
+        ) + " " + (pdf_text if is_pdf else ""))
+        lab_score = (
+            sum(3 for k in ("xet nghiem", "laboratory", "ket qua", "chi so", "don vi", "tri so bth") if k in comb_ascii)
+            + sum(1 for k in ("glucose", "cholesterol", "triglyceride", "creatinine", "hba1c", "wbc", "rbc", "hgb", "plt") if k in comb_ascii)
+        )
+        rx_score = (
+            sum(3 for k in ("don thuoc", "toa thuoc", "prescription") if k in comb_ascii)
+            + sum(2 for k in ("vien", "uong", "lieu dung", "cach dung", "sl:") if k in comb_ascii)
+            + sum(1 for k in ("sang", "trua", "chieu", "toi", "goi", "ong", "tuyp", "chan doan") if k in comb_ascii)
+        )
+        doc_type = "lab_test" if (lab_score >= 3 and lab_score > rx_score) else "prescription"
+
+    selected_ocr_path, ocr_result = max(
+        ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
+    )
+
+    # 2.B: Gemini Schema extraction
+    gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
+    if not isinstance(gemini_data, dict):
+        gemini_data = None
+    if not gemini_data and not mask_pii and selected_ocr_path != active_image_path:
+        gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type)
+        if not isinstance(gemini_data, dict):
+            gemini_data = None
+    gemini_succeeded = bool(gemini_data)
+    model_doc_type = gemini_data.get("doc_type") if gemini_data else None
+    if model_doc_type in ("prescription", "lab_test") and model_doc_type != doc_type:
+        doc_type = model_doc_type
+        selected_ocr_path, ocr_result = max(
+            ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
+        )
 
     if not gemini_data:
         # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
-        gemini_data = {
-            "doc_type": "prescription",
-            "patient_name": "",
-            "facility": "",
-            "medications": []
-        }
+        gemini_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+    else:
+        # Nếu Gemini chạy được nhưng có trường bị khuyết, bổ sung từ OCR
+        ocr_fallback = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+        for hf in HEADER_FIELDS:
+            if not gemini_data.get(hf) and ocr_fallback.get(hf):
+                gemini_data[hf] = ocr_fallback[hf]
+        key = "metrics" if doc_type == "lab_test" else "medications"
+        if not gemini_data.get(key) and ocr_fallback.get(key):
+            gemini_data[key] = ocr_fallback[key]
+
+    # Đảm bảo đồng bộ doc_type
+    # The validated type was already applied before OCR fallback extraction.
 
     # ==============================================================
     # [3] ĐỐI CHIẾU A VÀ B THEO TỪNG FIELD (RECONCILIATION)
     # ==============================================================
-    reconciled = reconcile_parallel_results(ocr_result, gemini_data, doc_type="prescription")
+    reconciled = reconcile_parallel_results(ocr_result, gemini_data, doc_type=doc_type)
 
+    key = "metrics" if doc_type == "lab_test" else "medications"
+    fields = REVIEW_FIELDS[key]
+    draft = {field: reconciled.get(field) or "" for field in HEADER_FIELDS}
+    draft[key] = []
+    anchor_boxes = []
+    for row in reconciled.get(key, []):
+        review_row = {field: str(row.get(field) or "") for field in fields}
+        if key == "medications":
+            review_row["needs_review"] = bool(row.get("needs_review", False))
+            review_row["field_confidence"] = row.get("field_confidence")
+            review_row["ocr_matched_text"] = str(row.get("ocr_matched_text") or "")
+            review_row["raw_ocr_name"] = str(row.get("raw_ocr_name") or "")
+            review_row["raw_ocr_strength"] = str(row.get("raw_ocr_strength") or "")
+            review_row["anchor_evidence_text"] = str(row.get("anchor_evidence_text") or "")
+            anchor_boxes.append(row.get("anchor_box"))
+        draft[key].append(review_row)
+    extraction_warning = ""
+    if not draft[key]:
+        extraction_warning = (
+            "Chưa đọc được dòng thuốc nào từ ảnh. Hãy kiểm tra ảnh gốc và thêm từng dòng trước khi lưu."
+            if key == "medications" else
+            "Chưa đọc được chỉ số xét nghiệm nào từ ảnh. Hãy kiểm tra ảnh gốc và thêm từng dòng trước khi lưu."
+        )
+    elif key == "medications" and not ocr_result.get("lines"):
+        extraction_warning = (
+            "Tên thuốc chưa được OCR xác nhận trên ảnh. Hãy đối chiếu từng dòng với phiếu gốc trước khi lưu."
+        )
+    boxes = []
+    normalize_points = None
+    if (selected_ocr_path == active_image_path and prep_res.get("to_original")
+            and prep_res.get("orig_shape")):
+        import numpy as np
+        width, height = prep_res["orig_shape"]
+        inverse = np.asarray(prep_res["to_original"])
+        def normalize_points(box):
+            points = []
+            for x, y in box:
+                px, py, scale = inverse @ [x, y, 1]
+                if abs(scale) < 1e-8:
+                    return []
+                points.append([float(px / scale / width), float(py / scale / height)])
+            return points
+    elif selected_ocr_path == original_image_path:
+        try:
+            from PIL import Image
+            with Image.open(original_image_path) as original_image:
+                width, height = original_image.size
+            def normalize_points(box):
+                return [[float(x / width), float(y / height)] for x, y in box]
+        except (OSError, ValueError, ZeroDivisionError):
+            pass
+    if normalize_points:
+        for line in ocr_result.get("lines", []):
+            source_box = line.get("box") or []
+            if len(source_box) == 4:
+                points = normalize_points(source_box)
+                if len(points) == 4:
+                    boxes.append({"text": line["text"], "points": points})
+        if key == "medications":
+            for review_row, anchor_box in zip(draft[key], anchor_boxes):
+                if isinstance(anchor_box, list) and len(anchor_box) == 4:
+                    points = normalize_points(anchor_box)
+                    if len(points) == 4:
+                        review_row["anchor_points"] = points
+    return {"status": "review", "doc_type": doc_type, "data": draft, "boxes": boxes,
+            "header_alternatives": reconciled.get("header_alternatives", {}),
+            "extraction_warning": extraction_warning,
+            "review_schema_version": 3,
+            "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
+            "requires_user_confirmation": True}
+
+
+HEADER_FIELDS = ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis")
+REVIEW_FIELDS = {
+    "medications": ("name", "strength", "dose", "frequency", "days", "usage"),
+    "metrics": ("test_name", "result", "unit", "reference_range", "flag_on_paper")
+}
+
+
+def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allergies):
+    start_all = time.time()
+    reconciled["doc_type"] = doc_type
     # ==============================================================
     # [4] CHUẨN HÓA & GROUNDING (RULE + CSDL - KHÔNG DÙNG LLM)
     # ==============================================================
-    standardized_meds = []
-    full_schedule = {}
+    if doc_type == "prescription":
+        standardized_meds = []
+        full_schedule = {}
 
-    for med in reconciled.get("medications", []):
-        med_entry = dict(med)
-        ground_info = normalize_drug_entity(med_entry.get("name", ""))
-        med_entry["standard_name"] = ground_info["standard_name"]
-        med_entry["active_ingredient"] = ground_info["active_ingredient"]
-        med_entry["category"] = ground_info["category"]
-        med_entry["purpose"] = med_entry.get("purpose") or ground_info.get("purpose", ground_info["category"])
-        med_entry["grounding_status"] = ground_info["status"]
+        for med in reconciled.get("medications", []):
+            med_entry = dict(med)
+            ground_info = normalize_drug_entity(med_entry.get("name", ""))
+            med_entry["standard_name"] = ground_info["standard_name"]
+            med_entry["active_ingredient"] = ground_info["active_ingredient"]
+            med_entry["category"] = ground_info["category"]
+            med_entry["purpose"] = med_entry.get("purpose") or ground_info.get("purpose", ground_info["category"])
+            med_entry["grounding_status"] = ground_info["status"]
 
-        # Lập lịch uống bằng RULE
-        med_sched = parse_frequency_to_schedule(med_entry.get("frequency", ""), med_entry.get("usage", ""))
-        med_entry["schedule"] = med_sched
+            # Lập lịch uống bằng RULE
+            med_sched = parse_frequency_to_schedule(med_entry.get("frequency", ""), med_entry.get("usage", ""))
+            med_entry["schedule"] = med_sched
 
-        standardized_meds.append(med_entry)
+            standardized_meds.append(med_entry)
 
-    reconciled["medications"] = standardized_meds
+        reconciled["medications"] = standardized_meds
+
+    elif doc_type == "lab_test":
+        standardized_metrics = []
+        for item in reconciled.get("metrics", []):
+            m_entry = dict(item)
+            map_res = map_lab_test(m_entry.get("test_name", ""))
+            m_entry["standard_name"] = map_res["standard_name"]
+            m_entry["loinc_code"] = map_res["loinc_code"]
+            standardized_metrics.append(m_entry)
+
+        reconciled["metrics"] = standardized_metrics
 
     # ==============================================================
     # [5] VALIDATE & LUẬT NGHIỆP VỤ
     # ==============================================================
     clinical_alerts = []
-    val_res = validate_prescription_rules(reconciled.get("medications", []), user_allergies=user_allergies)
-    clinical_alerts.extend(val_res.get("alerts", []))
+    if doc_type == "prescription":
+        val_res = validate_prescription_rules(reconciled.get("medications", []), user_allergies=user_allergies)
+        clinical_alerts.extend(val_res.get("alerts", []))
+    elif doc_type == "lab_test":
+        reconciled["metrics"] = validate_lab_rules(reconciled.get("metrics", []))
 
     reconciled["clinical_alerts"] = clinical_alerts
 
@@ -157,22 +385,41 @@ def process_medical_document_pipeline(
     for med in medications_list:
         sched = med.get("schedule", {})
         m_name = med.get("standard_name") or med.get("name")
-        m_dose = med.get("dose", "1 viên")
-        for slot_key in ["morning", "noon", "evening", "bedtime"]:
+        # Không tự ý điền mặc định "1 viên" nếu tài liệu không ghi rõ liều
+        has_dose = bool(med.get("dose") and str(med.get("dose")).strip())
+        m_dose = med.get("dose") if has_dose else "Chưa rõ liều (Cần đối chiếu đơn)"
+        needs_review_item = med.get("needs_review", False) or not has_dose
+
+        for slot_key in ["morning", "noon", "evening", "bedtime", "external"]:
             s_info = sched.get(slot_key)
             if s_info and s_info.get("active"):
+                # Không gán bừa "Uống sau ăn" nếu đơn thuốc không chỉ định
+                slot_note = s_info.get("note") or "Theo chỉ dẫn của bác sĩ/dược sĩ"
                 ui_timeline[slot_key].append({
                     "name": m_name,
                     "dose": m_dose,
-                    "note": s_info.get("note", "Uống sau ăn"),
-                    "needs_review": med.get("needs_review", False)
+                    "note": slot_note,
+                    "needs_review": needs_review_item
                 })
+
+    inferred_duration = reconciled.get("duration") or ""
+    if not inferred_duration and medications_list:
+        import re as _re_dur
+        day_nums = []
+        for med in medications_list:
+            m_dur = _re_dur.search(r"(\d+)\s*(?:ng[aà]y|days?)", str(med.get("days") or ""), _re_dur.IGNORECASE)
+            if m_dur:
+                day_nums.append(int(m_dur.group(1)))
+        if day_nums:
+            inferred_duration = f"{max(day_nums)} ngày"
+    if not inferred_duration:
+        inferred_duration = "Theo đơn cấp"
 
     output = {
         "status": "success",
         "type": doc_type,
         "doc_type": doc_type,
-        "doc_title": f"Đơn thuốc {reconciled.get('facility', 'Bệnh viện')}",
+        "doc_title": f"Đơn thuốc {reconciled.get('facility', 'Bệnh viện')}" if doc_type == "prescription" else f"Phiếu Xét Nghiệm {reconciled.get('facility', '')}",
         "facility": reconciled.get("facility", "Bệnh viện"),
         "department": reconciled.get("department", "Khoa Khám bệnh"),
         "doctor": reconciled.get("doctor", "Bác sĩ chuyên khoa"),
@@ -182,23 +429,15 @@ def process_medical_document_pipeline(
         "gender": reconciled.get("gender", ""),
         "diagnosis": reconciled.get("diagnosis", "Theo dõi điều trị"),
         "date": reconciled.get("date", "Hôm nay"),
-        "duration": reconciled.get("duration", "Theo đơn cấp"),
+        "duration": inferred_duration,
         "medications": medications_list,
         "metrics": metrics_list,
         "timeline": ui_timeline,
         "warnings": clinical_warnings,
-        "requires_user_confirmation": True,
+        "requires_user_confirmation": False,
         "pipeline_version": "2.0-parallel-reconciled",
         "processing_time_sec": total_time,
         "uploaded_filename": filename_clean,
-        "quality_metrics": quality_check,
-        "preprocessing_info": prep_res,
-        "ocr_metrics": {
-            "engine": "EasyOCR + Row Grouping (Parallel)",
-            "duration_sec": ocr_result.get("duration_sec", 0.0),
-            "total_lines": ocr_result.get("total_lines", 0),
-            "avg_confidence": ocr_result.get("avg_confidence", 0.0)
-        },
         "reconciliation": reconciled.get("reconciliation_review", {}),
         "data": reconciled,
         "interpretation": interp_res.get("interpretation_md", ""),
