@@ -185,7 +185,7 @@ class TestNativeRoutePrecedence:
 
         for target_path in migrated_prefixes:
             matched_key = target_path if target_path in route_map else (f"{target_path}/" if f"{target_path}/" in route_map else target_path.rstrip("/"))
-            assert matched_key in route_map, f"Target path {target_path} missing in app.routes"
+            assert matched_key in route_map, f"Target path {target_path} missing in app.routes. Available: {list(route_map.keys())}"
             endpoints = route_map[matched_key]
             for ep, app_target in endpoints:
                 assert not isinstance(ep, WSGIMiddleware) and ep != flask_gateway, \

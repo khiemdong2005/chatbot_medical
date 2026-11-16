@@ -87,7 +87,7 @@ class TestRouteOwnershipAndPrecedence:
 
         for path, expected_name in native_routes.items():
             matched_key = path if path in route_endpoints else (f"{path}/" if f"{path}/" in route_endpoints else path.rstrip("/"))
-            assert matched_key in route_endpoints, f"Route {path} missing in app.routes"
+            assert matched_key in route_endpoints, f"Route {path} missing in app.routes. Available: {list(route_endpoints.keys())}"
             assert expected_name in route_endpoints[matched_key], \
                 f"Route {path} does not point to {expected_name}, got {route_endpoints.get(matched_key)}"
 
