@@ -2581,7 +2581,7 @@ function renderPrescriptionVerification(data) {
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
   const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
-  const rawGender = (data.gender || data.data?.gender || 'Nữ').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
 
   let displayBirthInfo = '';
@@ -2826,7 +2826,15 @@ async function confirmAndProceedPrescription() {
   const diagVal = document.getElementById('verify-diagnosis')?.value?.trim();
 
   if (patName) currentPrescriptionData.patient_name = patName;
-  if (dobVal) currentPrescriptionData.dob = dobVal;
+  if (dobVal) {
+    const ageNumMatch = dobVal.match(/^(\d{1,3})(?:\s*tuổi)?$/i);
+    if (ageNumMatch && parseInt(ageNumMatch[1], 10) < 130) {
+      currentPrescriptionData.age = ageNumMatch[1];
+      currentPrescriptionData.dob = `${new Date().getFullYear() - parseInt(ageNumMatch[1], 10)}`;
+    } else {
+      currentPrescriptionData.dob = dobVal;
+    }
+  }
   if (genderVal) currentPrescriptionData.gender = genderVal;
   if (facVal) currentPrescriptionData.facility = facVal;
   if (docVal) currentPrescriptionData.doctor = docVal;
@@ -2913,7 +2921,7 @@ function renderPrescriptionResult(data) {
   const duration = data.duration || '30 ngày';
   const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
-  const rawGender = (data.gender || data.data?.gender || 'Nữ').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
 
   // Xử lý Ngày sinh / Năm sinh và tự tính tuổi

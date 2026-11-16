@@ -29,12 +29,21 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
     h, w = img.shape[:2]
     orig_shape = (w, h)
 
-    # 1. Resize nhẹ nếu ảnh quá lớn (> 1800px)
-    max_dim = 1800
-    if max(h, w) > max_dim:
-        scale = max_dim / float(max(h, w))
+    # 1. Chuẩn hóa độ phân giải tối ưu cho EasyOCR (từ 1100px - 1600px):
+    # - Nếu ảnh quá lớn (> 1600px): Thu nhỏ bằng INTER_AREA
+    # - Nếu ảnh nhỏ (< 1100px): Phóng to bằng INTER_CUBIC để nét chữ rõ, không bị mờ
+    max_dim = 1600
+    min_opt_dim = 1100
+    orig_max = max(h, w)
+    if orig_max > max_dim:
+        scale = max_dim / float(orig_max)
         new_w, new_h = int(w * scale), int(h * scale)
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        h, w = img.shape[:2]
+    elif orig_max < min_opt_dim and orig_max > 0:
+        scale = min(2.5, float(min_opt_dim) / float(orig_max))
+        new_w, new_h = int(w * scale), int(h * scale)
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
         h, w = img.shape[:2]
 
     perspective_corrected = False

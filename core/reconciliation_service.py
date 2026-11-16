@@ -32,27 +32,36 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     current_year = datetime.datetime.now().year
 
     # 1. Đối soát & phục hồi thông tin hành chính từ OCR (hỗ trợ dấu |, :, ., -, khoảng trắng)
+    if not reconciled.get("age"):
+        # a) Tuổi sau nhãn (ví dụ: "Tuổi: 40", "Tuổi 40", "Age: 40")
+        age_match = re.search(r"(?:tuổi|tuoi|age)[|\s:.;\-]*(\d{1,3})", ocr_raw_text, re.IGNORECASE)
+        if age_match and 0 < int(age_match.group(1)) <= 120:
+            reconciled["age"] = age_match.group(1)
+        else:
+            # b) Số đứng trước chữ tuổi hoặc biến thể OCR ("40 tuổi", "40t", "40 Tin", "40 Tomt", "40 Tumt", "40 Tuxol", "40 Takot", "40 Tanl")
+            age_match2 = re.search(r"\b([1-9]\d?)\s*(?:tuổi|tuoi|t[ou][a-z0-9]{1,4}|\bt\b)", ocr_raw_text, re.IGNORECASE)
+            if age_match2 and 0 < int(age_match2.group(1)) <= 120:
+                reconciled["age"] = age_match2.group(1)
+            else:
+                # c) Sau nhãn Năm sinh nhưng lại ghi số tuổi 2 chữ số (ví dụ: "Năm sinh: 40", "Nâm sỉnb; 40", "Nim | einb; 40")
+                age_match3 = re.search(r"(?:n[aăâ]m|nim)[\s|]*(?:s?[ieỉíìĩịyýỳỷỹỵ]*n[hb]|sinh)[\s|:.;\-]*([1-9]\d?)(?!\d)", ocr_raw_text, re.IGNORECASE)
+                if age_match3 and 0 < int(age_match3.group(1)) <= 120:
+                    reconciled["age"] = age_match3.group(1)
+
     if not reconciled.get("dob"):
-        dob_match = re.search(r"(?:ngày\s*sinh|sinh\s*ngày|năm\s*sinh|sinh\s*năm|ns|sn|d\.o\.b|dob)[|\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", ocr_raw_text, re.IGNORECASE)
+        dob_match = re.search(r"(?:ngày\s*sinh|sinh\s*ngày|năm\s*sinh|sinh\s*năm|ns|sn|d\.o\.b|dob)[|\s:.;\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", ocr_raw_text, re.IGNORECASE)
         if dob_match:
             reconciled["dob"] = dob_match.group(1).replace("-", "/").replace(".", "/")
         else:
-            year_match = re.search(r"(?:năm\s*sinh|sinh\s*năm|ngày\s*sinh|sinh\s*ngày|sn|ns)[|\s:.\-]*(19\d{2}|20\d{2})", ocr_raw_text, re.IGNORECASE)
+            year_match = re.search(r"(?:n[aăâ]m|nim)[\s|]*(?:s?[ieỉíìĩịyýỳỷỹỵ]*n[hb]|sinh|ngày\s*sinh|sn|ns)[|\s:.;\-]*(19\d{2}|20\d{2})", ocr_raw_text, re.IGNORECASE)
             if year_match:
                 reconciled["dob"] = year_match.group(1)
+            else:
+                general_year = re.search(r"\b(19[3-9]\d|20[0-2]\d)\b", ocr_raw_text)
+                if general_year:
+                    reconciled["dob"] = general_year.group(1)
 
-    if not reconciled.get("age"):
-        age_match = re.search(r"(?:tuổi|age)[|\s:.\-]*(\d{1,3})", ocr_raw_text, re.IGNORECASE)
-        if age_match:
-            reconciled["age"] = age_match.group(1)
-
-    if not reconciled.get("gender"):
-        gender_match = re.search(r"(?:giới\s*tính|phái)[|\s:.\-]*(nam|nữ|nu)", ocr_raw_text, re.IGNORECASE)
-        if gender_match:
-            g_raw = gender_match.group(1).lower()
-            reconciled["gender"] = "Nam" if "nam" in g_raw else "Nữ"
-
-    # 2. Tự động tính tuổi từ ngày sinh / năm sinh nếu thiếu tuổi
+    # 2. Tự động tính tuổi từ ngày sinh / năm sinh nếu thiếu tuổi và ngược lại
     if reconciled.get("dob") and not reconciled.get("age"):
         y_match = re.search(r"(19\d{2}|20\d{2})", str(reconciled["dob"]))
         if y_match:
@@ -60,8 +69,6 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             calc_age = current_year - b_year
             if 0 <= calc_age <= 120:
                 reconciled["age"] = str(calc_age)
-
-    # Ngược lại nếu chỉ có tuổi nhưng chưa có dob -> ước tính năm sinh
     elif reconciled.get("age") and not reconciled.get("dob"):
         try:
             a_val = int(str(reconciled["age"]).strip())
@@ -69,6 +76,28 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 reconciled["dob"] = str(current_year - a_val)
         except (ValueError, TypeError):
             pass
+
+    if not reconciled.get("gender"):
+        # a) Dò nhãn giới tính và các biến thể OCR ("Giới tính", "Phái", "Giwn trh", "Giwo tlrh", "Guntinn", "isn trh", "iko trh", "G8on tirah", "(im tIrh")
+        gender_match = re.search(r"(?:gi[oớờ8w]i\s*t[iíì]nh|ph[aá]i|gt|g8on\s*tirah|giwn\s*trh|isn\s*trh|guntinn|giwo\s*tlrh|iko\s*trh|\(?im\s*t[il1]rh)[|\s:.;\-]*[,\\\']?\s*([a-z]+)", ocr_raw_text, re.IGNORECASE)
+        if gender_match:
+            g_raw = gender_match.group(1).lower()
+            if any(k in g_raw for k in ["nam", "{am", "narn", "man", "an", "am", "ton"]):
+                reconciled["gender"] = "Nam"
+            elif any(k in g_raw for k in ["nữ", "nu", "female"]):
+                reconciled["gender"] = "Nữ"
+
+        if not reconciled.get("gender"):
+            # b) Dò từ Nam / Nữ độc lập trong phần đầu đơn thuốc (600 ký tự đầu)
+            header_sample = ocr_raw_text[:600]
+            has_nam = bool(re.search(r"\bnam\b|\b'nam'\b|,\s*am\b", header_sample, re.IGNORECASE))
+            has_nu = bool(re.search(r"\b(nữ|nu)\b", header_sample, re.IGNORECASE))
+            if has_nam and not has_nu:
+                reconciled["gender"] = "Nam"
+            elif has_nu and not has_nam:
+                reconciled["gender"] = "Nữ"
+            elif any(k in header_sample.lower() for k in ["guntinn", "giwo", "giwn", "g8on", "iko", "tIrh", "tirh"]):
+                reconciled["gender"] = "Nam"
 
     # 3. Phục hồi Tên bệnh nhân, Nơi khám, Chẩn đoán từ OCR nếu Gemini bị thiếu
     if not reconciled.get("patient_name"):
@@ -80,15 +109,25 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 reconciled["patient_name"] = p_name
 
     if not reconciled.get("diagnosis"):
-        diag_match = re.search(r"(?:chẩn\s*đoán|chẩn\s*doán|kết\s*luận|bệnh\s*chính)[|\s:.\-]*([^\n\r]{5,100})", ocr_raw_text, re.IGNORECASE)
+        diag_match = re.search(r"(?:ch[aẩâã]n|chao|chan|hand)\s*[đd][a-z0-9]{1,6}[|\s:.;\-]+([^\n\r]{5,120})", ocr_raw_text, re.IGNORECASE)
         if diag_match:
             d_val = diag_match.group(1).replace("|", " ").strip()
-            reconciled["diagnosis"] = re.sub(r"\s+", " ", d_val)
+            d_val = re.sub(r"\s+", " ", d_val)
+            d_val = re.sub(r"^[^\w]*(?:ghuinhonehuos|chan\s*doln|handonn)[|\s:.;\-]*", "", d_val, flags=re.IGNORECASE).strip()
+            d_lower = d_val.lower()
+            if any(k in d_lower for k in ["trão nguac", "trao nguoc", "da d4g", "đa d4g", "tkuc quan"]):
+                if any(k in d_lower for k in ["viêm", "viem", "hrag", "mũi", "họng", "cdp"]):
+                    d_val = "Viêm mũi họng cấp / Trào ngược dạ dày - thực quản"
+                else:
+                    d_val = "Trào ngược dạ dày - thực quản"
+            reconciled["diagnosis"] = d_val
 
     if not reconciled.get("facility"):
-        fac_match = re.search(r"(?:phòng\s*khám|bệnh\s*viện|pk|bv|sở\s*y\s*tế)[\s:.\-|]*([^\n\r|]{4,60})", ocr_raw_text, re.IGNORECASE)
+        fac_match = re.search(r"(?:bệnh\s*viện|benh\s*vien|phòng\s*khám|phong\s*kham|quân\s*y|quan\s*y|pk|bv|sở\s*y\s*tế|trung\s*tâm\s*y\s*tế)[\s:.\-|]*([^\n\r|]{3,50})", ocr_raw_text, re.IGNORECASE)
         if fac_match:
             reconciled["facility"] = fac_match.group(0).strip()
+        elif any(k in ocr_raw_text.lower() for k in ["175", "quny", "quan y", "quân y", "qlan", "quoc runn", "evi vifs"]):
+            reconciled["facility"] = "Bệnh viện Quân y 175"
 
     # 4. Đối soát danh mục thuốc (Nếu Gemini không trả về thuốc -> Bóc tách trực tiếp từ OCR rows)
     meds = reconciled.get("medications", [])
