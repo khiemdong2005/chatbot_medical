@@ -157,6 +157,45 @@ def test_medicine_count_follows_detected_body_rows():
     assert [med["name"] for med in result["medications"]] == ["YESOM 40", "SUCRATE GEL"]
 
 
+def test_single_febuxostat_row_does_not_turn_table_labels_into_medicines():
+    rows = [
+        _row("ĐƠN THUỐC"),
+        _row("Tên bệnh nhân: NGUYỄN THÀNH KHIÊM"),
+        _row("Chẩn đoán: M13.07 / M10"),
+        _row("STT", "Tên thuốc", "Hàm lượng", "SL"),
+        _row("1.", "Febuxostat (FORGOUT 40mg)", "21 Viên"),
+        _row("Uống, sáng 1 viên"),
+        _row("Cộng khoản: 1"),
+    ]
+    ocr = {"raw_text": "\n".join(row["text"] for row in rows), "rows": rows,
+           "lines": [item for row in rows for item in row["items"]]}
+    model = {"patient_name": "Tên bệnh nhân: NGUYỄN THÀNH KHIÊM",
+             "medications": [{"name": "ĐƠN THUỐC"}, {"name": "MIO."},
+                             {"name": "STT", "days": "21 viên"},
+                             {"name": "Febuxostat", "strength": "40mg"}]}
+
+    result = reconcile_parallel_results(ocr, model, "prescription")
+
+    assert result["patient_name"] == "NGUYỄN THÀNH KHIÊM"
+    assert len(result["medications"]) == 1
+    assert result["medications"][0]["name"] == "Febuxostat (FORGOUT)"
+    assert result["medications"][0]["strength"] == "40mg"
+    assert result["medications"][0]["days"].casefold() == "21 viên"
+
+
+def test_ordinal_in_separate_ocr_row_still_starts_a_medicine():
+    rows = [_row("ĐƠN THUỐC"), _row("Chẩn đoán: Gút"), _row("STT"),
+            _row("1."), _row("Febuxostat 40mg", "21 Viên"),
+            _row("Cộng khoản: 1")]
+    ocr = {"raw_text": "\n".join(row["text"] for row in rows), "rows": rows}
+
+    medications = extract_schema_from_ocr(ocr)["medications"]
+
+    assert len(medications) == 1
+    assert medications[0]["name"] == "Febuxostat"
+    assert medications[0]["days"].casefold() == "21 viên"
+
+
 def test_dispensed_quantity_uses_rightmost_number_not_dose():
     rows = [
         _row("ĐƠN THUỐC"),

@@ -193,7 +193,11 @@ def analyze_imported_recipe(recipe):
     # canh is soup; chảo is a pan while cháo is porridge.
     liquid = recipe.get("recipe_type") == "drink" or (vietnamese and _has(r"canh|súp(?!\s+lơ)", raw_title))
     raw_labels = raw_title + " ; " + " ; ".join(str(c).lower() for c in categories)
-    soft = liquid or _has(r"soups?|congee|porridge|puree|pureed|mashed|custard|pudding|smoothie|jelly", labels) or (vietnamese and _has(r"cháo|súp(?!\s+lơ)|nghiền|xay\s+nhuyễn|hấp\s+mềm", raw_labels))
+    soft = (
+        liquid
+        or _has(r"soups?|congee|porridge|puree|pureed|mashed|custard|pudding|smoothie|jelly|steamed|poached|stewed|silken\s+tofu", labels)
+        or (vietnamese and _has(r"cháo|súp(?!\s+lơ)|nghiền|xay\s+nhuyễn|hấp|chưng|hầm|ninh|om|kho\s+nhừ|đậu\s+hũ\s+non|đậu\s+phụ\s+non|tàu\s+hũ\s+non|trứng\s+hấp|luộc", raw_labels))
+    )
     if _has(r"crouton|crispy|crunchy|crisp|raw\s+carrot|gion|rau\s+song", labels + " ; " + ingredients) or fried:
         soft = False
     fat_unknown = bool(unresolved) or _has(r"oil|butter|cream|ghee|cheese|full[ -]fat|whole\s+milk|coconut|nuts?|peanuts?|almonds?|cashews?|beef|pork|lamb|chicken|turkey|dau\s+an|dau\s+dua|dau\s+oliu|dau\s+o\s+liu|mo\s+heo|mo\s+lon|nuoc\s+cot\s+dua|sua\s+tuoi|kem\s+sua|pho\s+mai|thit\s+(?:heo|lon|bo|ga)|lac|dau\s+phong|hat\s+dieu|hanh\s+nhan", ingredients)

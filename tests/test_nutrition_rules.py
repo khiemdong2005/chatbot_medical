@@ -177,6 +177,122 @@ class NutritionRulesTests(unittest.TestCase):
                 self.assertFalse(result["recognized"])
                 self.assertTrue(result["is_unmapped_disease"])
 
+    def test_meal_and_dish_role_classification(self):
+        from core.recipe_catalog import classify_dish_role, classify_meal_times
+        main_dish = {"title": "Gà hấp hành", "recipe_type": "food", "categories": ["Món mặn"]}
+        soup_dish = {"title": "Canh sườn hạt sen", "recipe_type": "food", "categories": ["Món canh"]}
+        side_dish = {"title": "Rau cải xào nấm", "recipe_type": "food", "categories": ["Món xào"]}
+        staple_dish = {"title": "Cháo nấm hạt sen", "recipe_type": "food", "categories": ["Món cháo"]}
+        drink_dish = {"title": "Trà hoa cúc", "recipe_type": "drink", "categories": []}
+
+        self.assertEqual(classify_dish_role(main_dish), "main")
+        self.assertEqual(classify_dish_role(soup_dish), "soup")
+        self.assertEqual(classify_dish_role(side_dish), "side")
+        self.assertEqual(classify_dish_role(staple_dish), "staple")
+        self.assertEqual(classify_dish_role(drink_dish), "drink")
+
+        self.assertIn("breakfast", classify_meal_times(staple_dish, "staple"))
+        self.assertIn("dinner", classify_meal_times(soup_dish, "soup"))
+        self.assertIn("snack", classify_meal_times(drink_dish, "drink"))
+
+    def test_retrieve_candidates_dish_role_diversity(self):
+        from core.recipe_catalog import retrieve_candidates, classify_dish_role
+        candidates = retrieve_candidates("mất ngủ", imported_recipes("food"))
+        roles = {classify_dish_role(c) for c in candidates}
+        self.assertIn("main", roles)
+        self.assertIn("soup", roles)
+        self.assertGreaterEqual(len(roles), 3)
+
+    def test_get_nutrition_options_enriches_meals_and_full_meal_set(self):
+        from core.nutrition_options import get_nutrition_options
+        result = get_nutrition_options("mất ngủ", "food")
+        self.assertTrue(result["recipes"])
+        for recipe in result["recipes"]:
+            self.assertIn("meal_time", recipe)
+            self.assertIn("meal_label", recipe)
+            self.assertIn("dish_role", recipe)
+            self.assertIn("dish_role_label", recipe)
+            self.assertIn("key_nutrients", recipe)
+            self.assertTrue(len(recipe["recommendation_reason"]) >= 20)
+
+        fms = result.get("full_meal_set")
+        self.assertIsNotNone(fms)
+        self.assertTrue(fms.get("title"))
+        self.assertTrue(fms.get("rationale"))
+        self.assertGreaterEqual(len(fms.get("dishes", [])), 2)
+
+    def test_nhiet_mieng_full_meal_set_has_no_duplicate_soups(self):
+        from core.nutrition_options import get_nutrition_options
+        result = get_nutrition_options("nhiệt miệng", "food")
+        fms = result.get("full_meal_set")
+        self.assertIsNotNone(fms)
+        roles = [d["role"] for d in fms["dishes"]]
+        self.assertIn("main", roles)
+        self.assertIn("soup", roles)
+
+        main_dish = next(d["recipe"] for d in fms["dishes"] if d["role"] == "main")
+        soup_dish = next(d["recipe"] for d in fms["dishes"] if d["role"] == "soup")
+
+        self.assertNotIn("canh", main_dish["title"].lower())
+        self.assertNotEqual(main_dish["id"], soup_dish["id"])
+
+        # Never 3 soups
+        soup_titles = [d["recipe"]["title"] for d in fms["dishes"] if "canh" in d["recipe"]["title"].lower()]
+        self.assertLessEqual(len(soup_titles), 1)
+
+    def test_full_meal_set_and_single_dishes_do_not_overlap(self):
+        from core.nutrition_options import get_nutrition_options
+        from core.recipe_catalog import is_standalone_one_dish, title_key
+
+        for cond in ("nhiệt miệng", "mất ngủ", "mệt mỏi"):
+            with self.subTest(condition=cond):
+                result = get_nutrition_options(cond, "food")
+                fms = result.get("full_meal_set")
+                self.assertIsNotNone(fms)
+                fms_ids = {d["recipe"]["id"] for d in fms["dishes"]}
+                fms_titles = {title_key(d["recipe"]) for d in fms["dishes"]}
+                single_ids = {r["id"] for r in result["recipes"]}
+                single_titles = {title_key(r) for r in result["recipes"]}
+
+                overlap_ids = fms_ids & single_ids
+                overlap_titles = fms_titles & single_titles
+                self.assertEqual(len(overlap_ids), 0, f"Found duplicate IDs between full meal and singles: {overlap_ids}")
+                self.assertEqual(len(overlap_titles), 0, f"Found duplicate titles between full meal and singles: {overlap_titles}")
+
+                # Ensure single dishes are standalone one-dish meals
+                for r in result["recipes"]:
+                    self.assertTrue(is_standalone_one_dish(r), f"Dish '{r['title']}' is not a standalone one-dish meal")
+                    self.assertTrue(r.get("key_nutrients"), f"Dish '{r['title']}' missing key_nutrients")
+                    self.assertTrue(r.get("recommendation_reason"), f"Dish '{r['title']}' missing recommendation_reason")
+                    self.assertNotIn("none", str(r.get("recommendation_reason")).lower()[:10])
+
+    def test_validate_selection_rejects_fake_3_soup_meal(self):
+        from core.nutrition_ai import validate_selection
+        # 3 soups passed into full_meal_set must be rejected
+        catalog = [
+            {"id": "soup_1", "title": "Canh Đậu Hũ Rau Củ"},
+            {"id": "soup_2", "title": "Canh Mồng Tơi Chay"},
+            {"id": "soup_3", "title": "Canh Hẹ Đậu Hũ"}
+        ]
+        val = {
+            "needs_clarification": False,
+            "clarification_question": "",
+            "recommendations": [
+                {"recipe_id": "soup_1", "display_title": "Canh Đậu Hũ", "reason": "Món canh thanh mát dễ nuốt khi cơ thể mệt mỏi.", "caution": "", "source_ids": []}
+            ],
+            "full_meal_set": {
+                "title": "Mâm cơm",
+                "meal_time": "dinner",
+                "rationale": "Mâm cơm thanh mát đủ chất cho bữa tối.",
+                "main_recipe_id": "soup_1",  # SOUP in main role
+                "soup_recipe_id": "soup_2",
+                "side_recipe_id": "soup_3"
+            }
+        }
+        res = validate_selection(val, catalog, 0)
+        # full_meal_set should be rejected because main is a soup
+        self.assertNotIn("full_meal_set", res)
+
 
 if __name__ == "__main__":
     unittest.main()

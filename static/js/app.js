@@ -4730,7 +4730,7 @@ function renderOcrReview(draft, file) {
 
   const image = new Image();
   const url = URL.createObjectURL(file);
-  function draw(value = '') {
+  function draw(value = '', anchorPoints = null) {
     if (!image.naturalWidth) return;
     canvas.width = Math.min(image.naturalWidth, 1400);
     canvas.height = canvas.width * image.naturalHeight / image.naturalWidth;
@@ -4739,7 +4739,10 @@ function renderOcrReview(draft, file) {
     const boxesList = Array.isArray(draft.boxes) ? draft.boxes : [];
     const query = String(value).trim().toLocaleLowerCase('vi');
     const matches = query ? boxesList.filter(box => box && box.text && box.text.toLocaleLowerCase('vi').includes(query)) : [];
-    for (const box of (query ? matches : boxesList)) {
+    const anchorMatch = query && Array.isArray(anchorPoints) && anchorPoints.length === 4
+      ? [{text: value, points: anchorPoints}] : [];
+    const visibleBoxes = query ? (anchorMatch.length ? anchorMatch : matches) : boxesList;
+    for (const box of visibleBoxes) {
       if (!box || !Array.isArray(box.points)) continue;
       ctx.beginPath();
       box.points.forEach(([x,y], i) => i ? ctx.lineTo(x * canvas.width, y * canvas.height) : ctx.moveTo(x * canvas.width, y * canvas.height));
@@ -4749,7 +4752,7 @@ function renderOcrReview(draft, file) {
       ctx.stroke();
     }
     sourceHint.textContent = query
-      ? (matches.length ? `Tìm thấy ${matches.length} vùng chữ khớp. Hãy kiểm tra vị trí trước khi lưu.` : 'Không tìm thấy chữ khớp trên ảnh. Hãy đối chiếu và sửa thủ công trước khi lưu.')
+      ? (visibleBoxes.length ? `Đã đánh dấu vị trí đối chiếu trên ảnh. Hãy kiểm tra chữ trước khi lưu.` : 'Không tìm thấy chữ khớp trên ảnh. Hãy đối chiếu và sửa thủ công trước khi lưu.')
       : 'Chọn một ô để đối chiếu vị trí chữ trên ảnh.';
   }
   image.onload = () => { draw(); URL.revokeObjectURL(url); };
@@ -4779,7 +4782,7 @@ function renderOcrReview(draft, file) {
   form.append(heading);
 
   const labels = {patient_name:'Người bệnh', dob:'Ngày sinh', age:'Tuổi', gender:'Giới tính', doctor:'Bác sĩ', facility:'Cơ sở khám', date:'Ngày trên phiếu', diagnosis:'Chẩn đoán ghi trên phiếu', name:'Tên thuốc', strength:'Hàm lượng', dose:'Liều mỗi lần', frequency:'Tần suất', days:'Thời gian / số lượng', usage:'Cách dùng', test_name:'Tên xét nghiệm', result:'Kết quả', unit:'Đơn vị', reference_range:'Khoảng tham chiếu', flag_on_paper:'Cờ trên phiếu'};
-  function field(parent, key, value, required = false, alternatives = []) {
+  function field(parent, key, value, required = false, alternatives = [], anchorPoints = null) {
     const wrapper = document.createElement('div');
     const label = document.createElement('label');
     label.className = 'block text-[11px] font-semibold text-slate-600 dark:text-slate-400 space-y-1';
@@ -4791,8 +4794,8 @@ function renderOcrReview(draft, file) {
     input.required = required;
     input.maxLength = 2000;
     input.className = 'block w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all';
-    input.onfocus = () => draw(input.value);
-    input.oninput = () => draw(input.value);
+    input.onfocus = () => draw(input.value, anchorPoints);
+    input.oninput = () => draw(input.value, anchorPoints);
     label.append(input);
     wrapper.append(label);
     for (const alternative of alternatives) {
@@ -4839,7 +4842,14 @@ function renderOcrReview(draft, file) {
 
   function updateReviewGuidance() {
     const itemName = key === 'metrics' ? 'chỉ số xét nghiệm' : 'dòng thuốc';
-    reviewGuidance.textContent = `Đã nhận diện ${rows.children.length} ${itemName}. Bạn có thể sửa chữ đọc sai, xóa dòng thừa hoặc thêm dòng còn thiếu trước khi xác nhận.`;
+    const count = rows.children.length;
+    const warning = typeof draft.extraction_warning === 'string' ? draft.extraction_warning.trim() : '';
+    const guidance = count
+      ? `Đã nhận diện ${count} ${itemName}. Bạn có thể sửa chữ đọc sai, xóa dòng thừa hoặc thêm dòng còn thiếu trước khi xác nhận.`
+      : `Chưa đọc được ${itemName} nào. Hãy đối chiếu ảnh gốc và thêm dòng thủ công trước khi xác nhận.`;
+    reviewGuidance.textContent = warning
+      ? (count ? `${warning} ${guidance}` : warning)
+      : guidance;
     Array.from(rows.children).forEach((row, index) => {
       const title = row.querySelector('[data-review-row-title]');
       if (title) title.textContent = key === 'metrics' ? `Chỉ số ${index + 1}` : `Thuốc ${index + 1}`;
@@ -4872,13 +4882,31 @@ function renderOcrReview(draft, file) {
       reviewWarning.textContent = 'Dòng này có chữ chưa chắc chắn. Hãy đối chiếu ảnh gốc và sửa nếu cần.';
       row.append(reviewWarning);
     }
+    if (data.raw_ocr_name && data.raw_ocr_name !== data.name) {
+      const originalReading = document.createElement('p');
+      originalReading.className = 'text-[11px] text-slate-600 dark:text-slate-300';
+      originalReading.textContent = `OCR đọc: ${data.raw_ocr_name}. Hãy so với tên thuốc trên ảnh gốc.`;
+      row.append(originalReading);
+    }
+    if (data.raw_ocr_strength && data.raw_ocr_strength !== data.strength) {
+      const originalStrength = document.createElement('p');
+      originalStrength.className = 'text-[11px] text-slate-600 dark:text-slate-300';
+      originalStrength.textContent = `OCR đọc hàm lượng: ${data.raw_ocr_strength}. Hãy kiểm tra con số trên ảnh gốc.`;
+      row.append(originalStrength);
+    }
+    if (data.anchor_evidence_text) {
+      const anchorEvidence = document.createElement('p');
+      anchorEvidence.className = 'text-[11px] text-sky-700 dark:text-sky-300';
+      anchorEvidence.textContent = `Dòng OCR đối chiếu: ${data.anchor_evidence_text}. Bấm vào tên thuốc để xem vị trí trên ảnh.`;
+      row.append(anchorEvidence);
+    }
 
     const rowGrid = document.createElement('div');
     rowGrid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5';
     row.append(rowGrid);
     const visibleKeys = keys.filter(k => k === keys[0] || String(data[k] ?? '').trim());
     const missingKeys = keys.filter(k => !visibleKeys.includes(k));
-    for (const k of visibleKeys) field(rowGrid, k, data[k], k === keys[0]);
+    for (const k of visibleKeys) field(rowGrid, k, data[k], k === keys[0], [], k === 'name' ? data.anchor_points : null);
     if (missingKeys.length) {
       const optional = document.createElement('details');
       optional.className = 'rounded-lg border border-dashed border-slate-200 px-3 py-2 dark:border-slate-700';

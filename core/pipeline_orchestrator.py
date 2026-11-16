@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import re
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -15,6 +16,52 @@ from core.reconciliation_service import reconcile_parallel_results, extract_sche
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
 from core.interpretation_service import generate_clinical_interpretation
+
+def _ocr_variant_score(result: Dict[str, Any], doc_type: str) -> float:
+    """Prefer the image pass that exposes actual table rows, not just more noise."""
+    if not result or not result.get("success", True):
+        return -1.0
+    parsed = extract_schema_from_ocr(result, doc_type=doc_type)
+    key = "metrics" if doc_type == "lab_test" else "medications"
+    items = parsed.get(key) or []
+    text = str(result.get("raw_text") or "")
+    readable = len(re.findall(r"[\wÀ-ỹ]", text))
+    confidence = result.get("avg_confidence")
+    try:
+        confidence = max(0.0, min(1.0, float(confidence)))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    return (len(items) * 100 +
+            sum(bool(parsed.get(field)) for field in HEADER_FIELDS) * 12 +
+            min(readable, 1200) / 30 + confidence * 10)
+
+
+def _ocr_needs_second_pass(result: Dict[str, Any], doc_type_hint: str) -> bool:
+    if not result or not result.get("success", True):
+        return True
+    text = str(result.get("raw_text") or "")
+    if len(re.findall(r"[\wÀ-ỹ]", text)) < 50:
+        return True
+    confidence = result.get("avg_confidence")
+    if confidence is not None:
+        try:
+            if float(confidence) < 0.72:
+                return True
+        except (TypeError, ValueError):
+            pass
+    kinds = ("prescription", "lab_test") if doc_type_hint == "auto" else (doc_type_hint,)
+    for kind in kinds:
+        if kind not in ("prescription", "lab_test"):
+            continue
+        parsed = extract_schema_from_ocr(result, doc_type=kind)
+        key = "medications" if kind == "prescription" else "metrics"
+        if parsed.get(key):
+            if kind == "prescription":
+                expected = re.search(r"(?:cộng|cong)\s*(?:khoản|khoan)\s*[:.]?\s*(\d+)", text, re.IGNORECASE)
+                if expected and len(parsed[key]) < int(expected.group(1)):
+                    continue
+            return False
+    return True
 
 def process_medical_document_pipeline(
     file_path: str,
@@ -113,12 +160,23 @@ def process_medical_document_pipeline(
     # ==============================================================
     # 2.A: OCR cục bộ
     ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
+    ocr_candidates = [(active_image_path, ocr_result)]
+    # Geometric correction and resizing can erase small text. Keep an
+    # independent reading of the original image for comparison.
+    original_image_path = embedded_img_path if is_pdf and embedded_img_path else file_path
+    if (not mask_pii and original_image_path != active_image_path
+            and _ocr_needs_second_pass(ocr_result, doc_type_hint)
+            and os.path.splitext(original_image_path)[1].lower() != ".pdf"):
+        original_ocr = extract_ocr_parallel(original_image_path, doc_type=doc_type_hint)
+        ocr_candidates.append((original_image_path, original_ocr))
 
     # Phân loại tự động nếu chưa có doc_type_hint
     doc_type = doc_type_hint
     if doc_type == "auto":
         from core.grounding_service import _fold_ascii
-        comb_ascii = _fold_ascii(ocr_result.get("raw_text", "") + " " + (pdf_text if is_pdf else ""))
+        comb_ascii = _fold_ascii(" ".join(
+            candidate.get("raw_text", "") for _, candidate in ocr_candidates
+        ) + " " + (pdf_text if is_pdf else ""))
         lab_score = (
             sum(3 for k in ("xet nghiem", "laboratory", "ket qua", "chi so", "don vi", "tri so bth") if k in comb_ascii)
             + sum(1 for k in ("glucose", "cholesterol", "triglyceride", "creatinine", "hba1c", "wbc", "rbc", "hgb", "plt") if k in comb_ascii)
@@ -130,9 +188,25 @@ def process_medical_document_pipeline(
         )
         doc_type = "lab_test" if (lab_score >= 3 and lab_score > rx_score) else "prescription"
 
+    selected_ocr_path, ocr_result = max(
+        ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
+    )
+
     # 2.B: Gemini Schema extraction
     gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
+    if not isinstance(gemini_data, dict):
+        gemini_data = None
+    if not gemini_data and not mask_pii and selected_ocr_path != active_image_path:
+        gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type)
+        if not isinstance(gemini_data, dict):
+            gemini_data = None
     gemini_succeeded = bool(gemini_data)
+    model_doc_type = gemini_data.get("doc_type") if gemini_data else None
+    if model_doc_type in ("prescription", "lab_test") and model_doc_type != doc_type:
+        doc_type = model_doc_type
+        selected_ocr_path, ocr_result = max(
+            ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
+        )
 
     if not gemini_data:
         # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
@@ -148,7 +222,7 @@ def process_medical_document_pipeline(
             gemini_data[key] = ocr_fallback[key]
 
     # Đảm bảo đồng bộ doc_type
-    doc_type = gemini_data.get("doc_type", doc_type)
+    # The validated type was already applied before OCR fallback extraction.
 
     # ==============================================================
     # [3] ĐỐI CHIẾU A VÀ B THEO TỪNG FIELD (RECONCILIATION)
@@ -159,29 +233,69 @@ def process_medical_document_pipeline(
     fields = REVIEW_FIELDS[key]
     draft = {field: reconciled.get(field) or "" for field in HEADER_FIELDS}
     draft[key] = []
+    anchor_boxes = []
     for row in reconciled.get(key, []):
         review_row = {field: str(row.get(field) or "") for field in fields}
         if key == "medications":
             review_row["needs_review"] = bool(row.get("needs_review", False))
             review_row["field_confidence"] = row.get("field_confidence")
             review_row["ocr_matched_text"] = str(row.get("ocr_matched_text") or "")
+            review_row["raw_ocr_name"] = str(row.get("raw_ocr_name") or "")
+            review_row["raw_ocr_strength"] = str(row.get("raw_ocr_strength") or "")
+            review_row["anchor_evidence_text"] = str(row.get("anchor_evidence_text") or "")
+            anchor_boxes.append(row.get("anchor_box"))
         draft[key].append(review_row)
+    extraction_warning = ""
+    if not draft[key]:
+        extraction_warning = (
+            "Chưa đọc được dòng thuốc nào từ ảnh. Hãy kiểm tra ảnh gốc và thêm từng dòng trước khi lưu."
+            if key == "medications" else
+            "Chưa đọc được chỉ số xét nghiệm nào từ ảnh. Hãy kiểm tra ảnh gốc và thêm từng dòng trước khi lưu."
+        )
+    elif key == "medications" and not ocr_result.get("lines"):
+        extraction_warning = (
+            "Tên thuốc chưa được OCR xác nhận trên ảnh. Hãy đối chiếu từng dòng với phiếu gốc trước khi lưu."
+        )
     boxes = []
-    if prep_res.get("to_original") and prep_res.get("orig_shape"):
+    normalize_points = None
+    if (selected_ocr_path == active_image_path and prep_res.get("to_original")
+            and prep_res.get("orig_shape")):
         import numpy as np
         width, height = prep_res["orig_shape"]
         inverse = np.asarray(prep_res["to_original"])
-        for line in ocr_result.get("lines", []):
+        def normalize_points(box):
             points = []
-            for x, y in line["box"]:
+            for x, y in box:
                 px, py, scale = inverse @ [x, y, 1]
                 if abs(scale) < 1e-8:
-                    break
+                    return []
                 points.append([float(px / scale / width), float(py / scale / height)])
-            if len(points) == 4:
-                boxes.append({"text": line["text"], "points": points})
+            return points
+    elif selected_ocr_path == original_image_path:
+        try:
+            from PIL import Image
+            with Image.open(original_image_path) as original_image:
+                width, height = original_image.size
+            def normalize_points(box):
+                return [[float(x / width), float(y / height)] for x, y in box]
+        except (OSError, ValueError, ZeroDivisionError):
+            pass
+    if normalize_points:
+        for line in ocr_result.get("lines", []):
+            source_box = line.get("box") or []
+            if len(source_box) == 4:
+                points = normalize_points(source_box)
+                if len(points) == 4:
+                    boxes.append({"text": line["text"], "points": points})
+        if key == "medications":
+            for review_row, anchor_box in zip(draft[key], anchor_boxes):
+                if isinstance(anchor_box, list) and len(anchor_box) == 4:
+                    points = normalize_points(anchor_box)
+                    if len(points) == 4:
+                        review_row["anchor_points"] = points
     return {"status": "review", "doc_type": doc_type, "data": draft, "boxes": boxes,
             "header_alternatives": reconciled.get("header_alternatives", {}),
+            "extraction_warning": extraction_warning,
             "review_schema_version": 3,
             "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
             "requires_user_confirmation": True}
