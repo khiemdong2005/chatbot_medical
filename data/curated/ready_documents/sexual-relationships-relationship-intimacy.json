@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualhealth.html",
   "medlineplus_id": "1542",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Relationship intimacy",
+  "title_vi": "Sự thân mật trong mối quan hệ tình cảm",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "relationship intimacy",
+    "emotional closeness",
+    "couple bonding",
+    "romantic intimacy"
+  ],
+  "keywords_vi": [
+    "thân mật tình cảm",
+    "gắn kết lứa đôi",
+    "xây dựng mối quan hệ",
+    "hòa hợp cảm xúc",
+    "hạnh phúc gia đình"
+  ],
+  "content_hash": "313eb93f2f1e37fdc3ff97e4cbce73f749e377e494a5162f0f78b0fef5013f37",
+  "content_sha256": "313eb93f2f1e37fdc3ff97e4cbce73f749e377e494a5162f0f78b0fef5013f37",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

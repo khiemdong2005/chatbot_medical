@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/fainting.html",
   "medlineplus_id": "1481",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Fainting",
+  "title_vi": "Ngất xỉu (Bất tỉnh)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "fainting",
+    "syncope",
+    "loss of consciousness",
+    "lightheadedness"
+  ],
+  "keywords_vi": [
+    "ngất xỉu",
+    "bất tỉnh",
+    "choáng váng",
+    "tụt huyết áp",
+    "ngất"
+  ],
+  "content_hash": "168d7d37ee381c1a0259b27cec565c2c402136bbd43919b96ae1e69f2765c9dc",
+  "content_sha256": "168d7d37ee381c1a0259b27cec565c2c402136bbd43919b96ae1e69f2765c9dc",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

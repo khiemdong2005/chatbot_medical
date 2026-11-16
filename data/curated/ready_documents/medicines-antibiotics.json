@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/antibiotics.html",
   "medlineplus_id": "222",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Antibiotics",
+  "title_vi": "Kháng sinh và lưu ý sử dụng",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "antibiotics",
+    "antibiotic resistance",
+    "bacterial infection",
+    "prescription antibiotics",
+    "medication compliance"
+  ],
+  "keywords_vi": [
+    "kháng sinh",
+    "dùng thuốc kháng sinh",
+    "kháng kháng sinh",
+    "nhiễm khuẩn",
+    "đủ liều"
+  ],
+  "content_hash": "2b85bb6bf97611fe8d730c02fcc03a13aac6a9f84cdb8b7b8476fdd1d022d66a",
+  "content_sha256": "2b85bb6bf97611fe8d730c02fcc03a13aac6a9f84cdb8b7b8476fdd1d022d66a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

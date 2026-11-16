@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/indigestion.html",
   "medlineplus_id": "4293",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Indigestion",
+  "title_vi": "Chứng khó tiêu (Đầy bụng)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "indigestion",
+    "dyspepsia",
+    "upset stomach",
+    "bloated feeling"
+  ],
+  "keywords_vi": [
+    "khó tiêu",
+    "đầy bụng",
+    "ăn không tiêu",
+    "chậm tiêu",
+    "nặng bụng"
+  ],
+  "content_hash": "3c190d5ec909a1c36d7d88ed4311de9fdd24778eac7763f3dc0d8273ecc141cc",
+  "content_sha256": "3c190d5ec909a1c36d7d88ed4311de9fdd24778eac7763f3dc0d8273ecc141cc",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

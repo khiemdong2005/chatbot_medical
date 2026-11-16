@@ -1,5 +1,9 @@
 # Python bytecode and cache
 __pycache__/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
 *.py[cod]
 *$py.class
 *.so
@@ -20,6 +24,7 @@ dist/
 
 # Logs and databases
 *.log
+logs/
 *.sqlite3
 
 # IDE / Editor
@@ -63,7 +68,10 @@ data/recipes/**/rejected-*
 data/recipes/**/*.bak
 
 # Generated knowledge index and downloaded local models.
-/medical_vectordb/
+medical_vectordb/*
+!medical_vectordb/active_collection.json
+!medical_vectordb/.gitkeep
+models/bge-reranker-v2-m3/
 /models/
 /_quarantine_trash/
 
@@ -80,4 +88,3 @@ node_modules/
 .coverage.*
 htmlcov/
 coverage.xml
-

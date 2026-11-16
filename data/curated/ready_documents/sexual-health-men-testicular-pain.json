@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/testiculardisorders.html",
   "medlineplus_id": "4280",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Testicular pain",
+  "title_vi": "Đau tinh hoàn",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "testicular pain",
+    "scrotal pain",
+    "testicular torsion",
+    "epididymitis",
+    "acute scrotum"
+  ],
+  "keywords_vi": [
+    "đau tinh hoàn",
+    "đau tức bìu",
+    "xoắn tinh hoàn cấp",
+    "viêm mào tinh hoàn",
+    "cấp cứu nam khoa"
+  ],
+  "content_hash": "9f0638ff49498c7b114581e4e69e8bb231353fdbc2cf34c71546220704cf1123",
+  "content_sha256": "9f0638ff49498c7b114581e4e69e8bb231353fdbc2cf34c71546220704cf1123",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

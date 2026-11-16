@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/tremor.html",
   "medlineplus_id": "1315",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Tremor",
+  "title_vi": "Run tay chân (Run cơ)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "tremor",
+    "shaking hands",
+    "involuntary shaking",
+    "essential tremor"
+  ],
+  "keywords_vi": [
+    "run tay chân",
+    "run cơ",
+    "run vô căn",
+    "bệnh parkinson",
+    "thần kinh"
+  ],
+  "content_hash": "c008fe1bd35bed105e519ed3641d45b9bea286e9e961ffb689f8ae54c4d36602",
+  "content_sha256": "c008fe1bd35bed105e519ed3641d45b9bea286e9e961ffb689f8ae54c4d36602",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -1,0 +1,49 @@
+{
+  "id": "covid19vaccines",
+  "title": "COVID-19 Vaccines",
+  "title_en": "COVID-19 Vaccines",
+  "title_vi": "Vắc-xin phòng COVID-19",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "COVID 19 vaccines",
+    "coronavirus vaccination",
+    "mRNA vaccines",
+    "booster doses",
+    "vaccine efficacy",
+    "vắc-xin covid 19",
+    "tiêm phòng covid",
+    "mũi tiêm tăng cường",
+    "hiệu lực vắc-xin covid",
+    "miễn dịch phòng sars cov 2"
+  ],
+  "keywords_en": [
+    "COVID 19 vaccines",
+    "coronavirus vaccination",
+    "mRNA vaccines",
+    "booster doses",
+    "vaccine efficacy"
+  ],
+  "keywords_vi": [
+    "vắc-xin covid 19",
+    "tiêm phòng covid",
+    "mũi tiêm tăng cường",
+    "hiệu lực vắc-xin covid",
+    "miễn dịch phòng sars cov 2"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/covid19vaccines.html",
+  "summary": "COVID-19 (coronavirus disease 2019) is an illness caused by a virus. This virus is a coronavirus called SARS-CoV-2. Most people with COVID-19 have mild symptoms, but some people become very sick. You can protect yourself by getting a COVID-19 vaccine. The vaccines might help keep you from getting sick from COVID-19. And if you do get sick, the vaccines can reduce your risk for: Needing to go to urgent care or the emergency room Getting severe illness Being hospitalized Dying Getting long COVID It's important to stay up to date with the COVID-19 vaccines. Contact your health care provider if you don't know when you need another vaccine or if you have other questions about the vaccines. Centers for Disease Control and Prevention",
+  "page_content": "COVID-19 (coronavirus disease 2019) is an illness caused by a virus. This virus is a coronavirus called SARS-CoV-2. Most people with COVID-19 have mild symptoms, but some people become very sick. You can protect yourself by getting a COVID-19 vaccine. The vaccines might help keep you from getting sick from COVID-19. And if you do get sick, the vaccines can reduce your risk for: Needing to go to urgent care or the emergency room Getting severe illness Being hospitalized Dying Getting long COVID It's important to stay up to date with the COVID-19 vaccines. Contact your health care provider if you don't know when you need another vaccine or if you have other questions about the vaccines. Centers for Disease Control and Prevention",
+  "content_sha256": "f4b9f0d4fc491695d06f3f466fd15da21326b53aec085d27ef3e5c0a60f72160",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/cough.html",
   "medlineplus_id": "1543",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Persistent cough",
+  "title_vi": "Ho kéo dài (Ho mạn tính)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "persistent cough",
+    "chronic cough",
+    "lingering cough",
+    "cough lasting weeks"
+  ],
+  "keywords_vi": [
+    "ho kéo dài",
+    "ho mạn tính",
+    "ho trên 3 tuần",
+    "tầm soát lao phổi",
+    "viêm phế quản mạn"
+  ],
+  "content_hash": "529365df0c2fd0f0ca64a31096a00d2b19795517a4c5e074d0fbfa72411e8f3e",
+  "content_sha256": "529365df0c2fd0f0ca64a31096a00d2b19795517a4c5e074d0fbfa72411e8f3e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

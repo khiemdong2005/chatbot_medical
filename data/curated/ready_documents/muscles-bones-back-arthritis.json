@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/arthritis.html",
   "medlineplus_id": "23",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Arthritis",
+  "title_vi": "Viêm khớp",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "arthritis",
+    "joint inflammation",
+    "joint stiffness",
+    "rheumatic disease"
+  ],
+  "keywords_vi": [
+    "viêm khớp",
+    "thoái hóa khớp",
+    "sưng đau khớp",
+    "cứng khớp buổi sáng",
+    "cơ xương khớp"
+  ],
+  "content_hash": "2b79d7ff7e22a0010444afad954ce3def816894db3aacaa3e534551a89744d6c",
+  "content_sha256": "2b79d7ff7e22a0010444afad954ce3def816894db3aacaa3e534551a89744d6c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

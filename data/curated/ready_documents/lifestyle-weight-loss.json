@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/weightcontrol.html",
   "medlineplus_id": "480",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Weight loss",
+  "title_vi": "Phương pháp giảm cân khoa học",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "weight loss healthy",
+    "safe weight loss",
+    "calorie deficit",
+    "fat loss diet",
+    "healthy slimming"
+  ],
+  "keywords_vi": [
+    "giảm cân khoa học",
+    "cách giảm cân an toàn",
+    "thâm hụt calo",
+    "đốt mỡ thừa",
+    "chế độ ăn giảm mỡ"
+  ],
+  "content_hash": "2609c4f6c2fc8222e0dfb000716bb23d061beefc14f7f7aa9e335848cbe8e8e6",
+  "content_sha256": "2609c4f6c2fc8222e0dfb000716bb23d061beefc14f7f7aa9e335848cbe8e8e6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

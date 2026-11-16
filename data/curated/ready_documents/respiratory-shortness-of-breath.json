@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/breathingproblems.html",
   "medlineplus_id": "3077",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Shortness of breath",
+  "title_vi": "Khó thở (Hụt hơi)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "shortness of breath",
+    "dyspnea",
+    "breathlessness",
+    "difficulty breathing"
+  ],
+  "keywords_vi": [
+    "khó thở",
+    "hụt hơi",
+    "thở dốc",
+    "thiếu oxy",
+    "cấp cứu khó thở"
+  ],
+  "content_hash": "694c54531adac41984b70568ab73de5a9cbb1c6e74ebb3ab547f84400fe08890",
+  "content_sha256": "694c54531adac41984b70568ab73de5a9cbb1c6e74ebb3ab547f84400fe08890",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

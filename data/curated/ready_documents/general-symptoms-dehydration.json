@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/dehydration.html",
   "medlineplus_id": "6051",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Dehydration",
+  "title_vi": "Mất nước",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "dehydration",
+    "fluid loss",
+    "electrolyte imbalance",
+    "rehydration"
+  ],
+  "keywords_vi": [
+    "mất nước",
+    "thiếu nước",
+    "khát nước",
+    "bù điện giải",
+    "chống mất nước"
+  ],
+  "content_hash": "54dd500990f8d3ca59dc996cede462773c97c8a25c69de1bf0b1b23cfbad718c",
+  "content_sha256": "54dd500990f8d3ca59dc996cede462773c97c8a25c69de1bf0b1b23cfbad718c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

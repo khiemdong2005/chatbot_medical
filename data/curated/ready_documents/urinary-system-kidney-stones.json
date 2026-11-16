@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/kidneystones.html",
   "medlineplus_id": "1224",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Kidney stones",
+  "title_vi": "Sỏi thận",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "kidney stones",
+    "renal calculi",
+    "nephrolithiasis",
+    "renal colic",
+    "urinary stones"
+  ],
+  "keywords_vi": [
+    "sỏi thận",
+    "cơn đau quặn thận",
+    "tiểu buốt",
+    "tán sỏi",
+    "tiết niệu"
+  ],
+  "content_hash": "086b3a5751301b0a6b15b667f3013d0a8551432999ebf031c927ef052f0d2c12",
+  "content_sha256": "086b3a5751301b0a6b15b667f3013d0a8551432999ebf031c927ef052f0d2c12",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

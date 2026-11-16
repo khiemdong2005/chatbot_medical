@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/testiculardisorders.html",
   "medlineplus_id": "4280",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Varicocele",
+  "title_vi": "Giãn tĩnh mạch thừng tinh",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "varicocele",
+    "scrotal varicose veins",
+    "scrotal dragging pain",
+    "male subfertility varicocele"
+  ],
+  "keywords_vi": [
+    "giãn tĩnh mạch thừng tinh",
+    "búi tĩnh mạch bìu",
+    "đau tức tinh hoàn âm ỉ",
+    "ảnh hưởng tinh trùng",
+    "nam khoa"
+  ],
+  "content_hash": "5d87d7a3b005c85ccd2db16b77445c9b7b1df3486502a35108c21165595de73a",
+  "content_sha256": "5d87d7a3b005c85ccd2db16b77445c9b7b1df3486502a35108c21165595de73a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

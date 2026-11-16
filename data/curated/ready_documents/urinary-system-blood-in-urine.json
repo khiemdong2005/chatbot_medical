@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/urineandurination.html",
   "medlineplus_id": "4889",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Blood in urine",
+  "title_vi": "Tiểu ra máu (Đái máu)",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "blood in urine",
+    "hematuria",
+    "urinary tract",
+    "kidney bleeding",
+    "red urine"
+  ],
+  "keywords_vi": [
+    "tiểu ra máu",
+    "đái máu",
+    "nước tiểu có máu",
+    "tiết niệu",
+    "nhiễm trùng đường tiểu"
+  ],
+  "content_hash": "749c248a569223c915d4dff5c422c36bdf721f7b223962918708fa60ae9d2f20",
+  "content_sha256": "749c248a569223c915d4dff5c422c36bdf721f7b223962918708fa60ae9d2f20",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

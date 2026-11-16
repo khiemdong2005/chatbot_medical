@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
   "medlineplus_id": "3181",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "COVID-19",
+  "title_vi": "Bệnh COVID-19",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "COVID-19",
+    "coronavirus",
+    "SARS-CoV-2",
+    "loss of taste smell",
+    "viral respiratory"
+  ],
+  "keywords_vi": [
+    "COVID-19",
+    "nhiễm virus SARS-CoV-2",
+    "mất khứu giác",
+    "sốt ho khó thở",
+    "nhiễm trùng hô hấp"
+  ],
+  "content_hash": "dde1d5213cab0d08c4e4e0dcd59ec2c6de3e2f5d0ba790191d999756283b3eee",
+  "content_sha256": "dde1d5213cab0d08c4e4e0dcd59ec2c6de3e2f5d0ba790191d999756283b3eee",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

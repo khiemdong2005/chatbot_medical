@@ -104,20 +104,82 @@ def catalog_stats():
 
 
 EXPANSIONS = {
-    "sot": "chao canh sup nuoc gao ga rau soup broth congee porridge rice chicken vegetable water",
+    "sot": "chao canh sup nuoc gao ga nac rau cu thanh nhiet dau xanh soup broth congee porridge chicken vegetable water bun pho",
     "ho": "chao canh sup nuoc le soup broth porridge water milk drink",
-    "nhiet mieng": "chao canh sup mem sua soup puree porridge custard soft milk",
-    "mat ngu": "chao canh hat sen dau xanh sua soup porridge oatmeal rice milk",
-    "cang thang": "canh rau chao gao dau vegetable soup rice oats",
-    "trao nguoc": "gao hap luoc rau rice steamed boiled vegetable",
+    "nhiet mieng": "chao canh sup mem sua dau hu ca ga bot san rau ngot mong toi bi dao thanh nhiet soft tofu soup congee bun pho banh canh",
+    "mat ngu": "hat sen cu sen dau hu dau phu ca ga nac nam rau cai bo xoi bi do khoai chuoi yen mach dau xanh canh chao com bun pho lotus tofu mushroom fish chicken",
+    "cang thang": "ca hoi ca nac ga nam hat sen chuoi rau xanh dau hu yen mach canh xao bun pho com vegetable soup fish oats",
+    "met moi": "ga nac ca bo chao bun pho com mi truyen nang luong dam vitamin rau xanh chanh gung sam hat sen soup oats",
+    "trao nguoc": "gao hap luoc rau yen mach khoai tay khoai lang ca nac ga hap bi do canh steamed boiled vegetable",
+    "gut": "rau cu bi dao dua leo ca rot khoai lang dau hu canh rau com bun mi vegetable soup cucumber",
+    "tieu duong": "rau xanh ca nac ga nac dau hu kho qua bi dao bi xanh canh xao vegetable fish chicken",
+    "hypertension": "can tay rau cai ca nac nam cu cai ca chua dau xanh canh xao celery vegetable fish",
+    "stomach": "chao sup khoai tay bi do dau hu non ca hap ga luoc chuoi mem soup congee steamed soft bun",
     "ga": "chicken", "ca": "fish", "rau": "vegetable spinach carrot", "bi do": "pumpkin squash",
     "chao": "porridge congee", "sup": "soup", "sua": "milk", "nuoc": "water drink beverage",
     "dau hu": "tofu", "chuoi": "banana", "tao": "apple", "le": "pear",
 }
 
+STANDALONE_PATTERN = re.compile(
+    r'(?<!bó\s)\b(bún|phở|hủ tiếu|hủ tíu|hu tieu|mì|miến|bánh canh|cơm tấm|cơm chiên|cơm rang|cơm gà|cơm trộn|cơm hến|cơm lam|cơm sườn|cơm thố|cơm niêu|cháo|súp|bánh mì|xôi|bánh cuốn|bánh ướt|bánh xèo|bánh khọt|bánh hỏi|mì quảng|cao lầu|nui|bò kho|lẩu|chè|sữa hạt|sinh tố|nước mát|pasta|spaghetti|sandwich|burger)\b',
+    re.IGNORECASE
+)
+
+
+def is_standalone_one_dish(recipe):
+    """Kiểm tra món ăn có phải món đơn lẻ trọn vị (One-dish meal: bún, phở, mì, miến, cơm tấm, cháo, súp, bánh...)
+    hoặc thức uống/chè dinh dưỡng, chứ không phải món thành phần trong mâm cơm (canh suông, rau luộc, món mặn ăn cơm)."""
+    if not recipe:
+        return False
+    if recipe.get("recipe_type") == "drink":
+        return True
+    title = str(recipe.get("title", "")).strip()
+    if title.lower().startswith("canh ") or title.lower().startswith("canh:"):
+        return False
+    cleaned = re.sub(r"bó\s+xôi", "", title, flags=re.I)
+    cleaned = re.sub(r"mì\s+căn", "", cleaned, flags=re.I)
+    return bool(STANDALONE_PATTERN.search(cleaned))
+
+
+def classify_dish_role(recipe):
+    """Phân loại vai trò món trong mâm cơm: main, soup, side, staple, drink."""
+    if recipe.get("recipe_type") == "drink":
+        return "drink"
+    title = normalize(recipe.get("title", ""))
+    cats = normalize(" ".join(recipe.get("categories", [])))
+    if any(k in title for k in ["chao ", "sup ", "cháo", "súp", "oatmeal", "porridge", "congee", "mien ", "bun ", "pho ", "banh canh", "hu tieu", "com ", "mi ", "nui", "banh cuon", "banh uot", "banh mi", "xoi "]):
+        return "staple"
+    if any(k in title for k in ["canh", "lau", "lẩu"]) or "canh" in cats:
+        return "soup"
+    if any(k in title for k in ["xao", "luoc", "goi", "nom", "salad", "xào", "luộc", "gỏi", "nộm", "rau"]) or any(k in cats for k in ["xao", "goi", "salad", "rau"]):
+        return "side"
+    if any(k in title for k in ["che ", "tra ", "sua ", "chè", "trà", "sữa"]):
+        return "drink"
+    veg_keywords = ["cai", "cải", "bi ", "bí ", "bau ", "bầu ", "muop", "mướp", "bong cai", "bông cải", "nam", "nấm", "ca tim", "cà tím", "dau bap", "đậu bắp", "su hao", "su hào", "su su", "cu cai", "củ cải", "ngo sen", "ngó sen", "dau hu", "đậu hũ", "dau phu", "đậu phụ"]
+    meat_keywords = ["thit", "thịt", "heo", "lon", "lợn", "bo ", "bò ", "ga ", "gà ", "vit", "vịt", "ca ", "cá ", "tom", "tôm", "cua", "muc", "mực", "oc ", "ốc ", "suon", "sườn", "gio ", "giò ", "luon", "lươn", "ech", "ếch"]
+    if any(k in title for k in veg_keywords) and not any(k in title for k in meat_keywords):
+        return "side"
+    return "main"
+
+
+def classify_meal_times(recipe, role=None):
+    """Xác định các bữa ăn phù hợp cho món: breakfast, lunch, dinner, snack."""
+    if role is None:
+        role = classify_dish_role(recipe)
+    title = normalize(recipe.get("title", ""))
+    meals = []
+    if role in ("staple", "drink") or any(k in title for k in ["chao", "sup", "cháo", "súp", "banh", "trung", "sua", "yen mach", "bun", "pho"]):
+        meals.append("breakfast")
+    if role in ("main", "soup", "side", "staple"):
+        meals.append("lunch")
+        meals.append("dinner")
+    if role in ("drink", "staple") or any(k in title for k in ["che", "chè", "sen", "sua", "sữa", "tra", "trà", "chao", "cháo"]):
+        meals.append("snack")
+    return list(dict.fromkeys(meals)) or ["lunch", "dinner"]
+
 
 def retrieve_candidates(condition, recipes, limit=32):
-    """Text/metadata retrieval, not a clinical suitability score or diagnosis."""
+    """Text/metadata retrieval with dish role diversity for balanced meals."""
     query = normalize(condition)
     expanded = query + " " + " ".join(v for k, v in EXPANSIONS.items() if re.search(r"\b" + re.escape(k) + r"\b", query))
     tokens = {t for t in re.findall(r"[a-z]{2,}", expanded) if t not in
@@ -139,6 +201,67 @@ def retrieve_candidates(condition, recipes, limit=32):
         if key not in seen_titles:
             ranked.append(recipe)
             seen_titles.add(key)
+
+    # Đảm bảo phân bổ đa dạng vai trò món (món chính, canh, rau, tinh bột) cho food
+    first_type = recipes[0].get("recipe_type") if recipes else "food"
+    if first_type == "food" and len(ranked) >= 16:
+        by_role = {}
+        for r in ranked:
+            role = classify_dish_role(r)
+            by_role.setdefault(role, []).append(r)
+        
+        quotas = {"main": 8, "soup": 6, "side": 6, "staple": 10, "drink": 2}
+        diverse_candidates = []
+        selected_ids = set()
+        for role, quota in quotas.items():
+            for r in by_role.get(role, [])[:quota]:
+                if r["id"] not in selected_ids:
+                    diverse_candidates.append(r)
+                    selected_ids.add(r["id"])
+        
+        if len(diverse_candidates) < limit:
+            for r in ranked:
+                if r["id"] not in selected_ids:
+                    diverse_candidates.append(r)
+                    selected_ids.add(r["id"])
+                    if len(diverse_candidates) >= limit:
+                        break
+
+        # Interleave roles to ensure balanced dish representation in top slots: main, soup, side, staple, drink
+        role_order = ["main", "soup", "side", "staple", "drink"]
+        role_lists = {role: [r for r in diverse_candidates if classify_dish_role(r) == role] for role in role_order}
+        for role in role_lists:
+            role_lists[role].sort(key=lambda r: (-score(r), r["id"]))
+            
+        interleaved = []
+        max_depth = max(len(l) for l in role_lists.values()) if role_lists else 0
+        for i in range(max_depth):
+            for role in role_order:
+                if i < len(role_lists[role]):
+                    interleaved.append(role_lists[role][i])
+
+        imported = [r for r in interleaved if r.get("imported")]
+        if len(imported) >= 8:
+            originals = [r for r in ranked if not r.get("imported")][:2]
+            chosen = originals + [r for r in interleaved if r.get("imported")][:max(0, limit - len(originals))]
+            if len(chosen) < limit:
+                chosen_ids = {r["id"] for r in chosen}
+                for r in ranked:
+                    if r.get("imported") and r["id"] not in chosen_ids:
+                        chosen.append(r)
+                        chosen_ids.add(r["id"])
+                        if len(chosen) >= limit:
+                            break
+                if len(chosen) < limit:
+                    for r in ranked:
+                        if r["id"] not in chosen_ids:
+                            chosen.append(r)
+                            chosen_ids.add(r["id"])
+                            if len(chosen) >= limit:
+                                break
+            return chosen
+        return interleaved[:limit]
+
     # When there is enough relevant imported data, avoid filling the entire
     # shortlist with the same demonstration catalog on every request.
     imported = [r for r in ranked if r.get("imported")]

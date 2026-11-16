@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/menstruation.html",
   "medlineplus_id": "325",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heavy periods",
+  "title_vi": "Kinh nguyệt ra nhiều (Rong kinh)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "heavy periods",
+    "menorrhagia",
+    "heavy menstrual bleeding",
+    "prolonged periods"
+  ],
+  "keywords_vi": [
+    "kinh nguyệt nhiều",
+    "rong kinh",
+    "chảy máu kinh nặng",
+    "thiếu máu do rong kinh",
+    "phụ khoa"
+  ],
+  "content_hash": "6335ce7523b3b893792e566a2975523282f1219b442268dc28f99f40a9aa36ac",
+  "content_sha256": "6335ce7523b3b893792e566a2975523282f1219b442268dc28f99f40a9aa36ac",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

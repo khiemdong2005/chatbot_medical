@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/insomnia.html",
   "medlineplus_id": "6055",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Insomnia",
+  "title_vi": "Mất ngủ (Rối loạn giấc ngủ)",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "insomnia",
+    "sleep disorder",
+    "trouble sleeping",
+    "sleeplessness",
+    "sleep quality"
+  ],
+  "keywords_vi": [
+    "mất ngủ",
+    "khó ngủ",
+    "thức giấc nửa đêm",
+    "thiếu ngủ",
+    "giấc ngủ"
+  ],
+  "content_hash": "052f488d5b799eb6235a715fdd3abfaca1564971012c0259967ae38576222aab",
+  "content_sha256": "052f488d5b799eb6235a715fdd3abfaca1564971012c0259967ae38576222aab",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

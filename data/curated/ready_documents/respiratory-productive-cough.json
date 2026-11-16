@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/cough.html",
   "medlineplus_id": "1543",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Productive cough",
+  "title_vi": "Ho có đờm",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "productive cough",
+    "wet cough",
+    "cough with phlegm",
+    "expectorant",
+    "mucus cough"
+  ],
+  "keywords_vi": [
+    "ho có đờm",
+    "đờm xanh đờm vàng",
+    "tống đờm",
+    "thuốc long đờm",
+    "hô hấp"
+  ],
+  "content_hash": "fbca8004b4013e7e24cda6026d15a3cb18defb1eb3b68a8adb1a668321265841",
+  "content_sha256": "fbca8004b4013e7e24cda6026d15a3cb18defb1eb3b68a8adb1a668321265841",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

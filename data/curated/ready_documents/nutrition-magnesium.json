@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/minerals.html",
   "medlineplus_id": "4298",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Magnesium",
+  "title_vi": "Magiê (Magnesium)",
+  "category_en": "Nutrition",
+  "category_vi": "Dinh dưỡng",
+  "keywords_en": [
+    "magnesium",
+    "dietary magnesium",
+    "muscle cramps",
+    "essential minerals",
+    "electrolyte balance"
+  ],
+  "keywords_vi": [
+    "magiê",
+    "magnesium",
+    "chuột rút cơ bắp",
+    "khoáng chất thiết yếu",
+    "dinh dưỡng"
+  ],
+  "content_hash": "32a9f9f5cfb456701446ce3837c03eede30e3901ee271f70724d07b3640cab8d",
+  "content_sha256": "32a9f9f5cfb456701446ce3837c03eede30e3901ee271f70724d07b3640cab8d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

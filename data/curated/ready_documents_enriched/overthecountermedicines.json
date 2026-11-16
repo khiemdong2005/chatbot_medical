@@ -1,0 +1,51 @@
+{
+  "id": "overthecountermedicines",
+  "title": "Over-the-Counter Medicines",
+  "title_en": "Over-the-Counter Medicines",
+  "title_vi": "Thuốc không kê đơn (OTC)",
+  "category": "Pharmacology & Medication Safety",
+  "category_en": "Pharmacology & Medication Safety",
+  "category_vi": "Dược lý & An toàn thuốc",
+  "search_phrases": [
+    "over the counter medicines",
+    "OTC drugs",
+    "nonprescription drugs",
+    "drug facts label",
+    "self care medicines",
+    "thuốc không kê đơn",
+    "thuốc OTC",
+    "tự mua thuốc",
+    "hướng dẫn nhãn thuốc",
+    "dùng thuốc giảm đau hạ sốt"
+  ],
+  "keywords_en": [
+    "over the counter medicines",
+    "OTC drugs",
+    "nonprescription drugs",
+    "drug facts label",
+    "self care medicines"
+  ],
+  "keywords_vi": [
+    "thuốc không kê đơn",
+    "thuốc OTC",
+    "tự mua thuốc",
+    "hướng dẫn nhãn thuốc",
+    "dùng thuốc giảm đau hạ sốt"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/overthecountermedicines.html",
+  "summary": "Over-the-counter (OTC) medicines are drugs you can buy without a prescription. Some OTC medicines relieve aches, pains, and itches. Some prevent or cure diseases, like tooth decay and athlete's foot. Others help manage recurring problems, like migraines and allergies. In the United States, the Food and Drug Administration decides whether a medicine is safe and effective enough to sell over-the-counter. This allows you to take a more active role in your health care. But you also need to be careful to avoid mistakes . Make sure to follow the instructions on the drug label. If you don't understand the instructions, ask your pharmacist or health care provider. Also keep in mind that that there are still risks to taking OTC medicines: The medicine you are taking could interact with other medicines, supplements, foods, or drinks Some medicines are not right for people with certain medical conditions. For example, people with high blood pressure should not take certain decongestants. Some people are allergic to certain medicines Many medicines are not safe during pregnancy . If you are pregnant, check with your health care provider before taking any medicine. Be careful when giving medicines to children . Make sure that you give your child the correct dose. If you are giving your child a liquid medicine, don't use a kitchen spoon. Instead use a measuring spoon or a dosing cup marked in teaspoons. If you have been taking an OTC medicine but your symptoms don't go away, contact your health care provider. You should not take OTC medicines longer or in higher doses than the label recommends. Food and Drug Administration",
+  "page_content": "Over-the-counter (OTC) medicines are drugs you can buy without a prescription. Some OTC medicines relieve aches, pains, and itches. Some prevent or cure diseases, like tooth decay and athlete's foot. Others help manage recurring problems, like migraines and allergies. In the United States, the Food and Drug Administration decides whether a medicine is safe and effective enough to sell over-the-counter. This allows you to take a more active role in your health care. But you also need to be careful to avoid mistakes . Make sure to follow the instructions on the drug label. If you don't understand the instructions, ask your pharmacist or health care provider. Also keep in mind that that there are still risks to taking OTC medicines: The medicine you are taking could interact with other medicines, supplements, foods, or drinks Some medicines are not right for people with certain medical conditions. For example, people with high blood pressure should not take certain decongestants. Some people are allergic to certain medicines Many medicines are not safe during pregnancy . If you are pregnant, check with your health care provider before taking any medicine. Be careful when giving medicines to children . Make sure that you give your child the correct dose. If you are giving your child a liquid medicine, don't use a kitchen spoon. Instead use a measuring spoon or a dosing cup marked in teaspoons. If you have been taking an OTC medicine but your symptoms don't go away, contact your health care provider. You should not take OTC medicines longer or in higher doses than the label recommends. Food and Drug Administration",
+  "content_sha256": "f2c92e197e60280ee88a272b2b2a5c6f903570eb69ef97a09974382125a5168e",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED_WITH_SAFETY_FLAG",
+  "qa_flags": [
+    "pediatric_device_safety_guidance"
+  ],
+  "qa_review_reason": "Hướng dẫn an toàn thiết bị đo lường khi cho trẻ uống thuốc dạng lỏng (dùng cốc đong/thìa chia vạch thay vì thìa ăn); không chứa công thức liều.",
+  "safety_classification": "SAFE_WITH_CONTEXT",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

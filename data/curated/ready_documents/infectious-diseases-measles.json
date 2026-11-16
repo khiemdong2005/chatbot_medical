@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/measles.html",
   "medlineplus_id": "318",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Measles",
+  "title_vi": "Bệnh sởi",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "measles",
+    "rubeola",
+    "measles rash",
+    "koplik spots",
+    "measles vaccine"
+  ],
+  "keywords_vi": [
+    "bệnh sởi",
+    "virus sởi",
+    "phát ban sởi",
+    "sốt phát ban ở trẻ",
+    "vắc-xin sởi"
+  ],
+  "content_hash": "ee97152bb0ac0606cc89537cee9048aa3cd47717901edcd15e9b14b707b22b0b",
+  "content_sha256": "ee97152bb0ac0606cc89537cee9048aa3cd47717901edcd15e9b14b707b22b0b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

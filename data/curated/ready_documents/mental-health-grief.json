@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/bereavement.html",
   "medlineplus_id": "159",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Grief",
+  "title_vi": "Nỗi đau mất mát và đau buồn",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "grief",
+    "bereavement",
+    "mourning",
+    "loss of loved one",
+    "emotional healing"
+  ],
+  "keywords_vi": [
+    "nỗi đau mất mát",
+    "đau buồn",
+    "mất người thân",
+    "vượt qua mất mát",
+    "tâm lý trị liệu"
+  ],
+  "content_hash": "f49ae6ada48d2aa91b8b4b92d4de6449ac1f0d2ff03ede75ea1ca2dd431258cf",
+  "content_sha256": "f49ae6ada48d2aa91b8b4b92d4de6449ac1f0d2ff03ede75ea1ca2dd431258cf",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

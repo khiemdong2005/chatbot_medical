@@ -1,6 +1,6 @@
 import pytest
 from starlette.testclient import TestClient
-from main_fastapi import app as fastapi_app
+from core.main_fastapi import app as fastapi_app
 
 
 def test_flask_and_fastapi_chat_contract_parity(client):

@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/anxiety.html",
   "medlineplus_id": "144",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Anxiety",
+  "title_vi": "Rối loạn lo âu",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "anxiety",
+    "generalized anxiety disorder",
+    "panic attack",
+    "excessive worrying",
+    "nervousness"
+  ],
+  "keywords_vi": [
+    "rối loạn lo âu",
+    "lo âu lan tỏa",
+    "cơn hoảng loạn",
+    "hồi hộp lo sợ",
+    "sức khỏe tâm thần"
+  ],
+  "content_hash": "5728587b26a023b6d30a71f1a290e81a1e2a653b3036491a033f78d1b75da108",
+  "content_sha256": "5728587b26a023b6d30a71f1a290e81a1e2a653b3036491a033f78d1b75da108",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

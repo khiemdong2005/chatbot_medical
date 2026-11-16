@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/vitamind.html",
   "medlineplus_id": "5383",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vitamin D",
+  "title_vi": "Vitamin D",
+  "category_en": "Nutrition",
+  "category_vi": "Dinh dưỡng",
+  "keywords_en": [
+    "vitamin D",
+    "sunlight vitamin",
+    "calcium absorption",
+    "bone density",
+    "immune support"
+  ],
+  "keywords_vi": [
+    "vitamin D",
+    "hấp thụ canxi",
+    "loãng xương",
+    "ánh nắng mặt trời",
+    "miễn dịch"
+  ],
+  "content_hash": "57ca29e6a374139c2cc4a4bb1911362e637f0092b7f49fb6b75544a7d74dd010",
+  "content_sha256": "57ca29e6a374139c2cc4a4bb1911362e637f0092b7f49fb6b75544a7d74dd010",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

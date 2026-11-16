@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/flu.html",
   "medlineplus_id": "299",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Influenza",
+  "title_vi": "Cúm mùa (Cúm A/B)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "influenza",
+    "flu",
+    "seasonal flu",
+    "flu virus",
+    "body aches fever"
+  ],
+  "keywords_vi": [
+    "cúm mùa",
+    "cúm A",
+    "cúm B",
+    "sốt cao đau nhức mình mẩy",
+    "virus cúm"
+  ],
+  "content_hash": "e8094fbb74c80364695f3cf7d4391c8cb69bf166ab338b8772c99c4ab1d58510",
+  "content_sha256": "e8094fbb74c80364695f3cf7d4391c8cb69bf166ab338b8772c99c4ab1d58510",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

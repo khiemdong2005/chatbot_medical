@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/menstruation.html",
   "medlineplus_id": "325",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Irregular periods",
+  "title_vi": "Rối loạn kinh nguyệt (Kinh không đều)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "irregular periods",
+    "abnormal menstruation",
+    "irregular menstrual cycle",
+    "hormonal imbalance female"
+  ],
+  "keywords_vi": [
+    "kinh nguyệt không đều",
+    "rối loạn kinh nguyệt",
+    "chu kỳ kinh thất thường",
+    "nội tiết nữ",
+    "buồng trứng"
+  ],
+  "content_hash": "7239f2fd75a853b5ed1361004b1529108689dc31f27f28885f734470613ea592",
+  "content_sha256": "7239f2fd75a853b5ed1361004b1529108689dc31f27f28885f734470613ea592",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

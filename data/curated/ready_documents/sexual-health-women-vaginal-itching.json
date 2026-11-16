@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/vaginaldiseases.html",
   "medlineplus_id": "451",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vaginal itching",
+  "title_vi": "Ngứa âm đạo",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "vaginal itching",
+    "vulvar pruritus",
+    "vaginal yeast infection",
+    "candidiasis vaginal",
+    "vaginal irritation"
+  ],
+  "keywords_vi": [
+    "ngứa âm đạo",
+    "ngứa vùng kín nữ",
+    "nhiễm nấm candida âm đạo",
+    "rát ngứa phụ khoa",
+    "viêm âm hộ"
+  ],
+  "content_hash": "3b4dd129c03b1d51f01030f6689ccda17ffe020da030579c772e7fe2141570df",
+  "content_sha256": "3b4dd129c03b1d51f01030f6689ccda17ffe020da030579c772e7fe2141570df",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualproblemsinmen.html",
   "medlineplus_id": "5571",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Premature ejaculation",
+  "title_vi": "Xuất tinh sớm",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "premature ejaculation",
+    "rapid ejaculation",
+    "PE male",
+    "ejaculatory latency"
+  ],
+  "keywords_vi": [
+    "xuất tinh sớm",
+    "chống xuất tinh sớm",
+    "thời gian quan hệ ngắn",
+    "kiểm soát xuất tinh",
+    "nam khoa"
+  ],
+  "content_hash": "8de95200cb018d33d17d2af12c4fc5e9bf1a9b8c5d2409cfa362479ffdf9f28c",
+  "content_sha256": "8de95200cb018d33d17d2af12c4fc5e9bf1a9b8c5d2409cfa362479ffdf9f28c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

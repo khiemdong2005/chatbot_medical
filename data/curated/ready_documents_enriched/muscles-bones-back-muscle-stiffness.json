@@ -1,0 +1,38 @@
+{
+  "id": "muscle-stiffness",
+  "title": "Muscle stiffness",
+  "category": "Muscles, Bones & Back",
+  "mapped_title": "Muscle Disorders",
+  "page_content": "User topic: Muscle stiffness\nCategory: Muscles, Bones & Back\nTrusted medical topic: Muscle Disorders\nSearch phrases: Muscle stiffness, Muscle Disorders, Myopathy\nMedical groups: Bones, Joints and Muscles\n\nMedical information:\nYour muscles help you move and help your body work. Different types of muscles have different jobs. There are many problems that can affect muscles. Muscle disorders can cause weakness, pain or even paralysis. Causes of muscle disorders include: Injury or overuse, such as sprains or strains , cramps or tendinitis A genetic disorder, such as muscular dystrophy Some cancers Inflammation, such as myositis Diseases of nerves that affect muscles Infections Certain medicines Sometimes the cause of muscle disorders is unknown.",
+  "search_phrases": [
+    "Muscle stiffness",
+    "Muscle Disorders",
+    "Myopathy"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/muscledisorders.html",
+  "medlineplus_id": "510",
+  "mapping_type": "manual",
+  "mapping_score": 1.0,
+  "title_en": "Muscle stiffness",
+  "title_vi": "Cứng cơ (Cứng khớp)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "muscle stiffness",
+    "stiff muscles",
+    "inflexibility",
+    "muscle tightness"
+  ],
+  "keywords_vi": [
+    "cứng cơ",
+    "căng cứng bắp thịt",
+    "cứng khớp",
+    "mỏi cơ",
+    "giãn cơ"
+  ],
+  "content_hash": "2c67facb8c71c0008347536690aeafdd6f7ed084b58eb689c2331ce014a9a9d5",
+  "content_sha256": "2c67facb8c71c0008347536690aeafdd6f7ed084b58eb689c2331ce014a9a9d5",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/birthcontrol.html",
   "medlineplus_id": "160",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Emergency contraception",
+  "title_vi": "Tránh thai khẩn cấp",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "emergency contraception",
+    "morning after pill",
+    "post-coital contraception",
+    "emergency birth control"
+  ],
+  "keywords_vi": [
+    "tránh thai khẩn cấp",
+    "thuốc tránh thai khẩn cấp",
+    "uống thuốc ngừa thai sau quan hệ",
+    "hiệu quả ngừa thai",
+    "sản phụ khoa"
+  ],
+  "content_hash": "944548e7be64915e28369e586fa7604bd385fa578b528919bba41c46f96a8514",
+  "content_sha256": "944548e7be64915e28369e586fa7604bd385fa578b528919bba41c46f96a8514",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

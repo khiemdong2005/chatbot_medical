@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/birthcontrol.html",
   "medlineplus_id": "160",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Birth control",
+  "title_vi": "Các biện pháp tránh thai",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "birth control",
+    "contraception",
+    "contraceptive methods",
+    "family planning",
+    "safe sex"
+  ],
+  "keywords_vi": [
+    "biện pháp tránh thai",
+    "ngừa thai an toàn",
+    "thuốc tránh thai",
+    "bao cao su",
+    "kế hoạch hóa gia đình"
+  ],
+  "content_hash": "4d1b2c94abf48a7ab3a1d99509005fa3d71b226a2099c851e2eafce0b7f6a048",
+  "content_sha256": "4d1b2c94abf48a7ab3a1d99509005fa3d71b226a2099c851e2eafce0b7f6a048",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/nutrition.html",
   "medlineplus_id": "36",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Healthy eating",
+  "title_vi": "Chế độ ăn uống cân bằng",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "healthy eating",
+    "balanced diet",
+    "nutritious food",
+    "daily nutrition",
+    "dietary guidelines"
+  ],
+  "keywords_vi": [
+    "ăn uống cân bằng",
+    "dinh dưỡng khoa học",
+    "bữa ăn lành mạnh",
+    "đủ nhóm chất",
+    "sức khỏe lối sống"
+  ],
+  "content_hash": "aba5761583978637d486eec3932422f7f8bbee63989785d2d12666d3869bd175",
+  "content_sha256": "aba5761583978637d486eec3932422f7f8bbee63989785d2d12666d3869bd175",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

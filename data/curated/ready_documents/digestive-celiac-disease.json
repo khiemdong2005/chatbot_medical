@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/celiacdisease.html",
   "medlineplus_id": "897",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Celiac disease",
+  "title_vi": "Bệnh Celiac (Không dung nạp gluten)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "celiac disease",
+    "gluten intolerance",
+    "gluten free",
+    "small intestine damage"
+  ],
+  "keywords_vi": [
+    "bệnh celiac",
+    "không dung nạp gluten",
+    "viêm ruột non",
+    "dị ứng lúa mì",
+    "tiêu hóa"
+  ],
+  "content_hash": "24d0d8dca0c04e25b640bf7daf2c0a92f5aab0ce5cdf8b0a24ab8df78e6c76eb",
+  "content_sha256": "24d0d8dca0c04e25b640bf7daf2c0a92f5aab0ce5cdf8b0a24ab8df78e6c76eb",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/penisdisorders.html",
   "medlineplus_id": "1360",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Peyronie's disease",
+  "title_vi": "Bệnh xơ cứng vật hang (Cong dương vật Peyronie)",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "Peyronie's disease",
+    "penile curvature",
+    "penile plaque",
+    "bent penis"
+  ],
+  "keywords_vi": [
+    "bệnh peyronie",
+    "cong dương vật",
+    "mảng xơ vật hang",
+    "đau khi cương cong",
+    "nam khoa"
+  ],
+  "content_hash": "aa374ca46f209afcf94ddef1f0c67ef5495043dd2cefb6acee7fdc07bb11016a",
+  "content_sha256": "aa374ca46f209afcf94ddef1f0c67ef5495043dd2cefb6acee7fdc07bb11016a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

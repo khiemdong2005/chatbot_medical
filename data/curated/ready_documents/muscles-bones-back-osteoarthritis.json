@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/osteoarthritis.html",
   "medlineplus_id": "1250",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Osteoarthritis",
+  "title_vi": "Thoái hóa khớp",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "osteoarthritis",
+    "degenerative joint disease",
+    "knee osteoarthritis",
+    "cartilage loss"
+  ],
+  "keywords_vi": [
+    "thoái hóa khớp",
+    "mòn sụn khớp",
+    "thoái hóa khớp gối",
+    "đau khớp khi vận động",
+    "khớp thoái hóa"
+  ],
+  "content_hash": "d076a97653d75cfa3f803db331e2a48b4d247c9430579c78a52c8539071f2fbb",
+  "content_sha256": "d076a97653d75cfa3f803db331e2a48b4d247c9430579c78a52c8539071f2fbb",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

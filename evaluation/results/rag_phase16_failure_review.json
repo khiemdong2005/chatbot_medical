@@ -1,0 +1,643 @@
+{
+  "report_sha256": "b4b2b13be05dc6e8747672511437cc7e5968678f5168f647b3e2c5aa7b6a47fd",
+  "note": "Post-run error analysis only; no changes to labels, retrieval, translations, or results.",
+  "cases": [
+    {
+      "id": "test_007",
+      "query": "Khi đứng yên mà vẫn thấy căn phòng quay vòng thì hiện tượng đó gọi là gì?",
+      "expanded_query": "stand still still see room spinning phenomenon called",
+      "expected_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/hemorrhoids.html",
+          "title": "Hemorrhoids",
+          "source_url": "https://medlineplus.gov/hemorrhoids.html",
+          "fusion_score": 0.029418126757516764,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/smoking.html",
+          "title": "Smoking",
+          "source_url": "https://medlineplus.gov/smoking.html",
+          "fusion_score": 0.02262443438914027,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/polycysticovarysyndrome.html",
+          "title": "PCOS",
+          "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+          "fusion_score": 0.02200402224062463,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/cpr.html",
+          "title": "CPR",
+          "source_url": "https://medlineplus.gov/cpr.html",
+          "fusion_score": 0.02080221890334969,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/hepatitis.html",
+          "title": "Hepatitis",
+          "source_url": "https://medlineplus.gov/hepatitis.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "MISSING_MEDICAL_TERM",
+        "RANK_BEYOND_TOP5"
+      ],
+      "explanation": "Literal expansion says room spinning but does not name vertigo; labeled source is at rank 6.",
+      "expected_source_ranks": [
+        6
+      ],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_008",
+      "query": "What does it mean if the room seems to spin around you?",
+      "expanded_query": "",
+      "expected_sources": [
+        "https://medlineplus.gov/dizzinessandvertigo.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/migraine.html",
+          "title": "Migraine",
+          "source_url": "https://medlineplus.gov/migraine.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/delirium.html",
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "fusion_score": 0.016129032258064516,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/abdominalpain.html",
+          "title": "Abdominal pain",
+          "source_url": "https://medlineplus.gov/abdominalpain.html",
+          "fusion_score": 0.015873015873015872,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/chestpain.html",
+          "title": "Chest pain",
+          "source_url": "https://medlineplus.gov/chestpain.html",
+          "fusion_score": 0.015625,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/obesity.html",
+          "title": "Obesity",
+          "source_url": "https://medlineplus.gov/obesity.html",
+          "fusion_score": 0.015151515151515152,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "MISSING_MEDICAL_TERM",
+        "RETRIEVAL_FAILURE"
+      ],
+      "explanation": "English question describes spinning without the term vertigo; target was not returned in the 20-chunk candidate pool.",
+      "expected_source_ranks": [],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_012",
+      "query": "Why can a muscle suddenly tighten without you controlling it?",
+      "expanded_query": "",
+      "expected_sources": [
+        "https://medlineplus.gov/musclecramps.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/fainting.html",
+          "title": "Fainting",
+          "source_url": "https://medlineplus.gov/fainting.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/sprainsandstrains.html",
+          "title": "Muscle strain",
+          "source_url": "https://medlineplus.gov/sprainsandstrains.html",
+          "fusion_score": 0.016129032258064516,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/asthma.html",
+          "title": "Asthma",
+          "source_url": "https://medlineplus.gov/asthma.html",
+          "fusion_score": 0.015873015873015872,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/attentiondeficithyperactivitydisorder.html",
+          "title": "ADHD",
+          "source_url": "https://medlineplus.gov/attentiondeficithyperactivitydisorder.html",
+          "fusion_score": 0.015625,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/delirium.html",
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "fusion_score": 0.015384615384615385,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "MISSING_MEDICAL_TERM",
+        "RETRIEVAL_FAILURE"
+      ],
+      "explanation": "English query describes a tightening muscle without naming a cramp; target was not in the candidate pool.",
+      "expected_source_ranks": [],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_018",
+      "query": "What are some possible reasons for aching muscles?",
+      "expanded_query": "",
+      "expected_sources": [
+        "https://medlineplus.gov/muscledisorders.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/backpain.html",
+          "title": "Poor posture",
+          "source_url": "https://medlineplus.gov/backpain.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/shingles.html",
+          "title": "Shingles",
+          "source_url": "https://medlineplus.gov/shingles.html",
+          "fusion_score": 0.015384615384615385,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "title": "Carpal tunnel syndrome",
+          "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+          "fusion_score": 0.015151515151515152,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "RETRIEVAL_FAILURE",
+        "GROUND_TRUTH_ISSUE_POSSIBLE"
+      ],
+      "explanation": "Aching muscles is broad; target is a general muscle-disorders article and other sources may also be relevant. Requires reviewer judgment.",
+      "expected_source_ranks": [],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_024",
+      "query": "What signs might suggest a fractured bone after a fall?",
+      "expanded_query": "",
+      "expected_sources": [
+        "https://medlineplus.gov/fractures.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/urinaryincontinence.html",
+          "title": "Urinary incontinence",
+          "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/backinjuries.html",
+          "title": "Heavy lifting injuries",
+          "source_url": "https://medlineplus.gov/backinjuries.html",
+          "fusion_score": 0.016129032258064516,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/dengue.html",
+          "title": "Dengue",
+          "source_url": "https://medlineplus.gov/dengue.html",
+          "fusion_score": 0.015873015873015872,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/insomnia.html",
+          "title": "Insomnia",
+          "source_url": "https://medlineplus.gov/insomnia.html",
+          "fusion_score": 0.015625,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/celiacdisease.html",
+          "title": "Celiac disease",
+          "source_url": "https://medlineplus.gov/celiacdisease.html",
+          "fusion_score": 0.015384615384615385,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "RETRIEVAL_FAILURE"
+      ],
+      "explanation": "Query uses fractured; corpus uses fracture/fractures. Inflection mismatch is a plausible contributor, not a proven sole cause.",
+      "expected_source_ranks": [],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_027",
+      "query": "Sau khi làm việc ngoài nắng, người bị nóng quá mức và lú lẫn có thể gặp tình trạng gì?",
+      "expanded_query": "after working sun condition might person overheating confusion experience",
+      "expected_sources": [
+        "https://medlineplus.gov/heatillness.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/birthcontrol.html",
+          "title": "Birth control",
+          "source_url": "https://medlineplus.gov/birthcontrol.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/delirium.html",
+          "title": "Confusion",
+          "source_url": "https://medlineplus.gov/delirium.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+          "title": "PTSD",
+          "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+          "fusion_score": 0.015873015873015872,
+          "rerank_score": null,
+          "branches": [
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/bereavement.html",
+          "title": "Grief",
+          "source_url": "https://medlineplus.gov/bereavement.html",
+          "fusion_score": 0.015625,
+          "rerank_score": null,
+          "branches": [
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/sunexposure.html",
+          "title": "Sunburn",
+          "source_url": "https://medlineplus.gov/sunexposure.html",
+          "fusion_score": 0.015384615384615385,
+          "rerank_score": null,
+          "branches": [
+            "translated"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "MISSING_MEDICAL_TERM",
+        "AMBIGUOUS_QUERY",
+        "RANK_BEYOND_TOP5"
+      ],
+      "explanation": "Translation describes overheating and confusion without naming heat illness; target is at rank 8. Symptoms can have other causes.",
+      "expected_source_ranks": [
+        8
+      ],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_043",
+      "query": "Thuốc kháng sinh có tác dụng với virus cảm lạnh không?",
+      "expanded_query": "antibiotics work cold viruses",
+      "expected_sources": [
+        "https://medlineplus.gov/antibiotics.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/commoncold.html",
+          "title": "Common cold",
+          "source_url": "https://medlineplus.gov/commoncold.html",
+          "fusion_score": 0.029957522915269395,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/pneumonia.html",
+          "title": "Pneumonia",
+          "source_url": "https://medlineplus.gov/pneumonia.html",
+          "fusion_score": 0.029877369007803793,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/flu.html",
+          "title": "Influenza",
+          "source_url": "https://medlineplus.gov/flu.html",
+          "fusion_score": 0.027056277056277056,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/fever.html",
+          "title": "Fever",
+          "source_url": "https://medlineplus.gov/fever.html",
+          "fusion_score": 0.026547116736990152,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/vaccines.html",
+          "title": "Vaccinations",
+          "source_url": "https://medlineplus.gov/vaccines.html",
+          "fusion_score": 0.023952954675846242,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "RANK_BEYOND_TOP5"
+      ],
+      "explanation": "Expansion contains antibiotics and viruses, but the labeled antibiotic source is at rank 7; relevance ranking failed.",
+      "expected_source_ranks": [
+        7
+      ],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_047",
+      "query": "Khói thuốc của người khác có thể ảnh hưởng đến sức khỏe ra sao?",
+      "expanded_query": "other people's smoke affect health",
+      "expected_sources": [
+        "https://medlineplus.gov/smoking.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/rheumatoidarthritis.html",
+          "title": "Rheumatoid arthritis",
+          "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+          "fusion_score": 0.01639344262295082,
+          "rerank_score": null,
+          "branches": [
+            "original"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "MISSING_MEDICAL_TERM",
+        "RETRIEVAL_FAILURE"
+      ],
+      "explanation": "Translation includes smoke but drops the explicit tobacco context from the Vietnamese question; labeled source was absent from candidates.",
+      "expected_source_ranks": [],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_053",
+      "query": "Một chế độ ăn cân bằng thường bao gồm những nhóm thực phẩm nào?",
+      "expanded_query": "balanced diet usually includes food groups",
+      "expected_sources": [
+        "https://medlineplus.gov/nutrition.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/vitamind.html",
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "fusion_score": 0.02728937728937729,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/tremor.html",
+          "title": "Tremor",
+          "source_url": "https://medlineplus.gov/tremor.html",
+          "fusion_score": 0.02399425287356322,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/gallstones.html",
+          "title": "Gallstones",
+          "source_url": "https://medlineplus.gov/gallstones.html",
+          "fusion_score": 0.02259959141981614,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/nauseaandvomiting.html",
+          "title": "Vomiting",
+          "source_url": "https://medlineplus.gov/nauseaandvomiting.html",
+          "fusion_score": 0.02250368912936547,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/weightcontrol.html",
+          "title": "Weight loss",
+          "source_url": "https://medlineplus.gov/weightcontrol.html",
+          "fusion_score": 0.021354688021354686,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "RETRIEVAL_FAILURE"
+      ],
+      "explanation": "Translation names balanced diet and food groups, but the nutrition source is absent from candidates; exact failure mechanism is not established.",
+      "expected_source_ranks": [],
+      "review_status": "provisional_needs_independent_expert_review"
+    },
+    {
+      "id": "test_075",
+      "query": "Vì sao một số người khó chịu ở bụng sau khi uống sữa?",
+      "expanded_query": "why people stomach discomfort after drinking milk",
+      "expected_sources": [
+        "https://medlineplus.gov/lactoseintolerance.html"
+      ],
+      "retrieved_top5": [
+        {
+          "id": "https://medlineplus.gov/gas.html",
+          "title": "Gas",
+          "source_url": "https://medlineplus.gov/gas.html",
+          "fusion_score": 0.027272727272727275,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/hiccups.html",
+          "title": "Hiccups",
+          "source_url": "https://medlineplus.gov/hiccups.html",
+          "fusion_score": 0.026779422128259338,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/lymedisease.html",
+          "title": "Lyme disease",
+          "source_url": "https://medlineplus.gov/lymedisease.html",
+          "fusion_score": 0.02594183740912095,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/vitamind.html",
+          "title": "Vitamin D",
+          "source_url": "https://medlineplus.gov/vitamind.html",
+          "fusion_score": 0.023252890899949724,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        },
+        {
+          "id": "https://medlineplus.gov/alcohol.html",
+          "title": "Alcohol",
+          "source_url": "https://medlineplus.gov/alcohol.html",
+          "fusion_score": 0.022817460317460316,
+          "rerank_score": null,
+          "branches": [
+            "original",
+            "translated"
+          ]
+        }
+      ],
+      "reason_codes": [
+        "MISSING_MEDICAL_TERM",
+        "AMBIGUOUS_QUERY",
+        "RANK_BEYOND_TOP5",
+        "GROUND_TRUTH_ISSUE_POSSIBLE"
+      ],
+      "explanation": "Question implies a possible lactose issue but does not name it; target is rank 12 and other causes/sources may be relevant.",
+      "expected_source_ranks": [
+        12
+      ],
+      "review_status": "provisional_needs_independent_expert_review"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "interstitiallungdiseases",
+  "title": "Interstitial Lung Diseases (Pulmonary Fibrosis)",
+  "title_en": "Interstitial Lung Diseases (Pulmonary Fibrosis)",
+  "title_vi": "Bệnh phổi kẽ và Xơ phổi",
+  "category": "Pulmonology",
+  "category_en": "Pulmonology",
+  "category_vi": "Hô hấp",
+  "search_phrases": [
+    "interstitial lung diseases",
+    "pulmonary fibrosis",
+    "idiopathic pulmonary fibrosis",
+    "lung scarring",
+    "dry cough and dyspnea",
+    "bệnh phổi kẽ",
+    "xơ hóa phổi",
+    "sẹo mô phổi",
+    "ho khan khó thở",
+    "suy hô hấp mạn"
+  ],
+  "keywords_en": [
+    "interstitial lung diseases",
+    "pulmonary fibrosis",
+    "idiopathic pulmonary fibrosis",
+    "lung scarring",
+    "dry cough and dyspnea"
+  ],
+  "keywords_vi": [
+    "bệnh phổi kẽ",
+    "xơ hóa phổi",
+    "sẹo mô phổi",
+    "ho khan khó thở",
+    "suy hô hấp mạn"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/interstitiallungdiseases.html",
+  "summary": "Interstitial lung disease is the name for a large group of diseases that inflame or scar the lungs. The inflammation and scarring make it hard to get enough oxygen. The scarring is called pulmonary fibrosis . Breathing in dust or other particles in the air is responsible for some types of interstitial lung diseases. Specific types include: Black lung disease among coal miners, from inhaling coal dust Farmer's lung, from inhaling farm dust Asbestosis, from inhaling asbestos fibers Siderosis, from inhaling iron from mines or welding fumes Silicosis, from inhaling silica dust Other causes include autoimmune diseases or occupational exposures to molds, gases, or fumes. Some types of interstitial lung disease have no known cause. Treatment depends on the type of exposure and the stage of the disease. It may involve medicines, oxygen therapy, or a lung transplant in severe cases.",
+  "page_content": "Interstitial lung disease is the name for a large group of diseases that inflame or scar the lungs. The inflammation and scarring make it hard to get enough oxygen. The scarring is called pulmonary fibrosis . Breathing in dust or other particles in the air is responsible for some types of interstitial lung diseases. Specific types include: Black lung disease among coal miners, from inhaling coal dust Farmer's lung, from inhaling farm dust Asbestosis, from inhaling asbestos fibers Siderosis, from inhaling iron from mines or welding fumes Silicosis, from inhaling silica dust Other causes include autoimmune diseases or occupational exposures to molds, gases, or fumes. Some types of interstitial lung disease have no known cause. Treatment depends on the type of exposure and the stage of the disease. It may involve medicines, oxygen therapy, or a lung transplant in severe cases.",
+  "content_sha256": "5f3faa5d2989d6f15c44756e19cdded49214c072af992a5fa09094848772da81",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

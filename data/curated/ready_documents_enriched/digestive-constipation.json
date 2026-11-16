@@ -1,0 +1,36 @@
+{
+  "id": "constipation",
+  "title": "Constipation",
+  "category": "Digestive",
+  "mapped_title": "Constipation",
+  "page_content": "User topic: Constipation\nCategory: Digestive\nTrusted medical topic: Constipation\nSearch phrases: Constipation\nMedical groups: Digestive System, Symptoms\n\nMedical information:\nConstipation means having fewer than three bowel movements a week. The stool (poop) can be hard and dry. Sometimes it is painful to pass. At one time or another, almost everyone gets constipated. In most cases, it lasts a short time and is not serious. There are many things you can do to prevent constipation. They include: Eating more fruits, vegetables and grains, which are high in fiber Drinking plenty of water and other liquids Getting enough exercise Taking time to have a bowel movement when you need to Using laxatives only if your health care provider says you should Asking your provider if medicines you take may cause constipation It's not important that you have a bowel movement every day. If your bowel habits change, however, check with your provider. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "search_phrases": [
+    "Constipation"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/constipation.html",
+  "medlineplus_id": "200",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Constipation",
+  "title_vi": "Táo bón",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "constipation",
+    "infrequent bowel movements",
+    "hard stool",
+    "dietary fiber constipation"
+  ],
+  "keywords_vi": [
+    "táo bón",
+    "khó đại tiện",
+    "phân khô cứng",
+    "chất xơ",
+    "tiêu hóa"
+  ],
+  "content_hash": "7fd51764f0e535f9e2ab93644113875d6e53166a5808b4944bbb256ff5e6718e",
+  "content_sha256": "7fd51764f0e535f9e2ab93644113875d6e53166a5808b4944bbb256ff5e6718e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

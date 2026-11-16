@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/thyroiddiseases.html",
   "medlineplus_id": "439",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.968
+  "mapping_score": 0.968,
+  "title_en": "Thyroid disease",
+  "title_vi": "Bệnh lý tuyến giáp",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "thyroid disease",
+    "thyroid disorders",
+    "goiter",
+    "thyroid nodules",
+    "endocrine gland"
+  ],
+  "keywords_vi": [
+    "bệnh lý tuyến giáp",
+    "tuyến giáp",
+    "bướu cổ",
+    "nhân tuyến giáp",
+    "nội tiết"
+  ],
+  "content_hash": "93bb64b461dce96103e2c68c6767b8af1dae1d14546dcd9cdbfb72a5f87b281d",
+  "content_sha256": "93bb64b461dce96103e2c68c6767b8af1dae1d14546dcd9cdbfb72a5f87b281d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/diarrhea.html",
   "medlineplus_id": "211",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Diarrhea",
+  "title_vi": "Tiêu chảy",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "diarrhea",
+    "loose stools",
+    "watery diarrhea",
+    "gastroenteritis"
+  ],
+  "keywords_vi": [
+    "tiêu chảy",
+    "đi ngoài phân lỏng",
+    "mất nước tiêu chảy",
+    "tiêu chảy nhiễm trùng",
+    "men vi sinh"
+  ],
+  "content_hash": "575ed3d4002c9d33c073b6b8e9b8adc2efcab822469c94c472db99eb4e364119",
+  "content_sha256": "575ed3d4002c9d33c073b6b8e9b8adc2efcab822469c94c472db99eb4e364119",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

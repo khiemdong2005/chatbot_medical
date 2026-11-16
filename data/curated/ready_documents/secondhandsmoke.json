@@ -1,0 +1,49 @@
+{
+  "id": "secondhandsmoke",
+  "title": "Secondhand Smoke",
+  "title_en": "Secondhand Smoke",
+  "title_vi": "Khói thuốc lá thụ động",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "secondhand smoke",
+    "passive smoking",
+    "environmental tobacco smoke",
+    "tobacco hazards",
+    "child smoke exposure",
+    "hút thuốc thụ động",
+    "khói thuốc lá",
+    "tác hại khói thuốc",
+    "bảo vệ trẻ em khỏi khói thuốc",
+    "bệnh do khói thuốc"
+  ],
+  "keywords_en": [
+    "secondhand smoke",
+    "passive smoking",
+    "environmental tobacco smoke",
+    "tobacco hazards",
+    "child smoke exposure"
+  ],
+  "keywords_vi": [
+    "hút thuốc thụ động",
+    "khói thuốc lá",
+    "tác hại khói thuốc",
+    "bảo vệ trẻ em khỏi khói thuốc",
+    "bệnh do khói thuốc"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/secondhandsmoke.html",
+  "summary": "Secondhand smoke is a mixture of the smoke that comes from the burning end of a cigarette, cigar, or pipe, and the smoke breathed out by the smoker. It contains more than 7,000 chemicals. Hundreds of those chemicals are toxic and about 70 can cause cancer. Health effects of secondhand smoke include: Ear infections in children More frequent and severe asthma attacks in children Heart disease and lung cancer in adults who have never smoked There is no safe amount of secondhand smoke. Even low levels of it can be harmful. The only way to fully protect nonsmokers from secondhand smoke is not to allow smoking indoors. Centers for Disease Control and Prevention",
+  "page_content": "Secondhand smoke is a mixture of the smoke that comes from the burning end of a cigarette, cigar, or pipe, and the smoke breathed out by the smoker. It contains more than 7,000 chemicals. Hundreds of those chemicals are toxic and about 70 can cause cancer. Health effects of secondhand smoke include: Ear infections in children More frequent and severe asthma attacks in children Heart disease and lung cancer in adults who have never smoked There is no safe amount of secondhand smoke. Even low levels of it can be harmful. The only way to fully protect nonsmokers from secondhand smoke is not to allow smoking indoors. Centers for Disease Control and Prevention",
+  "content_sha256": "6cb9280c3890628fe834567f84f257fbec208f207389fa8c1a04d1cfbce34e4d",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

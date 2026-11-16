@@ -1,0 +1,49 @@
+{
+  "id": "pancreatitis",
+  "title": "Pancreatitis",
+  "title_en": "Pancreatitis",
+  "title_vi": "Viêm tụy cấp và mạn",
+  "category": "Gastroenterology",
+  "category_en": "Gastroenterology",
+  "category_vi": "Tiêu hóa & Gan mật",
+  "search_phrases": [
+    "pancreatitis",
+    "acute pancreatitis",
+    "severe abdominal pain",
+    "elevated lipase amylase",
+    "chronic pancreatitis",
+    "viêm tụy",
+    "viêm tụy cấp",
+    "đau bụng dữ dội",
+    "men tụy amylase lipase tăng",
+    "viêm tụy mạn"
+  ],
+  "keywords_en": [
+    "pancreatitis",
+    "acute pancreatitis",
+    "severe abdominal pain",
+    "elevated lipase amylase",
+    "chronic pancreatitis"
+  ],
+  "keywords_vi": [
+    "viêm tụy",
+    "viêm tụy cấp",
+    "đau bụng dữ dội",
+    "men tụy amylase lipase tăng",
+    "viêm tụy mạn"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/pancreatitis.html",
+  "summary": "The pancreas is a large gland behind the stomach and close to the first part of the small intestine. It secretes digestive juices into the small intestine through a tube called the pancreatic duct. The pancreas also releases the hormones insulin and glucagon into the bloodstream. Pancreatitis is inflammation of the pancreas. It happens when digestive enzymes start digesting the pancreas itself. Pancreatitis can be acute or chronic. Either form is serious and can lead to complications. Acute pancreatitis occurs suddenly and usually goes away in a few days with treatment. It is often caused by gallstones . Common symptoms are severe pain in the upper abdomen, nausea, and vomiting. Treatment is usually a few days in the hospital for intravenous (IV) fluids, antibiotics, and medicines to relieve pain. Chronic pancreatitis does not heal or improve. It gets worse over time and leads to permanent damage. The most common cause is heavy alcohol use . Other causes include cystic fibrosis and other inherited disorders, high levels of calcium or fats in the blood, some medicines, and autoimmune conditions . Symptoms include nausea, vomiting, weight loss, and oily stools. Treatment may also be a few days in the hospital for intravenous (IV) fluids, medicines to relieve pain, and nutritional support. After that, you may need to start taking enzymes and eat a special diet. It is also important to not smoke or drink alcohol. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "page_content": "The pancreas is a large gland behind the stomach and close to the first part of the small intestine. It secretes digestive juices into the small intestine through a tube called the pancreatic duct. The pancreas also releases the hormones insulin and glucagon into the bloodstream. Pancreatitis is inflammation of the pancreas. It happens when digestive enzymes start digesting the pancreas itself. Pancreatitis can be acute or chronic. Either form is serious and can lead to complications. Acute pancreatitis occurs suddenly and usually goes away in a few days with treatment. It is often caused by gallstones . Common symptoms are severe pain in the upper abdomen, nausea, and vomiting. Treatment is usually a few days in the hospital for intravenous (IV) fluids, antibiotics, and medicines to relieve pain. Chronic pancreatitis does not heal or improve. It gets worse over time and leads to permanent damage. The most common cause is heavy alcohol use . Other causes include cystic fibrosis and other inherited disorders, high levels of calcium or fats in the blood, some medicines, and autoimmune conditions . Symptoms include nausea, vomiting, weight loss, and oily stools. Treatment may also be a few days in the hospital for intravenous (IV) fluids, medicines to relieve pain, and nutritional support. After that, you may need to start taking enzymes and eat a special diet. It is also important to not smoke or drink alcohol. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "content_sha256": "de891d8379684e016ec1089a65fdb707fd98b5776f8d1d0886c756f4299451d8",
+  "candidate_score": 0.97,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

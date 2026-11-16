@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
   "medlineplus_id": "1400",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Nosebleed",
+  "title_vi": "Sơ cứu chảy máu cam",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "nosebleed",
+    "epistaxis",
+    "first aid nosebleed",
+    "pinch nose",
+    "nasal bleeding"
+  ],
+  "keywords_vi": [
+    "chảy máu cam",
+    "chảy máu mũi",
+    "sơ cứu cúi đầu ép mũi",
+    "chảy máu mao mạch mũi",
+    "cầm máu mũi"
+  ],
+  "content_hash": "ff809f844c05b8f3421f8cefef756be6b3fb6c85dc2eac6942cffd9288532150",
+  "content_sha256": "ff809f844c05b8f3421f8cefef756be6b3fb6c85dc2eac6942cffd9288532150",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

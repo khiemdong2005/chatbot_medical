@@ -3,8 +3,8 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import chromadb
-from core.rag_service import MedicalRAGService
-from ingest import run_ingestion
+from core.rag_service import MedicalRAGService, search_tokens
+from scripts.ingest import run_ingestion
 
 
 def test_rag_distance_metric_and_acceptance_threshold(tmp_path):
@@ -69,7 +69,7 @@ def test_ingestion_failure_does_not_corrupt_active_version(tmp_path):
     assert active_col.count() == 5
 
     # 2. Giả lập quá trình ingestion mới bị lỗi giữa chừng
-    with patch("ingest.load_curated_medlineplus_documents") as mock_load:
+    with patch("scripts.ingest.load_curated_medlineplus_documents") as mock_load:
         mock_load.return_value = []  # Giả lập thư mục curated bị trống hoặc lỗi
 
         success, msg = run_ingestion(custom_db_dir=db_dir)
@@ -93,6 +93,21 @@ def local_rag(tmp_path, enabled=False):
                    metadatas=[{"title": "Cough", "source": "NLM", "source_url": "https://medlineplus.gov/cough.html"},
                               {"title": "Software"}])
     return MedicalRAGService(db_dir=tmp_path, vector_search_enabled=enabled)
+
+
+@pytest.mark.parametrize('query', ['đau đầu', 'Đau đầu', 'đau-đầu', 'đau đầu?', 'ĐAU ĐẦU', 'đau đầu', 'dau dau'])
+def test_vietnamese_normalization_preserves_headache_expansion(tmp_path, query):
+    rag = local_rag(tmp_path)
+    assert search_tokens(query) == ['dau', 'dau']
+    assert 'headache' in rag.expand_query(query)
+
+
+def test_expansion_respects_explicit_vietnamese_diacritics(tmp_path):
+    rag = local_rag(tmp_path)
+    assert 'cough' not in rag.expand_query('Họ đang đi làm')
+    assert 'headache' not in rag.expand_query('đau dầu')
+    assert 'cough' in rag.expand_query('Tôi bị ho')
+    assert 'headache' in rag.expand_query('Tôi bị dau dau')
 
 
 def test_default_local_lookup_never_calls_embedding_query(tmp_path, monkeypatch):
@@ -138,3 +153,71 @@ def test_lexical_index_contains_source_corpus_not_user_query_cache(tmp_path):
     rag.retrieve_context("Cough synthetic-private-question", top_k=2)
     assert "synthetic-private-question" not in repr(rag._lexical_index)
 
+
+
+def test_lexical_search_returns_ranked_metadata_without_vector(tmp_path):
+    rag = local_rag(tmp_path)
+    with patch.object(rag.collection, "query") as vector_query:
+        hits = rag.lexical_search(rag.expand_query("ho"), 6)
+    vector_query.assert_not_called()
+    assert hits[0]["metadata"]["title"] == "Cough"
+    assert hits[0]["rank"] == 1
+
+
+def test_vector_search_filters_distances_and_respects_opt_in(tmp_path):
+    rag = local_rag(tmp_path, enabled=True)
+    data = {"documents": [["too far", "valid", "missing", "nan"]],
+            "metadatas": [[{}, {"title": "Valid", "extra": "preserved"}, {}, {}]],
+            "distances": [[1.36, 0.25, None, float("nan")]]}
+    with patch.object(rag.collection, "query", return_value=data) as query:
+        hits = rag.vector_search("query", 4)
+        assert [(hit["content"], hit["rank"], hit["distance"]) for hit in hits] == [("valid", 2, 0.25)]
+        assert hits[0]["metadata"]["extra"] == "preserved"
+        rag.vector_search_enabled = False
+        assert rag.vector_search("query", 4) == []
+        query.assert_called_once()
+
+
+def test_merge_results_deduplicates_and_preserves_branch_metadata():
+    lexical = [{"content": "same", "rank": 1, "metadata": {"title": "Local", "source_url": "https://local", "extra": "L"}}]
+    vector = [{"content": "same", "rank": 2, "metadata": {"title": "Vector", "source_url": "https://vector", "extra": "V"}, "distance": .4}]
+    results = MedicalRAGService.merge_results(lexical, vector, 5)
+    assert len(results) == 1
+    result = results[0]
+    assert result["retrieval"] == "hybrid"
+    assert result["metadata"]["title"] == "Vector"
+    assert result["lexical_metadata"]["extra"] == "L"
+    assert result["vector_metadata"]["extra"] == "V"
+    assert result["lexical_score"] == 1 / 61
+    assert result["vector_score"] == 1 / 62
+    assert result["fusion_score"] == pytest.approx(1 / 61 + 1 / 62)
+    assert result["rerank_score"] is None
+
+
+def test_candidates_support_twenty_but_context_keeps_legacy_contract(tmp_path):
+    rag = local_rag(tmp_path, enabled=True)
+    lexical = [{"content": f"doc {i}", "rank": i + 1, "metadata": {"title": str(i), "extra": i}} for i in range(20)]
+    with patch.object(rag.collection, "count", return_value=100), \
+         patch.object(rag, "lexical_search", return_value=lexical) as local, \
+         patch.object(rag, "vector_search", return_value=[]) as vector:
+        candidates = rag.retrieve_candidates("query", 20)
+        assert len(candidates) == 20
+        assert local.call_args.args[1] == 60
+        assert vector.call_args.args[1] == 60
+        context = rag.retrieve_context("query", 20)
+    assert len(context) == 5
+    assert set(context[0]) == {"content", "title", "category", "source", "source_url", "distance", "distance_metric", "accepted", "retrieval"}
+    assert candidates[0]["metadata"]["extra"] == 0
+
+
+def test_hybrid_candidates_preserve_missing_vector_metadata_without_changing_context(tmp_path):
+    rag = local_rag(tmp_path, enabled=True)
+    content = "Cough guidance: cough can have different causes. Seek assessment for persistent symptoms."
+    result = {"documents": [[content]], "metadatas": [[{"title": "Vector title"}]], "distances": [[0.2]]}
+    with patch.object(rag.collection, "query", return_value=result):
+        candidates = rag.retrieve_candidates("Cough", 2)
+        context = rag.retrieve_context("Cough", 2)
+    assert candidates[0]["metadata"]["source_url"] == "https://medlineplus.gov/cough.html"
+    assert candidates[0]["vector_metadata"] == {"title": "Vector title"}
+    assert context[0]["title"] == "Vector title"
+    assert context[0]["source_url"] == ""  # Original vector-overwrites-lexical behavior.

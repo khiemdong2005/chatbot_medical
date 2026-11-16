@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/sciatica.html",
   "medlineplus_id": "1532",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Sciatica",
+  "title_vi": "Đau thần kinh tọa",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "sciatica",
+    "sciatic nerve pain",
+    "lumbar radiculopathy",
+    "radiating leg pain"
+  ],
+  "keywords_vi": [
+    "đau thần kinh tọa",
+    "đau lan xuống chân",
+    "chèn ép rễ thần kinh",
+    "thoát vị đĩa đệm lưng",
+    "tê chân"
+  ],
+  "content_hash": "1e2ebda55f52e15418d07e331dee30c28ccafa1cf21e731f5e101c687c7c571b",
+  "content_sha256": "1e2ebda55f52e15418d07e331dee30c28ccafa1cf21e731f5e101c687c7c571b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

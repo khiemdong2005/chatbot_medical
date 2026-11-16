@@ -11,6 +11,13 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from core.prompts import VIETNAMESE_MEDICAL_SYSTEM_PROMPT
+from core.retry_policy import (
+    RetryPolicy, execute_with_retry, classify_exception, ErrorClassification, extract_retry_after
+)
+from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
+from core.observability import metrics_collector
+from core.llm_provider import llm_provider
+from core.settings import settings
 
 load_dotenv()
 logger = logging.getLogger("GeminiService")
@@ -97,29 +104,54 @@ class GeminiMedicalService:
     Hỗ trợ sinh phản hồi tư vấn lâm sàng tự nhiên và phân tầng Triage có cấu trúc
     kết hợp với cơ chế RAG (Retrieval-Augmented Generation).
     """
+    api_key: str = ""
+    model: str = "gemini-flash-lite-latest"
+    _client: Any = None
+    _llm_provider: Any = llm_provider
+    llm_provider: Any = llm_provider
+    retry_policy: Any = None
+    timeout_seconds: float = 25.0
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        self.api_key = (api_key or os.getenv("GEMINI_CHAT_API_KEY") or os.getenv("GEMINI_API_KEY")
-                        or os.getenv("GEMINI_NUTRITION_API_KEY") or "").strip()
+        self.llm_provider = llm_provider
+        self._llm_provider = llm_provider
+        self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="chat")).strip()
         self.model = (model or os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL")
-                      or "gemini-flash-lite-latest").strip()
-        self.client = None
+                      or settings.gemini.chat_model or "gemini-flash-lite-latest").strip()
+        self._client = None
+        self.timeout_seconds = float(os.getenv("GEMINI_GENERATION_TIMEOUT_SECONDS", str(settings.gemini.timeout_chat)))
+        max_attempts = int(os.getenv("AI_RETRY_MAX_ATTEMPTS", str(settings.retry.max_attempts)))
+        base_delay = float(os.getenv("AI_RETRY_BASE_DELAY_SECONDS", str(settings.retry.base_delay_seconds)))
+        max_delay = float(os.getenv("AI_RETRY_MAX_DELAY_SECONDS", str(settings.retry.max_delay_seconds)))
+        self.retry_policy = RetryPolicy(
+            max_attempts=max_attempts,
+            base_delay=base_delay,
+            max_delay=max_delay,
+            jitter=settings.retry.jitter
+        )
+
+    @property
+    def client(self):
+        if getattr(self, "_client", None) is not None:
+            return self._client
         if self.is_configured():
             try:
-                # Bounded latency; the SDK must not silently retry the request.
-                http_options = types.HttpOptions(timeout=25000, retry_options=types.HttpRetryOptions(attempts=1))
-                self.client = genai.Client(api_key=self.api_key, http_options=http_options)
-                logger.info(f"✅ [GEMINI SERVICE] Kết nối thành công Gemini SDK (Model: {self.model})")
-            except Exception as e:
-                logger.warning("Gemini client unavailable (%s).", type(e).__name__)
+                provider = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
+                return provider.get_client(getattr(self, "api_key", None), timeout_seconds=getattr(self, "timeout_seconds", 25.0))
+            except Exception:
+                return None
+        return None
+
+    @client.setter
+    def client(self, val):
+        self._client = val
 
     def is_configured(self) -> bool:
         """Kiểm tra xem Gemini API Key đã được cấu hình hợp lệ chưa."""
+        provider = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
         return bool(
-            self.api_key
-            and not self.api_key.startswith("YOUR_")
-            and len(self.api_key) > 20
-            and re.fullmatch(r"[A-Za-z0-9_.-]+", self.model)
+            provider.is_configured(profile="chat", explicit_key=getattr(self, "api_key", None))
+            and re.fullmatch(r"[A-Za-z0-9_.-]+", getattr(self, "model", ""))
         )
 
     def generate_clinical_response(
@@ -141,18 +173,14 @@ class GeminiMedicalService:
         - Kiểm chứng schema JSON chặt chẽ; JSON hỏng/thiếu trường bắt buộc sẽ trả None để kích hoạt fallback.
         """
         req_id = request_id or uuid.uuid4().hex[:8]
+        metrics_collector.increment("ai_request_count")
         if not self.is_configured() or not self.client:
-            self.api_key = (os.getenv("GEMINI_CHAT_API_KEY") or os.getenv("GEMINI_API_KEY")
-                            or os.getenv("GEMINI_NUTRITION_API_KEY") or "").strip()
-            if self.is_configured():
-                try:
-                    http_options = types.HttpOptions(timeout=25000, retry_options=types.HttpRetryOptions(attempts=1))
-                    self.client = genai.Client(api_key=self.api_key, http_options=http_options)
-                except Exception:
-                    pass
+            self.api_key = self.llm_provider.resolve_api_key(profile="chat")
 
         if not self.is_configured() or not self.client:
             logger.info(f"[REQ-{req_id}] GEMINI_API_KEY chưa cấu hình hoặc không sẵn sàng. Chuyển Fallback.")
+            metrics_collector.increment("ai_fallback_count")
+            metrics_collector.log_event("generation", req_id, 0.0, "FALLBACK", error_class="AUTH_ERROR")
             return None
 
         rag_docs = rag_docs if isinstance(rag_docs, list) else []
@@ -260,38 +288,53 @@ class GeminiMedicalService:
                                   "visual_findings", "symptoms", "differential_diagnosis", "home_care_tips"]}
             )
 
-            candidate_models = [self.model]
-            models_to_try = []
-            for m in candidate_models:
-                if m and m not in models_to_try:
-                    models_to_try.append(m)
+            retries_count = 0
 
-            res = None
-            last_err = None
-            for model_name in models_to_try:
-                try:
-                    res = self.client.models.generate_content(
-                        model=model_name,
-                        contents=req_contents,
-                        config=config
-                    )
-                    if res and res.text:
-                        break
-                except Exception as m_err:
-                    last_err = m_err
-                    logger.warning(f"[REQ-{req_id}] Model {model_name} không phản hồi ({type(m_err).__name__}).")
-                    break  # Tránh lặp vô tận gây chậm trễ cho người dùng
+            def _on_retry(attempt, delay, exc, classification):
+                nonlocal retries_count
+                retries_count += 1
+                metrics_collector.increment("ai_retry_count")
+                if classification == ErrorClassification.RATE_LIMIT:
+                    metrics_collector.increment("ai_429_count")
+                elif classification == ErrorClassification.SERVER_ERROR:
+                    metrics_collector.increment("ai_5xx_count")
+                elif classification == ErrorClassification.TIMEOUT:
+                    metrics_collector.increment("ai_timeout_count")
 
-            if not res or not res.text:
-                raise last_err or RuntimeError("Không thể nhận phản hồi từ mô hình Gemini.")
+            def _do_generate():
+                return self.client.models.generate_content(
+                    model=self.model,
+                    contents=req_contents,
+                    config=config
+                )
+
+            policy = getattr(self, "retry_policy", None) or RetryPolicy()
+
+            res = execute_with_retry(
+                _do_generate,
+                policy=policy,
+                circuit_breaker=gemini_circuit_breaker,
+                stage="gemini_generation",
+                request_id=req_id,
+                on_retry=_on_retry
+            )
 
             latency = time.time() - start_time
-            raw_text = res.text or ""
+            raw_text = res.text or "" if res else ""
             parsed = self._validate_and_parse_json(raw_text)
 
             if parsed is None:
+                metrics_collector.increment("ai_fallback_count")
+                metrics_collector.record_error("SCHEMA_ERROR")
+                metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
+                metrics_collector.log_event("generation", req_id, latency * 1000.0, "FALLBACK", error_class="SCHEMA_ERROR", retry_count=retries_count)
                 logger.warning(f"[REQ-{req_id}] Phản hồi từ Gemini không vượt qua schema validation. Chuyển Fallback.")
                 return None
+
+            metrics_collector.increment("ai_success_count")
+            metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
+            metrics_collector.record_attempts(retries_count + 1)
+            metrics_collector.log_event("generation", req_id, latency * 1000.0, "SUCCESS", retry_count=retries_count)
 
             parsed["sources"] = reference_sources(rag_docs)
 
@@ -299,12 +342,32 @@ class GeminiMedicalService:
             if not has_image:
                 parsed["visual_findings"] = []
 
-            logger.info("[REQ-%s] Gemini completed in %.2fs.", req_id, latency)
+            logger.info("[REQ-%s] Gemini completed in %.2fs (attempts=%d).", req_id, latency, retries_count + 1)
             return parsed
 
+        except CircuitBreakerOpenError:
+            latency = time.time() - start_time
+            metrics_collector.increment("circuit_open_count")
+            metrics_collector.increment("ai_fallback_count")
+            metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
+            metrics_collector.log_event("generation", req_id, latency * 1000.0, "CIRCUIT_OPEN", error_class="CIRCUIT_OPEN", retry_count=0)
+            logger.warning("[REQ-%s] Gemini Circuit Breaker OPEN; falling back immediately (%.2fs).", req_id, latency)
+            return None
         except Exception as e:
             latency = time.time() - start_time
-            logger.warning("[REQ-%s] Gemini unavailable (%s), elapsed %.2fs.", req_id, type(e).__name__, latency)
+            cls = classify_exception(e)
+            metrics_collector.increment("ai_fallback_count")
+            metrics_collector.record_error(cls.value)
+            if cls == ErrorClassification.RATE_LIMIT:
+                metrics_collector.increment("ai_429_count")
+            elif cls == ErrorClassification.SERVER_ERROR:
+                metrics_collector.increment("ai_5xx_count")
+            elif cls == ErrorClassification.TIMEOUT:
+                metrics_collector.increment("ai_timeout_count")
+            metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
+            metrics_collector.record_attempts(retries_count + 1)
+            metrics_collector.log_event("generation", req_id, latency * 1000.0, "FALLBACK", error_class=cls.value, retry_count=retries_count)
+            logger.warning("[REQ-%s] Gemini unavailable (%s: %s), elapsed %.2fs.", req_id, cls.value, type(e).__name__, latency)
             return None
 
     def _validate_and_parse_json(self, raw_text: str) -> Optional[Dict[str, Any]]:

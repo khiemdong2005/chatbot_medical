@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/heartburn.html",
   "medlineplus_id": "1653",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heartburn",
+  "title_vi": "Ợ nóng (Nóng rát thượng vị)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "heartburn",
+    "pyrosis",
+    "acid indigestion",
+    "burning chest sensation"
+  ],
+  "keywords_vi": [
+    "ợ nóng",
+    "nóng rát thượng vị",
+    "nóng sau xương ức",
+    "trào ngược axit",
+    "khó tiêu"
+  ],
+  "content_hash": "f283e97fefb4abb75193d42a5fab2c5c49e5acb50240aaeb9bab0335a57d7762",
+  "content_sha256": "f283e97fefb4abb75193d42a5fab2c5c49e5acb50240aaeb9bab0335a57d7762",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

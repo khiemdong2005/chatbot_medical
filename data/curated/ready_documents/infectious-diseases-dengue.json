@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/dengue.html",
   "medlineplus_id": "3104",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Dengue",
+  "title_vi": "Sốt xuất huyết Dengue",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "dengue",
+    "dengue fever",
+    "aedes mosquito",
+    "thrombocytopenia",
+    "hemorrhagic fever"
+  ],
+  "keywords_vi": [
+    "sốt xuất huyết",
+    "sốt dengue",
+    "muỗi vằn truyền bệnh",
+    "giảm tiểu cầu",
+    "sốt xuất huyết cấp"
+  ],
+  "content_hash": "ab3856f7748ad3e3421385202677ef5647adb89895b40704e06c3df6ae884741",
+  "content_sha256": "ab3856f7748ad3e3421385202677ef5647adb89895b40704e06c3df6ae884741",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

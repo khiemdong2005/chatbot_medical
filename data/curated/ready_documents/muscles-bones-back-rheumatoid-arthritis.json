@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
   "medlineplus_id": "1232",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Rheumatoid arthritis",
+  "title_vi": "Viêm khớp dạng thấp",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "rheumatoid arthritis",
+    "autoimmune arthritis",
+    "symmetric joint swelling",
+    "rheumatic disease"
+  ],
+  "keywords_vi": [
+    "viêm khớp dạng thấp",
+    "viêm khớp tự miễn",
+    "biến dạng khớp",
+    "sưng khớp đối xứng",
+    "thấp khớp"
+  ],
+  "content_hash": "87cbc1f865b6a72599d1e608db4d4247e0dace041d68e1719bd7e3736e2f493b",
+  "content_sha256": "87cbc1f865b6a72599d1e608db4d4247e0dace041d68e1719bd7e3736e2f493b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

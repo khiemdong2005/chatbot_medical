@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/electricalinjuries.html",
   "medlineplus_id": "6280",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Electric shock",
+  "title_vi": "Sơ cứu giật điện",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "electric shock",
+    "electrical injury",
+    "first aid electric shock",
+    "power disconnection",
+    "electrocution"
+  ],
+  "keywords_vi": [
+    "giật điện",
+    "tai nạn điện giật",
+    "sơ cứu bỏng điện",
+    "ngắt nguồn điện",
+    "ngừng tuần hoàn do điện"
+  ],
+  "content_hash": "3aeacc16f7fd35b94a4bee88d067635928fe6dc9421c3c19248bf867d83c7c8e",
+  "content_sha256": "3aeacc16f7fd35b94a4bee88d067635928fe6dc9421c3c19248bf867d83c7c8e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

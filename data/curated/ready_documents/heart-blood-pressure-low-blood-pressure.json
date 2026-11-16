@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/lowbloodpressure.html",
   "medlineplus_id": "1225",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Low blood pressure",
+  "title_vi": "Hạ huyết áp (Huyết áp thấp)",
+  "category_en": "Heart & Blood Pressure",
+  "category_vi": "Tim mạch & Huyết áp",
+  "keywords_en": [
+    "low blood pressure",
+    "hypotension",
+    "dizziness",
+    "fainting",
+    "orthostatic hypotension"
+  ],
+  "keywords_vi": [
+    "hạ huyết áp",
+    "huyết áp thấp",
+    "tụt huyết áp",
+    "chóng mặt hoa mắt",
+    "huyết áp"
+  ],
+  "content_hash": "161a5c8d15e8194a7533500eec2900ec4760cc9715b3d731a76430de4e4ebe7e",
+  "content_sha256": "161a5c8d15e8194a7533500eec2900ec4760cc9715b3d731a76430de4e4ebe7e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

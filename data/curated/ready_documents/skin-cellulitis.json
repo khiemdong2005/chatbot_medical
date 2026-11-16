@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/cellulitis.html",
   "medlineplus_id": "1227",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Cellulitis",
+  "title_vi": "Viêm mô tế bào da",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "cellulitis",
+    "bacterial skin infection",
+    "red swollen skin",
+    "skin inflammation"
+  ],
+  "keywords_vi": [
+    "viêm mô tế bào",
+    "nhiễm trùng da sâu",
+    "sưng nóng đỏ đau da",
+    "kháng sinh điều trị",
+    "da liễu"
+  ],
+  "content_hash": "0ce1efe3f825d4736707445591618a638502608fbfee056353eb67cfe7da0751",
+  "content_sha256": "0ce1efe3f825d4736707445591618a638502608fbfee056353eb67cfe7da0751",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

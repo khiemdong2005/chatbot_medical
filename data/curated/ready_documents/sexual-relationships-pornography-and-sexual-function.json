@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualhealth.html",
   "medlineplus_id": "1542",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pornography and sexual function",
+  "title_vi": "Phim ảnh khiêu dâm và chức năng tình dục",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "pornography effects",
+    "porn and sexual health",
+    "compulsive sexual behavior",
+    "erectile function porn"
+  ],
+  "keywords_vi": [
+    "phim khiêu dâm",
+    "tác hại phim đen",
+    "ảnh hưởng chức năng tình dục",
+    "nghiện phim khiêu dâm",
+    "tâm lý tình dục"
+  ],
+  "content_hash": "496f770eaffcbeb1d9b943f23bfd2c318d79128c8e100416af02e942d2cf6c1f",
+  "content_sha256": "496f770eaffcbeb1d9b943f23bfd2c318d79128c8e100416af02e942d2cf6c1f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

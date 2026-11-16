@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sprainsandstrains.html",
   "medlineplus_id": "417",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Muscle strain",
+  "title_vi": "Căng cơ (Giãn cơ)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "muscle strain",
+    "pulled muscle",
+    "torn muscle",
+    "sports injury strain"
+  ],
+  "keywords_vi": [
+    "căng cơ",
+    "giãn cơ",
+    "rách sợi cơ",
+    "chấn thương thể thao",
+    "nghỉ ngơi chườm lạnh"
+  ],
+  "content_hash": "9198f4237dc82366e6e6aeee22ab272a0ad7a1b84e5ced9bdf0b4924ce715a64",
+  "content_sha256": "9198f4237dc82366e6e6aeee22ab272a0ad7a1b84e5ced9bdf0b4924ce715a64",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

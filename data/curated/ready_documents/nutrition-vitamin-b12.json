@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/bvitamins.html",
   "medlineplus_id": "5376",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.9
+  "mapping_score": 0.9,
+  "title_en": "Vitamin B12",
+  "title_vi": "Vitamin B12 (Cobalamin)",
+  "category_en": "Nutrition",
+  "category_vi": "Dinh dưỡng",
+  "keywords_en": [
+    "vitamin B12",
+    "cobalamin",
+    "b complex",
+    "pernicious anemia",
+    "neurological health"
+  ],
+  "keywords_vi": [
+    "vitamin B12",
+    "vitamin nhóm B",
+    "thiếu máu ác tính",
+    "bổ sung vitamin",
+    "thần kinh dinh dưỡng"
+  ],
+  "content_hash": "f76a45c51362e8f1e3d042cf5a69bad94a0a65c7c8c0cb76eefd0d3297f882cc",
+  "content_sha256": "f76a45c51362e8f1e3d042cf5a69bad94a0a65c7c8c0cb76eefd0d3297f882cc",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

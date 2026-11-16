@@ -1,0 +1,39 @@
+{
+  "id": "acne",
+  "title": "Acne",
+  "category": "Skin",
+  "mapped_title": "Acne",
+  "page_content": "User topic: Acne\nCategory: Skin\nTrusted medical topic: Acne\nSearch phrases: Acne, Pimples, Zits\nMedical groups: Skin, Hair and Nails\n\nMedical information:\nAcne is a common skin disease that causes pimples. Pimples form when hair follicles under your skin clog up. Most pimples form on the face, neck, back, chest, and shoulders. Anyone can get acne, but it is common in teenagers and young adults. It is not serious, but it can cause scars . No one knows exactly what causes acne. Hormone changes, such as those during the teenage years and pregnancy, probably play a role. There are many myths about what causes acne. Chocolate and greasy foods are often blamed, but there is little evidence that foods have much effect on acne in most people. Another common myth is that dirty skin causes acne; however, blackheads and pimples are not caused by dirt. Stress doesn't cause acne, but stress can make it worse. If you have acne: Clean your skin gently Try not to touch your skin Avoid the sun Treatments for acne include medicines and creams. NIH: National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+  "search_phrases": [
+    "Acne",
+    "Pimples",
+    "Zits"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/acne.html",
+  "medlineplus_id": "124",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Acne",
+  "title_vi": "Mụn trứng cá",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "acne",
+    "acne vulgaris",
+    "pimples",
+    "blackheads",
+    "skin breakouts"
+  ],
+  "keywords_vi": [
+    "mụn trứng cá",
+    "mụn bọc mụn mủ",
+    "bít tắc lỗ chân lông",
+    "chăm sóc da mụn",
+    "da liễu"
+  ],
+  "content_hash": "8f599914ae80355d4dec78e1420fa7111ec592b20acf0f6f94f673a4ef3e28b6",
+  "content_sha256": "8f599914ae80355d4dec78e1420fa7111ec592b20acf0f6f94f673a4ef3e28b6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

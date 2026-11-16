@@ -1,0 +1,49 @@
+{
+  "id": "interstitialcystitis",
+  "title": "Interstitial Cystitis (Bladder Pain Syndrome)",
+  "title_en": "Interstitial Cystitis (Bladder Pain Syndrome)",
+  "title_vi": "Viêm bàng quang kẽ (Hội chứng đau bàng quang)",
+  "category": "Nephrology",
+  "category_en": "Nephrology",
+  "category_vi": "Thận & Tiết niệu",
+  "search_phrases": [
+    "interstitial cystitis",
+    "bladder pain syndrome",
+    "chronic pelvic pain",
+    "urinary urgency",
+    "nonbacterial cystitis",
+    "viêm bàng quang kẽ",
+    "đau bàng quang mạn",
+    "tiểu buốt rát không do vi khuẩn",
+    "đau vùng chậu",
+    "tiểu gấp"
+  ],
+  "keywords_en": [
+    "interstitial cystitis",
+    "bladder pain syndrome",
+    "chronic pelvic pain",
+    "urinary urgency",
+    "nonbacterial cystitis"
+  ],
+  "keywords_vi": [
+    "viêm bàng quang kẽ",
+    "đau bàng quang mạn",
+    "tiểu buốt rát không do vi khuẩn",
+    "đau vùng chậu",
+    "tiểu gấp"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/interstitialcystitis.html",
+  "summary": "Interstitial cystitis (IC) is a condition that causes discomfort or pain in the bladder and a need to urinate frequently and urgently. It is far more common in women than in men. The symptoms vary from person to person. Some people may have pain without urgency or frequency. Others have urgency and frequency without pain. Women's symptoms often get worse during their periods. They may also have pain with sexual intercourse. The cause of IC isn't known. There is no one test to tell if you have it. Doctors often run tests to rule out other possible causes of symptoms. There is no cure for IC, but treatments can help most people feel better. They include: Distending, or inflating, the bladder Bathing the inside of the bladder with a drug solution Oral medicines Electrical nerve stimulation Physical therapy Lifestyle changes Bladder training In rare cases, surgery NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "page_content": "Interstitial cystitis (IC) is a condition that causes discomfort or pain in the bladder and a need to urinate frequently and urgently. It is far more common in women than in men. The symptoms vary from person to person. Some people may have pain without urgency or frequency. Others have urgency and frequency without pain. Women's symptoms often get worse during their periods. They may also have pain with sexual intercourse. The cause of IC isn't known. There is no one test to tell if you have it. Doctors often run tests to rule out other possible causes of symptoms. There is no cure for IC, but treatments can help most people feel better. They include: Distending, or inflating, the bladder Bathing the inside of the bladder with a drug solution Oral medicines Electrical nerve stimulation Physical therapy Lifestyle changes Bladder training In rare cases, surgery NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "content_sha256": "d2bc9a10542ff6c52423cd18d24ff18d88821dec2981ba7fe5cdd9eaa4b11bdd",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

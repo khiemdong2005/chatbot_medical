@@ -1,0 +1,55 @@
+# Git and Version Control
+.git
+.gitignore
+.gitattributes
+
+# Environment and Secrets (CRITICAL: Do NOT copy .env into image)
+.env
+.env.*
+!.env.example
+
+# Python Bytecode and Caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Scratch and Developer Notes
+scratch/
+tmp/
+*.tmp
+*.log
+
+# Large Evaluation Artefacts (Mounted via volumes if needed, not baked into image)
+evaluation/results/
+evaluation/cache/
+
+# Large Model weights (Optional reranker weights; mounted via volume if needed)
+models/
+
+# Agent/IDE local metadata
+.agents/
+.claude/
+.gemini/
+_quarantine_trash/
+docs/
+designs/
+

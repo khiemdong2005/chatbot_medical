@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/commoncold.html",
   "medlineplus_id": "196",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Common cold",
+  "title_vi": "Cảm lạnh thông thường",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "common cold",
+    "head cold",
+    "rhinovirus",
+    "runny nose sore throat"
+  ],
+  "keywords_vi": [
+    "cảm lạnh thông thường",
+    "cảm lạnh",
+    "sổ mũi hắt hơi",
+    "nghẹt mũi nhẹ",
+    "virus cảm lạnh"
+  ],
+  "content_hash": "457484810b5bdad102e9954608fa460e1ba27867d17f900a58726de453a32a0e",
+  "content_sha256": "457484810b5bdad102e9954608fa460e1ba27867d17f900a58726de453a32a0e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

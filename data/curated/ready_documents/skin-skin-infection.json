@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/skininfections.html",
   "medlineplus_id": "5358",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.966
+  "mapping_score": 0.966,
+  "title_en": "Skin infection",
+  "title_vi": "Nhiễm trùng da (Viêm da mủ)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "skin infection",
+    "cutaneous infection",
+    "impetigo",
+    "boils",
+    "bacterial derm"
+  ],
+  "keywords_vi": [
+    "nhiễm trùng da",
+    "viêm da mủ",
+    "nhọt da",
+    "chốc lở",
+    "nhiễm tụ cầu da"
+  ],
+  "content_hash": "ad4bf9708ea0a944e8f2446dc3fb5c279dcfc46b2b946451cf0c5f2d330765d4",
+  "content_sha256": "ad4bf9708ea0a944e8f2446dc3fb5c279dcfc46b2b946451cf0c5f2d330765d4",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

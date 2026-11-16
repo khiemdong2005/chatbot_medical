@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/malaria.html",
   "medlineplus_id": "315",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Malaria",
+  "title_vi": "Bệnh sốt rét",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "malaria",
+    "plasmodium parasite",
+    "anopheles mosquito",
+    "malarial paroxysm",
+    "chills fever"
+  ],
+  "keywords_vi": [
+    "sốt rét",
+    "ký sinh trùng sốt rét",
+    "muỗi anopheles",
+    "cơn sốt rét run",
+    "phòng chống sốt rét"
+  ],
+  "content_hash": "ad9072c368773c1e067c5569d61c677c8e706705832183451505649d5ddfacf9",
+  "content_sha256": "ad9072c368773c1e067c5569d61c677c8e706705832183451505649d5ddfacf9",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

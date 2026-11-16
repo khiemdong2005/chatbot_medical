@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/rubella.html",
   "medlineplus_id": "387",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Rubella",
+  "title_vi": "Bệnh Rubella (Sởi Đức)",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "rubella",
+    "German measles",
+    "rubella rash",
+    "congenital rubella",
+    "MMR vaccine"
+  ],
+  "keywords_vi": [
+    "rubella",
+    "sởi đức",
+    "phát ban rubella",
+    "hội chứng rubella bẩm sinh",
+    "vắc-xin MMR"
+  ],
+  "content_hash": "0c3f69a7092ea2d86ca9e9afe3eb6743b22df118a8fbd3cd1bc833e5d5e5c729",
+  "content_sha256": "0c3f69a7092ea2d86ca9e9afe3eb6743b22df118a8fbd3cd1bc833e5d5e5c729",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

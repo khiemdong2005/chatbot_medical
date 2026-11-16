@@ -1,0 +1,49 @@
+{
+  "id": "tinnitus",
+  "title": "Tinnitus",
+  "title_en": "Tinnitus",
+  "title_vi": "Chứng ù tai",
+  "category": "Ophthalmology",
+  "category_en": "Ophthalmology",
+  "category_vi": "Nhãn khoa",
+  "search_phrases": [
+    "tinnitus",
+    "ringing in ears",
+    "buzzing sound",
+    "hearing damage",
+    "inner ear disorder",
+    "ù tai",
+    "tiếng ve kêu trong tai",
+    "rối loạn thính giác",
+    "nghe kém kèm ù tai",
+    "tiếng kêu trong đầu"
+  ],
+  "keywords_en": [
+    "tinnitus",
+    "ringing in ears",
+    "buzzing sound",
+    "hearing damage",
+    "inner ear disorder"
+  ],
+  "keywords_vi": [
+    "ù tai",
+    "tiếng ve kêu trong tai",
+    "rối loạn thính giác",
+    "nghe kém kèm ù tai",
+    "tiếng kêu trong đầu"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/tinnitus.html",
+  "summary": "Tinnitus is often described as a ringing in the ears. It also can sound like roaring, clicking, hissing, or buzzing. It may be soft or loud, high pitched or low pitched. You might hear it in either one or both ears. Millions of Americans have tinnitus. People with severe tinnitus may have trouble hearing, working or even sleeping. Causes of tinnitus include: Hearing loss in older people Exposure to loud noises Ear and sinus infections Heart or blood vessel problems Meniere's disease Brain tumors Hormonal changes in women Thyroid problems Certain medicines Treatment depends on the cause. Treatments may include hearing aids, sound-masking devices, medicines, and ways to learn how to cope with the noise. NIH: National Institute on Deafness and Other Communication Disorders",
+  "page_content": "Tinnitus is often described as a ringing in the ears. It also can sound like roaring, clicking, hissing, or buzzing. It may be soft or loud, high pitched or low pitched. You might hear it in either one or both ears. Millions of Americans have tinnitus. People with severe tinnitus may have trouble hearing, working or even sleeping. Causes of tinnitus include: Hearing loss in older people Exposure to loud noises Ear and sinus infections Heart or blood vessel problems Meniere's disease Brain tumors Hormonal changes in women Thyroid problems Certain medicines Treatment depends on the cause. Treatments may include hearing aids, sound-masking devices, medicines, and ways to learn how to cope with the noise. NIH: National Institute on Deafness and Other Communication Disorders",
+  "content_sha256": "5d73e43fcd7769f6f3f25d547c80a92b9aca9eb24143f11ca6e6f62cbaed4716",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

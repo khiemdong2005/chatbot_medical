@@ -1,0 +1,142 @@
+[
+  {
+    "query": "Sốt là gì và thường có triệu chứng gì?",
+    "expanded_query": "fever common symptoms",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Đau bụng có thể do những nguyên nhân nào?",
+    "expanded_query": "cause abdominal pain",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Ho có thể do những nguyên nhân nào?",
+    "expanded_query": "causes coughing cause",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Đau đầu có những loại nào?",
+    "expanded_query": "types headaches",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Tiêu chảy là gì?",
+    "expanded_query": "diarrhea",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Táo bón là gì?",
+    "expanded_query": "constipation",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Mất nước có dấu hiệu gì?",
+    "expanded_query": "signs dehydration",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Nguyên nhân nào gây đau họng?",
+    "expanded_query": "causes sore throat",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Đau ngực có thể có những nguyên nhân nào?",
+    "expanded_query": "causes chest pain",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Khó thở có thể do nguyên nhân gì?",
+    "expanded_query": "cause shortness breath",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Sơ cứu người bị nghẹn như thế nào?",
+    "expanded_query": "give first aid someone choking",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Sơ cứu vết bỏng như thế nào?",
+    "expanded_query": "provide first aid burns",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Cần làm gì khi bị ngộ độc?",
+    "expanded_query": "poisoned",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Hồi sức tim phổi là gì?",
+    "expanded_query": "cardiopulmonary resuscitation",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Hen suyễn là bệnh gì?",
+    "expanded_query": "disease asthma",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Bệnh tiểu đường típ 2 là gì?",
+    "expanded_query": "type 2 diabetes",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Sốt xuất huyết lây truyền như thế nào?",
+    "expanded_query": "dengue fever transmitted",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Bệnh trào ngược dạ dày thực quản là gì?",
+    "expanded_query": "gastroesophageal reflux disease",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Bệnh cúm là gì?",
+    "expanded_query": "flu",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Thuốc kháng sinh dùng để điều trị gì?",
+    "expanded_query": "antibiotics used treat",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Tương tác thuốc là gì?",
+    "expanded_query": "drug interactions",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Làm thế nào để phòng nhiễm trùng lây truyền qua đường tình dục?",
+    "expanded_query": "prevent sexually transmitted infections",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Làm sao phòng bệnh sốt xuất huyết?",
+    "expanded_query": "prevent dengue fever",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Bệnh tiểu đường típ 2 được chẩn đoán như thế nào?",
+    "expanded_query": "type 2 diabetes diagnosed",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Bác sĩ chẩn đoán hen suyễn bằng cách nào?",
+    "expanded_query": "doctors diagnose asthma",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Hen suyễn được điều trị như thế nào?",
+    "expanded_query": "asthma treated",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Điều trị táo bón như thế nào?",
+    "expanded_query": "treat constipation",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  },
+  {
+    "query": "Hen suyễn và viêm phổi là những bệnh gì?",
+    "expanded_query": "asthma pneumonia",
+    "method": "google_translate_unofficial_gtx_vi_en_keywords_v1"
+  }
+]

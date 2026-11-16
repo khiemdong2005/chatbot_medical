@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/ankleinjuriesanddisorders.html",
   "medlineplus_id": "1612",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Ankle pain",
+  "title_vi": "Đau cổ chân (Đau mắt cá chân)",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "ankle pain",
+    "sprained ankle",
+    "ankle joint",
+    "ankle swelling"
+  ],
+  "keywords_vi": [
+    "đau cổ chân",
+    "đau mắt cá chân",
+    "trật khớp cổ chân",
+    "bong gân",
+    "chấn thương cổ chân"
+  ],
+  "content_hash": "d6cfdaf35dfe5f8a708f3bd0cba0a4a72676d651778c67afe68f5b01d498515f",
+  "content_sha256": "d6cfdaf35dfe5f8a708f3bd0cba0a4a72676d651778c67afe68f5b01d498515f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

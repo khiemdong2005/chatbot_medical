@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/weightcontrol.html",
   "medlineplus_id": "480",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Weight gain",
+  "title_vi": "Phương pháp tăng cân an toàn",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "weight gain healthy",
+    "healthy weight increase",
+    "underweight diet",
+    "calorie surplus"
+  ],
+  "keywords_vi": [
+    "tăng cân lành mạnh",
+    "cách tăng cân an toàn",
+    "người gầy khó tăng cân",
+    "dinh dưỡng tăng cân",
+    "thực đơn giàu năng lượng"
+  ],
+  "content_hash": "5afd895a988d088beb4cbb235e0c2e9e8c65006da90cb8d65720de213761e7fc",
+  "content_sha256": "5afd895a988d088beb4cbb235e0c2e9e8c65006da90cb8d65720de213761e7fc",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

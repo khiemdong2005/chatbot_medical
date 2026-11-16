@@ -9,8 +9,6 @@ import json
 import logging
 import re
 from typing import Dict, Any, Optional
-from google import genai
-from google.genai import types
 
 logger = logging.getLogger("medimind.nutrition")
 
@@ -357,85 +355,17 @@ def find_preset_condition(query: str) -> Optional[Dict[str, Any]]:
 
 def generate_ai_nutrition(condition_query: str, recipe_type: str = "food") -> Dict[str, Any]:
     """
-    Sinh phác đồ đĩa ăn, thực phẩm nên nạp/nên né và công thức món ăn 3 bước
-    bằng mô hình Gemini chính xác cao với Structured Output.
+    [DEPRECATED] Hàm sinh dinh dưỡng tự do legacy.
+    Toàn bộ luồng AI phân tích dinh dưỡng chuẩn hóa (Canonical Path) đã được chuyển
+    sang bộ module: core.nutrition_options, core.nutrition_rules, core.nutrition_ai.
+    Hàm này được duy trì làm compatibility wrapper và chuyển tiếp sang fallback an toàn.
     """
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        logger.warning("[Nutrition] Không tìm thấy GEMINI_API_KEY, chuyển sang Fallback động.")
-        return generate_dynamic_fallback(condition_query, recipe_type)
-
-    prompt = f"""Bạn là một Bác sĩ Dinh dưỡng Lâm sàng kiêm Đầu bếp Trị liệu Y học cổ truyền.
-Người dùng có vấn đề sức khỏe / bệnh lý sau: '{condition_query}'.
-Loại công thức người dùng chọn: {'thức uống' if recipe_type == 'drink' else 'món ăn'}. Công thức bắt buộc phải đúng loại đã chọn.
-
-Hãy phân tích và xuất ra định dạng JSON chuẩn y khoa:
-- Tên bệnh / thể trạng ngắn gọn chuẩn xác
-- 4 món/thực phẩm NÊN NẠP (bổ trợ cơ thể, có lý do tác dụng cụ thể)
-- 3 món/thực phẩm NÊN NÉ (kiêng kỵ, giải thích vì sao gây hại)
-- 1 Công thức pha chế / Nấu ăn trị liệu 3 BƯỚC rõ ràng, thơm ngon, dễ làm tại nhà (có nguyên liệu cho 1 người định lượng số, 3 bước làm đánh số, lưu ý cách dùng, thời gian làm).
-
-Cấu trúc JSON bắt buộc:
-{{
-  "condition_name": "Tên thể trạng / bệnh lý",
-  "short_desc": "Mô tả biểu hiện (dưới 5 từ)",
-  "accent_color": "emerald" (hoặc "amber", "rose", "sky", "indigo"),
-  "foods_to_eat": [
-     {{"name": "Tên món/nguyên liệu", "icon": "Emoji thực phẩm", "desc": "Tác dụng sinh học", "glow": "amber/emerald/rose"}},
-     {{"name": "...", "icon": "...", "desc": "...", "glow": "..."}},
-     {{"name": "...", "icon": "...", "desc": "...", "glow": "..."}},
-     {{"name": "...", "icon": "...", "desc": "...", "glow": "..."}}
-  ],
-  "foods_to_avoid": [
-     {{"name": "Tên món kiêng", "icon": "Emoji", "desc": "Tại sao phải kiêng", "glow": "red"}},
-     {{"name": "...", "icon": "...", "desc": "...", "glow": "red"}},
-     {{"name": "...", "icon": "...", "desc": "...", "glow": "red"}}
-  ],
-  "recipe": {{
-     "title": "Tên món ăn / ly nước dinh dưỡng",
-     "subtitle": "Tác dụng phục hồi thể trạng",
-     "badge": "CÔNG THỨC 3 BƯỚC",
-     "cooking_time": "~15-20 phút",
-     "tip": "Lưu ý khi dùng (VD: Ăn nóng, dùng trước khi ngủ...)",
-     "servings_default": 1,
-     "ingredients": [
-        {{"name": "Nguyên liệu 1", "amount": 1, "unit": "củ/g/ml/thìa", "icon": "Emoji"}},
-        {{"name": "Nguyên liệu 2", "amount": 50, "unit": "g", "icon": "Emoji"}},
-        {{"name": "Nguyên liệu 3", "amount": 2, "unit": "lát/nhánh", "icon": "Emoji"}},
-        {{"name": "Nguyên liệu 4", "amount": 300, "unit": "ml", "icon": "Emoji"}}
-     ],
-     "steps": [
-        "Bước 1 sơ chế cụ thể.",
-        "Bước 2 nấu/hầm/pha chế với thời gian.",
-        "Bước 3 thưởng thức và nêm nếm."
-     ]
-  }}
-}}
-Chỉ trả về JSON thuần túy, tuyệt đối không kèm markdown ```json.
-"""
-
-    try:
-        http_opts = types.HttpOptions(timeout=12000)
-        client = genai.Client(api_key=api_key, http_options=http_opts)
-        resp = client.models.generate_content(
-            model="gemini-flash-lite-latest",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                temperature=0.3
-            )
-        )
-        if resp and resp.text:
-            cleaned = resp.text.strip()
-            if cleaned.startswith("```"):
-                cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-                cleaned = re.sub(r"\s*```$", "", cleaned)
-            data = json.loads(cleaned)
-            data["id"] = "ai_" + re.sub(r"[^a-z0-9]", "_", remove_accents(condition_query))[:20]
-            return data
-    except Exception as e:
-        logger.error(f"[Nutrition] Lỗi gọi Gemini AI ({e}), chuyển sang Fallback.")
-
+    import warnings
+    warnings.warn(
+        "generate_ai_nutrition() is deprecated; canonical AI nutrition pipeline is in core.nutrition_ai",
+        DeprecationWarning,
+        stacklevel=2
+    )
     return generate_dynamic_fallback(condition_query, recipe_type)
 
 
@@ -533,17 +463,5 @@ def get_nutrition_recommendation(condition_query: str, recipe_type: str = "food"
         fallback["foods_to_eat"] = preset.get("foods_to_eat", fallback["foods_to_eat"])
         fallback["foods_to_avoid"] = preset.get("foods_to_avoid", fallback["foods_to_avoid"])
         return fallback
-    result = generate_ai_nutrition(condition_query, recipe_type)
-    if recipe_matches_type(result):
-        return result
-
-    # Mô hình đôi khi trả sai loại món dù prompt đã yêu cầu cụ thể. Giữ logic
-    # danh sách dinh dưỡng nhưng thay công thức bằng fallback đúng loại.
-    fallback = generate_dynamic_fallback(condition_query, recipe_type)
-    fallback["condition_name"] = result.get("condition_name", condition_query.title())
-    fallback["foods_to_eat"] = result.get("foods_to_eat", fallback["foods_to_eat"])
-    fallback["foods_to_avoid"] = result.get("foods_to_avoid", fallback["foods_to_avoid"])
-    fallback["short_desc"] = result.get("short_desc", fallback["short_desc"])
-    fallback["accent_color"] = result.get("accent_color", fallback["accent_color"])
-    return fallback
+    return generate_dynamic_fallback(condition_query, recipe_type)
 

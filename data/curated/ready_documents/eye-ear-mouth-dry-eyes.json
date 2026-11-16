@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/tears.html",
   "medlineplus_id": "5410",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Dry eyes",
+  "title_vi": "Khô mắt",
+  "category_en": "Eye, Ear & Mouth",
+  "category_vi": "Mắt, Tai & Răng miệng",
+  "keywords_en": [
+    "dry eyes",
+    "dry eye syndrome",
+    "artificial tears",
+    "eye irritation",
+    "tear film"
+  ],
+  "keywords_vi": [
+    "khô mắt",
+    "mỏi mắt",
+    "rát mắt",
+    "nước mắt nhân tạo",
+    "nhãn khoa"
+  ],
+  "content_hash": "de149e65fe7c6dfe3a463831c31c21cb2ca44cdabcda0fec70445ee10b58898b",
+  "content_sha256": "de149e65fe7c6dfe3a463831c31c21cb2ca44cdabcda0fec70445ee10b58898b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

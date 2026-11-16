@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualhealth.html",
   "medlineplus_id": "1542",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Masturbation",
+  "title_vi": "Thủ dâm và sức khỏe sinh lý",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "masturbation",
+    "sexual self-pleasure",
+    "masturbation health",
+    "sexual wellness"
+  ],
+  "keywords_vi": [
+    "thủ dâm",
+    "tự sướng",
+    "sức khỏe tình dục",
+    "thủ dâm điều độ",
+    "giải tỏa sinh lý"
+  ],
+  "content_hash": "44801b4f79d6b2cfcddea2544213241c58fd8e3aa7453ab6e6607fc510181118",
+  "content_sha256": "44801b4f79d6b2cfcddea2544213241c58fd8e3aa7453ab6e6607fc510181118",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

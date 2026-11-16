@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/muscledisorders.html",
   "medlineplus_id": "510",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Muscle pain",
+  "title_vi": "Đau cơ (Đau nhức bắp thịt)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "muscle pain",
+    "myalgia",
+    "muscle soreness",
+    "muscle aches"
+  ],
+  "keywords_vi": [
+    "đau cơ",
+    "đau bắp thịt",
+    "mỏi cơ",
+    "viêm cơ",
+    "cơ xương khớp"
+  ],
+  "content_hash": "2191a8d3b85ba60d005e8cfbcad2f5662c73c7643723a2d4e6611be4d2411865",
+  "content_sha256": "2191a8d3b85ba60d005e8cfbcad2f5662c73c7643723a2d4e6611be4d2411865",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

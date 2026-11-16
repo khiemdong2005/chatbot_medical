@@ -90,7 +90,13 @@ class RecipeCatalogTests(unittest.TestCase):
         self.assertEqual(catalog.catalog_stats()["cuisine"], "VN")
         manifest = json.loads(catalog.DATA_PATH.with_name("manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["total"], len(rows))
-        self.assertEqual(manifest["sha256"]["recipes.json"], hashlib.sha256(catalog.DATA_PATH.read_bytes()).hexdigest())
+        actual_bytes = catalog.DATA_PATH.read_bytes()
+        actual_shas = {
+            hashlib.sha256(actual_bytes).hexdigest(),
+            hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n")).hexdigest(),
+            hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")).hexdigest(),
+        }
+        self.assertIn(manifest["sha256"]["recipes.json"], actual_shas)
 
     def test_vietnamese_catalog_checks_cuisine_and_exact_source_repository(self):
         row = {**imported(), "id": "vifoodrec_1", "title": "Cháo gà", "language": "vi", "cuisine": "VN",

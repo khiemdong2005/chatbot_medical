@@ -1,0 +1,37 @@
+{
+  "id": "chest-pain",
+  "title": "Chest pain",
+  "category": "Heart & Blood Pressure",
+  "mapped_title": "Chest Pain",
+  "page_content": "User topic: Chest pain\nCategory: Heart & Blood Pressure\nTrusted medical topic: Chest Pain\nSearch phrases: Chest pain, Chest Pain\nMedical groups: Blood, Heart and Circulation, Symptoms\n\nMedical information:\nHaving a pain in your chest can be scary. It does not always mean that you are having a heart attack . There can be many other causes, including: Other heart problems, such as angina Panic attacks Digestive problems, such as heartburn or esophagus disorders Sore muscles Lung diseases, such as pneumonia , pleurisy , or pulmonary embolism Costochondritis - an inflammation of joints in your chest Some of these problems can be serious. Get immediate medical care if you have chest pain that does not go away, crushing pain or pressure in the chest, or chest pain along with nausea, sweating, dizziness or shortness of breath. Treatment depends on the cause of the pain.",
+  "search_phrases": [
+    "Chest pain",
+    "Chest Pain"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/chestpain.html",
+  "medlineplus_id": "4744",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Chest pain",
+  "title_vi": "Đau ngực kiểu màng phổi",
+  "category_en": "Heart & Blood Pressure",
+  "category_vi": "Tim mạch & Huyết áp",
+  "keywords_en": [
+    "chest pain respiratory",
+    "pleuritic chest pain",
+    "pain on deep breath",
+    "pleurisy"
+  ],
+  "keywords_vi": [
+    "đau ngực hô hấp",
+    "đau khi hít sâu",
+    "viêm màng phổi",
+    "đau thành ngực",
+    "hô hấp"
+  ],
+  "content_hash": "b533914106ffeb9066a19eb94a75f9acf0cc5d81953cd93aefbf211116745a2e",
+  "content_sha256": "b533914106ffeb9066a19eb94a75f9acf0cc5d81953cd93aefbf211116745a2e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

@@ -16,9 +16,11 @@ if hasattr(sys.stderr, 'reconfigure'):
 # ==============================================================
 
 import os
+import time
 import json
 import logging
 import uuid
+import secrets
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
@@ -26,23 +28,43 @@ from dotenv import load_dotenv
 
 # Tải cấu hình môi trường (.env)
 load_dotenv()
+from core.settings import settings
 
 # Nạp cơ sở dữ liệu và các mô hình
 from core.models import db, User, MedicalDocument, ClinicalConsultation, MedicalAppointment, init_db
+from core.db_utils import commit_or_rollback
 from core.otp_service import otp_manager
 from core.storage_service import (
     process_secure_upload,
     decode_and_validate_base64_image,
     is_safe_path
 )
-from core.chat_service import process_clinical_chat
+from core.chat_service import process_clinical_chat, execute_chat_workflow
 from core.health_context import validate_chat_request
 from core.gemini_service import GeminiMedicalService
-from core.prescription_service import get_preset_data, analyze_uploaded_document
+from core.prescription_service import get_preset_data
 from core.intake_service import intake_service
 from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
+from core.reconciliation_service import is_plausible_medication_name
+from core.api_errors import flask_api_error, ErrorCode
+from core.routers.deps import check_flask_admin
+from core.network_utils import get_trusted_client_ip, is_request_https
+from core.security_headers import get_security_headers
+from core.logging_redaction import setup_logging_redaction, redact_sensitive_text
+
+setup_logging_redaction()
 
 logger = logging.getLogger("MediMindApp")
+
+
+def get_request_client_ip() -> str:
+    """Xác định Client IP từ Flask request tuân thủ chính sách Proxy tin cậy (Phase 8.3)."""
+    return get_trusted_client_ip(
+        request.remote_addr,
+        dict(request.headers),
+        trust_proxy=settings.security.trust_proxy_headers,
+        trusted_proxy_count=settings.security.trusted_proxy_count
+    )
 
 class ServerMaskMiddleware:
     """WSGI Middleware ghi đè header Server để che giấu thông tin công nghệ nền tảng."""
@@ -94,70 +116,72 @@ def create_app(test_config=None):
     """
     app = Flask(__name__)
 
-    is_prod = os.getenv("FLASK_ENV") == "production" or os.getenv("ENV") == "production"
-    secret_key = os.getenv("SECRET_KEY")
-    if not secret_key:
-        if is_prod and not (test_config and test_config.get("TESTING")):
-            raise RuntimeError("Yêu cầu cấu hình SECRET_KEY an toàn trong môi trường Production!")
-        # Ponytail: dev fallback using CSPRNG to prevent hardcoded secret forgery
-        import secrets
-        secret_key = secrets.token_hex(32)
-        logger.warning("CẢNH BÁO BẢO MẬT: Không tìm thấy SECRET_KEY trong .env! Đã tự động tạo khóa mật mã ngẫu nhiên cho phiên này.")
-
-    app.secret_key = secret_key
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///medimind.db")
+    is_testing = bool(test_config and test_config.get("TESTING"))
+    app.secret_key = settings.get_effective_secret_key(testing=is_testing)
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL") or settings.paths.database_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JSON_AS_ASCII"] = False
     # Refresh edited templates locally even when the debugger is disabled.
-    app.config["TEMPLATES_AUTO_RELOAD"] = not is_prod
+    app.config["TEMPLATES_AUTO_RELOAD"] = not settings.server.is_production
 
-    # Cấu hình Cookie an toàn bảo vệ Session
+    # Cấu hình Cookie và Thời hạn phiên an toàn bảo vệ Session (Phase 8.2)
+    from datetime import timedelta
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=settings.security.session_lifetime_minutes)
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["SESSION_COOKIE_SECURE"] = is_prod or (os.getenv("SESSION_COOKIE_SECURE", "false").lower() in ("true", "1"))
+    app.config["SESSION_COOKIE_SECURE"] = settings.server.is_production or settings.security.session_cookie_secure
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # Giới hạn 16MB chống tràn bộ nhớ DoS (VULN-04)
 
     @app.before_request
     def validate_csrf_and_origin():
-        """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE)."""
-        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-            origin = request.headers.get("Origin")
-            if origin:
-                origin_clean = origin.split("://")[-1].rstrip("/").split(":")[0]
-                host_clean = request.host.split(":")[0]
-                if origin_clean != host_clean and origin_clean != "localhost" and origin_clean != "127.0.0.1":
-                    return jsonify({
-                        "error": "Yêu cầu bị từ chối do vi phạm chính sách cùng nguồn gốc (Origin Policy Mismatch)."
-                    }), 403
+        """Bảo vệ chống tấn công CSRF trên các endpoint thay đổi trạng thái (POST, PUT, DELETE, PATCH)."""
+        request._start_time = time.time()
+        from core.csrf_protection import validate_csrf_request
+
+        is_valid, error_msg = validate_csrf_request(
+            request.method,
+            request.headers,
+            request.cookies,
+            request.host
+        )
+        if not is_valid:
+            return flask_api_error(
+                ErrorCode.FORBIDDEN,
+                error_msg or "Yêu cầu bị từ chối do vi phạm chính sách bảo vệ CSRF.",
+                status_code=403
+            )
 
     @app.after_request
     def apply_security_headers(response):
-        """Bơm bộ khiên bảo mật HTTP chống Clickjacking, MIME-Sniffing, XSS & Protocol Downgrade."""
-        # Che giấu thông tin công nghệ máy chủ (Information Disclosure Hardening)
-        response.headers["Server"] = "MediMind-Clinical-Engine"
-        response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
-        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), payment=()")
-        response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
-
-        # Content-Security-Policy (CSP) bảo vệ giao diện chống XSS và nạp tài nguyên trái phép
-        csp_policy = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://accounts.google.com/gsi/client https://cdnjs.cloudflare.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com; "
-            "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-            "img-src 'self' data: blob: https://*.googleusercontent.com https://images.unsplash.com https://image.cooky.vn https://monngonmoingay.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://maps.googleapis.com https://maps.gstatic.com; "
-            "connect-src 'self' https://accounts.google.com/gsi/ https://maps.googleapis.com https://mapsresources-pa.googleapis.com https://maps.gstatic.com; "
-            "frame-src 'self' https://accounts.google.com/gsi/ https://www.google.com https://maps.google.com; "
-            "base-uri 'self';"
+        """Bơm bộ khiên bảo mật HTTP chống Clickjacking, MIME-Sniffing, XSS & Protocol Downgrade (Phase 8.3)."""
+        is_https = is_request_https(
+            request.is_secure,
+            dict(request.headers),
+            trust_proxy=settings.security.trust_proxy_headers
         )
-        response.headers.setdefault("Content-Security-Policy", csp_policy)
+        for k, v in get_security_headers(is_https=is_https).items():
+            response.headers[k] = v
 
-        if is_prod or request.is_secure:
-            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        if hasattr(request, "_start_time"):
+            duration = time.time() - request._start_time
+            from core.observability import record_http_metrics
+            record_http_metrics(request.method, request.path, response.status_code, duration)
 
         return response
+
+    @app.errorhandler(500)
+    @app.errorhandler(Exception)
+    def handle_unhandled_exception(e):
+        """Bắt và chuẩn hóa toàn bộ lỗi ngoại lệ nội bộ, ngăn ngừa lộ lọt stack trace hay thông tin nhạy cảm."""
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            return e
+        logger.error("Unhandled Flask exception (%s): %s", type(e).__name__, redact_sensitive_text(str(e)))
+        return flask_api_error(
+            ErrorCode.INTERNAL_ERROR,
+            "Đã có lỗi hệ thống xảy ra. Vui lòng thử lại sau.",
+            status_code=500
+        )
 
     # Thư mục lưu trữ tệp tin mặc định
     default_upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
@@ -166,8 +190,20 @@ def create_app(test_config=None):
     # Ghi đè cấu hình kiểm thử nếu có TRƯỚC KHI init_db
     if test_config:
         app.config.update(test_config)
+    elif settings.server.is_production:
+        app.config["DEBUG"] = False
+        app.debug = False
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+    # Đảm bảo thư mục CSDL tồn tại nếu dùng SQLite cục bộ
+    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    if db_uri and str(db_uri).startswith("sqlite:///"):
+        sqlite_file = str(db_uri).replace("sqlite:///", "")
+        if sqlite_file and sqlite_file != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(sqlite_file)), exist_ok=True)
+            if hasattr(app, "instance_path") and not os.path.isabs(sqlite_file):
+                os.makedirs(os.path.dirname(os.path.abspath(os.path.join(app.instance_path, sqlite_file))), exist_ok=True)
 
     # Khởi tạo cơ sở dữ liệu an toàn theo đúng URI đã cấu hình
     init_db(app)
@@ -190,13 +226,14 @@ def create_app(test_config=None):
         if not raw_identifier or not password:
             return jsonify({"success": False, "error": "Vui lòng nhập định danh tài khoản và mật khẩu."}), 400
 
-        from core.security_patch import check_otp_attempts, reset_otp_attempts
-        rate_key = f"login:{raw_identifier.lower()}"
-        if not check_otp_attempts(rate_key, max_attempts=5):
-            return jsonify({
-                "success": False,
-                "error": "Tài khoản tạm khóa 5 phút do nhập sai mật khẩu quá 5 lần liên tiếp. Vui lòng thử lại sau."
-            }), 429
+        from core.rate_limit_service import rate_limit_service
+        client_ip = get_request_client_ip()
+        if not rate_limit_service.check_login_rate_limit(client_ip, raw_identifier, max_attempts=5, window_seconds=300):
+            return flask_api_error(
+                ErrorCode.RATE_LIMITED,
+                "Tài khoản hoặc IP tạm khóa 5 phút do thử đăng nhập sai quá 5 lần liên tiếp. Vui lòng thử lại sau.",
+                status_code=429
+            )
 
         user = find_login_user(raw_identifier)
 
@@ -215,9 +252,11 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Mật khẩu không chính xác. Vui lòng kiểm tra lại."}), 401
 
         # Xóa bộ đếm sai mật khẩu sau khi đăng nhập thành công
-        reset_otp_attempts(rate_key)
+        rate_limit_service.reset_login_attempts(client_ip, raw_identifier)
 
-        # Khởi tạo phiên làm việc (Session)
+        # Khởi tạo phiên làm việc (Session) & Chống Session Fixation
+        session.permanent = True
+        session.clear()
         session["user_id"] = user.id
         session["user_role"] = user.role
 
@@ -239,7 +278,7 @@ def create_app(test_config=None):
         data = request.get_json(silent=True) or {}
         if not app.config.get("TESTING"):
             from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
+            client_ip = get_request_client_ip()
             reg_rate_key = f"register_ip:{client_ip}"
             if not check_otp_attempts(reg_rate_key, max_attempts=10):
                 return jsonify({
@@ -302,8 +341,13 @@ def create_app(test_config=None):
         )
         new_user.set_password(password)
         db.session.add(new_user)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
+        session.permanent = True
+        session.clear()
         session["user_id"] = new_user.id
         session["user_role"] = new_user.role
 
@@ -398,9 +442,8 @@ def create_app(test_config=None):
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
         try:
-            db.session.commit()
+            commit_or_rollback()
         except Exception as e:
-            db.session.rollback()
             logger.error(f"Lỗi lưu hồ sơ cá nhân: {e}")
             return jsonify({"success": False, "error": "Không thể cập nhật thông tin do xung đột dữ liệu."}), 409
 
@@ -437,7 +480,10 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Mật khẩu hiện tại không chính xác."}), 401
 
         user.set_password(new_password)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"success": False, "error": "Không thể cập nhật mật khẩu vào cơ sở dữ liệu."}), 500
         return jsonify({"success": True, "message": "Đã thay đổi mật khẩu thành công!"})
 
 
@@ -445,7 +491,15 @@ def create_app(test_config=None):
     def auth_logout():
         """Đăng xuất và hủy phiên làm việc."""
         session.clear()
-        return jsonify({"success": True, "message": "Đã đăng xuất thành công."})
+        resp = jsonify({"success": True, "message": "Đã đăng xuất thành công."})
+        cookie_name = app.config.get("SESSION_COOKIE_NAME", "session")
+        resp.delete_cookie(
+            cookie_name,
+            httponly=True,
+            samesite="Lax",
+            secure=settings.server.is_production or settings.security.session_cookie_secure
+        )
+        return resp
 
     # ==============================================================
     # HỆ THỐNG XÁC THỰC OTP (EMAIL / SMS) & GOOGLE OAUTH 2.0
@@ -601,7 +655,10 @@ def create_app(test_config=None):
             )
             new_user.set_password(password)
             db.session.add(new_user)
-            db.session.commit()
+            try:
+                commit_or_rollback()
+            except Exception:
+                return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
             session["user_id"] = new_user.id
             session["user_role"] = new_user.role
@@ -638,7 +695,6 @@ def create_app(test_config=None):
         import base64
         import hashlib
         import hmac
-        import secrets
         import time
 
         clean_intent = "register" if intent == "register" else "login"
@@ -734,7 +790,6 @@ def create_app(test_config=None):
           - Lấy hồ sơ xác thực từ Google UserInfo API
           - Phân nhánh Đăng nhập vs Đăng ký & kiểm tra hoàn tất hồ sơ (Onboarding)
         """
-        import secrets
         import urllib.request
         import urllib.parse
         import urllib.error
@@ -815,7 +870,7 @@ def create_app(test_config=None):
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
-            db.session.commit()
+            commit_or_rollback()
 
             session.pop("pending_google_register", None)
             session["user_id"] = user.id
@@ -852,7 +907,6 @@ def create_app(test_config=None):
     @app.route("/api/auth/google/complete-registration", methods=["POST"])
     def auth_google_complete_registration():
         """Hoàn tất thông tin đăng ký Google và chính thức INSERT vào CSDL."""
-        import secrets
 
         pending = session.get("pending_google_register")
         if not pending or not pending.get("email"):
@@ -900,7 +954,7 @@ def create_app(test_config=None):
         )
         user.set_password(secrets.token_urlsafe(24))
         db.session.add(user)
-        db.session.commit()
+        commit_or_rollback()
 
         session.pop("pending_google_register", None)
         session["user_id"] = user.id
@@ -915,43 +969,64 @@ def create_app(test_config=None):
     @app.route("/api/auth/google", methods=["POST"])
     def auth_google():
         """
-        Cổng xác thực Google ID Token (Đã khóa chống giả mạo email trần - VULN-01):
-        Khi đã cấu hình GOOGLE_CLIENT_ID thực tế, bắt buộc xác minh chữ ký ID Token với máy chủ Google.
+        Cổng xác thực Google ID Token (Bảo mật Fail-Closed - VULN-01):
+        - Bắt buộc cấu hình GOOGLE_CLIENT_ID (nếu thiếu trả về HTTP 503).
+        - Bắt buộc cung cấp Google ID Token/Credential (nếu thiếu trả về HTTP 400).
+        - Xác minh chữ ký, audience, expiration với Google.
+        - Tuyệt đối không tin cậy email/name/avatar gửi trực tiếp trong body JSON.
         """
-        import urllib.request
-        import urllib.parse
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
 
         client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
+        if not client_id:
+            logger.warning("Google OAuth từ chối xác thực: GOOGLE_CLIENT_ID chưa được cấu hình.")
+            return flask_api_error(
+                ErrorCode.AI_UNAVAILABLE,
+                "Dịch vụ xác thực Google chưa được cấu hình trên máy chủ.",
+                status_code=503
+            )
+
         data = request.get_json(silent=True) or {}
-        credential = data.get("credential")
+        credential = data.get("credential") or data.get("token")
+        if not credential or not isinstance(credential, str) or not credential.strip():
+            return flask_api_error(
+                ErrorCode.VALIDATION_ERROR,
+                "Yêu cầu thiếu Google credential/token hợp lệ.",
+                status_code=400
+            )
 
-        if client_id and not app.config.get("ALLOW_LEGACY_GOOGLE_MOCK"):
-            if not credential or not isinstance(credential, str):
-                return jsonify({
-                    "success": False,
-                    "error": "Cổng giả lập đã khóa bảo mật. Vui lòng đăng nhập qua Google OAuth 2.0 chính thức (/api/auth/google/login)."
-                }), 403
-            try:
-                verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={urllib.parse.quote(credential)}"
-                with urllib.request.urlopen(verify_url, timeout=8) as resp:
-                    token_info = json.loads(resp.read().decode("utf-8"))
-                if token_info.get("aud") != client_id:
-                    return jsonify({"success": False, "error": "Google ID Token không thuộc ứng dụng MediMind."}), 403
-                email = (token_info.get("email") or "").strip().lower()
-                full_name = (token_info.get("name") or "").strip()
-                avatar_url = (token_info.get("picture") or "").strip()
-            except Exception as ex:
-                logger.warning(f"Xác thực Google ID Token thất bại: {ex}")
-                return jsonify({"success": False, "error": "Google ID Token không hợp lệ hoặc đã hết hạn."}), 401
-        else:
-            email = (data.get("email") or "").strip().lower()
-            full_name = (data.get("name") or "").strip()
-            avatar_url = (data.get("avatar_url") or data.get("picture") or "").strip()
+        try:
+            token_info = id_token.verify_oauth2_token(
+                credential.strip(),
+                google_requests.Request(),
+                client_id
+            )
+        except Exception as ex:
+            logger.warning("Xác thực Google ID Token thất bại: %s", type(ex).__name__)
+            return flask_api_error(
+                ErrorCode.INVALID_CREDENTIALS,
+                "Google ID Token không hợp lệ hoặc đã hết hạn.",
+                status_code=401
+            )
 
+        if token_info.get("aud") != client_id:
+            return flask_api_error(
+                ErrorCode.FORBIDDEN,
+                "Google ID Token không thuộc ứng dụng MediMind.",
+                status_code=403
+            )
 
+        email = (token_info.get("email") or "").strip().lower()
+        full_name = (token_info.get("name") or "").strip()
+        avatar_url = (token_info.get("picture") or "").strip()
 
         if not email or "@" not in email:
-            return jsonify({"success": False, "error": "Email Google không hợp lệ hoặc không được cung cấp."}), 400
+            return flask_api_error(
+                ErrorCode.VALIDATION_ERROR,
+                "Google token không chứa địa chỉ email hợp lệ.",
+                status_code=400
+            )
 
         if not full_name:
             full_name = email.split("@")[0].capitalize()
@@ -964,7 +1039,7 @@ def create_app(test_config=None):
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
                 user.full_name = full_name
-            db.session.commit()
+            commit_or_rollback()
         else:
             user = User(
                 email=email,
@@ -974,9 +1049,11 @@ def create_app(test_config=None):
             )
             user.set_password(secrets.token_urlsafe(24))
             db.session.add(user)
-            db.session.commit()
+            commit_or_rollback()
 
-        # Khởi tạo Session
+        # Khởi tạo Session & Chống Session Fixation
+        session.permanent = True
+        session.clear()
         session["user_id"] = user.id
         session["user_role"] = user.role
 
@@ -1018,12 +1095,11 @@ def create_app(test_config=None):
         if not user_message and not image_str:
             return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
 
-        if not app.config.get("TESTING"):
-            from core.security_patch import check_otp_attempts
-            client_ip = request.remote_addr or "local"
-            chat_rate_key = f"ai_chat:{session.get('user_id') or client_ip}"
-            if not check_otp_attempts(chat_rate_key, max_attempts=25):
-                return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
+        client_ip = get_request_client_ip()
+        from core.security_patch import get_rate_limit_identity, check_chat_rate_limit
+        rate_id = get_rate_limit_identity(user_id=user_id, guest_token=guest_token, client_ip=client_ip)
+        if not check_chat_rate_limit(rate_id, max_requests=25, window_seconds=60, enforce=not app.config.get("TESTING")):
+            return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
 
         image_bytes = None
         image_mime_type = "image/jpeg"
@@ -1035,52 +1111,24 @@ def create_app(test_config=None):
             image_mime_type = mime
 
         try:
-            # 1. ĐỒNG BỘ INTAKE SERVICE: Cập nhật dữ kiện lâm sàng và tìm câu hỏi tiếp theo
-            intake_res = None
-            clinical_hint = None
-            if conversation_id:
-                try:
-                    intake_res = intake_service.process_message(
-                        conversation_id=conversation_id,
-                        message=user_message,
-                        image_bytes=image_bytes,
-                        user_id=user_id,
-                        guest_token=guest_token
-                    )
-                    if intake_res.get("next_question"):
-                        clinical_hint = intake_res["next_question"]
-                except PermissionError as pe:
-                    return jsonify({"error": str(pe)}), 403
-
-            res = process_clinical_chat(
+            res = execute_chat_workflow(
                 message=user_message,
                 history=history,
                 image_bytes=image_bytes,
                 image_mime_type=image_mime_type,
                 lang=lang,
+                conversation_id=conversation_id,
+                health_context=data["health_context"],
                 gemini_service=gemini_service,
-                clinical_hint=clinical_hint,
-                intake_facts=(intake_res or {}).get("facts"),
-                health_context=data["health_context"]
+                user_id=user_id,
+                guest_token=guest_token,
+                chat_processor=process_clinical_chat
             )
-
-            # 2. HỢP NHẤT DỮ LIỆU ĐÁNH GIÁ (TRÁNH LỆCH PHA GIỮA CHAT VÀ TÓM TẮT)
-            if intake_res:
-                try:
-                    intake_service.record_assistant_reply(conversation_id, res["answer"],
-                                                         user_id=user_id, guest_token=guest_token)
-                except KeyError:
-                    return jsonify({"error": "Cuộc trò chuyện đã được xóa trong lúc xử lý. Hãy bắt đầu cuộc trò chuyện mới."}), 409
-                except PermissionError:
-                    return jsonify({"error": "Bạn không có quyền cập nhật cuộc trò chuyện này."}), 403
-                intake_res["answer"] = res["answer"]
-                res["conversation_id"] = conversation_id
-                res["intake"] = intake_res
-                res["intake_facts"] = intake_res.get("facts")
-                res["intake_summary"] = intake_res.get("summary")
-                res["intake_status"] = intake_res.get("status")
-
             return jsonify(res)
+        except PermissionError as pe:
+            return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Cuộc trò chuyện đã được xóa trong lúc xử lý. Hãy bắt đầu cuộc trò chuyện mới."}), 409
 
         except ValueError as ve:
             return jsonify({"error": str(ve)}), 400
@@ -1133,7 +1181,7 @@ def create_app(test_config=None):
                 return jsonify({"error": "Không tìm thấy cuộc trò chuyện."}), 404
             if user_id:
                 ClinicalConsultation.query.filter_by(user_id=user_id, conversation_id=conversation_id).delete()
-            db.session.commit()
+            commit_or_rollback()
         except PermissionError:
             db.session.rollback()
             return jsonify({"error": "Bạn không có quyền xóa cuộc trò chuyện này."}), 403
@@ -1251,7 +1299,7 @@ def create_app(test_config=None):
         row.is_emergency = assessment["triage_badge"] == "emergency"
         row.confirmed_summary = json.dumps(snapshot, ensure_ascii=False)
         row.turns_json = None
-        db.session.commit()
+        commit_or_rollback()
         return jsonify(res)
 
     @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
@@ -1309,7 +1357,7 @@ def create_app(test_config=None):
                 owner_id=user_id
             )
             db.session.add(new_doc)
-            db.session.commit()
+            commit_or_rollback()
 
             upload_time = new_doc.created_at.strftime("%H:%M %d/%m/%Y")
             return jsonify({
@@ -1341,7 +1389,12 @@ def create_app(test_config=None):
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách tài liệu."}), 401
 
-        docs = MedicalDocument.query.filter_by(owner_id=user_id).order_by(MedicalDocument.created_at.desc()).all()
+        docs = (
+            MedicalDocument.query.filter_by(owner_id=user_id)
+            .filter(MedicalDocument.doc_type != "ocr_draft")
+            .order_by(MedicalDocument.created_at.desc())
+            .all()
+        )
         files = [d.to_dict() for d in docs]
         return jsonify({"status": "success", "files": files})
 
@@ -1377,7 +1430,10 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi xóa file vật lý: {e}")
 
         db.session.delete(doc)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"status": "error", "message": "Không thể xóa tài liệu khỏi cơ sở dữ liệu."}), 500
 
         return jsonify({"status": "success", "message": f"Đã xóa tài liệu '{doc.original_filename}' thành công."})
 
@@ -1433,10 +1489,9 @@ def create_app(test_config=None):
                     owner_id=user_id
                 )
                 db.session.add(doc)
-                db.session.commit()
+                commit_or_rollback()
                 doc_id = doc.id
             except Exception as e:
-                db.session.rollback()
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
@@ -1458,7 +1513,7 @@ def create_app(test_config=None):
             res["document_id"] = doc_id
             if res.get("status") == "review":
                 doc.parsed_data = json.dumps({"type": res["doc_type"], "allergies": user_allergies}, ensure_ascii=False)
-                db.session.commit()
+                commit_or_rollback()
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -1488,11 +1543,16 @@ def create_app(test_config=None):
         if doc.doc_type != "ocr_draft" or not doc.parsed_data:
             return jsonify({"message": "Tài liệu không còn chờ xác nhận."}), 409
         draft = json.loads(doc.parsed_data)
-        kind = draft["type"]
+        override_kind = payload.get("doc_type")
+        kind = override_kind if override_kind in ("prescription", "lab_test") else draft["type"]
         key = "medications" if kind == "prescription" else "metrics"
         fields = REVIEW_FIELDS[key]
-        rows = payload.get(key)
-        if not isinstance(rows, list) or not 1 <= len(rows) <= 200:
+        raw_rows = payload.get(key)
+        if isinstance(raw_rows, list):
+            rows = [r for r in raw_rows if isinstance(r, dict) and any(str(r.get(k, "")).strip() for k in fields)]
+        else:
+            rows = []
+        if not 1 <= len(rows) <= 200:
             return jsonify({"message": "Cần ít nhất một dòng dữ liệu đã kiểm tra."}), 400
         def clean(row, keys):
             if not isinstance(row, dict) or any(not isinstance(row.get(k, ""), str) or len(row.get(k, "")) > 2000 for k in keys):
@@ -1505,6 +1565,11 @@ def create_app(test_config=None):
                 raise ValueError
         except ValueError:
             return jsonify({"message": "Hãy kiểm tra tên và dữ liệu từng dòng."}), 400
+        if kind == "prescription" and any(
+            not is_plausible_medication_name(row["name"])
+            for row in reviewed["medications"]
+        ):
+            return jsonify({"message": "Có dòng không phải tên thuốc (ví dụ ngày tháng hoặc nhãn trên phiếu). Vui lòng sửa hoặc xóa dòng đó."}), 400
         result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft["allergies"])
         result["document_id"] = doc.id
         changed = MedicalDocument.query.filter_by(id=doc.id, owner_id=owner, doc_type="ocr_draft").update({
@@ -1515,7 +1580,7 @@ def create_app(test_config=None):
         if not changed:
             db.session.rollback()
             return jsonify({"message": "Tài liệu đã được xác nhận."}), 409
-        db.session.commit()
+        commit_or_rollback()
         return jsonify(result)
 
     @app.route("/api/prescription/history", methods=["GET"])
@@ -1586,7 +1651,10 @@ def create_app(test_config=None):
                 logger.warning(f"Lỗi xóa file vật lý: {e}")
 
         db.session.delete(doc)
-        db.session.commit()
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"status": "error", "message": "Không thể xóa tài liệu khỏi cơ sở dữ liệu."}), 500
         return jsonify({"status": "success", "message": f"Đã xóa thành công '{doc.original_filename}' khỏi lịch sử."})
 
 
@@ -1601,21 +1669,13 @@ def create_app(test_config=None):
         - Đồng bộ với quy trình Intake Session theo tiêu chí y tế.
         - Trích xuất từ phiên tư vấn thực tế của tài khoản hiện tại.
         """
-        conversation_id = request.args.get("conversation_id")
         user_id = session.get("user_id")
-
         if not user_id:
             return jsonify({"error": "Vui lòng đăng nhập để xem hồ sơ."}), 401
-        records = ClinicalConsultation.query.filter_by(user_id=user_id).filter(
-            ClinicalConsultation.confirmed_summary.isnot(None))
-        if conversation_id:
-            records = records.filter_by(conversation_id=conversation_id)
-        record = records.order_by(ClinicalConsultation.id.desc()).first()
-        if record is None:
-            return jsonify({"status": "no_data", "message": "Chưa có dữ liệu tư vấn đã xác nhận để hiển thị trong hồ sơ."})
-        return jsonify({"status": "success", "summary": json.loads(record.confirmed_summary),
-                        "patient_name": db.session.get(User, user_id).full_name,
-                        "patient_id": f"BN-2026-{user_id:04d}"})
+        conversation_id = request.args.get("conversation_id")
+        from core.consultation_service import get_clinical_summary
+        _, payload, status_code = get_clinical_summary(user_id, conversation_id=conversation_id)
+        return jsonify(payload), status_code
 
     @app.route("/api/consultations", methods=["GET"])
     def get_consultations():
@@ -1623,8 +1683,9 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách phiên tư vấn.", "consultations": []}), 401
-        consultations = ClinicalConsultation.query.filter_by(user_id=user_id).filter(ClinicalConsultation.confirmed_summary.isnot(None)).order_by(ClinicalConsultation.created_at.desc()).limit(20).all()
-        return jsonify({"status": "success", "consultations": [c.to_dict() for c in consultations]}), 200
+        from core.consultation_service import get_user_consultations
+        consultations = get_user_consultations(user_id)
+        return jsonify({"status": "success", "consultations": consultations}), 200
 
     @app.route("/api/consultations/<int:cid>", methods=["DELETE"])
     def delete_consultation(cid):
@@ -1632,19 +1693,13 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"error": "Vui lòng đăng nhập."}), 401
-        c = ClinicalConsultation.query.filter_by(id=cid, user_id=user_id).first()
-        if c:
-            if c.conversation_id:
-                try:
-                    intake_service.delete_session(c.conversation_id, user_id=user_id,
-                                                  guest_token=session.get("guest_token"), commit=False)
-                except PermissionError:
-                    db.session.rollback()
-                    return jsonify({"error": "Không thể xóa phiên tư vấn không thuộc tài khoản này."}), 403
-            db.session.delete(c)
-            db.session.commit()
-            return jsonify({"message": "Đã xóa phiên tư vấn thành công."}), 200
-        return jsonify({"error": "Không tìm thấy phiên tư vấn."}), 404
+        from core.consultation_service import delete_user_consultation
+        _, payload, status_code = delete_user_consultation(
+            user_id=user_id,
+            cid=cid,
+            guest_token=session.get("guest_token")
+        )
+        return jsonify(payload), status_code
 
 
     # ==============================================================
@@ -1657,9 +1712,9 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch hẹn khám.", "appointments": []}), 401
-
-        appts = MedicalAppointment.query.filter_by(user_id=user_id).order_by(MedicalAppointment.created_at.desc()).all()
-        return jsonify({"status": "success", "appointments": [a.to_dict() for a in appts]}), 200
+        from core.appointment_service import get_user_appointments
+        appts = get_user_appointments(user_id)
+        return jsonify({"status": "success", "appointments": appts}), 200
 
     @app.route("/api/appointments", methods=["POST"])
     def create_appointment():
@@ -1670,42 +1725,10 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập hoặc tạo tài khoản để đặt lịch khám."}), 401
-
         data = request.get_json(silent=True) or {}
-        facility_id = (data.get("facility_id") or "fac_unknown").strip()
-        facility_name = (data.get("facility_name") or "Cơ sở Y tế").strip()
-        facility_address = (data.get("facility_address") or "").strip()
-        specialty = (data.get("specialty") or "Đa khoa").strip()
-        appointment_date = (data.get("appointment_date") or "").strip()
-        appointment_time = (data.get("appointment_time") or "").strip()
-        patient_name = (data.get("patient_name") or "").strip()
-        patient_phone = (data.get("patient_phone") or "").strip()
-        note = (data.get("note") or "").strip()
-
-        if not appointment_date or not appointment_time or not patient_name or not patient_phone:
-            return jsonify({"success": False, "error": "Vui lòng điền đầy đủ ngày khám, giờ khám, họ tên và số điện thoại."}), 400
-
-        new_appt = MedicalAppointment(
-            user_id=user_id,
-            facility_id=facility_id,
-            facility_name=facility_name,
-            facility_address=facility_address,
-            specialty=specialty,
-            appointment_date=appointment_date,
-            appointment_time=appointment_time,
-            patient_name=patient_name,
-            patient_phone=patient_phone,
-            note=note,
-            status="pending"
-        )
-        db.session.add(new_appt)
-        db.session.commit()
-
-        return jsonify({
-            "success": True,
-            "message": f"Đặt lịch khám thành công tại {facility_name}!",
-            "appointment": new_appt.to_dict()
-        }), 201
+        from core.appointment_service import create_user_appointment
+        _, payload, status_code = create_user_appointment(user_id, data)
+        return jsonify(payload), status_code
 
     @app.route("/api/appointments/<int:appt_id>", methods=["DELETE"])
     def delete_appointment(appt_id):
@@ -1713,14 +1736,9 @@ def create_app(test_config=None):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"success": False, "error": "Vui lòng đăng nhập."}), 401
-
-        appt = MedicalAppointment.query.filter_by(id=appt_id, user_id=user_id).first()
-        if not appt:
-            return jsonify({"success": False, "error": "Không tìm thấy lịch hẹn hoặc bạn không có quyền hủy."}), 404
-
-        db.session.delete(appt)
-        db.session.commit()
-        return jsonify({"success": True, "message": "Đã hủy lịch hẹn khám thành công."}), 200
+        from core.appointment_service import delete_user_appointment
+        _, payload, status_code = delete_user_appointment(user_id, appt_id)
+        return jsonify(payload), status_code
 
     # ==============================================================
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)
@@ -1795,26 +1813,15 @@ def create_app(test_config=None):
             logger.error(f"Lỗi phân tích dinh dưỡng: {e}")
             return jsonify({"success": False, "error": "Không thể phân tích dinh dưỡng lúc này."}), 500
 
-    FACILITIES_DATA_FILE = os.path.join(
-        os.path.dirname(__file__), "data", "CSKCB_Data", "danh_sach_co_so_kcb_normalized.json"
+    # ==============================================================
+    # QUẢN LÝ DỮ LIỆU CƠ SỞ Y TẾ (CSKCB REST API)
+    # ==============================================================
+    from core.facilities_service import (
+        load_facilities_data,
+        get_facilities as service_get_facilities,
+        get_facilities_filters as service_get_facilities_filters,
+        get_facilities_map_markers as service_get_facilities_map_markers
     )
-
-    _FACILITIES_CACHE = None
-
-    def load_facilities_data():
-        nonlocal _FACILITIES_CACHE
-        if _FACILITIES_CACHE is None:
-            if os.path.exists(FACILITIES_DATA_FILE):
-                try:
-                    with open(FACILITIES_DATA_FILE, "r", encoding="utf-8") as f:
-                        _FACILITIES_CACHE = json.load(f)
-                except Exception as e:
-                    logger.error(f"Lỗi khi đọc file dữ liệu cơ sở y tế: {e}")
-                    _FACILITIES_CACHE = []
-            else:
-                logger.warning(f"File cơ sở y tế không tồn tại: {FACILITIES_DATA_FILE}")
-                _FACILITIES_CACHE = []
-        return _FACILITIES_CACHE
 
     @app.route("/api/facilities", methods=["GET"])
     def get_facilities():
@@ -1827,116 +1834,39 @@ def create_app(test_config=None):
         - chuyen_khoa: chuyên khoa (Tai Mũi Họng, Nội tổng hợp,...)
         - quan_huyen: quận huyện (Quận 10, Quận 1,...)
         """
-        data = load_facilities_data()
-
         page = max(1, request.args.get("page", 1, type=int))
         limit = min(50, max(1, request.args.get("limit", 12, type=int)))
-        search = request.args.get("search", "").strip().lower()
+        search = request.args.get("search", "").strip()
         loai_hinh = request.args.get("loai_hinh", "").strip()
         chuyen_khoa = request.args.get("chuyen_khoa", "").strip()
         quan_huyen = request.args.get("quan_huyen", "").strip()
 
-        filtered = data
-
-        if loai_hinh and loai_hinh.lower() != "all":
-            filtered = [x for x in filtered if loai_hinh.lower() in (x.get("loai_hinh") or "").lower()]
-
-        if chuyen_khoa and chuyen_khoa.lower() != "all":
-            filtered = [x for x in filtered if chuyen_khoa.lower() in (x.get("chuyen_khoa") or "").lower()]
-
-        if quan_huyen and quan_huyen.lower() != "all":
-            filtered = [x for x in filtered if quan_huyen.lower() in (x.get("quan_huyen") or "").lower()]
-
-        if search:
-            def match_search(item):
-                s = search
-                ten = (item.get("ten") or "").lower()
-                ten_ngan = (item.get("ten_ngan") or "").lower()
-                dia_chi = (item.get("dia_chi") or "").lower()
-                dia_chi_web = (item.get("dia_chi_hien_thi_tren_web") or "").lower()
-                ck = (item.get("chuyen_khoa") or "").lower()
-                tags = " ".join(item.get("tags") or []).lower()
-                return (s in ten or s in ten_ngan or s in dia_chi or s in dia_chi_web or s in ck or s in tags)
-            filtered = [x for x in filtered if match_search(x)]
-
-        total = len(filtered)
-        total_pages = max(1, (total + limit - 1) // limit)
-        start_idx = (page - 1) * limit
-        end_idx = start_idx + limit
-        items = filtered[start_idx:end_idx]
-
-        return jsonify({
-            "success": True,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "total_pages": total_pages,
-            "data": items
-        })
+        result = service_get_facilities(
+            page=page,
+            limit=limit,
+            search=search,
+            loai_hinh=loai_hinh,
+            chuyen_khoa=chuyen_khoa,
+            quan_huyen=quan_huyen
+        )
+        return jsonify(result)
 
     @app.route("/api/facilities/filters", methods=["GET"])
     def get_facilities_filters():
         """Trả về thống kê số lượng loại hình, chuyên khoa và quận huyện thực tế."""
-        data = load_facilities_data()
-        
-        type_counts = {}
-        district_counts = {}
-        spec_counts = {}
-
-        for x in data:
-            lh = x.get("loai_hinh") or "Khác"
-            type_counts[lh] = type_counts.get(lh, 0) + 1
-
-            qh = x.get("quan_huyen") or "Khác"
-            district_counts[qh] = district_counts.get(qh, 0) + 1
-
-            ck_str = x.get("chuyen_khoa") or ""
-            if ck_str:
-                for part in ck_str.split(","):
-                    p = part.strip()
-                    if p:
-                        spec_counts[p] = spec_counts.get(p, 0) + 1
-
-        top_specs = sorted(spec_counts.items(), key=lambda x: x[1], reverse=True)[:15]
-        top_districts = sorted(district_counts.items(), key=lambda x: x[0])
-
-        return jsonify({
-            "success": True,
-            "total": len(data),
-            "loai_hinh": type_counts,
-            "quan_huyen": top_districts,
-            "chuyen_khoa": top_specs
-        })
+        return jsonify(service_get_facilities_filters())
 
     @app.route("/api/facilities/map-markers", methods=["GET"])
     def get_facilities_map_markers():
         """Trả về dữ liệu tinh gọn của tất cả cơ sở có tọa độ để vẽ markers lên bản đồ."""
-        data = load_facilities_data()
-        markers = []
-        for x in data:
-            lat = x.get("lat")
-            lng = x.get("lng")
-            if lat is not None and lng is not None:
-                markers.append({
-                    "id": str(x.get("id")),
-                    "name": x.get("ten_ngan") or x.get("ten"),
-                    "type": x.get("loai_hinh") or "",
-                    "spec": x.get("chuyen_khoa") or "",
-                    "address": x.get("dia_chi_hien_thi_tren_web") or x.get("dia_chi") or "",
-                    "lat": float(lat),
-                    "lng": float(lng),
-                    "link": x.get("link") or ""
-                })
-        return jsonify({
-            "success": True,
-            "total": len(markers),
-            "markers": markers
-        })
+        return jsonify(service_get_facilities_map_markers())
 
     @app.route("/api/config/maps", methods=["GET"])
     def get_maps_config():
         """Cung cấp cấu hình Google Maps API cho frontend."""
-        key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+        from core.settings import get_settings
+        settings = get_settings()
+        key = (settings.security.google_maps_api_key or os.getenv("GOOGLE_MAPS_API_KEY", "") or "").strip()
         return jsonify({
             "has_key": bool(key),
             "key": key if key else ""
@@ -1945,7 +1875,96 @@ def create_app(test_config=None):
     @app.route("/")
     def index():
         """Trang chủ ứng dụng y tế MediMind."""
-        return render_template("index.html", google_maps_api_key=os.getenv("GOOGLE_MAPS_API_KEY", "").strip())
+        google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+        return render_template("index.html", google_maps_api_key=google_maps_api_key)
+
+    @app.route("/health")
+    def health_check():
+        return jsonify({"status": "ok"})
+
+    @app.route("/ready")
+    def readiness_check():
+        from core.rag_service import medical_rag_service
+        from core.circuit_breaker import gemini_circuit_breaker
+        rag_ready = medical_rag_service.is_available()
+        cb_status = gemini_circuit_breaker.get_status()
+        cb_state = cb_status.get("state", "CLOSED")
+        gemini_status = "degraded" if cb_state == "OPEN" else "ready"
+        rag_status = "ready" if rag_ready else "not_ready"
+        if not rag_ready:
+            overall = "not_ready"
+            code = 503
+        elif cb_state == "OPEN":
+            overall = "degraded"
+            code = 200
+        else:
+            overall = "ready"
+            code = 200
+        return jsonify({
+            "status": overall,
+            "rag": rag_status,
+            "gemini": gemini_status,
+            "circuit_breaker": cb_state
+        }), code
+
+    @app.route("/api/system/metrics", methods=["GET"])
+    def get_system_metrics():
+        err = check_flask_admin()
+        if err:
+            return err
+        from core.observability import metrics_collector
+        if not metrics_collector.is_enabled():
+            return jsonify({"error": "Metrics endpoint is disabled"}), 403
+        return jsonify(metrics_collector.get_summary())
+
+    @app.route("/api/system/metrics/reset", methods=["POST"])
+    def reset_system_metrics():
+        err = check_flask_admin()
+        if err:
+            return err
+        from core.observability import metrics_collector
+        if not metrics_collector.is_enabled():
+            return jsonify({"error": "Metrics endpoint is disabled"}), 403
+        metrics_collector.reset()
+        return jsonify({"status": "reset_successful"})
+
+    @app.route("/system")
+    @app.route("/admin/system")
+    def system_dashboard():
+        err = check_flask_admin()
+        if err:
+            return err
+        return render_template("system_dashboard.html")
+
+    @app.route("/metrics", methods=["GET"])
+    def prometheus_metrics():
+        """Cổng Scraping chuẩn OpenMetrics cho Prometheus TSDB & Grafana."""
+        import ipaddress
+        from core.observability import get_prometheus_metrics_response
+        client_ip = (request.remote_addr or "").strip()
+        expected_key = os.getenv("PROMETHEUS_SCRAPE_KEY", os.getenv("ADMIN_MONITORING_KEY", ""))
+        req_key = request.headers.get("X-Metrics-Key") or request.headers.get("X-Admin-Key") or request.args.get("key")
+        is_internal = client_ip in ("localhost", "testclient")
+        if not is_internal and client_ip:
+            try:
+                addr = ipaddress.ip_address(client_ip)
+                is_internal = any(
+                    addr in net for net in (
+                        ipaddress.ip_network("127.0.0.0/8"),
+                        ipaddress.ip_network("::1/128"),
+                        ipaddress.ip_network("10.0.0.0/8"),
+                        ipaddress.ip_network("172.16.0.0/12"),
+                        ipaddress.ip_network("192.168.0.0/16"),
+                    )
+                )
+            except ValueError:
+                is_internal = False
+        is_auth = bool(expected_key and req_key == expected_key)
+        if not is_internal and not is_auth:
+            return jsonify({
+                "error": "Forbidden: Metrics endpoint is restricted to Prometheus scrapers."
+            }), 403
+        return get_prometheus_metrics_response()
 
     app.wsgi_app = ServerMaskMiddleware(app.wsgi_app)
     return app
@@ -1953,6 +1972,11 @@ def create_app(test_config=None):
 
 # Export singleton app instance for WSGI / CLI
 app = create_app()
+try:
+    from core.intake_service import set_flask_app
+    set_flask_app(app)
+except Exception:
+    pass
 
 if __name__ == "__main__":
     try:

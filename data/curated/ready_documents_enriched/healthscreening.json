@@ -1,0 +1,49 @@
+{
+  "id": "healthscreening",
+  "title": "Health Screening",
+  "title_en": "Health Screening",
+  "title_vi": "Khám sàng lọc sức khỏe định kỳ",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "health screening",
+    "preventive screening",
+    "routine health checkup",
+    "early disease detection",
+    "cancer screening",
+    "khám sàng lọc sức khỏe",
+    "khám tổng quát",
+    "phát hiện bệnh sớm",
+    "tầm soát ung thư",
+    "xét nghiệm phòng bệnh"
+  ],
+  "keywords_en": [
+    "health screening",
+    "preventive screening",
+    "routine health checkup",
+    "early disease detection",
+    "cancer screening"
+  ],
+  "keywords_vi": [
+    "khám sàng lọc sức khỏe",
+    "khám tổng quát",
+    "phát hiện bệnh sớm",
+    "tầm soát ung thư",
+    "xét nghiệm phòng bệnh"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/healthscreening.html",
+  "summary": "Screenings are tests that look for diseases before you have symptoms. Screening tests can find diseases early, when they're easier to treat. You can get some screenings in your doctor's office. Others need special equipment, so you may need to go to a different office or clinic. Some conditions that doctors commonly screen for include: Breast cancer and cervical cancer in women Colorectal cancer Diabetes High blood pressure High cholesterol Osteoporosis Overweight and obesity Prostate cancer in men Which tests you need depends on your age, your sex, your family history, and whether you have risk factors for certain diseases. After a screening test, ask when you will get the results and whom to talk to about them. Agency for Healthcare Research and Quality",
+  "page_content": "Screenings are tests that look for diseases before you have symptoms. Screening tests can find diseases early, when they're easier to treat. You can get some screenings in your doctor's office. Others need special equipment, so you may need to go to a different office or clinic. Some conditions that doctors commonly screen for include: Breast cancer and cervical cancer in women Colorectal cancer Diabetes High blood pressure High cholesterol Osteoporosis Overweight and obesity Prostate cancer in men Which tests you need depends on your age, your sex, your family history, and whether you have risk factors for certain diseases. After a screening test, ask when you will get the results and whom to talk to about them. Agency for Healthcare Research and Quality",
+  "content_sha256": "96a5e51e232f62c6c7fcce28eef06fc85c15fc7d364d5d33d518422e630703a5",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

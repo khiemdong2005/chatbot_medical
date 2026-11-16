@@ -1,0 +1,49 @@
+{
+  "id": "aneurysms",
+  "title": "Aneurysms",
+  "title_en": "Aneurysms",
+  "title_vi": "Phình động mạch (Động mạch chủ, Mạch não)",
+  "category": "Cardiology",
+  "category_en": "Cardiology",
+  "category_vi": "Tim mạch",
+  "search_phrases": [
+    "aneurysms",
+    "aortic aneurysm",
+    "brain aneurysm",
+    "arterial ballooning",
+    "aneurysm rupture",
+    "phình động mạch",
+    "phình động mạch chủ",
+    "phình mạch não",
+    "vỡ túi phình",
+    "cấp cứu mạch máu"
+  ],
+  "keywords_en": [
+    "aneurysms",
+    "aortic aneurysm",
+    "brain aneurysm",
+    "arterial ballooning",
+    "aneurysm rupture"
+  ],
+  "keywords_vi": [
+    "phình động mạch",
+    "phình động mạch chủ",
+    "phình mạch não",
+    "vỡ túi phình",
+    "cấp cứu mạch máu"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/aneurysms.html",
+  "summary": "An aneurysm is a bulge or \"ballooning\" in the wall of an artery. Arteries are blood vessels that carry oxygen-rich blood from the heart to other parts of the body. If an aneurysm grows large, it can burst and cause dangerous bleeding or even death. Most aneurysms occur in the aorta , the main artery that runs from the heart through the chest and abdomen. Aneurysms also can happen in arteries in the brain, heart and other parts of the body. If an aneurysm in the brain bursts, it causes a stroke . Aneurysms can develop and become large before causing any symptoms. Often doctors can stop aneurysms from bursting if they find and treat them early. They use imaging tests to find aneurysms. Often aneurysms are found by chance during tests done for other reasons. Medicines and surgery are the two main treatments for aneurysms. NIH: National Heart, Lung, and Blood Institute",
+  "page_content": "An aneurysm is a bulge or \"ballooning\" in the wall of an artery. Arteries are blood vessels that carry oxygen-rich blood from the heart to other parts of the body. If an aneurysm grows large, it can burst and cause dangerous bleeding or even death. Most aneurysms occur in the aorta , the main artery that runs from the heart through the chest and abdomen. Aneurysms also can happen in arteries in the brain, heart and other parts of the body. If an aneurysm in the brain bursts, it causes a stroke . Aneurysms can develop and become large before causing any symptoms. Often doctors can stop aneurysms from bursting if they find and treat them early. They use imaging tests to find aneurysms. Often aneurysms are found by chance during tests done for other reasons. Medicines and surgery are the two main treatments for aneurysms. NIH: National Heart, Lung, and Blood Institute",
+  "content_sha256": "eb93696bf7c61e3f6cc91dd457c653fcff6ec95da0cef8c465686c510d531f3f",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/hearingdisordersanddeafness.html",
   "medlineplus_id": "204",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hearing loss",
+  "title_vi": "Suy giảm thính lực (Mất thính lực)",
+  "category_en": "Eye, Ear & Mouth",
+  "category_vi": "Mắt, Tai & Răng miệng",
+  "keywords_en": [
+    "hearing loss",
+    "deafness",
+    "tinnitus",
+    "hearing impairment",
+    "audiology"
+  ],
+  "keywords_vi": [
+    "suy giảm thính lực",
+    "mất thính lực",
+    "nghe kém",
+    "ù tai",
+    "tai mũi họng"
+  ],
+  "content_hash": "fd5bb0084e1e5f839c240f6da9c9057d7cb1fcc5ea91d4008080219f7e471ba5",
+  "content_sha256": "fd5bb0084e1e5f839c240f6da9c9057d7cb1fcc5ea91d4008080219f7e471ba5",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/diabetestype1.html",
   "medlineplus_id": "1339",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Type 1 diabetes",
+  "title_vi": "Đái tháo đường tuýp 1 (Tiểu đường tuýp 1)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "type 1 diabetes",
+    "juvenile diabetes",
+    "insulin dependent",
+    "insulin therapy",
+    "autoimmune diabetes"
+  ],
+  "keywords_vi": [
+    "đái tháo đường tuýp 1",
+    "tiểu đường tuýp 1",
+    "tiêm insulin",
+    "thiếu hụt insulin",
+    "đái tháo đường tự miễn"
+  ],
+  "content_hash": "b77840e0b26da167742ab37c1dc6379bd545f28a729f2dbbe6bab9c4ba8aa290",
+  "content_sha256": "b77840e0b26da167742ab37c1dc6379bd545f28a729f2dbbe6bab9c4ba8aa290",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

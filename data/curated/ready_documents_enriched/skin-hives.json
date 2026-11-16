@@ -1,0 +1,38 @@
+{
+  "id": "hives",
+  "title": "Hives",
+  "category": "Skin",
+  "mapped_title": "Hives",
+  "page_content": "User topic: Hives\nCategory: Skin\nTrusted medical topic: Hives\nSearch phrases: Hives, Urticaria\nMedical groups: Skin, Hair and Nails, Immune System, Symptoms\n\nMedical information:\nHives are red and sometimes itchy bumps on your skin. An allergic reaction to a drug or food usually causes them. Allergic reactions cause your body to release chemicals that can make your skin swell up in hives. People who have other allergies are more likely to get hives than other people. Other causes include infections and stress. Hives are very common. They usually go away on their own, but if you have a serious case, you might need medicine or a shot. In rare cases, hives can cause a dangerous swelling in your airways, making it hard to breathe - which is a medical emergency.",
+  "search_phrases": [
+    "Hives",
+    "Urticaria"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/hives.html",
+  "medlineplus_id": "289",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Hives",
+  "title_vi": "Mề đay (Mày đay dị ứng)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "hives",
+    "urticaria",
+    "allergic welts",
+    "itchy wheals",
+    "skin rash hives"
+  ],
+  "keywords_vi": [
+    "mề đay",
+    "mày đay",
+    "dị ứng nổi sẩn ngứa",
+    "phù mạch",
+    "kháng histamin"
+  ],
+  "content_hash": "684e238f18d92e31fbcc3f6eeb057a57a00bf0867fc76e9a48654a63da7819d4",
+  "content_sha256": "684e238f18d92e31fbcc3f6eeb057a57a00bf0867fc76e9a48654a63da7819d4",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

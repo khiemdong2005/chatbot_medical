@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/painrelievers.html",
   "medlineplus_id": "4059",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Ibuprofen",
+  "title_vi": "Thuốc Ibuprofen",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "ibuprofen",
+    "NSAID",
+    "anti-inflammatory",
+    "pain relief",
+    "fever reducer"
+  ],
+  "keywords_vi": [
+    "ibuprofen",
+    "thuốc kháng viêm NSAID",
+    "giảm đau hạ sốt",
+    "loét dạ dày",
+    "dược phẩm"
+  ],
+  "content_hash": "77bfce002da10c6b728a7dd8406caebad0d668deaa0835d0bc7bd565dc3dad1f",
+  "content_sha256": "77bfce002da10c6b728a7dd8406caebad0d668deaa0835d0bc7bd565dc3dad1f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

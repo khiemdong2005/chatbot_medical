@@ -1,0 +1,38 @@
+{
+  "id": "hay-fever",
+  "title": "Hay fever",
+  "category": "Respiratory",
+  "mapped_title": "Hay Fever",
+  "page_content": "User topic: Hay fever\nCategory: Respiratory\nTrusted medical topic: Hay Fever\nSearch phrases: Hay fever, Hay Fever, Pollen allergy\nMedical groups: Ear, Nose and Throat, Immune System\n\nMedical information:\nEach spring, summer, and fall, trees, weeds, and grasses release tiny pollen grains into the air. Some of the pollen ends up in your nose and throat. This can trigger a type of allergy called hay fever. Symptoms can include: Sneezing, often with a runny or clogged nose Coughing and postnasal drip Itching eyes, nose and throat Red and watery eyes Dark circles under the eyes Your health care provider may diagnose hay fever based on a physical exam and your symptoms. Sometimes skin or blood tests are used. Taking medicines and using nasal sprays can relieve symptoms. You can also rinse out your nose, but be sure to use distilled or sterilized water with saline. Allergy shots can help make you less sensitive to pollen and provide long-term relief.",
+  "search_phrases": [
+    "Hay fever",
+    "Hay Fever",
+    "Pollen allergy"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/hayfever.html",
+  "medlineplus_id": "4746",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Hay fever",
+  "title_vi": "Sốt cỏ khô (Dị ứng phấn hoa)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "hay fever",
+    "pollinosis",
+    "pollen allergy",
+    "seasonal rhinitis"
+  ],
+  "keywords_vi": [
+    "sốt cỏ khô",
+    "dị ứng phấn hoa",
+    "ngứa mắt hắt hơi",
+    "chảy nước mũi",
+    "dị ứng theo mùa"
+  ],
+  "content_hash": "cab09a1a67a95845898976bdca21dbc2799958eb76a10af28538eb78b5e1ec1e",
+  "content_sha256": "cab09a1a67a95845898976bdca21dbc2799958eb76a10af28538eb78b5e1ec1e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

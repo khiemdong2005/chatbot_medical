@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/erectiledysfunction.html",
   "medlineplus_id": "118",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Weak erection",
+  "title_vi": "Cương cứng yếu",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "weak erection",
+    "soft erection",
+    "poor erectile rigidity",
+    "mild ED"
+  ],
+  "keywords_vi": [
+    "cương cứng yếu",
+    "không đủ độ cứng",
+    "xìu sớm khi quan hệ",
+    "yếu sinh lý nam",
+    "nam khoa"
+  ],
+  "content_hash": "c300db6e50bd40fa12247ff51a6f95c34904164a3f5afeb557a6013c3bff93da",
+  "content_sha256": "c300db6e50bd40fa12247ff51a6f95c34904164a3f5afeb557a6013c3bff93da",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

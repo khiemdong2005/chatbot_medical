@@ -1,0 +1,49 @@
+{
+  "id": "sleepapnea",
+  "title": "Sleep Apnea",
+  "title_en": "Sleep Apnea",
+  "title_vi": "Hội chứng ngưng thở khi ngủ",
+  "category": "Pulmonology",
+  "category_en": "Pulmonology",
+  "category_vi": "Hô hấp",
+  "search_phrases": [
+    "sleep apnea",
+    "obstructive sleep apnea",
+    "loud snoring",
+    "daytime sleepiness",
+    "CPAP therapy",
+    "ngưng thở khi ngủ",
+    "hội chứng ngưng thở tắc nghẽn",
+    "ngáy to ngạt thở",
+    "buồn ngủ ban ngày",
+    "thở máy cpap"
+  ],
+  "keywords_en": [
+    "sleep apnea",
+    "obstructive sleep apnea",
+    "loud snoring",
+    "daytime sleepiness",
+    "CPAP therapy"
+  ],
+  "keywords_vi": [
+    "ngưng thở khi ngủ",
+    "hội chứng ngưng thở tắc nghẽn",
+    "ngáy to ngạt thở",
+    "buồn ngủ ban ngày",
+    "thở máy cpap"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/sleepapnea.html",
+  "summary": "Sleep apnea is a common disorder that causes your breathing to stop or get very shallow. Breathing pauses can last from a few seconds to minutes. They may occur 30 times or more an hour. The most common type is obstructive sleep apnea. It causes your airway to collapse or become blocked during sleep. Normal breathing starts again with a snort or choking sound. People with sleep apnea often snore loudly. However, not everyone who snores has sleep apnea. You are more at risk for sleep apnea if you are overweight, male, or have a family history or small airways. Children with enlarged tonsils or adenoids may also get it. Doctors diagnose sleep apnea based on medical and family histories, a physical exam, and sleep study results. When your sleep is interrupted throughout the night, you can be drowsy during the day. People with sleep apnea are at higher risk for car crashes, work-related accidents, and other medical problems. If you have it, it is important to get treatment. Lifestyle changes, mouthpieces, surgery, and breathing devices can treat sleep apnea in many people. NIH: National Heart, Lung, and Blood Institute",
+  "page_content": "Sleep apnea is a common disorder that causes your breathing to stop or get very shallow. Breathing pauses can last from a few seconds to minutes. They may occur 30 times or more an hour. The most common type is obstructive sleep apnea. It causes your airway to collapse or become blocked during sleep. Normal breathing starts again with a snort or choking sound. People with sleep apnea often snore loudly. However, not everyone who snores has sleep apnea. You are more at risk for sleep apnea if you are overweight, male, or have a family history or small airways. Children with enlarged tonsils or adenoids may also get it. Doctors diagnose sleep apnea based on medical and family histories, a physical exam, and sleep study results. When your sleep is interrupted throughout the night, you can be drowsy during the day. People with sleep apnea are at higher risk for car crashes, work-related accidents, and other medical problems. If you have it, it is important to get treatment. Lifestyle changes, mouthpieces, surgery, and breathing devices can treat sleep apnea in many people. NIH: National Heart, Lung, and Blood Institute",
+  "content_sha256": "622649b99db473e6b30c801188fafaf1ed74f15f4a53a198cdc5a5306ee1267b",
+  "candidate_score": 0.97,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

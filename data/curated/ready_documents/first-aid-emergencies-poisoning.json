@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/poisoning.html",
   "medlineplus_id": "364",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Poisoning",
+  "title_vi": "Sơ cứu ngộ độc cấp tính",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "poisoning",
+    "toxic ingestion",
+    "poison control",
+    "accidental poisoning",
+    "first aid toxins"
+  ],
+  "keywords_vi": [
+    "ngộ độc cấp",
+    "uống nhầm hóa chất độc",
+    "cấp cứu ngộ độc",
+    "trung tâm chống độc",
+    "sơ cứu nuốt độc"
+  ],
+  "content_hash": "fc041e69453b430af0ba21e39c41e73db769465f169a3e7dfa0f1f7c27a7356f",
+  "content_sha256": "fc041e69453b430af0ba21e39c41e73db769465f169a3e7dfa0f1f7c27a7356f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }
