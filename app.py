@@ -202,6 +202,8 @@ def create_app(test_config=None):
         sqlite_file = str(db_uri).replace("sqlite:///", "")
         if sqlite_file and sqlite_file != ":memory:":
             os.makedirs(os.path.dirname(os.path.abspath(sqlite_file)), exist_ok=True)
+            if hasattr(app, "instance_path") and not os.path.isabs(sqlite_file):
+                os.makedirs(os.path.dirname(os.path.abspath(os.path.join(app.instance_path, sqlite_file))), exist_ok=True)
 
     # Khởi tạo cơ sở dữ liệu an toàn theo đúng URI đã cấu hình
     init_db(app)

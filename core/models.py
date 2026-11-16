@@ -299,6 +299,8 @@ def init_db(app):
         raw_path = str(db_uri).replace("sqlite:///", "")
         if raw_path and raw_path != ":memory:":
             os.makedirs(os.path.dirname(os.path.abspath(raw_path)), exist_ok=True)
+            if hasattr(app, "instance_path") and not os.path.isabs(raw_path):
+                os.makedirs(os.path.dirname(os.path.abspath(os.path.join(app.instance_path, raw_path))), exist_ok=True)
     db.init_app(app)
     with app.app_context():
         db.create_all()

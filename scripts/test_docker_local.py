@@ -78,6 +78,9 @@ def test_compose_config_validation():
 
 def test_runtime_contract_parity():
     print("[4/5] Kiểm tra hợp đồng API & Dashboard endpoints (Offline Contract Parity)...")
+    from pathlib import Path
+    Path("instance").mkdir(parents=True, exist_ok=True)
+    (Path("instance") / "instance").mkdir(parents=True, exist_ok=True)
     from starlette.testclient import TestClient
     from core.main_fastapi import app
 
