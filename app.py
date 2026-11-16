@@ -507,29 +507,26 @@ def create_app(test_config=None):
 
             if doc_id:
                 res["document_id"] = doc_id
+                res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
 
                 # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
                 if res and res.get("status") == "success":
                     try:
                         doc = MedicalDocument.query.get(doc_id)
                         if doc:
-                            doc.doc_type = res.get("doc_type", "prescription")
+                            doc.doc_type = "prescription"
                             doc.diagnosis = res.get("diagnosis", "")
                             doc.facility = res.get("facility", "")
                             doc.doctor = res.get("doctor", "")
                             doc.patient_name = res.get("patient_name", "")
 
                             meds = res.get("medications", [])
-                            metrics = res.get("metrics", [])
-                            if doc.doc_type == "prescription":
-                                med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
-                                sum_text = f"{len(meds)} loại thuốc"
-                                if med_names:
-                                    sum_text += f": {', '.join(med_names)}"
-                                    if len(meds) > 3:
-                                        sum_text += f" và {len(meds) - 3} thuốc khác"
-                            else:
-                                sum_text = f"{len(metrics)} chỉ số xét nghiệm"
+                            med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                            sum_text = f"{len(meds)} loại thuốc"
+                            if med_names:
+                                sum_text += f": {', '.join(med_names)}"
+                                if len(meds) > 3:
+                                    sum_text += f" và {len(meds) - 3} thuốc khác"
 
                             doc.summary = sum_text
                             doc.parsed_data = json.dumps(res, ensure_ascii=False)
@@ -537,6 +534,9 @@ def create_app(test_config=None):
                     except Exception as commit_err:
                         logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
                         db.session.rollback()
+            else:
+                if meta and meta.get("storage_filename"):
+                    res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
 
             return jsonify(res)
 
@@ -590,6 +590,8 @@ def create_app(test_config=None):
                 parsed_json["document_id"] = doc.id
                 parsed_json["uploaded_filename"] = doc.original_filename
                 parsed_json["uploaded_at"] = doc.created_at.strftime("%H:%M %d/%m/%Y") if doc.created_at else ""
+                if doc.storage_filename:
+                    parsed_json["preview_image_url"] = f"/uploads/{doc.storage_filename}"
                 return jsonify({"status": "success", "data": parsed_json})
             except Exception as json_err:
                 logger.warning(f"Lỗi parse JSON doc {doc_id}: {json_err}")
@@ -599,6 +601,57 @@ def create_app(test_config=None):
             "message": "Đơn thuốc này chưa có dữ liệu bóc tách chi tiết.",
             "doc": doc.to_dict()
         })
+
+
+    @app.route("/api/prescription/confirm", methods=["POST"])
+    def confirm_prescription():
+        """
+        Lưu dữ liệu đơn thuốc sau khi người dùng đã dò lại và xác nhận chính xác.
+        Cho phép cập nhật thông tin đã chỉnh sửa (nếu có) vào MedicalDocument.
+        """
+        user_id = session.get("user_id")
+        data = request.get_json(silent=True) or {}
+        doc_id = data.get("document_id")
+
+        if doc_id and user_id:
+            try:
+                doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+                if doc:
+                    if data.get("patient_name"):
+                        doc.patient_name = data["patient_name"]
+                    if data.get("diagnosis"):
+                        doc.diagnosis = data["diagnosis"]
+                    if data.get("facility"):
+                        doc.facility = data["facility"]
+                    if data.get("doctor"):
+                        doc.doctor = data["doctor"]
+
+                    meds = data.get("medications", [])
+                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                    sum_text = f"{len(meds)} loại thuốc"
+                    if med_names:
+                        sum_text += f": {', '.join(med_names)}"
+                        if len(meds) > 3:
+                            sum_text += f" và {len(meds) - 3} thuốc khác"
+
+                    doc.summary = sum_text
+                    doc.parsed_data = json.dumps(data, ensure_ascii=False)
+                    db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
+
+        return jsonify({"status": "success", "message": "Đã xác nhận đơn thuốc thành công.", "data": data})
+
+
+    @app.route("/uploads/<filename>")
+    def serve_uploaded_file(filename):
+        """Phục vụ file ảnh đơn thuốc an toàn cho người dùng xem và đối soát."""
+        from flask import send_from_directory
+        from werkzeug.utils import secure_filename
+        clean_name = secure_filename(filename)
+        upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
+        return send_from_directory(upload_folder, clean_name)
 
 
     @app.route("/api/prescription/history/<int:doc_id>", methods=["DELETE"])

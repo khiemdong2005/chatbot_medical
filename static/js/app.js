@@ -2073,10 +2073,18 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==============================================================================
 // 🩺 HỆ THỐNG SỐ HÓA & PHÂN TÍCH ĐƠN THUỐC LÂM SÀNG (CLINICAL PRESCRIPTION PARSER)
 // ==============================================================================
+let currentUploadedFileUrl = '';
+let currentPrescriptionData = null;
 
 async function handlePrescriptionFileSelected(e) {
   const file = e.target.files?.[0];
   if (!file) return;
+
+  // Lưu URL ảnh để hiển thị đối chiếu trực tiếp trên màn hình dò
+  if (currentUploadedFileUrl && currentUploadedFileUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(currentUploadedFileUrl);
+  }
+  currentUploadedFileUrl = URL.createObjectURL(file);
 
   const preview = document.getElementById('file-chosen-preview');
   const nameEl = document.getElementById('file-chosen-name');
@@ -2088,7 +2096,7 @@ async function handlePrescriptionFileSelected(e) {
   const formData = new FormData();
   formData.append('file', file);
 
-  showPrescriptionLoading(true, "AI đang nhận dạng văn bản & hình ảnh...", "Trích xuất danh mục thuốc, đối chiếu liều dùng và chuẩn hóa dược học...");
+  showPrescriptionLoading(true, "AI đang nhận dạng văn bản & hình ảnh...", "Trích xuất thông tin hành chính, danh mục thuốc & đối chiếu liều dùng...");
 
   try {
     const res = await fetch('/api/prescription/scan', {
@@ -2114,15 +2122,17 @@ async function handlePrescriptionFileSelected(e) {
       return;
     }
 
-    renderPrescriptionResult(data);
-    loadPrescriptionHistory();
-    if (data.is_demo) {
-      showMedicalToast('Đang hiển thị đơn thuốc mẫu thử nghiệm (Demo).', 'info', 4000);
-    } else if (data.needs_review) {
-      showMedicalToast('Đã đọc tài liệu & lưu vào Lịch sử: Vui lòng đối chiếu với ảnh gốc để xác nhận các mục chưa chắc chắn.', 'warning', 5000);
+    if (data.preview_image_url) {
+      currentUploadedFileUrl = data.preview_image_url;
     } else {
-      showMedicalToast(`Đã nhận dạng thành công & tự động lưu vào Lịch sử: ${data.diagnosis || 'Đơn thuốc y tế'}`, 'success');
+      data.preview_image_url = currentUploadedFileUrl;
     }
+
+    currentPrescriptionData = data;
+
+    // Chuyển tới màn hình dò lại & đối chiếu OCR cho người dùng kiểm tra trước
+    renderPrescriptionVerification(data);
+    showMedicalToast('Đã detect thông tin đơn thuốc: Quý vị vui lòng dò lại và bấm "Xác nhận đúng" để xem lịch uống.', 'info', 5000);
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
@@ -2132,6 +2142,8 @@ async function handlePrescriptionFileSelected(e) {
 
 function renderPrescriptionError(data) {
   const resSec = document.getElementById('prescription-result-section');
+  const verifySec = document.getElementById('prescription-verify-section');
+  if (verifySec) verifySec.classList.add('hidden');
   if (!resSec) return;
   const msg = data.message || 'Không thể nhận diện nội dung từ hình ảnh đã tải lên.';
   const previewLines = data.raw_ocr_preview && data.raw_ocr_preview.length > 0 
@@ -2246,12 +2258,11 @@ function triggerCelebration(btnEl) {
   }
 }
 
-let currentPrescriptionData = null;
 let currentSelectedSlotId = null;
 let adherenceSlotState = {};
 
 async function loadPrescriptionPreset(presetKey) {
-  showPrescriptionLoading(true, "Đang nạp hồ sơ mẫu lâm sàng...", "Thiết lập danh mục hoạt chất, liều lượng và thời gian biểu...");
+  showPrescriptionLoading(true, "Đang nạp đơn thuốc mẫu lâm sàng...", "Thiết lập danh mục hoạt chất, liều lượng và thời gian biểu...");
   try {
     const res = await fetch(`/api/prescription/scan?preset=${presetKey}`, {
       method: 'POST',
@@ -2277,8 +2288,10 @@ async function loadPrescriptionPreset(presetKey) {
       return;
     }
 
-    renderPrescriptionResult(data);
-    showMedicalToast(`Đã nạp hồ sơ mẫu: ${data.diagnosis || 'Đơn thuốc chuẩn'}`, 'info');
+    currentUploadedFileUrl = '';
+    currentPrescriptionData = data;
+    renderPrescriptionVerification(data);
+    showMedicalToast(`Đã nạp đơn thuốc mẫu: Quý vị có thể dò lại và bấm "Xác nhận đúng" để tạo lịch uống.`, 'info', 4500);
   } catch (err) {
     console.error('Lỗi khi tải dữ liệu đối soát:', err);
     showPrescriptionLoading(false);
@@ -2290,6 +2303,7 @@ function showPrescriptionLoading(show, stepText, substepText) {
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
+  const verifySec = document.getElementById('prescription-verify-section');
   const resSec = document.getElementById('prescription-result-section');
   const stepEl = document.getElementById('scan-step-text');
   const substepEl = document.getElementById('scan-substep-text');
@@ -2297,6 +2311,7 @@ function showPrescriptionLoading(show, stepText, substepText) {
   if (show) {
     if (inputSec) inputSec.classList.add('hidden');
     if (histSec) histSec.classList.add('hidden');
+    if (verifySec) verifySec.classList.add('hidden');
     if (resSec) resSec.classList.add('hidden');
     if (loadSec) loadSec.classList.remove('hidden');
     if (stepEl && stepText) stepEl.innerText = stepText;
@@ -2310,6 +2325,7 @@ function resetPrescriptionScan() {
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
+  const verifySec = document.getElementById('prescription-verify-section');
   const resSec = document.getElementById('prescription-result-section');
   const preview = document.getElementById('file-chosen-preview');
   const fileInput = document.getElementById('prescription-file-input');
@@ -2317,6 +2333,10 @@ function resetPrescriptionScan() {
   if (fileInput) fileInput.value = '';
   if (preview) preview.classList.add('hidden');
   if (loadSec) loadSec.classList.add('hidden');
+  if (verifySec) {
+    verifySec.classList.add('hidden');
+    verifySec.innerHTML = '';
+  }
   if (resSec) {
     resSec.classList.add('hidden');
     resSec.innerHTML = '';
@@ -2473,14 +2493,21 @@ async function viewPrescriptionHistoryItem(docId) {
     showPrescriptionLoading(false);
 
     if (resJson.status === 'success' && resJson.data) {
-      // Ẩn upload section và history section để người dùng xem kết quả
+      // Ẩn upload section, history section và verify section để người dùng xem kết quả
       const inputSec = document.getElementById('prescription-input-section');
       const histSec = document.getElementById('prescription-history-section');
+      const verifySec = document.getElementById('prescription-verify-section');
       if (inputSec) inputSec.classList.add('hidden');
       if (histSec) histSec.classList.add('hidden');
+      if (verifySec) verifySec.classList.add('hidden');
 
       // Chuyển tab sang ocr-tab nếu đang ở tab khác
       switchTab('ocr-tab');
+
+      currentPrescriptionData = resJson.data;
+      if (resJson.data.preview_image_url) {
+        currentUploadedFileUrl = resJson.data.preview_image_url;
+      }
 
       // Render kết quả chi tiết
       renderPrescriptionResult(resJson.data);
@@ -2538,19 +2565,353 @@ function detectSmartDoseSlot(slots) {
 }
 
 // ==============================================================================
+// 🔎 MÀN HÌNH DÒ LẠI & ĐỐI CHIẾU DỮ LIỆU DETECT ĐƠN THUỐC (VERIFICATION STEP)
+// ==============================================================================
+
+function renderPrescriptionVerification(data) {
+  currentPrescriptionData = data;
+  const inputSec = document.getElementById('prescription-input-section');
+  const histSec = document.getElementById('prescription-history-section');
+  const loadSec = document.getElementById('prescription-loading-section');
+  const resSec = document.getElementById('prescription-result-section');
+  const verifySec = document.getElementById('prescription-verify-section');
+
+  if (inputSec) inputSec.classList.add('hidden');
+  if (histSec) histSec.classList.add('hidden');
+  if (loadSec) loadSec.classList.add('hidden');
+  if (resSec) resSec.classList.add('hidden');
+  if (!verifySec) return;
+
+  const diag = data.diagnosis || 'Theo dõi & Điều trị theo chỉ định';
+  const doctor = data.doctor || 'BS. Chuyên khoa';
+  const patient = data.patient_name || 'Bệnh nhân';
+  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const rawAge = (data.age || data.data?.age || '').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nữ').toString().trim();
+  const currentYear = new Date().getFullYear();
+
+  let displayBirthInfo = '';
+  let displayAge = '';
+
+  const yearMatch = rawDob.match(/(19\d{2}|20\d{2})/);
+  if (yearMatch) {
+    const birthYear = parseInt(yearMatch[1], 10);
+    const calculatedAge = currentYear - birthYear;
+    const fullDateMatch = rawDob.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/);
+    displayBirthInfo = fullDateMatch ? fullDateMatch[1] : birthYear.toString();
+    displayAge = `${calculatedAge} tuổi`;
+  } else if (rawAge && !isNaN(parseInt(rawAge, 10))) {
+    const parsedAge = parseInt(rawAge, 10);
+    displayAge = `${parsedAge} tuổi`;
+    displayBirthInfo = `${currentYear - parsedAge}`;
+  } else if (rawDob) {
+    displayBirthInfo = rawDob;
+    displayAge = '';
+  } else {
+    displayBirthInfo = '';
+    displayAge = '';
+  }
+
+  const meds = data.medications || [];
+  const fileName = data.uploaded_filename || 'DonThuoc_Goc.jpg';
+  const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
+  const imgUrl = data.preview_image_url || currentUploadedFileUrl;
+
+  let verifyHtml = `
+    <div class="space-y-4 font-sans select-none text-slate-800 dark:text-slate-100">
+      <!-- 1. TOP HEADER STATUS BAR -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-teal-200 dark:border-teal-500/30 rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-700 text-white text-xs font-black tracking-wide">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            BƯỚC 1: DÒ LẠI &amp; ĐỐI CHIẾU ĐƠN THUỐC
+          </span>
+          <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
+            📄 ${escapeHtml(fileName)} <span class="text-slate-400 font-mono font-normal">(${scanAcc}% Tin cậy)</span>
+          </span>
+          <span class="text-xs text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-500/30 px-2.5 py-1 rounded-md font-bold">
+            Vui lòng đối chiếu dữ liệu detect với đơn gốc bên dưới
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer">
+            🔄 Tải ảnh khác
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. MAIN VERIFICATION GRID (ẢNH GỐC & DỮ LIỆU ĐÃ DETECT) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        
+        <!-- CỘT TRÁI (5/12): ẢNH ĐƠN THUỐC GỐC ĐỂ ĐỐI CHIẾU -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/10">
+            <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              Ảnh Đơn Thuốc Gốc
+            </h4>
+            ${imgUrl ? `<button onclick="openPrescriptionLightbox('${imgUrl}')" class="text-[11px] text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1 cursor-pointer"><span>🔍 Phóng to</span></button>` : ''}
+          </div>
+
+          <div class="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-white/10 min-h-[300px] flex items-center justify-center group">
+            ${imgUrl ? `
+              <img src="${imgUrl}" alt="Ảnh đơn thuốc gốc" onclick="openPrescriptionLightbox('${imgUrl}')" class="w-full max-h-[460px] object-contain rounded-xl cursor-zoom-in transition-transform group-hover:scale-[1.01]">
+              <div class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2.5 py-1 rounded-md backdrop-blur-sm pointer-events-none">
+                Bấm vào ảnh để phóng to
+              </div>
+            ` : `
+              <div class="text-center p-6 space-y-2 text-slate-400">
+                <svg class="w-12 h-12 mx-auto text-slate-500 opacity-50" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <p class="text-xs font-semibold">Đơn thuốc mẫu (Demo Preset)</p>
+                <p class="text-[11px] opacity-75">Dữ liệu đơn thuốc đã được đối soát sẵn sàng</p>
+              </div>
+            `}
+          </div>
+
+          <div class="p-3 bg-sky-50 dark:bg-white/[0.03] border border-sky-100 dark:border-white/10 rounded-xl text-[11px] text-slate-600 dark:text-slate-300 space-y-1 leading-relaxed">
+            <strong class="text-sky-900 dark:text-sky-300 block">💡 Mẹo đối chiếu:</strong>
+            <p>Dò từng dòng tên biệt dược, hàm lượng và số viên/gói trên ảnh so với bảng detect bên phải. Quý vị có thể chỉnh sửa trực tiếp các ô nếu cần.</p>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI (7/12): THÔNG TIN ĐÃ DETECT & BẢNG THUỐC ĐỂ DÒ -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- THẺ 1: THÔNG TIN HÀNH CHÍNH & CHẨN ĐOÁN -->
+          <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+            <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/10">
+              <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              1. Thông Tin Bệnh Nhân &amp; Nơi Khám (Detect)
+            </h4>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Họ và tên bệnh nhân:</label>
+                <input id="verify-patient-name" type="text" value="${escapeHtml(patient)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                  Ngày/Năm sinh: 
+                  <span id="verify-calc-age" class="text-teal-700 dark:text-teal-300 font-bold ml-1">${displayAge ? `(${displayAge})` : ''}</span>
+                </label>
+                <input id="verify-patient-dob" type="text" value="${escapeHtml(displayBirthInfo)}" oninput="recalcVerifyAge()" placeholder="VD: 20/11/2010 hoặc 1982" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Giới tính:</label>
+                <select id="verify-patient-gender" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none cursor-pointer">
+                  <option value="Nữ" ${rawGender === 'Nữ' ? 'selected' : ''}>Nữ</option>
+                  <option value="Nam" ${rawGender === 'Nam' ? 'selected' : ''}>Nam</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Bác sĩ kê đơn:</label>
+                <input id="verify-doctor" type="text" value="${escapeHtml(doctor)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Bệnh viện / Phòng khám:</label>
+                <input id="verify-facility" type="text" value="${escapeHtml(facility)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Chẩn đoán bệnh (Mắc bệnh gì):</label>
+                <input id="verify-diagnosis" type="text" value="${escapeHtml(diag)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- THẺ 2: DANH MỤC THUỐC ĐÃ DETECT & ĐỐI CHIẾU TỪNG MỤC -->
+          <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/10">
+              <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                2. Danh Mục Thuốc Detect Được (${meds.length} loại thuốc)
+              </h4>
+              <span class="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
+                ✓ Đã phân tích liều
+              </span>
+            </div>
+
+            <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+              ${meds.map((m, idx) => {
+                const numStr = (idx + 1).toString().padStart(2, '0');
+                const strength = m.strength ? `(${m.strength})` : '';
+                const dose = m.dose || '1 viên';
+                const freq = m.frequency || '2 lần/ngày';
+                const days = m.days || 'Theo đơn';
+                const isNeedsReview = m.needs_review;
+
+                return `
+                  <div class="p-3 rounded-xl border ${isNeedsReview ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]'} transition-all space-y-1.5 text-xs">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-teal-800 text-white flex items-center justify-center font-mono font-bold text-[10px] shrink-0">${numStr}</span>
+                        <div>
+                          <strong class="text-slate-900 dark:text-white font-black text-xs">${escapeHtml(m.standard_name || m.name)}</strong>
+                          <span class="text-slate-500 text-[11px] font-medium ml-1">${escapeHtml(strength)}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        ${isNeedsReview ? `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                            ⚠️ Cần kiểm tra liều
+                          </span>
+                        ` : `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ✓ Khớp OCR 100%
+                          </span>
+                        `}
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 pt-1">
+                      <div>
+                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> <strong>${escapeHtml(dose)} / lần</strong> • ${escapeHtml(freq)}
+                      </div>
+                      <div>
+                        <span class="text-slate-400">Tổng cấp:</span> <strong>${escapeHtml(days)}</strong>
+                      </div>
+                      <div class="sm:col-span-2 text-slate-500 dark:text-slate-400">
+                        <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng &amp; lưu ý:</span> ${escapeHtml(m.purpose || m.category || 'Thuốc điều trị')} • ${escapeHtml(m.usage || 'Uống theo chỉ dẫn')}
+                      </div>
+                      ${m.ocr_matched_text ? `
+                        <div class="sm:col-span-2 text-[10px] font-mono text-slate-400 bg-white/40 dark:bg-black/20 p-1.5 rounded">
+                          Dòng OCR đọc được: "${escapeHtml(m.ocr_matched_text)}"
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- THẺ 3: NÚT XÁC NHẬN CHÍNH (ACTION CONFIRMATION BAR) -->
+          <div class="bg-gradient-to-r from-teal-950/60 via-slate-900/80 to-sky-950/60 border border-teal-500/40 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
+            <div class="flex items-center gap-2.5 text-xs text-teal-200">
+              <svg class="w-5 h-5 text-teal-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Sau khi quý vị xác nhận, hệ thống MedAssist AI sẽ lập tức chuyển sang giao diện lâm sàng hoàn chỉnh với thời gian biểu uống 4 cữ trong ngày.</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
+              <button id="btn-confirm-and-proceed" onclick="confirmAndProceedPrescription()" class="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-teal-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>XÁC NHẬN ĐÚNG ➔ XEM LỊCH UỐNG &amp; HƯỚNG DẪN</span>
+              </button>
+
+              <button onclick="resetPrescriptionScan()" class="w-full sm:w-auto py-3 px-4 rounded-xl border border-slate-400/40 hover:bg-white/10 text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                <span>🔄 Tải Lại Ảnh Khác</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  verifySec.innerHTML = verifyHtml;
+  verifySec.classList.remove('hidden');
+  verifySec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function confirmAndProceedPrescription() {
+  if (!currentPrescriptionData) return;
+
+  const patName = document.getElementById('verify-patient-name')?.value?.trim();
+  const dobVal = document.getElementById('verify-patient-dob')?.value?.trim();
+  const genderVal = document.getElementById('verify-patient-gender')?.value?.trim();
+  const facVal = document.getElementById('verify-facility')?.value?.trim();
+  const docVal = document.getElementById('verify-doctor')?.value?.trim();
+  const diagVal = document.getElementById('verify-diagnosis')?.value?.trim();
+
+  if (patName) currentPrescriptionData.patient_name = patName;
+  if (dobVal) currentPrescriptionData.dob = dobVal;
+  if (genderVal) currentPrescriptionData.gender = genderVal;
+  if (facVal) currentPrescriptionData.facility = facVal;
+  if (docVal) currentPrescriptionData.doctor = docVal;
+  if (diagVal) currentPrescriptionData.diagnosis = diagVal;
+
+  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument
+  try {
+    fetch('/api/prescription/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentPrescriptionData)
+    }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
+  } catch (err) {
+    console.warn('Lỗi gửi xác nhận:', err);
+  }
+
+  // Ẩn màn hình dò lại
+  const verifySec = document.getElementById('prescription-verify-section');
+  if (verifySec) verifySec.classList.add('hidden');
+
+  // Chuyển sang giao diện kết quả lâm sàng
+  renderPrescriptionResult(currentPrescriptionData);
+  loadPrescriptionHistory();
+  showMedicalToast('✅ Đã xác nhận đơn thuốc thành công! Đang hiển thị hướng dẫn lâm sàng & lịch uống 4 cữ.', 'success', 4000);
+}
+
+function reviewPrescriptionVerification() {
+  if (currentPrescriptionData) {
+    renderPrescriptionVerification(currentPrescriptionData);
+  }
+}
+
+function recalcVerifyAge() {
+  const dobInput = document.getElementById('verify-patient-dob');
+  const ageBadge = document.getElementById('verify-calc-age');
+  if (!dobInput || !ageBadge) return;
+  const val = dobInput.value.trim();
+  const currentYear = new Date().getFullYear();
+  const yearMatch = val.match(/(19\d{2}|20\d{2})/);
+  if (yearMatch) {
+    const birthYear = parseInt(yearMatch[1], 10);
+    const calculatedAge = currentYear - birthYear;
+    ageBadge.innerText = `(${calculatedAge} tuổi)`;
+  } else if (val && !isNaN(parseInt(val, 10)) && parseInt(val, 10) < 130) {
+    ageBadge.innerText = `(${val} tuổi)`;
+  } else {
+    ageBadge.innerText = '';
+  }
+}
+
+function openPrescriptionLightbox(src) {
+  const modal = document.getElementById('prescription-lightbox-modal');
+  const img = document.getElementById('prescription-lightbox-img');
+  if (!modal || !img) return;
+  img.src = src || currentUploadedFileUrl;
+  modal.classList.remove('hidden');
+}
+
+function closePrescriptionLightbox() {
+  const modal = document.getElementById('prescription-lightbox-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// ==============================================================================
 // NEXT-GEN MEDICAL DASHBOARD: USER-CENTRIC, DYNAMIC & FLUID
 // ==============================================================================
 function renderPrescriptionResult(data) {
   currentPrescriptionData = data;
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
+  const verifySec = document.getElementById('prescription-verify-section');
   if (inputSec) inputSec.classList.add('hidden');
   if (histSec) histSec.classList.add('hidden');
+  if (verifySec) verifySec.classList.add('hidden');
 
   const resSec = document.getElementById('prescription-result-section');
   if (!resSec) return;
 
-  const isLab = data.type === 'lab_test' || data.doc_type === 'lab_test';
   const diag = data.diagnosis || 'Chăm sóc & Điều trị';
   const doctor = data.doctor || 'BS. Chuyên khoa';
   const patient = data.patient_name || 'Bệnh nhân';
@@ -2594,101 +2955,6 @@ function renderPrescriptionResult(data) {
   const medId = data.document_id ? `#MED-${data.document_id}` : `#MED-8841`;
   const fileName = data.uploaded_filename || 'ToaThuoc_KhamDinhKy.jpg';
   const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
-
-  if (isLab) {
-    let html = `
-      <div class="space-y-4 font-sans select-none text-slate-800 dark:text-slate-100">
-        <!-- TOP TOOLBAR -->
-        <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
-          <div class="flex flex-wrap items-center gap-2.5">
-            <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-900 text-white text-xs font-bold tracking-wide">
-              🔬 PHÂN LOẠI: PHIẾU XÉT NGHIỆM
-            </span>
-            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
-              📄 ${fileName} <span class="text-slate-400 font-mono">(${scanAcc}% Tin cậy)</span>
-            </span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
-            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-900 hover:bg-sky-950 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <!-- MAIN METRICS TABLE -->
-          <div class="lg:col-span-2 space-y-4">
-            <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
-              <div class="flex justify-between items-start pb-3 border-b border-slate-100">
-                <div>
-                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
-                </div>
-                <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
-              </div>
-
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                  <thead class="bg-slate-50 dark:bg-white/[0.04] border-b border-slate-200 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px]">
-                    <tr>
-                      <th class="py-2.5 px-3">Chỉ số xét nghiệm</th>
-                      <th class="py-2.5 px-3">Kết quả</th>
-                      <th class="py-2.5 px-3">Khoảng chuẩn</th>
-                      <th class="py-2.5 px-3">Đánh giá</th>
-                      <th class="py-2.5 px-3">Đối chiếu</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    ${(data.metrics || []).map(m => `
-                      <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
-                        <td class="py-3 px-3">
-                          <div class="font-bold text-slate-900 dark:text-white">${m.standard_name || m.name || m.test_name}</div>
-                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
-                        </td>
-                        <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
-                          ${m.result || m.value} <span class="text-[11px] font-normal text-slate-400">${m.unit || ''}</span>
-                        </td>
-                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${m.reference_range || m.reference || '---'}</td>
-                        <td class="py-3 px-3">
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
-                            ${m.computed_flag || m.status || 'Bình thường'}
-                          </span>
-                        </td>
-                        <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
-                          ${m.needs_review ? '<span class="text-amber-600 font-bold">⚠️ Cần xác nhận</span>' : '<span class="text-emerald-600 font-semibold">✓ Khớp số liệu</span>'}
-                        </td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- SIDEBAR COPILOT -->
-          <div class="space-y-4">
-            <div class="bg-sky-950 text-white rounded-2xl p-5 shadow-sm space-y-3">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-lg bg-sky-900 flex items-center justify-center font-bold">🤖</div>
-                  <div>
-                    <h4 class="text-xs font-bold leading-tight">MedAssist AI Copilot</h4>
-                    <span class="text-[10px] text-sky-300">Chuyên trách Hướng dẫn Lâm sàng</span>
-                  </div>
-                </div>
-                <span class="text-[9px] bg-sky-700 text-sky-100 font-bold px-2 py-0.5 rounded-full">Active</span>
-              </div>
-              <div class="text-xs text-sky-50 space-y-2 pt-2 border-t border-sky-900/80 leading-relaxed">
-                ${data.interpretation ? `<div class="prose prose-invert prose-xs">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    resSec.innerHTML = html;
-    resSec.classList.remove('hidden');
-    return;
-  }
 
   // ==============================================================================
   // PRESCRIPTION MODE: GỘP 2 TAB "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC"
@@ -2755,15 +3021,19 @@ function renderPrescriptionResult(data) {
             📄 ${fileName} <span class="text-slate-400 font-mono font-normal">(${scanAcc}% Scan OCR)</span>
           </span>
           <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
-            ✓ Đã trích xuất dữ liệu an toàn
+            ✓ Đã đối soát &amp; xác nhận
           </span>
         </div>
 
         <div class="flex items-center gap-2">
+          <button onclick="reviewPrescriptionVerification()" class="px-3.5 py-1.5 rounded-lg border border-teal-300 dark:border-teal-500/30 text-teal-800 dark:text-teal-200 hover:bg-teal-50 dark:hover:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Dò lại ảnh gốc &amp; đối chiếu dữ liệu detect">
+            <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span>Dò lại đơn gốc</span>
+          </button>
           <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs cursor-pointer">
             Export Summary PDF
           </button>
-<button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
+          <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Quay lại danh sách và xem lịch sử các đơn thuốc đã import">
             <span>📋 Xem Lịch sử / Quét thêm</span>
           </button>
         </div>

@@ -5,11 +5,10 @@ from typing import Dict, Any, Optional
 from google import genai
 from google.genai import types
 
-def extract_with_gemini_schema(image_path: str, doc_type: str = "auto", api_key: str = "") -> Optional[Dict[str, Any]]:
+def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", api_key: str = "") -> Optional[Dict[str, Any]]:
     """
-    [2.B] Gemini đọc thẳng ảnh -> JSON theo response schema chuẩn y khoa:
-      - Đơn thuốc: patient_name, diagnosis, medications [name, strength, dose, frequency, days, usage]
-      - Xét nghiệm: metrics [test_name, result, unit, reference_range, flag_on_paper (H/L/Normal)]
+    [2.B] Gemini đọc thẳng ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng:
+      - Đơn thuốc: patient_name, dob, age, gender, diagnosis, facility, doctor, date, medications
     """
     if not api_key:
         api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
@@ -29,52 +28,32 @@ def extract_with_gemini_schema(image_path: str, doc_type: str = "auto", api_key:
         elif ext == ".pdf":
             mime_type = "application/pdf"
 
-        prompt = f"""
-Bạn là Hệ thống AI Chẩn đoán Y tế Lâm sàng. Hãy đọc tài liệu y khoa trong ảnh đính kèm và trích xuất dữ liệu chính xác 100%.
+        prompt = """
+Bạn là Hệ thống AI Chuyên gia Đọc & Bóc tách Đơn Thuốc Y Tế Lâm Sàng. Hãy đọc toàn bộ thông tin trên đơn thuốc trong hình ảnh đính kèm và trích xuất dữ liệu chính xác 100%.
 
-LOẠI TÀI LIỆU DỰ ĐOÁN HOẶC YÊU CẦU: {doc_type}
-
-YÊU CẦU SCHEMA TRẢ VỀ:
-1. Nếu là ĐƠN THUỐC (prescription):
-{{
+YÊU CẦU SCHEMA JSON TRẢ VỀ:
+{
   "doc_type": "prescription",
-  "patient_name": "Tên bệnh nhân hoặc để trống",
-  "dob": "Ngày tháng năm sinh (ví dụ: 12/08/1982 hoặc 1982 nếu chỉ có năm sinh, hoặc để trống)",
-  "age": "Tuổi bệnh nhân nếu ghi trên đơn (ví dụ: 45 hoặc để trống)",
+  "patient_name": "Họ và tên bệnh nhân (viết chữ in hoa theo đơn hoặc để trống)",
+  "dob": "Ngày tháng năm sinh ghi trên đơn (ví dụ: 20/11/2010 hoặc 1982 nếu chỉ có năm sinh, hoặc để trống)",
+  "age": "Tuổi bệnh nhân nếu ghi rõ trên đơn (ví dụ: 45 hoặc để trống nếu đơn chỉ ghi ngày sinh)",
   "gender": "Giới tính (Nam hoặc Nữ nếu có trên đơn, hoặc để trống)",
-  "diagnosis": "Chẩn đoán bệnh",
-  "facility": "Tên bệnh viện / phòng khám",
+  "diagnosis": "Chẩn đoán bệnh (ghi đầy đủ tên bệnh và mã ICD nếu có trên đơn)",
+  "facility": "Tên bệnh viện hoặc phòng khám",
   "doctor": "Tên bác sĩ kê đơn",
   "date": "Ngày kê đơn",
   "medications": [
-    {{
-      "name": "Tên thuốc",
-      "strength": "Hàm lượng (ví dụ: 500mg, 10mg)",
-      "purpose": "Công dụng chính ngắn gọn (ví dụ: Hạ đường huyết, Hạ mỡ máu / Bảo vệ tim, Bổ thần kinh ngoại biên, Giảm tiết axit dạ dày, Trị co thắt dạ dày)",
-      "dose": "Liều dùng mỗi lần (ví dụ: 1 viên, 2 gói)",
-      "frequency": "Tần suất (ví dụ: 2 lần / ngày (Sáng 1 - Chiều 1))",
+    {
+      "name": "Tên biệt dược hoặc hoạt chất thuốc",
+      "strength": "Hàm lượng (ví dụ: 500mg, 40mg, 1g, 200mg)",
+      "purpose": "Công dụng chính ngắn gọn (ví dụ: Giảm tiết acid dạ dày, Trị trào ngược dạ dày, Bảo vệ niêm mạc, Giảm co thắt, Bổ gan)",
+      "dose": "Liều dùng mỗi lần (ví dụ: 1 viên, 1 gói, 1 ống)",
+      "frequency": "Tần suất uống trong ngày (ví dụ: 2 lần / ngày (Sáng 1 - Chiều 1))",
       "days": "Số ngày uống hoặc tổng số lượng (ví dụ: 60 viên (Đủ 30 ngày))",
-      "usage": "Lưu ý cách dùng chi tiết (ví dụ: Uống nguyên viên ngay sau bữa ăn chính. Không bẻ, không nhai viên thuốc kéo dài)"
-    }}
+      "usage": "Lưu ý và hướng dẫn cách dùng chi tiết (ví dụ: Uống trước bữa ăn 30 phút. Không bẻ, không nhai viên thuốc giải phóng chậm)"
+    }
   ]
-}}
-
-2. Nếu là PHIẾU XÉT NGHIỆM (lab_test):
-{{
-  "doc_type": "lab_test",
-  "patient_name": "Tên bệnh nhân hoặc để trống",
-  "facility": "Tên bệnh viện / phòng khám",
-  "date": "Ngày xét nghiệm",
-  "metrics": [
-    {{
-      "test_name": "Tên chỉ số xét nghiệm (ví dụ: Glucose đói, Men gan ALT, Ure)",
-      "result": "Giá trị số kết quả (ví dụ: 7.8, 42.5)",
-      "unit": "Đơn vị đo (ví dụ: mmol/L, U/L, g/L)",
-      "reference_range": "Khoảng tham chiếu chuẩn ghi trên phiếu (ví dụ: 3.9 - 6.4, < 40)",
-      "flag_on_paper": "Cờ in trên phiếu nếu có: High / Low / Normal / Bình thường / Không có"
-    }}
-  ]
-}}
+}
 
 BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
 """

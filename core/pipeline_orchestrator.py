@@ -77,83 +77,56 @@ def process_medical_document_pipeline(
     #     Nhánh A: OCR Cục bộ (EasyOCR)
     #     Nhánh B: Gemini Vision Multimodal theo Response Schema
     # ==============================================================
-    # 2.A: OCR cục bộ
-    ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
+    # 2.A: OCR cục bộ (Tập trung 100% vào Đơn thuốc)
+    ocr_result = extract_ocr_parallel(active_image_path, doc_type="prescription")
+    doc_type = "prescription"
 
-    # Phân loại tự động nếu chưa có doc_type_hint
-    doc_type = doc_type_hint
-    if doc_type == "auto":
-        comb_text = (ocr_result.get("raw_text") or "").lower()
-        if any(k in comb_text for k in ["xét nghiệm", "huyết học", "sinh hóa", "glucose", "cholesterol", "kết quả", "trị số bình thường", "chỉ số"]):
-            doc_type = "lab_test"
-        else:
-            doc_type = "prescription"
-
-    # 2.B: Gemini Schema extraction
-    gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
+    # 2.B: Gemini Schema extraction (Đơn thuốc y tế lâm sàng)
+    gemini_data = extract_with_gemini_schema(active_image_path, doc_type="prescription")
 
     if not gemini_data:
         # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
         gemini_data = {
-            "doc_type": doc_type,
+            "doc_type": "prescription",
             "patient_name": "",
             "facility": "",
-            "medications": [] if doc_type == "prescription" else [],
-            "metrics": [] if doc_type == "lab_test" else []
+            "medications": []
         }
-
-    # Đảm bảo đồng bộ doc_type
-    doc_type = gemini_data.get("doc_type", doc_type)
 
     # ==============================================================
     # [3] ĐỐI CHIẾU A VÀ B THEO TỪNG FIELD (RECONCILIATION)
     # ==============================================================
-    reconciled = reconcile_parallel_results(ocr_result, gemini_data, doc_type=doc_type)
+    reconciled = reconcile_parallel_results(ocr_result, gemini_data, doc_type="prescription")
 
     # ==============================================================
     # [4] CHUẨN HÓA & GROUNDING (RULE + CSDL - KHÔNG DÙNG LLM)
     # ==============================================================
-    if doc_type == "prescription":
-        standardized_meds = []
-        full_schedule = {}
+    standardized_meds = []
+    full_schedule = {}
 
-        for med in reconciled.get("medications", []):
-            med_entry = dict(med)
-            ground_info = normalize_drug_entity(med_entry.get("name", ""))
-            med_entry["standard_name"] = ground_info["standard_name"]
-            med_entry["active_ingredient"] = ground_info["active_ingredient"]
-            med_entry["category"] = ground_info["category"]
-            med_entry["purpose"] = med_entry.get("purpose") or ground_info.get("purpose", ground_info["category"])
-            med_entry["grounding_status"] = ground_info["status"]
+    for med in reconciled.get("medications", []):
+        med_entry = dict(med)
+        ground_info = normalize_drug_entity(med_entry.get("name", ""))
+        med_entry["standard_name"] = ground_info["standard_name"]
+        med_entry["active_ingredient"] = ground_info["active_ingredient"]
+        med_entry["category"] = ground_info["category"]
+        med_entry["purpose"] = med_entry.get("purpose") or ground_info.get("purpose", ground_info["category"])
+        med_entry["grounding_status"] = ground_info["status"]
 
-            # Lập lịch uống bằng RULE
-            med_sched = parse_frequency_to_schedule(med_entry.get("frequency", ""), med_entry.get("usage", ""))
-            med_entry["schedule"] = med_sched
+        # Lập lịch uống bằng RULE
+        med_sched = parse_frequency_to_schedule(med_entry.get("frequency", ""), med_entry.get("usage", ""))
+        med_entry["schedule"] = med_sched
 
-            standardized_meds.append(med_entry)
+        standardized_meds.append(med_entry)
 
-        reconciled["medications"] = standardized_meds
-
-    elif doc_type == "lab_test":
-        standardized_metrics = []
-        for item in reconciled.get("metrics", []):
-            m_entry = dict(item)
-            map_res = map_lab_test(m_entry.get("test_name", ""))
-            m_entry["standard_name"] = map_res["standard_name"]
-            m_entry["loinc_code"] = map_res["loinc_code"]
-            standardized_metrics.append(m_entry)
-
-        reconciled["metrics"] = standardized_metrics
+    reconciled["medications"] = standardized_meds
 
     # ==============================================================
     # [5] VALIDATE & LUẬT NGHIỆP VỤ
     # ==============================================================
     clinical_alerts = []
-    if doc_type == "prescription":
-        val_res = validate_prescription_rules(reconciled.get("medications", []), user_allergies=user_allergies)
-        clinical_alerts.extend(val_res.get("alerts", []))
-    elif doc_type == "lab_test":
-        reconciled["metrics"] = validate_lab_rules(reconciled.get("metrics", []))
+    val_res = validate_prescription_rules(reconciled.get("medications", []), user_allergies=user_allergies)
+    clinical_alerts.extend(val_res.get("alerts", []))
 
     reconciled["clinical_alerts"] = clinical_alerts
 

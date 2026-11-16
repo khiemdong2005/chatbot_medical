@@ -115,7 +115,7 @@ background: #94A3B8;
 
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
 
-    <span data-i18n="dock_ocr" class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Đọc đơn thuốc &amp; xét nghiệm</span>
+    <span data-i18n="dock_ocr" class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Đọc đơn thuốc lâm sàng</span>
 
   </button>
 
@@ -200,7 +200,7 @@ background: #94A3B8;
   <button onclick="switchTab('home-tab')" id="nav-home-tab" data-i18n="nav_home" class="nav-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all glass-pill-cyan-active cursor-pointer">Trang chủ</button>
   <button onclick="switchTab('chat-tab')" id="nav-chat-tab" data-i18n="nav_chat" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Trợ lý sức khỏe</button>
 
-  <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" data-i18n="nav_ocr" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Đọc đơn thuốc &amp; xét nghiệm</button>
+  <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" data-i18n="nav_ocr" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Đọc đơn thuốc lâm sàng</button>
 
   <button onclick="switchTab('booking-tab')" id="nav-booking-tab" data-i18n="nav_booking" class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Cơ sở y tế</button>
 
@@ -1205,7 +1205,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
         <div>
 
-          <h2 data-i18n="ocr_title" class="text-base sm:text-lg font-black text-white tracking-tight">Đọc Đơn Thuốc &amp; Xét Nghiệm</h2>
+          <h2 data-i18n="ocr_title" class="text-base sm:text-lg font-black text-white tracking-tight">Đọc Đơn Thuốc Lâm Sàng</h2>
 
           <p data-i18n="ocr_subtitle" class="text-xs text-slate-400 mt-0.5 font-medium">Bóc tách danh mục thuốc, đối chiếu liều dùng và gợi ý lịch uống sau khi bạn xác nhận</p>
 
@@ -1253,9 +1253,9 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
         </div>
 
-        <h3 data-i18n="ocr_box_title" class="text-base sm:text-lg font-black text-white">Tải Lên Đơn Thuốc Hoặc Phiếu Xét Nghiệm</h3>
+        <h3 data-i18n="ocr_box_title" class="text-base sm:text-lg font-black text-white">Tải Lên Đơn Thuốc Lâm Sàng</h3>
 
-        <p data-i18n="ocr_box_desc" class="text-xs text-slate-300 mt-1.5 max-w-md leading-relaxed font-normal">Chụp rõ chữ, đủ sáng, không cắt mất mép tài liệu (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)</p>
+        <p data-i18n="ocr_box_desc" class="text-xs text-slate-300 mt-1.5 max-w-md leading-relaxed font-normal">Chụp rõ chữ, đủ sáng, không cắt mất mép đơn thuốc (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)</p>
 
         
 
@@ -1285,7 +1285,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
           </svg>
 
-          <span data-i18n="ocr_btn_choose">Chọn tài liệu từ thiết bị</span>
+          <span data-i18n="ocr_btn_choose">Chọn đơn thuốc từ thiết bị</span>
 
         </button>
 
@@ -1293,7 +1293,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
         <div class="mt-4 pt-3 border-t border-white/10 w-full text-center text-[11px] text-white/50 space-y-1">
 
-          <p data-i18n="ocr_privacy_note">🔒 Tài liệu được bảo mật và chỉ lưu vào hồ sơ cá nhân sau khi bạn xác nhận kết quả.</p>
+          <p data-i18n="ocr_privacy_note">🔒 Dữ liệu được bảo mật y tế và chỉ lưu vào hồ sơ cá nhân sau khi bạn đối chiếu xác nhận kết quả.</p>
 
         </div>
 
@@ -1307,7 +1307,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
         <div class="flex items-center space-x-2 text-slate-300 font-medium">
 
-          <span class="text-sky-400">🧪</span>
+          <span class="text-sky-400">💊</span>
 
           <span data-i18n="ocr_preset_hint">Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:</span>
 
@@ -1319,8 +1319,6 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
           <button type="button" onclick="loadPrescriptionPreset('throat')" data-i18n="ocr_preset_resp" class="px-3 py-1.5 rounded-xl glass-pill text-xs font-semibold text-teal-300 hover:text-white transition-all cursor-pointer">Đơn thuốc mẫu (Hô hấp)</button>
 
-          <button type="button" onclick="loadPrescriptionPreset('lab_blood')" data-i18n="ocr_preset_blood" class="px-3 py-1.5 rounded-xl glass-pill text-xs font-semibold text-purple-300 hover:text-white transition-all cursor-pointer">Phiếu xét nghiệm mẫu (Máu)</button>
-
         </div>
 
       </div>
@@ -1330,7 +1328,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
 
 
-    <!-- PRESCRIPTION & LAB HISTORY SECTION (LỊCH SỬ ĐÃ IMPORT & MẮC BỆNH GÌ) -->
+    <!-- PRESCRIPTION HISTORY SECTION (LỊCH SỬ ĐÃ IMPORT & MẮC BỆNH GÌ) -->
     <div id="prescription-history-section" class="max-w-4xl mx-auto w-full space-y-3 pt-2">
       <div class="flex items-center justify-between px-1">
         <div class="flex items-center space-x-2.5">
@@ -1341,8 +1339,8 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
           </div>
           <div>
             <h3 class="text-sm font-black text-white flex items-center gap-2">
-              Lịch Sử Đơn Thuốc &amp; Phiếu Xét Nghiệm Của Bạn
-              <span id="history-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">0 hồ sơ</span>
+              Lịch Sử Đơn Thuốc Của Bạn
+              <span id="history-count-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-400/30">0 đơn</span>
             </h3>
             <p class="text-[11px] text-slate-400">Xem lại các lần import, tóm tắt chẩn đoán bệnh mắc phải và tra cứu lại toa thuốc</p>
           </div>
@@ -1360,7 +1358,7 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
       
       <!-- History Empty State -->
       <div id="prescription-history-empty" class="hidden glass-card p-6 rounded-2xl border border-white/10 text-center space-y-2 text-slate-400 text-xs">
-        <p>Bạn chưa có đơn thuốc hoặc phiếu xét nghiệm nào được lưu trữ. Hãy tải ảnh lên ở trên để bắt đầu theo dõi sức khỏe.</p>
+        <p>Bạn chưa có đơn thuốc nào được lưu trữ. Hãy tải ảnh lên ở trên để bắt đầu theo dõi sức khỏe.</p>
       </div>
     </div>
 
@@ -1380,7 +1378,10 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
     </div>
 
-
+    <!-- VERIFICATION / DETECTION REVIEW CONTAINER (DÒ LẠI & ĐỐI CHIẾU OCR) -->
+    <div id="prescription-verify-section" class="hidden space-y-5">
+      <!-- Populated dynamically by renderPrescriptionVerification(data) -->
+    </div>
 
     <!-- RESULT DISPLAY CONTAINER (Rendered dynamically) -->
 
@@ -1388,6 +1389,22 @@ src="https://maps.google.com/maps?q=bệnh+viện&t=&z=13&ie=UTF8&iwloc=&output=
 
       <!-- Populated dynamically by JavaScript -->
 
+    </div>
+
+    <!-- LIGHTBOX MODAL: XEM ẢNH ĐƠN THUỐC GỐC PHÓNG TO -->
+    <div id="prescription-lightbox-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="relative max-w-4xl w-full max-h-[90vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="p-3 bg-slate-800/90 border-b border-white/10 flex items-center justify-between text-xs text-white">
+          <span class="font-bold flex items-center gap-2">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+            Ảnh Đơn Thuốc Gốc (Phóng To)
+          </span>
+          <button onclick="closePrescriptionLightbox()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-base cursor-pointer">✕</button>
+        </div>
+        <div class="p-3 overflow-auto flex-1 flex items-center justify-center bg-black/40">
+          <img id="prescription-lightbox-img" src="" alt="Đơn thuốc gốc" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg">
+        </div>
+      </div>
     </div>
 
   </div>
@@ -3476,7 +3493,7 @@ Hủy bỏ
   </button>
 </div>
 
-<script src="{{ url_for('static', filename='js/app.js') }}?v=2.7.0 }}?v=16.1.3"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=2.9.0"></script>
 
 </body>
 
