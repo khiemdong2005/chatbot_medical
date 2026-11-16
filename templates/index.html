@@ -27,7 +27,6 @@
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=10">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-context.css') }}?v=2">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=6">
 
   <!-- Leaflet CSS & JS for Interactive Hospital Map -->
@@ -922,13 +921,13 @@
     <div id="chat-tab" class="tab-content flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start py-2">
 
       <!-- ============================================================== -->
-      <!-- LEFT COLUMN (4/12): 2 SEPARATE CARDS                           -->
+      <!-- LEFT COLUMN (4/12): LỊCH SỬ TƯ VẤN                             -->
       <!-- ============================================================== -->
-      <div class="lg:col-span-4 space-y-5">
+      <div class="lg:col-span-4 flex flex-col">
 
-        <!-- CARD 1: LỊCH SỬ TƯ VẤN (Matching Screenshot) -->
+        <!-- CARD 1: LỊCH SỬ TƯ VẤN -->
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 min-h-[660px] lg:min-h-[720px] flex flex-col">
 
           <!-- Card Header: Title & "+ Hội thoại mới" Button -->
           <div class="flex items-start justify-between gap-3">
@@ -962,10 +961,10 @@
           </div>
 
           <!-- History Container -->
-          <div id="chat-history-container" class="space-y-2 pt-1">
+          <div id="chat-history-container" class="space-y-2 pt-1 flex-1 flex flex-col min-h-0">
             <!-- Empty State Default -->
             <div id="chat-history-empty"
-              class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-800/30 space-y-2.5">
+              class="p-8 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-800/30 space-y-2.5 my-auto">
               <div
                 class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
                 <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -984,80 +983,8 @@
             </div>
 
             <!-- Populated real history list -->
-            <div id="chat-history-list" class="space-y-2 max-h-[260px] overflow-y-auto hidden custom-scrollbar"></div>
+            <div id="chat-history-list" class="space-y-2 flex-1 max-h-[560px] overflow-y-auto hidden custom-scrollbar"></div>
           </div>
-        </div>
-
-        <!-- CARD 2: THÔNG TIN ĐÃ GHI NHẬN (Matching Screenshot) -->
-        <div id="live-intake-card"
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
-          <!-- Card Header -->
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
-            <div class="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white"
-              id="intake-card-title">
-              <span
-                class="w-6 h-6 rounded-lg bg-sky-50 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </span>
-              <span data-i18n="intake_card_title" class="text-sm font-bold text-slate-900 dark:text-white">Bản nháp
-                trong hội thoại</span>
-            </div>
-            <span id="intake-status-badge" data-i18n="intake_status_init"
-              class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10">
-              Chờ khởi tạo
-            </span>
-          </div>
-
-          <p data-i18n="intake_draft_notice" class="text-xs text-slate-600 dark:text-slate-300">Lời kể được lưu trong
-            lịch sử chat. Chỉ bản tóm tắt bạn xác nhận mới xuất hiện trong hồ sơ.</p>
-          <!-- Key-Value Table matching screenshot -->
-          <div class="divide-y divide-slate-100 dark:divide-white/5 text-xs">
-            <div class="flex items-center justify-between py-2.5">
-              <span data-i18n="intake_lbl_chief" class="text-slate-500 dark:text-slate-400 font-medium">Lý do</span>
-              <span id="intake-chief-complaint"
-                class="font-bold text-slate-900 dark:text-white truncate max-w-[60%] text-right">Chưa có thông
-                tin</span>
-            </div>
-            <div class="flex items-center justify-between py-2.5">
-              <span data-i18n="intake_lbl_symptoms" class="text-slate-500 dark:text-slate-400 font-medium">Triệu
-                chứng</span>
-              <span id="intake-present-symptoms" class="font-bold text-sky-600 dark:text-sky-400">--</span>
-            </div>
-            <div class="flex items-center justify-between py-2.5">
-              <span data-i18n="intake_lbl_denied" class="text-slate-500 dark:text-slate-400 font-medium">Đã phủ
-                nhận</span>
-              <span id="intake-denied-symptoms" class="text-slate-400 dark:text-slate-500 italic">Chưa ghi nhận</span>
-            </div>
-            <div class="flex items-center justify-between py-2.5">
-              <span data-i18n="intake_lbl_duration" class="text-slate-500 dark:text-slate-400 font-medium">Thời
-                gian</span>
-              <span id="intake-duration" class="font-bold text-slate-700 dark:text-slate-300">--</span>
-            </div>
-            <div class="flex items-center justify-between py-2.5">
-              <span data-i18n="intake_lbl_vitals" class="text-slate-500 dark:text-slate-400 font-medium">Thân
-                nhiệt</span>
-              <span id="intake-vitals" class="font-bold text-slate-700 dark:text-slate-300">--</span>
-            </div>
-          </div>
-
-          <!-- Action Buttons matching screenshot -->
-          <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-            <button type="button" id="btn-confirm-intake" onclick="openPreVisitSummaryModal()"
-              class="flex-1 py-2.5 px-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all border border-slate-300 dark:border-white/10 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-              title="Xác nhận lời khai đúng thực tế">
-              <svg class="w-4 h-4 text-slate-600 dark:text-slate-400 shrink-0" fill="none" stroke="currentColor"
-                stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span data-i18n="intake_btn_confirm" class="text-slate-800 dark:text-slate-200 font-bold">Xem lại để
-                lưu</span>
-            </button>
-          </div>
-
         </div>
 
       </div>
@@ -1867,20 +1794,25 @@
             <path d="m6 27 15-15M13 20l-1-7m5 3 6 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           </svg></div>
         <p class="nf-overline">MEDIMIND · GỢI Ý DINH DƯỠNG</p>
-        <h1 id="nf-search-title">Hôm nay bạn cảm thấy thế nào?</h1>
-        <p class="nf-subtitle">Nhập tâm trạng hoặc tình trạng sức khỏe để xem các công thức tham khảo.</p>
+        <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì cho phù hợp?</h1>
+        <p class="nf-subtitle">Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ gợi ý món phù hợp với mô tả và hồ sơ của bạn.</p>
         <form id="nf-search-form" class="nf-search-box">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
             <path d="m16 16 4.4 4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           </svg>
-          <label class="sr-only" for="nf-query">Tâm trạng hoặc tình trạng sức khỏe</label>
-          <input id="nf-query" type="search" autocomplete="off" placeholder="Ví dụ: mất ngủ, nhiệt miệng, mệt mỏi…"
+          <label class="sr-only" for="nf-query">Tình trạng sức khỏe và nhu cầu ăn uống</label>
+          <input id="nf-query" type="search" autocomplete="off" placeholder="Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…"
             maxlength="500" required>
           <button type="submit" aria-label="Tìm gợi ý">→</button>
         </form>
-        <p class="nf-search-hint">Nhấn Enter để tiếp tục · Nội dung tìm kiếm được gửi tới Google Gemini để gợi ý món.
-        </p>
+        <div class="nf-examples" aria-label="Gợi ý tìm kiếm">
+          <span>Thử tìm:</span>
+          <button type="button" data-nf-example="Gút, bữa tối nhẹ">Gút · bữa tối nhẹ</button>
+          <button type="button" data-nf-example="Ít đường, nhiều rau">Ít đường · nhiều rau</button>
+          <button type="button" data-nf-example="Trào ngược dạ dày, không cay">Trào ngược · không cay</button>
+        </div>
+        <p class="nf-search-hint">Gợi ý món có tham khảo Gemini; hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
       </section>
       <section id="nf-type" class="nf-stage" hidden>
         <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
@@ -1914,7 +1846,7 @@
 
     <section id="nf-results" class="nf-stage nf-wide" hidden>
       <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
-      <p class="nf-overline">BƯỚC 2 / 3</p>
+      <p class="nf-overline">GỢI Ý CỦA BẠN</p>
       <h1 id="nf-results-title">Chọn món bạn thích</h1>
       <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
             aria-hidden="true">
@@ -1922,16 +1854,9 @@
               d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
               clip-rule="evenodd" />
           </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
-      <p class="nf-subtitle">Chọn một món để xem công thức và thông tin dinh dưỡng.</p>
+      <p class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
+      <div id="nf-context" class="nf-context" hidden></div>
       <p id="nf-notice" class="nf-notice" hidden></p>
-      <p id="nf-catalog-stats" class="nf-catalog-stats" hidden></p>
-      <details id="nf-selection-info" class="nf-selection-info" hidden>
-        <summary>Các món được chọn như thế nào?</summary>
-        <p id="nf-selection-copy"></p>
-      </details>
-      <p id="nf-sources" class="nf-source-links" hidden></p>
-      <button id="nf-avoidance-jump" class="nf-limit-jump" type="button" hidden>Xem thực phẩm nên hạn chế / cần tránh
-        ↓</button>
       <div id="nf-clarification" class="nf-clarification" hidden>
         <p id="nf-question"></p><button type="button" class="nf-back" id="nf-edit-query">Bổ sung mô tả →</button>
       </div>
@@ -1940,11 +1865,11 @@
       <div id="nf-mode-switcher" class="nf-mode-switcher" hidden>
         <button type="button" class="nf-mode-btn active" data-nf-view="full_meal">
           <span class="nf-mode-icon">🍱</span>
-          <span>Thực đơn 1 Bữa ăn đủ món</span>
+          <span>Mâm cơm 1 bữa</span>
         </button>
         <button type="button" class="nf-mode-btn" data-nf-view="single_dishes">
           <span class="nf-mode-icon">🍲</span>
-          <span>Các món đơn lẻ theo bữa</span>
+          <span>Món đơn lẻ</span>
         </button>
       </div>
 
@@ -1964,8 +1889,10 @@
       <div id="nf-status" class="nf-status" role="status" aria-live="polite"></div>
       <div id="nf-cards" class="nf-cards"></div>
       <button id="nf-load-more" type="button" class="nf-load-more" hidden>Xem thêm gợi ý từ kho →</button>
-      <section id="nf-avoidance" class="nf-limit-panel" aria-label="Thực phẩm nên hạn chế và cần tránh" hidden>
-      </section>
+      <details id="nf-avoidance" class="nf-limit-panel nf-limit-disclosure" hidden>
+        <summary>Nên hạn chế / cần tránh</summary>
+        <div id="nf-avoidance-content"></div>
+      </details>
     </section>
     <section id="nf-detail" class="nf-stage nf-wide" hidden>
       <button class="nf-back" type="button" data-nf-back="results">← Xem món khác</button>
@@ -1977,8 +1904,17 @@
               clip-rule="evenodd" />
           </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
       <div id="nf-detail-content"></div>
-      <p class="nf-disclaimer">Thông tin tham khảo dinh dưỡng, không thay thế tư vấn y tế chuyên khoa.</p>
     </section>
+    <details id="nf-evidence" class="nf-evidence" hidden>
+      <summary>Nguồn &amp; lưu ý dữ liệu</summary>
+      <div class="nf-evidence-content">
+        <p id="nf-selection-copy"></p>
+        <p id="nf-catalog-stats" class="nf-catalog-stats" hidden></p>
+        <p id="nf-sources" class="nf-source-links" hidden></p>
+        <div id="nf-recipe-source" hidden></div>
+        <p class="nf-disclaimer">Thông tin dinh dưỡng chỉ để tham khảo, không thay thế tư vấn y tế chuyên khoa.</p>
+      </div>
+    </details>
     </div>
 
 
@@ -2172,14 +2108,23 @@
                     <select id="p-dob-day" aria-label="Ngày sinh" onchange="syncProfileTabDobFromDropdowns()"
                       class="w-full h-[46px] bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-0 text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors cursor-pointer">
                       <option value="">Ngày</option>
+                      {% for d in range(1, 32) %}
+                      <option value="{{ d }}">{{ "%02d" % d }}</option>
+                      {% endfor %}
                     </select>
                     <select id="p-dob-month" aria-label="Tháng sinh" onchange="syncProfileTabDobFromDropdowns()"
                       class="w-full h-[46px] bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-0 text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors cursor-pointer">
                       <option value="">Tháng</option>
+                      {% for m in range(1, 13) %}
+                      <option value="{{ m }}">Tháng {{ m }}</option>
+                      {% endfor %}
                     </select>
                     <select id="p-dob-year" aria-label="Năm sinh" onchange="syncProfileTabDobFromDropdowns()"
                       class="w-full h-[46px] bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-0 text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors cursor-pointer">
                       <option value="">Năm</option>
+                      {% for y in range(2026, 1919, -1) %}
+                      <option value="{{ y }}">{{ y }}</option>
+                      {% endfor %}
                     </select>
                   </div>
                 </div>
@@ -3524,15 +3469,24 @@
           <div class="grid grid-cols-3 gap-2">
             <select id="edit-profile-dob-day" onchange="syncEditProfileDobFromDropdowns()"
               class="glass-card w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-slate-800/80 text-xs sm:text-sm text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all cursor-pointer">
-              <option value="" disabled selected>Ngày</option>
+              <option value="">Ngày</option>
+              {% for d in range(1, 32) %}
+              <option value="{{ d }}">{{ "%02d" % d }}</option>
+              {% endfor %}
             </select>
             <select id="edit-profile-dob-month" onchange="syncEditProfileDobFromDropdowns()"
               class="glass-card w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-slate-800/80 text-xs sm:text-sm text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all cursor-pointer">
-              <option value="" disabled selected>Tháng</option>
+              <option value="">Tháng</option>
+              {% for m in range(1, 13) %}
+              <option value="{{ m }}">Tháng {{ m }}</option>
+              {% endfor %}
             </select>
             <select id="edit-profile-dob-year" onchange="syncEditProfileDobFromDropdowns()"
               class="glass-card w-full px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/90 dark:bg-slate-800/80 text-xs sm:text-sm text-slate-900 dark:text-white font-medium focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all cursor-pointer">
-              <option value="" disabled selected>Năm</option>
+              <option value="">Năm</option>
+              {% for y in range(2026, 1919, -1) %}
+              <option value="{{ y }}">{{ y }}</option>
+              {% endfor %}
             </select>
           </div>
           <input type="hidden" id="edit-profile-dob" name="dob" value="">
@@ -4123,7 +4077,6 @@
 
 
   <script src="{{ url_for('static', filename='js/app.js') }}?v=26.0.9"></script>
-  <script src="{{ url_for('static', filename='js/chat-context.js') }}?v=4.0.0"></script>
   <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.0.0"></script>
 
   <!-- ============================================================== -->

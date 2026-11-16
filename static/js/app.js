@@ -2022,13 +2022,11 @@ function extractApiErrorMessage(data, fallbackMessage) {
 
 function renderSpecialistGuidance(specialist, isEn) {
   if (!specialist || typeof specialist !== 'string' || !specialist.trim()) return '';
+  const trimmed = specialist.trim();
+  const lower = trimmed.toLowerCase();
+  if (lower === 'chưa xác định' || lower === 'undetermined' || lower === 'n/a' || lower === 'none' || lower === 'không có') return '';
   const label = isEn ? 'Recommended Specialist:' : 'Chuyên khoa khuyến nghị:';
-  return `
-    <div class="mt-2.5 p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/50 text-xs flex items-center gap-2">
-      <span class="text-sky-700 dark:text-sky-300 font-bold shrink-0">🏥 ${label}</span>
-      <span class="text-slate-800 dark:text-slate-100 font-semibold">${escapeHtml(specialist.trim())}</span>
-    </div>
-  `;
+  return `<span class="hidden" data-specialist="${escapeHtml(trimmed)}" aria-hidden="true">${label} ${escapeHtml(trimmed)}</span>`;
 }
 
 function renderEmergencyBanner(isEmergency, isEn, compact = false) {
@@ -2867,7 +2865,7 @@ function populateModalDobDropdowns(dayId, monthId, yearId, currentDobStr) {
   const yearSelect = document.getElementById(yearId);
   if (!daySelect || !monthSelect || !yearSelect) return;
 
-  let selDay = '', selMonth = '', selYear = '';
+  let selDay = daySelect.value || '', selMonth = monthSelect.value || '', selYear = yearSelect.value || '';
   if (currentDobStr && typeof currentDobStr === 'string' && currentDobStr.trim()) {
     const parts = currentDobStr.trim().split(/[\/\-]/);
     if (parts.length === 3) {
@@ -2883,19 +2881,30 @@ function populateModalDobDropdowns(dayId, monthId, yearId, currentDobStr) {
     }
   }
 
-  const dayText = currentLang === 'en' ? 'Day' : 'Ngày';
-  const monthText = currentLang === 'en' ? 'Month' : 'Tháng';
-  const yearText = currentLang === 'en' ? 'Year' : 'Năm';
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  const dayText = isEn ? 'Day' : 'Ngày';
+  const monthText = isEn ? 'Month' : 'Tháng';
+  const yearText = isEn ? 'Year' : 'Năm';
 
-  daySelect.innerHTML = `<option value="" disabled ${!selDay ? 'selected' : ''}>${dayText}</option>` + 
-    Array.from({length: 31}, (_, i) => `<option value="${i+1}" ${selDay == (i+1) ? 'selected' : ''}>${i+1}</option>`).join('');
+  const maxDays = (selMonth && selYear) ? new Date(Number(selYear), Number(selMonth), 0).getDate() : 31;
+  daySelect.innerHTML = `<option value="">${dayText}</option>` + 
+    Array.from({length: maxDays}, (_, i) => {
+      const val = i + 1;
+      return `<option value="${val}" ${Number(selDay) === val ? 'selected' : ''}>${String(val).padStart(2, '0')}</option>`;
+    }).join('');
 
-  monthSelect.innerHTML = `<option value="" disabled ${!selMonth ? 'selected' : ''}>${monthText}</option>` + 
-    Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${selMonth == (i+1) ? 'selected' : ''}>${currentLang === 'en' ? `Month ${i+1}` : `Tháng ${i+1}`}</option>`).join('');
+  monthSelect.innerHTML = `<option value="">${monthText}</option>` + 
+    Array.from({length: 12}, (_, i) => {
+      const val = i + 1;
+      return `<option value="${val}" ${Number(selMonth) === val ? 'selected' : ''}>${isEn ? `Month ${val}` : `Tháng ${val}`}</option>`;
+    }).join('');
 
   const currentYear = new Date().getFullYear();
-  yearSelect.innerHTML = `<option value="" disabled ${!selYear ? 'selected' : ''}>${yearText}</option>` + 
-    Array.from({length: 90}, (_, i) => `<option value="${currentYear - i}" ${selYear == (currentYear - i) ? 'selected' : ''}>${currentYear - i}</option>`).join('');
+  yearSelect.innerHTML = `<option value="">${yearText}</option>` + 
+    Array.from({length: 100}, (_, i) => {
+      const yr = currentYear - i;
+      return `<option value="${yr}" ${Number(selYear) === yr ? 'selected' : ''}>${yr}</option>`;
+    }).join('');
 }
 
 function syncEditProfileDobFromDropdowns() {
@@ -3184,28 +3193,17 @@ function closeLoginModal() {
 }
 
 function populateDobDropdowns() {
-  const daySelect = document.getElementById('register-dob-day');
-  const monthSelect = document.getElementById('register-dob-month');
-  const yearSelect = document.getElementById('register-dob-year');
-  if (!daySelect || !monthSelect || !yearSelect) return;
+  // 1. Register modal dropdowns (if present)
+  populateModalDobDropdowns('register-dob-day', 'register-dob-month', 'register-dob-year');
 
-  const prevDay = daySelect.value;
-  const prevMonth = monthSelect.value;
-  const prevYear = yearSelect.value;
+  // 2. Profile tab dropdowns (essential profile)
+  const curProfileDob = document.getElementById('p-birthdate')?.value || (typeof currentUser !== 'undefined' ? currentUser?.dob : '') || '';
+  populateModalDobDropdowns('p-dob-day', 'p-dob-month', 'p-dob-year', curProfileDob);
+  syncProfileTabDobFromDropdowns();
 
-  const dayText = currentLang === 'en' ? 'Day' : 'Ngày';
-  const monthText = currentLang === 'en' ? 'Month' : 'Tháng';
-  const yearText = currentLang === 'en' ? 'Year' : 'Năm';
-
-  daySelect.innerHTML = `<option value="" disabled ${!prevDay ? 'selected' : ''} class="bg-slate-900 text-white">${dayText}</option>` + 
-    Array.from({length: 31}, (_, i) => `<option value="${i+1}" ${prevDay == (i+1) ? 'selected' : ''} class="bg-slate-900 text-white">${i+1}</option>`).join('');
-
-  monthSelect.innerHTML = `<option value="" disabled ${!prevMonth ? 'selected' : ''} class="bg-slate-900 text-white">${monthText}</option>` + 
-    Array.from({length: 12}, (_, i) => `<option value="${i+1}" ${prevMonth == (i+1) ? 'selected' : ''} class="bg-slate-900 text-white">${currentLang === 'en' ? `Month ${i+1}` : `Tháng ${i+1}`}</option>`).join('');
-
-  const currentYear = new Date().getFullYear();
-  yearSelect.innerHTML = `<option value="" disabled ${!prevYear ? 'selected' : ''} class="bg-slate-900 text-white">${yearText}</option>` + 
-    Array.from({length: 85}, (_, i) => `<option value="${currentYear - i}" ${prevYear == (currentYear - i) ? 'selected' : ''} class="bg-slate-900 text-white">${currentYear - i}</option>`).join('');
+  // 3. Edit profile modal dropdowns
+  const curEditDob = document.getElementById('edit-profile-dob')?.value || (typeof currentUser !== 'undefined' ? currentUser?.dob : '') || '';
+  populateModalDobDropdowns('edit-profile-dob-day', 'edit-profile-dob-month', 'edit-profile-dob-year', curEditDob);
 }
 
 let currentAuthMode = 'login';
@@ -4116,6 +4114,8 @@ function updateAuthUI() {
 
     if (pName) pName.value = displayName;
     if (pBirthDate) pBirthDate.value = currentUser.dob || '';
+    populateModalDobDropdowns('p-dob-day', 'p-dob-month', 'p-dob-year', currentUser.dob || '');
+    syncProfileTabDobFromDropdowns();
     if (pGender) pGender.value = currentUser.gender || 'Nam';
 
     const phoneVal = currentUser.phone_number || currentUser.phone || '';
@@ -9172,11 +9172,14 @@ function syncProfileTabDobFromDropdowns() {
     const maxDays = new Date(Number(y) || 2000, Number(m) || 1, 0).getDate();
     if (d && Number(d) > maxDays) d = String(maxDays);
     const dayText = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'Day' : 'Ngày';
-    dayEl.innerHTML = `<option value="">${dayText}</option>` +
-      Array.from({ length: maxDays }, (_, i) => {
-        const val = i + 1;
-        return `<option value="${val}" ${Number(d) === val ? 'selected' : ''}>${String(val).padStart(2, '0')}</option>`;
-      }).join('');
+    const currentOptionsCount = dayEl.querySelectorAll('option:not([value=""])').length;
+    if (currentOptionsCount !== maxDays) {
+      dayEl.innerHTML = `<option value="">${dayText}</option>` +
+        Array.from({ length: maxDays }, (_, i) => {
+          const val = i + 1;
+          return `<option value="${val}" ${Number(d) === val ? 'selected' : ''}>${String(val).padStart(2, '0')}</option>`;
+        }).join('');
+    }
   }
 
   const hiddenInput = document.getElementById('p-birthdate');

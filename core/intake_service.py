@@ -159,6 +159,111 @@ def is_informational_query(text: str) -> bool:
     ]
     return any(p in lower or p in cleaned for p in info_patterns)
 
+
+def requests_consultation_conclusion(text: str) -> bool:
+    """Recognize a request to finish the current consultation, not a general fact query."""
+    folded = remove_accents(text.lower()).replace("đ", "d").strip(" .?!")
+    if re.fullmatch(r"(?:vay\s+)?co\s+sao\s+khong", folded):
+        return True
+    return bool(re.search(
+        r"\b(?:toi|minh|em|con|chau)\s+(?:dang\s+)?bi\s+(?:gi|sao)\b"
+        r"|\b(?:vay|the|gio|bay gio)\s+(?:(?:toi|minh|em)\s+)?(?:bi\s+(?:gi|sao)|phai\s+lam\s+sao|nen\s+lam\s+gi)\b"
+        r"|\b(?:toi|minh|em)\s+(?:phai|nen)\s+lam\s+(?:gi|sao)\b"
+        r"|\b(?:vay|the|tinh trang nay|truong hop nay|bi vay|toi)\s+co\s+(?:nguy hiem|sao)\s+khong\b"
+        r"|\b(?:chot\s+tu\s+van|ket\s+luan\s+(?:cho\s+toi|giup\s+toi))\b",
+        folded,
+    ))
+
+
+def last_assistant_question(answer: str) -> str:
+    """Use the last question actually shown to the patient, not an intake hint."""
+    if not isinstance(answer, str) or "?" not in answer:
+        return ""
+    before = answer[:answer.rfind("?") + 1]
+    return re.split(r"[.!?\n]", before[:-1])[-1].strip(" \t*-•") + "?"
+
+
+def question_topic(question: str) -> str:
+    folded = remove_accents(question.lower()).replace("đ", "d")
+    topics = (
+        ("medication_use", r"\b(?:thuoc|medicine|medication)\b.*\b(?:dung|uong|take|use)\b|\b(?:dung|uong|take|use)\b.*\b(?:thuoc|medicine|medication)\b"),
+        ("dyspnea", r"\b(?:kho tho|hut hoi|shortness of breath|difficulty breathing)\b"),
+        ("chest_pain", r"\b(?:dau|tuc|that|nang)\s+nguc\b|\bchest pain\b"),
+        ("swallowing", r"\b(?:kho nuot|can tro.*nuot|nuot nuoc bot|swallow)\b"),
+        ("swelling", r"\b(?:sung|phu ne|swelling)\b"),
+        ("redness", r"\b(?:do da|do nong|redness)\b"),
+        ("movement", r"\b(?:han che van dong|cu dong|di lai|movement|move)\b"),
+        ("activity_impact", r"\b(?:anh huong.*sinh hoat|anh huong.*cong viec|sinh hoat|daily activities)\b"),
+        ("pain_frequency", r"\b(?:dau|con dau|pain)\b.*\b(?:thuong xuyen|lien tuc|bao nhieu lan|frequent|often)\b"),
+        ("pain_severity", r"\b(?:thang.*10|may diem|pain score)\b"),
+        ("pain_location", r"\b(?:dau o vi tri|dau cho nao|pain location)\b"),
+        ("pain_quality", r"\b(?:cam giac.*dau|con dau.*cam giac|dau am i|dau quan|pain feel)\b"),
+        ("pain_radiation", r"\b(?:lan sang|lan ra|nguyen mot cho|radiat)\b"),
+        ("pain_modifiers", r"\b(?:lam con dau tang|lam con dau giam|dieu gi lam con dau|better or worse)\b"),
+        ("temperature", r"\b(?:nhiet do|cap nhiet do|temperature)\b"),
+        ("duration", r"\b(?:tu khi nao|bao lau|may ngay|when.*start|how long)\b"),
+    )
+    if "đỏ" in question.lower():
+        return "redness"
+    return next((name for name, pattern in topics if re.search(pattern, folded)), "")
+
+
+def bind_short_reply(text: str, previous_answer: str, facts: Dict[str, Any]) -> bool:
+    """Persist a terse answer against the question that was actually displayed."""
+    question = last_assistant_question(previous_answer)
+    if not question or len(text.split()) > 8:
+        return False
+    folded = remove_accents(text.strip().lower()).replace("đ", "d").strip(" .!?")
+    if not folded:
+        return False
+    bare_reply = bool(re.fullmatch(
+        r"(?:co|khong|chua|chang|vang|dung|uh|yes|no)"
+        r"(?:\s+(?:co|bi|thuong xuyen|lam|luon|he|a|nhe|roi|dau|ca|that))*",
+        folded,
+    ))
+    frequent_reply = bool(re.fullmatch(r"thuong xuyen(?:\s+(?:lam|luon))?", folded))
+    affirmative = (bare_reply and bool(re.match(r"^(?:co|vang|dung|uh|yes)\b", folded))) or frequent_reply
+    negative = bare_reply and bool(re.match(r"^(?:khong|chua|chang|no)\b", folded))
+    short_value = bool(re.fullmatch(r"(?:\d{1,2}|\d{1,2}/10|hom qua|moi hom qua)", folded))
+    if not (affirmative or negative or short_value):
+        return False
+    topic = question_topic(question)
+    answers = facts.setdefault("contextual_answers", [])
+    answers.append({"question": question[:300], "answer": text[:150]})
+    del answers[:-20]
+    if topic:
+        facts.setdefault("answered_topics", {})[topic] = text[:150]
+
+    symptom_labels = {
+        "dyspnea": "Khó thở / Hụt hơi",
+        "chest_pain": "Đau tức ngực",
+        "swallowing": "Khó nuốt / Nghẹn khi nuốt",
+        "swelling": "Sưng / Phù nề",
+        "redness": "Đỏ da",
+        "movement": "Hạn chế vận động",
+    }
+    if topic in symptom_labels and (affirmative or negative):
+        label = symptom_labels[topic]
+        destination = "present_symptoms" if affirmative else "denied_symptoms"
+        opposite = "denied_symptoms" if affirmative else "present_symptoms"
+        if label not in facts[destination]:
+            facts[destination].append(label)
+        if label in facts[opposite]:
+            facts[opposite].remove(label)
+    elif topic == "medication_use" and (affirmative or negative):
+        facts["medication_use"] = {"status": "yes" if affirmative else "no",
+                                   "frequency": "thường xuyên" if "thuong xuyen" in folded else "chưa rõ",
+                                   "question": question[:300]}
+    elif topic == "activity_impact" and (affirmative or negative):
+        facts["activity_impact"] = "có" if affirmative else "không"
+    elif topic == "pain_frequency" and (affirmative or negative):
+        facts["pain_frequency"] = "thường xuyên" if affirmative else "không thường xuyên"
+    elif topic == "pain_severity" and re.fullmatch(r"\d{1,2}(?:/10)?", folded):
+        score = int(folded.split("/")[0])
+        if score <= 10:
+            facts.setdefault("pain", {})["severity"] = f"{score}/10"
+    return True
+
 # Các triệu chứng cờ đỏ hoặc triệu chứng quan trọng thường được rà soát
 CANONICAL_SYMPTOMS = {
     "kho_tho": {
@@ -204,6 +309,18 @@ CANONICAL_SYMPTOMS = {
     "kho_nuot": {
         "label": "Khó nuốt / Nghẹn khi nuốt",
         "patterns": ["khó nuốt", "kho nuot", "nghẹn", "nghen khi nuot", "difficulty swallowing"]
+    },
+    "sung": {
+        "label": "Sưng / Phù nề",
+        "patterns": ["sưng", "sung", "phù nề", "phu ne", "swelling"]
+    },
+    "han_che_van_dong": {
+        "label": "Hạn chế vận động",
+        "patterns": ["hạn chế vận động", "han che van dong", "khó cử động", "kho cu dong", "limited movement"]
+    },
+    "dau_khop": {
+        "label": "Đau khớp / Đau chi",
+        "patterns": ["đau khớp", "dau khop", "đau gối", "dau goi", "đau cổ chân", "dau co chan", "đau ngón chân", "dau ngon chan", "joint pain"]
     }
 }
 
@@ -242,7 +359,8 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
             "duration": None,
             "vitals": {},
             "allergies": [],
-            "medications": []
+            "medications": [],
+            "activity_impact": None
         }
 
     present_symptoms = []
@@ -328,6 +446,14 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
         if s in denied_symptoms:
             denied_symptoms.remove(s)
 
+    # A lone "đỏ" is too ambiguous in unaccented Vietnamese ("do"), so only
+    # accept the accented word or an unambiguous English/longer phrase.
+    if re.search(r"\bđỏ\b|\bredness\b|\bdo da\b", lower_text):
+        if re.search(r"\b(?:không|chưa|chẳng)\s+(?:(?:bị|có)\s+)?đỏ\b", lower_text):
+            denied_symptoms.append("Đỏ da")
+        else:
+            present_symptoms.append("Đỏ da")
+
     # 2. Trích xuất thời gian diễn tiến
     duration = None
     for pat in DURATION_PATTERNS:
@@ -369,13 +495,20 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
     if medication_report:
         medications.append("Người dùng khai: " + medication_report)
 
+    activity_impact = None
+    if re.search(r"\b(?:không ảnh hưởng|không cản trở|sinh hoạt bình thường|đi lại bình thường)\b", lower_text):
+        activity_impact = "không"
+    elif re.search(r"\b(?:ảnh hưởng sinh hoạt|cản trở sinh hoạt|khó đi lại|không đi lại được)\b", lower_text):
+        activity_impact = "có"
+
     return {
         "present_symptoms": present_symptoms,
         "denied_symptoms": denied_symptoms,
         "duration": duration,
         "vitals": vitals,
         "allergies": allergies,
-        "medications": medications
+        "medications": medications,
+        "activity_impact": activity_impact
     }
 
 
@@ -477,11 +610,11 @@ def select_next_question(missing_list: List[str], turn_count: int = 1) -> Option
     if "Thời gian" in top_missing:
         return "Bạn bị như vậy từ khi nào—mới hôm nay hay đã vài ngày rồi?"
     elif "Nhiệt độ" in top_missing:
-        return "Bạn có cặp nhiệt độ tại nhà không? Nếu có thì nhiệt độ cao nhất ghi nhận được là khoảng bao nhiêu độ C?"
+        return "Nhiệt độ cao nhất bạn đo được là bao nhiêu độ C?"
     elif "khó thở" in top_missing:
-        return "Ngoài các biểu hiện trên, bạn có cảm thấy bị khó thở, thở gấp hay hụt hơi khi nằm không?"
+        return "Bạn có bị khó thở khi nghỉ ngơi không?"
     elif "đau thắt ngực" in top_missing:
-        return "Bạn có cảm thấy đau tức ngực hoặc nặng ngực lan ra vai/cánh tay không?"
+        return "Bạn có bị đau hoặc tức ngực không?"
     elif "nuốt" in top_missing:
         return "Cổ họng đau có khiến bạn gặp khó khăn khi nuốt nước bọt hay ăn uống không?"
     else:
@@ -521,6 +654,13 @@ def generate_pre_visit_summary(
     allergies_str = "; ".join(allergies) if allergies else "Chưa ghi nhận tiền sử dị ứng đặc biệt"
     medications = facts.get("medications", [])
     meds_str = "; ".join(medications) if medications else "Chưa ghi nhận thuốc đang dùng thường xuyên"
+    medication_use = facts.get("medication_use", {})
+    if not medications and medication_use.get("status") == "yes":
+        meds_str = "Người bệnh xác nhận đang dùng thuốc; chưa rõ tên thuốc"
+        if medication_use.get("frequency") == "thường xuyên":
+            meds_str += " (thường xuyên)"
+    elif not medications and medication_use.get("status") == "no":
+        meds_str = "Người bệnh phủ nhận đang dùng thuốc trong câu hỏi trước"
     missing_info = identify_missing_information(facts)
 
     # Ảnh đính kèm & quan sát sơ bộ
@@ -532,12 +672,15 @@ def generate_pre_visit_summary(
         "title": "Phần A — Thông tin đã thu thập từ người bệnh",
         "chief_complaint": chief_complaint,
         "pain": facts.get("pain", {}),
+        "pain_frequency": facts.get("pain_frequency") or "Chưa rõ",
         "symptoms_present": present_syms,
         "symptoms_denied": denied_syms,  # Dữ kiện phủ định cực kỳ quan trọng
         "duration": duration,
         "vitals": vitals_str,
         "allergies": allergies_str,
         "current_medications": meds_str,
+        "activity_impact": facts.get("activity_impact") or "Chưa rõ",
+        "contextual_answers": facts.get("contextual_answers", []),
         "attachments_and_observations": attachments_str,
         "missing_or_unclear_info": missing_info if missing_info else ["Thông tin cơ bản ban đầu đã đầy đủ"]
     }
@@ -562,6 +705,8 @@ def generate_pre_visit_summary(
             specialist = "Tai Mũi Họng / Y học Gia đình"
         elif any("bụng" in s for s in present_syms):
             specialist = "Nội tiêu hóa"
+        elif any("khớp" in s for s in present_syms):
+            specialist = "Cơ xương khớp / Y học gia đình"
         elif any("ban" in s for s in present_syms):
             specialist = "Da liễu"
         else:
@@ -808,7 +953,10 @@ class IntakeSessionManager:
                             "duration": None,
                             "vitals": {},
                             "allergies": [],
-                            "medications": []
+                            "medications": [],
+                            "activity_impact": None,
+                            "contextual_answers": [],
+                            "answered_topics": {}
                         },
                         "messages": [],
                         "attachments": [],
@@ -872,6 +1020,7 @@ class IntakeSessionManager:
                 return {"conversation_id": conversation_id, "status": "collecting", "facts": session["facts"],
                         "answer": question, "next_question": question, "summary": generate_pre_visit_summary(session)}
             if emergency_res.get("is_emergency"):
+                bind_short_reply(user_text, previous_question, session["facts"])
                 session["is_emergency"] = True
                 session["status"] = "emergency"
                 answer = emergency_res.get("message")
@@ -884,6 +1033,7 @@ class IntakeSessionManager:
                     "facts": session["facts"],
                     "missing_information": [],
                     "next_question": None,
+                    "emergency_symptoms": emergency_res.get("symptoms", []),
                     "summary": summary,
                     "sources": emergency_res.get("sources", [])
                 }
@@ -925,6 +1075,10 @@ class IntakeSessionManager:
                 current_facts["duration"] = extracted["duration"]
                 facts_changed = True
 
+            if extracted.get("activity_impact") is not None and current_facts.get("activity_impact") != extracted["activity_impact"]:
+                current_facts["activity_impact"] = extracted["activity_impact"]
+                facts_changed = True
+
             if abdominal_pain(current_facts) and not is_informational_query(user_text):
                 slots = current_facts.setdefault("pain", {})
                 for field, pattern in PAIN_PATTERNS.items():
@@ -949,6 +1103,11 @@ class IntakeSessionManager:
                     current_facts["medications"].append(m)
                     facts_changed = True
 
+            # The patient's short reply belongs to the last question actually
+            # displayed, which may differ from the internal intake suggestion.
+            if bind_short_reply(user_text, previous_question, current_facts):
+                facts_changed = True
+
             # TỰ ĐỘNG HỦY XÁC NHẬN CŨ NẾU PHIÊN ĐÃ TỪNG ĐƯỢC XÁC NHẬN MÀ NAY CÓ DỮ KIỆN MỚI
             if facts_changed and session.get("is_confirmed"):
                 session["is_confirmed"] = False
@@ -956,10 +1115,14 @@ class IntakeSessionManager:
 
             # 3. Rà soát thông tin còn thiếu
             missing_info = identify_missing_information(current_facts)
-            if abdominal_pain(current_facts):
-                asked = [m.get("content", "") for m in session["messages"] if m.get("sender") == "assistant"]
-                missing_info.sort(key=lambda item: sum((select_next_question([item]) or item) in reply for reply in asked))
-            next_q = select_next_question(missing_info, turn_count=session["turn_count"])
+            asked_topics = set(current_facts.get("answered_topics", {}))
+            asked_topics.update(question_topic(last_assistant_question(m.get("content", "")))
+                                for m in session["messages"] if m.get("sender") == "assistant")
+            asked_topics.discard("")
+            missing_info = [item for item in missing_info
+                            if question_topic(select_next_question([item], turn_count=1) or item) not in asked_topics]
+            final_mode = requests_consultation_conclusion(user_text) or session["turn_count"] >= 5
+            next_q = None if final_mode else select_next_question(missing_info, turn_count=session["turn_count"])
 
             # 4. Xác định trạng thái và phản hồi
             if next_q:
@@ -1000,6 +1163,7 @@ class IntakeSessionManager:
                 "facts": current_facts,
                 "missing_information": missing_info,
                 "next_question": next_q,
+                "consultation_mode": "final" if final_mode or not next_q else "collecting",
                 "summary": summary,
                 "sources": summary["part_b_system_assessment"].get("sources", [])
             }
