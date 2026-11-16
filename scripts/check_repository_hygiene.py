@@ -11,7 +11,7 @@ LOCAL_DIRECTORIES = {
     ".agents", ".claude", ".gemini", ".venv", "venv", "node_modules",
     "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
     "scratch", "_quarantine_trash", "antigravity-setup", "instance",
-    "models",
+    "medical_vectordb", "models",
 }
 LOCAL_FILES = {"skills-lock.json", ".artifact-server.json", ".sharing.json"}
 DESIGN_HISTORY = (
