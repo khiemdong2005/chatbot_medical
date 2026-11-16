@@ -182,7 +182,7 @@ def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str
         for pat, repl in ENGLISH_CONTRACTIONS.items():
             text = re.sub(pat, repl, text, flags=re.IGNORECASE)
 
-    if text.strip(" .!") in {"co", "dung", "yes"}:
+    if re.fullmatch(r"(?:co|dung|vang|yes)(?:\s+(?:co|thuong xuyen|lam|luon|roi|a|nhe))*", text.strip(" .!")):
         for prefix in ("Hiện bạn hoặc người bạn đang hỏi giúp có đang bị ", "Are you or the person you are asking about experiencing "):
             if previous_question.startswith(prefix):
                 text = remove_accents(previous_question[len(prefix):]).replace("đ", "d")
@@ -190,6 +190,16 @@ def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str
                     for pat, repl in ENGLISH_CONTRACTIONS.items():
                         text = re.sub(pat, repl, text, flags=re.IGNORECASE)
                 break
+        else:
+            # A bare "có" can affirm the last displayed chest-pain question.
+            # Only patient-experience questions qualify; a question about a
+            # condition in general must not become a self-reported symptom.
+            last_question = previous_question[:previous_question.rfind("?") + 1]
+            last_question = re.split(r"[.!?\n]", last_question[:-1])[-1] if last_question else ""
+            folded_question = remove_accents(last_question).replace("đ", "d")
+            if (re.search(r"\b(?:ban|you)\s+(?:co\s+)?(?:bi|cam thay|dang bi|feel|have)\b", folded_question)
+                    and re.search(r"\b(?:tuc nguc|dau (?:that )?nguc|chest pain)\b", folded_question)):
+                text = "toi bi tuc nguc"
     signs = {sign["no_accent"]: sign["vi"] for sign in EMERGENCY_SIGNS}
     if lang == "en":
         signs.update({name: name for name in sorted(EMERGENCY_SIGNS_EN, key=len, reverse=True)})
@@ -389,7 +399,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
             "risk_level": "Chào hỏi ban đầu" if lang == "vi" else "Initial Greeting",
             "risk_score": 10,
             "symptoms": ["Khởi tạo hội thoại"],
-            "specialist": "Y học gia đình" if lang == "vi" else "Family Medicine",
+            "specialist": "",
             "visual_findings": [],
             "differential_diagnosis": [],
             "is_emergency": False,
