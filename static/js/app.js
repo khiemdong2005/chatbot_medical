@@ -2575,11 +2575,11 @@ function renderPrescriptionVerification(data) {
   if (resSec) resSec.classList.add('hidden');
   if (!verifySec) return;
 
-  const diag = data.diagnosis || 'Theo dõi & Điều trị theo chỉ định';
-  const doctor = data.doctor || 'BS. Chuyên khoa';
-  const patient = data.patient_name || 'Bệnh nhân';
-  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
-  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const diag = data.diagnosis || data.data?.diagnosis || 'Theo dõi & Điều trị theo chỉ định';
+  const doctor = data.doctor || data.data?.doctor || 'BS. Chuyên khoa';
+  const patient = data.patient_name || data.data?.patient_name || 'Bệnh nhân';
+  const facility = (data.facility && data.facility !== 'Không xác định') ? data.facility : (data.data?.facility || 'Cơ sở Y tế');
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || data.data?.birth_date || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
   const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
@@ -2606,7 +2606,7 @@ function renderPrescriptionVerification(data) {
     displayAge = '';
   }
 
-  const meds = data.medications || [];
+  const meds = (data.medications && data.medications.length > 0) ? data.medications : (data.data?.medications || []);
   const fileName = data.uploaded_filename || 'DonThuoc_Goc.jpg';
   const scanAcc = data.ocr_metrics?.avg_confidence ? Math.round(data.ocr_metrics.avg_confidence * 100) : 98.5;
   const imgUrl = data.preview_image_url || currentUploadedFileUrl;
@@ -2913,13 +2913,13 @@ function renderPrescriptionResult(data) {
   const resSec = document.getElementById('prescription-result-section');
   if (!resSec) return;
 
-  const diag = data.diagnosis || 'Chăm sóc & Điều trị';
-  const doctor = data.doctor || 'BS. Chuyên khoa';
-  const patient = data.patient_name || 'Bệnh nhân';
-  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
-  const dateStr = data.date || 'Hôm nay';
-  const duration = data.duration || '30 ngày';
-  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const diag = data.diagnosis || data.data?.diagnosis || 'Chăm sóc & Điều trị';
+  const doctor = data.doctor || data.data?.doctor || 'BS. Chuyên khoa';
+  const patient = data.patient_name || data.data?.patient_name || 'Bệnh nhân';
+  const facility = (data.facility && data.facility !== 'Không xác định') ? data.facility : (data.data?.facility || 'Cơ sở Y tế');
+  const dateStr = data.date || data.data?.date || 'Hôm nay';
+  const duration = data.duration || data.data?.duration || '30 ngày';
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || data.data?.birth_date || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
   const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
@@ -2960,7 +2960,7 @@ function renderPrescriptionResult(data) {
   // ==============================================================================
   // PRESCRIPTION MODE: GỘP 2 TAB "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC"
   // ==============================================================================
-  const meds = data.medications || [];
+  const meds = (data.medications && data.medications.length > 0) ? data.medications : (data.data?.medications || []);
   const warnings = data.warnings || [];
   const tl = data.timeline || {};
 

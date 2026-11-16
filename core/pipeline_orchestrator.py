@@ -293,12 +293,27 @@ def process_medical_document_pipeline(
                     points = normalize_points(anchor_box)
                     if len(points) == 4:
                         review_row["anchor_points"] = points
-    return {"status": "review", "doc_type": doc_type, "data": draft, "boxes": boxes,
-            "header_alternatives": reconciled.get("header_alternatives", {}),
-            "extraction_warning": extraction_warning,
-            "review_schema_version": 3,
-            "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
-            "requires_user_confirmation": True}
+    return {
+        "status": "review",
+        "doc_type": doc_type,
+        "patient_name": draft.get("patient_name") or reconciled.get("patient_name", ""),
+        "dob": draft.get("dob") or reconciled.get("dob", ""),
+        "age": draft.get("age") or reconciled.get("age", ""),
+        "gender": draft.get("gender") or reconciled.get("gender", ""),
+        "doctor": draft.get("doctor") or reconciled.get("doctor", ""),
+        "facility": draft.get("facility") or reconciled.get("facility", ""),
+        "diagnosis": draft.get("diagnosis") or reconciled.get("diagnosis", ""),
+        "date": draft.get("date") or reconciled.get("date", ""),
+        "medications": draft.get("medications") or reconciled.get("medications", []),
+        "metrics": draft.get("metrics") or reconciled.get("metrics", []),
+        "data": draft,
+        "boxes": boxes,
+        "header_alternatives": reconciled.get("header_alternatives", {}),
+        "extraction_warning": extraction_warning,
+        "review_schema_version": 3,
+        "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
+        "requires_user_confirmation": True
+    }
 
 
 HEADER_FIELDS = ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis")

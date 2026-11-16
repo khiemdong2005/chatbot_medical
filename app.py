@@ -1513,11 +1513,14 @@ def create_app(test_config=None):
                 res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
 
                 # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
-                if res and res.get("status") == "success":
+                if res and res.get("status") in ("success", "review"):
                     try:
                         doc = MedicalDocument.query.get(doc_id)
                         if doc:
-                            doc.doc_type = "prescription"
+                            if res.get("status") == "success":
+                                doc.doc_type = "prescription"
+                            else:
+                                doc.doc_type = "ocr_draft"
                             doc.diagnosis = res.get("diagnosis", "")
                             doc.facility = res.get("facility", "")
                             doc.doctor = res.get("doctor", "")
@@ -1532,7 +1535,10 @@ def create_app(test_config=None):
                                     sum_text += f" và {len(meds) - 3} thuốc khác"
 
                             doc.summary = sum_text
-                            doc.parsed_data = json.dumps(res, ensure_ascii=False)
+                            draft_payload = dict(res.get("data") or res)
+                            if "type" not in draft_payload:
+                                draft_payload["type"] = res.get("doc_type") or "prescription"
+                            doc.parsed_data = json.dumps(draft_payload, ensure_ascii=False)
                             db.session.commit()
                     except Exception as commit_err:
                         logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
@@ -1596,7 +1602,7 @@ def create_app(test_config=None):
             for row in reviewed["medications"]
         ):
             return jsonify({"message": "Có dòng không phải tên thuốc (ví dụ ngày tháng hoặc nhãn trên phiếu). Vui lòng sửa hoặc xóa dòng đó."}), 400
-        result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft["allergies"])
+        result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft.get("allergies", []))
         result["document_id"] = doc.id
         changed = MedicalDocument.query.filter_by(id=doc.id, owner_id=owner, doc_type="ocr_draft").update({
             "doc_type": kind, "diagnosis": reviewed["diagnosis"], "facility": reviewed["facility"],
