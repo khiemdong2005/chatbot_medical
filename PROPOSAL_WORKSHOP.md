@@ -48,15 +48,15 @@ Nền tảng cung cấp bộ 4 trụ cột nghiệp vụ cốt lõi:
 * **Tính Chính xác & An toàn Lâm sàng (Clinical Safety)**: Đạt độ nhạy 100% trong việc nhận diện 10 nhóm triệu chứng cờ đỏ cấp cứu đe dọa tính mạng; tuân thủ 100% rào chắn an toàn (không tự ý chẩn đoán áp đặt, không kê đơn kháng sinh bừa bãi).
 * **Hiệu năng & Tốc độ Phản hồi (Performance)**: Thời gian phản hồi phân tầng triệu chứng qua Chatbot < 2.5 giây; thời gian bóc tách và phân tích đơn thuốc qua OCR < 4.0 giây.
 * **Độ sẵn sàng Hệ thống (High Availability)**: Thiết kế đạt mức Uptime $\ge 99.9\%$ trên hạ tầng đám mây AWS với cơ chế Multi-AZ và Auto-scaling tự động co giãn theo lưu lượng.
-* **Bảo mật Dữ liệu Y tế (Security Compliance)**: Mã hóa 100% dữ liệu nhạy cảm của người bệnh cả khi lưu trữ (At-Rest qua AWS KMS) và khi truyền truyền (In-Transit qua TLS 1.3).
-* **Tối ưu Chi phí Vận hành (Cost Efficiency)**: Tối ưu ngân sách giai đoạn thử nghiệm/workshop trong hạn mức Free Tier ($\approx \$0 - \$15/\text{tháng}$) và mô hình Production không vượt quá $\$0.005$ trên mỗi lượt phiên khám bệnh.
+* **Bảo mật Dữ liệu Y tế (Security Compliance)**: Mã hóa 100% dữ liệu nhạy cảm của người bệnh cả khi lưu trữ (At-Rest qua AWS KMS), khi truyền (In-Transit qua TLS 1.3), và áp dụng cơ chế Ẩn danh Dữ liệu (Data Anonymization) trước khi gọi LLM.
+* **Tối ưu Chi phí Vận hành (Cost Efficiency)**: Tối ưu ngân sách giai đoạn thử nghiệm/workshop trong hạn mức Free Tier ($\approx \$0 - \$25/\text{tháng}$) và mô hình Production không vượt quá $\$0.005$ trên mỗi lượt phiên khám bệnh.
 
 #### B. Phạm vi Dự án (Project Scope)
 * **Trong phạm vi (In-Scope)**:
   - Xây dựng Web Single Page Application (SPA) chuẩn Spatial Glassmorphism (VisionOS UI) hỗ trợ người dân và bác sĩ.
   - Xây dựng Backend Microservices bằng Python (Flask/FastAPI) xử lý nghiệp vụ Triage, RAG, OCR và Quản lý Bệnh án.
-  - Tích hợp Vector Database (ChromaDB) lưu trữ các vector embeddings tài liệu y khoa chính thống.
-  - Thiết kế và triển khai kiến trúc Serverless/Container trên AWS: Amazon S3, AWS App Runner / Amazon ECS Fargate, Amazon ECR, AWS WAF, AWS KMS, Amazon CloudWatch.
+  - Sử dụng **Amazon OpenSearch Serverless** làm Vector Database lưu trữ các vector embeddings tài liệu y khoa.
+  - Thiết kế và triển khai kiến trúc Serverless/Container nội bộ AWS: Amazon S3, **Amazon ECS Fargate**, Application Load Balancer, Amazon ECR, AWS WAF, **Amazon Bedrock**.
   - Xây dựng bộ kịch bản kiểm thử lâm sàng (4 ca bệnh mẫu thực nghiệm: Đau thần kinh tọa, Viêm dạ dày cấp, Viêm amidan cấp, Phiếu sinh hóa máu).
 * **Ngoài phạm vi (Out-of-Scope)**:
   - Hệ thống không thực hiện chức năng ký số văn bản pháp lý thay thế con dấu của bệnh viện.
@@ -82,167 +82,59 @@ Dự án tập trung giải quyết 4 điểm nghẽn (Pain Points) nhức nhố
 ### 2.3.4. Thiết kế Kiến trúc Hệ thống Chuẩn AWS (System Architecture)
 
 > [!IMPORTANT]
-> **Tuân thủ Tuyệt đối Quy chuẩn AWS**: Toàn bộ kiến trúc dưới đây sử dụng 100% định danh dịch vụ chính thức từ danh mục dịch vụ của Amazon Web Services, phân định rõ ràng các tầng mạng (Edge Layer, Public Subnet, Private Subnet, Storage Layer) và áp dụng triệt để nguyên tắc Zero Trust / Least Privilege.
+> **Tuân thủ Tuyệt đối Quy chuẩn AWS**: Toàn bộ kiến trúc dưới đây sử dụng 100% định danh dịch vụ chính thức từ hệ sinh thái Amazon Web Services, bảo đảm dữ liệu y tế không bao giờ rời khỏi hạ tầng mạng của AWS (AWS Network Backbone), tuân thủ triệt để nguyên tắc Zero Trust và tiêu chuẩn HIPAA.
 
 #### 4.1. Sơ đồ Luồng Kiến trúc Tổng thể (High-Level AWS Architecture)
 
-![Kiến trúc AWS Production Chuẩn MediMind Clinical AI](static/images/aws_architecture_tv_style.png)
-*(Tải bản vẽ Vector SVG độ phân giải cao phục vụ slide PowerPoint / phóng to không vỡ nét: [aws_architecture_tv_style.svg](static/images/aws_architecture_tv_style.svg) | Tải bản PNG Full HD 16:9: [aws_architecture_tv_style.png](static/images/aws_architecture_tv_style.png))*
-
-
-```mermaid
-flowchart TD
-    subgraph Users ["🌐 Người Dùng & Bác Sĩ (Clients)"]
-        UserDevice["📱 Trình Duyệt Web / Mobile App"]
-    end
-
-    subgraph EdgeTier ["🛡️ Edge & Network Perimeter Layer"]
-        R53["Amazon Route 53\n(DNS Routing & Health Checks)"]
-        WAF["AWS WAF\n(Web Application Firewall - Rate Limiting / OWASP)"]
-        CF["Amazon CloudFront\n(Global CDN & Edge Caching)"]
-    end
-
-    subgraph AWSCloud ["☁️ AWS Region: ap-southeast-1 (Singapore)"]
-        
-        subgraph VPC ["VPC: 10.0.0.0/16 (Multi-AZ)"]
-            
-            subgraph PublicSubnet ["Public Subnet (DMZ) - 10.0.1.0/24"]
-                ALB["Application Load Balancer (ALB)\n(TLS 1.3 Termination & Path Routing)"]
-                NAT["NAT Gateway\n(Outbound Internet for Private Subnet)"]
-            end
-
-            subgraph PrivateSubnet ["Private App Subnet - 10.0.2.0/24 (No Public IP)"]
-                AppService["AWS App Runner / Amazon ECS Fargate\n(Containerized Flask Core Engine)\n• Triage Algorithm\n• Guardrails Engine\n• Prescription Logic"]
-            end
-
-            subgraph StorageSecuritySubnet ["Isolated Data & Storage Subnet - 10.0.3.0/24"]
-                S3["Amazon S3\n(Prescription Scans & Lab Docs)\n• SSE-KMS Encrypted\n• S3 Lifecycle Policies"]
-                VDB["Vector Store (ChromaDB / Pinecone)\n(Clinical Embeddings 414+ Docs)"]
-            end
-        end
-
-        subgraph SecurityGovernance ["🔐 Security, Management & Governance"]
-            IAM["AWS IAM\n(Least-Privilege Task Roles)"]
-            KMS["AWS KMS\n(Key Management Service - Envelope Encryption)"]
-            SM["AWS Secrets Manager\n(API Keys & Credentials Rotation)"]
-            CW["Amazon CloudWatch\n(Logs, Container Insights & Billing Alarms)"]
-            ECR["Amazon ECR\n(Elastic Container Registry - Scanned Images)"]
-        end
-
-        subgraph ExternalAI ["🧠 Foundation Model Layer"]
-            Gemini["Google Gemini 1.5 Pro / Flash\n(Multimodal LLM & Vision Inference)"]
-        end
-    end
-
-    %% Flow Connections
-    UserDevice -->|HTTPS / 443| R53
-    R53 --> CF
-    CF --> WAF
-    WAF -->|Traffic Allowed| ALB
-    ALB -->|Forward / Reverse Proxy| AppService
-    
-    AppService -->|Store Prescription / Lab Images| S3
-    AppService -->|Query Clinical Knowledge| VDB
-    AppService -.->|Inbound Image Pull| ECR
-    AppService -->|Outbound via NAT Gateway| Gemini
-    
-    %% Governance Connections
-    KMS -.->|Encrypt at Rest| S3
-    SM -.->|Inject Environment Variables| AppService
-    AppService -.->|Telemetry & Audit Logs| CW
-    IAM -.->|RBAC Permissions| AppService
-```
+![Sơ đồ Kiến trúc AWS Chuẩn MediMind AI](c:\Users\vule0\FPT\WORKSHOP_PROPOSAL.png)
 
 #### 4.2. Danh mục Dịch vụ AWS Chính thức Sử dụng
 
-1. **Amazon Route 53**: Dịch vụ quản lý DNS có tính khả dụng cao, điều phối truy cập người dùng với cơ chế định tuyến Latency-based và tự động kiểm tra sức khỏe máy chủ (Health Checks).
-2. **AWS WAF (Web Application Firewall)**: Thiết lập lá chắn bảo vệ lớp 7 (Layer 7) chống tấn công DDoS, chặn SQL Injection, Cross-Site Scripting (XSS) và áp dụng cơ chế giới hạn tần suất yêu cầu (Rate-limiting: 100 requests/5 phút/IP) nhằm ngăn chặn việc lạm dụng API.
-3. **Amazon CloudFront**: Mạng phân phối nội dung (CDN) toàn cầu giúp lưu bộ nhớ đệm (Caching) các tệp tĩnh (CSS Glassmorphism, JS, ảnh nền độ phân giải cao), giảm độ trễ tải trang xuống dưới 50ms cho người dùng tại Việt Nam.
-4. **Application Load Balancer (ALB)**: Tiếp nhận lưu lượng HTTPS, xác thực chứng chỉ số AWS Certificate Manager (ACM) và cân bằng tải thông minh tới các container ứng dụng.
-5. **AWS App Runner / Amazon ECS (Elastic Container Service) on AWS Fargate**: Môi trường thực thi container ứng dụng hoàn toàn Serverless. Loại bỏ việc quản lý hạ tầng máy chủ EC2 truyền thống, tự động co giãn từ 1 lên nhiều task khi lượng bệnh nhân tăng đột biến và tự động hạ tải vào ban đêm để tiết kiệm chi phí.
-6. **Amazon ECR (Elastic Container Registry)**: Lưu trữ các bản đóng gói Docker Image với cơ chế tự động quét lỗ hổng bảo mật (Vulnerability Image Scanning) trước khi deploy.
-7. **Amazon Simple Storage Service (Amazon S3)**: Lưu trữ an toàn hình ảnh đơn thuốc, kết quả xét nghiệm máu và tài liệu y khoa. Tích hợp tính năng chặn truy cập công khai tuyệt đối (Block Public Access) và chỉ cho phép truy xuất qua URL có chữ ký bảo mật tạm thời (Presigned URLs).
-8. **AWS Key Management Service (AWS KMS)**: Quản lý và khởi tạo khóa mã hóa dữ liệu theo thuật toán AES-256 (Envelope Encryption), tự động xoay vòng khóa (Key Rotation) định kỳ hàng năm.
-9. **AWS Secrets Manager**: Lưu trữ an toàn các biến môi trường nhạy cảm (`GEMINI_API_KEY`, `PINECONE_API_KEY`, JWT Secret) và tự động truyền trực tiếp vào container lúc runtime mà không bao giờ bị lộ ra mã nguồn.
-10. **Amazon CloudWatch**: Thu thập tập trung toàn bộ Application Logs, hiệu năng CPU/RAM và thiết lập chuông cảnh báo (Alarms) gửi thông báo qua email/SMS khi phát sinh lỗi hệ thống hoặc khi chi phí vượt quá ngân sách định mức.
+1. **Amazon Route 53 & AWS WAF & Amazon CloudFront**: Bộ ba dịch vụ biên (Edge) tiếp nhận lưu lượng, bảo vệ chống DDoS (Layer 7), chặn SQL Injection và phân phối nội dung tĩnh (CDN) với độ trễ siêu thấp.
+2. **Application Load Balancer (ALB)**: Tiếp nhận lưu lượng HTTPS, xác thực chứng chỉ số (ACM) và cân bằng tải an toàn vào Private Subnet.
+3. **Amazon ECS on AWS Fargate**: Môi trường thực thi container ứng dụng hoàn toàn Serverless. Hoạt động độc lập trong Private Subnet, tự động co giãn theo lưu lượng bệnh nhân và loại bỏ gánh nặng quản lý máy chủ.
+4. **Amazon Bedrock (Claude 3.5 Sonnet)**: Trái tim AI của hệ thống. Đóng vai trò phân tích hình ảnh đa phương thức (Vision) cho OCR đơn thuốc và suy luận LLM cho RAG. Việc sử dụng Bedrock giúp toàn bộ dữ liệu y tế được xử lý nội bộ trong AWS, không vi phạm chính sách bảo mật như khi gọi API ra ngoài Internet.
+5. **Amazon OpenSearch Serverless**: Hoạt động như một Vector Database Serverless hiệu năng cao, lưu trữ các embeddings của 414+ tài liệu MedlinePlus phục vụ cho cơ chế tra cứu RAG (Retrieval-Augmented Generation).
+6. **Amazon S3, AWS KMS, AWS Secrets Manager, CloudWatch & ECR**: Quản lý lưu trữ bảo mật (S3 mã hóa KMS), biến môi trường (Secrets Manager), giám sát hệ thống (CloudWatch) và phân phối mã nguồn (ECR).
 
 #### 4.3. Phân tích Chi tiết 5 Trụ cột AWS Well-Architected Framework
 
 ##### Trụ cột 1: Bảo mật (Security) — Trọng tâm Đánh giá Nghiêm ngặt Nhất
-* **Mô hình Defense-in-Depth (Phòng thủ đa tầng)**:
-  - Tầng biên (Perimeter): Bảo vệ bằng AWS WAF và CloudFront.
-  - Tầng mạng (Network): Kiến trúc VPC phân tách rõ ràng; container Backend nằm trong **Private Subnet** hoàn toàn không có Public IP, giao tiếp ra ngoài qua NAT Gateway.
-  - Tầng ứng dụng (Application): Xác thực JWT Token phân quyền người dùng (Patient vs. Physician), kiểm soát CORS nghiêm ngặt.
-* **Bảo vệ Dữ liệu Y tế (HIPAA Compliance & Data Protection)**:
-  - **Mã hóa khi lưu trữ (At-Rest)**: 100% tệp trên Amazon S3 được mã hóa bằng AWS KMS (SSE-KMS).
-  - **Mã hóa khi truyền (In-Transit)**: Cưỡng chế sử dụng giao thức HTTPS/TLS 1.3 trên toàn bộ các liên kết truyền thông.
-  - **Quyền hạn Tối thiểu (Principle of Least Privilege)**: Gán quyền thông qua AWS IAM Roles cho từng dịch vụ cụ thể, tuyệt đối không lưu cứng AWS Access Key / Secret Key vào mã nguồn hoặc Dockerfile.
+* **Tuân thủ HIPAA & Bảo mật Dữ liệu Y tế**:
+  - **Mã hóa Toàn diện**: Mã hóa At-Rest qua AWS KMS (SSE-KMS) cho S3 và OpenSearch; mã hóa In-Transit qua giao thức TLS 1.3.
+  - **Cơ chế Ẩn danh (Data Anonymization)**: Container Backend tự động quét và che giấu các thông tin định danh cá nhân (PII) như Tên, Số điện thoại bệnh nhân trước khi đưa dữ liệu vào Amazon Bedrock suy luận.
+  - **Mạng Cô lập (Network Isolation)**: Gọi API tới S3, OpenSearch và Bedrock hoàn toàn thông qua **AWS PrivateLink / VPC Endpoints**, đảm bảo luồng dữ liệu không bao giờ truyền qua public internet.
 
 ##### Trụ cột 2: Độ tin cậy (Reliability)
 * Triển khai ứng dụng trên kiến trúc đa vùng khả dụng (**Multi-AZ Deployment**) trong Region `ap-southeast-1` (Singapore), đảm bảo hệ thống duy trì hoạt động ngay cả khi một Data Center của AWS gặp sự cố.
-* Cơ chế tự phục hồi (Self-Healing): Container gặp sự cố (Crash/Unhealthy) sẽ tự động bị tiêu hủy và thay thế bằng một container mới khỏe mạnh chỉ trong vài giây thông qua Health Checks của ALB.
-* Cơ chế sao lưu dự phòng: S3 Versioning chống ghi đè hoặc vô tình xóa mất hồ sơ bệnh án; cấu hình vòng đời dữ liệu sao lưu tự động.
+* Cơ chế tự phục hồi (Self-Healing): Container Fargate gặp sự cố sẽ tự động bị tiêu hủy và thay thế bằng task mới thông qua Health Checks của ALB.
 
 ##### Trụ cột 3: Hiệu năng Vận hành (Performance Efficiency)
-* Giảm tải máy chủ Backend bằng cách đẩy toàn bộ tài nguyên tĩnh (Static Assets: HTML, CSS, JS, hình ảnh giao diện Glassmorphism) lên bộ đệm cạnh của Amazon CloudFront.
-* Tối ưu hóa tải container: Sử dụng Docker Base Image siêu nhẹ `python:3.12-slim` kết hợp Multi-stage Build giúp giảm kích thước container xuống dưới 200MB, tăng tốc độ khởi động (Cold Start) dưới 15 giây.
-* Xử lý bất đồng bộ (Asynchronous Execution): Bóc tách OCR và gọi LLM inference chạy qua cơ chế ThreadPool / Async worker, ngăn ngừa hiện tượng nghẽn luồng Request-Response.
+* Giảm tải máy chủ Backend bằng cách đẩy toàn bộ tài nguyên tĩnh lên bộ đệm Amazon CloudFront.
+* Tối ưu hóa tải container: Sử dụng Docker Base Image siêu nhẹ `python:3.12-slim` kết hợp Multi-stage Build, tăng tốc độ khởi động (Cold Start) của Fargate task.
 
 ##### Trụ cột 4: Tối ưu Chi phí (Cost Optimization)
-* Áp dụng nguyên lý "Pay-as-you-go" thông qua kiến trúc Container Serverless (AWS App Runner / ECS Fargate), cho phép cấu hình tự động co giãn về 1 instance tối thiểu khi không có tải.
-* Cấu hình **Amazon S3 Lifecycle Rule**: Tự động chuyển các ảnh chụp đơn thuốc sau 30 ngày sang lớp lưu trữ **S3 Standard-Infrequent Access (S3 Standard-IA)** và sau 90 ngày chuyển sang **S3 Glacier Flexible Retrieval** để giảm tới 80% chi phí lưu trữ dài hạn.
-* Triệt để tận dụng gói dịch vụ miễn phí **AWS Free Tier** cho các dịch vụ CloudFront (1TB dữ liệu/tháng), Route 53 và CloudWatch.
+* Áp dụng nguyên lý "Pay-as-you-go" của ECS Fargate và Bedrock (tính phí theo token thực dùng, không tốn phí duy trì GPU).
+* Cấu hình **Amazon S3 Lifecycle Rule**: Tự động chuyển các ảnh chụp đơn thuốc sau 30 ngày sang **S3 Standard-Infrequent Access (S3 Standard-IA)**, và sau 90 ngày sang **S3 Glacier Instant Retrieval** để giảm chi phí lưu trữ nhưng vẫn đảm bảo truy xuất tính bằng mili-giây khi có ca cấp cứu khẩn cấp.
 
 ##### Trụ cột 5: Vận hành Xuất sắc (Operational Excellence)
-* Quản lý toàn bộ hạ tầng bằng mã (**Infrastructure as Code - IaC**) thông qua các mẫu AWS CloudFormation hoặc Terraform, cho phép tái lập môi trường đồng nhất và chuẩn hóa trong vòng 10 phút.
-* Quy trình tích hợp và triển khai liên tục (**CI/CD Pipeline**): Tích hợp GitHub Actions tự động kiểm thử mã nguồn (Unit Tests, Linting), build Docker image, quét bảo mật Trivy và đẩy lên Amazon ECR rồi tự động cập nhật phiên bản trên AWS App Runner.
-* Giám sát thời gian thực: Cấu hình bảng điều khiển trung tâm Amazon CloudWatch Dashboard theo dõi chỉ số P95/P99 Latency, Error Rate 4xx/5xx và thông báo khẩn cấp qua Amazon SNS.
-
-#### 4.4. Hướng dẫn Vẽ & Trình bày Diagram chuẩn AWS Icon
-Khi trình bày trên Slide Workshop hoặc báo cáo đồ án, sinh viên cần tuân thủ quy chuẩn thiết kế sau:
-* Sử dụng bộ icon chính thức **AWS Architecture Icons (phiên bản mới nhất năm 2024–2026)** tải trực tiếp từ cổng thông tin AWS: `https://aws.amazon.com/architecture/icons/`.
-* Sử dụng công cụ vẽ chuẩn quốc tế: **Draw.io**, **Lucidchart** hoặc **Miro**.
-* Đảm bảo phân chia rõ ràng các đường ranh giới bảo mật (**Security Boundaries**):
-  - Khung viền ngoài cùng: **AWS Cloud** (màu trắng/xám viền nét mảnh).
-  - Khung viền khu vực: **Region: ap-southeast-1**.
-  - Khung viền mạng: **VPC (10.0.0.0/16)**.
-  - Phân vùng mạng: **Public Subnet** (màu xanh lá nhạt) và **Private Subnet** (màu xanh dương nhạt).
-* Tuyệt đối không để icon dịch vụ chồng chéo lên đường kẻ luồng dữ liệu; mọi mũi tên kết nối phải ghi rõ giao thức (`HTTPS/443`, `KMS Encrypted`, `Internal RPC`).
+* Quản lý hạ tầng bằng mã (**Infrastructure as Code**) qua AWS CloudFormation.
+* Giám sát thời gian thực: Cấu hình Amazon CloudWatch theo dõi chỉ số P95/P99 Latency và tự động gửi cảnh báo (Alarms) qua Amazon SNS khi phát sinh lỗi.
 
 ---
 
 <a name="235-kế-hoạch--timeline-thực-hiện-dự-án"></a>
 ### 2.3.5. Kế hoạch & Timeline Thực hiện Dự án (Implementation Roadmap)
 
-Dự án được phân bổ thực hiện theo mô hình Agile/Scrum qua 5 giai đoạn trọng tâm trong kỳ thực tập:
+Dự án được phân bổ thực hiện theo mô hình Agile/Scrum qua 5 giai đoạn trọng tâm. Dưới đây là bảng tiến độ thực hiện:
 
-```mermaid
-gantt
-    title Kế Hoạch & Tiến Độ Triển Khai Dự Án MediMind AI
-    dateFormat  YYYY-MM-DD
-    section Giai đoạn 1: Khảo sát & Thiết kế
-    Khảo sát bài toán & Thu thập phác đồ y tế         :done,    des1, 2026-09-01, 7d
-    Thiết kế Kiến trúc AWS Well-Architected & API Spec :done,    des2, 2026-09-08, 7d
-    section Giai đoạn 2: Phát triển Cốt lõi
-    Xây dựng Clinical Triage & RAG Engine (ChromaDB)   :done,    dev1, 2026-09-15, 14d
-    Phát triển Multimodal OCR & Phân tích Đơn thuốc    :done,    dev2, 2026-09-29, 14d
-    section Giai đoạn 3: Frontend & Tích hợp
-    Xây dựng UI Spatial Glassmorphism (VisionOS)       :done,    ui1,  2026-10-13, 10d
-    Tích hợp End-to-End Chatbot & EMR Export            :done,    ui2,  2026-10-23, 7d
-    section Giai đoạn 4: Đóng gói & Triển khai AWS
-    Container hóa Docker & Thiết lập Amazon ECR         :active,  cld1, 2026-10-30, 5d
-    Cấu hình AWS App Runner, S3 SSE-KMS, WAF & Secrets :         cld2, 2026-11-04, 7d
-    section Giai đoạn 5: Kiểm thử & Workshop
-    Kiểm thử Tải (Load Testing) & Rà soát Bảo mật     :         tst1, 2026-11-11, 5d
-    Hoàn thiện Báo cáo, Video Minh chứng & Workshop    :         rep1, 2026-11-16, 7d
-```
-
-#### Chi tiết Phân công Nhiệm vụ & Deliverables:
-1. **Tuần 1 – 2 (Khảo sát & Kiến trúc)**: Hoàn thành tài liệu phân tích nghiệp vụ, tài liệu kiến trúc kỹ thuật AWS và đặc tả OpenAPI 3.0.
-2. **Tuần 3 – 6 (Phát triển Lõi Nghiệp vụ)**: Hoàn thành module `core/triage.py`, module `core/ocr_extractor.py`, tích hợp kho tri thức 414 tài liệu MedlinePlus vào ChromaDB.
-3. **Tuần 7 – 8 (Thiết kế Giao diện Người dùng)**: Hoàn thiện giao diện Spatial Glassmorphism đáp ứng đa thiết bị (Desktop/Mobile), bộ chọn không gian bệnh viện thông minh.
-4. **Tuần 9 – 10 (Triển khai Hạ tầng AWS)**: Đóng gói Docker image `python:3.12-slim`, đẩy lên Amazon ECR, cấu hình App Runner, phân quyền IAM, bucket S3 và AWS WAF.
-5. **Tuần 11 – 12 (Đánh giá, Tối ưu & Báo cáo)**: Chạy kịch bản UAT với 50 đơn thuốc mẫu, tính toán dự toán tài chính AWS thực tế và thực hiện thuyết trình Workshop.
+| Giai đoạn | Hạng mục Công việc Trọng tâm | Thời gian dự kiến | Trạng thái |
+| :--- | :--- | :--- | :---: |
+| **1. Khảo sát & Thiết kế** | • Khảo sát bài toán & Thu thập phác đồ y tế<br>• Thiết kế Kiến trúc AWS Well-Architected & API Spec | 01/09 – 14/09/2026 | ✅ Hoàn thành |
+| **2. Phát triển Cốt lõi** | • Xây dựng Triage & RAG Engine (OpenSearch)<br>• Phát triển Multimodal OCR & Phân tích Đơn thuốc | 15/09 – 12/10/2026 | ✅ Hoàn thành |
+| **3. Frontend & Tích hợp** | • Xây dựng UI Spatial Glassmorphism (VisionOS)<br>• Tích hợp End-to-End Chatbot & EMR Export | 13/10 – 29/10/2026 | ✅ Hoàn thành |
+| **4. Đóng gói & Triển khai AWS** | • Container hóa Docker & Thiết lập Amazon ECR<br>• Cấu hình ECS Fargate, S3 SSE-KMS, ALB & Bedrock | 30/10 – 10/11/2026 | ✅ Hoàn thành |
+| **5. Kiểm thử & Workshop** | • Kiểm thử Tải (Load Testing) & Rà soát Bảo mật<br>• Hoàn thiện Báo cáo, Video Minh chứng & Workshop | 11/11 – 23/11/2026 | 🚀 Đang thực hiện |
 
 ---
 
@@ -250,52 +142,46 @@ gantt
 ### 2.3.6. Bảng Dự toán Ngân sách & Tối ưu Chi phí (Cost Estimation & Optimization)
 
 > [!CAUTION]
-> **Quy định Điểm Liệt Mục Trình Bày**: Báo cáo bắt buộc phải có đầy đủ số liệu tính toán chi phí minh bạch từ công cụ **AWS Pricing Calculator**, thể hiện rõ kịch bản thử nghiệm (Free Tier/Dev) và kịch bản mở rộng (Production Scale).
+> **Quy định Điểm Liệt Mục Trình Bày**: Báo cáo bắt buộc phải có đầy đủ số liệu tính toán chi phí minh bạch từ công cụ **AWS Pricing Calculator**, thể hiện rõ kịch bản thử nghiệm (Free Tier/Dev) và kịch bản mở rộng (Production Scale) có bao gồm các dịch vụ Network như ALB và NAT.
 
 #### 6.1. Chi tiết Bảng giá AWS Pricing Calculator (Khu vực: Singapore - ap-southeast-1)
 
-Dự toán được tính toán dựa trên đơn giá chuẩn công bố của AWS tại khu vực Đông Nam Á (Singapore) và mức tiêu thụ tài nguyên thực tế của dự án.
-
 #### 6.2. Kịch bản Giai đoạn Thử nghiệm & Chấm thi Workshop (Dev / PoC Environment)
-*Quy mô giả định: 1 container chạy phục vụ thẩm định, demo kiểm tra chấm điểm, 200 lượt test đơn thuốc, 500 phiên chat.*
+*Chiến lược: Để tiết kiệm chi phí, môi trường Dev sẽ chạy ECS Fargate trong Public Subnet (không dùng NAT Gateway) và kết nối trực tiếp không qua ALB, gọi API AWS qua VPC Endpoints miễn phí.*
 
-| Dịch vụ AWS (Service) | Cấu hình & Mức sử dụng Dự tính | Đơn giá AWS (Unit Price) | Chi phí Tháng (USD) | Ghi chú Tối ưu Free Tier |
-|:---|:---|:---:|:---:|:---|
-| **AWS App Runner** | 1 Provisioned Instance (1 vCPU, 2 GB RAM)<br>Chạy ngắt quãng phục vụ Test (~120 giờ/tháng) | \$0.007/GB-hour + \$0.064/vCPU-hour | **\$9.80** | Tự động Pause container khi không sử dụng. |
-| **Amazon ECR** | Dung lượng lưu trữ 2 Image (~400 MB) | \$0.10/GB-tháng | **\$0.00** | Miễn phí trong hạn mức 500MB/tháng Private ECR. |
-| **Amazon S3** | Lưu trữ ~500 ảnh scan đơn thuốc (~1.5 GB)<br>Khoảng 1.000 lượt PUT/GET | \$0.025/GB-tháng<br>PUT: \$0.005/1.000 | **\$0.05** | Miễn phí 5GB S3 Standard trong 12 tháng đầu. |
-| **AWS KMS** | 1 Customer Managed Key (CMK)<br>~2.000 request mã hóa | \$1.00/Key/tháng<br>\$0.03/10.000 requests | **\$1.01** | Khóa tùy biến quản lý mã hóa S3. |
-| **AWS Secrets Manager**| 2 Secrets (`GEMINI_KEY`, `JWT_SECRET`) | \$0.40/Secret/tháng | **\$0.80** | Bảo mật API token không lưu vào mã nguồn. |
-| **Amazon CloudFront** | 10 GB Data Transfer Out + 20.000 requests | \$0.12/GB DTO | **\$0.00** | Miễn phí trong hạn mức 1TB Always-Free. |
-| **AWS WAF** | 1 Web ACL + 3 Rules cơ bản | \$5.00/ACL + \$1.00/Rule | **\$8.00** | Bật trong đợt kiểm thử đánh giá an ninh. |
-| **Amazon CloudWatch** | 1 GB Logs + 3 Alarms | \$0.50/GB Log + \$0.10/Alarm | **\$0.80** | Miễn phí 5GB Logs và 10 Alarms cơ bản. |
-| **Google Gemini API** | Model: `gemini-1.5-flash` (~300.000 tokens) | Miễn phí (Free Tier: 15 RPM) | **\$0.00** | Sử dụng gói Developer Free Tier chính thức. |
-| **TỔNG CỘNG (DEV/POC)**| *Môi trường thử nghiệm & đánh giá chấm thi* | — | **\$20.46 / tháng**<br>*(Tương đương ~510.000 VNĐ)* | **Phù hợp ngân sách sinh viên thực tập.** |
+| Dịch vụ AWS (Service) | Cấu hình & Mức sử dụng Dự tính | Chi phí Tháng (USD) | Ghi chú Tối ưu Hạn mức Dev |
+|:---|:---|:---:|:---|
+| **Amazon ECS (Fargate)** | 1 Task (1 vCPU, 2 GB RAM) - Chạy ngắt quãng phục vụ Test (~100 giờ/tháng) | **\$5.80** | Đặt trong Public Subnet để tiết kiệm phí NAT Gateway. Tắt task khi không chấm điểm. |
+| **Amazon Bedrock** | Claude 3.5 Sonnet (~200.000 input tokens, 50.000 output tokens) | **\$1.35** | Tính phí theo token thực dùng (Pay-as-you-go). Rất tiết kiệm. |
+| **Amazon OpenSearch** | Serverless Vector Search (Chạy rải rác test RAG) | **\$8.00** | Cấu hình OCU tối thiểu, tự tắt khi rảnh rỗi. |
+| **Amazon S3 & KMS** | Lưu 500 ảnh, KMS ~2.000 requests | **\$1.06** | Miễn phí S3 5GB đầu. Tính phí mã hóa KMS. |
+| **AWS Secrets Manager**| 2 Secrets (`JWT_SECRET`, v.v.) | **\$0.80** | Bảo vệ cấu hình nhạy cảm. |
+| **Amazon CloudFront** | 10 GB Data Transfer Out | **\$0.00** | Miễn phí trong hạn mức 1TB Always-Free. |
+| **AWS WAF & CloudWatch**| WAF (Bật lúc test), CloudWatch cơ bản | **\$6.80** | Miễn phí 5GB Logs. Tốn phí rule WAF cơ bản. |
+| **TỔNG CỘNG (DEV/POC)**| *Môi trường thử nghiệm & đánh giá chấm thi* | **\$23.81 / tháng** | **Kiểm soát chặt chẽ trong mức sinh viên.** |
 
 #### 6.3. Kịch bản Vận hành Mở rộng Thực tế (Production Environment: 10.000 Người Dùng/Tháng)
-*Quy mô giả định: 10.000 người bệnh/tháng, 25.000 phiên hội chẩn, 8.000 ảnh đơn thuốc bóc tách OCR, hoạt động 24/7.*
+*Quy mô giả định: Hạ tầng bảo mật chuẩn VPC (có ALB, NAT Gateway), 10.000 người bệnh/tháng, 25.000 phiên hội chẩn, 8.000 ảnh bóc tách, hoạt động 24/7.*
 
-| Hạng mục Dịch vụ | Tài nguyên Dự toán | Chi phí Ước tính / Tháng | Tỷ trọng |
-|:---|:---|:---:|:---:|
-| **Compute (App Runner / ECS Fargate)** | 2 Task chạy liên tục (Auto-scaling 2 - 6 Tasks giờ cao điểm) | **\$42.50** | 63.8% |
-| **Storage (Amazon S3 Standard & S3 Glacier)**| 35 GB ảnh đơn thuốc mới + Lifecycle lưu trữ lạnh | **\$1.20** | 1.8% |
-| **Security (AWS WAF & AWS KMS)** | 1 Web ACL, 5 Rules OWASP, 100.000 KMS requests | **\$11.30** | 17.0% |
-| **Secrets Manager & CloudWatch Logging** | 3 Secrets, 10 GB Logs, 5 Custom Dashboards & Metrics | **\$6.80** | 10.2% |
-| **Data Transfer & CloudFront CDN** | 120 GB Data Transfer Out (nhờ CloudFront Cache 80%) | **\$4.80** | 7.2% |
-| **TỔNG CHI PHÍ PRODUCTION** | **Phục vụ 10.000 người bệnh / 25.000 lượt hội chẩn** | **\$66.60 / tháng** | **100%** |
+| Hạng mục Dịch vụ | Tài nguyên Dự toán | Chi phí Ước tính / Tháng |
+|:---|:---|:---:|
+| **Compute & Network (ECS, ALB, NAT)** | 2 Fargate Tasks liên tục, 1 ALB, 1 NAT Gateway xử lý outbound | **\$98.50** |
+| **AI & Search (Bedrock, OpenSearch)** | Claude 3.5 Sonnet (3M Tokens), OpenSearch Serverless (0.5 OCU) | **\$45.00** |
+| **Storage (S3 Standard & Glacier Instant)**| 35 GB ảnh đơn thuốc mới + Lifecycle lưu trữ dài hạn | **\$1.50** |
+| **Security (WAF, KMS)** | 1 Web ACL, 5 Rules OWASP, KMS requests | **\$11.30** |
+| **Management (Secrets, CloudWatch)** | 3 Secrets, 15 GB Logs, Dashboards | **\$7.50** |
+| **Data Transfer & CDN** | 150 GB DTO (CloudFront Cache 80%) | **\$5.20** |
+| **TỔNG CHI PHÍ PRODUCTION** | **Phục vụ 10.000 người bệnh / 25.000 lượt hội chẩn** | **\$169.00 / tháng** |
 
 > [!TIP]
 > **Chỉ số Hiệu quả Chi phí (Unit Economics)**:
-> $\text{Chi phí trên mỗi phiên khám bệnh} = \frac{\$66.60}{25.000\text{ lượt}} \approx \mathbf{\$0.00266\text{ USD}}\ (\approx \mathbf{66\text{ VNĐ}}/\text{lượt})$.  
-> Đây là mức chi phí cực kỳ khả thi và kinh tế đối với mọi cơ sở y tế hoặc dự án khởi nghiệp công nghệ y tế vì rẻ hơn **100 lần** so với chi phí in ấn giấy khám thông thường.
+> Mặc dù chi phí tổng tăng để đảm bảo an ninh mạng doanh nghiệp, chi phí trên mỗi phiên khám vẫn cực kỳ tối ưu:
+> $\text{Chi phí trên mỗi phiên khám} = \frac{\$169.00}{25.000\text{ lượt}} \approx \mathbf{\$0.0067\text{ USD}}\ (\approx \mathbf{167\text{ VNĐ}}/\text{lượt})$.
 
 #### 6.4. Chiến lược Tối ưu hóa Chi phí (Cost Optimization Techniques)
-1. **Container Auto-Pause & Auto-Scaling**: Cấu hình AWS App Runner tự động giảm số lượng Active Instances về 1 khi không có yêu cầu truy cập trong vòng 15 phút, tiết kiệm tới 65% chi phí điện toán ngoài giờ làm việc.
-2. **S3 Intelligent-Tiering & Lifecycle Transitions**:
-   - Ảnh đơn thuốc sau khi bóc tách được chuyển từ `S3 Standard` ($\$0.025/\text{GB}$) sang `S3 Standard-IA` ($\$0.0125/\text{GB}$) sau 30 ngày.
-   - Chuyển tiếp sang `S3 Glacier Flexible Retrieval` ($\$0.0036/\text{GB}$) sau 90 ngày.
-3. **CloudFront High Cache-Hit-Ratio**: Thiết lập chính sách Cache-Control cho static assets với `max-age=86400` (24 giờ), giúp tỷ lệ Cache Hit đạt trên 85%, giảm thiểu số lượng truy vấn trực tiếp về server và tiết kiệm băng thông Data Transfer Out.
-4. **AWS Budgets & Cost Anomaly Alerts**: Thiết lập giới hạn ngân sách tự động thông qua **AWS Budgets** ở mức **\$25.00/tháng** cho môi trường Test. Khi chi phí đạt 80% hạn mức (\$20.00), hệ thống tự động gửi email cảnh báo cho sinh viên để kiểm soát tài nguyên kịp thời.
+1. **Kiến trúc Dev linh hoạt**: Ở môi trường Test, bỏ qua ALB và NAT Gateway (đặt container trực tiếp ở Public Subnet có Security Group chặt chẽ) để cắt giảm \$50 chi phí mạng cố định.
+2. **S3 Lifecycle Transitions**: Chuyển ảnh đơn thuốc sang `S3 Glacier Instant Retrieval` sau 90 ngày. Đảm bảo giảm 60% chi phí lưu trữ mà bác sĩ vẫn có thể truy xuất hồ sơ bệnh án cũ trong vài mili-giây lúc cấp cứu (thay vì phải đợi 1-5 tiếng như Glacier Flexible thông thường).
+3. **AWS Budgets**: Thiết lập giới hạn ngân sách tự động cảnh báo qua email khi chi phí Dev chạm ngưỡng \$20.
 
 ---
 
@@ -304,46 +190,39 @@ Dự toán được tính toán dựa trên đơn giá chuẩn công bố của 
 
 | Nhóm Rủi ro | Nguy cơ Cụ thể | Mức độ | Phương án Kiểm soát & Giảm thiểu của Dự án |
 |:---|:---|:---:|:---|
-| **Rủi ro Pháp lý & Y khoa** | Người bệnh coi câu trả lời của AI là phán quyết cuối cùng dẫn đến việc chậm trễ đi khám bệnh viện. | **Cao** | • Hiển thị cảnh báo **Medical Disclaimer** bắt buộc trước khi sử dụng.<br>• Rào chắn an toàn: AI chỉ đóng vai trò phân loại tham khảo và định tuyến chuyên khoa, tuyệt đối không khẳng định chẩn đoán bệnh. |
-| **Rủi ro Bảo mật Thông tin** | Lộ lọt hình ảnh hồ sơ bệnh án hoặc đơn thuốc có chứa thông tin định danh cá nhân (PII). | **Cao** | • 100% tệp trên S3 được phân quyền riêng tư (Private), mã hóa KMS.<br>• Chỉ cho phép xem tệp thông qua **Presigned URL** có hiệu lực tối đa 15 phút.<br>• Phân vùng mạng Private Subnet cô lập hoàn toàn backend. |
-| **Rủi ro Ảo giác Mô hình (Hallucination)** | AI bịa đặt tên thuốc hoặc tư vấn sai cách dùng thuốc dẫn đến nguy hiểm. | **Trung bình** | • Áp dụng **RAG Pipeline** với nhiệt độ sinh thấp (`temperature = 0.2`).<br>• Bắt buộc câu trả lời phải trích xuất chính xác từ tài liệu Dược thư MedlinePlus đã nhúng vector.<br>• Bác sĩ luôn được cấp bản tóm tắt nguyên trạng để đối soát. |
-| **Rủi ro Quá tải Chi phí Cloud** | Người dùng hoặc bot gửi request liên tục làm phát sinh chi phí AWS ngoài dự tính. | **Trung bình** | • Bật **AWS WAF Rate-Limiting** chặn IP gửi quá 100 request/5 phút.<br>• Thiết lập **AWS Budgets Alarm** tự động thông báo khi chi phí chạm ngưỡng \$20. |
-| **Rủi ro Gián đoạn Mạng (Downtime)** | Bệnh viện hoặc người bệnh không thể truy cập hệ thống lúc khẩn cấp. | **Thấp** | • Cấu hình Multi-AZ trên AWS App Runner / ECS.<br>• Giám sát Health Check liên tục qua Amazon Route 53 và CloudWatch. |
+| **Rủi ro Pháp lý & Y khoa** | Người bệnh coi câu trả lời của AI là phán quyết cuối cùng dẫn đến việc chậm trễ đi khám. | **Cao** | • Hiển thị cảnh báo **Medical Disclaimer** bắt buộc.<br>• AI chỉ đóng vai trò phân loại, tuyệt đối không chẩn đoán. |
+| **Rủi ro Rò rỉ Dữ liệu (Privacy Leak)** | Lộ lọt hình ảnh hồ sơ bệnh án có chứa thông tin cá nhân (PII) khi đẩy vào LLM. | **Cao** | • **Data Anonymization**: Tiền xử lý ẩn danh tên/SDT bệnh nhân trước khi gọi Bedrock.<br>• 100% tệp trên S3 được phân quyền Private và mã hóa KMS. |
+| **Rủi ro Ảo giác Mô hình (Hallucination)** | AI bịa đặt tên thuốc hoặc tư vấn sai cách dùng thuốc. | **Trung bình** | • Áp dụng **RAG Pipeline** với Amazon OpenSearch.<br>• Bắt buộc trích xuất chính xác từ Dược thư MedlinePlus đã nhúng vector. |
+| **Rủi ro Quá tải Chi phí Cloud** | Người dùng hoặc bot gửi request liên tục làm phát sinh chi phí AWS ngoài dự tính. | **Trung bình** | • Bật **AWS WAF Rate-Limiting** chặn IP spam.<br>• Thiết lập **AWS Budgets Alarm** báo động chi phí. |
 
 ---
 
 <a name="238-kịch-bản-kiểm-chứng-sản-phẩm-chạy-thực-tế"></a>
 ### 2.3.8. Kịch bản Kiểm chứng Sản phẩm Chạy Thực tế (Live Demo Verification)
 
-Hệ thống đã được lập trình hoàn chỉnh, kiểm thử thực tế và sẵn sàng cho phiên **Live Demo chấm điểm** với 4 tình huống kiểm chứng lâm sàng có sẵn trong mã nguồn:
+Hệ thống đã được lập trình hoàn chỉnh, kiểm thử thực tế và sẵn sàng cho phiên **Live Demo chấm điểm** với 4 tình huống kiểm chứng lâm sàng:
 
 ```text
 [BƯỚC 1: TRUY CẬP HỆ THỐNG]
 URL Production / Localhost: http://127.0.0.1:8000
-Giao diện: Spatial Glassmorphism (VisionOS v2.5) với 4 không gian bệnh viện thông minh.
+Giao diện: Spatial Glassmorphism (VisionOS v2.5).
 
 [BƯỚC 2: DEMO PHÂN TẦNG LÂM SÀNG & BẢO VỆ AN TOÀN]
 • Ca 1: Triệu chứng cờ đỏ cấp cứu (Emergency Bypass)
-  Nhập: "Tôi đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái"
-  Kết quả: Hệ thống kích hoạt Red Flag cấp cứu ngay lập tức, hiển thị hotline 115, 
-  không đưa ra tư vấn thông thường.
+  Nhập: "Tôi đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra tay trái"
+  Kết quả: Kích hoạt Red Flag cấp cứu ngay lập tức, hiển thị hotline 115.
 
-• Ca 2: Triệu chứng thông thường (Grounded Triage)
-  Nhập: "Tôi bị đau rát họng, sốt nhẹ 38 độ và nghẹt mũi từ hôm qua"
-  Kết quả: Tính toán Risk Score (35/100 - Nguy cơ trung bình), khuyến nghị chuyên khoa 
-  Tai Mũi Họng, trích dẫn tài liệu MedlinePlus.
-
-[BƯỚC 3: DEMO BÓC TÁCH ĐƠN THUỐC THỊ GIÁC (MULTIMODAL OCR)]
-• Tải lên ảnh đơn thuốc mẫu BN. Nguyễn Thị Lợi (60 tuổi) hoặc chọn Preset BV Bình Dân:
+[BƯỚC 3: DEMO BÓC TÁCH ĐƠN THUỐC THỊ GIÁC VÀ ẨN DANH PII]
+• Tải lên ảnh đơn thuốc mẫu BN. Nguyễn Thị Lợi (60 tuổi):
   Kết quả:
-  - Bóc tách tự động: Seotolac 200mg, Độc hoạt, Đại tần giao, Rheumatin, Ginkobil...
-  - Sắp xếp lộ trình uống thuốc: Cữ Sáng (06:30 - 08:00) | Cữ Trưa | Cữ Tối (19:30).
-  - Phân loại chính xác: Thuốc uống sau ăn no để bảo vệ niêm mạc dạ dày.
+  - Hệ thống Anonymization: Đổi tên thành "BN: N*** T*** L***" trước khi phân tích.
+  - Bóc tách tự động: Seotolac 200mg, Độc hoạt, Đại tần giao...
+  - Sắp xếp lộ trình: Cữ Sáng (06:30) | Cữ Trưa | Cữ Tối (19:30).
 
 [BƯỚC 4: DEMO HỒ SƠ BỆNH ÁN ĐIỆN TỬ (EMR SUMMARY)]
 • Chuyển sang Tab "Hồ sơ Bác sĩ (EMR)":
-  Kết quả: Tự động tổng hợp bản tóm tắt 30 giây dành cho Bác sĩ (Lý do khám, bệnh sử HPI, 
-  cảnh báo tiền sử dị ứng Penicillin màu đỏ, chỉ số nhịp tim thực tế 72 bpm kèm sóng ECG).
+  Kết quả: Tự động tổng hợp bản tóm tắt 30 giây (Lý do khám, bệnh sử HPI, 
+  cảnh báo tiền sử dị ứng).
 ```
 
 ---
@@ -351,7 +230,6 @@ Giao diện: Spatial Glassmorphism (VisionOS v2.5) với 4 không gian bệnh vi
 ## KẾT LUẬN & KIẾN NGHỊ
 
 Bản đề xuất giải pháp **MediMind Clinical AI** đáp ứng toàn diện và chặt chẽ mọi tiêu chí khắt khe của học phần Thực tập / Workshop Chuyên môn:
-1. **Kiến trúc Hệ thống (Architecture)**: Thiết kế hoàn toàn theo tiêu chuẩn **AWS Well-Architected Framework**, định danh chính xác 100% các dịch vụ AWS chính thức, tách bạch vùng mạng bảo mật và áp dụng cơ chế mã hóa dữ liệu y tế nghiêm ngặt.
-2. **Dự toán Ngân sách & Tối ưu Chi phí (Cost Estimation)**: Cung cấp đầy đủ bảng tính giá chi tiết từ **AWS Pricing Calculator**, phân tích rõ ràng 2 kịch bản (Thử nghiệm \$20.46/tháng và Mở rộng \$66.60/tháng cho 10.000 người bệnh), bảo đảm tuyệt đối không bị điểm liệt phần trình bày.
-3. **Minh chứng Sản phẩm Chạy Thực tế (Live Demo)**: Ứng dụng đã được lập trình hoàn chỉnh, vận hành ổn định trên nền tảng Web Container và sẵn sàng trình diễn toàn bộ các luồng nghiệp vụ lâm sàng trước hội đồng đánh giá.
-
+1. **Kiến trúc Hệ thống (Architecture)**: Thiết kế chuẩn **AWS Well-Architected**, bảo đảm 100% tài nguyên và luồng dữ liệu (S3, OpenSearch, Bedrock) được cô lập an toàn trong hệ sinh thái AWS, tuân thủ tiêu chuẩn HIPAA.
+2. **Dự toán Ngân sách & Tối ưu Chi phí (Cost Estimation)**: Cung cấp đầy đủ bảng tính giá chi tiết, thực tế. Kịch bản DEV được tối ưu lược bỏ hạ tầng mạng đắt đỏ (\$23.81), trong khi kịch bản Production (\$169.00) phản ánh đúng tính chất an ninh cấp doanh nghiệp (có ALB, NAT).
+3. **Minh chứng Sản phẩm Chạy Thực tế (Live Demo)**: Ứng dụng sẵn sàng trình diễn toàn bộ các luồng nghiệp vụ lâm sàng trước hội đồng đánh giá.
