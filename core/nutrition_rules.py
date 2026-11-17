@@ -53,6 +53,7 @@ SOURCES = {
     "diabetes": {"source_title": "NHS: Type 2 diabetes - Food and keeping active", "source_url": "https://www.nhs.uk/conditions/type-2-diabetes/food-and-keeping-active/"},
     "hypertension": {"source_title": "NHS: High blood pressure - Prevention", "source_url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/prevention/"},
     "stomach": {"source_title": "NIDDK: Eating, Diet, & Nutrition for Gastritis", "source_url": "https://www.niddk.nih.gov/health-information/digestive-diseases/gastritis-gastropathy/eating-diet-nutrition"},
+    "fatty_liver": {"source_title": "NIDDK: Eating, Diet, & Nutrition for NAFLD & NASH", "source_url": "https://www.niddk.nih.gov/health-information/liver-disease/nafld-nash/eating-diet-nutrition"},
 }
 
 
@@ -111,6 +112,11 @@ CONTEXTS = {
         "aliases": ("dau da day", "viem da day", "loet da day", "dau bao tu", "viem loet da day", "gastritis", "benh dau da day", "benh da day"),
         "guidance": [_guidance("stomach", "Khi đau dạ dày, nên chọn thức ăn mềm, dễ tiêu; tránh món cay nóng (ớt, tiêu), chua gắt (chanh, giấm), đồ chiên rán nhiều dầu mỡ và rượu bia, cà phê để tránh kích thích niêm mạc dạ dày.")],
     },
+    "fatty_liver": {
+        "label": "Gan nhiễm mỡ",
+        "aliases": ("gan nhiem mo", "benh gan nhiem mo", "fatty liver", "nafld", "masld"),
+        "guidance": [_guidance("fatty_liver", "Hướng dẫn NIDDK về gan nhiễm mỡ không do rượu gợi ý ăn nhiều rau, trái cây và ngũ cốc nguyên hạt; hạn chế đường thêm và chất béo bão hòa, thay bằng chất béo chưa bão hòa; giảm rượu bia. Khẩu phần cần điều chỉnh theo hướng dẫn cá nhân.")],
+    },
 }
 ALIASES = {alias: key for key, context in CONTEXTS.items() for alias in context["aliases"]}
 
@@ -156,6 +162,11 @@ AVOIDANCE = {
         _avoid("Món chua gắt (chanh, giấm, me chua, xoài chua)", "Làm tăng độ acid trong dạ dày, gây xót và làm chậm lành vết loét.", "stomach", "avoid"),
         _avoid("Đồ chiên rán nhiều dầu mỡ, rượu bia, cà phê", "Làm chậm tiêu hóa, kích thích tăng tiết acid dịch vị.", "stomach", "avoid"),
     ],
+    "fatty_liver": [
+        _avoid("Rượu, bia và đồ uống có cồn", "NIDDK khuyên giảm rượu vì rượu có thể làm tổn thương gan thêm.", "fatty_liver"),
+        _avoid("Đồ ăn, thức uống nhiều đường thêm", "NIDDK khuyên hạn chế đường đơn, nhất là đồ uống ngọt; xem thành phần và khẩu phần thực tế.", "fatty_liver"),
+        _avoid("Món nhiều chất béo bão hòa", "Ưu tiên thay chất béo bão hòa bằng chất béo chưa bão hòa theo hướng dẫn NIDDK; chưa có định lượng chất béo cho từng công thức.", "fatty_liver"),
+    ],
 }
 
 
@@ -171,6 +182,13 @@ def _meta(ingredients, allergens=(), gluten_uncertain=False, soft=False, liquid=
 # Every listed recipe has been inspected. Unknown/modified recipes are not
 # automatically classified from their title or from an LLM's assertion.
 METADATA = {
+    "fl_steamed_fish": _meta(["Cá diêu hồng", "Gừng", "Nước lọc"], allergens=("fish", "seafood"), soft=True),
+    "fl_chicken_vegetables": _meta(["Thịt ức gà", "Bông cải xanh", "Cà rốt", "Nước lọc"], soft=True),
+    "fl_tofu_tomato": _meta(["Đậu hũ non", "Cà chua", "Nước lọc"], allergens=("soy",), soft=True),
+    "fl_winter_melon_soup": _meta(["Bí xanh", "Nấm rơm", "Nước lọc"], soft=True, liquid=True),
+    "fl_steamed_greens": _meta(["Cải thìa", "Nước lọc"], soft=True),
+    "fl_oat_vegetable_porridge": _meta(["Yến mạch", "Cà rốt", "Cải bó xôi", "Nước lọc"], gluten_uncertain=True, soft=True),
+    "fl_brown_rice_chicken": _meta(["Gạo lứt", "Thịt ức gà", "Cải thìa", "Nước lọc"]),
     "oat_porridge": _meta(["Yến mạch", "Chuối chín", "Nước lọc"], gluten_uncertain=True, soft=True),
     "pumpkin_soup": _meta(["Bí đỏ", "Khoai tây", "Nước lọc"], soft=True),
     "rice_carrot": _meta(["Gạo tẻ", "Cà rốt", "Nước lọc"], soft=True),
@@ -371,10 +389,13 @@ def _condition_exclusion(meta, contexts):
             return "Có hàm lượng muối/natri cao hoặc cồn, không phù hợp cho người tăng huyết áp."
         if ctx == "stomach" and any(meta.get(key) for key in ("spicy", "acidic", "fried", "alcohol", "caffeine")):
             return "Có vị cay, chua gắt, chiên xào nhiều mỡ hoặc chất kích thích dễ kích ứng dạ dày."
+        if ctx == "fatty_liver" and any(meta.get(key) for key in ("alcohol", "sugar_high", "fried", "saturated_fat_source")):
+            return "Có cồn, đường thêm, cách chiên/xào hoặc nguyên liệu thường giàu chất béo bão hòa; chưa ưu tiên trong gợi ý tham khảo cho gan nhiễm mỡ."
     return None
 
 
-def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], profile_allergies=None) -> Dict[str, Any]:
+def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], profile_allergies=None,
+                                 fatty_liver_recipes=None) -> Dict[str, Any]:
     """Return copied candidates and attributable rules; never certify suitability.
 
     Supports single conditions as well as multiple co-morbidities.
@@ -383,6 +404,10 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
     query = str(condition or "").strip()
     condition_query, preferences = _query_preferences(query)
     contexts, allergies, unsupported = _parse_input(condition_query)
+    if "fatty_liver" in contexts and fatty_liver_recipes:
+        # Imported dishes lack reviewed amounts of saturated fat and added
+        # sugar. Keep this condition's automatic suggestions to authored recipes.
+        recipes = list(fatty_liver_recipes)
     profile_codes, profile_unresolved = _profile_food_allergies(profile_allergies)
     allergies |= profile_codes
     unsupported.extend(profile_unresolved)
@@ -392,6 +417,8 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
         guidance.extend(deepcopy(CONTEXTS[ctx]["guidance"]))
 
     limitations = ["Chỉ đối chiếu nguyên liệu và đặc tính đã khai báo; chưa tính nhu cầu dinh dưỡng, bệnh nền, thuốc, tuổi hay nguy cơ nhiễm chéo. Các món không được chứng nhận phù hợp về y khoa."]
+    if "fatty_liver" in contexts:
+        limitations.append("Nguồn NIDDK nói về gan nhiễm mỡ không do rượu; hệ thống chưa xác định nguyên nhân, mức độ bệnh gan hoặc chế độ ăn do bác sĩ chỉ định.")
     if not contexts:
         limitations.append("Chưa có quy tắc cho nội dung này hoặc nội dung còn mơ hồ; không suy ra bệnh từ từ khóa hay tâm trạng.")
     if allergies:
@@ -431,7 +458,7 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
             reason = "Công thức có thành phần/cách chuẩn bị chưa phù hợp để tự động gợi ý trong ứng dụng này."
         elif allergies and meta and meta.get("allergen_uncertain"):
             reason = "Công thức nhập có nguyên liệu hoặc sản phẩm chưa xác minh đủ thành phần dị ứng."
-        elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach") for ctx in contexts)):
+        elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach", "fatty_liver") for ctx in contexts)):
             reason = "Chưa có metadata nguyên liệu/đặc tính được rà soát cho công thức này."
         elif verified:
             # Preserve the requested order: condition rules, then profile/query

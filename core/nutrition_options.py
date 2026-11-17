@@ -67,6 +67,137 @@ FOOD.extend([
         ["Không dùng nếu bạn dị ứng đậu nành."])
 ])
 
+FATTY_LIVER_FOOD = [
+    _recipe("fl_steamed_fish", "Cá hấp gừng", "🐟", "Cá hấp không chiên", "25 phút",
+        "Cá cung cấp đạm.",
+        [_i("Cá diêu hồng", 100, "g", "🐟"), _i("Gừng", 10, "g", "🫚"),
+         _i("Nước lọc", 100, "ml", "💧")],
+        ["Rửa sạch cá và gừng; thái gừng thành lát mỏng.",
+         "Hấp cá với gừng đến khi cá chín hoàn toàn.",
+         "Dùng cá khi còn ấm; nêm nhẹ theo hướng dẫn cá nhân."],
+        ["Không dùng nếu dị ứng cá; kiểm tra khẩu phần và cách nêm trước khi ăn."]),
+    _recipe("fl_chicken_vegetables", "Ức gà luộc rau củ", "🍗", "Ức gà và rau củ luộc", "25 phút",
+        "Ức gà cung cấp đạm; rau củ bổ sung chất xơ.",
+        [_i("Thịt ức gà", 100, "g", "🍗"), _i("Bông cải xanh", 100, "g", "🥦"),
+         _i("Cà rốt", 60, "g", "🥕"), _i("Nước lọc", 300, "ml", "💧")],
+        ["Rửa sạch ức gà và rau củ; cắt rau thành miếng vừa ăn.",
+         "Luộc ức gà đến khi chín hoàn toàn, để nguội bớt rồi thái miếng.",
+         "Luộc rau củ vừa chín, dùng cùng gà và nêm nhẹ theo hướng dẫn cá nhân."],
+        ["Điều chỉnh khẩu phần theo nhu cầu và hướng dẫn cá nhân."]),
+    _recipe("fl_tofu_tomato", "Đậu hũ sốt cà chua", "🍅", "Đậu hũ nấu cà chua không chiên", "20 phút",
+        "Đậu hũ cung cấp đạm thực vật; cà chua là một loại rau quả.",
+        [_i("Đậu hũ non", 120, "g", "🫘"), _i("Cà chua", 100, "g", "🍅"),
+         _i("Nước lọc", 80, "ml", "💧")],
+        ["Rửa cà chua, cắt nhỏ; cắt đậu hũ thành miếng vừa ăn.",
+         "Nấu cà chua với nước đến khi mềm, cho đậu hũ vào.",
+         "Nấu sôi nhẹ đến khi đậu hũ nóng đều; nêm nhẹ theo hướng dẫn cá nhân."],
+        ["Không dùng nếu dị ứng đậu nành; kiểm tra thành phần đậu hũ đóng gói."]),
+    _recipe("fl_winter_melon_soup", "Canh bí xanh nấm", "🍲", "Canh rau nấm nấu nhẹ", "20 phút",
+        "Bí xanh và nấm góp phần bổ sung rau trong bữa ăn.",
+        [_i("Bí xanh", 150, "g", "🥒"), _i("Nấm rơm", 60, "g", "🍄"),
+         _i("Nước lọc", 300, "ml", "💧")],
+        ["Gọt vỏ, rửa và cắt bí xanh; rửa sạch nấm.",
+         "Nấu bí xanh với nước đến khi gần mềm, thêm nấm.",
+         "Nấu chín nấm, nêm nhẹ rồi dùng khi còn ấm."],
+        ["Điều chỉnh lượng muối và khẩu phần theo hướng dẫn cá nhân."]),
+    _recipe("fl_steamed_greens", "Rau cải hấp", "🥬", "Rau hấp đơn giản", "12 phút",
+        "Rau cải bổ sung chất xơ trong bữa ăn.",
+        [_i("Cải thìa", 150, "g", "🥬"), _i("Nước lọc", 150, "ml", "💧")],
+        ["Rửa sạch và cắt cải thìa thành miếng vừa ăn.",
+         "Hấp rau đến khi chín vừa.",
+         "Dùng cùng món chính và nêm nhẹ theo hướng dẫn cá nhân."],
+        ["Điều chỉnh lượng muối theo hướng dẫn cá nhân."]),
+    _recipe("fl_oat_vegetable_porridge", "Cháo yến mạch rau củ", "🥣", "Cháo yến mạch không thêm đường", "20 phút",
+        "Yến mạch và rau củ cung cấp chất xơ.",
+        [_i("Yến mạch", 45, "g", "🌾"), _i("Cà rốt", 50, "g", "🥕"),
+         _i("Cải bó xôi", 40, "g", "🥬"), _i("Nước lọc", 350, "ml", "💧")],
+        ["Rửa, cắt nhỏ cà rốt và cải bó xôi.",
+         "Nấu yến mạch với nước và cà rốt đến khi mềm.",
+         "Thêm cải bó xôi, nấu chín rồi để nguội bớt trước khi dùng."],
+        ["Nếu cần tránh gluten, chỉ dùng yến mạch đã được xác minh phù hợp."]),
+    _recipe("fl_brown_rice_chicken", "Cơm gạo lứt ức gà rau xanh", "🍚", "Bữa cơm với gạo lứt và rau", "35 phút",
+        "Gạo lứt cung cấp ngũ cốc nguyên hạt; ức gà và rau bổ sung đạm và chất xơ.",
+        [_i("Gạo lứt", 60, "g", "🍚"), _i("Thịt ức gà", 80, "g", "🍗"),
+         _i("Cải thìa", 100, "g", "🥬"), _i("Nước lọc", 250, "ml", "💧")],
+        ["Vo gạo lứt và nấu chín với nước theo loại gạo đang dùng.",
+         "Luộc ức gà đến khi chín hoàn toàn rồi thái miếng.",
+         "Luộc cải thìa vừa chín; dùng cùng cơm và gà, nêm nhẹ theo hướng dẫn cá nhân."],
+        ["Khẩu phần gạo và đạm cần điều chỉnh theo hướng dẫn cá nhân."]),
+]
+_FATTY_LIVER_EN = {
+    "fl_steamed_fish": {
+        "title": "Ginger-steamed fish", "subtitle": "Steamed fish; no frying",
+        "benefit": "Fish provides protein.",
+        "ingredients": ["Red tilapia", "Ginger", "Water"],
+        "steps": ["Wash the fish and ginger; slice the ginger.",
+                  "Steam the fish with ginger until fully cooked.",
+                  "Serve the fish warm and season lightly as personally advised."],
+        "avoid": ["Avoid if you have a fish allergy; review portion size and seasoning before eating."],
+    },
+    "fl_chicken_vegetables": {
+        "title": "Boiled chicken breast with vegetables", "subtitle": "Boiled chicken breast and vegetables",
+        "benefit": "Chicken breast provides protein; vegetables add fiber.",
+        "ingredients": ["Chicken breast", "Broccoli", "Carrot", "Water"],
+        "steps": ["Wash the chicken and vegetables; cut the vegetables into bite-sized pieces.",
+                  "Boil the chicken until fully cooked, let it cool slightly, then slice it.",
+                  "Boil the vegetables until tender; serve with chicken and season lightly as personally advised."],
+        "avoid": ["Adjust the portion to your needs and personal dietary advice."],
+    },
+    "fl_tofu_tomato": {
+        "title": "Silken tofu in tomato sauce", "subtitle": "Tofu simmered with tomato, without frying",
+        "benefit": "Tofu provides plant protein; tomato is a vegetable ingredient.",
+        "ingredients": ["Silken tofu", "Tomato", "Water"],
+        "steps": ["Wash and chop the tomato; cut tofu into bite-sized pieces.",
+                  "Simmer the tomato in water until soft, then add the tofu.",
+                  "Simmer gently until the tofu is heated through; season lightly as personally advised."],
+        "avoid": ["Avoid if you have a soy allergy; check the ingredients of packaged tofu."],
+    },
+    "fl_winter_melon_soup": {
+        "title": "Winter melon and mushroom soup", "subtitle": "Light vegetable and mushroom soup",
+        "benefit": "Winter melon and mushrooms add vegetables to the meal.",
+        "ingredients": ["Winter melon", "Straw mushrooms", "Water"],
+        "steps": ["Peel, wash, and cut the winter melon; wash the mushrooms.",
+                  "Simmer the winter melon in water until almost tender, then add the mushrooms.",
+                  "Cook the mushrooms fully; season lightly and serve warm."],
+        "avoid": ["Adjust salt and portion size according to personal dietary advice."],
+    },
+    "fl_steamed_greens": {
+        "title": "Steamed bok choy", "subtitle": "Simple steamed greens",
+        "benefit": "Greens add fiber to a meal.", "ingredients": ["Bok choy", "Water"],
+        "steps": ["Wash and cut the bok choy into bite-sized pieces.",
+                  "Steam the greens until tender.",
+                  "Serve alongside a main dish and season lightly as personally advised."],
+        "avoid": ["Adjust salt according to personal dietary advice."],
+    },
+    "fl_oat_vegetable_porridge": {
+        "title": "Savory oat and vegetable porridge", "subtitle": "Oat porridge without added sugar",
+        "benefit": "Oats and vegetables provide fiber.",
+        "ingredients": ["Oats", "Carrot", "Spinach", "Water"],
+        "steps": ["Wash and chop the carrot and spinach.",
+                  "Cook the oats with water and carrot until soft.",
+                  "Add the spinach, cook thoroughly, then let cool slightly before serving."],
+        "avoid": ["If you must avoid gluten, use only oats verified as suitable for you."],
+    },
+    "fl_brown_rice_chicken": {
+        "title": "Brown rice with chicken breast and greens", "subtitle": "Brown rice meal with vegetables",
+        "benefit": "Brown rice is a whole grain; chicken breast and greens provide protein and fiber.",
+        "ingredients": ["Brown rice", "Chicken breast", "Bok choy", "Water"],
+        "steps": ["Rinse and cook the brown rice with water according to the rice package.",
+                  "Boil the chicken breast until fully cooked, then slice it.",
+                  "Boil the bok choy until tender; serve with the rice and chicken, seasoning lightly as personally advised."],
+        "avoid": ["Adjust rice and protein portions according to personal dietary advice."],
+    },
+}
+for _item in FATTY_LIVER_FOOD:
+    _item["recipe_type"] = "food"
+    _item["source_provider"] = "MediMind · công thức tham khảo"
+    _item["translations"] = {"en": _FATTY_LIVER_EN[_item["id"]]}
+    _item["dish_role"] = {
+        "fl_steamed_fish": "main", "fl_chicken_vegetables": "main", "fl_tofu_tomato": "main",
+        "fl_winter_melon_soup": "soup", "fl_steamed_greens": "side",
+        "fl_oat_vegetable_porridge": "staple", "fl_brown_rice_chicken": "staple",
+    }[_item["id"]]
+
 DRINK.extend([
     _recipe("warm_soy", "Sữa đậu nành ấm", "🫘", "Sữa đậu nành không đường", "5 phút", "Sữa đậu nành là nguồn cung cấp đạm thực vật.",
         [_i("Sữa đậu nành không đường đã nấu chín",200,"ml","🥛")],
@@ -225,7 +356,7 @@ def _is_valid_side(r: Dict, main_id: str = None, soup_id: str = None, main_r: Di
         return False
     from core.recipe_catalog import classify_dish_role
     role = r.get("dish_role") or classify_dish_role(r)
-    if role not in ("side", "staple"):
+    if role != "side":
         return False
 
     # Món phụ tuyệt đối KHÔNG trùng nguyên liệu chính/đạm với món chính hoặc món canh trong thực đơn mâm cơm
@@ -271,17 +402,17 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
                 side_r = side_pool[0] if side_pool else None
 
             dishes = [
-                {"role": "main", "role_label": "Món chính · Đạm lành tính", "recipe": main_r},
-                {"role": "soup", "role_label": "Món canh · Thanh nhiệt an thần", "recipe": soup_r}
+                {"role": "main", "role_label": "Món chính", "recipe": main_r},
+                {"role": "soup", "role_label": "Món canh", "recipe": soup_r}
             ]
             if side_r:
-                dishes.append({"role": "side", "role_label": "Món rau / phụ · Bổ sung xơ & khoáng", "recipe": side_r})
+                dishes.append({"role": "side", "role_label": "Món rau / phụ", "recipe": side_r})
 
             return {
-                "title": ai_fms.get("title", "Mâm cơm thanh nhẹ, đủ món cho Bữa tối"),
+                "title": ai_fms.get("title", "Mâm cơm gợi ý cho 1 bữa"),
                 "meal_time": ai_fms.get("meal_time", "dinner"),
                 "meal_label": _MEAL_LABELS.get(ai_fms.get("meal_time", "dinner"), "Bữa tối"),
-                "rationale": ai_fms.get("rationale", "Mâm cơm kết hợp hài hòa đạm lành tính, canh thanh nhiệt an thần và rau xanh giàu chất xơ cùng khoáng chất, vừa đủ dinh dưỡng vừa không gây khó tiêu vào ban đêm."),
+                "rationale": ai_fms.get("rationale", "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng."),
                 "staple_text": ai_fms.get("staple_text") or "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
                 "dishes": dishes
             }
@@ -303,17 +434,17 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
     side_r = side_candidates[0] if side_candidates else None
 
     dishes = [
-        {"role": "main", "role_label": "Món chính · Đạm lành tính", "recipe": main_r},
-        {"role": "soup", "role_label": "Món canh · Thanh nhiệt an thần", "recipe": soup_r}
+        {"role": "main", "role_label": "Món chính", "recipe": main_r},
+        {"role": "soup", "role_label": "Món canh", "recipe": soup_r}
     ]
     if side_r:
-        dishes.append({"role": "side", "role_label": "Món rau / phụ · Bổ sung xơ & khoáng", "recipe": side_r})
+        dishes.append({"role": "side", "role_label": "Món rau / phụ", "recipe": side_r})
 
     return {
-        "title": "Mâm cơm thanh nhẹ, đủ món cho Bữa tối",
+        "title": "Mâm cơm gợi ý cho 1 bữa",
         "meal_time": "dinner",
         "meal_label": "Bữa tối",
-        "rationale": "Mâm cơm kết hợp cân bằng giữa món chính giàu đạm lành tính dễ tiêu, món canh thanh nhiệt an thần và rau củ giàu chất xơ cùng khoáng chất. Sự kết hợp này giúp hệ tiêu hóa không bị quá tải, hỗ trợ phục hồi và đem lại cảm giác nhẹ nhõm, dễ chịu.",
+        "rationale": "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng.",
         "staple_text": "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
         "dishes": dishes
     }
@@ -385,7 +516,8 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
 
     result = _get_general_options(condition, recipe_type)
     profile = profile if isinstance(profile, dict) else {}
-    prepared = prepare_nutrition_candidates(condition, result["recipes"], profile.get("allergies"))
+    prepared = prepare_nutrition_candidates(condition, result["recipes"], profile.get("allergies"),
+                                            fatty_liver_recipes=FATTY_LIVER_FOOD if recipe_type == "food" else None)
     result["profile_context"] = _profile_context(profile, dob, prepared)
     result["query_preferences"] = prepared.get("query_preferences", [])
     if prepared.get("is_unmapped_disease"):
@@ -401,11 +533,19 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
     remaining = [recipe for recipe in eligible if recipe["id"] not in seen and title_key(recipe) not in seen_titles]
     candidates = retrieve_candidates(condition, remaining,
                                      sort_by_sugar="no_added_sugar" in prepared.get("preference_codes", []))
+    if recipe_type == "food" and "fatty_liver" in prepared["contexts"]:
+        curated_ids = {recipe["id"] for recipe in FATTY_LIVER_FOOD}
+        curated = [recipe for recipe in remaining if recipe["id"] in curated_ids]
+        candidates = (curated + [recipe for recipe in candidates if recipe["id"] not in curated_ids])[:32]
     if "no_added_sugar" in prepared.get("preference_codes", []):
         candidates.sort(key=lambda r: (not isinstance(r.get("sugar"), (int, float)),
                                        r.get("sugar") if isinstance(r.get("sugar"), (int, float)) else float("inf")))
     guidance = prepared["guidance"]
     stats = catalog_stats()
+    if recipe_type == "food" and "fatty_liver" in prepared["contexts"]:
+        stats = {"imported_count": 0, "food_count": len(FATTY_LIVER_FOOD), "drink_count": 0,
+                 "total": len(FATTY_LIVER_FOOD), "source": "MediMind",
+                 "cuisine": "VN", "license": "project_samples"}
     type_count = stats["drink_count"] if recipe_type == "drink" else stats["food_count"]
     result.update(recipes=candidates, sources=guidance, excluded=prepared["excluded"][:20], excluded_count=len(prepared["excluded"]),
                   catalog=stats, catalog_type_count=type_count, eligible_count=len(eligible), considered_count=len(candidates),
@@ -428,6 +568,32 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                           needs_clarification=True,
                           clarification_question="Chưa có công thức đáp ứng những giới hạn bạn nhập. Bạn có thể bổ sung loại thực phẩm dùng được không?",
                           notice="Không có món trong kho hiện tại vượt qua bộ lọc nguyên liệu; hệ thống không tự thêm món khác.")
+        return result
+    if recipe_type == "food" and "fatty_liver" in prepared["contexts"]:
+        # These locally authored dishes have complete, fixed ingredient lists.
+        # Show them directly; model ranking is unnecessary for this small set.
+        for recipe in candidates:
+            recipe["recommendation_reason"] = (
+                "Công thức qua bộ lọc nguyên liệu tham khảo cho gan nhiễm mỡ; "
+                "chưa xác nhận phù hợp với khẩu phần hoặc bệnh nền của bạn."
+            )
+            _enrich_recipe(recipe, condition)
+        full_meal = _build_full_meal_set(condition, candidates, candidates)
+        meal_ids = set()
+        if full_meal:
+            for dish in full_meal["dishes"]:
+                meal_ids.add(dish["recipe"]["id"])
+            _meal_calories(full_meal, prepared)
+            result["full_meal_set"] = full_meal
+        result.update(
+            recipes=[recipe for recipe in candidates if recipe["id"] not in meal_ids],
+            matched=True, has_condition_notes=True,
+            provider_status="guided_catalog", recommendation_scope="guided_catalog", has_more=False,
+            notice="Đây là công thức tham khảo được biên soạn với nguyên liệu rõ ràng và đã lọc dị ứng được nhận diện. "
+                   "Hướng dẫn NIDDK dành cho gan nhiễm mỡ không do rượu; chưa xác nhận từng món phù hợp với nguyên nhân bệnh, mức độ bệnh hoặc khẩu phần cá nhân.",
+            selection_explanation="MediMind đối chiếu danh sách nguyên liệu cố định với dị ứng đã khai báo và các nguyên tắc ăn uống chung có nguồn. "
+                                  "Các công thức này chưa được xác minh dinh dưỡng lâm sàng; cần kiểm tra cách nêm, khẩu phần và bệnh nền trước khi dùng.",
+        )
         return result
     ai_fms = None
     try:
@@ -475,6 +641,9 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
 
     # Enrich every recipe with meal_time, dish_role, key_nutrients, and clinical explanation
     for r in result.get("recipes", []):
+        if "fatty_liver" in prepared["contexts"]:
+            r["recommendation_reason"] = ("Công thức qua bộ lọc nguyên liệu tham khảo cho gan nhiễm mỡ; "
+                                          "chưa xác nhận phù hợp với khẩu phần hoặc bệnh nền của bạn.")
         _enrich_recipe(r, condition)
 
     # Build full meal set if in food mode and recipes exist

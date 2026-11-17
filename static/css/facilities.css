@@ -1,20 +1,20 @@
 /* The facility directory uses the same sky accent as MediMind navigation. */
 #hospitalsView,
 #hospital-details-drawer {
-  --facility-canvas: #0b1120;
-  --facility-surface: #111c30;
-  --facility-muted-surface: #18253a;
-  --facility-border: #2c3e56;
+  --facility-canvas: transparent;
+  --facility-surface: rgba(6, 22, 40, 0.32);
+  --facility-muted-surface: rgba(4, 14, 28, 0.22);
+  --facility-border: rgba(255, 255, 255, 0.08);
   --facility-text: #e2e8f0;
   --facility-muted: #a4b5c9;
-  --facility-accent: #0369a1;
-  --facility-accent-hover: #075985;
-  --facility-accent-soft: #12354d;
+  --facility-accent: #0284c7;
+  --facility-accent-hover: #0369a1;
+  --facility-accent-soft: rgba(18, 53, 77, 0.45);
   --facility-accent-ink: #7dd3fc;
   --facility-status: #6ee7b7;
-  --facility-status-soft: #10382d;
-  --facility-hospital-soft: #4c1828;
-  --facility-hospital-border: #9f2949;
+  --facility-status-soft: rgba(16, 56, 45, 0.4);
+  --facility-hospital-soft: rgba(76, 24, 40, 0.45);
+  --facility-hospital-border: rgba(159, 41, 73, 0.5);
   --facility-hospital-ink: #fda4af;
   min-width: 0;
   min-height: 0;
@@ -22,39 +22,58 @@
 
 body.light-glass #hospitalsView,
 body.light-glass #hospital-details-drawer {
-  --facility-canvas: #f8fafc;
-  --facility-surface: #ffffff;
-  --facility-muted-surface: #f1f5f9;
-  --facility-border: #dbe5ed;
-  --facility-text: #0f172a;
-  --facility-muted: #64748b;
-  --facility-accent-soft: #e0f2fe;
-  --facility-accent-ink: #075985;
-  --facility-status: #047857;
-  --facility-status-soft: #ecfdf5;
-  --facility-hospital-soft: #fff1f2;
-  --facility-hospital-border: #fecdd3;
-  --facility-hospital-ink: #be123c;
+  --facility-canvas: transparent;
+  --facility-surface: rgba(6, 22, 40, 0.32);
+  --facility-muted-surface: rgba(4, 14, 28, 0.22);
+  --facility-border: rgba(255, 255, 255, 0.08);
+  --facility-text: #e2e8f0;
+  --facility-muted: #a4b5c9;
+  --facility-accent-soft: rgba(18, 53, 77, 0.45);
+  --facility-accent-ink: #7dd3fc;
+  --facility-status: #6ee7b7;
+  --facility-status-soft: rgba(16, 56, 45, 0.4);
+  --facility-hospital-soft: rgba(76, 24, 40, 0.45);
+  --facility-hospital-border: rgba(159, 41, 73, 0.5);
+  --facility-hospital-ink: #fda4af;
 }
 
 body #booking-tab #hospitalsView {
-  background: var(--facility-canvas) !important;
+  background: transparent !important;
   color: var(--facility-text);
   border-radius: 26px;
   overflow: hidden;
 }
 
-body #booking-tab #hospitalsView > aside,
-body #booking-tab #hospitalsView > aside > div,
-body #booking-tab #hospitalsView > main > .flex-1,
-body #booking-tab #hospitalsView > main > .flex-1 > div:not(#hospitalSplitContainer) {
-  background: var(--facility-surface) !important;
+body #booking-tab #hospitalsView > aside {
+  background: rgba(5, 18, 34, 0.28) !important;
+  backdrop-filter: blur(14px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
   border-color: var(--facility-border) !important;
 }
 
-body #booking-tab #hospitalsView > main,
+body #booking-tab #hospitalsView > aside > div {
+  background: transparent !important;
+  border-color: var(--facility-border) !important;
+}
+
+body #booking-tab #hospitalsView > main {
+  background: transparent !important;
+}
+
+body #booking-tab #hospitalsView > main > .flex-1 {
+  background: rgba(5, 18, 34, 0.28) !important;
+  backdrop-filter: blur(14px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(150%) !important;
+  border-color: var(--facility-border) !important;
+}
+
+body #booking-tab #hospitalsView > main > .flex-1 > div:not(#hospitalSplitContainer) {
+  background: rgba(6, 22, 42, 0.35) !important;
+  border-color: var(--facility-border) !important;
+}
+
 body #booking-tab #hospitalsView #hospitalCardsList {
-  background: var(--facility-canvas) !important;
+  background: transparent !important;
   min-width: 0;
 }
 
@@ -182,8 +201,10 @@ body #booking-tab #hospitalsView .facility-icon-tile {
 
 body #booking-tab #hospitalsView .hospital-card {
   background: var(--facility-surface) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
   border-color: var(--facility-border) !important;
-  box-shadow: 0 3px 12px rgba(15,23,42,.035) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Red identifies hospitals; other facility types retain the sky accent. */
@@ -271,7 +292,7 @@ body #booking-tab #hospitalsView .facility-operation-status > span {
 }
 
 body #booking-tab #hospitalsView #hospitalMapPanel {
-  background: var(--facility-muted-surface) !important;
+  background: rgba(3, 12, 24, 0.20) !important;
   border-color: var(--facility-border) !important;
   height: 42%;
   min-height: 280px;
@@ -297,7 +318,9 @@ body #booking-tab #hospitalsView #hospitalMapPanel {
 
 body #booking-tab #hospitalsView #hospitalMapPanel .facility-map-controls .pointer-events-auto,
 body #booking-tab #hospitalsView #hospitalMapPanel .facility-map-controls button {
-  background: var(--facility-surface) !important;
+  background: rgba(6, 20, 38, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   border-color: var(--facility-border) !important;
   color: var(--facility-text) !important;
 }

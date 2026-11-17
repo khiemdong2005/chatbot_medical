@@ -53,6 +53,8 @@
     'Món cay nóng (ớt, tiêu nồng)': 'Hot and spicy foods (chili, black pepper)',
     'Món chua gắt (chanh, giấm, me chua, xoài chua)': 'Strongly acidic foods (lime, vinegar, tamarind, sour mango)',
     'Đồ chiên rán nhiều dầu mỡ, rượu bia, cà phê': 'Deep-fried greasy foods, alcohol, and coffee',
+    'Đồ ăn, thức uống nhiều đường thêm': 'Foods and drinks high in added sugar',
+    'Món nhiều chất béo bão hòa': 'Foods high in saturated fat',
     'Thực phẩm chứa gluten và yến mạch chưa xác minh': 'Gluten-containing foods and uncertified oats',
     'Thực phẩm chứa trứng': 'Foods containing egg',
     'Thực phẩm chứa sữa động vật': 'Foods containing dairy milk',
@@ -88,7 +90,10 @@
     'Làm tăng độ acid trong dạ dày, gây xót và làm chậm lành vết loét.': 'Increases gastric acidity and may irritate mucosal erosions.',
     'Làm chậm tiêu hóa, kích thích tăng tiết acid dịch vị.': 'Slows gastric emptying and stimulates excess acid secretion.',
     'Bạn đã yêu cầu tránh gluten. Lúa mạch chứa gluten; yến mạch trong kho chưa được xác minh không nhiễm gluten.': 'You requested gluten avoidance. Barley contains gluten, and catalog oats are not certified gluten-free.',
-    'Bạn đã nêu cần tránh thành phần này. Kiểm tra nhãn và nguy cơ nhiễm chéo khi chế biến.': 'You asked to avoid this allergen. Always check food labels and cross-contamination risks.'
+    'Bạn đã nêu cần tránh thành phần này. Kiểm tra nhãn và nguy cơ nhiễm chéo khi chế biến.': 'You asked to avoid this allergen. Always check food labels and cross-contamination risks.',
+    'NIDDK khuyên giảm rượu vì rượu có thể làm tổn thương gan thêm.': 'NIDDK advises minimizing alcohol because it can further harm the liver.',
+    'NIDDK khuyên hạn chế đường đơn, nhất là đồ uống ngọt; xem thành phần và khẩu phần thực tế.': 'NIDDK advises limiting simple sugars, especially sweetened drinks; check ingredients and actual portions.',
+    'Ưu tiên thay chất béo bão hòa bằng chất béo chưa bão hòa theo hướng dẫn NIDDK; chưa có định lượng chất béo cho từng công thức.': 'NIDDK advises replacing saturated fat with unsaturated fat; fat amounts have not been measured for individual recipes.'
   };
   function _trTime(val) {
     const s = String(val || '').trim();
@@ -118,6 +123,16 @@
     };
     return map[s] || s;
   }
+  function _recipeEn(recipe) { return _isEn() ? recipe?.translations?.en : null; }
+  function _recipeTitle(recipe) {
+    return _recipeEn(recipe)?.title || ((_isEn() && recipe.language === 'en' && recipe.title) ? recipe.title : (recipe.display_title || recipe.title));
+  }
+  function _recipeSubtitle(recipe) { return _recipeEn(recipe)?.subtitle || _trSubtitle(recipe.subtitle || ''); }
+  function _recipeBenefit(recipe) { return _recipeEn(recipe)?.benefit || _trBenefit(recipe.benefit); }
+  function _recipeReason(recipe) {
+    if (_recipeEn(recipe)) return 'A reference recipe screened against listed ingredients and recognized allergies; suitability for your portions and other conditions has not been confirmed.';
+    return recipe.recommendation_reason || '';
+  }
   function _trNotice(data) {
     const raw = String(data?.notice || '').trim();
     if (!_isEn() || !raw) return raw;
@@ -131,6 +146,9 @@
     }
     if (raw.startsWith('Bạn vẫn có thể xem các công thức tham khảo bên dưới.')) {
       return 'You can browse general safety-filtered options below. Add allergy or dietary details for personalized AI ranking.';
+    }
+    if (data?.provider_status === 'guided_catalog') {
+      return 'These reference recipes have clear ingredient lists and were screened against recognized allergies. NIDDK guidance covers nonalcoholic fatty liver disease; each dish still needs review for your cause, disease stage, and portion needs.';
     }
     if (raw === 'Bạn đã xem hết các công thức qua bộ lọc hiện tại.') return 'You have viewed all recipes matching the current safety filter.';
     if (raw.startsWith('Không có món trong kho hiện tại vượt qua bộ lọc')) return 'No catalog recipes passed the ingredient safety filter; the system never invents unverified dishes.';
@@ -149,6 +167,9 @@
   }
   function _trSelectionExplanation(data) {
     if (!_isEn()) return data?.selection_explanation || '';
+    if (data?.provider_status === 'guided_catalog') {
+      return 'MediMind checks fixed ingredient lists against declared allergies and cited general dietary principles. These recipes have not undergone clinical nutrition verification; review seasoning, portions, and other conditions before use.';
+    }
     if (data?.provider_status === 'clinical_safeguard_refusal') {
       return 'MediMind Clinical Safety Guardrail: automated menus are not generated for conditions without verified dietary rules.';
     }
@@ -192,7 +213,7 @@
   function fallbackArtwork(recipe) { return `/static/images/nutrition/${matchArtwork(recipe)}.svg?v=2`; }
   function recipeImage(recipe) {
     const src = artwork(recipe), fallback = fallbackArtwork(recipe);
-    return `<img class="nf-food-image" src="${safe(src)}" data-fallback="${safe(fallback)}" alt="${safe(recipe.title)}" width="640" height="440" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=this.dataset.fallback">`;
+    return `<img class="nf-food-image" src="${safe(src)}" data-fallback="${safe(fallback)}" alt="${safe(_recipeTitle(recipe))}" width="640" height="440" loading="lazy" decoding="async" onerror="this.onerror=null;this.src=this.dataset.fallback">`;
   }
   let initialized = false;
 
@@ -336,7 +357,7 @@
       const roleTag = _isEn()
         ? (item.role === 'main' ? 'Main dish' : item.role === 'soup' ? 'Soup' : 'Vegetable / side')
         : (item.role_label || 'Món ăn trong bữa');
-      const titleFor = (_isEn() && r.language === 'en' && r.title) ? r.title : (r.display_title || r.title);
+      const titleFor = _recipeTitle(r);
       return `
         <article class="nf-meal-dish-card" data-nf-meal-dish="${index}" role="button" tabindex="0" aria-label="${safe(_t('Xem công thức', 'View recipe'))}: ${safe(titleFor)}">
           <div class="nf-meal-dish-art">
@@ -345,9 +366,9 @@
           </div>
           <div class="nf-meal-dish-body">
             <div class="nf-dish-heading"><strong>${safe(titleFor)}</strong>${kcal(r.calories) ? `<span class="nf-kcal">${kcal(r.calories)}</span>` : ''}</div>
-            ${r.imported ? '' : `<p class="nf-meal-dish-sub">${safe(_trSubtitle(r.subtitle || ''))}</p>`}
+            ${r.imported ? '' : `<p class="nf-meal-dish-sub">${safe(_recipeSubtitle(r))}</p>`}
             ${r.key_nutrients ? `<div class="nf-nutrients-badge"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất:', 'Nutrients:')}</b> ${safe(r.key_nutrients)}</div>` : ''}
-            ${r.recommendation_reason ? `<div class="nf-reason-compact"><span class="nf-reason-header"><svg viewBox="0 0 20 20" fill="currentColor" width="11" height="11"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14H8a4 4 0 01-.8-7.92 4.002 4.002 0 017.6 0A4 4 0 0112 14z"/></svg> ${_t('Vì sao phù hợp?', 'Why suitable?')}</span><p>${safe(r.recommendation_reason)}</p></div>` : ''}
+            ${r.recommendation_reason ? `<div class="nf-reason-compact"><span class="nf-reason-header"><svg viewBox="0 0 20 20" fill="currentColor" width="11" height="11"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 001.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14H8a4 4 0 01-.8-7.92 4.002 4.002 0 017.6 0A4 4 0 0112 14z"/></svg> ${_t('Vì sao được gợi ý?', 'Why suggested?')}</span><p>${safe(_recipeReason(r))}</p></div>` : ''}
             <div class="nf-meal-dish-footer">
               <span>◷ ${safe(_trTime(r.cooking_time || ''))}</span>
               <b>${_t('Xem công thức →', 'View recipe →')}</b>
@@ -367,6 +388,15 @@
     const stapleLabel = _isEn() ? 'Accompanying staple:' : 'Tinh bột ăn kèm:';
     const stapleValue = _isEn() ? 'Choose a staple you can eat for your portion; it is not included in the recipe or kcal total.' : (fms.staple_text || 'Chọn loại tinh bột bạn dùng được theo khẩu phần cá nhân.');
 
+    const rationaleText = _isEn()
+      ? 'The dishes were combined from recipes that passed the declared ingredient filters. Review portions and seasoning before use.'
+      : fms.rationale;
+    const calorieNote = _isEn()
+      ? (state.lastData?.provider_status === 'guided_catalog'
+        ? 'No verified calorie data for these reference recipes.'
+        : 'Source calorie estimates may be incomplete and do not include the accompanying staple.')
+      : fms.calorie_note;
+
     wrap.innerHTML = `
       <div class="nf-meal-hero">
         <div class="nf-meal-hero-badge">
@@ -374,13 +404,13 @@
           <span class="nf-meal-time-tag">${safe(mealLabel)}</span>
         </div>
         <h2 class="nf-meal-hero-title">${safe(titleText)}</h2>
-        <div class="nf-meal-energy"><span>${_t('Tổng kcal các món · ước tính theo nguồn', 'Listed dishes · source kcal estimate')}</span><strong>${kcal(fms.total_calories) || _t('Chưa có số liệu', 'No kcal data')}</strong><small>${safe(fms.calorie_note || '')}</small></div>
+        <div class="nf-meal-energy"><span>${_t('Tổng kcal các món · ước tính theo nguồn', 'Listed dishes · source kcal estimate')}</span><strong>${kcal(fms.total_calories) || _t('Chưa có số liệu', 'No kcal data')}</strong><small>${safe(calorieNote || '')}</small></div>
         <div class="nf-meal-hero-rationale">
           <div class="nf-rationale-head">
             <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
             <strong>${_t('Vì sao chọn các món này?', 'Why these dishes?')}</strong>
           </div>
-          <p>${safe(fms.rationale)}</p>
+          <p>${safe(rationaleText)}</p>
         </div>
         <div class="nf-meal-staple">
           <span class="nf-staple-icon">🍚</span>
@@ -436,8 +466,6 @@
   }
 
   function renderCards() {
-    const titleFor = r => (_isEn() && r.language === 'en' && r.title) ? r.title : (r.display_title || r.title);
-
     // Lọc theo bữa nếu người dùng chọn bữa cụ thể
     let displayed = state.recipes;
     if (state.selectedMeal && state.selectedMeal !== 'all') {
@@ -456,11 +484,11 @@
       <button type="button" class="nf-card" data-nf-recipe="${globalIndex}">
         <span class="nf-art">${recipeImage(recipe)}<span class="nf-art-tag">${safe(tagText)}</span></span>
         <span class="nf-card-content">
-          <strong>${safe(titleFor(recipe))}</strong>
-          ${recipe.imported ? '' : `<p>${safe(_trSubtitle(recipe.subtitle || ''))}</p>`}
+          <strong>${safe(_recipeTitle(recipe))}</strong>
+          ${recipe.imported ? '' : `<p>${safe(_recipeSubtitle(recipe))}</p>`}
           ${kcal(recipe.calories) ? `<span class="nf-kcal">${kcal(recipe.calories)} · ${_t('ước tính theo nguồn', 'source estimate')}</span>` : ''}
           ${recipe.key_nutrients ? `<span class="nf-nutrients-badge"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất:', 'Nutrients:')}</b> ${safe(recipe.key_nutrients)}</span>` : ''}
-          ${recipe.recommendation_reason ? `<span class="nf-reason"><span class="nf-reason-header">${_t('Vì sao chọn món này', 'Why this dish')}</span><span class="nf-reason-text">${safe(recipe.recommendation_reason)}</span></span>` : ''}
+          ${recipe.recommendation_reason ? `<span class="nf-reason"><span class="nf-reason-header">${_t('Vì sao chọn món này', 'Why this dish')}</span><span class="nf-reason-text">${safe(_recipeReason(recipe))}</span></span>` : ''}
           <span class="nf-card-footer"><span>◷ ${safe(_trTime(recipe.cooking_time || ''))}</span><b>${_t('Xem chi tiết →', 'View recipe →')}</b></span>
         </span>
       </button>`;
@@ -469,20 +497,21 @@
 
   function renderDetail(recipe) {
     state.activeRecipe = recipe;
-    const displayTitle = (_isEn() && recipe.language === 'en' && recipe.title) ? recipe.title : (recipe.display_title || recipe.title);
-    const ingredients = (recipe.ingredients || []).map(item => `<div class="nf-ingredient"><span class="nf-ingredient-name"><span class="nf-ingredient-dot" aria-hidden="true"></span>${safe(item.name)}</span><b>${safe(item.amount)} ${safe(item.unit || '')}</b></div>`).join('');
-    const steps = (recipe.steps || []).map((step, i) => `<div class="nf-step"><span class="nf-step-number">${i + 1}</span><span>${safe(step)}</span></div>`).join('');
-    const avoid = (recipe.avoid || []).map(x => safe(_trRecipeNote(x))).join('<br>');
+    const translation = _recipeEn(recipe);
+    const displayTitle = _recipeTitle(recipe);
+    const ingredients = (recipe.ingredients || []).map((item, i) => `<div class="nf-ingredient"><span class="nf-ingredient-name"><span class="nf-ingredient-dot" aria-hidden="true"></span>${safe(translation?.ingredients?.[i] || item.name)}</span><b>${safe(item.amount)} ${safe(item.unit || '')}</b></div>`).join('');
+    const steps = (translation?.steps || recipe.steps || []).map((step, i) => `<div class="nf-step"><span class="nf-step-number">${i + 1}</span><span>${safe(step)}</span></div>`).join('');
+    const avoid = (translation?.avoid || recipe.avoid || []).map(x => safe(_trRecipeNote(x))).join('<br>');
     const servingMeta = recipe.imported
       ? (recipe.servings ? _t('Khẩu phần theo nguồn: ', 'Source servings: ') + safe(recipe.servings) : _t('Theo công thức gốc', 'Original recipe scale'))
       : _t('1 khẩu phần', '1 serving');
     const tagText = _trMealRoleTag(recipe);
     el('nf-detail-content').innerHTML = `<div class="nf-detail-grid">
       <div class="nf-detail-visual"><div class="nf-art">${recipeImage(recipe)}</div><p class="nf-detail-caption">◷ ${safe(_trTime(recipe.cooking_time || ''))} · ${safe(tagText)}</p></div>
-      <article class="nf-detail-copy"><p class="nf-overline">${safe(tagText)}</p><h2>${safe(displayTitle)}</h2><p class="nf-subtitle">${safe(_trSubtitle(recipe.subtitle || ''))}</p>${kcal(recipe.calories) ? `<span class="nf-kcal nf-kcal-detail">${kcal(recipe.calories)} · ${_t('ước tính cho món', 'dish estimate')}</span>` : ''}
+      <article class="nf-detail-copy"><p class="nf-overline">${safe(tagText)}</p><h2>${safe(displayTitle)}</h2><p class="nf-subtitle">${safe(_recipeSubtitle(recipe))}</p>${kcal(recipe.calories) ? `<span class="nf-kcal nf-kcal-detail">${kcal(recipe.calories)} · ${_t('ước tính cho món', 'dish estimate')}</span>` : ''}
       ${recipe.key_nutrients ? `<div class="nf-nutrients-badge" style="margin-bottom: 14px;"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất then chốt:', 'Key nutrients:')}</b> ${safe(recipe.key_nutrients)}</div>` : ''}
-      ${recipe.recommendation_reason ? `<div class="nf-recommendation-box"><strong>${_t('Vì sao chọn món này?', 'Why this dish?')}</strong><p class="nf-recommendation-desc">${safe(recipe.recommendation_reason)}</p>${recipe.ai_caution ? `<p class="nf-ai-caution">${safe(recipe.ai_caution)}</p>` : ''}</div>` : ''}
-      <h3>${_t('Thông tin công thức', 'Recipe note')}</h3><p class="nf-benefit">${safe(_trBenefit(recipe.benefit) || _t('Thông tin dinh dưỡng đang được cập nhật.', 'Nutritional details are being updated.'))}</p>
+      ${recipe.recommendation_reason ? `<div class="nf-recommendation-box"><strong>${_t('Vì sao chọn món này?', 'Why this dish?')}</strong><p class="nf-recommendation-desc">${safe(_recipeReason(recipe))}</p>${recipe.ai_caution ? `<p class="nf-ai-caution">${safe(recipe.ai_caution)}</p>` : ''}</div>` : ''}
+      <h3>${_t('Thông tin công thức', 'Recipe note')}</h3><p class="nf-benefit">${safe(_recipeBenefit(recipe) || _t('Thông tin dinh dưỡng đang được cập nhật.', 'Nutritional details are being updated.'))}</p>
       <h3>${_t('Nguyên liệu', 'Ingredients')} · ${servingMeta}</h3><div class="nf-ingredients">${ingredients}</div>
       <h3>${_t('Cách chế biến', 'Preparation Steps')}</h3><div class="nf-steps">${steps}</div>
       ${avoid ? `<aside class="nf-avoid"><strong>${_t('Lưu ý công thức', 'Recipe note')}</strong>${avoid}</aside>` : ''}</article></div>`;

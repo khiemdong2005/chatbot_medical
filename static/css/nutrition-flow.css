@@ -1061,14 +1061,15 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
 
 /* Keep the nutrition journey on MediMind's sky-blue clinical palette. */
 #doctor-tab.nutrition-flow {
-  --nf-accent: #147fa4;
-  --nf-accent-dark: #116d8e;
+  --nf-accent: #0877b0;
+  --nf-accent-dark: #035d91;
   --nf-line: #d5e7ed;
 }
 #doctor-tab .nf-logo {
-  background: linear-gradient(145deg, #2b99c9, #147fa4);
-  box-shadow: 0 12px 28px rgba(20, 127, 164, .24);
+  background: linear-gradient(145deg, #3b82f6, #0284c7);
+  box-shadow: 0 12px 28px rgba(2, 132, 199, .24);
 }
+#doctor-tab .nf-overline { color: #0369a1; }
 #doctor-tab .nf-examples { color: #617b8e; }
 #doctor-tab .nf-examples button,
 #doctor-tab .nf-preference-chip,
@@ -1082,20 +1083,24 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
 #doctor-tab .nf-examples button:focus-visible,
 #doctor-tab .nf-profile-link:hover { background: #e1f3f9; border-color: #8bc5da; }
 #doctor-tab .nf-search-box:focus-within {
-  border-color: #55a8c7;
-  box-shadow: 0 0 0 4px rgba(20, 127, 164, .12), var(--nf-shadow);
+  border-color: #55a8d7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, .12), var(--nf-shadow);
 }
 #doctor-tab .nf-condition-banner::before { background: var(--nf-accent); }
+#doctor-tab .nf-type-food,
+#doctor-tab .nf-type-drink { background: #edf8fc; color: var(--nf-accent); }
 #doctor-tab .nf-context,
 #doctor-tab .nf-meal-hero,
 #doctor-tab .nf-reason,
 #doctor-tab .nf-recommendation-box { background: #f3f9fc; border-color: #d5e7ed; }
+#doctor-tab .nf-notice,
+#doctor-tab .nf-notice[data-mode="ai"] { background: #edf8fc; border-color: #cfe7f0; color: #345d70; }
 #doctor-tab .nf-recommendation-box { border-left-color: var(--nf-accent); }
 #doctor-tab .nf-context { color: #21485a; }
 #doctor-tab .nf-context p { color: #607985; }
 #doctor-tab .nf-profile-link { border-color: #bddde9; color: #176d8b; }
 #doctor-tab .nf-mode-btn.active,
-#doctor-tab .nf-meal-pill.active { background: var(--nf-accent); border-color: var(--nf-accent); box-shadow: 0 4px 12px rgba(20, 127, 164, .2); }
+#doctor-tab .nf-meal-pill.active { background: var(--nf-accent); border-color: var(--nf-accent); box-shadow: 0 4px 12px rgba(2, 132, 199, .2); }
 #doctor-tab .nf-meal-hero-badge,
 #doctor-tab .nf-meal-dish-footer b,
 #doctor-tab .nf-meal-energy strong,
@@ -1103,7 +1108,7 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
 #doctor-tab .nf-reason-header,
 #doctor-tab .nf-recommendation-box > strong,
 #doctor-tab .nf-recommendation-badge,
-#doctor-tab .nf-evidence summary { color: #147fa4; }
+#doctor-tab .nf-evidence summary { color: #0369a1; }
 #doctor-tab .nf-meal-hero-title,
 #doctor-tab .nf-meal-staple b { color: #173747; }
 #doctor-tab .nf-meal-staple,
@@ -1135,6 +1140,8 @@ body:not(.light-glass) #doctor-tab .nf-preference-chip,
 body:not(.light-glass) #doctor-tab .nf-condition-banner > span { background: #153d50; border-color: #34677d; color: #a9def2; }
 body:not(.light-glass) #doctor-tab .nf-context,
 body:not(.light-glass) #doctor-tab .nf-evidence { background: #142c3b; border-color: #315263; color: #d8eaf1; }
+body:not(.light-glass) #doctor-tab .nf-notice,
+body:not(.light-glass) #doctor-tab .nf-notice[data-mode="ai"] { background: #14394d; border-color: #315d73; color: #b9dff1; }
 body:not(.light-glass) #doctor-tab .nf-context p,
 body:not(.light-glass) #doctor-tab .nf-evidence-content p { color: #b5cbd8; }
 body:not(.light-glass) #doctor-tab .nf-meal-hero,
@@ -1142,6 +1149,12 @@ body:not(.light-glass) #doctor-tab .nf-reason,
 body:not(.light-glass) #doctor-tab .nf-recommendation-box { background: #142c3b; border-color: #315263; color: #d8eaf1; }
 body:not(.light-glass) #doctor-tab .nf-meal-energy { background: #102635; border-color: #315263; }
 body:not(.light-glass) #doctor-tab .nf-meal-energy strong { color: #75c9eb; }
+body:not(.light-glass) #doctor-tab .nf-meal-hero-badge,
+body:not(.light-glass) #doctor-tab .nf-meal-dish-footer b,
+body:not(.light-glass) #doctor-tab .nf-rationale-head,
+body:not(.light-glass) #doctor-tab .nf-reason-header,
+body:not(.light-glass) #doctor-tab .nf-recommendation-box > strong,
+body:not(.light-glass) #doctor-tab .nf-evidence summary { color: #9bdcf6; }
 body:not(.light-glass) #doctor-tab .nf-mode-btn.active,
 body:not(.light-glass) #doctor-tab .nf-meal-pill.active { background: var(--nf-accent); border-color: var(--nf-accent); }
 

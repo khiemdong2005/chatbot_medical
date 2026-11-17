@@ -148,22 +148,18 @@ function handleSaveAllSettings() {
   const timezone = document.getElementById('set-timezone')?.value || 'UTC+7';
   const dateFormat = document.getElementById('set-date-format')?.value || 'DD/MM/YYYY';
   const pushNotif = document.getElementById('set-push-notif')?.checked ?? true;
-  const theme = document.getElementById('set-theme-select')?.value || 'light';
+  const theme = 'dark';
 
   // Apply language if changed
   if (lang !== currentLang) {
-    switchLanguage(lang);
+    setLanguage(lang);
   }
 
-  // Apply theme if changed
-  if (theme === 'dark') {
-    if (document.body.classList.contains('light-glass')) {
-      toggleGlassThemeMode();
-    }
-  } else if (theme === 'light') {
-    if (!document.body.classList.contains('light-glass')) {
-      toggleGlassThemeMode();
-    }
+  // Always lock theme to Dark Mode (submerged ocean canvas)
+  if (typeof applyThemeMode === 'function') {
+    applyThemeMode('dark');
+  } else if (typeof toggleGlassThemeMode === 'function') {
+    toggleGlassThemeMode();
   }
 
   // Save to localStorage
@@ -1348,13 +1344,14 @@ const STATIC_VI_EN_TEXT = {
   // Nutrition Flow
   "MEDIMIND · GỢI Ý DINH DƯỠNG": "MEDIMIND · NUTRITION STUDIO",
   "Hôm nay bạn muốn ăn gì cho phù hợp?": "What would you like to eat today?",
-  "Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ gợi ý món phù hợp với mô tả và hồ sơ của bạn.": "Enter a condition, symptom or eating preference. MediMind will suggest dishes using your search and saved profile.",
+  "Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ đưa ra công thức tham khảo theo mô tả và hồ sơ của bạn.": "Enter a condition, symptom or eating preference. MediMind will show reference recipes based on your search and saved profile.",
   "Tình trạng sức khỏe và nhu cầu ăn uống": "Health condition and eating preference",
   "Thử tìm:": "Try:",
   "Gút · ít dầu mỡ": "Gout · less oil",
   "Ít đường · không cay": "Less sugar · mild food",
   "Trào ngược · không cay": "Reflux · mild food",
-  "Gợi ý món có tham khảo Gemini; hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.": "Gemini may help rank dishes; check ingredients and portions before eating.",
+  "Gan nhiễm mỡ": "Fatty liver",
+  "MediMind lọc công thức tham khảo; Gemini có thể hỗ trợ xếp hạng. Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.": "MediMind filters reference recipes; Gemini may help rank them. Check ingredients and portions before eating.",
   "Hôm nay bạn cảm thấy thế nào?": "How are you feeling today?",
   "Nhập tâm trạng hoặc tình trạng sức khỏe để xem các công thức tham khảo.": "Enter your mood or health condition to explore tailored recipes.",
   "Tâm trạng hoặc tình trạng sức khỏe": "Mood or health condition",
@@ -1568,8 +1565,216 @@ const STATIC_VI_EN_TEXT = {
   "Liên hệ đặt khám:": "Appointment Contact:",
   "Đang cập nhật tổng đài": "Hotline updating",
   "Đặt lịch khám tại cơ sở này": "Book Appointment at This Facility",
-  "Định vị trên bản đồ": "Locate on Map"
+  "Định vị trên bản đồ": "Locate on Map",
+  // Remaining labels, placeholders and accessible names in the shared page.
+  "Hồ sơ cá nhân": "Personal Profile",
+  "Tự động chuyển đến Dashboard làm việc trong giây lát...": "Redirecting to your workspace shortly...",
+  "Lịch Sử Đơn Thuốc Của Bạn": "Your Prescription History",
+  "Xem lại các đơn thuốc đã tải lên, tóm tắt chẩn đoán và tra cứu lại toa thuốc": "Review uploaded prescriptions, diagnostic summaries, and medication details",
+  "Bạn chưa có đơn thuốc nào được lưu trữ. Hãy tải ảnh lên ở trên để bắt đầu theo dõi sức khỏe.": "No prescriptions saved yet. Upload an image above to start tracking your health.",
+  "Ảnh Đơn Thuốc Gốc (Phóng To)": "Original Prescription (Enlarged)",
+  "Gợi ý món ăn": "Suggested Dishes",
+  "Lọc bữa:": "Filter by meal:",
+  "Tất cả các món": "All dishes",
+  "☀️ Bữa sáng": "☀️ Breakfast",
+  "🍱 Bữa trưa": "🍱 Lunch",
+  "🌙 Bữa tối": "🌙 Dinner",
+  "🍵 Bữa phụ / Trước ngủ": "🍵 Snack / Before bed",
+  // Search and form placeholders.
+  "Email hoặc số điện thoại": "Email or phone number",
+  "Mô tả triệu chứng (ví dụ: đau tức ngực, sốt) hoặc gửi ảnh đơn thuốc...": "Describe symptoms (e.g., chest pain, fever) or send a prescription image...",
+  "Nhập câu hỏi của bạn...": "Enter your question...",
+  "Nhập email hoặc số di động": "Enter your email or mobile number",
+  "Nhập email hoặc số điện thoại đã đăng ký": "Enter your registered email or phone number",
+  "Nhập họ và tên": "Enter your full name",
+  "Nhập họ và tên đầy đủ": "Enter your full name",
+  "Nhập lại mật khẩu": "Re-enter your password",
+  "Nhập mật khẩu": "Enter your password",
+  "Nhập mật khẩu (tối thiểu 6 ký tự)": "Enter a password (at least 6 characters)",
+  "Nhập mật khẩu hiện tại": "Enter your current password",
+  "Nhập mật khẩu mới": "Enter your new password",
+  "Nhập mật khẩu mới (tối thiểu 6 ký tự)": "Enter a new password (at least 6 characters)",
+  "Số nhà, tên đường, Quận/Huyện, Tỉnh/Thành phố...": "House number, street, district, city/province...",
+  "Tìm bệnh viện, phòng khám hoặc địa chỉ...": "Search hospitals, clinics, or addresses...",
+  "Tìm bệnh viện, phòng khám, quận/huyện...": "Search hospitals, clinics, or districts...",
+  "Tìm kiếm phiên tư vấn...": "Search consultation history...",
+  "Ví dụ: 0901234567": "Example: 0901234567",
+  "Ví dụ: 0912 345 678": "Example: 0912 345 678",
+  "Ví dụ: 168": "Example: 168",
+  "Ví dụ: 58.5": "Example: 58.5",
+  "Ví dụ: Nguyễn Văn A": "Example: Nguyen Van A",
+  "Ví dụ: Penicillin, Hải sản, Aspirin...": "Example: Penicillin, seafood, Aspirin...",
+  "Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…": "Example: gout, low sugar, mild food, light dinner…",
+  "Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc...": "Example: Sore throat, mild fever for 2 days, palpitations at work...",
+  "Xác nhận mật khẩu mới": "Confirm new password",
+  // Button tooltips and accessibility labels.
+  "Chỉ số sinh tồn": "Vital signs",
+  "Cuộc trò chuyện mới": "New conversation",
+  "Google Maps — Cơ sở y tế tại TP.HCM": "Google Maps — Healthcare facilities in Ho Chi Minh City",
+  "Gửi tin nhắn": "Send message",
+  "Hiện/ẩn mật khẩu": "Show/hide password",
+  "Hồ sơ bệnh án": "Medical records",
+  "Khám lâm sàng": "Clinical consultation",
+  "Làm mới lịch sử": "Refresh history",
+  "Làm mới vùng tải đơn thuốc": "Reset prescription upload area",
+  "Mở toàn màn hình": "Open full screen",
+  "Nhấn để đổi ảnh đại diện": "Click to change profile photo",
+  "Thông báo lâm sàng": "Clinical notifications",
+  "Toàn cảnh tất cả bệnh viện": "Overview of all hospitals",
+  "Tìm cơ sở y tế gần tôi": "Find nearby healthcare facilities",
+  "Tắt hoàn toàn": "Turn off",
+  "Đính kèm ảnh lâm sàng": "Attach clinical image",
+  "Định vị vị trí của tôi": "Locate my position",
+  "Đổi giao diện Sáng / Tối": "Switch light/dark theme",
+  "Ẩn/Hiện email": "Show/hide email",
+  "Ẩn/Hiện số điện thoại": "Show/hide phone number",
+  "Bật thông báo đẩy": "Enable push notifications",
+  "Chiều cao": "Height",
+  "Chọn tài liệu đơn thuốc lâm sàng": "Choose a prescription document",
+  "Chữ số OTP 0": "OTP digit 0",
+  "Chữ số OTP 1": "OTP digit 1",
+  "Chữ số OTP 2": "OTP digit 2",
+  "Chữ số OTP 3": "OTP digit 3",
+  "Chữ số OTP 4": "OTP digit 4",
+  "Chữ số OTP 5": "OTP digit 5",
+  "Email hoặc số điện thoại Google": "Google email or phone number",
+  "Email liên hệ": "Contact email",
+  "Gợi ý tìm kiếm": "Search suggestions",
+  "Họ và tên bệnh nhân": "Patient full name",
+  "Mật khẩu hiện tại": "Current password",
+  "Mật khẩu mới": "New password",
+  "Mở cửa sổ trò chuyện tư vấn y tế": "Open health consultation chat",
+  "Ngày khám": "Appointment date",
+  "Nhập câu hỏi tư vấn y tế nhanh": "Enter a quick health question",
+  "Năm sinh": "Birth year",
+  "Nội dung câu hỏi y tế": "Health question",
+  "Tháng sinh": "Birth month",
+  "Tìm gợi ý": "Find suggestions",
+  "Tìm kiếm bệnh viện phòng khám": "Search hospitals and clinics",
+  "Tìm kiếm cơ sở y tế": "Search healthcare facilities",
+  "Tìm kiếm lịch sử tư vấn": "Search consultation history",
+  "Tải ảnh lên đoạn chat": "Upload an image to the chat",
+  "Tải ảnh đại diện mới": "Upload a new profile photo",
+  "Xác nhận đồng ý tóm tắt": "Confirm summary consent",
+  "Đóng bảng chi tiết": "Close details panel",
+  "Đóng cửa sổ chọn tài khoản Google": "Close Google account chooser",
+  "Địa chỉ": "Address",
+  "Đơn thuốc gốc": "Original prescription",
+  "Ảnh tổn thương": "Clinical image",
+  "Ảnh đối chiếu": "Reference image",
+  // Short feedback shown after common actions.
+  "Chưa có dòng dữ liệu nào để lưu. Hãy thêm dòng đúng theo phiếu gốc.": "There are no rows to save. Add rows matching the original document.",
+  "Chưa xóa được hội thoại trên máy chủ. Lịch sử vẫn được giữ để bạn thử lại.": "The conversation could not be deleted from the server. Your history is kept so you can retry.",
+  "Cập nhật hồ sơ thông tin cá nhân thành công!": "Your profile was updated successfully!",
+  "Dữ liệu đơn thuốc mẫu không hợp lệ.": "The sample prescription data is invalid.",
+  "Hãy bắt đầu hội thoại trước khi xem bản nháp.": "Start a conversation before viewing the draft.",
+  "Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.": "The service is busy or unavailable. Try uploading the image again or choose a sample.",
+  "Hội thoại chưa có tin nhắn để xuất.": "There are no messages to export yet.",
+  "Không thể kết nối máy chủ Google OAuth.": "Could not connect to Google sign-in.",
+  "Không thể kết nối máy chủ gửi OTP.": "Could not connect to the verification code service.",
+  "Không thể kết nối máy chủ xác thực.": "Could not connect to the authentication service.",
+  "Không thể kết nối máy chủ để đổi mật khẩu.": "Could not connect to the server to change your password.",
+  "Không thể kết nối tới máy chủ CSDL.": "Could not connect to the database server.",
+  "Không thể kết nối đến máy chủ để nạp hồ sơ mẫu.": "Could not load the sample record from the server.",
+  "Không thể kết nối đến máy chủ để tải tệp lên.": "Could not connect to the server to upload the file.",
+  "Không thể kết nối đến máy chủ để tải đơn thuốc.": "Could not load the prescription from the server.",
+  "Không thể kết nối đến máy chủ.": "Could not connect to the server.",
+  "Không thể lấy vị trí GPS thực. Đang dùng khoảng cách ước tính mặc định.": "Could not get your GPS position. Using an estimated distance.",
+  "Không thể lấy vị trí GPS. Đang dùng khoảng cách ước tính mặc định.": "Could not get your GPS position. Using an estimated distance.",
+  "Lỗi khi xác nhận lời khai": "Could not confirm the reported information",
+  "Lỗi kết nối khi xóa đơn thuốc.": "Connection error while deleting the prescription.",
+  "Lỗi kết nối máy chủ khi lưu hồ sơ.": "Server connection error while saving the record.",
+  "Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.": "Sign-in is slow or unavailable. Please try again.",
+  "Mật khẩu phải có ít nhất 6 ký tự.": "Password must be at least 6 characters.",
+  "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995).": "Date of birth must use DD/MM/YYYY format (e.g., 15/08/1995).",
+  "Phiên cũ chưa có bản tóm tắt theo hội thoại.": "This earlier conversation has no summary.",
+  "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.": "Your session has expired. Please sign in again.",
+  "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số).": "Phone number must contain 9 to 11 digits.",
+  "Số điện thoại không hợp lệ (cần đúng 10 chữ số).": "Phone number must contain exactly 10 digits.",
+  "Trình duyệt không hỗ trợ Geolocation GPS.": "Your browser does not support GPS location.",
+  "Vui lòng nhập họ và tên.": "Please enter your full name.",
+  "Vui lòng nhập đầy đủ tài khoản và mật khẩu.": "Please enter your account and password.",
+  "Vui lòng nhập đủ 6 chữ số của mã OTP.": "Please enter all six verification code digits.",
+  "Vui lòng điền đầy đủ Họ và Tên, Email hoặc Số di động và mật khẩu.": "Please enter your name, email or mobile number, and password.",
+  "Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.": "Please sign in to scan and save prescriptions.",
+  "Vui lòng đăng nhập để lưu và đồng bộ hồ sơ lên hệ thống.": "Please sign in to save and sync your profile.",
+  "Xem thử tính năng nhắc thuốc: Đây là bản minh họa giao diện các cữ uống thuốc trong ngày.": "Medication reminder preview: This is an example of daily medication times.",
+  "Xác thực Google thành công! Vui lòng xác nhận thông tin để bắt đầu sử dụng.": "Google sign-in succeeded. Please confirm your details to continue.",
+  "Đang tạo bản in / kết xuất PDF hồ sơ bệnh án...": "Preparing the medical record PDF...",
+  "Đang xác định vị trí GPS thực tế...": "Finding your GPS position...",
+  "Đã cập nhật ảnh đại diện thành công!": "Your profile photo was updated successfully!",
+  "Đã hủy hoàn tất đăng ký Google (hồ sơ chưa được tạo).": "Google registration was cancelled; no profile was created.",
+  "Đã lưu bản tóm tắt vào hồ sơ.": "The summary was saved to your record.",
+  "Đã mở hồ sơ bệnh nhân mẫu (Chế độ trải nghiệm)": "Opened the sample patient record (demo mode)",
+  "Đã nạp hội thoại mẫu (Demo). Đây là dữ liệu minh họa, không phải lịch sử y tế thật.": "Loaded a sample conversation. This is demo data, not real medical history.",
+  "Đã tắt chatbot nổi. Bạn có thể mở lại khi quay lại tab Trang chủ.": "The floating assistant was closed. Return to Home to reopen it.",
+  "Đã xóa phiên tư vấn khỏi lịch sử.": "The consultation was removed from history.",
+  "Đã xóa thành công đơn thuốc khỏi lịch sử hồ sơ.": "The prescription was removed from your history.",
+  "✅ Đã xác nhận đơn thuốc thành công! Đang hiển thị hướng dẫn lâm sàng & lịch uống 4 cữ.": "✅ Prescription confirmed. Showing clinical guidance and the medication schedule."
 };
+
+const staticTextSources = new WeakMap();
+const staticAttributeSources = new WeakMap();
+
+function staticEnglishText(value) {
+  const normalized = String(value).replace(/\s+/g, ' ').trim();
+  if (!Object.prototype.hasOwnProperty.call(STATIC_VI_EN_TEXT, normalized)) return null;
+  const translated = STATIC_VI_EN_TEXT[normalized];
+  const leading = String(value).match(/^\s*/)[0];
+  const trailing = String(value).match(/\s*$/)[0];
+  return leading + translated + trailing;
+}
+
+function translateStaticDom() {
+  if (!document.body || typeof document.createTreeWalker !== 'function') return;
+  const dynamicContent = '#chat-messages, #chat-history-list, #floating-chat-messages, #prescription-history-list, #prescription-verify-section, #prescription-result-section, #nf-cards, #nf-detail-content, #nf-full-meal-wrap, #nf-context';
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const parent = node.parentElement;
+    if (!parent || parent.closest('script, style, noscript, svg, textarea, [data-i18n], [contenteditable], #lang-dropdown-menu, #set-language, ' + dynamicContent)) continue;
+    const current = node.nodeValue;
+    const original = staticTextSources.get(node);
+    if (currentLang === 'vi') {
+      if (original !== undefined) {
+        if (current === staticEnglishText(original)) node.nodeValue = original;
+        staticTextSources.delete(node);
+      }
+      continue;
+    }
+    if (original !== undefined && current === staticEnglishText(original)) continue;
+    const english = staticEnglishText(current);
+    if (english && current !== english) {
+      staticTextSources.set(node, current);
+      node.nodeValue = english;
+    }
+  }
+
+  document.querySelectorAll('[placeholder], [title], [aria-label], [alt]').forEach(el => {
+    if (el.closest(dynamicContent)) return;
+    const sources = staticAttributeSources.get(el) || {};
+    for (const attr of ['placeholder', 'title', 'aria-label', 'alt']) {
+      if (!el.hasAttribute(attr) || el.hasAttribute('data-i18n-' + (attr === 'aria-label' ? 'aria' : attr))) continue;
+      const current = el.getAttribute(attr);
+      const original = sources[attr];
+      if (currentLang === 'vi') {
+        if (original !== undefined) {
+          if (current === staticEnglishText(original)) el.setAttribute(attr, original);
+          delete sources[attr];
+        }
+        continue;
+      }
+      if (original !== undefined && current === staticEnglishText(original)) continue;
+      const english = staticEnglishText(current);
+      if (english && current !== english) {
+        sources[attr] = current;
+        el.setAttribute(attr, english);
+      }
+    }
+    if (Object.keys(sources).length) staticAttributeSources.set(el, sources);
+    else staticAttributeSources.delete(el);
+  });
+}
 
 
 
@@ -1596,12 +1801,20 @@ function setLanguage(lang) {
   applyLanguage();
   updateAuthUI();
   if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
+  translateStaticDom();
+  window.dispatchEvent(new Event('medimind:langchange'));
 }
 
 function applyLanguage() {
   const dict = translations[currentLang] || translations.vi;
+  if (document.documentElement) document.documentElement.lang = currentLang;
+  document.title = currentLang === 'en'
+    ? 'MediMind Clinical AI — Health Assistant & Clinical Triage'
+    : 'MediMind Clinical AI — Trợ lý Y tế & Sàng lọc Lâm sàng';
   const currentLangCode = document.getElementById('current-lang-code');
   if (currentLangCode) currentLangCode.innerText = currentLang.toUpperCase();
+  const settingsLanguage = document.getElementById('set-language');
+  if (settingsLanguage) settingsLanguage.value = currentLang;
 
   const checkVi = document.getElementById('check-vi');
   const checkEn = document.getElementById('check-en');
@@ -1645,6 +1858,13 @@ function applyLanguage() {
     }
   });
 
+  for (const [marker, attribute] of [['data-i18n-title', 'title'], ['data-i18n-aria', 'aria-label']]) {
+    document.querySelectorAll('[' + marker + ']').forEach(el => {
+      const value = dict[el.getAttribute(marker)];
+      if (value) el.setAttribute(attribute, value);
+    });
+  }
+
   // Re-sync all dynamic view components across tabs
   if (typeof updateHomeGreeting === 'function') updateHomeGreeting();
   if (typeof updateEhrTabUI === 'function') updateEhrTabUI();
@@ -1652,6 +1872,7 @@ function applyLanguage() {
   if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
   if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
   if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
+  translateStaticDom();
 }
 
 function insertQuickPrompt(num) {
@@ -2704,7 +2925,7 @@ async function loadScanFiles() {
 }
 
 async function deleteScanFile(encodedName) {
-  if (!confirm('Bạn có chắc chắn muốn xóa tệp này khỏi bộ dữ liệu huấn luyện không?')) return;
+  if (!confirm(currentLang === 'en' ? 'Delete this file from the training dataset?' : 'Bạn có chắc chắn muốn xóa tệp này khỏi bộ dữ liệu huấn luyện không?')) return;
   try {
     const res = await fetch('/api/scan-files/' + encodedName, { method: 'DELETE' });
     const data = await res.json();
@@ -3357,20 +3578,7 @@ function handleCrossTabMessage(data) {
   console.log('⚡ [Cross-Tab Sync 0.01s] Event received:', data.type, data.payload);
 
   if (data.type === 'THEME_CHANGE') {
-    const targetTheme = data.payload?.theme || 'light';
-    const isCurrentlyLight = document.body.classList.contains('light-glass');
-    if ((targetTheme === 'light' && !isCurrentlyLight) || (targetTheme === 'dark' && isCurrentlyLight)) {
-      if (targetTheme === 'light') {
-        document.body.classList.add('light-glass');
-        document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.light;
-      } else {
-        document.body.classList.remove('light-glass');
-        document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
-      }
-      document.body.style.backgroundAttachment = 'fixed';
-      localStorage.setItem('medimind_theme', targetTheme);
-      if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
-    }
+    applyThemeMode('dark');
   } else if (data.type === 'AUTH_LOGIN' || data.type === 'PROFILE_UPDATE' || data.type === 'AUTH_PROFILE_UPDATE') {
     if (data.payload?.user) {
       const previousUserId = currentUser?.id;
@@ -4215,7 +4423,7 @@ function updateAuthUI() {
     const setTheme = document.getElementById('set-theme-select');
     if (setLang) setLang.value = currentLang;
     if (setTheme) {
-      setTheme.value = document.body.classList.contains('light-glass') ? 'light' : 'dark';
+      setTheme.value = 'dark';
     }
 
     // Facebook Style Avatar Sync
@@ -5081,12 +5289,13 @@ function showMedicalToast(message, type = 'info', duration = 3500) {
     info: `<svg class="w-5 h-5 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
   };
 
-  const safeMessage = typeof message === 'string' ? escapeHtml(message) : escapeHtml(String(message ?? ''));
+  const displayMessage = currentLang === 'en' ? (staticEnglishText(message)?.trim() || message) : message;
+  const safeMessage = escapeHtml(String(displayMessage ?? ''));
   toast.className = `pointer-events-auto transform transition-all duration-300 ease-out translate-y-[-10px] opacity-0 flex items-start gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl shadow-xl text-xs font-semibold leading-relaxed ${typeStyles[type] || typeStyles.info}`;
   toast.innerHTML = `
     ${icons[type] || icons.info}
     <div class="flex-1">${safeMessage}</div>
-    <button onclick="this.parentElement.remove()" aria-label="Đóng thông báo" class="text-slate-400 hover:text-white transition-colors ml-1 cursor-pointer">✕</button>
+    <button onclick="this.parentElement.remove()" aria-label="${currentLang === 'en' ? 'Close notification' : 'Đóng thông báo'}" class="text-slate-400 hover:text-white transition-colors ml-1 cursor-pointer">✕</button>
   `;
 
   container.appendChild(toast);
@@ -5424,7 +5633,7 @@ async function viewPrescriptionHistoryItem(docId) {
 
 async function deletePrescriptionHistoryItem(docId, e) {
   if (e) e.stopPropagation();
-  if (!confirm('Bạn có chắc chắn muốn xóa bản ghi đơn thuốc này khỏi lịch sử hồ sơ của mình không?')) return;
+  if (!confirm(currentLang === 'en' ? 'Delete this prescription record from your history?' : 'Bạn có chắc chắn muốn xóa bản ghi đơn thuốc này khỏi lịch sử hồ sơ của mình không?')) return;
 
   try {
     const res = await fetch(`/api/prescription/history/${docId}`, { method: 'DELETE' });
@@ -6635,31 +6844,31 @@ const medicalWallpapers = [
 let currentWallpaperIndex = 0;
 
 const CLINICAL_CYAN_GLOW = {
-  light: 'radial-gradient(ellipse at 20% 10%, rgba(56, 189, 248, 0.14) 0%, transparent 50%), linear-gradient(180deg, #F0F9FF 0%, #E0F2FE 100%)',
-  dark: 'radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #050B14 0%, #081324 50%, #03070D 100%)'
+  light: "linear-gradient(115deg, rgba(5, 18, 34, 0.42), rgba(8, 31, 53, 0.20) 52%, rgba(5, 18, 34, 0.40)), url('/static/images/background-ocean.jpg')",
+  dark: "linear-gradient(115deg, rgba(5, 18, 34, 0.52), rgba(8, 31, 53, 0.30) 52%, rgba(5, 18, 34, 0.50)), url('/static/images/background-ocean.jpg')"
 };
 
 function applyThemeMode(theme) {
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-  document.body.classList.toggle('light-glass', theme === 'light');
-  document.body.classList.toggle('dark', theme === 'dark');
-  document.body.style.backgroundImage = CLINICAL_CYAN_GLOW[theme];
+  document.documentElement.classList.add('dark');
+  document.body.classList.remove('light-glass');
+  document.body.classList.add('dark');
+  document.body.style.backgroundImage = CLINICAL_CYAN_GLOW.dark;
   document.body.style.backgroundAttachment = 'fixed';
+  localStorage.setItem('medimind_theme', 'dark');
   if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
   if (typeof syncDrawerTheme === 'function') syncDrawerTheme();
   if (typeof window.syncDrawerTheme === 'function') window.syncDrawerTheme();
 }
 
 function initThemeMode() {
-  applyThemeMode(localStorage.getItem('medimind_theme') === 'dark' ? 'dark' : 'light');
+  applyThemeMode('dark');
   document.querySelectorAll('.dock-btn').forEach(btn => btn.removeAttribute('title'));
 }
 
 function toggleGlassThemeMode() {
-  const theme = document.body.classList.contains('light-glass') ? 'dark' : 'light';
-  applyThemeMode(theme);
-  localStorage.setItem('medimind_theme', theme);
-  broadcastTabEvent('THEME_CHANGE', { theme });
+  applyThemeMode('dark');
+  localStorage.setItem('medimind_theme', 'dark');
+  broadcastTabEvent('THEME_CHANGE', { theme: 'dark' });
 }
 
 function cycleMedicalWallpaper() {
