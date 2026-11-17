@@ -40,6 +40,11 @@ class OtpManager:
         Khởi tạo và gửi mã OTP 6 số qua Email hoặc SMS.
         Trả về: (thành công, thông báo, thời gian chờ còn lại tính bằng giây)
         """
+        # Kiểm tra trước số điện thoại nếu là kênh SMS (Chỉ hỗ trợ đầu số Việt Nam, chặn quốc tế)
+        if channel == "sms":
+            if not sms_service.normalize_phone(identifier):
+                return False, "Hệ thống chỉ hỗ trợ gửi mã OTP qua số điện thoại nội địa Việt Nam (+84). Đã chặn gửi OTP quốc tế.", 0
+
         with self._lock:
             self._cleanup_expired()
             key = f"{channel}:{identifier.strip().lower()}"

@@ -34,6 +34,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="patient")  # 'patient' hoặc 'doctor'
+    account_status = db.Column(db.String(20), nullable=False, default="active")  # 'active' / 'suspended'
+    google_sub = db.Column(db.String(255), nullable=True)
     license_code = db.Column(db.String(50), nullable=True)  # Chứng chỉ hành nghề (Bác sĩ)
     phone_number = db.Column(db.String(20), nullable=True)
     dob = db.Column(db.String(50), nullable=True)  # Ngày sinh (VD: 15/08/1995)
@@ -43,6 +45,7 @@ class User(db.Model):
     avatar_url = db.Column(db.String(500), nullable=True)
     clinical_profile = db.Column(db.Text, nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     def set_password(self, password: str) -> None:
         """Băm mật khẩu 1 chiều an toàn bằng thuật toán scrypt/pbkdf2."""
