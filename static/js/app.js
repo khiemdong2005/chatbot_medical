@@ -3301,7 +3301,6 @@ function closeProfileModal() {
 }
 
 function syncAuthModalTheme() {
-  const isLight = document.body.classList.contains('light-glass');
   const card = document.getElementById('auth-modal-card');
   const title = document.getElementById('auth-modal-title');
   const modal = document.getElementById('login-modal');
@@ -3313,52 +3312,27 @@ function syncAuthModalTheme() {
 
   if (!card) return;
 
-  if (isLight) {
-    card.classList.remove('bg-slate-900/95', 'text-white', 'border-white/15');
-    card.classList.add('bg-white', 'text-slate-900', 'border-slate-200', 'shadow-2xl');
-    if (title) {
-      title.classList.remove('text-white');
-      title.classList.add('text-slate-900');
-    }
-    if (modal) {
-      modal.classList.remove('bg-black/60');
-      modal.classList.add('bg-slate-900/40');
-    }
-    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-white rounded-full";
-    if (divLineLeft) divLineLeft.className = "border-t border-slate-200 w-full";
-    if (divLineRight) divLineRight.className = "border-t border-slate-200 w-full";
-    if (btnGoogle) {
-      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 border border-slate-300/80 cursor-pointer";
-      const span = btnGoogle.querySelector('span');
-      if (span) span.className = "font-semibold text-slate-700";
-    }
-    if (googleCard) {
-      googleCard.classList.remove('bg-slate-900', 'text-white', 'border-white/15');
-      googleCard.classList.add('bg-white', 'text-slate-800', 'border-slate-200');
-    }
-  } else {
-    card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200');
-    card.classList.add('bg-slate-900/95', 'text-white', 'border-white/15', 'shadow-2xl');
-    if (title) {
-      title.classList.remove('text-slate-900');
-      title.classList.add('text-white');
-    }
-    if (modal) {
-      modal.classList.remove('bg-slate-900/40');
-      modal.classList.add('bg-black/60');
-    }
-    if (dividerBadge) dividerBadge.className = "px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap bg-slate-900 rounded-full";
-    if (divLineLeft) divLineLeft.className = "border-t border-white/10 w-full";
-    if (divLineRight) divLineRight.className = "border-t border-white/10 w-full";
-    if (btnGoogle) {
-      btnGoogle.className = "w-full py-2.5 px-4 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs sm:text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-3 border border-white/15 cursor-pointer";
-      const span = btnGoogle.querySelector('span');
-      if (span) span.className = "font-semibold text-white";
-    }
-    if (googleCard) {
-      googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
-      googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
-    }
+  card.classList.remove('bg-white', 'text-slate-900', 'border-slate-200', 'bg-[#f8f9fb]', 'text-[#383b45]');
+  card.classList.add('text-white');
+  if (title) {
+    title.classList.remove('text-slate-900', 'text-[#383b45]');
+    title.classList.add('text-white');
+  }
+  if (modal) {
+    modal.classList.remove('bg-slate-900/40', 'bg-white');
+  }
+  if (dividerBadge) {
+    dividerBadge.className = "text-xs font-medium text-slate-400 lowercase whitespace-nowrap bg-transparent";
+  }
+  if (divLineLeft) divLineLeft.className = "flex-1 h-px bg-white/15";
+  if (divLineRight) divLineRight.className = "flex-1 h-px bg-white/15";
+  if (btnGoogle) {
+    const span = btnGoogle.querySelector('span');
+    if (span) span.className = "font-semibold text-white";
+  }
+  if (googleCard) {
+    googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
+    googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
   }
   if (typeof toggleAuthMode === 'function') {
     toggleAuthMode(currentAuthMode);
@@ -3459,6 +3433,10 @@ function populateDobDropdowns() {
   populateModalDobDropdowns('edit-profile-dob-day', 'edit-profile-dob-month', 'edit-profile-dob-year', curEditDob);
 }
 
+function startForgotPasswordFlow() {
+  toggleAuthMode('forgot');
+}
+
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
   currentAuthMode = mode;
@@ -3466,6 +3444,8 @@ function toggleAuthMode(mode) {
   const titleEl = document.getElementById('auth-modal-title');
   const loginForm = document.getElementById('login-form');
   const regForm = document.getElementById('register-form');
+  const forgotForm = document.getElementById('forgot-form');
+  const forgotSubtitle = document.getElementById('auth-forgot-subtitle');
   const otpForm = document.getElementById('otp-form');
   const googleContainer = document.getElementById('google-auth-container');
   const socialDivider = document.getElementById('auth-social-divider');
@@ -3473,12 +3453,12 @@ function toggleAuthMode(mode) {
   const tabLogin = document.getElementById('tab-auth-login');
   const tabReg = document.getElementById('tab-auth-register');
 
-  const isLight = document.body.classList.contains('light-glass');
-
   if (mode === 'login') {
     if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
     if (loginForm) loginForm.classList.remove('hidden');
     if (regForm) regForm.classList.add('hidden');
+    if (forgotForm) forgotForm.classList.add('hidden');
+    if (forgotSubtitle) forgotSubtitle.classList.add('hidden');
     if (otpForm) otpForm.classList.add('hidden');
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
@@ -3489,23 +3469,17 @@ function toggleAuthMode(mode) {
     }
 
     if (tabLogin) {
-      if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      }
+      tabLogin.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
     }
     if (tabReg) {
-      if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
-      } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
-      }
+      tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
     }
   } else if (mode === 'register') {
     if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.remove('hidden');
+    if (forgotForm) forgotForm.classList.add('hidden');
+    if (forgotSubtitle) forgotSubtitle.classList.add('hidden');
     if (otpForm) otpForm.classList.add('hidden');
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
@@ -3516,23 +3490,28 @@ function toggleAuthMode(mode) {
     }
 
     if (tabReg) {
-      if (isLight) {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-white text-sky-600 font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      } else {
-        tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
-      }
+      tabReg.className = "flex-1 py-2 px-3 rounded-lg bg-sky-500 text-white font-bold shadow-xs border-0 transition-all cursor-pointer active";
     }
     if (tabLogin) {
-      if (isLight) {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-500 hover:text-slate-900 font-medium transition-all cursor-pointer";
-      } else {
-        tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
-      }
+      tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
     }
+  } else if (mode === 'forgot') {
+    if (titleEl) titleEl.innerText = "Đặt lại mật khẩu";
+    if (loginForm) loginForm.classList.add('hidden');
+    if (regForm) regForm.classList.add('hidden');
+    if (otpForm) otpForm.classList.add('hidden');
+    if (forgotForm) forgotForm.classList.remove('hidden');
+    if (forgotSubtitle) forgotSubtitle.classList.remove('hidden');
+    if (googleContainer) googleContainer.classList.add('hidden');
+    if (socialDivider) socialDivider.classList.add('hidden');
+    if (tabsContainer) tabsContainer.classList.add('hidden');
+    document.getElementById('forgot-identifier')?.focus();
   } else if (mode === 'otp') {
     if (titleEl) titleEl.innerText = "Xác thực mã bảo mật (OTP)";
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.add('hidden');
+    if (forgotForm) forgotForm.classList.add('hidden');
+    if (forgotSubtitle) forgotSubtitle.classList.add('hidden');
     if (otpForm) otpForm.classList.remove('hidden');
     if (googleContainer) googleContainer.classList.add('hidden');
     if (socialDivider) socialDivider.classList.add('hidden');

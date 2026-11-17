@@ -709,7 +709,28 @@ body.light-glass .text-slate-500 {
 }
 
 /* 8. MODALS */
-#login-modal .glass-panel-elevated,
+#login-modal,
+#login-modal.auth-4exam-shell {
+  background-color: var(--ocean-deep, #040d1a) !important;
+  background-image:
+    linear-gradient(135deg, rgba(3, 12, 24, 0.65), rgba(6, 22, 42, 0.45) 50%, rgba(3, 12, 24, 0.70)),
+    var(--ocean-bg-url) !important;
+  background-position: center, center 48% !important;
+  background-size: cover, cover !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  color: #ffffff !important;
+}
+
+#login-modal #auth-left-hero,
+#auth-left-hero {
+  display: none !important;
+}
+
+#login-modal #auth-modal-card,
+#login-modal.auth-4exam-shell #auth-modal-card,
 #auth-modal-card,
 #medical-record-modal .glass-panel-elevated,
 #profile-modal .glass-panel-elevated,
@@ -717,9 +738,156 @@ body.light-glass .text-slate-500 {
 #facility-booking-modal .glass-panel-elevated,
 #facility-detail-modal .glass-panel-elevated {
   background: rgba(6, 20, 38, 0.68) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #ffffff !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 35px rgba(56, 189, 248, 0.15) !important;
+}
+
+#login-modal #auth-modal-card,
+#login-modal.auth-4exam-shell #auth-modal-card {
+  max-width: 460px !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 94vh !important;
+  margin: auto !important;
+  border-radius: 28px !important;
+  padding: 28px 32px !important;
+  overflow-y: auto !important;
+}
+
+#login-modal.auth-4exam-shell #auth-modal-title,
+#login-modal #auth-modal-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-label,
+#login-modal .auth-4e-label {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-input,
+#login-modal .auth-4e-input {
+  height: 48px !important;
+  background-color: rgba(4, 18, 36, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-input::placeholder,
+#login-modal .auth-4e-input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-input:focus,
+#login-modal .auth-4e-input:focus {
+  background-color: rgba(6, 26, 52, 0.75) !important;
+  border-color: rgba(56, 189, 248, 0.8) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35) !important;
+  outline: none !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-google-btn,
+#login-modal .auth-4e-google-btn {
+  height: 48px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-google-btn:hover,
+#login-modal .auth-4e-google-btn:hover {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.2) !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-google-btn span,
+#login-modal .auth-4e-google-btn span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-cta-btn,
+#login-modal .auth-4e-cta-btn {
+  height: 48px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(56, 189, 248, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-cta-btn:hover,
+#login-modal .auth-4e-cta-btn:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #4338ca 100%) !important;
+  box-shadow: 0 12px 30px rgba(56, 189, 248, 0.55) !important;
+  transform: translateY(-1px) !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-link,
+#login-modal .auth-4e-link {
+  color: #38bdf8 !important;
+  -webkit-text-fill-color: #38bdf8 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-link:hover,
+#login-modal .auth-4e-link:hover {
+  color: #7dd3fc !important;
+  -webkit-text-fill-color: #7dd3fc !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-forgot,
+#login-modal .auth-4e-forgot {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-forgot:hover,
+#login-modal .auth-4e-forgot:hover {
+  color: #38bdf8 !important;
+  -webkit-text-fill-color: #38bdf8 !important;
+}
+
+#login-modal.auth-4exam-shell .otp-digit,
+#login-modal .otp-digit {
+  background-color: rgba(4, 18, 36, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#login-modal.auth-4exam-shell .otp-digit:focus,
+#login-modal .otp-digit:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4) !important;
+  background-color: rgba(6, 26, 52, 0.8) !important;
 }
