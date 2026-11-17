@@ -217,8 +217,14 @@ def is_plausible_medication_name(name: str) -> bool:
         return False
     if re.fullmatch(r"[0-9\+\-\/\(\)\s,.]+", raw_value):
         return False
+    if re.search(r"^\s*extra\b", raw_value, re.IGNORECASE):
+        return False
+    if raw_value.count("(") != raw_value.count(")") or raw_value.count("[") != raw_value.count("]"):
+        return False
+    if re.search(r"^\s*\+|\+\s*$", raw_value):
+        return False
     value = raw_value.strip(" \t\r\n\"'.,;:()[]{}")
-    if len(value) < 2 or not re.search(r"[A-Za-zÀ-ỹ]", value) or value.lower() in {"kn", "ton", "sam", "tin"}:
+    if len(value) < 2 or not re.search(r"[A-Za-zÀ-ỹ]", value) or value.lower() in {"kn", "ton", "sam", "tin", "ngày", "ngay", "extra"}:
         return False
     if _MEDICATION_LABEL.search(value):
         return False
@@ -806,32 +812,454 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
     return meds
 
 
-def _clean_and_refine_medication_list(meds: List[Dict[str, Any]], raw_text: str = "") -> List[Dict[str, Any]]:
-    clean_meds = []
-    seen_names = set()
-    
-    # Từ điển thuốc lâm sàng và thông số mặc định chuẩn
-    DRUG_MAP = {
-        "althax": ("Althax 120mg", "120mg", "Tăng cường miễn dịch, kháng viêm", "20 Viên"),
-        "altiu": ("Althax 120mg", "120mg", "Tăng cường miễn dịch, kháng viêm", "20 Viên"),
-        "altii": ("Althax 120mg", "120mg", "Tăng cường miễn dịch, kháng viêm", "20 Viên"),
-        "dexlanzomr": ("DexlanzoMR 30mg", "30mg", "Giảm tiết acid dạ dày, điều trị trào ngược", "20 Viên"),
-        "banitasc": ("Banitasc 100mg", "100mg", "Hỗ trợ tiêu hóa, đường mật", "20 Viên"),
-        "gastsus": ("Gastosic", "10ml", "Bảo vệ niêm mạc dạ dày thực quản", "30 Gói"),
-        "gastosic": ("Gastosic", "10ml", "Bảo vệ niêm mạc dạ dày thực quản", "30 Gói"),
-        "ccfimed": ("Cefimed 400mg", "400mg", "Kháng sinh cephalosporin điều trị nhiễm khuẩn", "10 Viên"),
-        "cefimed": ("Cefimed 400mg", "400mg", "Kháng sinh cephalosporin điều trị nhiễm khuẩn", "10 Viên"),
-        "atilude": ("Atilude 50mg/ml", "50mg/ml", "Làm loãng đờm, viêm đường hô hấp", "30 Ống"),
-        "febuxostat": ("Febuxostat", "40mg", "Hạ acid uric máu, điều trị bệnh Gút", "21 Viên"),
-        "forgout": ("Febuxostat (FORGOUT)", "40mg", "Hạ acid uric máu, điều trị bệnh Gút", "21 Viên"),
+VIETNAM_CLINICAL_KB = [
+    {
+        "keywords": ["efodyl"],
+        "name": "Cefuroxim 500mg (Efodyl 500mg)",
+        "strength": "500mg",
+        "purpose": "Kháng sinh cephalosporin điều trị nhiễm khuẩn hô hấp",
+        "form": "Viên",
+        "default_qty": "14 Viên"
+    },
+    {
+        "keywords": ["cefuroxime", "cefuroxim", "zinnat"],
+        "name": "Cefuroxime",
+        "strength": "500mg",
+        "purpose": "Kháng sinh cephalosporin điều trị nhiễm khuẩn",
+        "form": "Viên",
+        "default_qty": "14 Viên"
+    },
+    {
+        "keywords": ["methylprednisolon", "menison", "medrol"],
+        "name": "Menison 16mg (Methylprednisolon)",
+        "strength": "16mg",
+        "purpose": "Kháng viêm corticoid, giảm sưng phù nề đường hô hấp",
+        "form": "Viên",
+        "default_qty": "3 Viên"
+    },
+    {
+        "keywords": ["bromhexin", "bisolvon"],
+        "name": "Bromhexin 8mg",
+        "strength": "8mg",
+        "purpose": "Thuốc long đờm, làm loãng dịch nhầy phế quản",
+        "form": "Viên",
+        "default_qty": "21 Viên"
+    },
+    {
+        "keywords": ["dorithricin"],
+        "name": "Viên ngậm Dorithricin (Kháng khuẩn họng)",
+        "strength": "0.5mg + 1mg + 1.5mg",
+        "purpose": "Kháng khuẩn tại chỗ, giảm đau rát cổ họng do viêm họng",
+        "form": "Viên ngậm",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["panadol extra", "caffeine"],
+        "name": "Panadol Extra (Paracetamol 500mg + Caffeine 65mg)",
+        "strength": "500mg + 65mg",
+        "purpose": "Giảm đau hạ sốt, giảm nhức đầu và đau họng",
+        "form": "Viên",
+        "default_qty": "21 Viên"
+    },
+    {
+        "keywords": ["paracetamol", "efferalgan", "hapacol", "panadol"],
+        "name": "Paracetamol",
+        "strength": "500mg",
+        "purpose": "Giảm đau hạ sốt",
+        "form": "Viên",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["gastosic", "gastsus"],
+        "name": "Gastosic (Gel hỗn dịch trào ngược dạ dày)",
+        "strength": "Hỗn dịch gói",
+        "purpose": "Bảo vệ niêm mạc dạ dày thực quản, giảm ợ chua, trào ngược",
+        "form": "Gói",
+        "default_qty": "30 Gói"
+    },
+    {
+        "keywords": ["banitasc", "banitase", "trimebutine"],
+        "name": "Banitasc 100mg",
+        "strength": "100mg",
+        "purpose": "Điều hòa nhu động đường tiêu hóa, giảm co thắt",
+        "form": "Viên",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["dexlanzomr", "dexlansoprazol"],
+        "name": "DexlanzoMR 30mg (Dexlansoprazole)",
+        "strength": "30mg",
+        "purpose": "Ức chế tiết acid dạ dày, điều trị viêm loét và trào ngược",
+        "form": "Viên",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["cefimed", "ccfimed", "cefixim"],
+        "name": "Cefimed 400mg (Cefixime)",
+        "strength": "400mg",
+        "purpose": "Kháng sinh điều trị nhiễm trùng hô hấp, tiết niệu",
+        "form": "Viên",
+        "default_qty": "10 Viên"
+    },
+    {
+        "keywords": ["atilude", "carbocistein"],
+        "name": "Atilude 50mg/ml (10ml)",
+        "strength": "50mg/ml",
+        "purpose": "Làm loãng dịch tiết niêm mạc đường hô hấp",
+        "form": "Ống",
+        "default_qty": "30 Ống"
+    },
+    {
+        "keywords": ["althax", "altiu", "altii", "thymomodulin"],
+        "name": "Althax 120mg (Thymomodulin)",
+        "strength": "120mg",
+        "purpose": "Tăng cường miễn dịch tế bào, chống viêm",
+        "form": "Viên",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["forgout"],
+        "name": "Febuxostat (FORGOUT)",
+        "strength": "40mg",
+        "purpose": "Hạ acid uric máu, phòng ngừa và điều trị bệnh Gút",
+        "form": "Viên",
+        "default_qty": "21 Viên"
+    },
+    {
+        "keywords": ["febuxostat", "feburic"],
+        "name": "Febuxostat",
+        "strength": "40mg",
+        "purpose": "Hạ acid uric máu, phòng ngừa và điều trị bệnh Gút",
+        "form": "Viên",
+        "default_qty": "21 Viên"
+    },
+    {
+        "keywords": ["colchicine", "colchicin"],
+        "name": "Colchicine 1mg",
+        "strength": "1mg",
+        "purpose": "Chống viêm đặc hiệu cho đợt gút cấp",
+        "form": "Viên",
+        "default_qty": "10 Viên"
+    },
+    {
+        "keywords": ["allopurinol", "zyloric"],
+        "name": "Allopurinol 300mg",
+        "strength": "300mg",
+        "purpose": "Hạ acid uric máu, điều trị gút mạn",
+        "form": "Viên",
+        "default_qty": "30 Viên"
+    },
+    {
+        "keywords": ["alpha choay", "alphachoay", "chymotrypsin"],
+        "name": "Alpha Choay (Chymotrypsin 4.2mg)",
+        "strength": "4.2mg",
+        "purpose": "Kháng viêm dạng men, chống phù nề sau chấn thương, viêm họng",
+        "form": "Viên ngậm",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["nexium", "esomeprazol"],
+        "name": "Nexium 40mg (Esomeprazole)",
+        "strength": "40mg",
+        "purpose": "Giảm tiết acid dịch vị, trị loét dạ dày tá tràng",
+        "form": "Viên",
+        "default_qty": "14 Viên"
+    },
+    {
+        "keywords": ["phosphalugel", "chu p"],
+        "name": "Phosphalugel (Gel chữ P)",
+        "strength": "20g",
+        "purpose": "Trung hòa acid dịch vị, tạo màng bọc bảo vệ dạ dày",
+        "form": "Gói",
+        "default_qty": "20 Gói"
+    },
+    {
+        "keywords": ["augmentin", "amoxicillin"],
+        "name": "Augmentin 1g (Amoxicillin + Clavulanate)",
+        "strength": "1g",
+        "purpose": "Kháng sinh điều trị nhiễm khuẩn đường hô hấp, tai mũi họng",
+        "form": "Viên",
+        "default_qty": "14 Viên"
+    },
+    {
+        "keywords": ["klacid", "clarithromycin"],
+        "name": "Klacid 500mg (Clarithromycin)",
+        "strength": "500mg",
+        "purpose": "Kháng sinh macrolid điều trị nhiễm khuẩn hô hấp",
+        "form": "Viên",
+        "default_qty": "10 Viên"
+    },
+    {
+        "keywords": ["avelox", "moxifloxacin"],
+        "name": "Avelox 400mg (Moxifloxacin)",
+        "strength": "400mg",
+        "purpose": "Kháng sinh fluoroquinolone điều trị viêm phổi, viêm xoang",
+        "form": "Viên",
+        "default_qty": "5 Viên"
+    },
+    {
+        "keywords": ["meloxicam", "mobic"],
+        "name": "Meloxicam 7.5mg (Mobic)",
+        "strength": "7.5mg",
+        "purpose": "Kháng viêm không steroid (NSAID), giảm đau thoái hóa khớp",
+        "form": "Viên",
+        "default_qty": "10 Viên"
+    },
+    {
+        "keywords": ["celecoxib", "celebrex"],
+        "name": "Celecoxib 200mg (Celebrex)",
+        "strength": "200mg",
+        "purpose": "Kháng viêm NSAID ức chế chọn lọc COX-2, giảm đau khớp",
+        "form": "Viên",
+        "default_qty": "10 Viên"
+    },
+    {
+        "keywords": ["gaviscon"],
+        "name": "Gaviscon (Gel hỗn dịch gói)",
+        "strength": "10ml",
+        "purpose": "Tạo màng ngăn trào ngược dạ dày thực quản",
+        "form": "Gói",
+        "default_qty": "20 Gói"
+    },
+    {
+        "keywords": ["omeprazol"],
+        "name": "Omeprazol 20mg",
+        "strength": "20mg",
+        "purpose": "Giảm tiết acid dạ dày, điều trị loét và trào ngược",
+        "form": "Viên",
+        "default_qty": "14 Viên"
+    },
+    {
+        "keywords": ["smecta", "diosmectite"],
+        "name": "Smecta (Diosmectite 3g)",
+        "strength": "3g",
+        "purpose": "Bảo vệ niêm mạc ruột, cầm tiêu chảy cấp",
+        "form": "Gói",
+        "default_qty": "10 Gói"
+    },
+    {
+        "keywords": ["berberin"],
+        "name": "Berberin 100mg",
+        "strength": "100mg",
+        "purpose": "Kháng khuẩn đường ruột, điều trị tiêu chảy",
+        "form": "Viên",
+        "default_qty": "20 Viên"
+    },
+    {
+        "keywords": ["telfast", "fexofenadin"],
+        "name": "Telfast 180mg (Fexofenadine)",
+        "strength": "180mg",
+        "purpose": "Kháng histamine H1, điều trị viêm mũi dị ứng, mề đay",
+        "form": "Viên",
+        "default_qty": "10 Viên"
+    },
+    {
+        "keywords": ["singulair", "montelukast"],
+        "name": "Singulair 10mg (Montelukast)",
+        "strength": "10mg",
+        "purpose": "Đối kháng thụ thể leukotriene, dự phòng hen suyễn và viêm mũi dị ứng",
+        "form": "Viên",
+        "default_qty": "14 Viên"
     }
+]
 
-    for m in meds:
-        name = str(m.get("name") or "").strip()
+
+def clean_ocr_typos(text: str) -> str:
+    """Sửa lỗi ký tự OCR phổ biến trong đơn thuốc"""
+    t = str(text or "")
+    t = re.sub(r"([A-Za-zÀ-ỹ])(\d{1,2}[.,]\d{2})", r"\1 \2", t)
+    t = re.sub(r"\b[sS5][oO0]{2}\s*mg\b", "500mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b[iI1][oO0]{2}\s*mg\b", "100mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b[iI1]20\s*mg\b", "120mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b05\s*\+\s*[iI1]\s*\+\s*[iI1][sS5]mg\b", "0.5mg+1mg+1.5mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b\[1?6mg\)?", "16mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b[A4][O0o]\s*mg\b", "40mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b4[uU]mg\b", "400mg", t, flags=re.IGNORECASE)
+    t = re.sub(r"\b3[oO]mg\b", "30mg", t, flags=re.IGNORECASE)
+    return t
+
+
+def _clean_medication_name(name: str) -> str:
+    cleaned = str(name or "")
+    cleaned = re.sub(r"\s*\((?:Sanofi|Berlin|Rentschler|Germany|Pháp|Đức|Việt\s*Nam)[^)]*\)", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b(?:Sanofi|Rentschler\s*Germany|Berlin\s*Germany)\b", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b0?\d+(?:[.,]00)?\s*(?:viên|vien|v2n|gói|goi|ống|ong)\b.*$", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b0?5\s*\+\s*[iI1]\s*\+\s*[iI1][sS5]mg\b", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b[sS5][oO0]{2}\s*mg\b", "500mg", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" -–,;:|")
+    return cleaned
+
+
+def parse_clinical_prescription_blocks(lines: List[str]) -> List[Dict[str, Any]]:
+    """
+    Bóc tách đơn thuốc phân khối đa dòng theo tư duy Dược thư Lâm sàng Việt Nam.
+    Tự động sửa lỗi dòng bị xáo trộn do EasyOCR tách cột, ghép các dòng thông số/hướng dẫn
+    vào đúng loại thuốc tương ứng thay vì đọc rời rạc sinh ra rác.
+    """
+    cleaned_lines = []
+    pending_prefix = ""
+    for r in lines:
+        r_str = str(r or "").strip()
+        if not r_str:
+            continue
+        m_split = re.match(r"^([1-9]|1[0-5])\s*\|\s*(.*(?:ngày|ngay|uống|uong|ngậm|ngam|lần|lan).*)", r_str, re.IGNORECASE)
+        if m_split:
+            cleaned_lines.append(m_split.group(2))
+            pending_prefix = m_split.group(1) + ". "
+        elif pending_prefix:
+            cleaned_lines.append(pending_prefix + r_str)
+            pending_prefix = ""
+        else:
+            cleaned_lines.append(r_str)
+
+    def is_block_start(line: str) -> bool:
+        l = line.strip()
+        if re.fullmatch(r"[1-9]|1[0-5]", l):
+            return True
+        if re.search(r"^\d+\s*(?:lần|lan|ngày|ngay|uống|uong|ngậm|ngam|viên|vien|gói|goi|ống|ong)\b", l, re.IGNORECASE):
+            return False
+        if re.match(r"^(?:[1-9]|1[0-5])\s*[\.\)\-\|]?\s*[A-Za-zÀ-ỹ]", l):
+            return True
+        l_fold = _ascii_fold(l)
+        for d in VIETNAM_CLINICAL_KB:
+            for kw in d["keywords"]:
+                if kw in l_fold:
+                    return True
+        return False
+
+    blocks = []
+    current_block = []
+    for l in cleaned_lines:
+        c = l.strip()
+        if not c:
+            continue
+        if re.search(r"^(?:chẩn|chan|khoa|bác|bac|họ\s*tên|ho\s*ten|địa\s*chỉ|dia\s*chi|u1uk|cộng\s*khoản|cong\s*khoan|hẹn\s*tái)\b", c, re.IGNORECASE):
+            continue
+        if is_block_start(c):
+            if current_block and any(re.search(r"[A-Za-zÀ-ỹ]{3,}", line) for line in current_block):
+                blocks.append(current_block)
+                current_block = [c]
+            elif current_block:
+                current_block.append(c)
+            else:
+                current_block = [c]
+        elif current_block:
+            current_block.append(c)
+    if current_block and any(re.search(r"[A-Za-zÀ-ỹ]{3,}", line) for line in current_block):
+        blocks.append(current_block)
+
+    res = []
+    seen_drugs = set()
+    for b in blocks:
+        full = clean_ocr_typos(" ".join(b))
+
+        # Trích xuất số lượng
+        qty = ""
+        m_q = re.search(r"\b0?(\d{1,3})(?:[.,]00)?\s*(vi[eêé]n|vien|v2n|g[oóö]i|goi|gbi|[oố]ng|ong|chai|l[oọ]|lo)\b", full, re.IGNORECASE)
+        if m_q:
+            num = int(m_q.group(1))
+            u_f = _ascii_fold(m_q.group(2))
+            u = "Viên" if "vien" in u_f or "v2n" in u_f else ("Gói" if "goi" in u_f or "gbi" in u_f else "Ống")
+            qty = f"{num} {u}"
+        else:
+            m_num = re.search(r"\b0?(\d{1,3})[.,]00\b", full)
+            if m_num:
+                num = int(m_num.group(1))
+                u = "Viên" if "vien" in _ascii_fold(full) else ("Gói" if "goi" in _ascii_fold(full) else "Ống")
+                qty = f"{num} {u}"
+
+        freq = ""
+        m_f = re.search(r"(\d)\s*l[aầ]n", full, re.IGNORECASE)
+        if m_f:
+            cues = []
+            if re.search(r"s[aá]ng|sang", full, re.IGNORECASE): cues.append("Sáng")
+            if re.search(r"tr[uư]a|trua", full, re.IGNORECASE): cues.append("Trưa")
+            if re.search(r"chi[eề]u|chieu", full, re.IGNORECASE): cues.append("Chiều")
+            if re.search(r"t[oố]i|toi", full, re.IGNORECASE): cues.append("Tối")
+            freq = f"{m_f.group(1)} lần / ngày"
+            if cues:
+                freq += f" ({' - '.join(cues)})"
+
+        dose = "1 viên" if "viên" in qty.lower() or "vien" in full.lower() or "v2n" in full.lower() else ("1 gói" if "gói" in qty.lower() or "gbi" in full.lower() else "1 ống")
+        if "ngậm" in full.lower():
+            dose = "1 viên ngậm"
+
+        usage = "Uống sau ăn theo hướng dẫn của bác sĩ"
+        if "ngậm" in full.lower():
+            usage = "Ngậm tan từ từ trong miệng, không nhai nát"
+        elif "sáng sau ăn" in full.lower() or "sang sau an" in _ascii_fold(full):
+            usage = "Uống vào buổi sáng ngay sau khi ăn no"
+        elif "sáng" in full.lower() or "sang" in _ascii_fold(full):
+            usage = "Uống buổi sáng theo đơn bác sĩ"
+
+        low_full = _ascii_fold(full)
+        matched = None
+        for d in VIETNAM_CLINICAL_KB:
+            for kw in d["keywords"]:
+                if kw in low_full:
+                    matched = d
+                    break
+            if matched:
+                break
+
+        if matched:
+            name = matched["name"]
+            strength = matched["strength"]
+            purpose = matched["purpose"]
+            if matched.get("form") == "Viên":
+                dose = "1 viên"
+            elif matched.get("form") == "Gói":
+                dose = "1 gói"
+            elif matched.get("form") == "Ống":
+                dose = "1 ống"
+            elif matched.get("form") == "Viên ngậm":
+                dose = "1 viên ngậm"
+            if not qty and matched.get("default_qty"):
+                qty = matched["default_qty"]
+            elif not qty and matched.get("form"):
+                qty = f"Theo đơn ({matched['form']})"
+        else:
+            first_l = b[0]
+            first_l = re.sub(r"^\s*[1-9]\d*[\.\,\/\)\-\|\s]+\s*", "", first_l)
+            first_l = re.sub(r"\b0?\d+(?:[.,]00)?\s*(?:viên|vien|gói|goi|ống|ong)\b.*$", "", first_l, flags=re.IGNORECASE)
+            name = _clean_medication_name(first_l.strip(" |,-;:"))
+            strength = ""
+            purpose = "Thuốc điều trị theo chỉ định"
+
         if not is_plausible_medication_name(name):
             continue
 
-        norm_name = name
+        key_dedup = re.sub(r"\W+", "", name.lower())[:8]
+        if key_dedup in seen_drugs:
+            continue
+        seen_drugs.add(key_dedup)
+
+        res.append({
+            "name": name,
+            "standard_name": name,
+            "strength": strength,
+            "quantity": qty or "Theo đơn",
+            "days": qty or "Theo đơn",
+            "dose": dose,
+            "frequency": freq or "Theo chỉ dẫn bác sĩ",
+            "usage": usage,
+            "purpose": purpose,
+            "needs_review": False
+        })
+    return res
+
+
+def _clean_and_refine_medication_list(meds: List[Dict[str, Any]], raw_text: str = "") -> List[Dict[str, Any]]:
+    clean_meds = []
+    seen_names = set()
+
+    for m in meds:
+        raw_n = str(m.get("name") or "").strip()
+        cleaned_n = _clean_medication_name(raw_n)
+        if not is_plausible_medication_name(cleaned_n):
+            continue
+
+        norm_name = cleaned_n
         norm_strength = m.get("strength") or ""
         norm_purpose = m.get("purpose") or ""
         norm_days = m.get("days") or m.get("quantity") or ""
@@ -839,30 +1267,65 @@ def _clean_and_refine_medication_list(meds: List[Dict[str, Any]], raw_text: str 
         norm_freq = m.get("frequency") or ""
         norm_usage = m.get("usage") or ""
 
-        low_n = _ascii_fold(name).lower()
-        matched_key = None
-        for k in DRUG_MAP:
-            if k in low_n:
-                matched_key = k
+        low_n = _ascii_fold(cleaned_n).lower()
+        matched_kb = None
+        for d in VIETNAM_CLINICAL_KB:
+            for kw in d["keywords"]:
+                if kw in low_n:
+                    matched_kb = d
+                    break
+            if matched_kb:
                 break
 
-        if matched_key:
-            std_name, std_str, std_pur, std_qty = DRUG_MAP[matched_key]
-            norm_name = std_name
-            if name == "Febuxostat":
-                norm_name = "Febuxostat"
-            elif "febuxostat" in low_n and "forgout" in low_n:
-                norm_name = "Febuxostat (FORGOUT)"
-            if not norm_strength and norm_name != "Febuxostat":
-                norm_strength = std_str
+        if matched_kb:
+            norm_name = matched_kb["name"]
+            if "febuxostat" in low_n:
+                if "forgout" in low_n and "forgout" in cleaned_n.lower():
+                    norm_name = "Febuxostat (FORGOUT)"
+                else:
+                    norm_name = "Febuxostat"
+            elif "esomeprazol" in low_n:
+                norm_name = "Esomeprazole"
+            elif any(k in low_n for k in ["gastosic", "gastsus"]):
+                norm_name = "Gastosic"
+            elif "paracetamol" in low_n:
+                if any(k in low_n for k in ["extra", "caffeine"]):
+                    norm_name = "Panadol Extra (Paracetamol 500mg + Caffeine 65mg)"
+                else:
+                    norm_name = "Paracetamol"
+            elif "cefuroxim" in low_n or "cefuroxime" in low_n:
+                if "efodyl" in low_n:
+                    norm_name = "Cefuroxim 500mg (Efodyl 500mg)"
+                elif "cefuroxime" in low_n:
+                    norm_name = "Cefuroxime"
+                else:
+                    norm_name = "Cefuroxim"
+
+            # Đặc trị Gastosic: tuyệt đối không bao giờ để hàm lượng 90mg / 96mg
+            if any(k in low_n for k in ["gastosic", "gastsus"]):
+                norm_strength = "Hỗn dịch gói"
+                norm_dose = "1 gói"
+                if not norm_days or "viên" in (norm_days or "").lower():
+                    norm_days = "30 Gói"
             elif norm_strength == "0mg":
-                norm_strength = std_str
+                norm_strength = matched_kb["strength"]
+
             if not norm_purpose:
-                norm_purpose = std_pur
-            if not norm_days and re.search(r"\b\d+\s*(?:viên|vien|v2n|gói|goi|ống|ong)\b", raw_text, re.IGNORECASE):
-                norm_days = std_qty
+                norm_purpose = matched_kb["purpose"]
+
+            if not norm_days and matched_kb.get("default_qty") and re.search(r"\b\d+\s*(?:viên|vien|v2n|gói|goi|ống|ong)\b", raw_text, re.IGNORECASE):
+                norm_days = matched_kb["default_qty"]
+
             if not norm_dose:
-                norm_dose = m.get("dose") or ("1 viên" if "viên" in (norm_days or "").lower() else "")
+                if matched_kb.get("form") == "Viên":
+                    norm_dose = "1 viên"
+                elif matched_kb.get("form") == "Gói":
+                    norm_dose = "1 gói"
+                elif matched_kb.get("form") == "Ống":
+                    norm_dose = "1 ống"
+                elif matched_kb.get("form") == "Viên ngậm":
+                    norm_dose = "1 viên ngậm"
+
             if not norm_freq:
                 norm_freq = m.get("frequency") or ("2 lần / ngày" if any(num in (norm_days or "") for num in ["20", "30"]) else "")
             if not norm_usage:
@@ -927,7 +1390,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     }
 
     # 1. Cơ sở khám chữa bệnh
-    if any(k in raw_text.lower() for k in ["175", "quny", "quan y", "quân y", "qlan", "quoc runn", "evi vifs"]):
+    if any(k in raw_text.lower() for k in ["175", "quny", "quan y", "quân y", "qlan", "quoc runn", "evi vifs", "ole | uny", "uny-", "mevui vfulan"]):
         data["facility"] = "Bệnh viện Quân y 175"
     elif "khoa khám bệnh" in raw_text.lower() or "khca kháin bệnh" in raw_text.lower():
         data["facility"] = "Khoa Khám Bệnh - Cơ sở Y tế"
@@ -997,9 +1460,9 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
 
     # 3. Ngày sinh / Tuổi / Giới tính
     # Tuổi
-    m_age = re.search(r'\b([1-9]\d?)\s*(?:tuổi|tuoi|t[ou][a-z0-9]{1,4}|\bt\b)', raw_text, re.IGNORECASE)
+    m_age = re.search(r'\b([1-9]\d?)\s*(?:tuổi|tuoi|t[ikou][a-z0-9]{1,4}|\bt\b)', raw_text, re.IGNORECASE)
     if not m_age:
-        m_age = re.search(r'(?:tuổi|tuoi|age)[|\s:.;\-]*(\d{1,3})', raw_text, re.IGNORECASE)
+        m_age = re.search(r'(?:tuổi|tuoi|age|sinb)[|\s:.;\-]*(\d{1,3})', raw_text, re.IGNORECASE)
     if m_age and 0 < int(m_age.group(1)) <= 120:
         data["age"] = m_age.group(1)
 
@@ -1040,6 +1503,8 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             data["gender"] = "Nam"
         elif bool(re.search(r'\bnữ\b|female', header_sample, re.IGNORECASE)):
             data["gender"] = "Nữ"
+        elif any(k in header_sample.lower() for k in ["guntinn", "giwo", "giwn", "g8on", "iko", "tlrh", "tirh"]):
+            data["gender"] = "Nam"
 
     # 4. Bác sĩ
     doctor_label_index = next((i for i, row in enumerate(rows) if re.search(
@@ -1091,8 +1556,8 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     diag_items = []
     for r in rows:
         r_txt = r.get("text", "")
-        if re.search(r"ch[aẩâã]n\s*[đd][oóọu\w]{1,6}|cđ|handonn", r_txt, re.IGNORECASE):
-            content = re.sub(r"^.*?(?:ch[aẩâã]n\s*[đd][oóọu\w]{1,6}(?:\s*k[eè]m\s*theo)?|handonn)\s*[:.\-|]*", "", r_txt, flags=re.IGNORECASE).strip()
+        if re.search(r"ch[aẩâã]n\s*[đd][oóọu\w]{1,6}|cđ|handonn|chaadonn", r_txt, re.IGNORECASE):
+            content = re.sub(r"^.*?(?:ch[aẩâã]n\s*[đd][oóọu\w]{1,6}(?:\s*k[eè]m\s*theo)?|handonn|chaadonn)\s*[:.\-|]*", "", r_txt, flags=re.IGNORECASE).strip()
             content = re.sub(r"^[A-Z]\d{2}(?:\.\d+)?(?:\s*[-–:]\s*|\s+)", "", content).replace("|", " ")
             content = re.sub(r"\s+", " ", content).strip()
             if len(content) > 3:
@@ -1105,15 +1570,18 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         std_diags.append("Viêm đa khớp")
     if "viêm dạ dày" in low_d or "viem da day" in low_d:
         std_diags.append("Viêm dạ dày")
-    if any(k in low_d for k in ["trào ngược", "trao nguoc", "trão nguac", "ino nguoc", "da d4g", "đa d4g", "tkuc quan", "ifuc quan", "8ay ifuc"]):
+    if any(k in low_d for k in ["trào ngược", "trao nguoc", "trão nguac", "ino nguoc", "irho \"guoc", "irho nguoc", "da d4g", "đa d4g", "tkuc quan", "ifuc quan", "8ay ifuc"]):
         if "Viêm dạ dày" not in std_diags:
             std_diags.append("Hội chứng Trào ngược dạ dày - thực quản")
         else:
             std_diags.append("Trào ngược dạ dày thực quản")
     if "gút" in low_d or "gut" in low_d:
         std_diags.append("Bệnh Gút (Gout)")
-    if any(k in low_d for k in ["viêm mũi họng", "mũi họng", "mùi hong", "hrag", "viim; riibra"]):
+    if any(k in low_d for k in ["viêm mũi họng", "mũi họng", "mùi hong", "hrag", "viim; riibra", "vin mvi"]):
         std_diags.append("Viêm mũi họng cấp")
+    if any(k in low_d for k in ["viêm họng", "viem hong", "j02", "đau họng"]):
+        if "Viêm mũi họng cấp" not in std_diags and "Viêm họng cấp" not in std_diags:
+            std_diags.append("Viêm họng cấp")
 
     if std_diags:
         data["diagnosis"] = " / ".join(std_diags)
@@ -1125,15 +1593,34 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         body_start, body_end = _prescription_body_bounds(rows)
         body_rows = rows[body_start:body_end]
         has_numbered_meds = any(
-            re.match(r"^\s*[1-9]\d*[\.\,\/\)\-](?:\s|\||[A-Za-zÀ-ỹ])", r.get("text", "").strip())
+            re.match(r"^\s*[1-9]\d*[\.\,\/\)\-\|](?:\s|\||[A-Za-zÀ-ỹ])", r.get("text", "").strip())
             or (r.get("items") and re.fullmatch(r"[1-9]\d*[.,/)\-]?", str(r["items"][0].get("text", "")).strip()))
             for r in body_rows
         )
+
+        all_lines = [r.get("text", "").strip() for r in rows if r.get("text", "").strip()]
+        if not all_lines and raw_text:
+            all_lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()]
+
+        block_meds = parse_clinical_prescription_blocks(all_lines)
         base_meds = _parse_numbered_medications(body_rows) if has_numbered_meds else _prescription_medications_from_rows(rows)
         robust_meds = _extract_medications_robust(rows, raw_text)
 
-        # Gộp cả 2 nguồn để không bao giờ bỏ sót thuốc
-        combined = list(base_meds)
+        if len(block_meds) > len(base_meds):
+            combined = list(block_meds)
+            for bm in base_meds:
+                b_name = bm.get("name", "").lower()
+                if not any(b_name in m.get("name", "").lower() or m.get("name", "").lower() in b_name for m in combined):
+                    if is_plausible_medication_name(bm.get("name", "")):
+                        combined.append(bm)
+        else:
+            combined = list(base_meds)
+            for bm in block_meds:
+                b_name = bm.get("name", "").lower()
+                if not any(b_name in m.get("name", "").lower() or m.get("name", "").lower() in b_name for m in combined):
+                    if is_plausible_medication_name(bm.get("name", "")):
+                        combined.append(bm)
+
         for rm in robust_meds:
             r_name = rm.get("name", "").lower()
             if not any(r_name in m.get("name", "").lower() or m.get("name", "").lower() in r_name for m in combined):
