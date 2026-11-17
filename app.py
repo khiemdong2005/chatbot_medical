@@ -1515,7 +1515,7 @@ def create_app(test_config=None):
                 # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
                 if res and res.get("status") in ("success", "review"):
                     try:
-                        doc = MedicalDocument.query.get(doc_id)
+                        doc = db.session.get(MedicalDocument, doc_id)
                         if doc:
                             if res.get("status") == "success":
                                 doc.doc_type = "prescription"
