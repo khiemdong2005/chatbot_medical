@@ -6,7 +6,14 @@ Shared FastAPI dependencies & request identity extraction.
 import uuid
 import logging
 from typing import Optional, Tuple, Any
-from fastapi import Request, HTTPException
+try:
+    from fastapi import Request, HTTPException
+except ImportError:
+    Request = Any
+    class HTTPException(Exception):
+        def __init__(self, status_code=500, detail=""):
+            self.status_code = status_code
+            self.detail = detail
 from core.db_utils import get_flask_app
 
 logger = logging.getLogger("RouterDeps")

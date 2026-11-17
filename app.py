@@ -1439,13 +1439,13 @@ def create_app(test_config=None):
 
 
     # ==============================================================
-    # QUÉT & PHÂN TÍCH ĐƠN THUỐC / KẾT QUẢ XÉT NGHIỆM AI
+    # QUÉT & PHÂN TÍCH ĐƠN THUỐC LÂM SÀNG AI
     # ==============================================================
 
     @app.route("/api/prescription/scan", methods=["POST"])
     def scan_prescription():
         """
-        Quét và phân tích đơn thuốc hoặc kết quả xét nghiệm:
+        Quét và phân tích đơn thuốc lâm sàng:
         BẢO MẬT & TRUNG THỰC:
           - Bắt buộc đăng nhập khi tải file lên; lưu bản ghi MedicalDocument liên kết owner_id.
           - Khi OCR / AI thất bại, trả về status failed/needs_review; không bịa dữ liệu mẫu.
@@ -1508,14 +1508,44 @@ def create_app(test_config=None):
                 user_allergies=user_allergies
             )
 
-            if not doc_id:
-                return jsonify({"status": "error", "message": "Không tạo được bản nháp."}), 500
-            res["document_id"] = doc_id
-            if meta and meta.get("storage_filename"):
+            if doc_id:
+                res["document_id"] = doc_id
                 res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
-            if res.get("status") == "review":
-                doc.parsed_data = json.dumps({"type": res.get("doc_type", "prescription"), "allergies": user_allergies}, ensure_ascii=False)
-                commit_or_rollback()
+
+                # Cập nhật kết quả bóc tách lâm sàng vào bản ghi MedicalDocument làm data người dùng
+                if res and res.get("status") in ("success", "review"):
+                    try:
+                        doc = MedicalDocument.query.get(doc_id)
+                        if doc:
+                            if res.get("status") == "success":
+                                doc.doc_type = "prescription"
+                            else:
+                                doc.doc_type = "ocr_draft"
+                            doc.diagnosis = res.get("diagnosis", "")
+                            doc.facility = res.get("facility", "")
+                            doc.doctor = res.get("doctor", "")
+                            doc.patient_name = res.get("patient_name", "")
+
+                            meds = res.get("medications", [])
+                            med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                            sum_text = f"{len(meds)} loại thuốc"
+                            if med_names:
+                                sum_text += f": {', '.join(med_names)}"
+                                if len(meds) > 3:
+                                    sum_text += f" và {len(meds) - 3} thuốc khác"
+
+                            doc.summary = sum_text
+                            draft_payload = dict(res.get("data") or res)
+                            if "type" not in draft_payload:
+                                draft_payload["type"] = res.get("doc_type") or "prescription"
+                            doc.parsed_data = json.dumps(draft_payload, ensure_ascii=False)
+                            db.session.commit()
+                    except Exception as commit_err:
+                        logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
+                        db.session.rollback()
+            else:
+                if meta and meta.get("storage_filename"):
+                    res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -1530,7 +1560,7 @@ def create_app(test_config=None):
 
 
     # ==============================================================
-    # QUẢN LÝ LỊCH SỬ TOA THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT
+    # QUẢN LÝ LỊCH SỬ ĐƠN THUỐC ĐÃ IMPORT
     # ==============================================================
 
     @app.post("/api/prescription/<int:doc_id>/confirm")
@@ -1572,7 +1602,7 @@ def create_app(test_config=None):
             for row in reviewed["medications"]
         ):
             return jsonify({"message": "Có dòng không phải tên thuốc (ví dụ ngày tháng hoặc nhãn trên phiếu). Vui lòng sửa hoặc xóa dòng đó."}), 400
-        result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft["allergies"])
+        result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft.get("allergies", []))
         result["document_id"] = doc.id
         changed = MedicalDocument.query.filter_by(id=doc.id, owner_id=owner, doc_type="ocr_draft").update({
             "doc_type": kind, "diagnosis": reviewed["diagnosis"], "facility": reviewed["facility"],
@@ -1588,8 +1618,8 @@ def create_app(test_config=None):
     @app.route("/api/prescription/history", methods=["GET"])
     def get_prescription_history():
         """
-        Lấy danh sách lịch sử các đơn thuốc và phiếu xét nghiệm mà user đã import:
-        Bao gồm thời gian import, chẩn đoán bệnh, tóm tắt thuốc/chỉ số, cơ sở y tế.
+        Lấy danh sách lịch sử các đơn thuốc mà user đã import:
+        Bao gồm thời gian import, chẩn đoán bệnh, tóm tắt thuốc, cơ sở y tế.
         """
         user_id = session.get("user_id")
         if not user_id:
@@ -1603,7 +1633,7 @@ def create_app(test_config=None):
     @app.route("/api/prescription/history/<int:doc_id>", methods=["GET"])
     def get_prescription_history_detail(doc_id):
         """
-        Xem lại chi tiết toàn bộ dữ liệu đơn thuốc / xét nghiệm đã được bóc tách trước đó.
+        Xem lại chi tiết toàn bộ dữ liệu đơn thuốc đã được bóc tách trước đó.
         Cho phép người dùng xem lại ngay kết quả phân tích mà không cần chụp/quét lại ảnh.
         """
         user_id = session.get("user_id")
@@ -1668,7 +1698,7 @@ def create_app(test_config=None):
 
                     doc.summary = sum_text
                     doc.parsed_data = json.dumps(data, ensure_ascii=False)
-                    commit_or_rollback()
+                    db.session.commit()
             except Exception as e:
                 db.session.rollback()
                 logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
@@ -1689,7 +1719,7 @@ def create_app(test_config=None):
     @app.route("/api/prescription/history/<int:doc_id>", methods=["DELETE"])
     def delete_prescription_history_item(doc_id):
         """
-        Xóa một đơn thuốc/phiếu xét nghiệm khỏi lịch sử hồ sơ của người dùng.
+        Xóa một đơn thuốc khỏi lịch sử hồ sơ của người dùng.
         """
         user_id = session.get("user_id")
         if not user_id:
