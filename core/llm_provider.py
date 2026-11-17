@@ -19,8 +19,11 @@ import re
 import json
 import time
 import uuid
+import base64
 import logging
 import threading
+import urllib.request
+import urllib.error
 from typing import Dict, Any, List, Optional, Union, Callable
 
 from core.retry_policy import (
@@ -55,6 +58,143 @@ def _is_model_unavailable_error(exc: Exception) -> bool:
             ("NOT_FOUND" in message and "MODEL" in message))
 
 
+class _OpenRouterHTTPError(Exception):
+    """HTTP error carrying status_code for RetryPolicy / classify_exception."""
+    def __init__(self, status_code: int, message: str):
+        super().__init__(message)
+        self.status_code = status_code
+        self.code = status_code
+
+
+class _OpenRouterResponse:
+    """Mimics google-genai GenerateContentResponse with .text attribute."""
+    def __init__(self, text: str, raw: Optional[Dict[str, Any]] = None):
+        self.text = text
+        self.raw = raw or {}
+
+
+class _OpenRouterModels:
+    """Mimics client.models.generate_content(...) via OpenRouter Chat Completions API."""
+    ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0):
+        self._api_key = api_key
+        self._timeout = max(10.0, float(timeout_seconds))
+
+    def _convert_contents(self, contents: Any) -> Any:
+        if isinstance(contents, str):
+            return contents
+        items = contents if isinstance(contents, list) else [contents]
+        parts: List[Dict[str, Any]] = []
+        for item in items:
+            if isinstance(item, str):
+                parts.append({"type": "text", "text": item})
+            elif isinstance(item, dict):
+                if "text" in item:
+                    parts.append({"type": "text", "text": str(item["text"])})
+                else:
+                    parts.append(item)
+            else:
+                inline = getattr(item, "inline_data", None)
+                if inline is not None and getattr(inline, "data", None):
+                    mime = getattr(inline, "mime_type", None) or "image/jpeg"
+                    raw_bytes = inline.data
+                    b64 = base64.b64encode(raw_bytes).decode("ascii") if isinstance(raw_bytes, (bytes, bytearray)) else str(raw_bytes)
+                    parts.append({
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime};base64,{b64}"}
+                    })
+                elif getattr(item, "text", None) is not None:
+                    parts.append({"type": "text", "text": str(item.text)})
+                else:
+                    parts.append({"type": "text", "text": str(item)})
+        if parts and all(p.get("type") == "text" for p in parts):
+            return "\n\n".join(p["text"] for p in parts)
+        return parts
+
+    def _post_completion(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        req = urllib.request.Request(
+            self.ENDPOINT,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://medimind.local",
+                "X-Title": "MediMind Clinical AI",
+            },
+            method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as he:
+            err_body = ""
+            try:
+                err_body = he.read().decode("utf-8", errors="replace")[:300]
+            except Exception:
+                pass
+            raise _OpenRouterHTTPError(he.code, f"OpenRouter HTTP {he.code}: {err_body}") from None
+        except urllib.error.URLError as ue:
+            raise TimeoutError(f"OpenRouter connection error: {ue.reason}") from None
+
+    def generate_content(self, model: str, contents: Any, config: Optional[Any] = None) -> _OpenRouterResponse:
+        messages: List[Dict[str, Any]] = []
+        sys_inst = None
+        temperature = None
+        max_tokens = None
+        want_json = False
+
+        if config is not None:
+            sys_inst = getattr(config, "system_instruction", None) if not isinstance(config, dict) else config.get("system_instruction")
+            temperature = getattr(config, "temperature", None) if not isinstance(config, dict) else config.get("temperature")
+            max_tokens = getattr(config, "max_output_tokens", None) if not isinstance(config, dict) else config.get("max_output_tokens")
+            resp_mime = getattr(config, "response_mime_type", None) if not isinstance(config, dict) else config.get("response_mime_type")
+            want_json = (resp_mime == "application/json")
+
+        if sys_inst:
+            if want_json:
+                sys_inst = f"{sys_inst}\n\nIMPORTANT: Respond ONLY with a valid raw JSON object (no markdown fences, no extra text)."
+            messages.append({"role": "system", "content": str(sys_inst)})
+        elif want_json:
+            messages.append({"role": "system", "content": "Respond ONLY with a valid raw JSON object (no markdown fences, no extra text)."})
+
+        messages.append({"role": "user", "content": self._convert_contents(contents)})
+
+        payload: Dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+        }
+        if temperature is not None:
+            payload["temperature"] = float(temperature)
+        if max_tokens is not None and int(max_tokens) >= 2048:
+            payload["max_tokens"] = int(max_tokens)
+        if want_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        try:
+            resp_json = self._post_completion(payload)
+        except _OpenRouterHTTPError as e:
+            # Một số model :free không hỗ trợ response_format -> thử lại không có response_format
+            if e.status_code == 400 and "response_format" in payload:
+                payload.pop("response_format", None)
+                resp_json = self._post_completion(payload)
+            else:
+                raise
+
+        choices = resp_json.get("choices") or []
+        content = ""
+        if choices:
+            msg = choices[0].get("message") or {}
+            content = msg.get("content") or ""
+        return _OpenRouterResponse(text=content, raw=resp_json)
+
+
+class _OpenRouterClient:
+    """Drop-in replacement for genai.Client exposing .models.generate_content()."""
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0):
+        self.models = _OpenRouterModels(api_key=api_key, timeout_seconds=timeout_seconds)
+
+
 class LLMProviderError(Exception):
     """Ngoại lệ có cấu trúc của LLM Provider, bảo đảm an toàn quyền riêng tư (Zero-PHI)."""
     def __init__(
@@ -87,6 +227,12 @@ class LLMProvider:
     # 1. API KEY RESOLUTION & VALIDATION
     # ==========================================================================
 
+    def is_openrouter_active(self) -> bool:
+        """Kiểm tra xem hệ thống có đang cấu hình chạy OpenRouter hay không."""
+        provider = os.getenv("AI_PROVIDER", "").strip().lower()
+        openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+        return provider == "openrouter" and bool(openrouter_key)
+
     def resolve_api_key(
         self,
         profile: Optional[str] = None,
@@ -94,6 +240,7 @@ class LLMProvider:
     ) -> str:
         """
         Xác định API Key theo Profile một cách an toàn:
+        - Nếu AI_PROVIDER=openrouter -> ưu tiên OPENROUTER_API_KEY (bỏ qua key Gemini cũ nếu caller truyền nhầm).
         - Nếu có explicit_key -> ưu tiên số 1.
         - Profile 'nutrition' -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
         - Profile 'chat' -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
@@ -101,6 +248,9 @@ class LLMProvider:
         """
         if explicit_key and isinstance(explicit_key, str) and explicit_key.strip():
             return explicit_key.strip()
+
+        if self.is_openrouter_active():
+            return os.getenv("OPENROUTER_API_KEY", "").strip()
 
         prof = (profile or "").lower()
         if prof in ("nutrition", "nutrition_ai"):
@@ -140,15 +290,21 @@ class LLMProvider:
         timeout_seconds: float = 15.0
     ) -> Any:
         """
-        Khởi tạo hoặc tái sử dụng Gemini Client một cách lười (Lazy) và an toàn đa luồng.
+        Khởi tạo hoặc tái sử dụng AI Client (OpenRouter hoặc Gemini) một cách lười (Lazy) và an toàn đa luồng.
         Không thực hiện bất kỳ lệnh gọi mạng nào lúc khởi tạo.
         """
+        use_openrouter = isinstance(api_key, str) and api_key.startswith("sk-or-")
         timeout_ms = max(10000, int(timeout_seconds * 1000))
-        cache_key = f"{hash(api_key)}_{timeout_ms}"
+        cache_key = f"{'or' if use_openrouter else 'gm'}_{hash(api_key)}_{timeout_ms}"
 
         with self._lock:
             if cache_key in self._clients:
                 return self._clients[cache_key]
+
+            if use_openrouter:
+                client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds)
+                self._clients[cache_key] = client
+                return client
 
             try:
                 from google import genai
@@ -226,6 +382,19 @@ class LLMProvider:
     def get_default_model(self, operation: str) -> str:
         """Lấy model mặc định cho từng tác vụ."""
         op = operation.lower()
+        if self.is_openrouter_active():
+            if "chat" in op:
+                return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
+            if "expansion" in op:
+                return os.getenv("OPENROUTER_EXPANSION_MODEL", "openrouter/free").strip()
+            if "nutrition" in op:
+                return os.getenv("OPENROUTER_NUTRITION_MODEL", "openrouter/free").strip()
+            if "ocr" in op or "prescription" in op:
+                return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
+            if "interpretation" in op:
+                return os.getenv("OPENROUTER_INTERPRETATION_MODEL", "openrouter/free").strip()
+            return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
+
         if "chat" in op:
             return (os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL") or settings.gemini.chat_model).strip()
         if "expansion" in op:
