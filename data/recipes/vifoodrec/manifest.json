@@ -25,17 +25,17 @@
   "license_note": "No explicit data reuse license found. Free research access described in the paper does not verify production redistribution rights.",
   "images_downloaded": false,
   "ratings_downloaded": false,
-  "nutrient_values_used": false,
+  "nutrient_values_used": true,
   "clinical_labels_inferred": false,
   "limitations": [
     "This downloaded clean foods.csv has 4000 rows; 5509 in the paper describes the earlier full collection.",
-    "Titles and complete source ingredients/method are retained; no quantities or nutrients inferred.",
     "Vietnamese home-cooking classification is a documented title heuristic, not independent origin verification.",
-    "Recipes, allergen absence and medical suitability are not independently verified."
+    "Recipes, allergen absence and medical suitability are not independently verified.",
+    "Source calories, fat, fiber, sugar and protein are retained as dish-record values; their per-person basis and accuracy are not independently verified."
   ],
   "sha256": {
-    "foods.csv": "21bdc60be855507b1ddf3517fafb0ca85e69b8b9e6206de47ecea75257c237bc",
-    "recipes.json": "4905ee0d3f71e3afca85aa58199cee5719fc30b261a50e7f6091f446a63b6fac"
+    "foods.csv": "13101d8dfdc7f6959655a0c778a580b9496034f28df49d32745744b1f542ed96",
+    "recipes.json": "3da311e882da19d7ca643636ede8a323d402f035534ebf9526e507f31456f9b3"
   },
   "status": "complete",
   "extraction_version": 2,
@@ -46,5 +46,7 @@
     "recovered": 1215,
     "license": "not_declared",
     "backup": "image-backup-20261111-210331"
-  }
+  },
+  "nutrient_basis": "source_dish_record; not divided by serving_size",
+  "nutrient_verified": false
 }

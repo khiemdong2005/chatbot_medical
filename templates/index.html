@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="vi">
+<html lang="vi" class="dark">
 
 <head>
 
@@ -25,9 +25,11 @@
 
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=10">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=6">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=13">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=7">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=9">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=5">
 
   <!-- Leaflet CSS & JS for Interactive Hospital Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -170,7 +172,7 @@
 
 </head>
 
-<body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative light-glass">
+<body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative dark">
 
   <!-- Ambient Glassy Twilight Lighting Blobs (Glassy Dashboard V5 Style) -->
 
@@ -316,7 +318,7 @@
 
         <div class="flex items-center space-x-1.5 sm:space-x-2">
 
-          <span class="font-black text-sm sm:text-lg lg:text-xl tracking-tight text-white truncate"><span
+          <span id="chat-brand-title" class="font-black text-sm sm:text-lg lg:text-xl tracking-tight text-white truncate"><span
               class="sm:hidden">MediMind</span><span class="hidden sm:inline">MediMind Clinical AI</span></span>
 
           <span
@@ -431,21 +433,6 @@
       </div>
 
 
-
-      <!-- Sun Icon (Theme Toggle from Image 3) -->
-
-      <button type="button" onclick="toggleGlassThemeMode()"
-        class="text-slate-300 hover:text-amber-300 p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
-        title="Đổi giao diện Sáng / Tối">
-
-        <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-
-        </svg>
-
-      </button>
 
 
 
@@ -740,7 +727,7 @@
 
               <!-- Orbiting Icon Badge 1: Stethoscope (Top-Right on outer ring) -->
               <div
-                class="absolute top-4 right-8 sm:top-6 sm:right-16 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-500/30 shadow-md flex items-center justify-center text-sky-600 dark:text-sky-400"
+                class="home-orbit-badge absolute top-4 right-8 sm:top-6 sm:right-16 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sky-400"
                 title="Khám lâm sàng">
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -752,7 +739,7 @@
 
               <!-- Orbiting Icon Badge 2: Medical Records (Left on middle ring) -->
               <div
-                class="absolute top-1/2 -left-2 sm:-left-3 -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-500/30 shadow-md flex items-center justify-center text-sky-600 dark:text-sky-400"
+                class="home-orbit-badge absolute top-1/2 -left-2 sm:-left-3 -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-sky-400"
                 title="Hồ sơ bệnh án">
                 <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
@@ -763,7 +750,7 @@
 
               <!-- Orbiting Icon Badge 3: Pulse / ECG (Bottom-Right on outer ring) -->
               <div
-                class="absolute bottom-8 right-2 sm:bottom-12 sm:right-6 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-500/30 shadow-md flex items-center justify-center text-sky-600 dark:text-sky-400"
+                class="home-orbit-badge absolute bottom-8 right-2 sm:bottom-12 sm:right-6 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-sky-400"
                 title="Chỉ số sinh tồn">
                 <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" stroke-width="2.2"
                   viewBox="0 0 24 24">
@@ -786,10 +773,10 @@
 
             <!-- Floating Health Metric Badge (At bottom-right of the radar) -->
             <div
-              class="absolute -bottom-2 right-0 sm:right-4 z-20 bg-white dark:bg-slate-900 border border-sky-200/90 dark:border-white/15 rounded-2xl py-1.5 px-3 sm:py-2 sm:px-3.5 shadow-xl shadow-sky-950/5 flex items-center gap-2 sm:gap-3 backdrop-blur-md">
+              class="home-metric-badge absolute -bottom-2 right-0 sm:right-4 z-20 rounded-2xl py-1.5 px-3 sm:py-2 sm:px-3.5 flex items-center gap-2 sm:gap-3">
               <div
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-50 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
-                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" stroke-width="2.2"
+                class="home-metric-icon w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2.2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -798,11 +785,11 @@
 
               <div>
                 <div data-i18n="home_metric_status"
-                  class="text-xs font-black text-slate-900 dark:text-white leading-tight">Khỏe mạnh</div>
-                <div data-i18n="home_metric_sub" class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  class="text-xs font-black text-white leading-tight">Khỏe mạnh</div>
+                <div data-i18n="home_metric_sub" class="text-[10px] text-slate-300 leading-tight">
                   Chỉ số hôm nay</div>
               </div>
-              <div class="text-lg sm:text-2xl font-black text-sky-600 dark:text-sky-400 leading-none pl-1">
+              <div class="text-lg sm:text-2xl font-black text-sky-400 leading-none pl-1">
                 92%
               </div>
             </div>
@@ -918,26 +905,33 @@
       </div>
 
     </div>
-    <div id="chat-tab" class="tab-content flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start py-2">
+    <div id="chat-tab" class="tab-content chat-empty flex-1 grid grid-cols-1 gap-0">
 
       <!-- ============================================================== -->
       <!-- LEFT COLUMN (4/12): LỊCH SỬ TƯ VẤN                             -->
       <!-- ============================================================== -->
-      <div class="lg:col-span-4 flex flex-col">
+      <aside class="chat-history-rail flex flex-col">
 
         <!-- CARD 1: LỊCH SỬ TƯ VẤN -->
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 min-h-[660px] lg:min-h-[720px] flex flex-col">
+          class="chat-history-shell bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 flex flex-col">
 
           <!-- Card Header: Title & "+ Hội thoại mới" Button -->
-          <div class="flex items-start justify-between gap-3">
+          <div class="chat-history-head flex items-start justify-between gap-3">
             <div>
               <h3 data-i18n="history_title" class="text-base font-bold text-slate-900 dark:text-white tracking-tight">
                 Lịch sử tư vấn</h3>
+              <button type="button" class="chat-history-toggle" onclick="toggleChatHistoryPanel()"
+                aria-expanded="false" aria-controls="chat-history-container">
+                <span data-i18n="history_title">Lịch sử tư vấn</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
               <p data-i18n="history_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Các phiên sàng
                 lọc và phân tích triệu chứng</p>
             </div>
-            <button type="button" onclick="resetChat()"
+            <button type="button" id="chat-new-button" onclick="resetChat()"
               class="text-xs font-bold px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center space-x-1.5 transition-all shadow-md shadow-sky-600/30 shrink-0 cursor-pointer"
               title="Cuộc trò chuyện mới">
               <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -949,7 +943,7 @@
           </div>
 
           <!-- Search Input -->
-          <div class="relative">
+          <div class="chat-history-search relative">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" fill="none"
               stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -987,18 +981,19 @@
           </div>
         </div>
 
-      </div>
+      </aside>
 
 
 
       <!-- ============================================================== -->
       <!-- RIGHT COLUMN (8/12): MAIN CHAT PANEL                           -->
       <!-- ============================================================== -->
-      <div
-        class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[660px] lg:min-h-[720px]">
+      <section
+        class="chat-conversation-shell bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col">
 
         <!-- Header: Avatar + MediMind Title + Subtitle -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
+        <div class="chat-scene-topline">
+        <div class="chat-scene-header flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
           <div class="flex items-center space-x-3.5">
             <!-- Avatar Badge with Sky-Blue Theme -->
             <div
@@ -1021,35 +1016,25 @@
         </div>
 
         <button type="button" onclick="exportChatPdf()"
-          class="self-end px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200">Xuất
+          class="chat-scene-export self-end px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200">Xuất
           PDF hội thoại</button>
+        </div>
+
+        <div id="chat-empty-state" class="chat-empty-state" aria-live="polite">
+          <span class="chat-empty-kicker">MEDIMIND CLINICAL AI</span>
+          <h2 data-i18n="chat_welcome_title">Hôm nay mình có thể giúp gì cho bạn?</h2>
+          <p data-i18n="chat_welcome_subtitle">Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.</p>
+        </div>
 
         <!-- Chat Messages Stream Container -->
         <div id="chat-messages"
-          class="flex-1 overflow-y-auto py-4 space-y-4 px-1 sm:px-2 my-2 min-h-[380px] max-h-[480px] custom-scrollbar">
-          <!-- Default Greeting Bubble matching screenshot -->
-          <div class="flex items-start gap-3">
-            <div
-              class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-              <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2.2"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <div data-i18n="assistant_greeting_desc"
-              class="max-w-[85%] bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
-              Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn
-              thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?
-            </div>
-          </div>
-
+          class="flex-1 overflow-y-auto py-4 space-y-4 px-1 sm:px-2 my-2 custom-scrollbar">
         </div>
 
 
 
         <!-- Bottom Input Dock -->
-        <div class="pt-3 space-y-3 shrink-0 border-t border-slate-100 dark:border-white/10">
+        <div class="chat-scene-dock pt-3 space-y-3 shrink-0 border-t border-slate-100 dark:border-white/10">
 
           <!-- Quick Prompt Suggestion Chips -->
           <div class="flex flex-wrap items-center gap-2">
@@ -1099,7 +1084,7 @@
 
           <!-- Capsule Input Bar matching screenshot -->
           <div
-            class="flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-2xl p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
+            class="chat-scene-input flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-2xl p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
             <input type="file" id="chat-image-input" aria-label="Tải ảnh lên đoạn chat" accept="image/*" class="hidden"
               onchange="handleChatImageSelected(event)">
 
@@ -1137,7 +1122,7 @@
           </p>
         </div>
 
-      </div>
+      </section>
 
 
 
@@ -1154,7 +1139,7 @@
     <div id="booking-tab" class="tab-content w-full flex-1 flex-col overflow-hidden">
       <div class="flex-1 overflow-hidden flex" id="hospitalsView">
         <!-- Left Filter & Department Column -->
-        <aside class="w-80 lg:w-[340px] bg-[#0b1222] border-r border-slate-800/80 flex flex-col shrink-0">
+        <aside class="w-80 lg:w-[340px] bg-transparent border-r border-slate-800/80 flex flex-col shrink-0">
           <button type="button" class="facility-filter-close"
             onclick="document.getElementById('hospitalsView').classList.remove('filters-open')">Đóng bộ lọc ✕</button>
           <!-- Panel Header -->
@@ -1174,7 +1159,7 @@
                   stroke-width="2"></path>
               </svg>
               <input id="hospitalSidebarSearchInput" aria-label="Tìm kiếm cơ sở y tế"
-                class="w-full pl-9 pr-3 py-1.5 text-xs bg-[#0f172a] border border-slate-800/90 rounded-full text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/60 transition"
+                class="w-full pl-9 pr-3 py-1.5 text-xs bg-transparent border border-slate-800/90 rounded-full text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/60 transition"
                 placeholder="Tìm bệnh viện, phòng khám, quận/huyện..." type="text" autocomplete="off">
             </div>
           </div>
@@ -1281,7 +1266,7 @@
           </div>
           <!-- Panel Footer -->
           <div
-            class="p-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400 bg-[#080d19]">
+            class="p-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400 bg-transparent">
             <span class="">Bảo mật đặt hẹn</span>
             <span class="flex items-center gap-1 text-emerald-400 font-medium">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -1290,12 +1275,12 @@
           </div>
         </aside>
         <!-- Right Hospitals Content Area (Split View: Danh sách & Bản đồ tương tác) -->
-        <main class="flex-1 flex flex-col bg-[#080d19] overflow-hidden p-2 sm:p-3 lg:p-4">
+        <main class="flex-1 flex flex-col bg-transparent overflow-hidden p-2 sm:p-3 lg:p-4">
           <div
-            class="flex-1 flex flex-col bg-[#0b1325]/90 border border-slate-800/80 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl relative">
+            class="flex-1 flex flex-col bg-transparent border border-slate-800/80 rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl relative">
             <!-- Search Toolbar Header -->
             <div
-              class="px-4 sm:px-5 py-3.5 border-b border-slate-800/70 bg-[#0d162b]/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shrink-0">
+              class="px-4 sm:px-5 py-3.5 border-b border-slate-800/70 bg-transparent flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shrink-0">
               <button type="button" class="facility-filter-toggle"
                 onclick="document.getElementById('hospitalsView').classList.add('filters-open')">☰ Bộ lọc</button>
               <!-- Search Input Bar with Google Places Autocomplete -->
@@ -1306,7 +1291,7 @@
                   </path>
                 </svg>
                 <input id="hospitalSearchInput" aria-label="Tìm kiếm bệnh viện phòng khám"
-                  class="w-full pl-10 pr-20 py-2 text-xs bg-[#090f1e] border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition shadow-inner"
+                  class="w-full pl-10 pr-20 py-2 text-xs bg-transparent border border-slate-700/80 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition shadow-inner"
                   placeholder="Tìm bệnh viện, phòng khám hoặc địa chỉ..." type="text" autocomplete="off">
                 <button type="button" id="btnClearHospitalSearch" onclick="clearHospitalSearch()"
                   class="hidden absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer">Xóa</button>
@@ -1314,7 +1299,7 @@
               <!-- Filter dropdowns & Quick actions -->
               <div class="flex items-center gap-2 flex-wrap self-end md:self-auto">
                 <select id="hospitalDistrictFilter" onchange="filterHospitalsByDistrict(this.value)"
-                  class="px-3 py-2 text-xs bg-[#090f1e] border border-slate-700/80 rounded-xl text-slate-300 focus:outline-none focus:border-cyan-500 transition">
+                  class="px-3 py-2 text-xs bg-transparent border border-slate-700/80 rounded-xl text-slate-300 focus:outline-none focus:border-cyan-500 transition">
                   <option value="all">Tất cả Quận / Huyện (TP.HCM)</option>
                   <option value="Quận 1">Quận 1</option>
                   <option value="Quận 2">Quận 2 (TP Thủ Đức)</option>
@@ -1366,7 +1351,7 @@
 
             <!-- Results Subheader -->
             <div
-              class="px-4 sm:px-5 py-2.5 bg-[#090f1f]/80 border-b border-slate-800/50 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+              class="px-4 sm:px-5 py-2.5 bg-transparent border-b border-slate-800/50 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
               <div class="flex items-center gap-2">
                 <span class="text-slate-300 font-medium flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
@@ -1389,13 +1374,13 @@
             <div class="flex-1 flex flex-col overflow-hidden relative" id="hospitalSplitContainer">
               <!-- Top Section: Interactive Google Map Panel -->
               <div
-                class="w-full h-[42%] min-h-[280px] max-h-[420px] flex flex-col relative bg-[#070c18] border-b border-slate-800/80 shrink-0 overflow-hidden"
+                class="w-full h-[42%] min-h-[280px] max-h-[420px] flex flex-col relative bg-transparent border-b border-slate-800/80 shrink-0 overflow-hidden"
                 id="hospitalMapPanel">
                 <!-- Floating Map Control Bar -->
                 <div
                   class="facility-map-controls absolute top-3 left-3 right-3 z-[1001] flex items-center justify-between pointer-events-none">
                   <div
-                    class="pointer-events-auto bg-[#0b1325]/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/70 shadow-lg flex items-center gap-2 text-xs">
+                    class="pointer-events-auto bg-transparent backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/70 shadow-lg flex items-center gap-2 text-xs">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="activeHospitalBadge"
                       class="font-medium text-slate-200 truncate max-w-[200px] sm:max-w-md">Bản đồ cơ sở y tế (Toàn
@@ -1403,7 +1388,7 @@
                   </div>
                   <div class="pointer-events-auto flex items-center gap-1.5">
                     <button onclick="locateUserPosition()"
-                      class="p-2 rounded-xl bg-[#0b1325]/90 hover:bg-[#15203b] border border-slate-700/70 text-cyan-400 hover:text-cyan-300 shadow-lg transition flex items-center gap-1.5 text-xs font-semibold"
+                      class="p-2 rounded-xl bg-transparent hover:bg-white/10 border border-slate-700/70 text-cyan-400 hover:text-cyan-300 shadow-lg transition flex items-center gap-1.5 text-xs font-semibold"
                       title="Định vị vị trí của tôi">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path
@@ -1413,7 +1398,7 @@
                       <span class="hidden sm:inline">Vị trí của tôi</span>
                     </button>
                     <button onclick="resetHospitalMapView()"
-                      class="p-2 rounded-xl bg-[#0b1325]/90 hover:bg-[#15203b] border border-slate-700/70 text-slate-300 hover:text-white shadow-lg transition text-xs font-medium flex items-center gap-1"
+                      class="p-2 rounded-xl bg-transparent hover:bg-white/10 border border-slate-700/70 text-slate-300 hover:text-white shadow-lg transition text-xs font-medium flex items-center gap-1"
                       title="Toàn cảnh tất cả bệnh viện">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path
@@ -1793,7 +1778,7 @@
           </svg></div>
         <p class="nf-overline">MEDIMIND · GỢI Ý DINH DƯỠNG</p>
         <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì cho phù hợp?</h1>
-        <p class="nf-subtitle">Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ gợi ý món phù hợp với mô tả và hồ sơ của bạn.</p>
+        <p class="nf-subtitle">Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ đưa ra công thức tham khảo theo mô tả và hồ sơ của bạn.</p>
         <form id="nf-search-form" class="nf-search-box">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
@@ -1806,11 +1791,12 @@
         </form>
         <div class="nf-examples" aria-label="Gợi ý tìm kiếm">
           <span>Thử tìm:</span>
-          <button type="button" data-nf-example="Gút, bữa tối nhẹ">Gút · bữa tối nhẹ</button>
-          <button type="button" data-nf-example="Ít đường, nhiều rau">Ít đường · nhiều rau</button>
+          <button type="button" data-nf-example="Gút, ít dầu mỡ">Gút · ít dầu mỡ</button>
+          <button type="button" data-nf-example="Ít đường, không cay">Ít đường · không cay</button>
           <button type="button" data-nf-example="Trào ngược dạ dày, không cay">Trào ngược · không cay</button>
+          <button type="button" data-nf-example="Gan nhiễm mỡ">Gan nhiễm mỡ</button>
         </div>
-        <p class="nf-search-hint">Gợi ý món có tham khảo Gemini; hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
+        <p class="nf-search-hint">MediMind lọc công thức tham khảo; Gemini có thể hỗ trợ xếp hạng. Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
       </section>
       <section id="nf-type" class="nf-stage" hidden>
         <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
@@ -1821,7 +1807,7 @@
               <path fill-rule="evenodd"
                 d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
                 clip-rule="evenodd" />
-            </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
+            </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
         <div class="nf-type-grid">
           <button type="button" class="nf-type-card" data-nf-type="food"><span class="nf-type-icon nf-type-food"
               aria-hidden="true"><svg viewBox="0 0 40 40" fill="none">
@@ -1845,13 +1831,13 @@
     <section id="nf-results" class="nf-stage nf-wide" hidden>
       <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
       <p class="nf-overline">GỢI Ý CỦA BẠN</p>
-      <h1 id="nf-results-title">Chọn món bạn thích</h1>
+      <h1 id="nf-results-title">Gợi ý món ăn</h1>
       <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
             aria-hidden="true">
             <path fill-rule="evenodd"
               d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
               clip-rule="evenodd" />
-          </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
+          </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
       <p class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
       <div id="nf-context" class="nf-context" hidden></div>
       <p id="nf-notice" class="nf-notice" hidden></p>
@@ -1900,7 +1886,7 @@
             <path fill-rule="evenodd"
               d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
               clip-rule="evenodd" />
-          </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
+          </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
       <div id="nf-detail-content"></div>
     </section>
     <details id="nf-evidence" class="nf-evidence" hidden>
@@ -2717,23 +2703,7 @@
 
 
 
-          <div class="pt-1">
-
-            <label class="p-label block text-xs font-bold mb-1.5" data-i18n="set_lbl_theme">Chủ đề</label>
-
-            <select id="set-theme-select"
-              class="w-full sm:w-80 bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
-
-              <option value="dark" data-i18n="theme_dark">Tối</option>
-
-              <option value="light" selected data-i18n="theme_light">Sáng</option>
-
-              <option value="system" data-i18n="theme_system">Theo hệ thống</option>
-
-            </select>
-
-          </div>
-
+          <input type="hidden" id="set-theme-select" value="dark">
         </div>
 
 
@@ -4074,8 +4044,8 @@
 
 
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.1.0"></script>
-  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.0.0"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.1"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.3"></script>
 
   <!-- ============================================================== -->
   <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->
@@ -4971,7 +4941,7 @@
         const safeLng = Number.isFinite(Number(lng)) ? Number(lng) : 'null';
 
         html += `
-      <div class="hospital-card rounded-2xl bg-[#0f172a]/95 border border-slate-800/90 hover:border-cyan-500/60 p-4 transition-all duration-200 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col justify-between group cursor-pointer" 
+      <div class="hospital-card rounded-2xl bg-transparent border border-slate-800/90 hover:border-cyan-500/60 p-4 transition-all duration-200 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col justify-between group cursor-pointer" 
            id="facility-card-${safeCardId}" 
            data-facility-id="${safeCardId}" 
            data-facility-type="${escapeHtml(type)}"
@@ -4986,7 +4956,7 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 mb-1 flex-wrap">
                 <span class="facility-type-tag px-2 py-0.5 rounded-md ${isHospital ? 'bg-rose-950/80 border-rose-800/50 text-rose-300' : 'bg-cyan-950/80 border-cyan-800/50 text-cyan-300'} text-[10px] font-semibold border">${escapeHtml(displayType)}</span>
-                ${displayDistrict ? `<span class="facility-meta-tag px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700/60 text-slate-300 text-[10px] font-medium">${escapeHtml(displayDistrict)}</span>` : ''}
+                ${displayDistrict ? `<span class="facility-meta-tag px-2 py-0.5 rounded-md bg-transparent border border-slate-700/60 text-slate-300 text-[10px] font-medium">${escapeHtml(displayDistrict)}</span>` : ''}
               </div>
               <h3 class="text-sm font-bold text-white group-hover:text-cyan-300 transition line-clamp-1" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
             </div>
@@ -5012,7 +4982,7 @@
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             ${_ft('Vị trí', 'Map')}
           </button>
-          <a class="facility-secondary-action py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/70 text-slate-300 text-xs font-medium transition flex items-center gap-1" href="${mapSearchUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
+          <a class="facility-secondary-action py-1.5 px-3 rounded-xl bg-transparent hover:bg-white/10 border border-slate-700/70 text-slate-300 text-xs font-medium transition flex items-center gap-1" href="${mapSearchUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
             <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
             ${_ft('Chỉ đường', 'Directions')}
           </a>

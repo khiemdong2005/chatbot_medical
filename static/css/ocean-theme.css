@@ -1,0 +1,725 @@
+/* ==========================================================================
+   MEDIMIND CLINICAL AI - SUBMERGED OCEAN CANVAS THEME ("CHÌM Ở DƯỚI NỀN")
+   Phong cách Full Canvas Transparent / Ultra-sheer Glassmorphism
+   Toàn bộ khung panel, sidebar, header và thẻ card được làm trong suốt/chìm
+   hòa quyện trực tiếp vào ảnh nền đại dương lấp lánh (như mockup IDE full-wallpaper).
+   Các phần tử UI (text, icon, controls) nổi thanh thoát, không còn khối hộp đục.
+   ========================================================================== */
+
+:root {
+  --ocean-bg-url: url('/static/images/background-ocean.jpg');
+  --ocean-deep: #051427;
+  
+  /* Độ trong suốt cực cao (Ultra-sheer), các feature chìm sâu vào nền ảnh */
+  --ocean-sheer-pane: rgba(5, 18, 34, 0.28);
+  --ocean-sheer-subtle: rgba(4, 14, 28, 0.16);
+  --ocean-sheer-card: rgba(6, 22, 40, 0.32);
+  --ocean-sheer-hover: rgba(14, 45, 80, 0.48);
+  --ocean-sheer-elevated: rgba(7, 24, 46, 0.40);
+  
+  /* Đường viền tối giản mảnh dẻ, không đóng khung cứng nhắc */
+  --ocean-hairline: rgba(255, 255, 255, 0.08);
+  --ocean-hairline-bright: rgba(255, 255, 255, 0.16);
+  --ocean-glow-cyan: rgba(56, 189, 248, 0.40);
+  
+  /* Typography tương phản cao với bóng đổ nhẹ bảo đảm đọc siêu rõ */
+  --ocean-text-pure: #ffffff;
+  --ocean-text-sub: #cbd5e1;
+  --ocean-text-dim: #94a3b8;
+  --ocean-text-shadow: 0 1px 4px rgba(0, 0, 0, 0.65);
+}
+
+/* 1. TOÀN BỘ NỀN CANVAS (GLOBAL IMMERSIVE WALLPAPER) */
+html,
+body,
+body.light-glass,
+body.dark-glass,
+body.chat-scene-active {
+  background-color: var(--ocean-deep) !important;
+  background-image:
+    linear-gradient(115deg, rgba(3, 12, 24, 0.32), rgba(6, 22, 42, 0.12) 52%, rgba(3, 12, 24, 0.30)),
+    var(--ocean-bg-url) !important;
+  background-position: center, center 48% !important;
+  background-size: cover, cover !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed !important;
+  color: var(--ocean-text-pure) !important;
+  min-height: 100vh;
+}
+
+/* Tắt triệt để các đốm blur giả gây đục và loang lổ ảnh nền */
+body > .ambient-breath,
+.ambient-breath {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* 2. THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP HEADER) - CHÌM TRONG SUỐT */
+header,
+body > header,
+body.light-glass > header,
+body.dark-glass > header {
+  background: var(--ocean-sheer-pane) !important;
+  backdrop-filter: blur(12px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
+  border-bottom: 1px solid var(--ocean-hairline) !important;
+  box-shadow: none !important;
+}
+
+header nav.glass-dock,
+header nav {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+header .nav-btn,
+header nav.glass-dock button,
+header #nav-home-tab,
+header #nav-chat-tab,
+header #nav-ocr-tab,
+header #nav-booking-tab,
+header #nav-doctor-tab {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: rgba(241, 245, 249, 0.85) !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+  transition: all 0.2s ease !important;
+}
+
+header .nav-btn:hover,
+header nav.glass-dock button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+}
+
+/* Tab active: Viên nang phát sáng mỏng nhẹ, chìm trên mặt nước */
+header .glass-pill-cyan-active,
+header .nav-btn.glass-pill-cyan-active,
+#nav-chat-tab.glass-pill-cyan-active,
+#nav-home-tab.glass-pill-cyan-active,
+#nav-ocr-tab.glass-pill-cyan-active,
+#nav-booking-tab.glass-pill-cyan-active,
+#nav-doctor-tab.glass-pill-cyan-active {
+  background: rgba(14, 116, 144, 0.38) !important;
+  border: 1px solid rgba(56, 189, 248, 0.55) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+/* Nút công cụ góc phải */
+#lang-btn,
+#theme-btn,
+#notification-btn,
+#auth-unlogged .glass-pill {
+  background: var(--ocean-sheer-pane) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #f1f5f9 !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+#lang-btn:hover,
+#theme-btn:hover,
+#notification-btn:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: var(--ocean-glow-cyan) !important;
+}
+
+/* ==========================================================================
+   2.5. TRANG CHỦ (#home-tab) - CHÌM DƯỚI NỀN ĐẠI DƯƠNG
+   Hero banner, floating health metric badge, discovery cards hoàn toàn siêu mờ
+   ========================================================================== */
+#home-tab,
+#home-tab.tab-content {
+  background: transparent !important;
+}
+
+#home-tab .home-hero-banner,
+.home-hero-banner,
+body.light-glass #home-tab .home-hero-banner,
+body:not(.light-glass) #home-tab .home-hero-banner {
+  background: var(--ocean-sheer-pane) !important;
+  backdrop-filter: blur(14px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(150%) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Các badge vệ tinh xoay quanh lõi nhịp tim (Orbiting badges) */
+.home-orbit-badge,
+#home-tab .home-orbit-badge,
+#home-tab [title="Khám lâm sàng"],
+#home-tab [title="Hồ sơ bệnh án"],
+#home-tab [title="Chỉ số sinh tồn"] {
+  background: rgba(6, 20, 38, 0.35) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Badge chỉ số sức khỏe "Khỏe mạnh 92%" chìm trong suốt dưới nền ảnh */
+.home-metric-badge,
+#home-tab .home-metric-badge,
+#home-tab div.home-metric-badge {
+  background: rgba(6, 20, 38, 0.30) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.30) !important;
+  color: #ffffff !important;
+}
+
+.home-metric-badge .home-metric-icon,
+.home-metric-badge > div:first-child {
+  background: rgba(56, 189, 248, 0.20) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+}
+
+/* 3 Discovery Feature Cards trên Trang chủ */
+#home-tab .home-discovery-card,
+.home-discovery-card,
+body.light-glass .home-discovery-card,
+body:not(.light-glass) .home-discovery-card {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+  color: #ffffff !important;
+}
+
+#home-tab .home-discovery-card:hover,
+.home-discovery-card:hover,
+body:not(.light-glass) .home-card-chat:hover,
+body:not(.light-glass) .home-card-records:hover,
+body:not(.light-glass) .home-card-booking:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: var(--ocean-glow-cyan) !important;
+  transform: translateY(-4px) !important;
+}
+
+/* 3. VÙNG CHAT (#chat-tab) */
+#chat-tab {
+  background: transparent !important;
+}
+
+/* Sidebar Lịch sử tư vấn: trong suốt, chìm hoàn toàn vào nền đại dương */
+#chat-tab .chat-history-shell {
+  background: var(--ocean-sheer-pane) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: none !important;
+}
+
+#chat-tab .chat-history-shell h3,
+#chat-tab .chat-history-shell h4 {
+  color: #ffffff !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+
+#chat-tab .chat-history-shell p,
+#chat-tab .chat-history-shell span {
+  color: var(--ocean-text-sub) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+#chat-tab #history-search-input {
+  background: var(--ocean-sheer-subtle) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(6px) !important;
+}
+#chat-tab #history-search-input:focus {
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  background: rgba(4, 16, 32, 0.45) !important;
+}
+
+/* Từng dòng item lịch sử chìm nhẹ vào nền */
+#chat-tab .chat-history-item {
+  background: rgba(8, 25, 48, 0.25) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+#chat-tab .chat-history-item:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+#chat-tab .chat-history-item.ring-1,
+#chat-tab .chat-history-item.border-teal-500 {
+  background: rgba(14, 48, 86, 0.45) !important;
+  border-color: rgba(56, 189, 248, 0.65) !important;
+}
+#chat-tab .chat-history-item h5,
+#chat-tab .chat-history-item .text-slate-900,
+#chat-tab .chat-history-item .text-slate-100 {
+  color: #ffffff !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+
+/* Khung trò chuyện chính: hoàn toàn trong suốt để thấy trọn vẹn mặt biển */
+#chat-tab .chat-conversation-shell {
+  background: var(--ocean-sheer-subtle) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: none !important;
+}
+
+#chat-tab .chat-scene-header {
+  background: var(--ocean-sheer-pane) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-bottom: 1px solid var(--ocean-hairline) !important;
+  box-shadow: none !important;
+}
+
+#chat-tab .chat-scene-export {
+  background: rgba(6, 22, 42, 0.35) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(8px) !important;
+}
+#chat-tab .chat-scene-export:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
+}
+
+/* Tin nhắn trợ lý (Bot Bubble) - Kính mờ siêu mỏng để nhìn xuyên qua nền nước */
+#chat-messages .assistant-bubble,
+#chat-tab [class*="assistant"] > div:last-child,
+#chat-messages > div:not(.justify-end) > div:last-child {
+  background: rgba(7, 24, 46, 0.42) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.11) !important;
+  color: #f1f7fc !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 20px !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+
+/* Tin nhắn người dùng (User Bubble) */
+#chat-messages > div.justify-end > div {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.65), rgba(79, 70, 229, 0.65)) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.25) !important;
+  border-radius: 20px !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+
+/* Hộp đặc điểm thị giác (Vision tags) chìm tự nhiên */
+.vision-findings-box,
+#chat-messages [class*="vision"] {
+  background: rgba(6, 28, 50, 0.38) !important;
+  border: 1px solid rgba(56, 189, 248, 0.22) !important;
+  border-radius: 14px !important;
+}
+.vision-tag,
+#chat-messages span.tag-pill {
+  background: rgba(6, 78, 99, 0.45) !important;
+  border: 1px solid rgba(34, 211, 238, 0.32) !important;
+  color: #e0f2fe !important;
+}
+
+/* Các chip gợi ý nhanh bên dưới */
+#chat-tab button[onclick^="insertQuickPrompt"] {
+  background: rgba(6, 20, 38, 0.38) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #e2e8f0 !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+#chat-tab button[onclick^="insertQuickPrompt"]:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  color: #ffffff !important;
+}
+
+/* Dock nhập liệu (Input Bar) chìm tinh tế */
+#chat-tab .chat-scene-dock {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#chat-tab .chat-scene-input {
+  background: rgba(6, 20, 38, 0.45) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+}
+#chat-tab .chat-scene-input:focus-within {
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25) !important;
+}
+#chat-tab #user-input {
+  color: #ffffff !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+
+/* ==========================================================================
+   4. TAB CƠ SỞ Y TẾ (#booking-tab) - KHẮC PHỤC 100% ĐỘ ĐỤC CHE NỀN
+   Toàn bộ sidebar, thanh công cụ, map container và cards chìm vào biển
+   ========================================================================== */
+body #booking-tab,
+body #booking-tab.tab-content,
+body #booking-tab #hospitalsView,
+body #booking-tab #hospitalsView > main,
+body #booking-tab #hospitalsView #hospitalCardsList {
+  background: transparent !important;
+}
+
+/* Sidebar bên trái của Cơ sở y tế */
+body #booking-tab #hospitalsView aside,
+body #booking-tab aside,
+body aside.facility-filter-panel {
+  background: var(--ocean-sheer-pane) !important;
+  backdrop-filter: blur(14px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+  border-right: 1px solid var(--ocean-hairline) !important;
+  border-left: none !important;
+  color: #ffffff !important;
+}
+
+#hospitalsView aside > div:first-of-type,
+#hospitalsView aside .border-b,
+#booking-tab aside .border-b {
+  border-color: var(--ocean-hairline) !important;
+  background: transparent !important;
+}
+
+#hospitalSidebarSearchInput {
+  background: var(--ocean-sheer-subtle) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(6px) !important;
+}
+#hospitalSidebarSearchInput:focus {
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* Các nút bộ lọc Loại hình cơ sở */
+#facilityCategoryButtons button {
+  background: rgba(8, 25, 48, 0.25) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #cbd5e1 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
+  transition: all 0.2s ease !important;
+}
+#facilityCategoryButtons button:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #ffffff !important;
+}
+#facilityCategoryButtons button[aria-pressed="true"],
+#facilityCategoryButtons button.bg-sky-500\/15 {
+  background: rgba(14, 116, 144, 0.42) !important;
+  border: 1px solid rgba(56, 189, 248, 0.65) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25) !important;
+}
+#facilityCategoryButtons button span:last-child {
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: #94a3b8 !important;
+}
+#facilityCategoryButtons button[aria-pressed="true"] span:last-child {
+  background: rgba(56, 189, 248, 0.25) !important;
+  color: #e0f2fe !important;
+}
+
+/* Khu vực địa lý (TP.HCM, Hà Nội, Đà Nẵng) */
+#facilityRegionButtons button {
+  background: rgba(8, 25, 48, 0.25) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #cbd5e1 !important;
+}
+#facilityRegionButtons button[aria-pressed="true"] {
+  background: rgba(14, 116, 144, 0.45) !important;
+  border-color: rgba(56, 189, 248, 0.65) !important;
+  color: #ffffff !important;
+}
+
+/* Chuyên khoa nổi bật pills */
+#facilitySpecialtyPills button {
+  background: rgba(6, 26, 48, 0.35) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #cbd5e1 !important;
+  backdrop-filter: blur(6px) !important;
+}
+#facilitySpecialtyPills button:hover {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  color: #ffffff !important;
+}
+#facilitySpecialtyPills button[aria-pressed="true"] {
+  background: rgba(14, 116, 144, 0.5) !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  color: #ffffff !important;
+}
+
+/* Vùng Content bên phải (Bản đồ & Danh sách card) */
+body #booking-tab #hospitalsView main,
+#hospitalsView main,
+#booking-tab main {
+  background: transparent !important;
+}
+
+/* Khung bọc lớn bên phải chứa Map + Card list */
+body #booking-tab #hospitalsView main > div.flex-1,
+#hospitalsView main > div.flex-1,
+#booking-tab main > div.flex-1 {
+  background: var(--ocean-sheer-pane) !important;
+  backdrop-filter: blur(14px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(150%) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: none !important;
+}
+
+/* Header toolbar tìm kiếm bên phải */
+#hospitalsView main > div.flex-1 > div:first-of-type,
+#booking-tab .px-4.sm\:px-5.py-3\.5 {
+  background: rgba(6, 22, 42, 0.35) !important;
+  border-bottom: 1px solid var(--ocean-hairline) !important;
+}
+#hospitalSearchInput {
+  background: var(--ocean-sheer-subtle) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+#hospitalSearchInput:focus {
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25) !important;
+}
+#hospitalDistrictFilter {
+  background: var(--ocean-sheer-subtle) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+}
+#hospitalDistrictFilter option {
+  background: #07172c !important;
+  color: #ffffff !important;
+}
+
+/* Subheader số lượng cơ sở */
+#hospitalsView .px-4.sm\:px-5.py-2\.5,
+#booking-tab .px-4.sm\:px-5.py-2\.5 {
+  background: rgba(4, 16, 32, 0.22) !important;
+  border-bottom: 1px solid var(--ocean-hairline) !important;
+}
+
+/* Khung bản đồ (Map Panel) */
+#hospitalMapPanel {
+  background: rgba(3, 12, 24, 0.20) !important;
+  border-bottom: 1px solid var(--ocean-hairline) !important;
+}
+#hospitalMapPanel .facility-map-controls > div > div,
+#hospitalMapPanel .facility-map-controls button,
+#hospitalMapPanel .bg-\[\#0b1325\]\/90 {
+  background: rgba(6, 20, 38, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+}
+
+/* Vùng danh sách các thẻ cơ sở y tế */
+#hospitalCardsList {
+  background: transparent !important;
+}
+#hospitalCardsList > div:first-of-type {
+  border-bottom: 1px solid var(--ocean-hairline) !important;
+}
+
+/* Từng Card Cơ Sở Y Tế (.hospital-card) - Chìm trên mặt biển */
+#booking-tab .hospital-card,
+.hospital-card {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(12px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.22s ease !important;
+}
+#booking-tab .hospital-card:hover,
+.hospital-card:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(56, 189, 248, 0.2) !important;
+}
+
+.hospital-card .facility-icon-tile {
+  background: rgba(6, 36, 62, 0.45) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+.hospital-card .facility-type-tag {
+  background: rgba(14, 116, 144, 0.38) !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
+  color: #e0f2fe !important;
+}
+.hospital-card .facility-meta-tag {
+  background: rgba(4, 18, 36, 0.42) !important;
+  border-color: var(--ocean-hairline) !important;
+  color: #cbd5e1 !important;
+}
+
+.hospital-card .facility-primary-action {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.8), rgba(3, 105, 161, 0.8)) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  color: #ffffff !important;
+}
+.hospital-card .facility-secondary-action {
+  background: rgba(6, 24, 46, 0.45) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #e2e8f0 !important;
+}
+.hospital-card .facility-secondary-action:hover {
+  background: rgba(14, 48, 86, 0.7) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  color: #ffffff !important;
+}
+
+#facilitiesPaginationBar button {
+  background: rgba(6, 20, 38, 0.45) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #f1f5f9 !important;
+}
+#facilitiesPaginationBar button:hover:not(:disabled) {
+  background: rgba(14, 45, 80, 0.7) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+}
+
+/* 5. TAB ĐỌC ĐƠN THUỐC LÂM SÀNG (#ocr-tab) */
+#ocr-tab {
+  background: transparent !important;
+}
+#ocr-tab #prescription-dropzone,
+#ocr-tab .border-dashed {
+  background: rgba(5, 18, 34, 0.32) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+#ocr-tab #prescription-dropzone:hover {
+  background: rgba(8, 28, 52, 0.48) !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+}
+#ocr-tab input,
+#ocr-tab select,
+#ocr-tab textarea {
+  background: rgba(4, 15, 28, 0.45) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+/* 6. TAB THỬ THÁCH SỐNG KHỎE & DINH DƯỠNG (#doctor-tab) */
+#doctor-tab,
+#doctor-tab.tab-content,
+#doctor-tab.nutrition-flow {
+  background: transparent !important;
+}
+#doctor-tab .nf-card,
+#doctor-tab .nf-type-card,
+#doctor-tab .nf-meal-bar,
+#doctor-tab .nf-search-box {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+#doctor-tab .nf-type-card:hover,
+#doctor-tab .nf-card:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: var(--ocean-glow-cyan) !important;
+}
+#doctor-tab .nf-search-input {
+  background: rgba(4, 15, 28, 0.45) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* 7. TOÀN BỘ CÁC THẺ CARD / PANEL CHUNG (.glass-panel, .glass-panel-elevated) */
+.glass-panel,
+.glass-panel-elevated,
+.glass-card,
+body.light-glass .glass-panel,
+body.light-glass .glass-panel-elevated,
+body.dark-glass .glass-panel,
+body.dark-glass .glass-panel-elevated {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(10px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(140%) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22) !important;
+  color: var(--ocean-text-pure) !important;
+}
+
+body.light-glass #home-tab .glass-panel-elevated,
+body.light-glass #ocr-tab .glass-panel-elevated,
+body.light-glass #booking-tab .glass-panel-elevated,
+body.light-glass #doctor-tab .glass-panel-elevated,
+body.light-glass #profile-tab .glass-panel-elevated,
+body.light-glass #settings-tab .glass-panel-elevated,
+body.light-glass #medical-record-modal .glass-panel-elevated,
+body.light-glass #facility-booking-modal .glass-panel-elevated,
+body.light-glass #facility-detail-modal .glass-panel-elevated {
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid var(--ocean-hairline) !important;
+  color: #ffffff !important;
+}
+
+/* Tiêu đề & nội dung chữ */
+body.light-glass h1,
+body.light-glass h2,
+body.light-glass h3,
+body.light-glass h4,
+body.light-glass h5,
+body.light-glass .text-slate-900,
+body.light-glass .text-slate-800,
+body.light-glass .text-slate-700 {
+  color: #ffffff !important;
+  text-shadow: var(--ocean-text-shadow) !important;
+}
+
+body.light-glass p,
+body.light-glass span,
+body.light-glass .text-slate-600,
+body.light-glass .text-slate-500 {
+  color: var(--ocean-text-sub) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 8. MODALS */
+#login-modal .glass-panel-elevated,
+#auth-modal-card,
+#medical-record-modal .glass-panel-elevated,
+#profile-modal .glass-panel-elevated,
+#disclaimer-modal .glass-panel-elevated,
+#facility-booking-modal .glass-panel-elevated,
+#facility-detail-modal .glass-panel-elevated {
+  background: rgba(6, 20, 38, 0.68) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid var(--ocean-hairline-bright) !important;
+  color: #ffffff !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+}

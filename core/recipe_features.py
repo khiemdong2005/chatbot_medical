@@ -208,12 +208,10 @@ def analyze_imported_recipe(recipe):
     cooking_step = _has(r"cook|cooked|cooking|bake|baked|baking|boil|boiled|boiling|simmer|simmered|steam|steamed|roast|roasted|fry|fried|grill|grilled|poach|poached|microwave|heat|heated|nau|hap|luoc|ham|ninh|chien|xao|ran|nuong|om|dun|chung|rang|chao\s+chin", steps) or (vietnamese and _has(r"kho", raw_steps))
     raw_ingredients = " ; ".join(raw_texts)
     vi_oc_scan = re.sub(r"\boc\s+cho\b", "", ingredients)
-    vi_mang_scan = re.sub(r"\bmang\s+cut\b", "", ingredients)
     labels_oc_scan = re.sub(r"\boc\s+cho\b", "", labels)
-    labels_mang_scan = re.sub(r"\bmang\s+cut\b", "", labels)
     purine_high = alcohol or _has(
         r"oysters?|mussels?|clams?|scallops?|shrimp|prawns?|crabs?|lobsters?|squid|octopus|anchov(?:y|ies)|sardines?|herring|mackerel|tuna"
-        r"|liver|kidney|heart|brain|sweetbread|organ\s+meat|beef|lamb|mutton|veal|bamboo\s+shoots?",
+        r"|liver|kidney|heart|brain|sweetbread|organ\s+meat|beef|lamb|mutton|veal",
         ingredients
     ) or (vietnamese and (
         _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|bach\s+tuoc|ca\s+(?:trich|moi|thu|nuc|ngu|com)|hai\s+san", ingredients)
@@ -223,17 +221,23 @@ def analyze_imported_recipe(recipe):
         or _has(r"cat\s+(?:heo|lon|bo)|than\s+(?:heo|lon|bo)", ingredients) or bool(re.search(r"\bcật\b", raw_ingredients))
         or _has(r"long\s+(?:heo|lon|bo|ga|vit|non|gia)", ingredients) or bool(re.search(r"\blòng(?!\s+(?:đỏ|trắng))\b", raw_ingredients))
         or _has(r"thit\s+(?:bo|be|de|cuu|heo|lon|nac|bam|xay)|ba\s+(?:roi|chi)|suon\s+(?:heo|lon|non)|xuong\s+(?:heo|lon|ong)|gio\s+heo|mong\s+gio|chan\s+gio|gio\s+song|cha\s+lua|gio\s+lua|thit\s+nguoi|xuc\s+xich", ingredients)
-        or _has(r"mang", vi_mang_scan)
     )) or (vietnamese and (
         _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|thit\s+(?:bo|heo|lon)|gio\s+heo|mong\s+gio|chan\s+gio", labels)
         or _has(r"oc", labels_oc_scan)
-        or _has(r"mang", labels_mang_scan)
     ))
     sugar_high = _has(
         r"sugar|cane\s+sugar|corn\s+syrup|honey|molasses|caramel|jam|marmalade|candy|condensed\s+milk"
         r"|duong\s+(?:cat|phen|trang|nau|thot\s+not)|mat\s+ong|siro|sua\s+dac|keo|mut",
         ingredients
-    ) or (vietnamese and _has(r"che\s+ngot|nuoc\s+ngot", labels))
+    ) or (vietnamese and (_has(r"che\s+ngot|nuoc\s+ngot", labels)
+                         or any(_has(r"duong", text) and not _has(r"khong\s+(?:them\s+)?duong", text)
+                                for text in texts)))
+    saturated_fat_source = _has(
+        r"butter|ghee|lard|cream|bacon|sausage|pork\s+belly|whole\s+milk|full[ -]fat\s+milk|cheese"
+        r"|bo\s+(?:sua|lat|man)|kem\s+(?:sua|tuoi|beo)|pho\s+(?:mai|mat)|phomai|nuoc\s+cot\s+dua|sua\s+nguyen\s+kem"
+        r"|mo\s+(?:heo|lon)|ba\s+(?:roi|chi)|xuc\s+xich|lap\s+xuong|thit\s+nguoi",
+        ingredients
+    )
     sodium_high = _has(
         r"mam\s+(?:tom|tep|ca|ruoc|nem)|ca\s+kho|kho\s+muc|thit\s+(?:xong\s+khoi|nguoi)|xuc\s+xich|lap\s+xuong|dua\s+muoi|dua\s+chua|ca\s+muoi|cured|bacon|ham|sausage|pickles?",
         ingredients
@@ -246,6 +250,7 @@ def analyze_imported_recipe(recipe):
         "soft": soft, "liquid": liquid, "caffeine": caffeine, "alcohol": alcohol,
         "acidic": acidic, "spicy": spicy, "mint": mint, "fried": fried,
         "fat_unknown": fat_unknown, "purine_high": purine_high,
-        "sugar_high": sugar_high, "sodium_high": sodium_high,
+        "sugar_high": sugar_high, "saturated_fat_source": saturated_fat_source,
+        "sodium_high": sodium_high,
         "unsafe_preparation": unsafe, "nutrients_unknown": True,
     }

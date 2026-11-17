@@ -128,7 +128,7 @@ class RecipeCatalogTests(unittest.TestCase):
 
     @patch("core.nutrition_ai.select_recipes")
     def test_more_suggestions_excludes_previous_recipe_ids(self, provider):
-        def choose(condition, kind, recipes, guidance):
+        def choose(condition, kind, recipes, guidance, personalization=None):
             return {"needs_clarification": False, "clarification_question": "", "model": "mock",
                     "recipes": [{**r, "recommendation_reason": "Lựa chọn thử nghiệm từ nhóm ứng viên."} for r in recipes[:3]]}
         provider.side_effect = choose
