@@ -86,7 +86,7 @@ Dự án tập trung giải quyết 4 điểm nghẽn (Pain Points) nhức nhố
 
 #### 4.1. Sơ đồ Luồng Kiến trúc Tổng thể (High-Level AWS Architecture)
 
-![Sơ đồ Kiến trúc AWS Chuẩn MediMind AI](<img width="1436" height="715" alt="image" src="https://github.com/user-attachments/assets/f8329670-e051-40bd-951e-01728a9db7d5" />)
+![Sơ đồ Kiến trúc AWS Chuẩn MediMind AI]("C:\Users\vule0\FPT\WORKSHOP_PROPOSAL.png")
 
 #### 4.2. Danh mục Dịch vụ AWS Chính thức Sử dụng
 
