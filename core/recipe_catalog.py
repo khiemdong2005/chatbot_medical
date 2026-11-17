@@ -2,6 +2,7 @@
 from copy import deepcopy
 from functools import lru_cache
 import json
+import math
 from pathlib import Path
 import re
 import unicodedata
@@ -178,7 +179,7 @@ def classify_meal_times(recipe, role=None):
     return list(dict.fromkeys(meals)) or ["lunch", "dinner"]
 
 
-def retrieve_candidates(condition, recipes, limit=32):
+def retrieve_candidates(condition, recipes, limit=32, sort_by_sugar=False):
     """Text/metadata retrieval with dish role diversity for balanced meals."""
     query = normalize(condition)
     expanded = query + " " + " ".join(v for k, v in EXPANSIONS.items() if re.search(r"\b" + re.escape(k) + r"\b", query))
@@ -195,8 +196,14 @@ def retrieve_candidates(condition, recipes, limit=32):
         if any(re.search(r"\b" + word + r"\b", query) for word in ("sot", "ho", "nhiet mieng")):
             value += 5 * ("soft" in tags or "liquid" in tags)
         return value
+    def priority_key(recipe):
+        if sort_by_sugar:
+            sugar = recipe.get("sugar")
+            known = isinstance(sugar, (int, float)) and not isinstance(sugar, bool) and math.isfinite(sugar)
+            return (not known, sugar if known else float("inf"), -score(recipe), recipe["id"])
+        return (-score(recipe), recipe["id"])
     ranked, seen_titles = [], set()
-    for recipe in sorted(recipes, key=lambda r: (-score(r), r["id"])):
+    for recipe in sorted(recipes, key=priority_key):
         key = title_key(recipe)
         if key not in seen_titles:
             ranked.append(recipe)
@@ -231,7 +238,7 @@ def retrieve_candidates(condition, recipes, limit=32):
         role_order = ["main", "soup", "side", "staple", "drink"]
         role_lists = {role: [r for r in diverse_candidates if classify_dish_role(r) == role] for role in role_order}
         for role in role_lists:
-            role_lists[role].sort(key=lambda r: (-score(r), r["id"]))
+            role_lists[role].sort(key=priority_key)
             
         interleaved = []
         max_depth = max(len(l) for l in role_lists.values()) if role_lists else 0
@@ -268,5 +275,5 @@ def retrieve_candidates(condition, recipes, limit=32):
     if len(imported) >= 8:
         originals = [r for r in ranked if not r.get("imported")][:2]
         chosen = originals + imported[:max(0, limit - len(originals))]
-        return sorted(chosen, key=lambda r: (-score(r), r["id"]))
+        return sorted(chosen, key=priority_key)
     return ranked[:limit]

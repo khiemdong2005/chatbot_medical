@@ -36,11 +36,13 @@ class NutritionRulesTests(unittest.TestCase):
                 self.assertIn("warm_milk", {r["id"] for r in result["recipes"]})
 
     def test_unsupported_or_ambiguous_constraints_fail_closed(self):
-        for query in ("ho dị ứng hải sản", "ho; tôi dị ứng mè", "ho và dị ứng", "ho dị ứng sữa và không dị ứng trứng"):
+        for query in ("ho và dị ứng", "ho dị ứng sữa và không dị ứng trứng"):
             with self.subTest(query=query):
                 result = prepare_nutrition_candidates(query, FOOD + DRINK)
                 self.assertEqual(result["recipes"], [])
                 self.assertEqual(len(result["excluded"]), len(FOOD + DRINK))
+        self.assertIn("seafood", prepare_nutrition_candidates("ho dị ứng hải sản", FOOD)["allergies"])
+        self.assertIn("sesame", prepare_nutrition_candidates("ho; tôi dị ứng mè", FOOD)["allergies"])
 
     def test_gluten_requires_verified_oats(self):
         ids = self.ids("ho; tránh gluten")
@@ -66,7 +68,7 @@ class NutritionRulesTests(unittest.TestCase):
         self.assertIn("Bệnh gút", result["context_label"])
         self.assertIn("Tiểu đường", result["context_label"])
         # Both NHS guidelines present
-        self.assertTrue(any("gout" in g["source_url"] for g in result["guidance"]))
+        self.assertTrue(any("gout" in g["source_url"].lower() for g in result["guidance"]))
         self.assertTrue(any("diabetes" in g["source_url"] for g in result["guidance"]))
         # Both avoidances present
         avoid_titles = {a["title"] for a in result["avoidance"]}
@@ -167,8 +169,9 @@ class NutritionRulesTests(unittest.TestCase):
             self.assertTrue(item["source_url"].startswith("https://"))
         for recipe in result["recipes"]:
             title = recipe["title"].lower()
-            for forbidden in ("hàu", "giò heo", "móng giò", "chân giò", "thịt bò", "măng chua"):
+            for forbidden in ("hàu", "giò heo", "móng giò", "chân giò", "thịt bò"):
                 self.assertNotIn(forbidden, title)
+        self.assertFalse(any("măng" in item["title"].lower() for item in result["avoidance"]))
 
     def test_unmapped_complex_disease_flags_safeguard(self):
         for query in ("ung thư gan", "viêm tụy cấp", "suy hô hấp"):
@@ -262,7 +265,6 @@ class NutritionRulesTests(unittest.TestCase):
                 # Ensure single dishes are standalone one-dish meals
                 for r in result["recipes"]:
                     self.assertTrue(is_standalone_one_dish(r), f"Dish '{r['title']}' is not a standalone one-dish meal")
-                    self.assertTrue(r.get("key_nutrients"), f"Dish '{r['title']}' missing key_nutrients")
                     self.assertTrue(r.get("recommendation_reason"), f"Dish '{r['title']}' missing recommendation_reason")
                     self.assertNotIn("none", str(r.get("recommendation_reason")).lower()[:10])
 
@@ -292,6 +294,28 @@ class NutritionRulesTests(unittest.TestCase):
         res = validate_selection(val, catalog, 0)
         # full_meal_set should be rejected because main is a soup
         self.assertNotIn("full_meal_set", res)
+
+    def test_side_dish_rejects_duplicate_main_ingredients(self):
+        from core.nutrition_options import _is_valid_side, _extract_main_ingredient_tags
+        r_main = {
+            "id": "vifoodrec_main_1",
+            "title": "Nấm Đông Cô Nhồi Đậu Hũ Sốt Cà Chua",
+            "ingredients": [{"name": "Đậu hũ non"}, {"name": "Nấm đông cô"}]
+        }
+        r_side_dup = {
+            "id": "vifoodrec_side_1",
+            "title": "Đậu Hũ Sốt Nấm Rau Củ Chay",
+            "dish_role": "side",
+            "ingredients": [{"name": "Đậu hũ"}, {"name": "Nấm rơm"}]
+        }
+        r_side_clean = {
+            "id": "vifoodrec_side_2",
+            "title": "Cải Thìa Xào Dầu Hào",
+            "dish_role": "side",
+            "ingredients": [{"name": "Cải thìa"}]
+        }
+        self.assertFalse(_is_valid_side(r_side_dup, main_r=r_main))
+        self.assertTrue(_is_valid_side(r_side_clean, main_r=r_main))
 
 
 if __name__ == "__main__":

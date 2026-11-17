@@ -704,6 +704,8 @@ const translations = {
     assistant_btn_summary: "Hồ sơ & Tóm tắt",
     assistant_greeting_title: "Trợ lý y tế MediMind",
     assistant_greeting_desc: "Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
+    chat_welcome_title: "Hôm nay mình có thể giúp gì cho bạn?",
+    chat_welcome_subtitle: "Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.",
     welcome_msg: "Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
     quick_1: "Sốt 38.5°C và đau cổ họng",
     quick_2: "Đau tức ngực, khó thở",
@@ -1085,6 +1087,8 @@ const translations = {
     assistant_btn_summary: "Record & Summary",
     assistant_greeting_title: "MediMind Medical Assistant",
     assistant_greeting_desc: "Hello, I am the MediMind Health Assistant. I can help you with preliminary symptom triage, prescription explanations, and specialty clinic guidance. What health concern are you experiencing?",
+    chat_welcome_title: "How can I help you today?",
+    chat_welcome_subtitle: "Describe your symptoms or ask a question to begin the conversation.",
     welcome_msg: "Hello, I am the MediMind Health Assistant. I can help you with preliminary symptom triage, prescription explanations, and specialty clinic guidance. What health concern are you experiencing?",
     quick_1: "Fever 38.5°C and sore throat",
     quick_2: "Chest tightness, dyspnea",
@@ -1343,6 +1347,14 @@ const STATIC_VI_EN_TEXT = {
   "Tự động sắp xếp lịch uống sáng, trưa, tối và tra cứu tương tác thuốc": "Automatically structuring morning, noon, and evening doses and checking drug references",
   // Nutrition Flow
   "MEDIMIND · GỢI Ý DINH DƯỠNG": "MEDIMIND · NUTRITION STUDIO",
+  "Hôm nay bạn muốn ăn gì cho phù hợp?": "What would you like to eat today?",
+  "Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ gợi ý món phù hợp với mô tả và hồ sơ của bạn.": "Enter a condition, symptom or eating preference. MediMind will suggest dishes using your search and saved profile.",
+  "Tình trạng sức khỏe và nhu cầu ăn uống": "Health condition and eating preference",
+  "Thử tìm:": "Try:",
+  "Gút · ít dầu mỡ": "Gout · less oil",
+  "Ít đường · không cay": "Less sugar · mild food",
+  "Trào ngược · không cay": "Reflux · mild food",
+  "Gợi ý món có tham khảo Gemini; hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.": "Gemini may help rank dishes; check ingredients and portions before eating.",
   "Hôm nay bạn cảm thấy thế nào?": "How are you feeling today?",
   "Nhập tâm trạng hoặc tình trạng sức khỏe để xem các công thức tham khảo.": "Enter your mood or health condition to explore tailored recipes.",
   "Tâm trạng hoặc tình trạng sức khỏe": "Mood or health condition",
@@ -1351,12 +1363,20 @@ const STATIC_VI_EN_TEXT = {
   "BƯỚC 1 / 3": "STEP 1 / 3",
   "Bạn muốn xem loại nào?": "What would you like to explore?",
   "Tình trạng đã nhập": "Entered condition",
+  "Yêu cầu đã nhập": "Your search",
   "Thức ăn": "Food",
   "Khám phá những món ăn dễ làm": "Discover easy, nourishing meals",
   "Nước uống": "Drinks",
   "Khám phá những thức uống dễ pha": "Discover soothing, easy-to-make beverages",
   "← Đổi loại gợi ý": "← Change category",
   "BƯỚC 2 / 3": "STEP 2 / 3",
+  "GỢI Ý CỦA BẠN": "YOUR SUGGESTIONS",
+  "Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.": "Open a dish for ingredients, steps and estimated energy.",
+  "Mâm cơm 1 bữa": "One-meal set",
+  "Món đơn lẻ": "Individual dishes",
+  "Nên hạn chế / cần tránh": "Foods to limit or avoid",
+  "Nguồn & lưu ý dữ liệu": "Sources & data notes",
+  "Thông tin dinh dưỡng chỉ để tham khảo, không thay thế tư vấn y tế chuyên khoa.": "Nutrition information is for reference and does not replace clinical advice.",
   "Chọn món bạn thích": "Choose a recipe you like",
   "Chọn một món để xem công thức và thông tin dinh dưỡng.": "Select a dish to view its step-by-step recipe and nutritional profile.",
   "Các món được chọn như thế nào?": "How are these suggestions selected?",
@@ -1806,6 +1826,8 @@ function switchTab(tabId, updateHistory = true) {
   // 4. Kích hoạt DOM tab đích & pill sáng
   const activeTab = document.getElementById(tabId);
   if (activeTab) activeTab.classList.add('active');
+  document.body.classList.toggle('chat-scene-active', tabId === 'chat-tab' && !!activeTab);
+  if (tabId === 'chat-tab') syncChatSceneState();
 
   const activeNav = document.getElementById('nav-' + tabId);
   if (activeNav) {
@@ -1887,6 +1909,22 @@ function insertPrompt(text) {
   }
 }
 
+function syncChatSceneState(hasMessages) {
+  const tab = document.getElementById('chat-tab');
+  if (!tab) return;
+  const populated = hasMessages ?? Boolean(document.getElementById('chat-messages')?.children.length);
+  tab.classList.toggle('chat-has-messages', populated);
+  tab.classList.toggle('chat-empty', !populated);
+}
+
+function toggleChatHistoryPanel(force) {
+  const tab = document.getElementById('chat-tab');
+  if (!tab) return;
+  const expanded = typeof force === 'boolean' ? force : !tab.classList.contains('history-open');
+  tab.classList.toggle('history-open', expanded);
+  tab.querySelector('.chat-history-toggle')?.setAttribute('aria-expanded', String(expanded));
+}
+
 function resetChat() {
   cancelActiveChatRequest();
   window.clearChatHealthContext?.();
@@ -1897,18 +1935,9 @@ function resetChat() {
   currentIntakeSummary = null;
 
   const container = document.getElementById('chat-messages');
-  if (container) {
-    container.innerHTML = `
-      <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-        </div>
-        <div class="max-w-[85%] bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
-          Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?
-        </div>
-      </div>
-    `;
-  }
+  if (container) container.innerHTML = '';
+  syncChatSceneState(false);
+  toggleChatHistoryPanel(false);
 
   const searchInput = document.getElementById('history-search-input');
   if (searchInput) searchInput.value = '';
@@ -2133,6 +2162,7 @@ function renderSharedChatInMain() {
     const specialistGuidance = renderSpecialistGuidance(turn.specialist, isEn);
     return `<div class="flex justify-start my-1"><div class="max-w-[95%] rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-800 dark:border-white/10 dark:bg-slate-800 dark:text-slate-100">${emergencyBanner}<div class="text-slate-800 dark:text-slate-100 font-normal leading-relaxed">${formatChatAnswer(turn.content)}</div>${specialistGuidance}${chatAnswerMetadata(turn)}</div></div>`;
   }).join('');
+  syncChatSceneState(chatHistory.some(turn => ['user', 'assistant'].includes(turn.role)));
   appendChatConfirmation(container, chatHistory.at(-1) || {}, currentConversationId);
   container.scrollTop = container.scrollHeight;
 }
@@ -2168,11 +2198,13 @@ async function sendChatMessage() {
         ${userImgHtml}
         <div>${escapeHtml(text)}</div>
       </div>
-      <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">${dict.patient_label}</div>
+      <div class="chat-patient-label text-right text-[10px] text-slate-400 mt-1 mr-1">${dict.patient_label}</div>
     </div>
   `;
 
   container.insertAdjacentHTML('beforeend', userHtml);
+  syncChatSceneState(true);
+  toggleChatHistoryPanel(false);
   input.value = '';
   clearChatImagePreview();
   container.scrollTop = container.scrollHeight;
@@ -6845,6 +6877,7 @@ function loadDemoConsultation() {
   container.scrollTop = container.scrollHeight;
 
   // Cập nhật Dữ kiện Lâm sàng Mẫu vào Live Intake Card & Summary (Tuân thủ Mục 8 & 9)
+  syncChatSceneState(true);
   const demoFacts = {
     chief_complaint: "Ho khan 4 ngày, đau rát họng, sốt nhẹ 37.8°C",
     present_symptoms: ["Sốt / Thân nhiệt tăng", "Đau rát họng / Nuốt đau", "Ho khan / Ho có đờm"],
@@ -7100,7 +7133,7 @@ function loadSession(sessionId) {
               ${userImgHtml}
               <div>${escapeHtml(msg.content)}</div>
             </div>
-            <div class="text-right text-[10px] text-slate-400 mt-1 mr-1">${translations[currentLang]?.patient_label || 'Bệnh nhân'}</div>
+            <div class="chat-patient-label text-right text-[10px] text-slate-400 mt-1 mr-1">${translations[currentLang]?.patient_label || 'Bệnh nhân'}</div>
           </div>
         `;
         container.insertAdjacentHTML('beforeend', userHtml);
@@ -7122,6 +7155,8 @@ function loadSession(sessionId) {
     });
     container.scrollTop = container.scrollHeight;
   }
+  syncChatSceneState(Boolean(container?.children.length));
+  toggleChatHistoryPanel(false);
 
   if (session.facts) {
     updateLiveIntakeCard(session.facts, session.status || 'collecting', session.summary);

@@ -40,7 +40,10 @@ class ViFoodRecImporterTests(unittest.TestCase):
         self.assertEqual(recipe["source_row_id"], "123")
         self.assertEqual(recipe["servings"], "4 người")
         self.assertEqual(recipe["license"], "not_declared")
-        self.assertNotIn("calories", recipe)
+        self.assertEqual(recipe["calories"], 999)
+        self.assertEqual(recipe["nutrition_basis"], "source_dish_record")
+        self.assertFalse(recipe["nutrition_verified"])
+        self.assertIsNone(recipe["sugar"])
         self.assertIn("foods.csv", recipe["source_url"])
         self.assertNotIn("example.jpg", recipe["source_url"])
 
@@ -77,6 +80,7 @@ class ViFoodRecImporterTests(unittest.TestCase):
         self.assertGreater(sum(r["recipe_type"] == "drink" for r in recipes), 25)
         self.assertTrue(all(r["source_row_id"] and r["original_ingredients"] and r["paper_url"] and r["cuisine_basis"] for r in recipes))
         self.assertEqual(len({r["id"] for r in recipes}), len(recipes))
+        self.assertTrue(all(isinstance(r["calories"], (int, float)) and r["nutrition_basis"] == "source_dish_record" for r in recipes))
         for filename, digest in manifest["sha256"].items():
             actual_bytes = (directory / filename).read_bytes()
             actual_shas = {

@@ -13,6 +13,7 @@ import hashlib
 import html
 import io
 import json
+import math
 from pathlib import Path
 import re
 import unicodedata
@@ -38,6 +39,20 @@ def normalized(text):
 def tidy(value):
     # Never execute or interpret source markup. Plain text is escaped by the UI.
     return " ".join(html.unescape(str(value or "")).split()).strip()
+
+
+def source_number(value):
+    """Keep the source's dish-record number; never divide by servings."""
+    raw = tidy(value)
+    if not raw or normalized(raw) in ("nan", "none", "null"):
+        return None
+    try:
+        number = float(raw.replace(",", "."))
+    except ValueError:
+        return None
+    if not math.isfinite(number) or number < 0:
+        return None
+    return int(number) if number.is_integer() else number
 
 
 def has(pattern, text):
@@ -176,6 +191,14 @@ def normalize_recipe(row):
         "steps": steps, "original_ingredients": original_ingredients,
         "original_cooking_method": original_method, "categories": categories,
         "cooking_time": time, "servings": servings,
+        "calories": source_number(row.get("calories")),
+        "fat": source_number(row.get("fat")),
+        "fiber": source_number(row.get("fiber")),
+        "sugar": source_number(row.get("sugar")),
+        "protein": source_number(row.get("protein")),
+        "nutrition_basis": "source_dish_record",
+        "nutrition_source": "ViFoodRec foods.csv",
+        "nutrition_verified": False,
         "subtitle": "Công thức tiếng Việt · ViFoodRec",
         "benefit": "Công thức nấu ăn tham khảo; chưa xác minh giá trị dinh dưỡng hoặc độ phù hợp theo bệnh cho từng món.",
         "avoid": ["Kiểm tra nguyên liệu, dị ứng, gia vị và khẩu phần theo hướng dẫn ăn uống cá nhân."],
@@ -240,9 +263,12 @@ def main():
         "language": "vi", "cuisine_scope": "Vietnamese home-cooking candidates selected heuristically, not certified geographic origin",
         "license": "not_declared", "license_note": "No explicit data reuse license found. Free research access described in the paper does not verify production redistribution rights.",
         "images_downloaded": False, "ratings_downloaded": False,
-        "nutrient_values_used": False, "clinical_labels_inferred": False,
+        "nutrient_values_used": True,
+        "nutrient_basis": "source_dish_record; not divided by serving_size",
+        "nutrient_verified": False, "clinical_labels_inferred": False,
         "limitations": [f"This downloaded clean foods.csv has {input_count} rows; 5509 in the paper describes the earlier full collection.",
-                        "Titles and complete source ingredients/method are retained; no quantities or nutrients inferred.",
+                        "Titles and complete source ingredients/method are retained; no quantities inferred.",
+                        "Source calories, fat, fiber, sugar and protein are retained as dish-record values; their per-person basis and accuracy are not independently verified.",
                         "Vietnamese home-cooking classification is a documented title heuristic, not independent origin verification.",
                         "Recipes, allergen absence and medical suitability are not independently verified."],
         "sha256": {name: hashlib.sha256((OUTPUT / name).read_bytes()).hexdigest() for name in ("foods.csv", "recipes.json")},

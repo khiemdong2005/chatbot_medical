@@ -70,7 +70,7 @@ body.light-glass {
   color: #0F172A;
 }
 
-body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-teal-"]):not([class*="bg-orange-"]):not([class*="bg-rose-"]):not(#floating-chat-btn):not(#floating-chat-btn *):not(.hospital-hero-banner):not(.hospital-hero-banner *):not(#btn-toggle-hospital-map):not(#btn-toggle-hospital-map *):not(#profile-avatar-fallback):not(#profile-avatar-fallback *):not(#user-avatar-badge):not(#dropdown-user-avatar):not(#profile-avatar):not(#ehr-avatar-badge) {
+body.light-glass .text-white:not(.dock-tooltip):not(.btn-primary):not([class*="bg-sky-"]):not([class*="bg-blue-"]):not([class*="from-sky-"]):not([class*="bg-indigo-"]):not([class*="bg-emerald-"]):not([class*="bg-teal-"]):not([class*="bg-orange-"]):not([class*="bg-rose-"]):not(#floating-chat-btn):not(#floating-chat-btn *):not(.hospital-hero-banner):not(.hospital-hero-banner *):not(#btn-toggle-hospital-map):not(#btn-toggle-hospital-map *):not(#profile-avatar-fallback):not(#profile-avatar-fallback *):not(#user-avatar-badge):not(#dropdown-user-avatar):not(#profile-avatar):not(#ehr-avatar-badge):not(#chat-brand-title):not(#nav-chat-tab):not(#chat-new-button):not(#chat-new-button *) {
   color: #0F172A !important;
 }
 

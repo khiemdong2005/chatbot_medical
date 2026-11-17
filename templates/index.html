@@ -25,9 +25,10 @@
 
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.0">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=10">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=12">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=6">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=7">
 
   <!-- Leaflet CSS & JS for Interactive Hospital Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -316,7 +317,7 @@
 
         <div class="flex items-center space-x-1.5 sm:space-x-2">
 
-          <span class="font-black text-sm sm:text-lg lg:text-xl tracking-tight text-white truncate"><span
+          <span id="chat-brand-title" class="font-black text-sm sm:text-lg lg:text-xl tracking-tight text-white truncate"><span
               class="sm:hidden">MediMind</span><span class="hidden sm:inline">MediMind Clinical AI</span></span>
 
           <span
@@ -918,26 +919,33 @@
       </div>
 
     </div>
-    <div id="chat-tab" class="tab-content flex-1 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start py-2">
+    <div id="chat-tab" class="tab-content chat-empty flex-1 grid grid-cols-1 gap-0">
 
       <!-- ============================================================== -->
       <!-- LEFT COLUMN (4/12): LỊCH SỬ TƯ VẤN                             -->
       <!-- ============================================================== -->
-      <div class="lg:col-span-4 flex flex-col">
+      <aside class="chat-history-rail flex flex-col">
 
         <!-- CARD 1: LỊCH SỬ TƯ VẤN -->
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 min-h-[660px] lg:min-h-[720px] flex flex-col">
+          class="chat-history-shell bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 flex flex-col">
 
           <!-- Card Header: Title & "+ Hội thoại mới" Button -->
-          <div class="flex items-start justify-between gap-3">
+          <div class="chat-history-head flex items-start justify-between gap-3">
             <div>
               <h3 data-i18n="history_title" class="text-base font-bold text-slate-900 dark:text-white tracking-tight">
                 Lịch sử tư vấn</h3>
+              <button type="button" class="chat-history-toggle" onclick="toggleChatHistoryPanel()"
+                aria-expanded="false" aria-controls="chat-history-container">
+                <span data-i18n="history_title">Lịch sử tư vấn</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
               <p data-i18n="history_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Các phiên sàng
                 lọc và phân tích triệu chứng</p>
             </div>
-            <button type="button" onclick="resetChat()"
+            <button type="button" id="chat-new-button" onclick="resetChat()"
               class="text-xs font-bold px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center space-x-1.5 transition-all shadow-md shadow-sky-600/30 shrink-0 cursor-pointer"
               title="Cuộc trò chuyện mới">
               <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -949,7 +957,7 @@
           </div>
 
           <!-- Search Input -->
-          <div class="relative">
+          <div class="chat-history-search relative">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" fill="none"
               stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -987,18 +995,19 @@
           </div>
         </div>
 
-      </div>
+      </aside>
 
 
 
       <!-- ============================================================== -->
       <!-- RIGHT COLUMN (8/12): MAIN CHAT PANEL                           -->
       <!-- ============================================================== -->
-      <div
-        class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[660px] lg:min-h-[720px]">
+      <section
+        class="chat-conversation-shell bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col">
 
         <!-- Header: Avatar + MediMind Title + Subtitle -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
+        <div class="chat-scene-topline">
+        <div class="chat-scene-header flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
           <div class="flex items-center space-x-3.5">
             <!-- Avatar Badge with Sky-Blue Theme -->
             <div
@@ -1021,35 +1030,25 @@
         </div>
 
         <button type="button" onclick="exportChatPdf()"
-          class="self-end px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200">Xuất
+          class="chat-scene-export self-end px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200">Xuất
           PDF hội thoại</button>
+        </div>
+
+        <div id="chat-empty-state" class="chat-empty-state" aria-live="polite">
+          <span class="chat-empty-kicker">MEDIMIND CLINICAL AI</span>
+          <h2 data-i18n="chat_welcome_title">Hôm nay mình có thể giúp gì cho bạn?</h2>
+          <p data-i18n="chat_welcome_subtitle">Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.</p>
+        </div>
 
         <!-- Chat Messages Stream Container -->
         <div id="chat-messages"
-          class="flex-1 overflow-y-auto py-4 space-y-4 px-1 sm:px-2 my-2 min-h-[380px] max-h-[480px] custom-scrollbar">
-          <!-- Default Greeting Bubble matching screenshot -->
-          <div class="flex items-start gap-3">
-            <div
-              class="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-              <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" stroke-width="2.2"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <div data-i18n="assistant_greeting_desc"
-              class="max-w-[85%] bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-normal">
-              Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn
-              thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?
-            </div>
-          </div>
-
+          class="flex-1 overflow-y-auto py-4 space-y-4 px-1 sm:px-2 my-2 custom-scrollbar">
         </div>
 
 
 
         <!-- Bottom Input Dock -->
-        <div class="pt-3 space-y-3 shrink-0 border-t border-slate-100 dark:border-white/10">
+        <div class="chat-scene-dock pt-3 space-y-3 shrink-0 border-t border-slate-100 dark:border-white/10">
 
           <!-- Quick Prompt Suggestion Chips -->
           <div class="flex flex-wrap items-center gap-2">
@@ -1099,7 +1098,7 @@
 
           <!-- Capsule Input Bar matching screenshot -->
           <div
-            class="flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-2xl p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
+            class="chat-scene-input flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-2xl p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
             <input type="file" id="chat-image-input" aria-label="Tải ảnh lên đoạn chat" accept="image/*" class="hidden"
               onchange="handleChatImageSelected(event)">
 
@@ -1137,7 +1136,7 @@
           </p>
         </div>
 
-      </div>
+      </section>
 
 
 
@@ -1808,8 +1807,8 @@
         </form>
         <div class="nf-examples" aria-label="Gợi ý tìm kiếm">
           <span>Thử tìm:</span>
-          <button type="button" data-nf-example="Gút, bữa tối nhẹ">Gút · bữa tối nhẹ</button>
-          <button type="button" data-nf-example="Ít đường, nhiều rau">Ít đường · nhiều rau</button>
+          <button type="button" data-nf-example="Gút, ít dầu mỡ">Gút · ít dầu mỡ</button>
+          <button type="button" data-nf-example="Ít đường, không cay">Ít đường · không cay</button>
           <button type="button" data-nf-example="Trào ngược dạ dày, không cay">Trào ngược · không cay</button>
         </div>
         <p class="nf-search-hint">Gợi ý món có tham khảo Gemini; hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
@@ -1823,7 +1822,7 @@
               <path fill-rule="evenodd"
                 d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
                 clip-rule="evenodd" />
-            </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
+            </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
         <div class="nf-type-grid">
           <button type="button" class="nf-type-card" data-nf-type="food"><span class="nf-type-icon nf-type-food"
               aria-hidden="true"><svg viewBox="0 0 40 40" fill="none">
@@ -1847,13 +1846,13 @@
     <section id="nf-results" class="nf-stage nf-wide" hidden>
       <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
       <p class="nf-overline">GỢI Ý CỦA BẠN</p>
-      <h1 id="nf-results-title">Chọn món bạn thích</h1>
+      <h1 id="nf-results-title">Gợi ý món ăn</h1>
       <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
             aria-hidden="true">
             <path fill-rule="evenodd"
               d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
               clip-rule="evenodd" />
-          </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
+          </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
       <p class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
       <div id="nf-context" class="nf-context" hidden></div>
       <p id="nf-notice" class="nf-notice" hidden></p>
@@ -1902,7 +1901,7 @@
             <path fill-rule="evenodd"
               d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
               clip-rule="evenodd" />
-          </svg> Tình trạng đã nhập</span><strong class="nf-query-label"></strong></div>
+          </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
       <div id="nf-detail-content"></div>
     </section>
     <details id="nf-evidence" class="nf-evidence" hidden>
@@ -4076,7 +4075,7 @@
 
 
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.0.9"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.0.12"></script>
   <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.0.0"></script>
 
   <!-- ============================================================== -->

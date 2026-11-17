@@ -49,7 +49,7 @@ SOURCES = {
     "balanced": {"source_title": "NHS: The Eatwell Guide", "source_url": "https://www.nhs.uk/live-well/eat-well/food-guidelines-and-food-labels/the-eatwell-guide/"},
     "allergy": {"source_title": "FDA: Have Food Allergies? Read the Label", "source_url": "https://www.fda.gov/consumers/consumer-updates/have-food-allergies-read-label"},
     "gluten": {"source_title": "NHS: Coeliac disease - Treatment", "source_url": "https://www.nhs.uk/conditions/coeliac-disease/treatment/"},
-    "gout": {"source_title": "NHS: Gout - Treatment and lifestyle", "source_url": "https://www.nhs.uk/conditions/gout/"},
+    "gout": {"source_title": "NHS hospital: Gout and diet", "source_url": "https://www.wsh.nhs.uk/CMS-Documents/Patient-leaflets/NutritionandDieteticService/6753-1-Gout-and-diet.pdf"},
     "diabetes": {"source_title": "NHS: Type 2 diabetes - Food and keeping active", "source_url": "https://www.nhs.uk/conditions/type-2-diabetes/food-and-keeping-active/"},
     "hypertension": {"source_title": "NHS: High blood pressure - Prevention", "source_url": "https://www.nhs.uk/conditions/high-blood-pressure-hypertension/prevention/"},
     "stomach": {"source_title": "NIDDK: Eating, Diet, & Nutrition for Gastritis", "source_url": "https://www.niddk.nih.gov/health-information/digestive-diseases/gastritis-gastropathy/eating-diet-nutrition"},
@@ -94,12 +94,12 @@ CONTEXTS = {
     "gout": {
         "label": "Bệnh gút / tăng acid uric",
         "aliases": ("gut", "gout", "benh gut", "benh gout", "acid uric", "acid uric cao", "viem khop gut", "tang acid uric"),
-        "guidance": [_guidance("gout", "Người bệnh gút cần tránh thực phẩm giàu purin (hải sản có vỏ/thân mềm, nội tạng động vật, thịt đỏ, giò heo, măng và rượu bia) để tránh bùng phát cơn đau gút cấp. Ưu tiên uống đủ nước, ăn nhiều rau củ ít purin và đạm thực vật nhẹ nhàng.")],
+        "guidance": [_guidance("gout", "Với gút, tránh nội tạng; hạn chế khẩu phần thịt đỏ và hải sản giàu purin, hạn chế rượu bia. Rau củ, kể cả rau có purin, không cần kiêng chỉ vì purin.")],
     },
     "diabetes": {
         "label": "Tiểu đường / đường huyết cao",
         "aliases": ("tieu duong", "dai thao duong", "duong huyet cao", "diabetes", "duong cao", "benh tieu duong", "benh dai thao duong"),
-        "guidance": [_guidance("diabetes", "Người tiểu đường cần kiểm soát carbohydrate và tránh đường tự do/đường tinh luyện (đường cát, mật ong, sữa đặc, nước ngọt); ưu tiên thực phẩm giàu chất xơ và cân đối dinh dưỡng.")],
+        "guidance": [_guidance("diabetes", "Người có đái tháo đường cần lưu ý tổng carbohydrate và khẩu phần, hạn chế đường thêm như đường cát, mật ong, sữa đặc và nước ngọt; ăn đa dạng, cân đối.")],
     },
     "hypertension": {
         "label": "Tăng huyết áp",
@@ -139,14 +139,13 @@ AVOIDANCE = {
         _avoid("Bạc hà và món có bạc hà", "Có thể là yếu tố kích thích trào ngược ở một số người; đối chiếu với triệu chứng cá nhân.", "reflux"),
     ],
     "gout": [
-        _avoid("Hải sản (hàu, sò, nghêu, tôm, cua, mực, cá biển giàu purin)", "Hàm lượng purin rất cao, dễ chuyển hóa thành acid uric và kích hoạt cơn gút cấp.", "gout", "avoid"),
-        _avoid("Nội tạng động vật và thịt đỏ / giò heo", "Gan, cật, tim, lòng, thịt bò, giò heo chứa nhiều purin và chất béo bão hòa.", "gout", "avoid"),
-        _avoid("Măng tươi và măng chua", "Có thể làm tăng kết tinh acid uric tại khớp; theo hướng dẫn dinh dưỡng cần kiêng khi bị gút.", "gout", "avoid"),
-        _avoid("Rượu, bia và đồ uống có cồn", "Ức chế bài tiết acid uric qua thận và thúc đẩy tổng hợp acid uric.", "gout", "avoid"),
+        _avoid("Nội tạng động vật", "Gan, cật và tim là nhóm rất giàu purin.", "gout", "avoid"),
+        _avoid("Thịt đỏ và hải sản giàu purin", "Hạn chế khẩu phần và tần suất theo hướng dẫn cá nhân.", "gout"),
+        _avoid("Rượu, bia", "Hạn chế, đặc biệt trong giai đoạn gút chưa được kiểm soát.", "gout"),
     ],
     "diabetes": [
-        _avoid("Đường tinh luyện, mật ong, sữa đặc có đường", "Làm tăng đột ngột chỉ số đường huyết sau ăn.", "diabetes", "avoid"),
-        _avoid("Nước ngọt, chè ngọt, bánh kẹo ngọt", "Chứa nhiều đường tự do không có lợi cho kiểm soát đường huyết.", "diabetes", "avoid"),
+        _avoid("Đường tinh luyện, mật ong, sữa đặc có đường", "Hạn chế đường thêm và xét tổng carbohydrate theo khẩu phần.", "diabetes"),
+        _avoid("Nước ngọt, chè ngọt, bánh kẹo ngọt", "Thường có nhiều đường tự do; hạn chế theo kế hoạch ăn uống cá nhân.", "diabetes"),
     ],
     "hypertension": [
         _avoid("Mắm đậm đặc, dưa muối, cà muối", "Chứa hàm lượng muối/natri rất cao, gây giữ nước và tăng huyết áp.", "hypertension", "avoid"),
@@ -188,8 +187,82 @@ METADATA = {
     "barley_water": _meta(["Lúa mạch khô", "Nước lọc"], allergens=("gluten",), liquid=True),
 }
 
-ALLERGEN_NAMES = {"egg": "trứng", "milk": "sữa động vật", "soy": "đậu nành", "gluten": "gluten"}
-ALLERGEN_ALIASES = {"trung": "egg", "egg": "egg", "eggs": "egg", "sua": "milk", "sua bo": "milk", "sua tuoi": "milk", "sua dong vat": "milk", "milk": "milk", "dau nanh": "soy", "dau hu": "soy", "sua dau nanh": "soy", "soy": "soy", "gluten": "gluten"}
+ALLERGEN_NAMES = {"egg": "trứng", "milk": "sữa động vật", "soy": "đậu nành", "gluten": "gluten",
+                  "shrimp": "tôm/tép", "crab": "cua/ghẹ", "shellfish": "hải sản có vỏ", "seafood": "hải sản",
+                  "fish": "cá", "peanut": "đậu phộng/lạc", "tree_nut": "hạt cây", "sesame": "mè/vừng"}
+ALLERGEN_ALIASES = {"trung": "egg", "trung ga": "egg", "trung vit": "egg", "egg": "egg", "eggs": "egg", "sua": "milk", "sua bo": "milk", "sua tuoi": "milk", "sua dong vat": "milk", "milk": "milk", "dau nanh": "soy", "dau hu": "soy", "sua dau nanh": "soy", "soy": "soy", "gluten": "gluten",
+                    "tom": "shrimp", "tep": "shrimp", "shrimp": "shrimp", "prawn": "shrimp", "cua": "crab", "ghe": "crab", "crab": "crab", "hai san co vo": "shellfish", "so oc": "shellfish", "hai san": "seafood", "seafood": "seafood", "fish": "fish", "dau phong": "peanut", "lac": "peanut", "peanut": "peanut", "hat dieu": "tree_nut", "hanh nhan": "tree_nut", "oc cho": "tree_nut", "tree nuts": "tree_nut", "vung": "sesame", "sesame": "sesame"}
+
+
+def _allergy_normal(value):
+    # Keep cá/cà and mè/me distinct before folding accents.
+    raw = str(value or "").lower()
+    raw = re.sub(r"\bcá\b", "fish", raw)
+    raw = re.sub(r"\bmè\b", "vung", raw)
+    return _normal(raw)
+
+PREFERENCES = {
+    "no_added_sugar": (r"\b(?:it\s+duong|giam\s+duong|khong\s+(?:them\s+)?duong|khong\s+ngot|low\s+sugar)\b", "Ít/không thêm đường", "sugar_high"),
+    "not_spicy": (r"\b(?:khong\s+cay|it\s+cay|tranh\s+ot)\b", "Không cay", "spicy"),
+    "not_fried": (r"\b(?:it\s+dau\s+mo|khong\s+chien|khong\s+ran|it\s+beo)\b", "Ít dầu mỡ", "fried"),
+    "low_salt": (r"\b(?:it\s+muoi|it\s+man|khong\s+man|giam\s+muoi)\b", "Ít muối", "sodium_high"),
+}
+
+
+def _query_preferences(query: str):
+    remaining = _allergy_normal(query)
+    found = []
+    for code, (pattern, _label, _tag) in PREFERENCES.items():
+        if re.search(pattern, remaining):
+            found.append(code)
+            remaining = re.sub(pattern, " ", remaining)
+    remaining = re.sub(r"\b(?:va|voi|kem)\b\s*$", "", remaining)
+    return remaining.strip(" ,;"), found
+
+
+def _profile_food_allergies(value):
+    """Parse food allergy names from a free-text profile; unknown food stays unresolved."""
+    if not value:
+        return set(), []
+    raw = ",".join(str(item) for item in value) if isinstance(value, (list, tuple)) else str(value)
+    if _normal(raw) in ("khong", "khong co", "khong di ung", "chua co", "none"):
+        return set(), []
+    codes, unresolved = set(), []
+    for part in re.split(r"[,;\n/]|\s+(?:va|hoac)\s+", _allergy_normal(raw)):
+        part = re.sub(r"^(?:(?:di\s+ung|thuc\s+pham|do\s+an|voi|bi)\s+)+", "", part).strip(" .:")
+        if not part:
+            continue
+        code = ALLERGEN_ALIASES.get(part)
+        if code:
+            codes.add(code)
+        elif not re.search(r"\b(?:thuoc|penicillin|aspirin|ibuprofen|khang\s+sinh|paracetamol)\b", part):
+            unresolved.append(part[:80])
+    return codes, unresolved
+
+
+def _ingredient_allergens(recipe):
+    names = " ; ".join(str(item.get("name", "")) for item in recipe.get("ingredients", []) if isinstance(item, dict))
+    plain = _normal(names)
+    hits = set()
+    patterns = {
+        "shrimp": r"tom|tep|shrimp|prawn", "crab": r"cua|ghe|crab",
+        "shellfish": r"tom|tep|cua|ghe|muc|ngheu|ngao|hen|hau|so|oc|dau\s+hao|shrimp|prawn|crab|oyster|clam|mussel|squid",
+        "peanut": r"dau\s+phong|lac|peanut|groundnut", "tree_nut": r"hat\s+dieu|hanh\s+nhan|oc\s+cho|cashew|almond|walnut",
+        "sesame": r"me\s+(?:trang|den)|vung|dau\s+me|sesame|tahini",
+    }
+    for code, pattern in patterns.items():
+        if re.search(r"\b(?:" + pattern + r")\b", plain):
+            hits.add(code)
+    fish = bool(re.search(r"\bcá\b|\bmắm\b|\bnước\s+mắm\b|\bfish\b|\bfish\s+sauce\b|\bsalmon\b|\btuna\b", names.lower()))
+    if re.search(r"\bnước\s+tương\b|\bxì\s+dầu\b|\bsoy\s+sauce\b", names.lower()):
+        hits.add("soy")
+    if re.search(r"\bmè\b|\bvừng\b", names.lower()):
+        hits.add("sesame")
+    if fish:
+        hits.add("fish")
+    if fish or hits & {"shrimp", "crab", "shellfish"} or re.search(r"\bhai\s+san\b", plain):
+        hits.add("seafood")
+    return hits
 
 
 def _parse_input(query: str):
@@ -198,7 +271,7 @@ def _parse_input(query: str):
     E.g. 'ho; dị ứng sữa' works; 'không mất ngủ' and 'ho và mất ngủ' do not
     become diagnoses. Unrecognized stated allergens block candidate selection.
     """
-    normalized = _normal(query)
+    normalized = _allergy_normal(query)
     clauses = [part.strip() for part in re.split(r"[;,\+]", normalized) if part.strip()]
     conditions, allergies, unsupported = [], set(), []
     allergy_continuation = False
@@ -258,7 +331,7 @@ def _parse_input(query: str):
 
 
 _DISEASE_KEYWORDS = re.compile(
-    r"\b(?:viem|suy|ung\s+thu|hoi\s+chung|khoi\s+u|roi\s+loan|soi|xo\s+gan|nhiem\s+trung|tai\s+bien|dot\s+quy|thoai\s+hoa|nhiem\s+doc|xuat\s+huyet|than\s+man|tuy\s+cap|khang\s+thuoc)\b",
+    r"\b(?:benh|viem|suy|ung\s+thu|hoi\s+chung|khoi\s+u|roi\s+loan|soi|xo\s+gan|gan\s+nhiem\s+mo|than\s+yeu|thieu\s+mau|mo\s+mau|cholesterol|triglyceride|tim\s+mach|dai\s+trang|ruot\s+kich\s+thich|ibs|celiac|coeliac|mang\s+thai|thai\s+ky|ckd|kidney|renal|liver|heart|cancer|anemia|anaemia|pregnan\w*|nhiem\s+trung|tai\s+bien|dot\s+quy|thoai\s+hoa|nhiem\s+doc|xuat\s+huyet|than\s+man|tuy\s+cap|khang\s+thuoc)\b",
     re.IGNORECASE
 )
 
@@ -277,14 +350,42 @@ def _is_unmapped_disease(query: str, contexts: List[str]) -> bool:
     return bool(_DISEASE_KEYWORDS.search(norm))
 
 
-def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _condition_exclusion(meta, contexts):
+    """First pass: exclude recipe features outside supported condition guidance."""
+    for ctx in contexts:
+        if ctx == "mouth" and not (meta["soft"] or meta["liquid"]):
+            return "Chưa xác minh món có kết cấu mềm hoặc dễ dùng khi miệng khó chịu."
+        if ctx == "mouth" and (meta["spicy"] or meta["acidic"]):
+            return "Có thành phần cay hoặc chua có thể gây kích ứng khi miệng khó chịu."
+        if ctx == "fever" and not (meta["soft"] or meta["liquid"]):
+            return "Chưa xác định món có kết cấu mềm hoặc dạng lỏng để ưu tiên khi sốt."
+        if ctx == "sleep" and (meta["caffeine"] or meta["alcohol"]):
+            return "Có caffeine hoặc rượu, không ưu tiên gần giờ ngủ."
+        if ctx == "reflux" and any(meta.get(key) for key in ("acidic", "spicy", "mint", "fried", "caffeine", "alcohol", "fat_unknown")):
+            return "Có yếu tố kích thích hoặc chưa rõ hàm lượng béo cần kiểm tra thêm khi trào ngược."
+        if ctx == "gout" and (meta.get("purine_high") or meta.get("alcohol")):
+            return "Món có nội tạng, thịt đỏ, hải sản giàu purin hoặc cồn nên không được ưu tiên trong gợi ý cho người bị gút."
+        if ctx == "diabetes" and meta.get("sugar_high"):
+            return "Có đường hoặc chất tạo ngọt thêm, cần kiểm soát đối với người tiểu đường."
+        if ctx == "hypertension" and (meta.get("sodium_high") or meta.get("alcohol")):
+            return "Có hàm lượng muối/natri cao hoặc cồn, không phù hợp cho người tăng huyết áp."
+        if ctx == "stomach" and any(meta.get(key) for key in ("spicy", "acidic", "fried", "alcohol", "caffeine")):
+            return "Có vị cay, chua gắt, chiên xào nhiều mỡ hoặc chất kích thích dễ kích ứng dạ dày."
+    return None
+
+
+def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], profile_allergies=None) -> Dict[str, Any]:
     """Return copied candidates and attributable rules; never certify suitability.
 
     Supports single conditions as well as multiple co-morbidities.
     ``recognized`` means the input matches one or more supported context labels.
     """
     query = str(condition or "").strip()
-    contexts, allergies, unsupported = _parse_input(query)
+    condition_query, preferences = _query_preferences(query)
+    contexts, allergies, unsupported = _parse_input(condition_query)
+    profile_codes, profile_unresolved = _profile_food_allergies(profile_allergies)
+    allergies |= profile_codes
+    unsupported.extend(profile_unresolved)
 
     guidance = []
     for ctx in contexts:
@@ -298,7 +399,7 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]]) 
     if "gluten" in allergies:
         guidance.append(_guidance("gluten", "Lúa mạch chứa gluten; yến mạch cần được xác minh không nhiễm gluten. Danh mục hiện chưa có chứng nhận này nên không chọn món yến mạch khi bạn yêu cầu tránh gluten."))
     if unsupported:
-        limitations.append("Chưa hỗ trợ đầy đủ chất cần tránh: " + ", ".join(unsupported) + ". Không chọn món khi chưa kiểm tra được thành phần này.")
+        limitations.append("Chưa xác minh được dị ứng/thành phần cần tránh: " + ", ".join(unsupported) + ". Không tự động gợi ý món khi chưa kiểm tra được.")
 
     avoidance = []
     for ctx in contexts:
@@ -330,59 +431,44 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]]) 
             reason = "Công thức có thành phần/cách chuẩn bị chưa phù hợp để tự động gợi ý trong ứng dụng này."
         elif allergies and meta and meta.get("allergen_uncertain"):
             reason = "Công thức nhập có nguyên liệu hoặc sản phẩm chưa xác minh đủ thành phần dị ứng."
-        elif not verified and (allergies or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach") for ctx in contexts)):
+        elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach") for ctx in contexts)):
             reason = "Chưa có metadata nguyên liệu/đặc tính được rà soát cho công thức này."
         elif verified:
-            hits = allergies & meta["allergens"]
-            if hits:
-                reason = "Có thành phần cần tránh: " + ", ".join(ALLERGEN_NAMES[x] for x in sorted(hits)) + "."
-            elif "gluten" in allergies and meta["gluten_uncertain"]:
-                reason = "Chưa xác minh nguyên liệu yến mạch không nhiễm gluten."
-            else:
-                for ctx in contexts:
-                    if ctx == "mouth" and not (meta["soft"] or meta["liquid"]):
-                        reason = "Chưa xác minh món có kết cấu mềm hoặc dễ dùng khi miệng khó chịu."
-                        break
-                    elif ctx == "mouth" and (meta["spicy"] or meta["acidic"]):
-                        reason = "Có thành phần cay hoặc chua có thể gây kích ứng khi miệng khó chịu."
-                        break
-                    elif ctx == "fever" and not (meta["soft"] or meta["liquid"]):
-                        reason = "Chưa xác định món có kết cấu mềm hoặc dạng lỏng để ưu tiên khi sốt."
-                        break
-                    elif ctx == "sleep" and (meta["caffeine"] or meta["alcohol"]):
-                        reason = "Có caffeine hoặc rượu, không ưu tiên gần giờ ngủ."
-                        break
-                    elif ctx == "reflux" and (meta["acidic"] or meta["spicy"] or meta["mint"] or meta["fried"] or meta["caffeine"] or meta["alcohol"] or meta["fat_unknown"]):
-                        reason = "Có yếu tố kích thích hoặc chưa rõ hàm lượng béo cần kiểm tra thêm khi trào ngược."
-                        break
-                    elif ctx == "gout" and (meta.get("purine_high") or meta.get("alcohol")):
-                        reason = "Có thành phần giàu purin (hải sản, nội tạng, thịt đỏ/giò heo, măng) hoặc cồn, không phù hợp cho người bị gút."
-                        break
-                    elif ctx == "diabetes" and meta.get("sugar_high"):
-                        reason = "Có đường hoặc chất tạo ngọt thêm, cần kiểm soát đối với người tiểu đường."
-                        break
-                    elif ctx == "hypertension" and (meta.get("sodium_high") or meta.get("alcohol")):
-                        reason = "Có hàm lượng muối/natri cao hoặc cồn, không phù hợp cho người tăng huyết áp."
-                        break
-                    elif ctx == "stomach" and (meta.get("spicy") or meta.get("acidic") or meta.get("fried") or meta.get("alcohol") or meta.get("caffeine")):
-                        reason = "Có vị cay, chua gắt, chiên xào nhiều mỡ hoặc chất kích thích dễ kích ứng dạ dày."
-                        break
+            # Preserve the requested order: condition rules, then profile/query
+            # food allergies, then optional eating preferences.
+            reason = _condition_exclusion(meta, contexts)
+            if not reason:
+                hits = allergies & (meta["allergens"] | _ingredient_allergens(recipe))
+                if hits:
+                    reason = "Có thành phần cần tránh: " + ", ".join(ALLERGEN_NAMES[x] for x in sorted(hits)) + "."
+                elif "gluten" in allergies and meta["gluten_uncertain"]:
+                    reason = "Chưa xác minh nguyên liệu yến mạch không nhiễm gluten."
+            if not reason and any(meta.get(PREFERENCES[code][2]) for code in preferences):
+                reason = "Món chưa phù hợp với yêu cầu ăn uống bạn đã nhập."
         if reason:
             excluded.append({"id": recipe.get("id"), "title": recipe.get("title", ""), "reason": reason})
             continue
         if verified:
             recipe["rule_tags"] = [key for key in ("soft", "liquid") if meta[key]]
-            recipe["declared_allergens"] = sorted(meta["allergens"])
+            recipe["declared_allergens"] = sorted(meta["allergens"] | _ingredient_allergens(recipe))
             if meta.get("automatic"):
                 recipe["metadata_review"] = "automated_text_scan"
                 recipe["metadata_note"] = "Nhãn nguyên liệu được quét tự động từ công thức gốc; chưa được xác minh y khoa hoặc xác nhận an toàn dị ứng."
         candidates.append(recipe)
 
+    if "no_added_sugar" in preferences:
+        def sugar_key(recipe):
+            value = recipe.get("sugar")
+            return (value is None or not isinstance(value, (int, float)), float(value) if isinstance(value, (int, float)) else float("inf"))
+        candidates.sort(key=sugar_key)
     context_label = " + ".join(CONTEXTS[ctx]["label"] for ctx in contexts) if contexts else query
     return {"recipes": candidates, "guidance": guidance, "excluded": excluded,
             "avoidance": avoidance, "avoidance_note": avoidance_note,
             "recognized": bool(contexts),
-            "is_unmapped_disease": _is_unmapped_disease(query, contexts),
+            "is_unmapped_disease": _is_unmapped_disease(condition_query, contexts),
             "context_label": context_label,
             "contexts": contexts,
-            "allergies": sorted(allergies), "limitations": limitations}
+            "allergies": sorted(allergies), "profile_allergies": sorted(profile_codes),
+            "profile_allergy_needs_review": bool(profile_unresolved),
+            "query_preferences": [PREFERENCES[code][1] for code in preferences],
+            "preference_codes": preferences, "limitations": limitations}

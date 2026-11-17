@@ -1,9 +1,14 @@
 # Nutrition recommendations
 
-`POST /api/nutrition/options` accepts `condition` (up to 500 characters) and
-`recipe_type` (`food` or `drink`), and optionally `exclude_recipe_ids` (up to
-5000 IDs already displayed) for more suggestions. The condition is sent to Google Gemini.
-There is no patient profile, chat history or credential in the prompt.
+`POST /api/nutrition/options` accepts free-text `condition` (up to 500
+characters), `recipe_type` (`food` or `drink`), and optionally
+`exclude_recipe_ids` (up to 5000 IDs already displayed). The query may include
+a condition and eating preference such as `ít đường` or `không cay`.
+For signed-in users, the server reads saved food allergies, height, weight and
+date of birth from the authenticated session. The browser cannot supply a
+profile for filtering. Guests receive general suggestions without a profile.
+Only coarse allergen codes, adult BMI category and eating preferences are sent
+to Gemini; raw height, weight, date of birth and the full profile are not sent.
 
 ## Configuration
 
@@ -29,15 +34,20 @@ The separate nutrition key does not replace existing chatbot configuration.
    Wikibooks remains an archive and is not mixed into active suggestions.
    If the active dataset is missing, only the original 14 clearly counted sample
    recipes are available; an empty food/drink filter never adds foreign recipes.
-2. Apply explicit ingredient/allergen metadata and a small set of source-linked
-   general guidelines. Unknown constraints are not silently treated as safe.
+2. Apply supported condition rules, then food allergy exclusions from the query
+   and saved profile, then eating preferences. Unknown allergy constraints fail
+   closed. Ingredient tags are automated and do not certify allergy safety.
 3. Retrieve at most 32 related candidates using ingredient/category text and
-   Vietnamese and English search expansions, after filtering. Repeated titles
+   Vietnamese and English search expansions, after filtering. For `ít đường`,
+   source sugar values influence retrieval across the filtered catalog before
+   truncation; missing values are not treated as low sugar. Repeated titles
    are collapsed for variety; already displayed IDs and their titles are excluded
-   from further batches. Gemini selects up to 5 existing IDs with short reasons,
+   from further batches. Gemini selects up to 6 existing IDs with short reasons,
    caveats and source IDs. Vietnamese titles cannot be rewritten by the model.
 4. Validate the JSON, IDs, duplicates, source IDs and required fields. Recipe
-   ingredients, amounts and instructions always come from the local catalog.
+   ingredients, amounts, instructions and nutrient values always come from the
+   local catalog. Gemini chooses IDs and explains the selection; it cannot
+   change a recipe or its source kcal value.
 5. Show a clarification question when needed. For an explicitly recognized
    context (including fever) with remaining candidates, show up to five general
    filtered options alongside the optional question, labeled as not AI-ranked.
@@ -48,18 +58,22 @@ The separate nutrition key does not replace existing chatbot configuration.
 
 The response always includes `avoidance` and `avoidance_note`. These come from
 source-linked rules or the user's explicit ingredient restrictions, not Gemini.
-They remain available on provider failure or clarification, and are displayed
-both below the results and in recipe details. Omitted recipes are not implicitly
+They remain available on provider failure or clarification. Omitted recipes are not implicitly
 classified as prohibited foods. Unknown contexts do not get invented restrictions.
+The UI shows why a dish was selected, its source kcal estimate, clickable
+ingredients and steps, and a one-meal set with a sum of the listed dishes' kcal.
+Suggested staple text has no catalog nutrient record and is not included in the
+sum. Sources and data limitations are shown in one compact disclosure.
 
-The provider request has a 25-second timeout and one attempt. Raw provider
+The provider request uses the configured timeout and retry policy. Raw provider
 exceptions are not logged or returned because they can include private details.
 
 ## Limits
 
 Rules cover a small collection of explicit contexts and declared allergens.
 They do not establish a diagnosis or clinical suitability, calculate a personal
-meal plan, check medications, or certify cross-contamination safety. Retrieval
+meal plan, check medications, or certify cross-contamination safety. Adult BMI
+is only a reference and does not impose a fixed daily kcal target. Retrieval
 from the project's ChromaDB is not part of this pipeline yet. Guidance URLs
 are supplied by the server, not invented by the model. Model explanations
 still need human review; a structured JSON response does not certify medical
@@ -71,7 +85,10 @@ canh/cánh and cháo/chảo are different. Unknown compound ingredients and ambi
 butter/avocado wording block explicit allergy requests. Exact source features
 are cached; user health queries are not cached. Original ingredient quantities
 and preparation stay unaltered; they are not converted to grams, per-serving
-amounts or inferred nutrient values. Source nutrient/promotional descriptions
+amounts or inferred nutrient values. Source kcal, fat, fiber, sugar and protein
+are retained as dish-record values, not divided by the source serving count.
+Their per-person basis and accuracy are unverified; they are estimates, not
+treatment targets. Source nutrient/promotional descriptions
 are not used as verified benefits. Imported recipes use a clearly labeled generic
 illustration; dataset photo URLs are not fetched or shown.
 The raw recipe prose remains stored for audit. Displayed text repairs the known

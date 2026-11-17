@@ -1835,7 +1835,7 @@ def create_app(test_config=None):
         condition = str(payload.get("condition") or "").strip()
         recipe_type = payload.get("recipe_type")
         if not condition:
-            return jsonify({"success": False, "error": "Vui lòng nhập tâm trạng hoặc tình trạng sức khỏe."}), 400
+            return jsonify({"success": False, "error": "Vui lòng nhập tình trạng sức khỏe hoặc nhu cầu ăn uống."}), 400
         if len(condition) > 500:
             return jsonify({"success": False, "error": "Vui lòng mô tả tình trạng trong tối đa 500 ký tự."}), 400
         if recipe_type not in ("food", "drink"):
@@ -1844,8 +1844,21 @@ def create_app(test_config=None):
         if (not isinstance(exclude_ids, list) or len(exclude_ids) > 5000
                 or any(not isinstance(item, str) or len(item) > 100 for item in exclude_ids)):
             return jsonify({"success": False, "error": "Danh sách món đã xem không hợp lệ."}), 400
+        profile, dob = {}, None
+        user_id = session.get("user_id")
+        if user_id:
+            user = db.session.get(User, user_id)
+            if user:
+                try:
+                    stored = json.loads(user.clinical_profile or "{}")
+                    if isinstance(stored, dict):
+                        profile = {key: stored.get(key) for key in ("allergies", "height", "weight")}
+                    dob = user.dob
+                except (TypeError, ValueError):
+                    pass
         from core.nutrition_options import get_nutrition_options
-        return jsonify({"success": True, "data": get_nutrition_options(condition, recipe_type, exclude_ids)}), 200
+        return jsonify({"success": True, "data": get_nutrition_options(
+            condition, recipe_type, exclude_ids, profile=profile, dob=dob)}), 200
 
     @app.route("/api/nutrition/analyze", methods=["POST"])
     def analyze_nutrition():

@@ -99,6 +99,16 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
         distinct_ids = main_id != soup_id and (not side_id or (side_id != main_id and side_id != soup_id))
         is_side_not_soup = not side_cand or not any(k in str(side_cand.get("title", "")).lower() for k in ["canh ", "lẩu "])
 
+        # Món phụ tuyệt đối không trùng nguyên liệu đạm/thành phần chính với món chính hoặc món canh
+        if side_cand and (main_cand or soup_cand):
+            from core.nutrition_options import _extract_main_ingredient_tags
+            s_tags = _extract_main_ingredient_tags(side_cand)
+            m_tags = _extract_main_ingredient_tags(main_cand) if main_cand else set()
+            sp_tags = _extract_main_ingredient_tags(soup_cand) if soup_cand else set()
+            if s_tags and ((s_tags & m_tags) or (s_tags & sp_tags)):
+                side_cand = None
+                side_id = None
+
         if (isinstance(title, str) and 1 <= len(title.strip()) <= 150
                 and meal_time in ("breakfast", "lunch", "dinner", "snack")
                 and isinstance(rationale, str) and 10 <= len(rationale.strip()) <= 600
@@ -116,7 +126,8 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
     return res
 
 
-def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict]) -> Dict:
+def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
+                   personalization: Dict | None = None) -> Dict:
     key = (os.getenv("GEMINI_NUTRITION_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
     if not key:
         raise NutritionAIError("not_configured")
@@ -154,64 +165,17 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
             }
         }, "required": ["needs_clarification", "clarification_question", "recommendations"]
     }
-    instruction = """Bạn là chuyên gia dinh dưỡng lâm sàng MediMind hỗ trợ gợi ý món ăn và thực đơn tham khảo theo thể trạng.
-Trang này cung cấp HAI CHẾ ĐỘ XEM TÁCH BIỆT HOÀN TOÀN CHO NGƯỜI DÙNG:
-
-1. CHẾ ĐỘ "CÁC MÓN ĐƠN LẺ THEO BỮA" (recommendations):
-   - Khi người dùng không muốn nấu một mâm cơm gia đình nhiều món lỉnh kỉnh, họ sẽ muốn ăn MỘT MÓN ĐƠN LẺ TRỌN VỊ (One-dish meals).
-   - BẮT BUỘC CHỈ CHỌN CÁC MÓN ĂN TRỌN VỊ (One-dish meals) từ danh sách candidates có `is_one_dish=True`:
-     * Món nước / Bún · Phở · Hủ tiếu · Mì · Miến · Bánh canh (ví dụ: Bún chả, Bún riêu, Phở bò mềm, Miến gà, Mì Quảng, Bánh canh cua...).
-     * Món cơm đĩa trọn vị (ví dụ: Cơm tấm, Cơm chiên chay, Cơm gà...).
-     * Món cháo / Súp dinh dưỡng (ví dụ: Cháo gà đậu xanh, Cháo cá lóc, Súp gà bắp non, Súp bí đỏ...).
-     * Món điểm tâm / Bánh truyền thống (ví dụ: Bánh cuốn, Bánh mì, Xôi...).
-     * Thức uống ấm, sữa hạt, chè thanh nhiệt cho bữa phụ / trước ngủ (snack).
-   - TUYỆT ĐỐI KHÔNG chọn các món thành phần của mâm cơm (như một bát canh rau suông, hay một đĩa rau luộc, hay một đĩa đậu hũ hấp ăn kèm cơm) vào danh sách món đơn lẻ này, vì một bát canh hay đĩa rau luộc không thể làm một bữa ăn đơn lẻ hoàn chỉnh!
-   - TUYỆT ĐỐI KHÔNG chọn trùng với bất kỳ món nào đã chọn trong full_meal_set (Mâm cơm).
-   - Chọn từ 4 đến 5 món phong phú cho các bữa (sáng, trưa, tối, phụ).
-
-2. CHẾ ĐỘ "THỰC ĐƠN 1 BỮA ĂN ĐỦ MÓN" (full_meal_set):
-   - Đây là mâm cơm gia đình truyền thống gồm các món thành phần ăn chung với cơm trắng/gạo lứt:
-     * main_recipe_id: Món chính giàu đạm lành tính (thịt nạc hấp/hầm, cá hấp, gà hấp, trứng hấp, đậu hũ non...). TUYỆT ĐỐI KHÔNG chọn món canh, cháo, hay bún/phở làm món chính.
-     * soup_recipe_id: Món canh thanh nhiệt hoặc canh rau thanh nhẹ (ví dụ canh mồng tơi, canh củ sen, canh bí).
-     * side_recipe_id: Món rau xanh, củ quả hoặc món phụ giàu xơ. TUYỆT ĐỐI KHÔNG chọn thêm món canh (không bao giờ có 2 món canh).
-   - staple_text: Nêu rõ tinh bột ăn kèm (ví dụ: 'Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm').
-   - rationale: Phân tích vì sao mâm cơm kết hợp đủ món này cân bằng dinh dưỡng, hỗ trợ tốt nhất cho thể trạng.
-   - BẮT BUỘC 3 món trong mâm cơm KHÔNG ĐƯỢC XUẤT HIỆN trong danh sách recommendations (không trùng ID).
-   - Nếu trong candidates không có món chính đạm hoặc không có món canh riêng biệt, KHÔNG tạo full_meal_set (để null).
-
-3. GIẢI THÍCH CHUYÊN SÂU TẠI SAO PHÙ HỢP (CLINICAL RATIONALE):
-   - TUYỆT ĐỐI KHÔNG giải thích chung chung hời hợt (như 'món mềm dễ tiêu', 'thanh đạm').
-   - key_nutrients: Nêu rõ các dưỡng chất / hoạt chất nổi bật (ví dụ: 'Tryptophan, Magie, Melatonin tự nhiên, Nelumbin, Vitamin B6' hoặc 'Kẽm, Vitamin C, Chất xơ hòa tan').
-   - reason: Giải thích chi tiết cơ chế tác động y học dinh dưỡng:
-     * Dưỡng chất trong món tác động như thế nào lên cơ thể người bệnh/người có triệu chứng đó?
-     * Ví dụ với Mất ngủ: Tryptophan là tiền chất sản sinh Serotonin và Melatonin điều hòa chu kỳ sinh học; Magie và hoạt chất Nelumbin làm dịu hệ thần kinh trung ương, giảm căng thẳng cơ bắp; món thanh nhẹ giúp dạ dày không phải tăng tiết acid về đêm.
-     * Ví dụ với Nhiệt miệng: Kết cấu mềm mịn trơn mượt không gây ma sát xót vết loét niêm mạc; kẽm và vitamin C/A thúc đẩy tái tạo tế bào biểu mô và làm lành vết loét; tính mát giúp giảm nhiệt hỏa.
-     * Ví dụ với Đau dạ dày: Giảm co thắt, bảo vệ niêm mạc, không kích thích acid dịch vị.
-     * Ví dụ với Gút: Không purin, đào thải acid uric, kiềm hóa nước tiểu.
-     * Nêu rõ lý do tại sao người có tình trạng này nên chọn món.
-
-NGUYÊN TẮC AN TOÀN Y KHOA BẮT BUỘC (CLINICAL GUARDRAIL):
-- Bệnh Gút / Tăng Acid Uric: TUYỆT ĐỐI KHÔNG chọn món chứa hải sản (đặc biệt hàu, sò, nghêu, ngao, ốc, tôm, cua, mực, cá biển), nội tạng động vật, thịt đỏ đậm, giò heo, măng chua, rượu bia.
-- Tiểu đường: TUYỆT ĐỐI KHÔNG chọn món chứa đường tinh luyện, mật ong, sữa đặc, nước ngọt, chè ngọt.
-- Tăng Huyết áp: TUYỆT ĐỐI KHÔNG chọn món mặn đậm, nhiều mắm, dưa cà muối chua, đồ đóng hộp.
-- Đau Dạ dày / Trào ngược: TUYỆT ĐỐI KHÔNG chọn món cay nóng, chua gắt, chiên xào nhiều mỡ, cà phê, rượu bia.
-Nếu các món ứng viên không an toàn cho bệnh lý của người dùng, BẮT BUỘC trả needs_clarification=true và clarification_question nêu rõ lý do.
-Với công thức tiếng Anh, display_title là tên dịch tiếng Việt ngắn, đúng tên gốc. Không đổi hay tạo thêm thành phần.
-Ví dụ: 'Chinese Rice Porridge (Congee)' → 'Cháo gạo kiểu Trung Hoa'; 'Rosół (Polish Meat Soup)' → 'Súp thịt kiểu Ba Lan (Rosół)'. Giữ tên riêng nếu cần, nhưng dịch phần mô tả món sang tiếng Việt.
-Với công thức đã là tiếng Việt, giữ tên gốc trong display_title. Nội dung công thức gốc không được sửa.
-Không coi việc không có thành phần hạn chế là chứng nhận an toàn cho người có bệnh.
-Lý do bằng tiếng Việt, dựa trên nguyên liệu/cách làm và guidance được cung cấp.
-Chỉ dẫn nguồn bằng source_ids 0-based trong guidance khi nguồn thực sự hỗ trợ lý do.
-Nếu không có guidance liên quan, chỉ giải thích lựa chọn thông thường theo sở thích/đặc điểm món;
-ghi rõ chưa đánh giá độ phù hợp với bệnh trong caution, không bịa quy tắc y khoa.
-Không suy luận tâm trạng thành bệnh. Đọc kỹ phủ định, dị ứng và các bệnh đi kèm.
-Mô tả ngắn như 'sốt', 'ho', 'mất ngủ' không tự nó là yêu cầu mơ hồ. Nếu có guidance và có candidates,
-hãy chọn món tham khảo và ghi rõ giới hạn thay vì yêu cầu người dùng nhập tên món hoặc nguyên liệu.
-Riêng sốt: ưu tiên lựa chọn bổ sung dịch/nước/súp và món mềm nếu người dùng muốn ăn; không gán công dụng hạ sốt.
-Nếu yêu cầu mơ hồ/mâu thuẫn, có nhiều bệnh cần chế độ riêng hoặc không có món đáng cân nhắc,
-trả needs_clarification=true, recommendations=[], clarification_question ngắn để hỏi thêm.
-Nếu chọn được món, needs_clarification=false và clarification_question="".
-Không tiết lộ suy luận nội bộ; chỉ nêu lý do lựa chọn ngắn có thể kiểm tra.
+    instruction = """Bạn chọn công thức tham khảo từ danh mục MediMind theo mô tả của người dùng.
+Chỉ chọn recipe_id có trong candidates. Không thêm, đổi nguyên liệu, cách nấu, số kcal hay chỉ số dinh dưỡng.
+Các món đã qua bộ lọc nguyên liệu, điều kiện được hỗ trợ và dị ứng đã khai báo. Việc qua bộ lọc không chứng nhận món an toàn hoặc điều trị bệnh.
+Ưu tiên đúng yêu cầu ăn uống. Với 'ít đường', so sánh số sugar của những món có dữ liệu theo hướng tương đối; thiếu số liệu là chưa biết, không phải ít đường. Không đặt ngưỡng y khoa.
+BMI chỉ là ngữ cảnh tham khảo ở người lớn. Không suy diễn nhu cầu năng lượng, mục tiêu giảm cân hay giới hạn 2.000 kcal/ngày từ BMI. Kcal nguồn chưa được kiểm chứng lâm sàng.
+Giải thích bằng nguyên liệu, kết cấu và cách chế biến thật sự có trong công thức. Không bịa vi chất, cơ chế chữa bệnh, tác dụng điều trị hoặc độ an toàn dị ứng tuyệt đối.
+source_ids là chỉ số 0-based của guidance thực sự hỗ trợ lý do; dùng [] nếu không có nguồn phù hợp.
+Với thức ăn, recommendations ưu tiên món ăn trọn vị có is_one_dish=true, đa dạng bữa, tối đa 6 món. Đồ uống chọn từ ứng viên thức uống.
+Nếu tạo full_meal_set, chọn một món chính, một món canh và có thể thêm một món rau/phụ từ candidates; ID khác nhau, không lặp với recommendations. Món rau/phụ TUYỆT ĐỐI KHÔNG TRÙNG NGUYÊN LIỆU ĐẠM HOẶC THÀNH PHẦN CHÍNH (như cùng là đậu hũ, cùng là nấm, cùng thịt bò/gà/heo/tôm/cá) với món chính hoặc món canh trong thực đơn; ưu tiên rau củ quả xanh/luộc/xào thanh đạm. Bỏ trống staple_text để hệ thống nhắc người dùng chọn tinh bột phù hợp dị ứng; phần đó không có kcal trong tổng.
+Không tạo full_meal_set nếu thiếu món chính hoặc canh. Nếu không thể chọn món phù hợp, trả needs_clarification=true, recommendations=[] và một câu hỏi ngắn.
+Nếu chọn được, needs_clarification=false và clarification_question="". Nội dung trả về bằng tiếng Việt.
 """
     from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
     from core.retry_policy import RetryPolicy, execute_with_retry, ErrorClassification
@@ -228,9 +192,19 @@ Không tiết lộ suy luận nội bộ; chỉ nêu lý do lựa chọn ngắn 
             r["dish_role"] = classify_dish_role(r)
         r["is_one_dish"] = is_standalone_one_dish(r)
 
+    personalization = personalization or {}
+    model_context = {
+        "allergen_codes": [code for code in personalization.get("allergen_codes", []) if code in
+                           {"egg", "milk", "soy", "gluten", "shrimp", "crab", "shellfish", "seafood", "fish", "peanut", "tree_nut", "sesame"}],
+        "bmi_category": personalization.get("bmi_category") if personalization.get("bmi_category") in
+                        {"Thiếu cân", "Trong khoảng tham chiếu", "Thừa cân", "Béo phì"} else None,
+        "diet_preferences": [value for value in personalization.get("diet_preferences", []) if value in
+                             {"no_added_sugar", "not_spicy", "not_fried", "low_salt"}],
+    }
     payload = json.dumps({"user_input": condition, "recipe_type": recipe_type,
-                         "guidance": guidance, "candidates": [{k: recipe[k] for k in
-                             ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note")
+                         "guidance": guidance, "personalization": model_context,
+                         "candidates": [{k: recipe[k] for k in
+                             ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note", "calories", "sugar", "fat", "fiber", "protein")
                              if k in recipe} for recipe in recipes]}, ensure_ascii=False)
 
     # Nếu môi trường kiểm thử trực tiếp mock genai.Client

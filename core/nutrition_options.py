@@ -1,5 +1,7 @@
 """Gợi ý công thức để người dùng tự chọn, không thay thế tư vấn dinh dưỡng."""
 from copy import deepcopy
+from datetime import datetime, date
+import math
 from typing import Any, Dict, List, Optional
 import unicodedata
 from core.recipe_catalog import imported_recipes, catalog_stats, retrieve_candidates, title_key
@@ -130,32 +132,18 @@ _ROLE_LABELS = {
 
 
 def _enrich_recipe(recipe: Dict[str, Any], condition: str) -> None:
+    """Add display labels and a modest explanation without inventing benefits."""
     from core.recipe_catalog import classify_dish_role, classify_meal_times, is_standalone_one_dish
-    dish_role = recipe.get("dish_role")
-    if dish_role not in _ROLE_LABELS:
-        dish_role = classify_dish_role(recipe)
-        recipe["dish_role"] = dish_role
 
-    title_lower = str(recipe.get("title", "")).lower()
-
-    # Gán nhãn vai trò hiển thị thân thiện, phân biệt rõ món ăn trọn vị (One-dish meals)
+    role = recipe.get("dish_role")
+    if role not in _ROLE_LABELS:
+        role = classify_dish_role(recipe)
+        recipe["dish_role"] = role
     if is_standalone_one_dish(recipe):
-        if any(k in title_lower for k in ["bún", "phở", "hủ tiếu", "mì", "miến", "bánh canh", "nui"]):
-            recipe["dish_role_label"] = "Món nước / Bún · Phở · Mì"
-        elif any(k in title_lower for k in ["cơm tấm", "cơm gà", "cơm chiên", "cơm rang", "cơm sườn", "cơm trộn"]):
-            recipe["dish_role_label"] = "Cơm đĩa trọn vị"
-        elif any(k in title_lower for k in ["cháo", "súp", "soup", "congee"]):
-            recipe["dish_role_label"] = "Cháo / Súp dinh dưỡng"
-        elif any(k in title_lower for k in ["bánh", "xôi"]):
-            recipe["dish_role_label"] = "Món điểm tâm / Bánh"
-        elif recipe.get("recipe_type") == "drink" or any(k in title_lower for k in ["chè", "sữa", "trà", "sinh tố", "nước"]):
-            recipe["dish_role_label"] = "Thức uống / Chè thanh nhiệt"
-        else:
-            recipe["dish_role_label"] = "Món ăn trọn vị"
+        recipe["dish_role_label"] = "Món ăn trọn vị" if recipe.get("recipe_type") != "drink" else "Thức uống"
     else:
-        recipe["dish_role_label"] = _ROLE_LABELS.get(dish_role, "Món ăn")
-
-    possible_meals = classify_meal_times(recipe, dish_role)
+        recipe["dish_role_label"] = _ROLE_LABELS.get(role, "Món ăn")
+    possible_meals = classify_meal_times(recipe, role)
     recipe["possible_meals"] = possible_meals
     meal_time = recipe.get("meal_time")
     if meal_time not in _MEAL_LABELS:
@@ -163,100 +151,22 @@ def _enrich_recipe(recipe: Dict[str, Any], condition: str) -> None:
         recipe["meal_time"] = meal_time
     recipe["meal_label"] = _MEAL_LABELS.get(meal_time, "Bữa ăn")
 
-    desc_text = title_lower + " " + " ".join(str(i.get("name", "")).lower() for i in recipe.get("ingredients", []))
-    cond_norm = unicodedata.normalize("NFD", condition.lower()).encode("ascii", "ignore").decode("utf-8")
-    
-    nutrients = []
-    reasons = []
-
-    # Giải thích dinh dưỡng lâm sàng chuyên biệt theo từng thể trạng
-    if "nhiet mieng" in cond_norm or "loet" in cond_norm:
-        if any(k in desc_text for k in ["đậu hũ", "tàu hũ", "đậu phụ", "đậu nành", "đậu xanh"]):
-            nutrients.append("Đạm thực vật mềm & Kẽm")
-            reasons.append("Đậu hũ non kết cấu mềm mịn không gây ma sát xót vết loét niêm mạc, giàu đạm lành tính và kẽm thúc đẩy lành mô miệng")
-        if any(k in desc_text for k in ["mồng tơi", "rau ngót", "bầu", "bí", "mướp", "rau"]):
-            nutrients.append("Chất nhầy tự nhiên & Vitamin A, C")
-            reasons.append("Rau củ tính mát giàu chất nhầy tự nhiên làm dịu niêm mạc khoang miệng sưng rát, hỗ trợ thanh nhiệt")
-        if any(k in desc_text for k in ["cháo", "súp", "bánh canh", "bún", "miến"]):
-            nutrients.append("Tinh bột mềm mịn dễ nuốt")
-            reasons.append("Món dạng lỏng mềm trơn mượt, dễ nuốt không cần nhai cọ xát, hạn chế tối đa kích ứng cơ học lên vết loét")
-        if any(k in desc_text for k in ["sen", "hạt sen", "đậu xanh"]):
-            nutrients.append("Flavonoid thanh nhiệt")
-            reasons.append("Đậu xanh và hạt sen có tính mát thanh nhiệt giải độc, giảm cảm giác bức bối nóng rát miệng")
-        if any(k in desc_text for k in ["cá", "gà", "thịt nạc"]):
-            nutrients.append("Protein nạc tái tạo mô")
-            reasons.append("Bổ sung đạm nạc mềm dễ hấp thu giúp tăng sinh nguyên bào sợi và đẩy nhanh tái tạo biểu mô miệng")
-    elif "da day" in cond_norm or "trao nguoc" in cond_norm or "stomach" in cond_norm:
-        if any(k in desc_text for k in ["cháo", "súp", "yến mạch"]):
-            nutrients.append("Chất xơ hòa tan & Tinh bột mềm")
-            reasons.append("Bao bọc nhẹ nhàng niêm mạc dạ dày, trung hòa dịch vị và giảm co bóp kích thích")
-        if any(k in desc_text for k in ["đậu hũ", "cá", "gà"]):
-            nutrients.append("Đạm nạc dễ tiêu")
-            reasons.append("Cung cấp đạm dễ tiêu hóa mà không làm chậm quá trình làm rỗng dạ dày, tránh tăng tiết acid")
-        if any(k in desc_text for k in ["bí đỏ", "khoai lang", "rau củ"]):
-            nutrients.append("Pectin & Beta-carotene")
-            reasons.append("Pectin tự nhiên làm êm dịu niêm mạc tiêu hóa và hỗ trợ làm lành thương tổn dịch vị")
-    elif "gut" in cond_norm or "uric" in cond_norm:
-        nutrients.append("Purin cực thấp & Khoáng kiềm")
-        reasons.append("Thực phẩm thực vật lành tính, không chứa purin, giúp kiềm hóa nước tiểu và tăng đào thải acid uric qua thận")
-    elif "sot" in cond_norm or "met moi" in cond_norm or "fever" in cond_norm:
-        if any(k in desc_text for k in ["cháo", "súp", "bún", "miến", "phở"]):
-            nutrients.append("Nước, Điện giải & Tinh bột hấp thu nhanh")
-            reasons.append("Bổ sung dịch và năng lượng tức thời cho cơ thể, giảm kiệt sức và dễ tiêu hóa khi mệt mỏi")
-        if any(k in desc_text for k in ["gà", "bò", "cá", "nạc"]):
-            nutrients.append("Acid amin thiết yếu & Sắt")
-            reasons.append("Bồi bổ thể lực, hỗ trợ tổng hợp hemoglobin và kích hoạt lại năng lượng tế bào")
-    else:  # Mặc định hoặc mất ngủ / an thần
-        if any(k in desc_text for k in ["hạt sen", "củ sen", "tâm sen", "sen"]):
-            nutrients.append("Nelumbin & Magie")
-            reasons.append("Hoạt chất Nelumbin trong sen giúp an thần định trí, thư giãn hệ thần kinh trung ương và giảm căng thẳng trằn trọc")
-        if any(k in desc_text for k in ["đậu hũ", "tàu hũ", "đậu phụ", "đậu nành", "đậu xanh"]):
-            nutrients.append("Tryptophan")
-            nutrients.append("Đạm thực vật nhẹ bụng")
-            reasons.append("Cung cấp Tryptophan - acid amin thiết yếu để cơ thể tổng hợp Serotonin và Melatonin điều hòa chu kỳ sinh học giấc ngủ")
-        if any(k in desc_text for k in ["nấm", "nấm hương", "nấm đông cô", "nấm rơm", "nấm sò"]):
-            nutrients.append("Vitamin nhóm B & Kẽm")
-            reasons.append("Vitamin nhóm B hỗ trợ dẫn truyền thần kinh và tăng chuyển hóa êm dịu tế bào")
-        if any(k in desc_text for k in ["cải bó xôi", "rau bina", "rau ngót", "mồng tơi", "bông cải", "rau"]):
-            nutrients.append("Chất xơ & Magie")
-            reasons.append("Bổ sung Magie tự nhiên hỗ trợ giãn cơ bắp và giúp thanh nhiệt cơ thể")
-        if any(k in desc_text for k in ["rong biển", "tảo"]):
-            nutrients.append("Magie & Khoáng vi lượng")
-            reasons.append("Rong biển giàu magie và khoáng chất giúp làm dịu thần kinh và nhẹ bụng vào buổi tối")
-        if any(k in desc_text for k in ["atisô", "a-ti-sô", "hoa atiso"]):
-            nutrients.append("Cynarin & Flavonoid")
-            reasons.append("Atisô giúp mát gan hạ hỏa, giảm cảm giác bức rứt nóng trong người về đêm")
-        if any(k in desc_text for k in ["gà", "ức gà", "thịt nạc"]):
-            nutrients.append("Protein nạc & Tryptophan")
-            reasons.append("Cung cấp đạm dễ hấp thu mà không làm nặng gánh tiêu hóa của dạ dày")
-        if any(k in desc_text for k in ["cá", "cá hồi", "cá lóc"]):
-            nutrients.append("Omega-3 & Vitamin D")
-            reasons.append("Omega-3 và Vitamin D tham gia điều hòa trung khu giấc ngủ và kháng viêm tự nhiên")
-        if any(k in desc_text for k in ["yến mạch", "chuối"]):
-            nutrients.append("Melatonin tự nhiên & Kali")
-            reasons.append("Giàu kali và chất xơ giúp giãn cơ trơn và hỗ trợ giấc ngủ sâu")
-
-    if not recipe.get("key_nutrients"):
-        recipe["key_nutrients"] = ", ".join(dict.fromkeys(nutrients)) if nutrients else "Chất xơ, Vitamin & Khoáng chất tự nhiên"
-
-    raw_reason = recipe.get("recommendation_reason")
-    current_reason = "" if not raw_reason or str(raw_reason).strip().lower() == "none" else str(raw_reason).strip()
-
-    if len(current_reason) < 40 or not any(w in current_reason.lower() for w in ["tryptophan", "magie", "nelumbin", "melatonin", "an thần", "chuyển hóa", "niêm mạc", "loét", "acid", "kẽm", "purin", "điện giải"]):
-        if reasons:
-            extra = "; ".join(reasons[:2]) + "."
-            recipe["recommendation_reason"] = f"{current_reason} {extra}".strip() if current_reason else extra
-        elif not current_reason:
-            if "nhiet mieng" in cond_norm or "loet" in cond_norm:
-                recipe["recommendation_reason"] = "Món thanh nhiệt mềm dịu, dễ nuốt và hạn chế tối đa ma sát lên niêm mạc khoang miệng."
-            elif "da day" in cond_norm or "trao nguoc" in cond_norm:
-                recipe["recommendation_reason"] = "Món thanh đạm êm dịu, bảo vệ niêm mạc dạ dày và không kích thích tăng tiết acid dịch vị."
-            elif "gut" in cond_norm:
-                recipe["recommendation_reason"] = "Món ăn từ nguyên liệu ít purin, an toàn cho khớp và hỗ trợ quá trình thanh lọc cơ thể."
-            elif "sot" in cond_norm or "met moi" in cond_norm:
-                recipe["recommendation_reason"] = "Món dạng lỏng mềm dễ hấp thu, giúp bù nước, bổ sung năng lượng và phục hồi thể trạng."
+    # Nutrient-specific claims from prose or a model are not verified by the
+    # source table. The numeric source values remain available separately.
+    recipe["key_nutrients"] = ""
+    reason = str(recipe.get("recommendation_reason") or "").strip()
+    if not reason or reason.lower() == "none":
+        tags = recipe.get("rule_tags") or []
+        if "soft" in tags:
+            reason = "Món có kết cấu mềm và đã qua bộ lọc nguyên liệu theo mô tả bạn nhập."
+        elif "liquid" in tags:
+            if recipe.get("recipe_type") == "drink":
+                reason = "Thức uống đã qua bộ lọc nguyên liệu theo mô tả bạn nhập."
             else:
-                recipe["recommendation_reason"] = "Món ăn thanh nhẹ giàu dưỡng chất tự nhiên, cung cấp năng lượng cân bằng cho cơ thể."
+                reason = "Món canh súp/dạng nước dễ dùng, đã qua bộ lọc nguyên liệu theo mô tả bạn nhập."
+        else:
+            reason = "Công thức đã qua bộ lọc nguyên liệu theo mô tả bạn nhập; kiểm tra khẩu phần và cách nêm trước khi dùng."
+    recipe["recommendation_reason"] = reason
 
 
 def _is_valid_main(r: Dict) -> bool:
@@ -279,7 +189,33 @@ def _is_valid_soup(r: Dict) -> bool:
     return "canh" in title or "súp" in title or role == "soup"
 
 
-def _is_valid_side(r: Dict, main_id: str = None, soup_id: str = None) -> bool:
+def _extract_main_ingredient_tags(recipe: Dict) -> set:
+    if not recipe:
+        return set()
+    text = (str(recipe.get("title", "")) + " " + " ".join(str(i.get("name", "")) for i in recipe.get("ingredients", []))).lower()
+    kw_groups = [
+        ('đậu', ['đậu hũ', 'tàu hũ', 'đậu phụ', 'đậu non']),
+        ('nấm', ['nấm']),
+        ('bò', ['thịt bò', 'bắp bò', 'bò']),
+        ('heo', ['thịt heo', 'thịt lợn', 'ba chỉ', 'ba rọi', 'sườn', 'giò heo', 'thịt băm', 'xá xíu']),
+        ('gà', ['thịt gà', 'ức gà', 'đùi gà', 'gà']),
+        ('vịt', ['vịt', 'ngan']),
+        ('cá', ['cá hồi', 'cá lóc', 'cá diêu hồng', 'cá thu', 'cá bớp', 'cá ngừ', 'chả cá', 'cá ']),
+        ('tôm', ['tôm', 'tép']),
+        ('mực', ['mực', 'bạch tuộc']),
+        ('cua', ['cua', 'ghẹ', 'chả cua']),
+        ('ốc', ['ốc', 'nghêu', 'sò', 'hến']),
+        ('trứng', ['trứng', 'hột vịt']),
+        ('ếch', ['ếch'])
+    ]
+    found = set()
+    for grp, tokens in kw_groups:
+        if any(t in text for t in tokens):
+            found.add(grp)
+    return found
+
+
+def _is_valid_side(r: Dict, main_id: str = None, soup_id: str = None, main_r: Dict = None, soup_r: Dict = None) -> bool:
     if not r:
         return False
     if r.get("id") in (main_id, soup_id):
@@ -289,9 +225,21 @@ def _is_valid_side(r: Dict, main_id: str = None, soup_id: str = None) -> bool:
         return False
     from core.recipe_catalog import classify_dish_role
     role = r.get("dish_role") or classify_dish_role(r)
-    return role in ("side", "staple")
-    role = r.get("dish_role") or classify_dish_role(r)
-    return role in ("side", "staple")
+    if role not in ("side", "staple"):
+        return False
+
+    # Món phụ tuyệt đối KHÔNG trùng nguyên liệu chính/đạm với món chính hoặc món canh trong thực đơn mâm cơm
+    side_tags = _extract_main_ingredient_tags(r)
+    if main_r:
+        main_tags = _extract_main_ingredient_tags(main_r)
+        if side_tags and main_tags and (side_tags & main_tags):
+            return False
+    if soup_r:
+        soup_tags = _extract_main_ingredient_tags(soup_r)
+        if side_tags and soup_tags and (side_tags & soup_tags):
+            return False
+
+    return True
 
 
 def _side_score(r: Dict) -> int:
@@ -315,10 +263,10 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
             soup_r = candidate_soup
             side_id = ai_fms.get("side_recipe_id")
             candidate_side = all_pool.get(side_id) if side_id else None
-            if _is_valid_side(candidate_side, main_r["id"], soup_r["id"]):
+            if _is_valid_side(candidate_side, main_r["id"], soup_r["id"], main_r, soup_r):
                 side_r = candidate_side
             else:
-                side_pool = [r for r in recipes + candidates if _is_valid_side(r, main_r["id"], soup_r["id"])]
+                side_pool = [r for r in recipes + candidates if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)]
                 side_pool.sort(key=lambda r: -_side_score(r))
                 side_r = side_pool[0] if side_pool else None
 
@@ -350,7 +298,7 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
         return None
     soup_r = soup_filtered[0]
 
-    side_candidates = [r for r in recipes if _is_valid_side(r, main_r["id"], soup_r["id"])] or [r for r in candidates if _is_valid_side(r, main_r["id"], soup_r["id"])]
+    side_candidates = [r for r in recipes if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)] or [r for r in candidates if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)]
     side_candidates.sort(key=lambda r: -_side_score(r))
     side_r = side_candidates[0] if side_candidates else None
 
@@ -371,13 +319,75 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
     }
 
 
-def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=None) -> Dict[str, Any]:
+def _profile_context(profile, dob, prepared):
+    profile = profile if isinstance(profile, dict) else {}
+    def number(value):
+        try:
+            return float(str(value).strip().replace(",", "."))
+        except (TypeError, ValueError):
+            return None
+    height = number(profile.get("height"))
+    weight = number(profile.get("weight"))
+    height = height if height is not None and 100 <= height <= 230 else None
+    weight = weight if weight is not None and 20 <= weight <= 350 else None
+    adult = False
+    for date_format in ("%d/%m/%Y", "%Y-%m-%d"):
+        try:
+            born = datetime.strptime(str(dob), date_format).date()
+            adult = (date.today() - born).days >= 18 * 365.2425
+            break
+        except (TypeError, ValueError):
+            continue
+    bmi = round(weight / (height / 100) ** 2, 1) if adult and height and weight else None
+    category = None
+    if adult and bmi is not None:
+        category = "Thiếu cân" if bmi < 18.5 else "Trong khoảng tham chiếu" if bmi < 25 else "Thừa cân" if bmi < 30 else "Béo phì"
+    from core.nutrition_rules import ALLERGEN_NAMES
+    allergies = [ALLERGEN_NAMES[code] for code in prepared.get("profile_allergies", [])]
+    needs_review = bool(prepared.get("profile_allergy_needs_review"))
+    return {"used": bool(allergies or bmi is not None or needs_review), "allergies": allergies,
+            "allergy_needs_review": needs_review,
+            "height_cm": height, "weight_kg": weight, "bmi": bmi, "bmi_category": category,
+            "bmi_note": "BMI chỉ là chỉ số tham khảo ở người trưởng thành; không dùng để tự đặt mức kcal." if bmi is not None else ""}
+
+
+def _meal_calories(meal, prepared):
+    meal["title"] = "Mâm cơm gợi ý cho 1 bữa"
+    roles = {item.get("role") for item in meal.get("dishes", [])}
+    composition = "món chính, món canh" + (" và món rau/phụ" if "side" in roles else "")
+    constraints = []
+    if prepared.get("recognized"):
+        constraints.append(prepared.get("context_label", "tình trạng đã nhập"))
+    constraints.extend(prepared.get("query_preferences", []))
+    constraint_text = " theo " + ", ".join(constraints) if constraints else " theo mô tả bạn nhập"
+    allergy_text = "; đã loại món có nguyên liệu khớp dị ứng khai báo" if prepared.get("allergies") else ""
+    meal["rationale"] = (f"Ghép {composition} từ các công thức qua bộ lọc nguyên liệu{constraint_text}{allergy_text}. "
+                         "Cần kiểm tra cách nêm và khẩu phần thực tế trước khi dùng.")
+    # Free-text staples from a model have no catalog ingredients to screen
+    # against food allergies, so never name an unscreened food here.
+    meal["staple_text"] = "Chọn loại tinh bột bạn dùng được theo khẩu phần cá nhân; phần này chưa có công thức trong mâm."
+    values = []
+    for item in meal.get("dishes", []):
+        item["role_label"] = {"main": "Món chính", "soup": "Món canh", "side": "Món rau / phụ"}.get(item.get("role"), "Món ăn")
+        value = item.get("recipe", {}).get("calories")
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0:
+            values.append(value)
+    meal["total_calories"] = round(sum(values), 1) if values else None
+    meal["calorie_note"] = (f"Ước tính theo dữ liệu nguồn cho {len(values)}/{len(meal.get('dishes', []))} món; "
+                            "chưa tính phần tinh bột ăn kèm. Không chia theo số người trong công thức.")
+
+
+def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=None,
+                          profile=None, dob=None) -> Dict[str, Any]:
     """Filter canonical recipes first, then let Gemini select and explain IDs."""
     from core.nutrition_rules import prepare_nutrition_candidates
     from core.nutrition_ai import NutritionAIError, select_recipes
 
     result = _get_general_options(condition, recipe_type)
-    prepared = prepare_nutrition_candidates(condition, result["recipes"])
+    profile = profile if isinstance(profile, dict) else {}
+    prepared = prepare_nutrition_candidates(condition, result["recipes"], profile.get("allergies"))
+    result["profile_context"] = _profile_context(profile, dob, prepared)
+    result["query_preferences"] = prepared.get("query_preferences", [])
     if prepared.get("is_unmapped_disease"):
         result.update(recipes=[], eligible_count=0, considered_count=0, has_more=False,
                       needs_clarification=True, provider_status="clinical_safeguard_refusal",
@@ -389,7 +399,11 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
     seen = set(exclude_recipe_ids or [])
     seen_titles = {title_key(recipe) for recipe in eligible if recipe["id"] in seen}
     remaining = [recipe for recipe in eligible if recipe["id"] not in seen and title_key(recipe) not in seen_titles]
-    candidates = retrieve_candidates(condition, remaining)
+    candidates = retrieve_candidates(condition, remaining,
+                                     sort_by_sugar="no_added_sugar" in prepared.get("preference_codes", []))
+    if "no_added_sugar" in prepared.get("preference_codes", []):
+        candidates.sort(key=lambda r: (not isinstance(r.get("sugar"), (int, float)),
+                                       r.get("sugar") if isinstance(r.get("sugar"), (int, float)) else float("inf")))
     guidance = prepared["guidance"]
     stats = catalog_stats()
     type_count = stats["drink_count"] if recipe_type == "drink" else stats["food_count"]
@@ -417,7 +431,10 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
         return result
     ai_fms = None
     try:
-        selection = select_recipes(condition, recipe_type, candidates, guidance)
+        selection = select_recipes(condition, recipe_type, candidates, guidance,
+                                   personalization={"allergen_codes": prepared.get("allergies", []),
+                                                    "bmi_category": result["profile_context"].get("bmi_category"),
+                                                    "diet_preferences": prepared.get("preference_codes", [])})
         ai_fms = selection.get("full_meal_set")
         result.update(recipes=selection["recipes"], gemini_used=True,
                       needs_clarification=selection["needs_clarification"],
@@ -466,6 +483,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
         if full_meal:
             for d in full_meal["dishes"]:
                 _enrich_recipe(d["recipe"], condition)
+            _meal_calories(full_meal, prepared)
             result["full_meal_set"] = full_meal
 
             # Tách biệt hoàn toàn món lẻ và mâm cơm:
@@ -473,16 +491,16 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
             #    bún, phở, mì, miến, cơm tấm, cơm chiên, cơm gà, cháo, súp, bánh cuốn, xôi...)
             #    hoặc thức uống/chè cho bữa phụ, chứ KHÔNG phải bát canh suông hay đĩa rau luộc bóc tách từ mâm cơm.
             # 2. TUYỆT ĐỐI KHÔNG chứa các món thành phần trong mâm cơm (không trùng ID hoặc tiêu đề).
-            if len(result["recipes"]) >= 3 and not result.get("needs_clarification"):
+            if len(result["recipes"]) >= 2 and not result.get("needs_clarification"):
                 from core.recipe_catalog import is_standalone_one_dish, classify_meal_times
 
                 fms_ids = {d["recipe"]["id"] for d in full_meal["dishes"]}
                 fms_titles = {title_key(d["recipe"]) for d in full_meal["dishes"]}
 
-                # Lấy các món ban đầu mà Gemini đã chọn thỏa mãn: không trùng mâm cơm và là món trọn vị
+                # Lấy các món ban đầu mà Gemini đã chọn thỏa mãn: không trùng mâm cơm và BẮT BUỘC là món trọn vị (loại bỏ hoàn toàn món phụ/canh)
                 initial_singles = [
                     r for r in result["recipes"]
-                    if r["id"] not in fms_ids and title_key(r) not in fms_titles and is_standalone_one_dish(r)
+                    if r["id"] not in fms_ids and title_key(r) not in fms_titles and is_standalone_one_dish(r) and (r.get("dish_role") != "side")
                 ]
 
                 selected_ids = {r["id"] for r in initial_singles} | fms_ids
@@ -491,7 +509,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                 # Bổ sung từ candidates và eligible các món lẻ trọn vị phong phú theo từng bữa (sáng, trưa, tối, phụ)
                 available_pool = [
                     c for c in candidates + eligible
-                    if is_standalone_one_dish(c) and c["id"] not in selected_ids and title_key(c) not in selected_titles
+                    if is_standalone_one_dish(c) and c["id"] not in selected_ids and title_key(c) not in selected_titles and (c.get("dish_role") != "side")
                 ]
 
                 target_meals = ["breakfast", "lunch", "dinner", "snack"]
@@ -521,7 +539,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
 
                 if len(initial_singles) < 4:
                     for r in result["recipes"]:
-                        if r["id"] not in selected_ids and title_key(r) not in selected_titles:
+                        if r["id"] not in selected_ids and title_key(r) not in selected_titles and is_standalone_one_dish(r) and (r.get("dish_role") != "side"):
                             initial_singles.append(r)
                             selected_ids.add(r["id"])
                             selected_titles.add(title_key(r))
