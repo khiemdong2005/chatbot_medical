@@ -165,11 +165,9 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
 
         prompt = """
         Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI.
-        Hãy quan sát tài liệu y tế này (bao gồm chữ in và chữ viết tay):
-        1. Xác định type: "prescription" hay "lab_test".
-        2. Nếu là prescription: trích xuất facility, department, doctor, patient_name, diagnosis, date, duration, timeline 4 cữ, medications và warnings.
-        3. Nếu là lab_test: trích xuất metrics (name, value, unit, reference, status: High/Normal/Low, advice) và ai_summary.
-        Trả về DUY NHẤT một JSON hợp lệ.
+        Hãy quan sát đơn thuốc y tế này (bao gồm chữ in và chữ viết tay):
+        Trích xuất facility, department, doctor, patient_name, dob, age, gender, diagnosis, date, duration, timeline 4 cữ (morning, noon, evening, bedtime), medications (name, strength, dose, frequency, days, usage, purpose) và warnings.
+        Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
         """
 
         candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]

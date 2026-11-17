@@ -5279,10 +5279,7 @@ async function loadPrescriptionHistory() {
       if (emptyEl) emptyEl.classList.add('hidden');
       if (listEl) {
         listEl.innerHTML = history.map(item => {
-          const isLab = item.doc_type === 'lab_test';
-          const badgeType = isLab 
-            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1"><svg class="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>Phiếu Xét Nghiệm</span>'
-            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc</span>';
+          const badgeType = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
 
           const iconSvg = isLab
             ? `<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
@@ -5362,7 +5359,7 @@ async function loadPrescriptionHistory() {
             <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/30 transition-all flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${isLab ? 'bg-purple-500/20 text-purple-300' : 'bg-teal-500/20 text-teal-300'}">${isLab ? 'XÉT NGHIỆM' : 'ĐƠN THUỐC'}</span>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-teal-500/20 text-teal-300">ĐƠN THUỐC</span>
                   <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(item.uploaded_at || '')}</span>
                 </div>
                 <h5 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(diag)}">${escapeHtml(diag)}</h5>
@@ -5496,7 +5493,7 @@ function renderPrescriptionVerification(data) {
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
   const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
-  const rawGender = (data.gender || data.data?.gender || 'Nữ').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
 
   let displayBirthInfo = '';
@@ -5521,7 +5518,7 @@ function renderPrescriptionVerification(data) {
     displayAge = '';
   }
 
-  const meds = data.medications || [];
+  const meds = (data.medications && data.medications.length > 0) ? data.medications : (data.data?.medications || []);
   const fileName = data.uploaded_filename || 'DonThuoc_Goc.jpg';
   const scanAcc = (data.ocr_metrics?.avg_confidence != null && !isNaN(data.ocr_metrics.avg_confidence))
     ? Math.round(data.ocr_metrics.avg_confidence * 100) : null;
@@ -5742,7 +5739,15 @@ async function confirmAndProceedPrescription() {
   const diagVal = document.getElementById('verify-diagnosis')?.value?.trim();
 
   if (patName) currentPrescriptionData.patient_name = patName;
-  if (dobVal) currentPrescriptionData.dob = dobVal;
+  if (dobVal) {
+    const ageNumMatch = dobVal.match(/^(\d{1,3})(?:\s*tuổi)?$/i);
+    if (ageNumMatch && parseInt(ageNumMatch[1], 10) < 130) {
+      currentPrescriptionData.age = ageNumMatch[1];
+      currentPrescriptionData.dob = `${new Date().getFullYear() - parseInt(ageNumMatch[1], 10)}`;
+    } else {
+      currentPrescriptionData.dob = dobVal;
+    }
+  }
   if (genderVal) currentPrescriptionData.gender = genderVal;
   if (facVal) currentPrescriptionData.facility = facVal;
   if (docVal) currentPrescriptionData.doctor = docVal;
@@ -5828,7 +5833,7 @@ function renderPrescriptionResult(data) {
   const duration = data.duration ? escapeHtml(String(data.duration)) : 'Theo chỉ định';
   const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
-  const rawGender = escapeHtml((data.gender || data.data?.gender || 'Chưa rõ').toString().trim());
+  const rawGender = escapeHtml((data.gender || data.data?.gender || 'Nam').toString().trim());
   const currentYear = new Date().getFullYear();
 
   // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
@@ -5965,7 +5970,7 @@ function renderPrescriptionResult(data) {
   // ==============================================================================
   // PRESCRIPTION MODE: GỘP 2 TAB "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC"
   // ==============================================================================
-  const meds = data.medications || [];
+  const meds = (data.medications && data.medications.length > 0) ? data.medications : (data.data?.medications || []);
   const warnings = data.warnings || [];
   const tl = data.timeline || {};
 
