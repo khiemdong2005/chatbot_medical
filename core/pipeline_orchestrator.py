@@ -193,11 +193,14 @@ def process_medical_document_pipeline(
     )
 
     # 2.B: Gemini Schema extraction
-    gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
+    gemini_data = extract_with_gemini_schema(
+        active_image_path, doc_type=doc_type,
+        ocr_result=ocr_result if selected_ocr_path == active_image_path else None,
+    )
     if not isinstance(gemini_data, dict):
         gemini_data = None
     if not gemini_data and not mask_pii and selected_ocr_path != active_image_path:
-        gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type)
+        gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type, ocr_result=ocr_result)
         if not isinstance(gemini_data, dict):
             gemini_data = None
     gemini_succeeded = bool(gemini_data)
