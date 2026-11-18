@@ -128,11 +128,16 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
-    key = (os.getenv("GEMINI_NUTRITION_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
+    from core.llm_provider import llm_provider
+    if llm_provider.is_openrouter_active():
+        key = llm_provider.resolve_api_key(profile="nutrition")
+        model = llm_provider.get_default_model("nutrition")
+    else:
+        key = (os.getenv("GEMINI_NUTRITION_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
+        model = os.getenv("GEMINI_NUTRITION_MODEL", "gemini-flash-lite-latest").strip()
     if not key:
         raise NutritionAIError("not_configured")
-    model = os.getenv("GEMINI_NUTRITION_MODEL", "gemini-flash-lite-latest").strip()
-    if not re.fullmatch(r"[A-Za-z0-9_.-]+", model):
+    if not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
         raise NutritionAIError("configuration")
     schema = {
         "type": "object", "additionalProperties": False,

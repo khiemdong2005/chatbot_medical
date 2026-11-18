@@ -334,6 +334,7 @@ def create_app(test_config=None):
             email=email,
             full_name=full_name,
             role=role,
+            account_status="active",
             phone_number=phone_number,
             dob=dob,
             gender=gender,
@@ -508,8 +509,9 @@ def create_app(test_config=None):
     @app.route("/api/auth/otp/send", methods=["POST"])
     def auth_send_otp():
         """
-        Gửi mã xác thực OTP 6 số qua Gmail hoặc SMS Twilio / SpeedSMS.
+        Gửi mã xác thực OTP 6 số qua Gmail hoặc SMS SpeedSMS (Nội địa Việt Nam).
         Rate-limit: cooldown 60s, TTL 5 phút, CSPRNG.
+        Đã loại bỏ cổng Twilio và chặn gửi OTP tới các số điện thoại quốc tế.
         """
         data = request.get_json(silent=True) or {}
         identifier = (data.get("identifier") or data.get("email") or data.get("phone") or "").strip()
@@ -528,6 +530,13 @@ def create_app(test_config=None):
             if "@" not in identifier:
                 return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
         else:
+            from core.sms_service import sms_service
+            norm_vn = sms_service.normalize_phone(identifier)
+            if not norm_vn:
+                return jsonify({
+                    "success": False,
+                    "error": "Chỉ hỗ trợ gửi mã OTP tới số điện thoại di động nội địa Việt Nam (đầu số 03, 05, 07, 08, 09 hoặc +84). Đã chặn gửi OTP quốc tế."
+                }), 400
             clean_phone = "".join(filter(str.isdigit, identifier))
             if len(clean_phone) < 9 or len(clean_phone) > 11:
                 return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (9-11 chữ số)."}), 400
@@ -649,6 +658,7 @@ def create_app(test_config=None):
                 email=email,
                 full_name=full_name,
                 role="patient",
+                account_status="active",
                 phone_number=phone_number,
                 dob=dob,
                 gender=gender

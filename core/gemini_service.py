@@ -139,8 +139,13 @@ class GeminiMedicalService:
         self.llm_provider = llm_provider
         self._llm_provider = llm_provider
         self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="chat")).strip()
-        self.model = (model or os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL")
-                      or settings.gemini.chat_model or "gemini-flash-lite-latest").strip()
+        if model:
+            self.model = model.strip()
+        elif self.llm_provider.is_openrouter_active():
+            self.model = self.llm_provider.get_default_model("chat")
+        else:
+            self.model = (os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL")
+                          or settings.gemini.chat_model or "gemini-flash-lite-latest").strip()
         self._client = None
         self.timeout_seconds = float(os.getenv("GEMINI_GENERATION_TIMEOUT_SECONDS", str(settings.gemini.timeout_chat)))
         max_attempts = int(os.getenv("AI_RETRY_MAX_ATTEMPTS", str(settings.retry.max_attempts)))
@@ -174,7 +179,7 @@ class GeminiMedicalService:
         provider = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
         return bool(
             provider.is_configured(profile="chat", explicit_key=getattr(self, "api_key", None))
-            and re.fullmatch(r"[A-Za-z0-9_.-]+", getattr(self, "model", ""))
+            and re.fullmatch(r"[A-Za-z0-9_.:/-]+", getattr(self, "model", ""))
         )
 
     def generate_clinical_response(
