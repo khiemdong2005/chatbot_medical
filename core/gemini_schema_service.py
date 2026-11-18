@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger("GeminiSchemaService")
 
-def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", api_key: str = "") -> Optional[Dict[str, Any]]:
+def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", api_key: str = "", ocr_result: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     """
     [2.B] Gemini đọc thẳng ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng qua Unified LLM Provider:
       - Đơn thuốc: patient_name, dob, age, gender, diagnosis, facility, doctor, date, medications
@@ -65,10 +65,29 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙ
         # Ưu tiên model OCR được cấu hình; chỉ giữ một model dự phòng còn hỗ trợ.
         preferred_model = llm_provider.get_default_model("prescription_ocr")
         candidate_models = list(dict.fromkeys([preferred_model, "gemini-flash-latest"]))
-        contents = [
-            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
-            prompt
-        ]
+        contents = [types.Part.from_bytes(data=file_bytes, mime_type=mime_type)]
+        if doc_type == "prescription" and mime_type != "application/pdf" and ocr_result:
+            from core.prescription_crop_service import crop_and_upscale_medication_region
+            crop_path = crop_and_upscale_medication_region(image_path, ocr_result)
+            if crop_path:
+                try:
+                    with open(crop_path, "rb") as crop_file:
+                        crop_bytes = crop_file.read()
+                    contents.append(types.Part.from_bytes(data=crop_bytes, mime_type="image/jpeg"))
+                    prompt = (
+                        "Hai ảnh là cùng một đơn: ảnh đầu là toàn trang để hiểu bố cục; "
+                        "ảnh thứ hai là vùng thuốc phóng to để đọc chữ. "
+                        "Chỉ xuất mỗi hàng thuốc một lần, theo thứ tự trên trang. "
+                        "Đọc tên biệt dược in đậm riêng với hoạt chất trong ngoặc. "
+                        "Không thay tên biệt dược bằng hoạt chất, không suy tên hoặc liều "
+                        "từ chẩn đoán. Chỗ không rõ để trống.\n\n" + prompt
+                    )
+                finally:
+                    try:
+                        os.remove(crop_path)
+                    except OSError:
+                        pass
+        contents.append(prompt)
         return llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
