@@ -85,7 +85,8 @@ class NutritionAITests(unittest.TestCase):
         self.assertNotIn("dob", payload["personalization"])
         google_client.assert_not_called()
 
-    @patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-only-key"})
+    @patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-only-key",
+                          "OPENROUTER_NUTRITION_MODEL": "test/nutrition-model:free"})
     @patch("core.llm_provider.llm_provider.generate_json", side_effect=RuntimeError("private-key-and-request-content"))
     def test_provider_error_text_is_never_propagated(self, _generate_json):
         with self.assertRaises(NutritionAIError) as captured:

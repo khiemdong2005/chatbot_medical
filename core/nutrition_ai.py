@@ -129,7 +129,7 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
                    personalization: Dict | None = None) -> Dict:
     from core.llm_provider import llm_provider
     key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
-    model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "").strip()
+    model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
     if not key or key.startswith("YOUR_") or len(key) <= 10:
         raise NutritionAIError("not_configured")
     if not model or not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
