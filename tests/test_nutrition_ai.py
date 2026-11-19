@@ -1,8 +1,7 @@
 import json
 import os
 import unittest
-from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from core.nutrition_ai import NutritionAIError, select_recipes, validate_selection
 from core.nutrition_options import FOOD, DRINK, get_nutrition_options
@@ -52,29 +51,43 @@ class NutritionAITests(unittest.TestCase):
         with self.assertRaises(NutritionAIError):
             validate_selection(payload, FOOD, 0)
 
-    @patch.dict(os.environ, {"GEMINI_NUTRITION_API_KEY": "fake-test-only"})
-    @patch("core.nutrition_ai.genai.Client")
-    def test_provider_output_is_validated_and_client_closed(self, factory):
-        client = factory.return_value
-        client.models.generate_content.return_value = SimpleNamespace(text=json.dumps(answer()))
+    def test_non_clarification_response_may_omit_question(self):
+        payload = answer()
+        del payload["clarification_question"]
+        self.assertEqual(validate_selection(payload, FOOD, 0)["recipes"][0]["id"], "oat_porridge")
+        payload.update(needs_clarification=True, recommendations=[])
+        with self.assertRaises(NutritionAIError):
+            validate_selection(payload, FOOD, 0)
+
+    @patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-only-key",
+                          "OPENROUTER_NUTRITION_MODEL": "test/nutrition-model:free"})
+    @patch("google.genai.Client")
+    @patch("core.llm_provider.llm_provider.generate_json")
+    def test_openrouter_output_is_validated_without_google_client(self, generate_json, google_client):
+        generate_json.return_value = answer()
         result = select_recipes("ho", "food", FOOD, [], personalization={
             "allergen_codes": ["shrimp"], "bmi_category": "Thừa cân",
             "diet_preferences": ["no_added_sugar"],
             "height": 170, "weight": 82, "dob": "01/01/1990",
         })
         self.assertEqual(result["recipes"][0]["id"], "oat_porridge")
-        payload = json.loads(client.models.generate_content.call_args.kwargs["contents"])
+        call = generate_json.call_args.kwargs
+        self.assertEqual(call["provider"], "openrouter")
+        self.assertEqual(call["profile"], "nutrition")
+        self.assertEqual(call["model"], "test/nutrition-model:free")
+        self.assertFalse(call["json_mode"])
+        self.assertFalse(call["reasoning_enabled"])
+        payload = json.loads(call["contents"])
         self.assertEqual(payload["personalization"]["allergen_codes"], ["shrimp"])
         self.assertEqual(payload["personalization"]["diet_preferences"], ["no_added_sugar"])
         self.assertNotIn("height", payload["personalization"])
         self.assertNotIn("weight", payload["personalization"])
         self.assertNotIn("dob", payload["personalization"])
-        client.close.assert_called_once()
+        google_client.assert_not_called()
 
-    @patch.dict(os.environ, {"GEMINI_NUTRITION_API_KEY": "fake-test-only"})
-    @patch("core.nutrition_ai.genai.Client")
-    def test_provider_error_text_is_never_propagated(self, factory):
-        factory.return_value.models.generate_content.side_effect = RuntimeError("private-key-and-request-content")
+    @patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-only-key"})
+    @patch("core.llm_provider.llm_provider.generate_json", side_effect=RuntimeError("private-key-and-request-content"))
+    def test_provider_error_text_is_never_propagated(self, _generate_json):
         with self.assertRaises(NutritionAIError) as captured:
             select_recipes("ho", "food", FOOD, [])
         self.assertEqual(str(captured.exception), "unavailable")
@@ -83,7 +96,9 @@ class NutritionAITests(unittest.TestCase):
     def test_fallback_reports_failure_and_keeps_allergy_filter(self, _):
         result = get_nutrition_options("mất ngủ; dị ứng trứng", "food")
         self.assertFalse(result["gemini_used"])
+        self.assertFalse(result["ai_used"])
         self.assertEqual(result["provider_status"], "fallback_quota")
+        self.assertEqual(result["recommendation_scope"], "filtered_catalog")
         self.assertNotIn("soft_egg", [r["id"] for r in result["recipes"]])
 
     @patch("core.nutrition_ai.select_recipes")
@@ -99,7 +114,8 @@ class NutritionAITests(unittest.TestCase):
         for kind, catalog in (("food", FOOD), ("drink", DRINK)):
             with self.subTest(kind=kind):
                 result = get_nutrition_options("sốt", kind)
-                self.assertTrue(result["gemini_used"])
+                self.assertFalse(result["gemini_used"])
+                self.assertFalse(result["ai_used"])
                 self.assertTrue(result["needs_clarification"])
                 self.assertEqual(result["provider_status"], "ai_clarification_with_options")
                 self.assertEqual(result["recommendation_scope"], "guided_catalog")
@@ -147,6 +163,7 @@ class NutritionAITests(unittest.TestCase):
         result = get_nutrition_options("sốt", "food")
         self.assertFalse(result["needs_clarification"])
         self.assertEqual(result["provider_status"], "ai_ranked")
+        self.assertTrue(result["ai_used"])
         self.assertEqual(result["recipes"], [selected])
 
     @patch("core.nutrition_ai.select_recipes")

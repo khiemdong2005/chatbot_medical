@@ -63,6 +63,7 @@ VIETNAMESE_TO_ENGLISH_KEYWORDS = {
     "khó thở": "shortness of breath dyspnea",
     "phát ban": "skin rash dermatitis hives",
     "dị ứng": "allergy allergic reaction",
+    "gút": "gout",
     "đường huyết": "blood glucose",
     "tiểu đường": "diabetes mellitus",
     "huyết áp": "blood pressure",
@@ -231,7 +232,7 @@ class MedicalRAGService:
         size = len(rows)
         average = sum(lengths) / max(size, 1) or 1
         stop = {"va", "co", "la", "cua", "toi", "bi", "nay", "thi", "cho", "xin", "hoi", "gi",
-                "khong", "voi", "ve", "nhu", "nao", "the", "and", "of", "in", "to", "with", "is"}
+                "khong", "voi", "ve", "nhu", "nao", "the", "benh", "and", "of", "in", "to", "with", "is"}
         if effective_no_df:
             terms = {t for t in search_tokens(query) if t not in stop if len(t) > 1 and df[t] > 0}
         else:
@@ -378,7 +379,9 @@ class MedicalRAGService:
             return []
         effective_no_df = self.no_df_cutoff if no_df_cutoff is None else no_df_cutoff
         top_k = max(1, min(20, top_k)) if type(top_k) is int else 2
-        query = self.expand_query(user_query[:2000])
+        query = user_query[:2000]
+        if lang == "vi":
+            query = self.expand_query(query)
         pool = min(self.collection.count(), top_k * 3)
 
         # 1. Base lexical branch (bm25_original)

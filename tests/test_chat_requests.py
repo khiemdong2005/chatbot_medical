@@ -5,7 +5,7 @@ import pytest
 import app as app_module
 from core.health_context import validate_chat_request, validate_health_context
 from core.intake_service import intake_service
-from core.models import IntakeSessionRecord
+from core.models import ClinicalConsultation, IntakeSessionRecord, User, db
 
 
 def reply():
@@ -73,3 +73,56 @@ def test_delete_draft_checks_owner_and_removes_cache_and_database(client, test_a
     with test_app.app_context():
         assert IntakeSessionRecord.query.filter_by(conversation_id=cid).first() is None
     assert client.delete(f"/api/intake/session/{cid}").status_code == 404
+
+
+def test_previsit_summary_is_built_on_request_and_read_by_the_owner(client, test_app, monkeypatch):
+    monkeypatch.setattr(intake_service, "_sessions", {})
+    cid = "on_demand_summary"
+    route = f"/api/intake/summary/{cid}"
+    assert client.get(route).status_code == 404
+    with test_app.app_context():
+        assert IntakeSessionRecord.query.filter_by(conversation_id=cid).first() is None
+
+    monkeypatch.setattr(app_module, "process_clinical_chat", Mock(return_value=reply()))
+    result = client.post("/api/chat", json={"message": "Tôi bị ho từ hôm qua", "conversation_id": cid})
+    assert result.status_code == 200
+    assert result.get_json()["intake"].get("summary") is None
+    assert result.get_json()["intake"]["summary_available"] is True
+    assert test_app.test_client().get(route).status_code == 403
+
+    summary = client.get(route).get_json()["summary"]
+    assert summary["part_a_patient_facts"]["symptoms_present"]
+    assert summary["part_b_system_assessment"]["triage_badge"] != "self_care"
+
+
+def test_confirmed_summary_can_be_reopened_from_synced_history(client, test_app, monkeypatch):
+    monkeypatch.setattr(intake_service, "_sessions", {})
+    monkeypatch.setattr(app_module, "process_clinical_chat", Mock(return_value=reply()))
+    cid = "confirmed_summary_archive"
+    with test_app.app_context():
+        user = User(email="summary-test@example.test", full_name="Summary Test", password_hash="test")
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+
+    assert client.post("/api/chat", json={"message": "Tôi bị ho từ hôm qua", "conversation_id": cid}).status_code == 200
+    route = f"/api/intake/summary/{cid}"
+    draft = client.get(route).get_json()["summary"]
+    confirmation = client.post("/api/intake/confirm-summary", json={
+        "conversation_id": cid, "version": draft["version"], "reviewed_facts": draft["part_a_patient_facts"],
+        "save_to_record": True,
+    })
+    assert confirmation.status_code == 200
+    assert client.get("/api/consultations").get_json()["consultations"][0]["summary_available"] is True
+
+    with test_app.app_context():
+        assert ClinicalConsultation.query.filter_by(conversation_id=cid, user_id=user_id).one().confirmed_summary
+        db.session.delete(IntakeSessionRecord.query.filter_by(conversation_id=cid).one())
+        db.session.commit()
+    intake_service.clear()
+    response = client.get(route)
+    assert response.status_code == 200
+    assert response.get_json()["archived"] is True
+    assert test_app.test_client().get(route).status_code == 404

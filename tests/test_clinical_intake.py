@@ -107,8 +107,9 @@ def test_complete_intake_workflow_and_summary():
     assert any("Khó thở" in s for s in part_a["symptoms_denied"])
 
     # Phần B: Đánh giá hệ thống
-    assert part_b["triage_badge"] in ["recommended_visit", "self_care"]
-    assert "Tai Mũi Họng" in part_b["recommended_specialist"] or "Y học" in part_b["recommended_specialist"]
+    assert part_b["triage_badge"] == "collecting"
+    assert part_b["recommended_specialist"] == "Chưa xác định"
+    assert part_b["sources"] == []
     # TUYỆT ĐỐI KHÔNG có trường risk_score kiểu 0-100% giả mạo
     assert "risk_score" not in part_b
     assert "score" not in part_b
@@ -134,8 +135,68 @@ def test_emergency_bypass_in_intake():
     res = manager.process_message(cid, "Tôi bị đau thắt ngực dữ dội, khó thở và vã mồ hôi", guest_token="test-clinical-guest")
     assert res["status"] == "emergency"
     assert res["next_question"] is None
-    assert "115" in res["answer"]
+    assert "đánh giá trực tiếp khẩn" in res["answer"].lower()
+    assert "115" not in res["answer"]
     assert "cấp cứu" in res["summary"]["part_b_system_assessment"]["triage_status"].lower()
+
+
+def test_summary_uses_only_verified_final_assessment_and_invalidates_on_edit(test_app):
+    manager = IntakeSessionManager()
+    cid = "test_verified_intake_snapshot"
+    guest = "test-clinical-guest"
+    initial = manager.process_message(cid, "Tôi mệt từ hôm qua", guest_token=guest)
+    assert initial["summary_available"] is True
+    assert initial["summary"]["part_a_patient_facts"]["allergies"] == "Chưa rõ tiền sử dị ứng"
+    assessment = {
+        "consultation_mode": "final", "degraded": False, "risk_level": "Đánh giá tham khảo",
+        "specialist": "Y học gia đình", "grounding_status": "insufficient",
+        "sources": [{"title": "Nguồn kiểm tra", "url": "https://medlineplus.gov/"}],
+    }
+    manager.record_assistant_reply(cid, "Đánh giá trong cuộc hội thoại.", guest_token=guest, assessment=assessment)
+    assert manager.get_summary(cid, guest_token=guest)["part_b_system_assessment"]["sources"] == []
+
+    manager.process_message(cid, "Vậy tôi nên làm gì?", guest_token=guest)
+    assessment["grounding_status"] = "verified"
+    manager.record_assistant_reply(cid, "Đánh giá trong cuộc hội thoại.", guest_token=guest, assessment=assessment)
+    reopened = IntakeSessionManager().get_summary(cid, guest_token=guest)["part_b_system_assessment"]
+    assert reopened["recommended_specialist"] == "Y học gia đình"
+    assert reopened["sources"] == assessment["sources"]
+
+    updated = manager.update_fact(cid, "duration", "Hôm nay", guest_token=guest)
+    assert updated["summary"]["part_b_system_assessment"]["triage_badge"] == "collecting"
+    assert updated["summary"]["part_b_system_assessment"]["sources"] == []
+
+
+def test_unowned_missing_summary_does_not_create_a_draft(test_app):
+    manager = IntakeSessionManager()
+    with pytest.raises(KeyError):
+        manager.get_summary("missing_intake_draft", guest_token="test-clinical-guest")
+    from core.models import IntakeSessionRecord
+    with test_app.app_context():
+        assert IntakeSessionRecord.query.filter_by(conversation_id="missing_intake_draft").first() is None
+
+
+def test_attachment_summary_matches_after_reload(test_app):
+    manager = IntakeSessionManager()
+    cid = "test_intake_attachment_summary"
+    guest = "test-clinical-guest"
+    initial = manager.process_message(cid, "", image_bytes=b"photo fixture", guest_token=guest)
+    reopened = IntakeSessionManager().get_summary(cid, guest_token=guest)
+    assert reopened["part_a_patient_facts"] == initial["summary"]["part_a_patient_facts"]
+
+
+def test_delayed_assessment_cannot_overwrite_a_new_turn(test_app):
+    manager = IntakeSessionManager()
+    cid = "test_delayed_intake_assessment"
+    guest = "test-clinical-guest"
+    first = manager.process_message(cid, "Tôi đau bụng", guest_token=guest)
+    second = manager.process_message(cid, "Tôi đau quanh rốn", guest_token=guest)
+    with pytest.raises(ValueError):
+        manager.record_assistant_reply(cid, "Phản hồi bị chậm", guest_token=guest,
+                                       expected_turn_count=first["turn_count"])
+    updated = manager.record_assistant_reply(cid, "Phản hồi đúng lượt", guest_token=guest,
+                                             expected_turn_count=second["turn_count"])
+    assert updated["messages"][-1]["content"] == "Phản hồi đúng lượt"
 
 
 

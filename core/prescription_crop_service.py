@@ -157,10 +157,9 @@ def crop_and_upscale_medication_region(
             if crop_w <= 0 or crop_h <= 0:
                 return None
 
-            # Phóng to bằng LANCZOS (tối ưu độ sắc nét cho OCR chi tiết)
-            # Tỷ lệ scale: 1.5x - 2.0x, giới hạn kích thước tối đa 2400px để bảo vệ dung lượng request
-            scale = 2.0
-            max_target_dim = 2400
+            # Phóng to bằng LANCZOS (scale 3.0x như Colab, tối đa 3200px để chữ nhỏ sắc nét)
+            scale = 3.0
+            max_target_dim = 3200
             if max(crop_w * scale, crop_h * scale) > max_target_dim:
                 scale = max(1.0, max_target_dim / float(max(crop_w, crop_h)))
 

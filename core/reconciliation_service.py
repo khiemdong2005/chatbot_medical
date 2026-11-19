@@ -295,6 +295,13 @@ def _is_malformed_facility(value: Any) -> bool:
     return bool(facility.count('"') % 2 or facility.count("'") % 2)
 
 
+def _extract_core_name(text: str) -> str:
+    cleaned = _normalized_entity(text)
+    cleaned = re.sub(r"\b\d+[a-z]*\b", "", cleaned)
+    tokens = [w for w in re.findall(r"[a-z0-9]+", cleaned) if len(w) >= 3 and w not in {"vien", "goi", "chai", "ong", "hop", "kdnt"}]
+    return tokens[0] if tokens else cleaned
+
+
 def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
                            model_meds: List[Dict[str, Any]],
                            anchor_pairs: Dict[int, int] = None) -> List[Dict[str, Any]]:
@@ -307,6 +314,7 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
     anchor_pairs = anchor_pairs or {}
     for row_index, ocr_med in enumerate(ocr_meds):
         ocr_name = _normalized_entity(ocr_med.get("name"))
+        ocr_core = _extract_core_name(ocr_med.get("name"))
         best_index = None
         best_score = 0.0
         best_name_score = 0.0
@@ -314,37 +322,53 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
             if index in used_model_rows or not isinstance(model_med, dict):
                 continue
             model_name = _normalized_entity(model_med.get("name"))
+            model_brand = _normalized_entity(model_med.get("brand_name", ""))
+            model_core = _extract_core_name(model_brand or model_name)
             if not ocr_name or not model_name:
                 continue
-            score = difflib.SequenceMatcher(None, ocr_name, model_name).ratio()
+
+            name_match_ratio = difflib.SequenceMatcher(None, ocr_name, model_name).ratio()
             if len(ocr_name) >= 4 and (ocr_name in model_name or model_name in ocr_name):
-                score = 1.0
-            name_score = score
+                name_match_ratio = 1.0
+
+            core_score = difflib.SequenceMatcher(None, ocr_core, model_core).ratio() if (ocr_core and model_core) else 0.0
+            if ocr_core and model_core:
+                if ocr_core in model_name or model_core in ocr_name or ocr_core == model_core:
+                    core_score = max(core_score, 0.95)
+                elif len(ocr_core) >= 4 and len(model_core) >= 4 and (
+                    ocr_core[:4] == model_core[:4] or difflib.SequenceMatcher(None, ocr_core[:5], model_core[:5]).ratio() >= 0.8
+                ):
+                    core_score = max(core_score, 0.85)
+
+            row_score = max(name_match_ratio, core_score)
+
             # A weak OCR spelling can still be the same row when both readers
             # found the same number of medicines in the same order. Never use
             # this shortcut for a conflicting numeric strength.
-            if (len(ocr_meds) == len(model_meds) and index == row_index and score >= 0.55):
+            if (len(ocr_meds) == len(model_meds) and index == row_index and (row_score >= 0.50 or (ocr_core and model_core and ocr_core[:3] == model_core[:3]))):
                 ocr_strength = _extract_numbers(ocr_med.get("strength"))
                 model_strength = _extract_numbers(model_med.get("strength"))
                 if not (ocr_strength and model_strength and ocr_strength != model_strength):
-                    score = max(score, 0.72)
+                    row_score = max(row_score, 0.75)
+
             if anchor_pairs.get(row_index) == index:
-                score = 1.1  # Unique prescription row anchor outranks fuzzy spelling.
-            if score > best_score:
-                best_index, best_score = index, score
-                best_name_score = name_score
+                row_score = 1.1  # Unique prescription row anchor outranks fuzzy spelling.
+            if row_score > best_score:
+                best_index, best_score = index, row_score
+                best_name_score = name_match_ratio
 
         combined = dict(ocr_med)
         if best_index is not None and best_score >= 0.72:
             used_model_rows.add(best_index)
             model_med = model_meds[best_index]
             raw_name = str(combined.get("name") or "")
-            model_name = str(model_med.get("name") or "").strip()
+            model_name = str(model_med.get("brand_name") or model_med.get("name") or "").strip()
             if (model_name and raw_name != model_name and best_name_score < 0.72
                     and is_plausible_medication_name(model_name)):
                 combined["name"] = model_name
                 combined["raw_ocr_name"] = raw_name
                 combined["needs_review"] = True
+
             for field in ("strength", "dose", "frequency", "days", "usage"):
                 if not model_med.get(field):
                     continue
@@ -365,10 +389,16 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
                     bool(re.search(r"[{}|~\";]", ocr_value))
                     or _ascii_fold(ocr_value) in {"cha", "cahdur", "cong chicu", "chicu"}
                 ))
-                if not ocr_value or noisy_instruction:
+                boilerplate_instruction = (field in ("frequency", "usage", "dose") and (
+                    "hướng dẫn của bác sĩ" in ocr_value or "chỉ dẫn bác sĩ" in ocr_value
+                ))
+                if not ocr_value or noisy_instruction or boilerplate_instruction or (field == "usage" and model_value):
                     combined[field] = str(model_med[field])
-                    if ocr_value:
+                    if ocr_value and ocr_value != model_value:
                         combined["needs_review"] = True
+            for extra_fld in ("brand_name", "active_ingredient", "quantity", "unit", "schedule", "instructions", "purpose"):
+                if model_med.get(extra_fld):
+                    combined[extra_fld] = str(model_med[extra_fld])
         merged_rows.append(combined)
     return merged_rows
 
@@ -725,7 +755,7 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
         ("Althax", "120mg", "Tăng cường miễn dịch, kháng viêm"),
         ("Altiu", "120mg", "Tăng cường miễn dịch, kháng viêm"),
         ("DexlanzoMR", "30mg", "Giảm tiết acid dạ dày, điều trị trào ngược"),
-        ("Banitasc", "100mg", "Hỗ trợ tiêu hóa, đường mật"),
+        ("Banitase", "100mg", "Điều hòa nhu động đường tiêu hóa, giảm co thắt"),
         ("Gastosic", "10ml", "Bảo vệ niêm mạc dạ dày thực quản"),
         ("Gastsus", "10ml", "Bảo vệ niêm mạc dạ dày thực quản"),
         ("Cefimed", "400mg", "Kháng sinh cephalosporin điều trị nhiễm khuẩn"),
@@ -750,7 +780,8 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
         known_purpose = "Thuốc điều trị theo chỉ định"
 
         for d_name, d_str, d_pur in CLINICAL_DRUGS:
-            if re.search(r"\b" + re.escape(d_name) + r"\b", txt, re.IGNORECASE):
+            d_pattern = r"\b(?:Banitase|Banitasc)\b" if d_name == "Banitase" else r"\b" + re.escape(d_name) + r"\b"
+            if re.search(d_pattern, txt, re.IGNORECASE):
                 has_known_drug = d_name
                 known_strength = d_str
                 known_purpose = d_pur
@@ -793,7 +824,7 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
             usage_val = "Uống sau ăn theo hướng dẫn của bác sĩ"
             if i + 1 < len(rows):
                 nxt = rows[i+1].get("text", "")
-                if any(k in nxt.lower() for k in ["uống", "uong", "sáng", "sang", "trưa", "trua", "chiều", "chieu", "tối", "toi"]):
+                if any(k in nxt.lower() for k in ["uống", "uong", "sáng", "sang", "trưa", "trua", "chiều", "chieu", "tối", "toi", "trước", "truoc", "sau"]):
                     u_clean = re.sub(r"Hẹn\s*tái\s*khám.*", "", nxt, flags=re.IGNORECASE).replace("|", " ").replace("_", " ").strip()
                     usage_val = re.sub(r"\s+", " ", u_clean)
                     if "Uống sáng" in usage_val and "viên" in usage_val and not re.search(r"\d+", usage_val):
@@ -879,7 +910,7 @@ VIETNAM_CLINICAL_KB = [
     },
     {
         "keywords": ["banitasc", "banitase", "trimebutine"],
-        "name": "Banitasc 100mg",
+        "name": "Banitase 100mg",
         "strength": "100mg",
         "purpose": "Điều hòa nhu động đường tiêu hóa, giảm co thắt",
         "form": "Viên",
@@ -1863,6 +1894,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 if not any(name in _clean_str(row.get("text", "")) for row in body_rows):
                     continue
             supported_meds.append(med)
+
         meds = _merge_medication_rows(ocr_fallback.get("medications", []), supported_meds)
         if ocr_fallback.get("medications") and body_rows:
             def body_position(name):
@@ -1902,14 +1934,13 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 if not (name_text[:1].isupper() and heading_fold.startswith(_clean_str(name_text))
                         and heading_shape):
                     continue
-                # The OCR parser already preserves document order. An OCR name
-                # may not match its raw row exactly, so sorting every OCR row by
-                # a text lookup would move that row to the end of the list.
                 insert_at = next((index for index, existing in enumerate(meds)
                                   if (existing_position := body_position(existing.get("name"))) is not None
                                   and existing_position > position), len(meds))
                 meds.insert(insert_at, dict(model_med))
                 occupied.add(position)
+        elif not ocr_fallback.get("medications") and supported_meds:
+            meds = list(supported_meds)
         reconciled["medications"] = meds
 
         verified_meds = []
@@ -1917,26 +1948,41 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
         for med in meds:
             med_entry = dict(med)
             name = str(med.get("name", "")).strip()
+            brand_name = str(med.get("brand_name", "")).strip()
             strength = str(med.get("strength", "")).strip()
             dose = str(med.get("dose", "")).strip()
             freq = str(med.get("frequency", "")).strip()
 
-            # 1. Kiểm tra đối soát tên thuốc
+            # 1. Kiểm tra đối soát tên thuốc với OCR lines
             name_in_ocr = False
             best_match_ratio = 0.0
             matched_ocr_str = ""
+            matched_ocr_box = None
             matched_ocr_confidence = None
+
+            core_name = re.sub(r"\s*\[.*?\]|\s*\d+.*$", "", brand_name or name).strip()
             for ocr_line in ocr_lines:
                 line = ocr_line.get("text", "")
-                ratio = difflib.SequenceMatcher(None, _clean_str(name), _clean_str(line)).ratio()
+                clean_l = _clean_str(line)
+                clean_n = _clean_str(name)
+                clean_c = _clean_str(core_name)
+
+                ratio = max(
+                    difflib.SequenceMatcher(None, clean_n, clean_l).ratio(),
+                    difflib.SequenceMatcher(None, clean_c, clean_l[:len(clean_c)+5]).ratio() if clean_c else 0.0
+                )
+                if clean_c and clean_c in clean_l:
+                    ratio = max(ratio, 0.85)
+
                 if ratio > best_match_ratio:
                     best_match_ratio = ratio
                     matched_ocr_str = line
+                    matched_ocr_box = ocr_line.get("box")
                     try:
                         matched_ocr_confidence = float(ocr_line["confidence"])
                     except (KeyError, TypeError, ValueError):
                         matched_ocr_confidence = None
-                if _clean_str(name) in _clean_str(line) or ratio > 0.65:
+                if ratio >= 0.55:
                     name_in_ocr = True
 
             # 2. Đối chiếu số (Hàm lượng, liều dùng) - Phải khớp tuyệt đối
@@ -1958,6 +2004,8 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             med_entry["field_confidence"] = round(med_confidence, 2)
             med_entry["needs_review"] = needs_review
             med_entry["ocr_matched_text"] = matched_ocr_str if matched_ocr_str else "Khớp từ nhận diện OCR"
+            if matched_ocr_box and not med_entry.get("anchor_box"):
+                med_entry["anchor_box"] = matched_ocr_box
 
             if needs_review:
                 fields_review.append(f"Thuốc '{name}': tên, liều hoặc tần suất cần đối chiếu lại với đơn gốc.")

@@ -24,6 +24,7 @@ import logging
 import threading
 import urllib.request
 import urllib.error
+from urllib.parse import urlsplit
 from typing import Dict, Any, List, Optional, Union, Callable
 
 from core.retry_policy import (
@@ -42,6 +43,10 @@ from core.settings import settings
 from core.observability import metrics_collector
 
 logger = logging.getLogger("LLMProvider")
+
+
+def _openrouter_flag(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in ("1", "true", "yes", "on")
 
 
 def _is_model_unavailable_error(exc: Exception) -> bool:
@@ -77,9 +82,18 @@ class _OpenRouterModels:
     """Mimics client.models.generate_content(...) via OpenRouter Chat Completions API."""
     ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 
-    def __init__(self, api_key: str, timeout_seconds: float = 25.0):
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False):
         self._api_key = api_key
         self._timeout = max(10.0, float(timeout_seconds))
+        self._chat = chat
+
+    def _endpoint(self) -> str:
+        base = (os.getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1").rstrip("/")
+        parsed = urlsplit(base)
+        if (parsed.scheme != "https" or parsed.netloc != "openrouter.ai"
+                or parsed.path != "/api/v1" or parsed.query or parsed.fragment):
+            raise _OpenRouterHTTPError(400, "Invalid OpenRouter base URL")
+        return f"{base}/chat/completions"
 
     def _convert_contents(self, contents: Any) -> Any:
         if isinstance(contents, str):
@@ -114,7 +128,7 @@ class _OpenRouterModels:
 
     def _post_completion(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         req = urllib.request.Request(
-            self.ENDPOINT,
+            self._endpoint(),
             data=json.dumps(payload).encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {self._api_key}",
@@ -128,28 +142,24 @@ class _OpenRouterModels:
             with urllib.request.urlopen(req, timeout=self._timeout) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as he:
-            err_body = ""
-            try:
-                err_body = he.read().decode("utf-8", errors="replace")[:300]
-            except Exception:
-                pass
-            raise _OpenRouterHTTPError(he.code, f"OpenRouter HTTP {he.code}: {err_body}") from None
+            # Provider error bodies can echo request content. Never retain them
+            # in exceptions, retry logs, or API responses.
+            raise _OpenRouterHTTPError(he.code, f"OpenRouter HTTP {he.code}") from None
         except urllib.error.URLError as ue:
             raise TimeoutError(f"OpenRouter connection error: {ue.reason}") from None
 
     def generate_content(self, model: str, contents: Any, config: Optional[Any] = None) -> _OpenRouterResponse:
-        messages: List[Dict[str, Any]] = []
-        sys_inst = None
-        temperature = None
-        max_tokens = None
-        want_json = False
+        def get_config(key: str) -> Any:
+            if isinstance(config, dict):
+                return config.get(key)
+            return getattr(config, key, None)
 
-        if config is not None:
-            sys_inst = getattr(config, "system_instruction", None) if not isinstance(config, dict) else config.get("system_instruction")
-            temperature = getattr(config, "temperature", None) if not isinstance(config, dict) else config.get("temperature")
-            max_tokens = getattr(config, "max_output_tokens", None) if not isinstance(config, dict) else config.get("max_output_tokens")
-            resp_mime = getattr(config, "response_mime_type", None) if not isinstance(config, dict) else config.get("response_mime_type")
-            want_json = (resp_mime == "application/json")
+        messages: List[Dict[str, Any]] = []
+        sys_inst = get_config("system_instruction")
+        temperature = get_config("temperature")
+        max_tokens = get_config("max_output_tokens")
+        want_json = get_config("response_mime_type") == "application/json"
+        reasoning_enabled = get_config("reasoning_enabled")
 
         if sys_inst:
             if want_json:
@@ -168,31 +178,65 @@ class _OpenRouterModels:
             payload["temperature"] = float(temperature)
         if max_tokens is not None and int(max_tokens) >= 2048:
             payload["max_tokens"] = int(max_tokens)
-        if want_json:
+        if self._chat:
+            routing: Dict[str, Any] = {}
+            if os.getenv("OPENROUTER_CHAT_DATA_COLLECTION", "").strip().lower() == "deny":
+                routing["data_collection"] = "deny"
+            if _openrouter_flag("OPENROUTER_CHAT_ZDR"):
+                routing["zdr"] = True
+            if want_json and _openrouter_flag("OPENROUTER_CHAT_JSON_SCHEMA"):
+                schema = get_config("response_json_schema")
+                if not isinstance(schema, dict) or not schema:
+                    raise _OpenRouterHTTPError(400, "OpenRouter chat JSON Schema is missing or invalid")
+                payload["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {"name": "medimind_chat", "strict": True, "schema": schema},
+                }
+                routing["require_parameters"] = True
+            if routing:
+                payload["provider"] = routing
+        elif want_json:
             payload["response_format"] = {"type": "json_object"}
+        if isinstance(reasoning_enabled, bool):
+            payload["reasoning"] = {"enabled": reasoning_enabled}
 
         try:
             resp_json = self._post_completion(payload)
         except _OpenRouterHTTPError as e:
-            # Một số model :free không hỗ trợ response_format -> thử lại không có response_format
-            if e.status_code == 400 and "response_format" in payload:
+            # Preserve the legacy compatibility retry for workflows outside chat.
+            if not self._chat and e.status_code == 400 and "response_format" in payload:
                 payload.pop("response_format", None)
                 resp_json = self._post_completion(payload)
             else:
                 raise
 
-        choices = resp_json.get("choices") or []
-        content = ""
-        if choices:
-            msg = choices[0].get("message") or {}
-            content = msg.get("content") or ""
+        response = resp_json if isinstance(resp_json, dict) else {}
+        choices = response.get("choices")
+        choice = choices[0] if isinstance(choices, list) and choices and isinstance(choices[0], dict) else {}
+        error = response.get("error")
+        if not isinstance(error, dict):
+            error = choice.get("error")
+        if isinstance(error, dict):
+            code = error.get("code")
+            if isinstance(code, str) and re.fullmatch(r"[45][0-9]{2}", code):
+                code = int(code)
+            status = code if type(code) is int and 400 <= code <= 599 else 502
+            raise _OpenRouterHTTPError(status, f"OpenRouter completion error ({status})")
+
+        message = choice.get("message")
+        content = message.get("content", "") if isinstance(message, dict) else ""
+        if isinstance(content, list):
+            content = "".join(part.get("text", "") for part in content
+                              if isinstance(part, dict) and isinstance(part.get("text"), str))
+        if not isinstance(content, str):
+            content = ""
         return _OpenRouterResponse(text=content, raw=resp_json)
 
 
 class _OpenRouterClient:
     """Drop-in replacement for genai.Client exposing .models.generate_content()."""
-    def __init__(self, api_key: str, timeout_seconds: float = 25.0):
-        self.models = _OpenRouterModels(api_key=api_key, timeout_seconds=timeout_seconds)
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False):
+        self.models = _OpenRouterModels(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat)
 
 
 class LLMProviderError(Exception):
@@ -287,22 +331,29 @@ class LLMProvider:
     def get_client(
         self,
         api_key: str,
-        timeout_seconds: float = 15.0
+        timeout_seconds: float = 15.0,
+        provider: Optional[str] = None,
+        *,
+        profile: Optional[str] = None,
     ) -> Any:
         """
         Khởi tạo hoặc tái sử dụng AI Client (OpenRouter hoặc Gemini) một cách lười (Lazy) và an toàn đa luồng.
         Không thực hiện bất kỳ lệnh gọi mạng nào lúc khởi tạo.
         """
-        use_openrouter = isinstance(api_key, str) and api_key.startswith("sk-or-")
+        use_openrouter = provider == "openrouter" or (
+            provider is None and isinstance(api_key, str) and api_key.startswith("sk-or-"))
+        chat = use_openrouter and (profile or "").lower() in ("chat", "chat_generation")
         timeout_ms = max(10000, int(timeout_seconds * 1000))
         cache_key = f"{'or' if use_openrouter else 'gm'}_{hash(api_key)}_{timeout_ms}"
+        if chat:
+            cache_key += "_chat"
 
         with self._lock:
             if cache_key in self._clients:
                 return self._clients[cache_key]
 
             if use_openrouter:
-                client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds)
+                client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat)
                 self._clients[cache_key] = client
                 return client
 
@@ -422,7 +473,8 @@ class LLMProvider:
         circuit_breaker: Optional[CircuitBreaker] = None,
         request_id: Optional[str] = None,
         api_key: Optional[str] = None,
-        profile: Optional[str] = None
+        profile: Optional[str] = None,
+        provider: Optional[str] = None,
     ) -> Any:
         """
         Thực thi cuộc gọi mô hình Gemini với đầy đủ các tầng bảo vệ:
@@ -434,15 +486,22 @@ class LLMProvider:
         - Ghi Log bảo mật Zero-PHI
         """
         req_id = request_id or uuid.uuid4().hex[:8]
-        effective_key = self.resolve_api_key(profile=profile or operation, explicit_key=api_key)
+        if provider == "openrouter":
+            # An absent OpenRouter key must never resolve to a legacy Gemini key.
+            effective_key = (api_key or os.getenv("OPENROUTER_API_KEY") or "").strip()
+        else:
+            effective_key = self.resolve_api_key(profile=profile or operation, explicit_key=api_key)
 
-        if not self.is_configured(profile=profile or operation, explicit_key=effective_key):
+        valid_key = bool(effective_key and not effective_key.startswith("YOUR_")
+                         and effective_key != "your_google_gemini_api_key_here"
+                         and len(effective_key) > 10)
+        if not valid_key:
             metrics_collector.increment("llm_failure_total")
             metrics_collector.record_error("AUTH_ERROR")
             metrics_collector.log_event(operation, req_id, 0.0, "FALLBACK", error_class="AUTH_ERROR")
-            logger.info("[%s][REQ-%s] GEMINI_API_KEY chưa cấu hình hoặc không hợp lệ.", operation, req_id)
+            logger.info("[%s][REQ-%s] API key chưa cấu hình hoặc không hợp lệ.", operation, req_id)
             raise LLMProviderError(
-                message="Khóa xác thực Gemini API chưa được cấu hình.",
+                message="Khóa xác thực AI chưa được cấu hình.",
                 classification=ErrorClassification.AUTH_ERROR,
                 operation=operation,
                 retryable=False
@@ -469,7 +528,10 @@ class LLMProvider:
             elif classification == ErrorClassification.TIMEOUT:
                 metrics_collector.increment("timeout_total")
 
-        client = self.get_client(effective_key, timeout_seconds=timeout)
+        if provider is None:
+            client = self.get_client(effective_key, timeout_seconds=timeout)
+        else:
+            client = self.get_client(effective_key, timeout_seconds=timeout, provider=provider)
 
         last_error = None
         last_classification = ErrorClassification.UNKNOWN
@@ -619,15 +681,16 @@ class LLMProvider:
         api_key: Optional[str] = None,
         profile: Optional[str] = None,
         retry_policy: Optional[RetryPolicy] = None,
-        circuit_breaker: Optional[CircuitBreaker] = None
+        circuit_breaker: Optional[CircuitBreaker] = None,
+        provider: Optional[str] = None,
+        json_mode: bool = True,
+        reasoning_enabled: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Sinh và parse cấu trúc dữ liệu JSON có bảo chứng schema."""
-        from google.genai import types
-
-        config_kwargs: Dict[str, Any] = {
-            "response_mime_type": "application/json"
-        }
-        if schema:
+        config_kwargs: Dict[str, Any] = {}
+        if json_mode:
+            config_kwargs["response_mime_type"] = "application/json"
+        if schema and provider != "openrouter":
             config_kwargs["response_json_schema"] = schema
         if system_instruction:
             config_kwargs["system_instruction"] = system_instruction
@@ -635,8 +698,16 @@ class LLMProvider:
             config_kwargs["temperature"] = temperature
         if max_output_tokens is not None:
             config_kwargs["max_output_tokens"] = max_output_tokens
+        if provider == "openrouter" and reasoning_enabled is not None:
+            config_kwargs["reasoning_enabled"] = reasoning_enabled
 
-        config = types.GenerateContentConfig(**config_kwargs)
+        if provider == "openrouter":
+            # Many free models do not accept structured-output parameters.
+            # The caller's prompt describes the schema; validation remains local.
+            config = config_kwargs
+        else:
+            from google.genai import types
+            config = types.GenerateContentConfig(**config_kwargs)
 
         def _call(client, m):
             res = client.models.generate_content(
@@ -645,6 +716,8 @@ class LLMProvider:
                 config=config
             )
             raw = res.text or "" if res else ""
+            if not isinstance(raw, str):
+                raw = ""
             cleaned = raw.strip()
             if cleaned.startswith("```"):
                 cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
@@ -665,7 +738,8 @@ class LLMProvider:
                 circuit_breaker=circuit_breaker,
                 request_id=request_id,
                 api_key=api_key,
-                profile=profile
+                profile=profile,
+                provider=provider,
             )
         except json.JSONDecodeError as jde:
             raise LLMProviderError(

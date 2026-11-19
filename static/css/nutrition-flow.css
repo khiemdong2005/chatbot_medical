@@ -11,31 +11,237 @@
   display: none !important;
 }
 
-#doctor-tab .nf-search-screen {
-  min-height: min(650px, calc(100vh - 165px));
+body:has(#doctor-tab.active #nf-search:not([hidden])) {
+  background-image:
+    radial-gradient(ellipse at 50% 58%, rgba(2, 36, 78, .68), rgba(2, 31, 67, .24) 76%),
+    url('/static/images/background-ocean.jpg') !important;
+}
+
+body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
+  min-height: calc(100svh - 60px);
+  padding-inline: clamp(88px, 6vw, 100px) !important;
+}
+
+#doctor-tab:has(#nf-search:not([hidden])) {
+  padding: 0 0 clamp(32px, 6svh, 64px);
+}
+
+#doctor-tab #nf-search {
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-direction: column;
+  padding-top: clamp(10px, 1.35svh, 15px);
   text-align: center;
 }
 
-#doctor-tab .nf-logo {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 22px;
-  background: linear-gradient(145deg, #119abc, #067da8);
-  box-shadow: 0 14px 30px #087da83b;
-  color: white;
-  font-size: 29px;
-  margin-bottom: 22px;
+#doctor-tab .nf-hero-mascot {
+  display: block;
+  width: min(100%, clamp(220px, 41svh, 390px));
+  height: auto;
+  margin-bottom: 10px;
 }
 
-#doctor-tab .nf-logo svg {
-  width: 34px;
-  height: 34px;
+#doctor-tab #nf-search .nf-overline {
+  justify-content: center;
+  background: rgba(0, 123, 167, .22) !important;
+  border-color: rgba(0, 207, 255, .56) !important;
+  color: #5eeaff !important;
+  font-size: clamp(10px, .95vw, 15px) !important;
+  letter-spacing: .08em !important;
+  margin: 0 0 9px !important;
+  padding: 6px 15px !important;
+}
+
+#doctor-tab #nf-search .nf-overline svg {
+  flex: 0 0 1em;
+  width: 1em;
+  height: 1em;
+}
+
+#doctor-tab #nf-search #nf-search-title {
+  position: relative;
+  max-width: 930px;
+  color: #f8fcff !important;
+  font-size: clamp(30px, 3vw, 48px) !important;
+  line-height: 1.14;
+  text-wrap: balance;
+}
+
+#doctor-tab .nf-title-leaf {
+  position: absolute;
+  inset-block-start: -.37em;
+  inset-inline-start: 100%;
+  width: .65em;
+  height: .65em;
+  color: #27ddff;
+  filter: drop-shadow(0 0 7px rgba(0, 203, 255, .5));
+}
+
+#doctor-tab #nf-search .nf-subtitle {
+  max-width: 780px;
+  margin-top: 8px;
+  color: #dfebf7 !important;
+  font-size: clamp(14px, 1.16vw, 19px) !important;
+  line-height: 1.55 !important;
+  text-wrap: balance;
+}
+
+#doctor-tab #nf-search .nf-search-box {
+  --nf-submit-size: clamp(44px, 3.6vw, 60px);
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.35vw, 22px);
+  width: min(100%, 896px);
+  min-height: clamp(58px, 4.6vw, 76px);
+  margin-top: clamp(17px, 2.55svh, 24px);
+  padding: 7px clamp(7px, .8vw, 13px) 7px clamp(12px, 1.6vw, 27px);
+  border: 1px solid rgba(0, 194, 247, .72) !important;
+  border-radius: clamp(17px, 1.45vw, 24px) !important;
+  background: rgba(5, 43, 84, .78) !important;
+  box-shadow: inset 0 0 15px rgba(9, 177, 237, .19), 0 10px 30px rgba(3, 25, 61, .24) !important;
+}
+
+#doctor-tab #nf-search .nf-search-box:focus-within {
+  border-color: #62e6ff !important;
+  box-shadow: 0 0 0 3px rgba(67, 220, 255, .25), inset 0 0 15px rgba(9, 177, 237, .2) !important;
+}
+
+#doctor-tab .nf-search-box > svg {
+  flex: 0 0 auto;
+  width: clamp(19px, 1.8vw, 29px);
+  height: auto;
+  color: #20d0ff;
+}
+
+#doctor-tab #nf-query {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: none;
+  font-size: clamp(16px, 1.16vw, 19px);
+}
+
+#doctor-tab #nf-query::placeholder { color: #bfcfe2; }
+
+#doctor-tab .nf-search-box button {
+  flex: 0 0 var(--nf-submit-size);
+  width: var(--nf-submit-size);
+  height: clamp(42px, 3.2vw, 52px);
+  border-radius: clamp(12px, 1vw, 17px);
+  background: #057dae;
+  color: #fff;
+  font-size: clamp(23px, 2vw, 31px);
+  line-height: 1;
+  cursor: pointer;
+}
+
+#doctor-tab .nf-search-box button:hover { background: #006896; }
+
+#doctor-tab .nf-examples {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px clamp(8px, .9vw, 15px);
+  margin-top: clamp(14px, 2svh, 19px);
+  color: #b9cee5;
+  font-size: clamp(12px, .94vw, 15px);
+}
+
+#doctor-tab #nf-search .nf-examples button {
+  min-height: 36px;
+  padding: 5px clamp(10px, 1vw, 17px) !important;
+  border-color: rgba(162, 213, 246, .19) !important;
+  background: rgba(4, 36, 73, .8) !important;
+  color: #e2eefc !important;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#doctor-tab #nf-search .nf-examples button:hover {
+  border-color: #2fbfe8 !important;
+  background: #104773 !important;
+  color: #fff !important;
+}
+
+#doctor-tab #nf-search button:focus-visible {
+  outline: 2px solid #8eecff;
+  outline-offset: 3px;
+}
+
+#doctor-tab .nf-search-hint {
+  max-width: 840px;
+  margin: clamp(14px, 2svh, 19px) 0 0;
+  color: #d4e3f4;
+  font-size: clamp(12px, .87vw, 14px);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+@media (max-width: 1050px) {
+  #doctor-tab .nf-title-leaf { display: none; }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+  #doctor-tab #nf-search #nf-search-title { font-size: clamp(26px, 3.9vw, 30px) !important; }
+}
+
+@media (max-width: 639px) {
+  body:has(#doctor-tab.active #nf-search:not([hidden])) > main { padding-inline: 66px 16px !important; }
+  #doctor-tab:has(#nf-search:not([hidden])) { padding-bottom: 100px; }
+  #doctor-tab .nf-hero-mascot { width: min(100%, clamp(180px, 57vw, 270px)); }
+  #doctor-tab #nf-search #nf-search-title { font-size: clamp(25px, 6.4vw, 34px) !important; }
+}
+
+@media (max-width: 460px) {
+  #doctor-tab .nf-examples {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  #doctor-tab .nf-examples > span { grid-column: 1 / -1; }
+  #doctor-tab #nf-search .nf-examples button { min-height: 38px; line-height: 1.25; }
+}
+
+.floating-launcher-icon { display: none; }
+
+@media (max-width: 360px) {
+  #doctor-tab .nf-hero-mascot { width: min(100%, 160px); margin-bottom: 6px; }
+  #doctor-tab #nf-search .nf-subtitle { font-size: 13px !important; line-height: 1.45 !important; }
+
+  body:has(#doctor-tab.active #nf-search:not([hidden])) #floating-chatbot-root:has(#floating-chat-window.hidden) {
+    left: 6px;
+    right: auto;
+    bottom: 8px;
+  }
+
+  body:has(#doctor-tab.active #nf-search:not([hidden])) #floating-chat-bubble img { display: none; }
+
+  body:has(#doctor-tab.active #nf-search:not([hidden])) .floating-launcher-icon {
+    display: block;
+    width: 42px;
+    height: 42px;
+    margin-top: 29px;
+    padding: 8px;
+    border: 1px solid #6eeaff;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #079acf, #324edd);
+    box-shadow: 0 0 12px rgba(17, 199, 255, .42);
+    color: #fff;
+  }
+
+  body:has(#doctor-tab.active #nf-search:not([hidden])) .floating-launcher-close {
+    inset: 0 auto auto 8px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(162, 213, 246, .35);
+    background: #082e58;
+    color: #fff;
+  }
+
+  body:has(#doctor-tab.active #nf-search:not([hidden])) .floating-launcher-close::before { content: '×'; }
 }
 
 #doctor-tab .nf-overline {
@@ -176,13 +382,6 @@ html.dark #doctor-tab .nf-condition-banner>strong,
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-#doctor-tab .nf-search-box { display: flex; align-items: center; gap: 14px; width: min(100%, 700px); height: 66px; margin-top: 28px; padding: 7px 8px 7px 21px; border: 1px solid #d4e7ef; border-radius: 20px; background: #fff; box-shadow: 0 16px 45px #195a7417; }
-#doctor-tab .nf-search-box:focus-within { border-color: #76bed1; box-shadow: 0 0 0 4px #d6eef5, 0 16px 45px #195a7417; }
-#doctor-tab .nf-search-box svg { flex: 0 0 23px; width: 23px; height: 23px; color: #1388a9; }
-#doctor-tab .nf-search-box input { min-width: 0; flex: 1; border: 0; outline: none; color: #173247; background: transparent; font-size: 15px; }
-#doctor-tab .nf-search-box input::placeholder { color: #93a8b6; }
-#doctor-tab .nf-search-box button { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 15px; background: #087fa8; color: white; font-size: 24px; cursor: pointer; }
-#doctor-tab .nf-search-hint { color: #8a9eaa; font-size: 11px; margin-top: 15px; }
 #doctor-tab .nf-stage { padding: clamp(35px, 6vw, 72px) 0 0; }
 #doctor-tab .nf-stage:not(.nf-wide) { max-width: 850px; margin: 0 auto; }
 #doctor-tab .nf-back { display: inline-block; padding: 9px 13px; margin-bottom: 32px; border: 1px solid #d8eaf1; border-radius: 11px; background: #fff; color: #4d6e80; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -271,9 +470,8 @@ html.dark #doctor-tab .nf-condition-banner>strong,
 body:not(.light-glass) #doctor-tab.nutrition-flow { color: #e2e8f0; }
 body:not(.light-glass) #doctor-tab h1, body:not(.light-glass) #doctor-tab .nf-type-card strong, body:not(.light-glass) #doctor-tab .nf-card-content strong, body:not(.light-glass) #doctor-tab .nf-detail-copy h2 { color: #f8fafc; }
 body:not(.light-glass) #doctor-tab .nf-overline, body:not(.light-glass) #doctor-tab .nf-subtitle strong, body:not(.light-glass) #doctor-tab .nf-card-footer b, body:not(.light-glass) #doctor-tab .nf-ingredient b { color: #38bdf8; }
-body:not(.light-glass) #doctor-tab .nf-subtitle, body:not(.light-glass) #doctor-tab .nf-search-hint, body:not(.light-glass) #doctor-tab .nf-type-card small, body:not(.light-glass) #doctor-tab .nf-card-content p, body:not(.light-glass) #doctor-tab .nf-card-footer, body:not(.light-glass) #doctor-tab .nf-status, body:not(.light-glass) #doctor-tab .nf-disclaimer { color: #94a3b8; }
-body:not(.light-glass) #doctor-tab .nf-search-box, body:not(.light-glass) #doctor-tab .nf-type-card, body:not(.light-glass) #doctor-tab .nf-card, body:not(.light-glass) #doctor-tab .nf-detail-visual, body:not(.light-glass) #doctor-tab .nf-detail-copy { background: #0f172a; border-color: #1e293b; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
-body:not(.light-glass) #doctor-tab .nf-search-box input { color: #f8fafc; }
+body:not(.light-glass) #doctor-tab .nf-subtitle, body:not(.light-glass) #doctor-tab .nf-type-card small, body:not(.light-glass) #doctor-tab .nf-card-content p, body:not(.light-glass) #doctor-tab .nf-card-footer, body:not(.light-glass) #doctor-tab .nf-status, body:not(.light-glass) #doctor-tab .nf-disclaimer { color: #94a3b8; }
+body:not(.light-glass) #doctor-tab .nf-type-card, body:not(.light-glass) #doctor-tab .nf-card, body:not(.light-glass) #doctor-tab .nf-detail-visual, body:not(.light-glass) #doctor-tab .nf-detail-copy { background: #0f172a; border-color: #1e293b; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
 body:not(.light-glass) #doctor-tab .nf-back, body:not(.light-glass) #doctor-tab .nf-load-more { background: #1e293b; border-color: #334155; color: #e2e8f0; }
 body:not(.light-glass) #doctor-tab .nf-back:hover, body:not(.light-glass) #doctor-tab .nf-load-more:hover { border-color: #38bdf8; color: #38bdf8; }
 body:not(.light-glass) #doctor-tab .nf-card-footer { border-top-color: #1e293b; }
@@ -688,12 +886,6 @@ body:not(.light-glass) #doctor-tab .nf-nutrients-badge b {
 }
 
 /* Nutrition Studio: compact profile context, energy and one source disclosure. */
-#doctor-tab .nf-search-screen { min-height: min(570px, calc(100vh - 180px)); padding: 36px 0; }
-#doctor-tab .nf-logo { background: linear-gradient(145deg, #157f76, #0c665f); box-shadow: 0 12px 28px #157f7633; }
-#doctor-tab .nf-search-screen .nf-subtitle { max-width: 620px; }
-#doctor-tab .nf-examples { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 16px; color: #607b75; font-size: 12px; }
-#doctor-tab .nf-examples button { border: 1px solid #d6e8e1; border-radius: 999px; padding: 7px 12px; background: #f5faf6; color: #25695f; font-size: 12px; font-weight: 650; cursor: pointer; }
-#doctor-tab .nf-examples button:hover, #doctor-tab .nf-examples button:focus-visible { border-color: #7eb6a7; background: #e9f5ed; outline: none; }
 #doctor-tab .nf-condition-banner { padding: 10px 15px; min-width: 0; margin-top: 14px; margin-bottom: 8px; background: #f3f8f5; border-color: #d6e8e1; box-shadow: none; }
 #doctor-tab .nf-condition-banner::before { background: #278779; }
 #doctor-tab .nf-condition-banner > span { background: #e8f3ec; border-color: #d6e8e1; color: #25695f; }
@@ -747,7 +939,7 @@ body:not(.light-glass) #doctor-tab .nf-nutrients-badge b {
 #doctor-tab .nf-evidence-content .nf-recipe-credit { margin: 8px 0; background: #edf4ee; }
 #doctor-tab .nf-evidence-content .nf-disclaimer { text-align: left; }
 body:not(.light-glass) #doctor-tab .nf-context, body:not(.light-glass) #doctor-tab .nf-evidence { background: #17272a; border-color: #36524b; color: #d8eee4; }
-body:not(.light-glass) #doctor-tab .nf-examples button, body:not(.light-glass) #doctor-tab .nf-profile-link { background: #213532; border-color: #41675c; color: #b9e5d0; }
+body:not(.light-glass) #doctor-tab .nf-profile-link { background: #213532; border-color: #41675c; color: #b9e5d0; }
 body:not(.light-glass) #doctor-tab .nf-preference-chip { background: #24473c; color: #b9e5d0; }
 body:not(.light-glass) #doctor-tab .nf-mode-btn.active, body:not(.light-glass) #doctor-tab .nf-meal-pill.active { background: #177c70; border-color: #177c70; color: #fff; }
 body:not(.light-glass) #doctor-tab .nf-context p, body:not(.light-glass) #doctor-tab .nf-evidence-content p { color: #afc7bc; }
@@ -761,7 +953,6 @@ body:not(.light-glass) #doctor-tab .nf-limit-item { background: #342a28; border-
 body:not(.light-glass) #doctor-tab .nf-limit-item > strong { color: #f2c8b4; }
 body:not(.light-glass) #doctor-tab .nf-limit-item > p { color: #d4b9aa; }
 @media (max-width: 650px) {
-  #doctor-tab .nf-search-screen { min-height: calc(100vh - 210px); padding: 22px 0; }
   #doctor-tab .nf-context-main { align-items: flex-start; }
   #doctor-tab .nf-profile-link { white-space: nowrap; }
   #doctor-tab .nf-meal-energy { align-items: flex-start; flex-direction: column; }
@@ -799,25 +990,6 @@ body:not(.light-glass) #doctor-tab .nf-switch-btn:hover {
 @media (max-width: 650px) {
   #doctor-tab.nutrition-flow {
     padding: 0 14px 40px;
-  }
-
-  #doctor-tab .nf-search-screen {
-    min-height: calc(100vh - 185px);
-  }
-
-  #doctor-tab .nf-search-box {
-    height: 58px;
-    padding-left: 14px;
-  }
-
-  #doctor-tab .nf-search-box button {
-    height: 42px;
-    width: 42px;
-    flex-basis: 42px;
-  }
-
-  #doctor-tab .nf-search-box input {
-    font-size: 13px;
   }
 
   #doctor-tab .nf-type-grid,
@@ -873,26 +1045,6 @@ body:not(.light-glass) #doctor-tab .nf-switch-btn:hover {
 #doctor-tab .nf-stage > h1 { font-size: clamp(30px, 3.4vw, 42px); }
 #doctor-tab .nf-back { margin-bottom: 22px; }
 #doctor-tab .nf-overline { color: #087f9d; }
-
-#doctor-tab .nf-search-screen {
-  min-height: min(560px, calc(100svh - 130px));
-  padding: 30px 0 42px;
-}
-
-#doctor-tab .nf-search-screen h1 { max-width: 840px; }
-#doctor-tab .nf-search-screen .nf-subtitle { max-width: 670px; }
-#doctor-tab .nf-search-box {
-  margin-top: 25px;
-  border-color: #cfe5e9;
-  box-shadow: var(--nf-shadow);
-}
-#doctor-tab .nf-search-box:focus-within {
-  border-color: #4aa89f;
-  box-shadow: 0 0 0 4px rgba(20, 125, 116, .12), var(--nf-shadow);
-}
-#doctor-tab .nf-search-box svg { color: var(--nf-accent); }
-#doctor-tab .nf-search-box button { background: var(--nf-accent); }
-#doctor-tab .nf-search-box button:hover { background: var(--nf-accent-dark); }
 
 #doctor-tab .nf-condition-banner {
   display: flex;
@@ -1042,8 +1194,7 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
 }
 @media (max-width: 650px) {
   #doctor-tab.nutrition-flow { padding: 0 16px 42px; }
-  #doctor-tab .nf-search-screen { min-height: calc(100svh - 175px); padding: 28px 0; }
-  #doctor-tab .nf-search-screen h1, #doctor-tab .nf-stage > h1 { font-size: clamp(27px, 8vw, 35px); }
+  #doctor-tab .nf-stage > h1 { font-size: clamp(27px, 8vw, 35px); }
   #doctor-tab .nf-stage { padding-top: 24px; }
   #doctor-tab .nf-back { margin-bottom: 18px; }
   #doctor-tab .nf-condition-banner { align-items: flex-start; flex-direction: column; gap: 8px; padding: 12px 15px; }
@@ -1065,13 +1216,7 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
   --nf-accent-dark: #035d91;
   --nf-line: #d5e7ed;
 }
-#doctor-tab .nf-logo {
-  background: linear-gradient(145deg, #3b82f6, #0284c7);
-  box-shadow: 0 12px 28px rgba(2, 132, 199, .24);
-}
 #doctor-tab .nf-overline { color: #0369a1; }
-#doctor-tab .nf-examples { color: #617b8e; }
-#doctor-tab .nf-examples button,
 #doctor-tab .nf-preference-chip,
 #doctor-tab .nf-condition-banner > span,
 #doctor-tab .nf-meal-time-tag {
@@ -1079,13 +1224,7 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
   border-color: #cfe7f0;
   color: #176d8b;
 }
-#doctor-tab .nf-examples button:hover,
-#doctor-tab .nf-examples button:focus-visible,
 #doctor-tab .nf-profile-link:hover { background: #e1f3f9; border-color: #8bc5da; }
-#doctor-tab .nf-search-box:focus-within {
-  border-color: #55a8d7;
-  box-shadow: 0 0 0 4px rgba(2, 132, 199, .12), var(--nf-shadow);
-}
 #doctor-tab .nf-condition-banner::before { background: var(--nf-accent); }
 #doctor-tab .nf-type-food,
 #doctor-tab .nf-type-drink { background: #edf8fc; color: var(--nf-accent); }
@@ -1134,7 +1273,6 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
 #doctor-tab .nf-load-more { border-color: #8bc5da; }
 
 body:not(.light-glass) #doctor-tab.nutrition-flow { --nf-line: #315263; }
-body:not(.light-glass) #doctor-tab .nf-examples button,
 body:not(.light-glass) #doctor-tab .nf-profile-link { background: #153544; border-color: #34677d; color: #a9def2; }
 body:not(.light-glass) #doctor-tab .nf-preference-chip,
 body:not(.light-glass) #doctor-tab .nf-condition-banner > span { background: #153d50; border-color: #34677d; color: #a9def2; }

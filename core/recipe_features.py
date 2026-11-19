@@ -220,9 +220,9 @@ def analyze_imported_recipe(recipe):
         or _has(r"qua\s+tim|tim\s+(?:heo|lon|bo|ga|vit|dong\s+vat)", ingredients)
         or _has(r"cat\s+(?:heo|lon|bo)|than\s+(?:heo|lon|bo)", ingredients) or bool(re.search(r"\bcật\b", raw_ingredients))
         or _has(r"long\s+(?:heo|lon|bo|ga|vit|non|gia)", ingredients) or bool(re.search(r"\blòng(?!\s+(?:đỏ|trắng))\b", raw_ingredients))
-        or _has(r"thit\s+(?:bo|be|de|cuu|heo|lon|nac|bam|xay)|ba\s+(?:roi|chi)|suon\s+(?:heo|lon|non)|xuong\s+(?:heo|lon|ong)|gio\s+heo|mong\s+gio|chan\s+gio|gio\s+song|cha\s+lua|gio\s+lua|thit\s+nguoi|xuc\s+xich", ingredients)
+        or _has(r"thit\s+(?:bo|be|de|cuu|heo|lon|nac|bam|xay)|ba\s+(?:roi|chi)|suon\s+(?:heo|lon|non)|xuong\s+(?:heo|lon|ong)|gio\s+heo|mong\s+gio|chan\s+gio|gio\s+song|cha\s+lua|gio\s+lua|thit\s+nguoi|xuc\s+xich|duoi\s+(?:heo|lon|bo)|luoi\s+(?:heo|lon|bo)|xi\s+quach", ingredients)
     )) or (vietnamese and (
-        _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|thit\s+(?:bo|heo|lon)|gio\s+heo|mong\s+gio|chan\s+gio", labels)
+        _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|thit\s+(?:bo|heo|lon)|gio\s+heo|mong\s+gio|chan\s+gio|duoi\s+(?:heo|lon|bo)|luoi\s+(?:heo|lon|bo)|xi\s+quach", labels)
         or _has(r"oc", labels_oc_scan)
     ))
     sugar_high = _has(
