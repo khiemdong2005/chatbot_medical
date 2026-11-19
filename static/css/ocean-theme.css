@@ -9,19 +9,17 @@
 :root {
   --ocean-bg-url: url('/static/images/background-ocean.jpg');
   --ocean-deep: #051427;
-  
-  /* Độ trong suốt cực cao (Ultra-sheer), các feature chìm sâu vào nền ảnh */
-  --ocean-sheer-pane: rgba(5, 18, 34, 0.28);
-  --ocean-sheer-subtle: rgba(4, 14, 28, 0.16);
-  --ocean-sheer-card: rgba(6, 22, 40, 0.32);
-  --ocean-sheer-hover: rgba(14, 45, 80, 0.48);
-  --ocean-sheer-elevated: rgba(7, 24, 46, 0.40);
-  
+
+  /* Độ trong suốt cao hơn (giảm opacity từ 0.32 xuống 0.15) để card "chìm" và tệp vào nền */
+  --ocean-sheer-card: rgba(6, 22, 40, 0.15);
+  --ocean-sheer-hover: rgba(14, 45, 80, 0.25);
+  --ocean-sheer-elevated: rgba(7, 24, 46, 0.20);
+
   /* Đường viền tối giản mảnh dẻ, không đóng khung cứng nhắc */
   --ocean-hairline: rgba(255, 255, 255, 0.08);
   --ocean-hairline-bright: rgba(255, 255, 255, 0.16);
   --ocean-glow-cyan: rgba(56, 189, 248, 0.40);
-  
+
   /* Typography tương phản cao với bóng đổ nhẹ bảo đảm đọc siêu rõ */
   --ocean-text-pure: #ffffff;
   --ocean-text-sub: #cbd5e1;
@@ -33,8 +31,7 @@
 html,
 body,
 body.light-glass,
-body.dark-glass,
-body.chat-scene-active {
+body.dark-glass {
   background-color: var(--ocean-deep) !important;
   background-image:
     linear-gradient(115deg, rgba(3, 12, 24, 0.32), rgba(6, 22, 42, 0.12) 52%, rgba(3, 12, 24, 0.30)),
@@ -47,8 +44,26 @@ body.chat-scene-active {
   min-height: 100vh;
 }
 
+/* --- UNIFIED GLASS DISCOVERY CARD --- */
+.home-discovery-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+
+.home-discovery-card:hover {
+  background: var(--ocean-sheer-hover) !important;
+  border-color: var(--ocean-glow-cyan) !important;
+}
+
+
+
 /* Tắt triệt để các đốm blur giả gây đục và loang lổ ảnh nền */
-body > .ambient-breath,
+body>.ambient-breath,
 .ambient-breath {
   display: none !important;
   opacity: 0 !important;
@@ -56,13 +71,13 @@ body > .ambient-breath,
 
 /* 2. THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP HEADER) - CHÌM TRONG SUỐT */
 header,
-body > header,
-body.light-glass > header,
-body.dark-glass > header {
-  background: var(--ocean-sheer-pane) !important;
-  backdrop-filter: blur(12px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-  border-bottom: 1px solid var(--ocean-hairline) !important;
+body>header,
+body.light-glass>header,
+body.dark-glass>header {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: none !important;
 }
 
@@ -102,7 +117,7 @@ header .nav-btn.glass-pill-cyan-active,
 #nav-ocr-tab.glass-pill-cyan-active,
 #nav-booking-tab.glass-pill-cyan-active,
 #nav-doctor-tab.glass-pill-cyan-active {
-  background: rgba(14, 116, 144, 0.38) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid rgba(56, 189, 248, 0.55) !important;
   color: #ffffff !important;
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
@@ -120,6 +135,7 @@ header .nav-btn.glass-pill-cyan-active,
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
 }
+
 #lang-btn:hover,
 #theme-btn:hover,
 #notification-btn:hover {
@@ -153,7 +169,7 @@ body:not(.light-glass) #home-tab .home-hero-banner {
 #home-tab [title="Khám lâm sàng"],
 #home-tab [title="Hồ sơ bệnh án"],
 #home-tab [title="Chỉ số sinh tồn"] {
-  background: rgba(6, 20, 38, 0.35) !important;
+  background: var(--ocean-sheer-card) !important;
   backdrop-filter: blur(12px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -165,16 +181,17 @@ body:not(.light-glass) #home-tab .home-hero-banner {
 .home-metric-badge,
 #home-tab .home-metric-badge,
 #home-tab div.home-metric-badge {
-  background: rgba(6, 20, 38, 0.30) !important;
-  backdrop-filter: blur(16px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.30) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
   color: #ffffff !important;
 }
 
+
 .home-metric-badge .home-metric-icon,
-.home-metric-badge > div:first-child {
+.home-metric-badge>div:first-child {
   background: rgba(56, 189, 248, 0.20) !important;
   border: 1px solid rgba(56, 189, 248, 0.35) !important;
   color: #38bdf8 !important;
@@ -235,9 +252,10 @@ body:not(.light-glass) .home-card-booking:hover {
   color: #ffffff !important;
   backdrop-filter: blur(6px) !important;
 }
+
 #chat-tab #history-search-input:focus {
   border-color: rgba(56, 189, 248, 0.6) !important;
-  background: rgba(4, 16, 32, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
 }
 
 /* Từng dòng item lịch sử chìm nhẹ vào nền */
@@ -247,15 +265,18 @@ body:not(.light-glass) .home-card-booking:hover {
   box-shadow: none !important;
   transition: all 0.2s ease !important;
 }
+
 #chat-tab .chat-history-item:hover {
   background: var(--ocean-sheer-hover) !important;
   border-color: rgba(56, 189, 248, 0.35) !important;
 }
+
 #chat-tab .chat-history-item.ring-1,
 #chat-tab .chat-history-item.border-teal-500 {
-  background: rgba(14, 48, 86, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.65) !important;
 }
+
 #chat-tab .chat-history-item h5,
 #chat-tab .chat-history-item .text-slate-900,
 #chat-tab .chat-history-item .text-slate-100 {
@@ -281,11 +302,12 @@ body:not(.light-glass) .home-card-booking:hover {
 }
 
 #chat-tab .chat-scene-export {
-  background: rgba(6, 22, 42, 0.35) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #ffffff !important;
   backdrop-filter: blur(8px) !important;
 }
+
 #chat-tab .chat-scene-export:hover {
   background: var(--ocean-sheer-hover) !important;
   border-color: rgba(56, 189, 248, 0.45) !important;
@@ -293,9 +315,9 @@ body:not(.light-glass) .home-card-booking:hover {
 
 /* Tin nhắn trợ lý (Bot Bubble) - Kính mờ siêu mỏng để nhìn xuyên qua nền nước */
 #chat-messages .assistant-bubble,
-#chat-tab [class*="assistant"] > div:last-child,
-#chat-messages > div:not(.justify-end) > div:last-child {
-  background: rgba(7, 24, 46, 0.42) !important;
+#chat-tab [class*="assistant"]>div:last-child,
+#chat-messages>div:not(.justify-end, .items-end)>div:last-child {
+  background: var(--ocean-sheer-card) !important;
   backdrop-filter: blur(12px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
   border: 1px solid rgba(255, 255, 255, 0.11) !important;
@@ -306,7 +328,7 @@ body:not(.light-glass) .home-card-booking:hover {
 }
 
 /* Tin nhắn người dùng (User Bubble) */
-#chat-messages > div.justify-end > div {
+#chat-messages>div.justify-end>div {
   background: linear-gradient(135deg, rgba(2, 132, 199, 0.65), rgba(79, 70, 229, 0.65)) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
@@ -320,20 +342,21 @@ body:not(.light-glass) .home-card-booking:hover {
 /* Hộp đặc điểm thị giác (Vision tags) chìm tự nhiên */
 .vision-findings-box,
 #chat-messages [class*="vision"] {
-  background: rgba(6, 28, 50, 0.38) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid rgba(56, 189, 248, 0.22) !important;
   border-radius: 14px !important;
 }
+
 .vision-tag,
 #chat-messages span.tag-pill {
-  background: rgba(6, 78, 99, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid rgba(34, 211, 238, 0.32) !important;
   color: #e0f2fe !important;
 }
 
 /* Các chip gợi ý nhanh bên dưới */
 #chat-tab button[onclick^="insertQuickPrompt"] {
-  background: rgba(6, 20, 38, 0.38) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #e2e8f0 !important;
   backdrop-filter: blur(8px) !important;
@@ -342,6 +365,7 @@ body:not(.light-glass) .home-card-booking:hover {
   box-shadow: none !important;
   text-shadow: var(--ocean-text-shadow) !important;
 }
+
 #chat-tab button[onclick^="insertQuickPrompt"]:hover {
   background: var(--ocean-sheer-hover) !important;
   border-color: rgba(56, 189, 248, 0.55) !important;
@@ -354,18 +378,21 @@ body:not(.light-glass) .home-card-booking:hover {
   border: none !important;
   box-shadow: none !important;
 }
+
 #chat-tab .chat-scene-input {
-  background: rgba(6, 20, 38, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   backdrop-filter: blur(14px) !important;
   -webkit-backdrop-filter: blur(14px) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   border-radius: 20px !important;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
 }
+
 #chat-tab .chat-scene-input:focus-within {
   border-color: rgba(56, 189, 248, 0.7) !important;
   box-shadow: 0 0 20px rgba(56, 189, 248, 0.25) !important;
 }
+
 #chat-tab #user-input {
   color: #ffffff !important;
   text-shadow: var(--ocean-text-shadow) !important;
@@ -378,7 +405,7 @@ body:not(.light-glass) .home-card-booking:hover {
 body #booking-tab,
 body #booking-tab.tab-content,
 body #booking-tab #hospitalsView,
-body #booking-tab #hospitalsView > main,
+body #booking-tab #hospitalsView>main,
 body #booking-tab #hospitalsView #hospitalCardsList {
   background: transparent !important;
 }
@@ -395,7 +422,7 @@ body aside.facility-filter-panel {
   color: #ffffff !important;
 }
 
-#hospitalsView aside > div:first-of-type,
+#hospitalsView aside>div:first-of-type,
 #hospitalsView aside .border-b,
 #booking-tab aside .border-b {
   border-color: var(--ocean-hairline) !important;
@@ -408,6 +435,7 @@ body aside.facility-filter-panel {
   color: #ffffff !important;
   backdrop-filter: blur(6px) !important;
 }
+
 #hospitalSidebarSearchInput:focus {
   border-color: rgba(56, 189, 248, 0.7) !important;
   box-shadow: 0 0 14px rgba(56, 189, 248, 0.25) !important;
@@ -421,22 +449,26 @@ body aside.facility-filter-panel {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6) !important;
   transition: all 0.2s ease !important;
 }
+
 #facilityCategoryButtons button:hover {
   background: var(--ocean-sheer-hover) !important;
   border-color: rgba(56, 189, 248, 0.4) !important;
   color: #ffffff !important;
 }
+
 #facilityCategoryButtons button[aria-pressed="true"],
 #facilityCategoryButtons button.bg-sky-500\/15 {
-  background: rgba(14, 116, 144, 0.42) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid rgba(56, 189, 248, 0.65) !important;
   color: #ffffff !important;
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.25) !important;
 }
+
 #facilityCategoryButtons button span:last-child {
   background: rgba(0, 0, 0, 0.3) !important;
   color: #94a3b8 !important;
 }
+
 #facilityCategoryButtons button[aria-pressed="true"] span:last-child {
   background: rgba(56, 189, 248, 0.25) !important;
   color: #e0f2fe !important;
@@ -448,25 +480,28 @@ body aside.facility-filter-panel {
   border: 1px solid var(--ocean-hairline) !important;
   color: #cbd5e1 !important;
 }
+
 #facilityRegionButtons button[aria-pressed="true"] {
-  background: rgba(14, 116, 144, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.65) !important;
   color: #ffffff !important;
 }
 
 /* Chuyên khoa nổi bật pills */
 #facilitySpecialtyPills button {
-  background: rgba(6, 26, 48, 0.35) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid var(--ocean-hairline) !important;
   color: #cbd5e1 !important;
   backdrop-filter: blur(6px) !important;
 }
+
 #facilitySpecialtyPills button:hover {
   border-color: rgba(56, 189, 248, 0.5) !important;
   color: #ffffff !important;
 }
+
 #facilitySpecialtyPills button[aria-pressed="true"] {
-  background: rgba(14, 116, 144, 0.5) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.7) !important;
   color: #ffffff !important;
 }
@@ -479,9 +514,9 @@ body #booking-tab #hospitalsView main,
 }
 
 /* Khung bọc lớn bên phải chứa Map + Card list */
-body #booking-tab #hospitalsView main > div.flex-1,
-#hospitalsView main > div.flex-1,
-#booking-tab main > div.flex-1 {
+body #booking-tab #hospitalsView main>div.flex-1,
+#hospitalsView main>div.flex-1,
+#booking-tab main>div.flex-1 {
   background: var(--ocean-sheer-pane) !important;
   backdrop-filter: blur(14px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(14px) saturate(150%) !important;
@@ -490,26 +525,30 @@ body #booking-tab #hospitalsView main > div.flex-1,
 }
 
 /* Header toolbar tìm kiếm bên phải */
-#hospitalsView main > div.flex-1 > div:first-of-type,
+#hospitalsView main>div.flex-1>div:first-of-type,
 #booking-tab .px-4.sm\:px-5.py-3\.5 {
-  background: rgba(6, 22, 42, 0.35) !important;
+  background: var(--ocean-sheer-card) !important;
   border-bottom: 1px solid var(--ocean-hairline) !important;
 }
+
 #hospitalSearchInput {
   background: var(--ocean-sheer-subtle) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
+
 #hospitalSearchInput:focus {
   border-color: rgba(56, 189, 248, 0.7) !important;
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.25) !important;
 }
+
 #hospitalDistrictFilter {
   background: var(--ocean-sheer-subtle) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #ffffff !important;
 }
+
 #hospitalDistrictFilter option {
   background: #07172c !important;
   color: #ffffff !important;
@@ -527,10 +566,11 @@ body #booking-tab #hospitalsView main > div.flex-1,
   background: rgba(3, 12, 24, 0.20) !important;
   border-bottom: 1px solid var(--ocean-hairline) !important;
 }
-#hospitalMapPanel .facility-map-controls > div > div,
+
+#hospitalMapPanel .facility-map-controls>div>div,
 #hospitalMapPanel .facility-map-controls button,
 #hospitalMapPanel .bg-\[\#0b1325\]\/90 {
-  background: rgba(6, 20, 38, 0.6) !important;
+  background: var(--ocean-sheer-card) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
@@ -541,7 +581,8 @@ body #booking-tab #hospitalsView main > div.flex-1,
 #hospitalCardsList {
   background: transparent !important;
 }
-#hospitalCardsList > div:first-of-type {
+
+#hospitalCardsList>div:first-of-type {
   border-bottom: 1px solid var(--ocean-hairline) !important;
 }
 
@@ -556,6 +597,7 @@ body #booking-tab #hospitalsView main > div.flex-1,
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
   transition: all 0.22s ease !important;
 }
+
 #booking-tab .hospital-card:hover,
 .hospital-card:hover {
   background: var(--ocean-sheer-hover) !important;
@@ -565,16 +607,18 @@ body #booking-tab #hospitalsView main > div.flex-1,
 }
 
 .hospital-card .facility-icon-tile {
-  background: rgba(6, 36, 62, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.35) !important;
 }
+
 .hospital-card .facility-type-tag {
-  background: rgba(14, 116, 144, 0.38) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.45) !important;
   color: #e0f2fe !important;
 }
+
 .hospital-card .facility-meta-tag {
-  background: rgba(4, 18, 36, 0.42) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: var(--ocean-hairline) !important;
   color: #cbd5e1 !important;
 }
@@ -584,24 +628,27 @@ body #booking-tab #hospitalsView main > div.flex-1,
   border: 1px solid rgba(56, 189, 248, 0.4) !important;
   color: #ffffff !important;
 }
+
 .hospital-card .facility-secondary-action {
-  background: rgba(6, 24, 46, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #e2e8f0 !important;
 }
+
 .hospital-card .facility-secondary-action:hover {
-  background: rgba(14, 48, 86, 0.7) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.5) !important;
   color: #ffffff !important;
 }
 
 #facilitiesPaginationBar button {
-  background: rgba(6, 20, 38, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #f1f5f9 !important;
 }
+
 #facilitiesPaginationBar button:hover:not(:disabled) {
-  background: rgba(14, 45, 80, 0.7) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.5) !important;
 }
 
@@ -609,52 +656,684 @@ body #booking-tab #hospitalsView main > div.flex-1,
 #ocr-tab {
   background: transparent !important;
 }
+
 #ocr-tab #prescription-dropzone,
 #ocr-tab .border-dashed {
-  background: rgba(5, 18, 34, 0.32) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.35) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
 }
+
 #ocr-tab #prescription-dropzone:hover {
-  background: rgba(8, 28, 52, 0.48) !important;
+  background: var(--ocean-sheer-card) !important;
   border-color: rgba(56, 189, 248, 0.7) !important;
 }
+
 #ocr-tab input,
 #ocr-tab select,
 #ocr-tab textarea {
-  background: rgba(4, 15, 28, 0.45) !important;
+  background: var(--ocean-sheer-card) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #ffffff !important;
   backdrop-filter: blur(6px) !important;
 }
 
-/* 6. TAB THỬ THÁCH SỐNG KHỎE & DINH DƯỠNG (#doctor-tab) */
+/* 6. TAB THỬ THÁCH SỐNG KHỎE & DINH DƯỠNG (#doctor-tab) - UI CHÌM NỀN */
 #doctor-tab,
 #doctor-tab.tab-content,
 #doctor-tab.nutrition-flow {
   background: transparent !important;
+  color: #ffffff !important;
 }
+
+/* Các thành phần thẻ chìm nhẹ vào nền */
 #doctor-tab .nf-card,
 #doctor-tab .nf-type-card,
 #doctor-tab .nf-meal-bar,
+#doctor-tab .nf-search-box,
+#doctor-tab .nf-meal-hero,
+#doctor-tab .nf-meal-dish-card,
+#doctor-tab .nf-context,
+#doctor-tab .nf-notice {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(15px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+
+/* 6.1 Header & Overlines */
+#doctor-tab .nf-overline {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(14, 165, 233, 0.15) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  padding: 4px 14px !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+  margin-bottom: 14px !important;
+  width: fit-content !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab h1,
+#doctor-tab #nf-search-title,
+#doctor-tab #nf-results-title {
+  color: #ffffff !important;
+  font-size: clamp(28px, 3.5vw, 42px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+}
+
+#doctor-tab .nf-subtitle {
+  color: #94a3b8 !important;
+  font-size: 14.5px !important;
+  line-height: 1.6 !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-subtitle strong {
+  color: #38bdf8 !important;
+}
+
+/* 6.2 Nút quay lại (Back Button) */
+#doctor-tab .nf-back {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+  border-radius: 9999px !important;
+  padding: 8px 18px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-back:hover {
+  background: var(--ocean-sheer-card) !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.2) !important;
+}
+
+/* 6.3 Banner tình trạng sức khỏe / Yêu cầu đã nhập */
+#doctor-tab .nf-condition-banner {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  border-radius: 9999px !important;
+  padding: 8px 22px 8px 10px !important;
+  margin: 18px 0 24px !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35) !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+}
+
+#doctor-tab .nf-condition-banner::before {
+  display: none !important;
+}
+
+#doctor-tab .nf-condition-banner>span,
+#doctor-tab .nf-condition-banner .nf-condition-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(20, 184, 166, 0.2) !important;
+  border: 1px solid rgba(45, 212, 191, 0.35) !important;
+  color: #2dd4bf !important;
+  padding: 5px 12px !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-condition-banner>span svg {
+  color: #2dd4bf !important;
+}
+
+#doctor-tab .nf-condition-banner>strong,
+#doctor-tab .nf-condition-banner .nf-query-label {
+  color: #ffffff !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  background: none !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* 6.4 Thẻ lựa chọn loại: Thức ăn / Nước uống (Image 1 Fix) */
+#doctor-tab .nf-type-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+  margin-top: 28px !important;
+}
+
+#doctor-tab .nf-type-card {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+  min-height: 130px !important;
+  padding: 24px 28px !important;
+  border-radius: 24px !important;
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  text-align: left !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35) !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#doctor-tab .nf-type-card:hover {
+  transform: translateY(-4px) !important;
+  background: var(--ocean-sheer-card) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 20px 45px rgba(14, 165, 233, 0.22) !important;
+}
+
+/* Triệt tiêu khối màu trắng lạc quẻ của icon */
+#doctor-tab .nf-type-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 68px !important;
+  height: 68px !important;
+  flex: 0 0 68px !important;
+  border-radius: 20px !important;
+  transition: transform 0.25s ease !important;
+}
+
+#doctor-tab .nf-type-food {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(20, 184, 166, 0.12)) !important;
+  border: 1.5px solid rgba(52, 211, 153, 0.35) !important;
+  color: #34d399 !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.18) !important;
+}
+
+#doctor-tab .nf-type-food svg path[fill] {
+  fill: rgba(52, 211, 153, 0.28) !important;
+}
+
+#doctor-tab .nf-type-food svg path[stroke] {
+  stroke: #34d399 !important;
+}
+
+#doctor-tab .nf-type-drink {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.12)) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 6px 18px rgba(14, 165, 233, 0.18) !important;
+}
+
+#doctor-tab .nf-type-drink svg path[fill] {
+  fill: rgba(56, 189, 248, 0.28) !important;
+}
+
+#doctor-tab .nf-type-drink svg path[stroke] {
+  stroke: #38bdf8 !important;
+}
+
+#doctor-tab .nf-type-card:hover .nf-type-icon {
+  transform: scale(1.08) !important;
+}
+
+#doctor-tab .nf-type-card strong {
+  display: block !important;
+  margin: 0 0 6px !important;
+  color: #ffffff !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-type-card small {
+  display: block !important;
+  color: #94a3b8 !important;
+  font-size: 13.5px !important;
+  line-height: 1.5 !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-type-card .nf-arrow {
+  position: absolute !important;
+  right: 22px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: rgba(56, 189, 248, 0.12) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  color: #38bdf8 !important;
+  font-size: 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+#doctor-tab .nf-type-card:hover .nf-arrow {
+  background: #0284c7 !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  transform: translateY(-50%) translateX(4px) !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4) !important;
+}
+
+/* 6.5 Bộ chuyển đổi chế độ xem (Mode Switcher) */
+#doctor-tab [hidden],
+#doctor-tab .nf-mode-switcher[hidden],
+#doctor-tab .nf-meal-filters[hidden],
+#doctor-tab .nf-full-meal-wrap[hidden],
+#doctor-tab .nf-cards[hidden] {
+  display: none !important;
+}
+
+#doctor-tab .nf-mode-switcher:not([hidden]) {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 18px !important;
+  padding: 6px !important;
+  margin: 20px 0 16px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+#doctor-tab .nf-mode-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
+  color: #94a3b8 !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  padding: 9px 20px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-mode-btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+#doctor-tab .nf-mode-btn.active {
+  background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35) !important;
+}
+
+/* 6.6 Hộp Mâm cơm gợi ý cho 1 bữa (Image 2 Fix) */
+#doctor-tab .nf-meal-hero {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 24px !important;
+  padding: 28px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.4) !important;
+}
+
+#doctor-tab .nf-meal-hero-badge {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  color: #38bdf8 !important;
+  font-weight: 700 !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+#doctor-tab .nf-meal-time-tag {
+  background: rgba(14, 165, 233, 0.18) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+}
+
+#doctor-tab .nf-meal-hero-title {
+  color: #ffffff !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  margin: 12px 0 16px !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-meal-energy {
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  border-radius: 16px !important;
+  padding: 14px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+#doctor-tab .nf-meal-energy span {
+  color: #94a3b8 !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+}
+
+#doctor-tab .nf-meal-energy strong {
+  color: #38bdf8 !important;
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: 0 0 24px rgba(56, 189, 248, 0.35) !important;
+}
+
+#doctor-tab .nf-meal-energy small {
+  color: #64748b !important;
+  font-size: 11.5px !important;
+}
+
+#doctor-tab .nf-meal-hero-rationale {
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(20, 184, 166, 0.25) !important;
+  border-left: 4px solid #14b8a6 !important;
+  border-radius: 16px !important;
+  padding: 14px 18px !important;
+  margin-top: 14px !important;
+}
+
+#doctor-tab .nf-rationale-head {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  color: #2dd4bf !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+}
+
+#doctor-tab .nf-rationale-head svg {
+  color: #2dd4bf !important;
+}
+
+#doctor-tab .nf-meal-hero-rationale p {
+  color: #cbd5e1 !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+  margin: 6px 0 0 !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-meal-staple {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  padding: 10px 16px !important;
+  color: #cbd5e1 !important;
+  font-size: 12.5px !important;
+  margin-top: 12px !important;
+}
+
+#doctor-tab .nf-meal-staple b {
+  color: #38bdf8 !important;
+}
+
+/* 6.7 Các thẻ món ăn trong mâm cơm & danh sách món (.nf-meal-dish-card, .nf-card) */
+#doctor-tab .nf-meal-dish-card,
+#doctor-tab .nf-card {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#doctor-tab .nf-meal-dish-card:hover,
+#doctor-tab .nf-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 18px 45px rgba(14, 165, 233, 0.22) !important;
+}
+
+#doctor-tab .nf-meal-dish-art,
+#doctor-tab .nf-card-visual {
+  position: relative !important;
+  background: #081220 !important;
+  overflow: hidden !important;
+}
+
+#doctor-tab .nf-meal-dish-art img,
+#doctor-tab .nf-card-visual img {
+  width: 100% !important;
+  height: 180px !important;
+  object-fit: cover !important;
+  transition: transform 0.3s ease !important;
+}
+
+/* Fix lỗi hình vẽ minh họa SVG bị viền trắng thô kệch */
+#doctor-tab .nf-meal-dish-art img[src*=".svg"],
+#doctor-tab .nf-card-visual img[src*=".svg"] {
+  background: #0f2034 !important;
+  padding: 10px !important;
+  object-fit: contain !important;
+}
+
+#doctor-tab .nf-meal-dish-card:hover .nf-meal-dish-art img,
+#doctor-tab .nf-card:hover .nf-card-visual img {
+  transform: scale(1.04) !important;
+}
+
+#doctor-tab .nf-meal-dish-role {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-meal-dish-body,
+#doctor-tab .nf-card-content {
+  padding: 18px !important;
+  background: transparent !important;
+}
+
+#doctor-tab .nf-dish-heading {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+#doctor-tab .nf-dish-heading strong,
+#doctor-tab .nf-card-content strong {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-kcal {
+  flex-shrink: 0 !important;
+  background: rgba(245, 158, 11, 0.16) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  color: #fbbf24 !important;
+  font-weight: 800 !important;
+  font-size: 11.5px !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-reason-compact,
+#doctor-tab .nf-reason {
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  margin: 10px 0 !important;
+}
+
+#doctor-tab .nf-reason-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  color: #38bdf8 !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+#doctor-tab .nf-reason-compact p,
+#doctor-tab .nf-reason-text {
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  margin: 4px 0 0 !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-meal-dish-footer,
+#doctor-tab .nf-card-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding-top: 12px !important;
+  margin-top: 12px !important;
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-meal-dish-footer b,
+#doctor-tab .nf-card-footer b {
+  color: #38bdf8 !important;
+  font-weight: 700 !important;
+  transition: color 0.15s ease !important;
+}
+
+#doctor-tab .nf-meal-dish-card:hover .nf-meal-dish-footer b,
+#doctor-tab .nf-card:hover .nf-card-footer b {
+  color: #7dd3fc !important;
+}
+
+/* 6.8 Các thanh tóm tắt & hộp thông báo (#nf-context, #nf-notice) */
+#doctor-tab .nf-context,
+#doctor-tab .nf-notice {
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(56, 189, 248, 0.22) !important;
+  border-radius: 16px !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28) !important;
+  text-shadow: none !important;
+}
+
+#doctor-tab .nf-preference-chip {
+  background: rgba(14, 165, 233, 0.18) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #38bdf8 !important;
+  border-radius: 9999px !important;
+  padding: 3px 10px !important;
+  font-size: 11px !important;
+}
+
+#doctor-tab .nf-profile-link {
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #cbd5e1 !important;
+  border-radius: 9999px !important;
+  padding: 4px 12px !important;
+  font-size: 11.5px !important;
+}
+
 #doctor-tab .nf-search-box {
   background: var(--ocean-sheer-card) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
-  border: 1px solid var(--ocean-hairline) !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.3) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35) !important;
 }
-#doctor-tab .nf-type-card:hover,
-#doctor-tab .nf-card:hover {
-  background: var(--ocean-sheer-hover) !important;
-  border-color: var(--ocean-glow-cyan) !important;
+
+#doctor-tab .nf-search-box:focus-within {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2), 0 16px 40px rgba(0, 0, 0, 0.4) !important;
 }
-#doctor-tab .nf-search-input {
-  background: rgba(4, 15, 28, 0.45) !important;
-  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+
+#doctor-tab .nf-search-input,
+#doctor-tab #nf-query {
   color: #ffffff !important;
+  background: transparent !important;
+}
+
+#doctor-tab .nf-examples button {
+  background: var(--ocean-sheer-card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+  border-radius: 9999px !important;
+  padding: 5px 14px !important;
+  transition: all 0.2s ease !important;
+}
+
+#doctor-tab .nf-examples button:hover {
+  background: var(--ocean-sheer-card) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #38bdf8 !important;
 }
 
 /* 7. TOÀN BỘ CÁC THẺ CARD / PANEL CHUNG (.glass-panel, .glass-panel-elevated) */
@@ -709,17 +1388,185 @@ body.light-glass .text-slate-500 {
 }
 
 /* 8. MODALS */
-#login-modal .glass-panel-elevated,
+#login-modal,
+#login-modal.auth-4exam-shell {
+  background-color: var(--ocean-deep, #040d1a) !important;
+  background-image:
+    linear-gradient(135deg, rgba(3, 12, 24, 0.65), rgba(6, 22, 42, 0.45) 50%, rgba(3, 12, 24, 0.70)),
+    var(--ocean-bg-url) !important;
+  background-position: center, center 48% !important;
+  background-size: cover, cover !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  color: #ffffff !important;
+}
+
+#login-modal #auth-left-hero,
+#auth-left-hero {
+  display: none !important;
+}
+
+#login-modal #auth-modal-card,
+#login-modal.auth-4exam-shell #auth-modal-card,
 #auth-modal-card,
 #medical-record-modal .glass-panel-elevated,
 #profile-modal .glass-panel-elevated,
 #disclaimer-modal .glass-panel-elevated,
 #facility-booking-modal .glass-panel-elevated,
 #facility-detail-modal .glass-panel-elevated {
-  background: rgba(6, 20, 38, 0.68) !important;
-  backdrop-filter: blur(20px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  background: var(--ocean-sheer-card) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
   border: 1px solid var(--ocean-hairline-bright) !important;
   color: #ffffff !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), 0 0 35px rgba(56, 189, 248, 0.15) !important;
+}
+
+#login-modal #auth-modal-card,
+#login-modal.auth-4exam-shell #auth-modal-card {
+  max-width: 460px !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 94vh !important;
+  margin: auto !important;
+  border-radius: 28px !important;
+  padding: 28px 32px !important;
+  overflow-y: auto !important;
+}
+
+#login-modal.auth-4exam-shell #auth-modal-title,
+#login-modal #auth-modal-title {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-label,
+#login-modal .auth-4e-label {
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-input,
+#login-modal .auth-4e-input {
+  height: 48px !important;
+  background-color: rgba(4, 18, 36, 0.55) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-input::placeholder,
+#login-modal .auth-4e-input::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-input:focus,
+#login-modal .auth-4e-input:focus {
+  background-color: rgba(6, 26, 52, 0.75) !important;
+  border-color: rgba(56, 189, 248, 0.8) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35) !important;
+  outline: none !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-google-btn,
+#login-modal .auth-4e-google-btn {
+  height: 48px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-google-btn:hover,
+#login-modal .auth-4e-google-btn:hover {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.2) !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-google-btn span,
+#login-modal .auth-4e-google-btn span {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-cta-btn,
+#login-modal .auth-4e-cta-btn {
+  height: 48px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(56, 189, 248, 0.45) !important;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-cta-btn:hover,
+#login-modal .auth-4e-cta-btn:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #4338ca 100%) !important;
+  box-shadow: 0 12px 30px rgba(56, 189, 248, 0.55) !important;
+  transform: translateY(-1px) !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-link,
+#login-modal .auth-4e-link {
+  color: #38bdf8 !important;
+  -webkit-text-fill-color: #38bdf8 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-link:hover,
+#login-modal .auth-4e-link:hover {
+  color: #7dd3fc !important;
+  -webkit-text-fill-color: #7dd3fc !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-forgot,
+#login-modal .auth-4e-forgot {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+}
+
+#login-modal.auth-4exam-shell .auth-4e-forgot:hover,
+#login-modal .auth-4e-forgot:hover {
+  color: #38bdf8 !important;
+  -webkit-text-fill-color: #38bdf8 !important;
+}
+
+#login-modal.auth-4exam-shell .otp-digit,
+#login-modal .otp-digit {
+  background-color: rgba(4, 18, 36, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+#login-modal.auth-4exam-shell .otp-digit:focus,
+#login-modal .otp-digit:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.4) !important;
+  background-color: rgba(6, 26, 52, 0.8) !important;
 }

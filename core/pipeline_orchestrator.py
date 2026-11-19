@@ -3,10 +3,13 @@ import sys
 import json
 import time
 import re
+import logging
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
@@ -192,12 +195,31 @@ def process_medical_document_pipeline(
         ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
     )
 
-    # 2.B: Gemini Schema extraction
-    gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
+    # 2.B: Gemini Schema extraction (Cơ chế ảnh toàn trang + ảnh cắt phóng to LANCZOS)
+    crop_image_path = None
+    if doc_type in ("prescription", "auto"):
+        try:
+            from core.prescription_crop_service import crop_and_upscale_medication_region
+            crop_image_path = crop_and_upscale_medication_region(active_image_path, ocr_result)
+        except Exception as e:
+            logger.warning("Lỗi cắt phóng to vùng thuốc: %s", e)
+            crop_image_path = None
+
+    gemini_data = extract_with_gemini_schema(
+        active_image_path,
+        doc_type=doc_type,
+        crop_image_path=crop_image_path,
+        ocr_result=ocr_result if selected_ocr_path == active_image_path else None,
+    )
     if not isinstance(gemini_data, dict):
         gemini_data = None
     if not gemini_data and not mask_pii and selected_ocr_path != active_image_path:
-        gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type)
+        gemini_data = extract_with_gemini_schema(
+            selected_ocr_path,
+            doc_type=doc_type,
+            crop_image_path=None,
+            ocr_result=ocr_result
+        )
         if not isinstance(gemini_data, dict):
             gemini_data = None
     gemini_succeeded = bool(gemini_data)
@@ -243,6 +265,9 @@ def process_medical_document_pipeline(
             review_row["raw_ocr_name"] = str(row.get("raw_ocr_name") or "")
             review_row["raw_ocr_strength"] = str(row.get("raw_ocr_strength") or "")
             review_row["anchor_evidence_text"] = str(row.get("anchor_evidence_text") or "")
+            for extra in ("brand_name", "active_ingredient", "quantity", "unit", "schedule", "instructions", "purpose"):
+                if row.get(extra):
+                    review_row[extra] = str(row.get(extra))
             anchor_boxes.append(row.get("anchor_box"))
         draft[key].append(review_row)
     extraction_warning = ""

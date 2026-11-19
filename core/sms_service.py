@@ -13,7 +13,9 @@ class SmsService:
     """Dịch vụ gửi SMS OTP giao dịch y tế nội địa Việt Nam."""
     def __init__(self):
         # SpeedSMS Provider (Cổng SMS Việt Nam)
-        self.speedsms_token = os.getenv("SPEEDSMS_AUTH_TOKEN", "")
+        self.speedsms_token = os.getenv("SPEEDSMS_AUTH_TOKEN", "").strip()
+        self.speedsms_sms_type = int(os.getenv("SPEEDSMS_SMS_TYPE", "2"))
+        self.speedsms_sender = os.getenv("SPEEDSMS_SENDER", "").strip()
 
     def is_configured(self) -> bool:
         """Kiểm tra cấu hình cổng SMS nội địa."""
@@ -72,11 +74,14 @@ class SmsService:
 
                 url = "https://api.speedsms.vn/index.php/sms/send"
                 auth = base64.b64encode(f"{self.speedsms_token}:x".encode("utf-8")).decode("ascii")
-                payload = json.dumps({
-                    "to": [norm_phone],
+                effective_sender = "" if self.speedsms_sms_type == 2 else self.speedsms_sender
+                payload_dict: Dict[str, Any] = {
+                    "to": [norm_phone.lstrip("+")],
                     "content": message_text,
-                    "sms_type": 2
-                }).encode("utf-8")
+                    "sms_type": self.speedsms_sms_type,
+                    "sender": effective_sender
+                }
+                payload = json.dumps(payload_dict).encode("utf-8")
 
                 req = urllib.request.Request(url, data=payload, headers={
                     "Content-Type": "application/json",
@@ -85,7 +90,11 @@ class SmsService:
                 with urllib.request.urlopen(req, timeout=10) as resp:
                     res_json = json.loads(resp.read().decode("utf-8"))
                     if res_json.get("status") == "success":
-                        print(f"✅ [SpeedSMS] Đã gửi mã OTP tới {norm_phone}")
+                        data_info = res_json.get("data") or {}
+                        tran_id = data_info.get("tranId")
+                        total_sms = data_info.get("totalSMS")
+                        total_price = data_info.get("totalPrice")
+                        print(f"✅ [SpeedSMS] Đã gửi mã OTP tới {norm_phone} | tranId={tran_id} | totalSMS={total_sms} | totalPrice={total_price}")
                         return True
                     else:
                         print(f"❌ [SpeedSMS Error] Phản hồi lỗi: {res_json}")

@@ -108,11 +108,16 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
 
         contents_payload.append(prompt)
 
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+        if llm_provider.is_openrouter_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+            ocr_api_key = None
+        else:
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+            ocr_api_key = GEMINI_API_KEY
         data = llm_provider.generate_json(
             contents=contents_payload,
             candidate_models=candidate_models,
-            api_key=GEMINI_API_KEY,
+            api_key=ocr_api_key,
             temperature=0.1,
             operation="prescription_ocr"
         )
@@ -170,7 +175,12 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
         """
 
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+        if llm_provider.is_openrouter_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+            ocr_api_key = None
+        else:
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+            ocr_api_key = GEMINI_API_KEY
         contents = [
             types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
             prompt
@@ -178,7 +188,7 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         data = llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
-            api_key=GEMINI_API_KEY,
+            api_key=ocr_api_key,
             operation="prescription_ocr"
         )
         if isinstance(data, dict):

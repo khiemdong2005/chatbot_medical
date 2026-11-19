@@ -1,0 +1,234 @@
+/* A quieter ocean palette shared by the app's pages. */
+:root {
+  --ocean-deep: #061a35;
+  --ocean-sheer-pane: rgba(5, 27, 58, .66);
+  --ocean-sheer-subtle: rgba(5, 27, 58, .43);
+  --ocean-sheer-card: rgba(7, 34, 70, .58);
+  --ocean-sheer-hover: rgba(15, 55, 95, .7);
+  --ocean-sheer-elevated: rgba(5, 29, 61, .78);
+  --ocean-hairline: rgba(181, 211, 235, .16);
+  --ocean-hairline-bright: rgba(181, 211, 235, .3);
+  --ocean-glow-cyan: rgba(91, 184, 223, .28);
+  --ocean-text-sub: #d5e4f0;
+  --ocean-text-dim: #aebfd0;
+}
+
+html,
+body,
+body.light-glass,
+body.dark-glass {
+  background-color: #061a35 !important;
+  background-image:
+    linear-gradient(115deg, rgba(2, 17, 39, .51), rgba(3, 25, 52, .34) 52%, rgba(2, 17, 39, .49)),
+    url('/static/images/background-ocean.jpg') !important;
+  background-position: center, center 48% !important;
+  background-size: cover, cover !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed !important;
+}
+
+body.chat-scene-active {
+  background-color: #07519b !important;
+  background-image: url('/static/images/chat/ocean-gold-dawn.png') !important;
+  background-position: center top !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+body > header,
+body.chat-scene-active > header {
+  background: rgba(3, 40, 88, .84) !important;
+  border-bottom: 1px solid rgba(156, 202, 232, .19) !important;
+  box-shadow: 0 6px 28px rgba(2, 15, 37, .18) !important;
+  backdrop-filter: blur(15px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(15px) saturate(110%) !important;
+}
+body > header nav.glass-dock {
+  background: rgba(6, 25, 52, .65) !important;
+  border: 1px solid rgba(255, 255, 255, .12) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 20px rgba(1, 14, 32, .25) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+body > header .nav-btn.glass-pill-cyan-active,
+#nav-home-tab.glass-pill-cyan-active,
+body.chat-scene-active #nav-chat-tab.glass-pill-cyan-active {
+  background: #0c2b54 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(56, 189, 248, .35) !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, .25) !important;
+}
+body.chat-scene-active #nav-doctor-tab { background: transparent !important; }
+body > aside.glass-dock {
+  background: rgba(5, 23, 48, .75) !important;
+  border: 1px solid rgba(255, 255, 255, .12) !important;
+  box-shadow: 0 12px 36px rgba(1, 13, 32, .35) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* The home hero is the reference surface for the rest of the palette. */
+#home-tab .home-hero-banner,
+body.light-glass #home-tab .home-hero-banner,
+body:not(.light-glass) #home-tab .home-hero-banner {
+  background: linear-gradient(135deg, rgba(7, 27, 54, 0.95) 0%, rgba(9, 36, 72, 0.92) 50%, rgba(11, 46, 92, 0.90) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  box-shadow: 0 20px 50px rgba(2, 14, 34, 0.45) !important;
+  backdrop-filter: blur(24px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(120%) !important;
+  border-radius: 28px !important;
+}
+#home-tab .home-discovery-card,
+body.light-glass #home-tab .home-discovery-card,
+body:not(.light-glass) #home-tab .home-discovery-card {
+  background: rgba(6, 26, 52, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 14px 34px rgba(1, 20, 45, 0.3) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  border-radius: 20px !important;
+  transition: all 0.25s ease !important;
+}
+#home-tab .home-discovery-card:hover,
+body.light-glass #home-tab .home-discovery-card:hover,
+body:not(.light-glass) #home-tab .home-discovery-card:hover {
+  background: rgba(9, 38, 76, 0.92) !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 20px 40px rgba(1, 20, 45, 0.45) !important;
+}
+
+/* Shared glass surfaces on the clinical, facility, profile and settings pages. */
+#ocr-tab .glass-panel,
+#ocr-tab .glass-card,
+#booking-tab .glass-panel,
+#booking-tab .glass-card,
+#profile-tab .glass-panel,
+#profile-tab .glass-card,
+#settings-tab .glass-panel,
+#settings-tab .glass-card {
+  background: var(--ocean-sheer-pane) !important;
+  border-color: var(--ocean-hairline) !important;
+  box-shadow: 0 10px 30px rgba(1, 16, 39, .17) !important;
+}
+
+/* The chat scene shares the quieter canvas while keeping its fixed composer. */
+body.chat-scene-active #chat-tab .chat-history-shell {
+  background: rgba(4, 32, 71, .72) !important;
+  border-color: rgba(158, 205, 232, .22) !important;
+}
+body.chat-scene-active #chat-tab .chat-history-item {
+  background: rgba(5, 39, 79, .69) !important;
+  border-color: rgba(147, 197, 225, .18) !important;
+}
+body.chat-scene-active #chat-tab .chat-quick-prompts > button {
+  background: rgba(6, 49, 95, .7) !important;
+  border-color: rgba(104, 188, 225, .54) !important;
+  box-shadow: none !important;
+}
+body.chat-scene-active #chat-tab .chat-scene-input {
+  background: rgba(4, 39, 84, .84) !important;
+  border-color: #67bde1 !important;
+  box-shadow: 0 0 0 1px rgba(113, 197, 226, .16), 0 10px 30px rgba(1, 20, 45, .2) !important;
+}
+body.chat-scene-active #chat-tab #send-btn { background: #138ac0 !important; }
+
+/* Nutrition result cards use the same dark glass instead of pale blue. */
+#doctor-tab #nf-results .nf-condition-banner {
+  background: linear-gradient(100deg, rgba(8, 67, 123, .94), rgba(6, 47, 96, .94)) !important;
+  border-color: rgba(111, 190, 227, .75) !important;
+  box-shadow: 0 10px 26px rgba(1, 26, 61, .26) !important;
+}
+#doctor-tab #nf-results .nf-condition-banner > span { background: rgba(34, 124, 157, .76) !important; }
+#doctor-tab #nf-results .nf-context { background: rgba(6, 44, 87, .75) !important; }
+#doctor-tab #nf-results .nf-notice { background: rgba(4, 38, 78, .82) !important; }
+#doctor-tab #nf-results .nf-mode-btn.active {
+  background: #477f9f !important;
+  border-color: rgba(148, 211, 232, .6) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 16px rgba(1, 25, 54, .16) !important;
+}
+#doctor-tab #nf-results .nf-meal-hero,
+#doctor-tab #nf-results .nf-meal-dish-card,
+#doctor-tab #nf-results .nf-card {
+  background: rgba(6, 34, 71, .83) !important;
+  border-color: rgba(180, 216, 238, .22) !important;
+  box-shadow: 0 14px 34px rgba(1, 19, 43, .25) !important;
+  color: #edf6fc !important;
+}
+#doctor-tab #nf-results .nf-meal-hero-badge,
+#doctor-tab #nf-results .nf-meal-time-tag,
+#doctor-tab #nf-results .nf-card-footer b,
+#doctor-tab #nf-results .nf-meal-dish-footer b { color: #9cd5f0 !important; }
+#doctor-tab #nf-results .nf-meal-time-tag { background: rgba(20, 75, 119, .72) !important; border-color: rgba(136, 199, 229, .45) !important; }
+#doctor-tab #nf-results .nf-meal-hero-title,
+#doctor-tab #nf-results .nf-dish-heading strong,
+#doctor-tab #nf-results .nf-card-content strong { color: #fff !important; }
+#doctor-tab #nf-results .nf-meal-energy,
+#doctor-tab #nf-results .nf-reason-compact,
+#doctor-tab #nf-results .nf-reason,
+#doctor-tab #nf-results .nf-meal-staple {
+  background: rgba(17, 65, 108, .72) !important;
+  border-color: rgba(157, 205, 229, .17) !important;
+  color: #e6f2fa !important;
+}
+#doctor-tab #nf-results .nf-meal-energy span,
+#doctor-tab #nf-results .nf-meal-energy-note small,
+#doctor-tab #nf-results .nf-meal-hero-rationale p,
+#doctor-tab #nf-results .nf-meal-staple,
+#doctor-tab #nf-results .nf-reason-compact p,
+#doctor-tab #nf-results .nf-reason-text,
+#doctor-tab #nf-results .nf-meal-dish-footer,
+#doctor-tab #nf-results .nf-card-footer { color: #dceaf4 !important; }
+#doctor-tab #nf-results .nf-meal-energy strong,
+#doctor-tab #nf-results .nf-meal-staple b { color: #b1def3 !important; }
+#doctor-tab #nf-results .nf-meal-hero-rationale { background: rgba(13, 72, 79, .64) !important; }
+#doctor-tab #nf-results .nf-rationale-head,
+#doctor-tab #nf-results .nf-reason-header { color: #91dfc8 !important; }
+#doctor-tab #nf-results .nf-kcal { background: #e1c990 !important; color: #533912 !important; }
+
+/* Chopper is the notification control, positioned before the account control. */
+#lang-picker-container { order: 0; }
+.header-notification-wrap { order: 1; flex: none; }
+#auth-unlogged,
+#auth-logged { order: 2; }
+#notif-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  position: relative;
+}
+.header-chopper-portrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+#header-chopper {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex: none;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(1, 17, 41, .45));
+  transition: transform 0.2s ease;
+}
+#notif-btn:hover #header-chopper {
+  transform: scale(1.1);
+}
+.header-notification-bell {
+  display: none !important;
+}
+
+@media (max-width: 639px) {
+  #notif-btn { width: 38px; height: 38px; }
+  .header-chopper-portrait { width: 34px; height: 34px; }
+  #header-chopper { width: 34px; height: 34px; }
+  .header-notification-bell { display: none !important; }
+}

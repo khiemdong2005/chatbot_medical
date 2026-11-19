@@ -112,7 +112,7 @@ EXPANSIONS = {
     "cang thang": "ca hoi ca nac ga nam hat sen chuoi rau xanh dau hu yen mach canh xao bun pho com vegetable soup fish oats",
     "met moi": "ga nac ca bo chao bun pho com mi truyen nang luong dam vitamin rau xanh chanh gung sam hat sen soup oats",
     "trao nguoc": "gao hap luoc rau yen mach khoai tay khoai lang ca nac ga hap bi do canh steamed boiled vegetable",
-    "gut": "rau cu bi dao dua leo ca rot khoai lang dau hu canh rau com bun mi vegetable soup cucumber",
+    "gut": "dau hu uc ga thit ga chao bun pho mien com canh rau bi dao bi xanh dua leo ca rot khoai tay vegetable tofu chicken congee soup",
     "tieu duong": "rau xanh ca nac ga nac dau hu kho qua bi dao bi xanh canh xao vegetable fish chicken",
     "hypertension": "can tay rau cai ca nac nam cu cai ca chua dau xanh canh xao celery vegetable fish",
     "stomach": "chao sup khoai tay bi do dau hu non ca hap ga luoc chuoi mem soup congee steamed soft bun",
@@ -122,20 +122,23 @@ EXPANSIONS = {
 }
 
 STANDALONE_PATTERN = re.compile(
-    r'(?<!bó\s)\b(bún|phở|hủ tiếu|hủ tíu|hu tieu|mì|miến|bánh canh|cơm tấm|cơm chiên|cơm rang|cơm gà|cơm trộn|cơm hến|cơm lam|cơm sườn|cơm thố|cơm niêu|cháo|súp|bánh mì|xôi|bánh cuốn|bánh ướt|bánh xèo|bánh khọt|bánh hỏi|mì quảng|cao lầu|nui|bò kho|lẩu|chè|sữa hạt|sinh tố|nước mát|pasta|spaghetti|sandwich|burger)\b',
+    r'(?<!bó\s)\b(bún|phở|hủ tiếu|hủ tíu|hu tieu|mì|miến|bánh canh|cơm tấm|cơm chiên|cơm rang|cơm gà|cơm trộn|cơm hến|cơm lam|cơm sườn|cơm thố|cơm niêu|cháo|súp|bánh mì|xôi|bánh cuốn|bánh ướt|bánh xèo|bánh khọt|bánh hỏi|mì quảng|cao lầu|nui|bò kho|lẩu|pasta|spaghetti|sandwich|burger)\b',
     re.IGNORECASE
 )
 
 
 def is_standalone_one_dish(recipe):
-    """Kiểm tra món ăn có phải món đơn lẻ trọn vị (One-dish meal: bún, phở, mì, miến, cơm tấm, cháo, súp, bánh...)
-    hoặc thức uống/chè dinh dưỡng, chứ không phải món thành phần trong mâm cơm (canh suông, rau luộc, món mặn ăn cơm)."""
+    """Kiểm tra món ăn có phải món đơn lẻ trọn vị (One-dish meal: bún, phở, mì, miến, cơm tấm, cháo, súp, bánh mì, xôi...)
+    chứ không phải món thành phần trong mâm cơm (canh suông, rau luộc, món mặn ăn cơm) hay món chè ngọt/tráng miệng."""
     if not recipe:
         return False
     if recipe.get("recipe_type") == "drink":
         return True
     title = str(recipe.get("title", "")).strip()
     if title.lower().startswith("canh ") or title.lower().startswith("canh:"):
+        return False
+    t_lower = title.lower()
+    if any(k in t_lower for k in ["chè ", " chè", "chè:", "bột báng", "sợi bánh canh", "làm sợi", "sâm bổ lượng", "bánh ít", "bánh chuối", "bánh bò", "bánh ngọt", "pudding", "caramel"]):
         return False
     cleaned = re.sub(r"bó\s+xôi", "", title, flags=re.I)
     cleaned = re.sub(r"mì\s+căn", "", cleaned, flags=re.I)
@@ -148,7 +151,7 @@ def classify_dish_role(recipe):
         return "drink"
     title = normalize(recipe.get("title", ""))
     cats = normalize(" ".join(recipe.get("categories", [])))
-    if any(k in title for k in ["chao ", "sup ", "cháo", "súp", "oatmeal", "porridge", "congee", "mien ", "bun ", "pho ", "banh canh", "hu tieu", "com ", "mi ", "nui", "banh cuon", "banh uot", "banh mi", "xoi "]):
+    if any(k in title for k in ["chao ", "sup ", "cháo", "súp", "oatmeal", "porridge", "congee", "mien ", "bun ", "pho ", "banh canh", "hu tieu", "com ", "mi ", "nui", "banh cuon", "banh uot", "banh mi", "xoi ", "khoai", "bap luoc", "ngo luoc", "san luoc"]):
         return "staple"
     if any(k in title for k in ["canh", "lau", "lẩu"]) or "canh" in cats:
         return "soup"
@@ -184,7 +187,7 @@ def retrieve_candidates(condition, recipes, limit=32, sort_by_sugar=False):
     query = normalize(condition)
     expanded = query + " " + " ".join(v for k, v in EXPANSIONS.items() if re.search(r"\b" + re.escape(k) + r"\b", query))
     tokens = {t for t in re.findall(r"[a-z]{2,}", expanded) if t not in
-              {"toi", "can", "muon", "the", "and", "for", "bi", "mon", "an", "uong", "sot", "ho", "mat", "ngu", "nhiet", "mieng"}}
+              {"toi", "can", "muon", "the", "and", "for", "bi", "mon", "an", "uong", "sot", "ho", "mat", "ngu", "nhiet", "mieng", "dau", "mo", "it", "khong", "tranh", "giam", "nhieu"}}
     def score(recipe):
         title = normalize(recipe.get("title", ""))
         categories = normalize(" ".join(recipe.get("categories", [])))

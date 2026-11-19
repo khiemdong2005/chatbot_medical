@@ -59,12 +59,12 @@ def test_emergency_parity_across_backends(client):
     flask_res = client.post("/api/chat", json=emergency_payload)
     assert flask_res.status_code == 200
     assert flask_res.get_json()["is_emergency"] is True
-    assert flask_res.get_json()["risk_score"] == 90
+    assert flask_res.get_json()["risk_score"] is None
 
     # FastAPI
     fastapi_client = TestClient(fastapi_app)
     fastapi_res = fastapi_client.post("/api/chat", json=emergency_payload)
     assert fastapi_res.status_code == 200
     assert fastapi_res.json()["is_emergency"] is True
-    assert fastapi_res.json()["risk_score"] == 90
+    assert fastapi_res.json()["risk_score"] is None
 
