@@ -456,6 +456,8 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
             reason = "Công thức gốc hoặc phần trích xuất còn thiếu thông tin; chưa dùng để tự động gợi ý."
         elif meta and meta.get("unsafe_preparation"):
             reason = "Công thức có thành phần/cách chuẩn bị chưa phù hợp để tự động gợi ý trong ứng dụng này."
+        elif allergies and meta and meta.get("allergen_uncertain"):
+            reason = "Công thức nhập có nguyên liệu hoặc sản phẩm chưa xác minh đủ thành phần dị ứng."
         elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach", "fatty_liver") for ctx in contexts)):
             reason = "Chưa có metadata nguyên liệu/đặc tính được rà soát cho công thức này."
         elif verified:

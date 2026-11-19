@@ -40,6 +40,7 @@ def extract_with_gemini_schema(
     if not llm_provider.is_configured(profile="ocr", explicit_key=api_key):
         return None
 
+    auto_crop = False
     try:
         from google.genai import types
 
@@ -53,6 +54,8 @@ def extract_with_gemini_schema(
             try:
                 from core.prescription_crop_service import crop_and_upscale_medication_region
                 crop_image_path = crop_and_upscale_medication_region(image_path, ocr_result)
+                if crop_image_path and os.path.exists(crop_image_path):
+                    auto_crop = True
             except Exception as ce:
                 logger.debug("Automatic crop attempt failed: %s", ce)
 
@@ -189,5 +192,10 @@ Dạng JSON:
 
     except Exception as e:
         logger.warning("Gemini schema extraction failed (%s).", type(e).__name__)
-
-    return None
+        return None
+    finally:
+        if auto_crop and crop_image_path and os.path.exists(crop_image_path):
+            try:
+                os.remove(crop_image_path)
+            except Exception:
+                pass

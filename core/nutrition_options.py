@@ -720,6 +720,22 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                     selected_ids.add(cand["id"])
                     selected_titles.add(title_key(cand))
 
+            # Dự phòng: Nếu không có đủ món trọn vị (ví dụ trong tập test nhỏ), lấy các món không trùng mâm cơm
+            if not singles:
+                singles = [
+                    r for r in result["recipes"]
+                    if r["id"] not in fms_ids and title_key(r) not in fms_titles
+                ]
+                if not singles:
+                    for cand in candidates + eligible:
+                        if cand["id"] not in fms_ids and title_key(cand) not in fms_titles and cand["id"] not in selected_ids:
+                            cand_copy = deepcopy(cand)
+                            _enrich_recipe(cand_copy, condition)
+                            singles.append(cand_copy)
+                            selected_ids.add(cand["id"])
+                            if len(singles) >= 3:
+                                break
+
             result["recipes"] = singles
         else:
             result["full_meal_set"] = None

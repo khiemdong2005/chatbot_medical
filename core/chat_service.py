@@ -169,7 +169,7 @@ def process_clinical_chat(
             "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
             "risk_score": None,
             "symptoms": emergency["symptoms"],
-            "specialist": "Khoa Cấp cứu" if lang == "vi" else "Emergency Department",
+            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
             "is_emergency": True,
             "visual_findings": [],
             "differential_diagnosis": ["Dấu hiệu cấp cứu tim mạch / hô hấp"],
@@ -487,7 +487,7 @@ def execute_chat_workflow(
             "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
             "risk_score": None,
             "symptoms": intake_res.get("emergency_symptoms", []),
-            "specialist": "Khoa Cấp cứu" if lang == "vi" else "Emergency Department",
+            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
             "visual_findings": [], "differential_diagnosis": [],
             "is_emergency": True, "degraded": False, "sources": [], "grounding_status": "emergency",
         }

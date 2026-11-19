@@ -3,10 +3,13 @@ import sys
 import json
 import time
 import re
+import logging
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight

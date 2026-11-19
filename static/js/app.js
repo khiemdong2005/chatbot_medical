@@ -1827,7 +1827,7 @@ function closeLanguageDropdown() {
 }
 
 function setLanguage(lang) {
-  if (lang !== currentLang && preVisitSummaryRequest) closePreVisitSummaryModal();
+  if (lang !== currentLang && typeof preVisitSummaryRequest !== 'undefined' && preVisitSummaryRequest && typeof closePreVisitSummaryModal === 'function') closePreVisitSummaryModal();
   currentLang = lang;
   try { localStorage.setItem('medimind_lang', lang); } catch (e) {}
   closeLanguageDropdown();
@@ -1836,8 +1836,8 @@ function setLanguage(lang) {
   updateAuthUI();
   if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
   translateStaticDom();
-  syncChatSummaryButton();
-  updateSummarySaveButton();
+  if (typeof syncChatSummaryButton === 'function') syncChatSummaryButton();
+  if (typeof updateSummarySaveButton === 'function') updateSummarySaveButton();
   window.dispatchEvent(new Event('medimind:langchange'));
 }
 
