@@ -179,6 +179,8 @@ def get_facilities_map_markers() -> Dict[str, Any]:
                     "type": x.get("loai_hinh") or "",
                     "spec": x.get("chuyen_khoa") or "",
                     "address": x.get("dia_chi_hien_thi_tren_web") or x.get("dia_chi") or "",
+                    "so_giay_phep": x.get("so_giay_phep") or "",
+                    "ngay_cap": x.get("ngay_cap") or "",
                     "lat": float(lat),
                     "lng": float(lng),
                     "link": x.get("link") or ""

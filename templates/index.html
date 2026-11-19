@@ -252,6 +252,20 @@
 
     </button>
 
+    <button onclick="switchTab('my-appointments-tab')" id="dock-my-appointments-tab"
+      class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
+
+      <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+
+      <span data-i18n="dock_my_appointments"
+        class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Lịch
+        hẹn của tôi</span>
+
+    </button>
+
 
 
     <button onclick="switchTab('doctor-tab')" id="dock-doctor-tab"
@@ -353,6 +367,10 @@
       <button onclick="switchTab('booking-tab')" id="nav-booking-tab" data-i18n="nav_booking"
         class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Cơ
         sở y tế</button>
+
+      <button onclick="switchTab('my-appointments-tab')" id="nav-my-appointments-tab" data-i18n="nav_my_appointments"
+        class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Lịch
+        hẹn của tôi</button>
 
       <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" data-i18n="nav_doctor"
         class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Thử
@@ -879,7 +897,7 @@
           </div>
 
           <!-- Card 3: Lịch hẹn sắp tới (Amber Theme) -->
-          <div onclick="switchTab('booking-tab')"
+          <div onclick="switchTab('my-appointments-tab')"
             class="home-discovery-card home-card-booking rounded-3xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between">
             <div>
               <div
@@ -1477,6 +1495,69 @@
         </main>
       </div>
 
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2.5: LỊCH HẸN CỦA TÔI (MY APPOINTMENTS)                     -->
+    <!-- ============================================================== -->
+    <div id="my-appointments-tab" class="tab-content w-full flex-1 flex-col py-3 space-y-5">
+      <!-- Appointments Top Banner -->
+      <div class="glass-panel p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-600 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/25">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h2 data-i18n="my_appts_title" class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Lịch hẹn khám của tôi</h2>
+            <p data-i18n="my_appts_subtitle" class="text-xs text-slate-500 dark:text-slate-400">Theo dõi, quản lý và kiểm tra trạng thái các phiếu đặt hẹn khám bệnh</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+          <button type="button" onclick="loadUserAppointments()" class="px-3.5 py-2 rounded-xl text-xs font-semibold glass-pill border border-slate-200 dark:border-white/10 hover:border-amber-400 text-slate-700 dark:text-slate-300 hover:text-amber-500 transition-all flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span data-i18n="my_appts_btn_refresh">Làm mới</span>
+          </button>
+          <button type="button" onclick="switchTab('booking-tab')" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span data-i18n="my_appts_btn_new">Đặt lịch mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Appointments List Container -->
+      <div class="glass-panel p-5 sm:p-6 flex-1 flex flex-col min-h-[450px]">
+        <!-- Loading State -->
+        <div id="my-appts-loading" class="hidden flex-1 flex flex-col items-center justify-center py-12 text-slate-400 space-y-3">
+          <svg class="w-8 h-8 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span data-i18n="my_appts_loading_text" class="text-xs font-medium">Đang tải danh sách lịch hẹn...</span>
+        </div>
+
+        <!-- Empty State -->
+        <div id="my-appts-empty" class="hidden flex-1 flex flex-col items-center justify-center py-16 text-center space-y-3">
+          <div class="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl">
+            📅
+          </div>
+          <h3 data-i18n="my_appts_empty_title" class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">Bạn chưa có lịch hẹn khám nào</h3>
+          <p data-i18n="my_appts_empty_desc" class="text-xs text-slate-500 dark:text-slate-400 max-w-sm">Chọn cơ sở y tế phù hợp tại mục Cơ sở y tế để đặt lịch khám nhanh chóng theo các chuyên khoa.</p>
+          <button type="button" onclick="switchTab('booking-tab')" class="mt-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-white shadow-md shadow-amber-500/25 transition-all cursor-pointer">
+            <span data-i18n="my_appts_btn_explore">Khám phá cơ sở y tế ngay</span>
+          </button>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="my-appts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically Rendered by JS -->
+        </div>
+      </div>
     </div>
 
     <!-- TAB 3: ĐỌC ĐƠN THUỐC LÂM SÀNG -->
@@ -4048,15 +4129,17 @@
   <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.3"></script>
 
   <!-- ============================================================== -->
-  <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->
+  <!-- FACILITY APPOINTMENT BOOKING MODAL (DOCTOGO MULTI-STEP FLOW)     -->
   <!-- ============================================================== -->
   <div id="facility-booking-modal" role="dialog" aria-modal="true" aria-labelledby="book-modal-facility-name"
-    class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+    class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden"
     onclick="if(event.target === this) closeFacilityBookingModal()">
     <div
-      class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5 text-slate-900 dark:text-white backdrop-blur-2xl">
+      class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-xl w-full p-5 sm:p-7 shadow-2xl relative max-h-[92vh] flex flex-col text-slate-900 dark:text-white backdrop-blur-2xl">
+      
+      <!-- Modal Close Button -->
       <button type="button" onclick="closeFacilityBookingModal()"
-        class="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+        class="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer z-10"
         title="Đóng">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -4064,101 +4147,205 @@
         </svg>
       </button>
 
-      <div class="space-y-1">
-        <span data-i18n="book_modal_tag"
-          class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block font-mono">ĐẶT LỊCH
-          KHÁM BỆNH</span>
-        <h3 id="book-modal-facility-name"
-          class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">BVĐK Quốc Tế Vinmec
-          Central Park</h3>
-        <p id="book-modal-facility-address" class="text-xs text-slate-500 dark:text-slate-400">208 Nguyễn Hữu Cảnh, Q.
-          Bình Thạnh, TP.HCM</p>
+      <!-- Modal Header & Step Indicator (Doctogo Style) -->
+      <div class="space-y-3 pb-3 border-b border-slate-100 dark:border-white/10 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30 uppercase tracking-wider" id="book-modal-step-badge">
+            Bước 1 / 4
+          </span>
+          <h3 id="book-modal-step-title" class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+            Chọn chuyên khoa khám
+          </h3>
+        </div>
+
+        <!-- Stepper Progress Bar -->
+        <div class="grid grid-cols-4 gap-1.5 pt-1">
+          <div id="step-prog-1" class="h-1.5 rounded-full bg-sky-500 transition-all"></div>
+          <div id="step-prog-2" class="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 transition-all"></div>
+          <div id="step-prog-3" class="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 transition-all"></div>
+          <div id="step-prog-4" class="h-1.5 rounded-full bg-slate-200 dark:bg-white/10 transition-all"></div>
+        </div>
       </div>
 
-      <!-- Cảnh báo minh bạch tính năng Lưu lịch nhắc -->
-      <div
-        class="p-3 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-900 dark:text-sky-200 text-xs flex items-start space-x-2.5">
-        <span class="text-base leading-none">⏰</span>
-        <p class="leading-relaxed"><strong>Lưu lịch nhắc cá nhân:</strong> Thông tin sẽ được lưu trực tiếp trên thiết bị
-          của bạn để nhắc ngày giờ đi khám. Để hoàn tất đăng ký khám chính thức, vui lòng liên hệ tổng đài bệnh viện.
-        </p>
-      </div>
-
-      <form onsubmit="handleFacilityBookingSubmit(event)"
-        class="space-y-4 pt-2 border-t border-slate-200 dark:border-white/10 text-xs">
+      <!-- Scrollable Modal Body -->
+      <div class="flex-1 overflow-y-auto py-3 space-y-4 pr-1">
         <input type="hidden" id="book-modal-facility-id">
-        <!-- Specialty Selection -->
-        <div>
-          <label data-i18n="book_modal_lbl_spec" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Chuyên
-            khoa khám</label> <select id="book-modal-spec" required
-            class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
-            <option value="Khám tổng quát">Khám tổng quát</option>
-            <option value="Tim mạch">Tim mạch</option>
-            <option value="Nhi khoa">Nhi khoa</option>
-            <option value="Tai Mũi Họng">Tai Mũi Họng</option>
-            <option value="Nội tiết &amp; Tiểu đường">Nội tiết &amp; Tiểu đường</option>
-            <option value="Tiêu hóa &amp; Gan mật">Tiêu hóa &amp; Gan mật</option>
-            <option value="Chấn thương chỉnh hình">Chấn thương chỉnh hình</option>
-          </select>
-        </div>
 
-        <!-- Date & Time -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label data-i18n="book_modal_lbl_date" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Ngày
-              khám mong muốn</label>
-            <input type="date" id="book-modal-date" aria-label="Ngày khám" required
-              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+        <!-- ================= STEP 1: CHỌN CHUYÊN KHOA ================= -->
+        <div id="booking-step-1" class="space-y-3">
+          <div class="relative">
+            <input type="text" id="book-step1-search" oninput="filterBookingSpecialties(this.value)"
+              placeholder="Tìm kiếm chuyên khoa..." data-i18n-placeholder="book_step1_search_ph"
+              class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-2xl pl-9 pr-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+            <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
           </div>
-          <div>
-            <label data-i18n="book_modal_lbl_time" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Khung
-              giờ</label> <select id="book-modal-time" required
-              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
-              <option value="08:00 - 09:30">Sáng (08:00 - 09:30)</option>
-              <option value="09:30 - 11:00">Sáng (09:30 - 11:00)</option>
-              <option value="13:30 - 15:00">Chiều (13:30 - 15:00)</option>
-              <option value="15:00 - 16:30">Chiều (15:00 - 16:30)</option>
-            </select>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+            <span>ℹ️</span> <span data-i18n="book_step1_hint">Danh sách các chuyên khoa được hỗ trợ tại cơ sở này:</span>
+          </p>
+          <div id="book-step1-specialties-list" class="space-y-1.5 max-h-[300px] overflow-y-auto">
+            <!-- Dynamically populated -->
           </div>
         </div>
 
-        <!-- Patient Info -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label data-i18n="book_modal_lbl_name" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Họ và
-              tên bệnh nhân</label>
-            <input type="text" id="book-modal-name" aria-label="Họ và tên bệnh nhân" required
-              data-i18n-placeholder="book_modal_ph_name" placeholder="Ví dụ: Nguyễn Văn A"
-              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+        <!-- ================= STEP 2: XÁC NHẬN CƠ SỞ & PHÒNG KHÁM ================= -->
+        <div id="booking-step-2" class="space-y-3 hidden">
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-sky-50/40 dark:from-slate-800/60 dark:to-slate-900 border border-slate-200 dark:border-white/10 space-y-3">
+            <div class="flex items-start gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xl shrink-0 border border-sky-500/20">
+                🏥
+              </div>
+              <div class="space-y-1 min-w-0">
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/15 text-sky-600 dark:text-sky-400 uppercase font-mono" id="book-step2-badge">
+                  Cơ sở tiếp nhận
+                </span>
+                <h4 id="book-modal-facility-name" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+                  Tên cơ sở y tế
+                </h4>
+                <p id="book-modal-facility-address" class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                  Địa chỉ cơ sở y tế
+                </p>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200/80 dark:border-white/10 grid grid-cols-2 gap-2 text-xs">
+              <div class="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+                <span data-i18n="book_step2_lbl_spec" class="text-[10px] text-slate-400 block font-medium">Chuyên khoa đã chọn</span>
+                <span id="book-step2-selected-spec" class="font-bold text-sky-600 dark:text-sky-400">Đa khoa</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white/70 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
+                <span data-i18n="book_step2_lbl_hours" class="text-[10px] text-slate-400 block font-medium">Giờ hoạt động</span>
+                <span id="book-step2-hours" class="font-bold text-emerald-600 dark:text-emerald-400">08:00 - 20:00</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <label data-i18n="book_modal_lbl_phone" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Số
-              điện thoại liên hệ</label>
-            <input type="tel" id="book-modal-phone" aria-label="Số điện thoại liên hệ" required
-              data-i18n-placeholder="book_modal_ph_phone" placeholder="Ví dụ: 0912 345 678"
-              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+
+          <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2">
+            <span class="text-base leading-none">👨‍⚕️</span>
+            <p data-i18n="book_step2_doc_notice" class="leading-relaxed">
+              <strong>Bác sĩ chuyên khoa tiếp nhận:</strong> Bác sĩ trực thuộc chuyên khoa sẽ được phòng khám phân công theo lịch trống tối ưu nhất cho bạn.
+            </p>
           </div>
         </div>
 
-        <!-- Symptoms / Note -->
-        <div>
-          <label data-i18n="book_modal_lbl_note" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Lý do
-            khám / Triệu chứng sơ bộ</label>
-          <textarea id="book-modal-note" rows="2" data-i18n-placeholder="book_modal_ph_note"
-            placeholder="Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc..."
-            class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"></textarea>
+        <!-- ================= STEP 3: CHỌN NGÀY & KHUNG GIỜ (SLOT SELECTION) ================= -->
+        <div id="booking-step-3" class="space-y-4 hidden">
+          <div>
+            <label data-i18n="book_step3_lbl_date" class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Chọn ngày khám mong muốn
+            </label>
+            <input type="date" id="book-modal-date" required onchange="onBookingDateChanged(this.value)"
+              class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+          </div>
+
+          <!-- Morning Slots -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+              <span>🌅</span> <span data-i18n="book_step3_morning">Buổi sáng (08:00 - 11:30)</span>
+            </div>
+            <div id="book-slots-morning" class="grid grid-cols-4 sm:grid-cols-4 gap-2">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Afternoon Slots -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-sky-600 dark:text-sky-400">
+              <span>🌇</span> <span data-i18n="book_step3_afternoon">Buổi chiều (13:30 - 17:00)</span>
+            </div>
+            <div id="book-slots-afternoon" class="grid grid-cols-4 sm:grid-cols-4 gap-2">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+          <input type="hidden" id="book-modal-time">
         </div>
 
-        <div class="pt-2 flex items-center justify-end space-x-2.5">
+        <!-- ================= STEP 4: THÔNG TIN NGƯỜI KHÁM & XÁC NHẬN ================= -->
+        <div id="booking-step-4" class="space-y-4 hidden">
+          <!-- Summary Pill -->
+          <div class="p-3.5 rounded-2xl bg-sky-500/10 border border-sky-500/25 text-xs space-y-1.5">
+            <div class="flex items-center justify-between font-bold text-slate-900 dark:text-white">
+              <span id="book-step4-summary-fac">Phòng khám ABC</span>
+              <span id="book-step4-summary-time" class="text-sky-600 dark:text-sky-400 font-mono">08:30 • 20/11/2026</span>
+            </div>
+            <div class="text-[11px] text-slate-600 dark:text-slate-300">
+              <span data-i18n="book_step4_summary_spec">Chuyên khoa:</span> <strong id="book-step4-summary-spec">Đa khoa</strong>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label data-i18n="book_modal_lbl_name" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                Họ và tên bệnh nhân <span class="text-rose-500">*</span>
+              </label>
+              <input type="text" id="book-modal-name" required placeholder="Ví dụ: Nguyễn Văn A"
+                data-i18n-placeholder="book_modal_ph_name"
+                class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label data-i18n="book_modal_lbl_phone" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Số điện thoại <span class="text-rose-500">*</span>
+                </label>
+                <input type="tel" id="book-modal-phone" required placeholder="Ví dụ: 0912 345 678"
+                  data-i18n-placeholder="book_modal_ph_phone"
+                  class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+              </div>
+              <div>
+                <label data-i18n="book_modal_lbl_email" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Email liên hệ
+                </label>
+                <input type="email" id="book-modal-email" placeholder="Ví dụ: user@gmail.com"
+                  data-i18n-placeholder="book_modal_ph_email"
+                  class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+              </div>
+            </div>
+
+            <div>
+              <label data-i18n="book_modal_lbl_note" class="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                Lý do khám / Triệu chứng sơ bộ
+              </label>
+              <textarea id="book-modal-note" rows="2" placeholder="Ví dụ: Đau họng, sốt nhẹ 2 ngày, cần tư vấn chuyên khoa..."
+                data-i18n-placeholder="book_modal_ph_note"
+                class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"></textarea>
+            </div>
+
+            <div class="flex items-start gap-2 pt-1">
+              <input type="checkbox" id="book-modal-terms" checked required class="mt-0.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 cursor-pointer">
+              <label for="book-modal-terms" class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                <span data-i18n="book_step4_terms">Tôi đồng ý chia sẻ thông tin liên hệ và lý do khám với cơ sở y tế để được phục vụ chu đáo nhất.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Controls -->
+      <div class="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0">
+        <button type="button" id="book-modal-btn-prev" onclick="goToBookingStep(currentBookingStep - 1)"
+          class="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-all cursor-pointer hidden">
+          ← <span data-i18n="book_btn_prev">Quay lại</span>
+        </button>
+        <div class="flex items-center gap-2 ml-auto">
           <button type="button" onclick="closeFacilityBookingModal()" data-i18n="book_modal_btn_cancel"
-            class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold transition-all cursor-pointer">Hủy</button>
-          <button type="submit" data-i18n="book_modal_btn_submit"
-            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold shadow-md shadow-sky-500/20 transition-all cursor-pointer">Xác
-            nhận đặt lịch</button>
+            class="px-4 py-2 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-semibold text-xs transition-all cursor-pointer">
+            Hủy
+          </button>
+          <button type="button" id="book-modal-btn-next" onclick="handleBookingStepNext()"
+            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-sky-500/25 transition-all cursor-pointer flex items-center gap-1.5">
+            <span id="book-modal-btn-next-text" data-i18n="book_btn_next">Tiếp theo</span> →
+          </button>
         </div>
-      </form>
+      </div>
+
     </div>
   </div>
+
+  <!-- ============================================================== -->
+  <!-- FACILITY DETAIL INSPECTION MODAL                              -->
+  <!-- ============================================================== -->
 
   <!-- ============================================================== -->
   <!-- FACILITY DETAIL INSPECTION MODAL                              -->
@@ -4564,14 +4751,11 @@
       return s;
     }
 
-    // ponytail: GPS destination avoids Google Maps search failing on MoH license titles & 2025 merged ward names; upgrade to Place IDs if paid API is added.
     function buildGoogleMapsDirectionsUrl(fac) {
-      const lat = Number(fac?.lat), lng = Number(fac?.lng);
-      if (fac?.lat != null && fac?.lng != null && fac?.lat !== '' && fac?.lng !== '' &&
-        Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
-        return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-      }
-      const dest = fac?.dia_chi_cu_tren_web || fac?.dia_chi_hien_thi_tren_web || fac?.dia_chi || fac?.address || fac?.ten_ngan || fac?.ten || fac?.name || 'Ho Chi Minh City, Vietnam';
+      const name = fac?.ten_ngan || fac?.ten || fac?.name || '';
+      const address = fac?.dia_chi_cu_tren_web || fac?.dia_chi_hien_thi_tren_web || fac?.dia_chi || fac?.address || '';
+      const parts = [name, address].map(s => String(s || '').trim()).filter(Boolean);
+      const dest = parts.join(', ') || 'Ho Chi Minh City, Vietnam';
       return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
     }
 
@@ -4691,9 +4875,10 @@
 
       L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Esri World Street Map: CDN toàn cầu cực nhanh, hoàn toàn miễn phí không cần API key
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap'
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
       }).addTo(leafletMap);
 
       // Khởi tạo Marker Cluster với spiderfy tối ưu cho các phòng khám trùng tọa độ
@@ -5475,6 +5660,8 @@
             dia_chi: markerItem.address,
             dia_chi_hien_thi_tren_web: markerItem.address,
             quan_huyen: markerItem.district || '',
+            so_giay_phep: markerItem.so_giay_phep || '',
+            ngay_cap: markerItem.ngay_cap || '',
             lat: markerItem.lat,
             lng: markerItem.lng,
             link: markerItem.link || '',

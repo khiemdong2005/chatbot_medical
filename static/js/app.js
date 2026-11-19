@@ -612,6 +612,7 @@ const translations = {
     nav_chat: "Trợ lý sức khỏe",
     nav_ocr: "Đọc đơn thuốc lâm sàng",
     nav_booking: "Cơ sở y tế",
+    nav_my_appointments: "Lịch hẹn của tôi",
     nav_doctor: "Pha chế dinh dưỡng",
     nav_admin: "Hạ tầng hệ thống",
     nav_login: "Đăng nhập",
@@ -620,6 +621,7 @@ const translations = {
     dock_chat: "Trợ lý sức khỏe",
     dock_ocr: "Đọc đơn thuốc lâm sàng",
     dock_booking: "Cơ sở y tế & Bệnh viện",
+    dock_my_appointments: "Lịch hẹn của tôi",
     dock_doctor: "Pha chế dinh dưỡng",
     dock_wallpaper: "Đổi không gian y tế",
     dock_theme: "Chế độ Sáng / Tối",
@@ -812,10 +814,36 @@ const translations = {
     book_modal_ph_name: "Ví dụ: Nguyễn Văn A",
     book_modal_lbl_phone: "Số điện thoại liên hệ",
     book_modal_ph_phone: "Ví dụ: 0912 345 678",
+    book_modal_lbl_email: "Email liên hệ",
+    book_modal_ph_email: "Ví dụ: user@gmail.com",
     book_modal_lbl_note: "Lý do khám / Triệu chứng sơ bộ",
     book_modal_ph_note: "Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc...",
     book_modal_btn_cancel: "Hủy",
     book_modal_btn_submit: "Xác nhận đặt lịch",
+    book_btn_next: "Tiếp theo",
+    book_btn_prev: "Quay lại",
+    book_step1_search_ph: "Tìm kiếm chuyên khoa...",
+    book_step1_hint: "Danh sách các chuyên khoa được hỗ trợ tại cơ sở này:",
+    book_step2_lbl_spec: "Chuyên khoa đã chọn",
+    book_step2_lbl_hours: "Giờ hoạt động",
+    book_step2_doc_notice: "Bác sĩ trực thuộc chuyên khoa sẽ được phòng khám phân công theo lịch trống tối ưu nhất cho bạn.",
+    book_step3_lbl_date: "Chọn ngày khám mong muốn",
+    book_step3_morning: "Buổi sáng (08:00 - 11:30)",
+    book_step3_afternoon: "Buổi chiều (13:30 - 17:00)",
+    book_step4_summary_spec: "Chuyên khoa:",
+    book_step4_terms: "Tôi đồng ý chia sẻ thông tin liên hệ và lý do khám với cơ sở y tế để được phục vụ chu đáo nhất.",
+    my_appts_title: "Lịch hẹn khám của tôi",
+    my_appts_subtitle: "Theo dõi, quản lý và kiểm tra trạng thái các phiếu đặt hẹn khám bệnh",
+    my_appts_btn_refresh: "Làm mới",
+    my_appts_btn_new: "Đặt lịch mới",
+    my_appts_loading_text: "Đang tải danh sách lịch hẹn...",
+    my_appts_empty_title: "Bạn chưa có lịch hẹn khám nào",
+    my_appts_empty_desc: "Chọn cơ sở y tế phù hợp tại mục Cơ sở y tế để đặt lịch khám nhanh chóng theo các chuyên khoa.",
+    my_appts_btn_explore: "Khám phá cơ sở y tế ngay",
+    my_appts_status_pending: "Chờ xác nhận",
+    my_appts_status_confirmed: "Đã xác nhận",
+    my_appts_status_cancelled: "Đã hủy",
+    my_appts_btn_cancel_appt: "Hủy lịch hẹn",
     detail_modal_lbl_address: "Địa chỉ:",
     detail_modal_lbl_hours: "Thời gian hoạt động:",
     detail_modal_lbl_phone: "Tổng đài liên hệ:",
@@ -995,6 +1023,7 @@ const translations = {
     nav_chat: "Health Assistant",
     nav_ocr: "Clinical Prescriptions",
     nav_booking: "Hospitals & Clinics",
+    nav_my_appointments: "My Appointments",
     nav_doctor: "Nutrition Studio",
     nav_admin: "System Infrastructure",
     nav_login: "Sign In",
@@ -1003,6 +1032,7 @@ const translations = {
     dock_chat: "Health Assistant",
     dock_ocr: "Clinical Prescriptions",
     dock_booking: "Hospitals & Clinics",
+    dock_my_appointments: "My Appointments",
     dock_doctor: "Nutrition Studio",
     dock_wallpaper: "Change Theme Space",
     dock_theme: "Light / Dark Mode",
@@ -1195,10 +1225,36 @@ const translations = {
     book_modal_ph_name: "e.g. John Doe",
     book_modal_lbl_phone: "Contact Phone",
     book_modal_ph_phone: "e.g. +84 912 345 678",
+    book_modal_lbl_email: "Contact Email",
+    book_modal_ph_email: "e.g. user@gmail.com",
     book_modal_lbl_note: "Reason for Visit / Preliminary Symptoms",
     book_modal_ph_note: "e.g. Sore throat, mild fever for 2 days...",
     book_modal_btn_cancel: "Cancel",
     book_modal_btn_submit: "Confirm Appointment",
+    book_btn_next: "Next",
+    book_btn_prev: "Back",
+    book_step1_search_ph: "Search specialty...",
+    book_step1_hint: "Specialties supported at this medical facility:",
+    book_step2_lbl_spec: "Selected Specialty",
+    book_step2_lbl_hours: "Operating Hours",
+    book_step2_doc_notice: "A certified specialist will be assigned by the clinic based on the optimal available slot.",
+    book_step3_lbl_date: "Choose preferred appointment date",
+    book_step3_morning: "Morning (08:00 - 11:30)",
+    book_step3_afternoon: "Afternoon (13:30 - 17:00)",
+    book_step4_summary_spec: "Specialty:",
+    book_step4_terms: "I agree to share contact info and visit reason with the medical facility for optimal care.",
+    my_appts_title: "My Medical Appointments",
+    my_appts_subtitle: "Track, manage and check status of your clinic bookings",
+    my_appts_btn_refresh: "Refresh",
+    my_appts_btn_new: "Book New",
+    my_appts_loading_text: "Loading appointments list...",
+    my_appts_empty_title: "No appointments booked yet",
+    my_appts_empty_desc: "Choose a suitable clinic under Hospitals & Clinics to schedule your visit easily.",
+    my_appts_btn_explore: "Explore Clinics Now",
+    my_appts_status_pending: "Pending",
+    my_appts_status_confirmed: "Confirmed",
+    my_appts_status_cancelled: "Cancelled",
+    my_appts_btn_cancel_appt: "Cancel Appointment",
     detail_modal_lbl_address: "Address:",
     detail_modal_lbl_hours: "Operating Hours:",
     detail_modal_lbl_phone: "Contact Hotline:",
@@ -1975,6 +2031,7 @@ const TAB_HASH_MAP = {
   'chat-tab': 'chat',
   'ocr-tab': 'ocr',
   'booking-tab': 'booking',
+  'my-appointments-tab': 'appointments',
   'doctor-tab': 'doctor',
   'profile-tab': 'profile',
   'settings-tab': 'settings'
@@ -1985,6 +2042,8 @@ const HASH_TAB_MAP = {
   'ocr': 'ocr-tab',
   'booking': 'booking-tab',
   'facilities': 'booking-tab',
+  'appointments': 'my-appointments-tab',
+  'my-appointments': 'my-appointments-tab',
   'doctor': 'doctor-tab',
   'profile': 'profile-tab',
   'settings': 'settings-tab'
@@ -2100,6 +2159,8 @@ function switchTab(tabId, updateHistory = true) {
     } else if (tabId === 'ocr-tab') {
       if (typeof loadScanFiles === 'function') loadScanFiles();
       if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
+    } else if (tabId === 'my-appointments-tab') {
+      if (typeof loadUserAppointments === 'function') loadUserAppointments();
     }
   } catch (tabInitErr) {
     console.error(`[Router] Lỗi khởi tạo tab ${tabId}:`, tabInitErr);
@@ -7773,8 +7834,9 @@ function initHospitalInteractiveMap() {
 
   if (!hospitalLeafletMap) {
     hospitalLeafletMap = L.map('hospital-interactive-map').setView([10.7769, 106.6850], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: 'Tiles &copy; Esri'
     }).addTo(hospitalLeafletMap);
     hospitalMarkersLayer = L.layerGroup().addTo(hospitalLeafletMap);
   }
@@ -8292,6 +8354,17 @@ function getFacilityBadgeColor(badgeType) {
   return 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/40 font-semibold';
 }
 
+// ==============================================================
+// DOCTOGO-STYLE MULTI-STEP FACILITY BOOKING FLOW & MY APPOINTMENTS
+// ==============================================================
+let currentBookingStep = 1;
+let currentBookingFacility = null;
+let selectedBookingSpecialty = '';
+let selectedBookingSlot = '';
+
+const DEFAULT_MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+const DEFAULT_AFTERNOON_SLOTS = ['13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
+
 function openFacilityBookingModal(facId) {
   recordModalTriggerFocus();
   if (!currentUser) {
@@ -8310,17 +8383,24 @@ function openFacilityBookingModal(facId) {
 
   const fac = medicalFacilitiesData.find(f => f.id === facId) || medicalFacilitiesData[0];
   if (!fac) return;
+  currentBookingFacility = fac;
 
-  const modal = document.getElementById('facility-booking-modal');
+  const idEl = document.getElementById('book-modal-facility-id');
   const nameEl = document.getElementById('book-modal-facility-name');
   const addrEl = document.getElementById('book-modal-facility-address');
-  const idEl = document.getElementById('book-modal-facility-id');
+  const hoursEl = document.getElementById('book-step2-hours');
   const dateEl = document.getElementById('book-modal-date');
+  const nameInput = document.getElementById('book-modal-name');
+  const phoneInput = document.getElementById('book-modal-phone');
+  const emailInput = document.getElementById('book-modal-email');
 
+  if (idEl) idEl.value = fac.id;
   if (nameEl) nameEl.innerText = fac.name;
   if (addrEl) addrEl.innerText = fac.address;
-  if (idEl) idEl.value = fac.id;
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  if (hoursEl) hoursEl.innerText = localizeHours(fac.hours, isEn);
 
+  // Set default date to tomorrow
   if (dateEl) {
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
@@ -8328,49 +8408,283 @@ function openFacilityBookingModal(facId) {
     dateEl.min = new Date().toISOString().split('T')[0];
   }
 
+  // Pre-fill user info
+  if (nameInput) nameInput.value = currentUser?.full_name || currentUser?.name || '';
+  if (phoneInput) phoneInput.value = currentUser?.phone_number || currentUser?.phone || '';
+  if (emailInput) {
+    const mail = currentUser?.email || '';
+    emailInput.value = mail.endsWith('@phone.medimind') ? '' : mail;
+  }
+
+  // Render specialties list for Step 1
+  renderBookingSpecialties(fac.specialties || ['Khám tổng quát']);
+  
+  // Reset selected choices
+  selectedBookingSpecialty = (fac.specialties && fac.specialties.length > 0) ? fac.specialties[0] : 'Khám tổng quát';
+  selectedBookingSlot = '08:30';
+  renderTimeSlots();
+
+  // Reset to Step 1
+  goToBookingStep(1);
+
+  const modal = document.getElementById('facility-booking-modal');
   if (modal) modal.classList.remove('hidden');
 }
 
-function closeFacilityBookingModal() {
-  const modal = document.getElementById('facility-booking-modal');
-  if (modal) modal.classList.add('hidden');
-  restoreModalTriggerFocus();
-}
-
-async function handleFacilityBookingSubmit(e) {
-  if (e) e.preventDefault();
+function renderBookingSpecialties(specialties, filterText = '') {
+  const container = document.getElementById('book-step1-specialties-list');
+  if (!container) return;
   const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  if (!currentUser) {
-    showMedicalToast(isEn ? 'Please log in or create an account to book an appointment!' : 'Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám!', 'warning');
-    closeFacilityBookingModal();
-    if (typeof openAuthModal === 'function') openAuthModal('login');
-    else if (typeof openLoginModal === 'function') openLoginModal('login');
+
+  const normalizedFilter = (filterText || '').toLowerCase().trim();
+  const filtered = specialties.filter(s => {
+    const localized = localizeSpecialty(s, isEn).toLowerCase();
+    return s.toLowerCase().includes(normalizedFilter) || localized.includes(normalizedFilter);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 text-center text-xs text-slate-400">
+        ${isEn ? 'No specialties match your search.' : 'Không tìm thấy chuyên khoa phù hợp.'}
+      </div>
+    `;
     return;
   }
 
-  const facId = document.getElementById('book-modal-facility-id')?.value;
-  const fac = medicalFacilitiesData.find(f => f.id === facId);
-  const spec = document.getElementById('book-modal-spec')?.value;
-  const date = document.getElementById('book-modal-date')?.value;
-  const time = document.getElementById('book-modal-time')?.value;
-  const note = document.getElementById('book-modal-note')?.value;
-  const patName = document.getElementById('book-modal-name')?.value || currentUser?.full_name || currentUser?.name || '';
-  const patPhone = document.getElementById('book-modal-phone')?.value || currentUser?.phone_number || currentUser?.phone || '';
+  container.innerHTML = filtered.map((s, idx) => {
+    const isSelected = (s === selectedBookingSpecialty) || (!selectedBookingSpecialty && idx === 0);
+    if (isSelected && !selectedBookingSpecialty) selectedBookingSpecialty = s;
+    return `
+      <div onclick="selectBookingSpecialty('${s}')" class="flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+        isSelected
+          ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-500 shadow-sm shadow-sky-500/10'
+          : 'bg-white/60 dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:border-sky-400/50'
+      }">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl ${isSelected ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'} flex items-center justify-center text-xs font-bold">
+            ${idx + 1}
+          </div>
+          <div>
+            <div class="text-xs font-bold ${isSelected ? 'text-sky-600 dark:text-sky-400' : 'text-slate-800 dark:text-slate-200'}">
+              ${localizeSpecialty(s, isEn)}
+            </div>
+            <div class="text-[10px] text-slate-400">
+              ${isEn ? 'Consultation & Clinical Exam' : 'Khám & tư vấn chuyên khoa'}
+            </div>
+          </div>
+        </div>
+        <div class="w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300 dark:border-white/20'}">
+          ${isSelected ? '<span class="text-[10px]">✓</span>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterBookingSpecialties(val) {
+  if (!currentBookingFacility) return;
+  renderBookingSpecialties(currentBookingFacility.specialties || ['Khám tổng quát'], val);
+}
+
+function selectBookingSpecialty(spec) {
+  selectedBookingSpecialty = spec;
+  if (!currentBookingFacility) return;
+  renderBookingSpecialties(currentBookingFacility.specialties || ['Khám tổng quát'], document.getElementById('book-step1-search')?.value || '');
+}
+
+function onBookingDateChanged(val) {
+  renderTimeSlots();
+}
+
+function renderTimeSlots() {
+  const morningContainer = document.getElementById('book-slots-morning');
+  const afternoonContainer = document.getElementById('book-slots-afternoon');
+  const timeInput = document.getElementById('book-modal-time');
+  if (timeInput) timeInput.value = selectedBookingSlot;
+
+  if (morningContainer) {
+    morningContainer.innerHTML = DEFAULT_MORNING_SLOTS.map(slot => {
+      const isSelected = (slot === selectedBookingSlot);
+      return `
+        <button type="button" onclick="selectBookingSlot('${slot}')" class="py-2 px-1 rounded-xl text-xs font-mono font-bold transition-all border cursor-pointer ${
+          isSelected
+            ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/25 scale-105'
+            : 'bg-white/70 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-amber-400/50'
+        }">
+          ${slot}
+        </button>
+      `;
+    }).join('');
+  }
+
+  if (afternoonContainer) {
+    afternoonContainer.innerHTML = DEFAULT_AFTERNOON_SLOTS.map(slot => {
+      const isSelected = (slot === selectedBookingSlot);
+      return `
+        <button type="button" onclick="selectBookingSlot('${slot}')" class="py-2 px-1 rounded-xl text-xs font-mono font-bold transition-all border cursor-pointer ${
+          isSelected
+            ? 'bg-sky-500 border-sky-500 text-white shadow-md shadow-sky-500/25 scale-105'
+            : 'bg-white/70 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-sky-400/50'
+        }">
+          ${slot}
+        </button>
+      `;
+    }).join('');
+  }
+}
+
+function selectBookingSlot(slot) {
+  selectedBookingSlot = slot;
+  renderTimeSlots();
+}
+
+function goToBookingStep(step) {
+  if (step < 1 || step > 4) return;
+  currentBookingStep = step;
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+
+  // 1. Hide all step contents
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`booking-step-${i}`);
+    if (el) el.classList.toggle('hidden', i !== step);
+
+    const prog = document.getElementById(`step-prog-${i}`);
+    if (prog) {
+      if (i <= step) {
+        prog.className = 'h-1.5 rounded-full bg-sky-500 transition-all';
+      } else {
+        prog.className = 'h-1.5 rounded-full bg-slate-200 dark:bg-white/10 transition-all';
+      }
+    }
+  }
+
+  // 2. Update Header Badge and Title
+  const badgeEl = document.getElementById('book-modal-step-badge');
+  const titleEl = document.getElementById('book-modal-step-title');
+  const titlesVi = [
+    'Chọn chuyên khoa khám',
+    'Chọn phòng khám & cơ sở tiếp nhận',
+    'Chọn ngày & giờ khám phù hợp',
+    'Thông tin người khám & xác nhận'
+  ];
+  const titlesEn = [
+    'Select Medical Specialty',
+    'Confirm Clinic & Facility',
+    'Choose Date & Time Slot',
+    'Patient Information & Confirmation'
+  ];
+
+  if (badgeEl) badgeEl.innerText = `${isEn ? 'Step' : 'Bước'} ${step} / 4`;
+  if (titleEl) titleEl.innerText = isEn ? titlesEn[step - 1] : titlesVi[step - 1];
+
+  // 3. Update Step 2 specifics
+  if (step === 2) {
+    const specEl = document.getElementById('book-step2-selected-spec');
+    if (specEl) specEl.innerText = localizeSpecialty(selectedBookingSpecialty, isEn);
+  }
+
+  // 4. Update Step 4 summary specifics
+  if (step === 4) {
+    const sumFac = document.getElementById('book-step4-summary-fac');
+    const sumTime = document.getElementById('book-step4-summary-time');
+    const sumSpec = document.getElementById('book-step4-summary-spec');
+    const dateVal = document.getElementById('book-modal-date')?.value || '';
+
+    if (sumFac) sumFac.innerText = currentBookingFacility?.name || '';
+    if (sumTime) sumTime.innerText = `${selectedBookingSlot} • ${dateVal}`;
+    if (sumSpec) sumSpec.innerText = localizeSpecialty(selectedBookingSpecialty, isEn);
+  }
+
+  // 5. Update Footer Buttons
+  const btnPrev = document.getElementById('book-modal-btn-prev');
+  const btnNext = document.getElementById('book-modal-btn-next');
+  const btnNextText = document.getElementById('book-modal-btn-next-text');
+
+  if (btnPrev) btnPrev.classList.toggle('hidden', step === 1);
+  if (btnNextText) {
+    if (step === 4) {
+      btnNextText.innerText = isEn ? 'Confirm Booking' : 'Xác nhận đặt lịch';
+    } else {
+      btnNextText.innerText = isEn ? 'Next' : 'Tiếp theo';
+    }
+  }
+}
+
+async function handleBookingStepNext() {
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+
+  if (currentBookingStep === 1) {
+    if (!selectedBookingSpecialty) {
+      showMedicalToast(isEn ? 'Please choose a medical specialty!' : 'Vui lòng chọn một chuyên khoa khám!', 'warning');
+      return;
+    }
+    goToBookingStep(2);
+  } else if (currentBookingStep === 2) {
+    goToBookingStep(3);
+  } else if (currentBookingStep === 3) {
+    const dateVal = document.getElementById('book-modal-date')?.value;
+    if (!dateVal) {
+      showMedicalToast(isEn ? 'Please choose an appointment date!' : 'Vui lòng chọn ngày khám mong muốn!', 'warning');
+      return;
+    }
+    if (!selectedBookingSlot) {
+      showMedicalToast(isEn ? 'Please choose a time slot!' : 'Vui lòng chọn khung giờ khám!', 'warning');
+      return;
+    }
+    goToBookingStep(4);
+  } else if (currentBookingStep === 4) {
+    // Submit appointment
+    await submitFacilityAppointment();
+  }
+}
+
+async function submitFacilityAppointment() {
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  if (!currentUser) {
+    showMedicalToast(isEn ? 'Please log in to book!' : 'Vui lòng đăng nhập để đặt lịch khám!', 'warning');
+    closeFacilityBookingModal();
+    openLoginModal('login');
+    return;
+  }
+
+  const patName = document.getElementById('book-modal-name')?.value?.trim();
+  const patPhone = document.getElementById('book-modal-phone')?.value?.trim();
+  const patEmail = document.getElementById('book-modal-email')?.value?.trim();
+  const note = document.getElementById('book-modal-note')?.value?.trim() || '';
+  const dateVal = document.getElementById('book-modal-date')?.value;
+  const termsChecked = document.getElementById('book-modal-terms')?.checked;
+
+  if (!patName || !patPhone) {
+    showMedicalToast(isEn ? 'Please fill in patient name and phone number!' : 'Vui lòng điền đầy đủ họ tên và số điện thoại người khám!', 'warning');
+    return;
+  }
+
+  if (!termsChecked) {
+    showMedicalToast(isEn ? 'Please accept the consent terms to proceed!' : 'Vui lòng tích đồng ý điều khoản để tiếp tục!', 'warning');
+    return;
+  }
+
+  const nextBtn = document.getElementById('book-modal-btn-next');
+  if (nextBtn) {
+    nextBtn.disabled = true;
+    nextBtn.classList.add('opacity-70', 'cursor-not-allowed');
+  }
 
   try {
     const res = await fetch('/api/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        facility_id: facId || 'fac_unknown',
-        facility_name: fac ? fac.name : (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế'),
-        facility_address: fac ? fac.address : '',
-        specialty: spec || (isEn ? 'General Practice' : 'Đa khoa'),
-        appointment_date: date,
-        appointment_time: time,
+        facility_id: currentBookingFacility?.id || 'fac_unknown',
+        facility_name: currentBookingFacility?.name || (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế'),
+        facility_address: currentBookingFacility?.address || '',
+        specialty: selectedBookingSpecialty || (isEn ? 'General Practice' : 'Đa khoa'),
+        appointment_date: dateVal,
+        appointment_time: selectedBookingSlot,
         patient_name: patName,
         patient_phone: patPhone,
-        note: note || ''
+        patient_email: patEmail,
+        note: note
       })
     });
 
@@ -8380,14 +8694,192 @@ async function handleFacilityBookingSubmit(e) {
       showMedicalToast(errMsg, 'error', 4000);
       return;
     }
-    
+
     closeFacilityBookingModal();
-    const successMsg = isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!';
+    const successMsg = isEn ? 'Appointment booked successfully!' : 'Đã xác nhận và lưu phiếu đặt hẹn thành công!';
     showMedicalToast(successMsg, 'success', 4000);
+
+    // Automatically navigate to My Appointments tab
+    setTimeout(() => {
+      switchTab('my-appointments-tab');
+    }, 400);
+
   } catch (err) {
     console.error('Lỗi khi lưu lịch hẹn:', err);
-    const failMsg = isEn ? 'Network error: could not book appointment. Please try again.' : 'Lỗi kết nối: Không thể đặt lịch khám lúc này. Vui lòng thử lại.';
-    showMedicalToast(failMsg, 'error', 4000);
+    showMedicalToast(isEn ? 'Network error. Please try again.' : 'Lỗi kết nối. Vui lòng thử lại.', 'error', 4000);
+  } finally {
+    if (nextBtn) {
+      nextBtn.disabled = false;
+      nextBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+    }
+  }
+}
+
+function closeFacilityBookingModal() {
+  const modal = document.getElementById('facility-booking-modal');
+  if (modal) modal.classList.add('hidden');
+  restoreModalTriggerFocus();
+}
+
+// ==============================================================
+// MY APPOINTMENTS TAB MANAGEMENT
+// ==============================================================
+let userAppointmentsList = [];
+
+async function loadUserAppointments() {
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  const loadingEl = document.getElementById('my-appts-loading');
+  const emptyEl = document.getElementById('my-appts-empty');
+  const gridEl = document.getElementById('my-appts-grid');
+
+  if (!currentUser) {
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    if (gridEl) gridEl.innerHTML = '';
+    return;
+  }
+
+  if (loadingEl) loadingEl.classList.remove('hidden');
+  if (emptyEl) emptyEl.classList.add('hidden');
+  if (gridEl) gridEl.innerHTML = '';
+
+  try {
+    const res = await fetch('/api/appointments', { credentials: 'same-origin' });
+    const data = await res.json().catch(() => ({}));
+
+    if (loadingEl) loadingEl.classList.add('hidden');
+
+    if (!res.ok || data.status !== 'success') {
+      showMedicalToast(data.message || (isEn ? 'Failed to fetch appointments.' : 'Không thể tải danh sách lịch hẹn.'), 'error');
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    userAppointmentsList = data.appointments || [];
+    renderUserAppointments();
+  } catch (err) {
+    console.error('Lỗi tải lịch hẹn:', err);
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.remove('hidden');
+  }
+}
+
+function renderUserAppointments() {
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  const emptyEl = document.getElementById('my-appts-empty');
+  const gridEl = document.getElementById('my-appts-grid');
+  if (!gridEl) return;
+
+  if (userAppointmentsList.length === 0) {
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    gridEl.innerHTML = '';
+    return;
+  }
+
+  if (emptyEl) emptyEl.classList.add('hidden');
+
+  gridEl.innerHTML = userAppointmentsList.map(appt => {
+    const statusMap = {
+      pending: {
+        text: isEn ? 'Pending Confirmation' : 'Chờ xác nhận',
+        cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+      },
+      confirmed: {
+        text: isEn ? 'Confirmed' : 'Đã xác nhận',
+        cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+      },
+      cancelled: {
+        text: isEn ? 'Cancelled' : 'Đã hủy',
+        cls: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+      }
+    };
+
+    const st = statusMap[appt.status] || statusMap.pending;
+
+    return `
+      <div class="glass-panel-elevated bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3.5 hover:border-amber-400/40 transition-all shadow-sm">
+        <div class="space-y-2.5">
+          <div class="flex items-start justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border font-mono ${st.cls}">
+              ${st.text}
+            </span>
+            <span class="text-[11px] font-mono text-slate-400">
+              #APT-${appt.id}
+            </span>
+          </div>
+
+          <div>
+            <h4 class="text-sm font-black text-slate-900 dark:text-white line-clamp-1">
+              ${appt.facility_name}
+            </h4>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+              📍 ${appt.facility_address || (isEn ? 'Address provided by clinic' : 'Địa chỉ theo cơ sở y tế')}
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 space-y-1.5 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 text-[11px]">${isEn ? 'Specialty' : 'Chuyên khoa'}:</span>
+              <span class="font-bold text-sky-600 dark:text-sky-400">${localizeSpecialty(appt.specialty, isEn)}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 text-[11px]">${isEn ? 'Date & Time' : 'Ngày & Giờ'}:</span>
+              <span class="font-bold font-mono text-amber-600 dark:text-amber-400">${appt.appointment_time} • ${appt.appointment_date}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 text-[11px]">${isEn ? 'Patient' : 'Người khám'}:</span>
+              <span class="font-semibold text-slate-700 dark:text-slate-200">${appt.patient_name} (${appt.patient_phone})</span>
+            </div>
+            ${appt.note ? `
+              <div class="pt-1 border-t border-slate-200/60 dark:border-white/5 text-[11px] text-slate-500 dark:text-slate-400 italic">
+                "${appt.note}"
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <span class="text-[10px] text-slate-400">
+            ${appt.created_at ? (isEn ? 'Booked at: ' : 'Đặt lúc: ') + appt.created_at : ''}
+          </span>
+          ${appt.status !== 'cancelled' ? `
+            <button type="button" onclick="cancelUserAppointment(${appt.id})" class="px-3 py-1 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border border-rose-500/20 transition-all cursor-pointer">
+              ${isEn ? 'Cancel' : 'Hủy lịch'}
+            </button>
+          ` : `
+            <span class="text-[11px] text-rose-400 italic">${isEn ? 'Cancelled' : 'Đã hủy'}</span>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function cancelUserAppointment(apptId) {
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+  const confirmMsg = isEn 
+    ? 'Are you sure you want to cancel this appointment?' 
+    : 'Bạn có chắc chắn muốn hủy lịch hẹn khám này không?';
+
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const res = await fetch(`/api/appointments/${apptId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showMedicalToast(data.message || (isEn ? 'Failed to cancel appointment.' : 'Không thể hủy lịch hẹn.'), 'error');
+      return;
+    }
+
+    showMedicalToast(isEn ? 'Appointment cancelled successfully.' : 'Đã hủy lịch hẹn thành công.', 'success');
+    loadUserAppointments();
+  } catch (err) {
+    console.error('Lỗi hủy lịch hẹn:', err);
+    showMedicalToast(isEn ? 'Network error.' : 'Lỗi kết nối mạng.', 'error');
   }
 }
 
