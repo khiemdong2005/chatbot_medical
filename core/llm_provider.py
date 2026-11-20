@@ -332,8 +332,10 @@ class _GroqModels:
         payload: Dict[str, Any] = {"model": model, "messages": messages}
         if temperature is not None:
             payload["temperature"] = float(temperature)
-        if max_tokens is not None and int(max_tokens) > 0:
-            payload["max_tokens"] = int(max_tokens)
+        # Groq reasoning models (gpt-oss-*) consume tokens for internal reasoning —
+        # enforce a minimum of 1024 so content tokens remain after the reasoning budget.
+        effective_max = int(max_tokens) if (max_tokens is not None and int(max_tokens) > 0) else 1024
+        payload["max_tokens"] = max(effective_max, 1024)
         if want_json:
             payload["response_format"] = {"type": "json_object"}
 
@@ -368,6 +370,13 @@ class _GroqModels:
             )
         if not isinstance(content, str):
             content = ""
+        # Groq reasoning models (openai/gpt-oss-*) may put output only in "reasoning"
+        # when max_tokens is too small — fall back to reasoning field if content is empty.
+        if not content.strip() and isinstance(message, dict):
+            reasoning = message.get("reasoning", "")
+            if isinstance(reasoning, str) and reasoning.strip():
+                content = reasoning.strip()
+                logger.debug("Groq: content empty, falling back to reasoning field (%d chars)", len(content))
         return _OpenRouterResponse(text=content, raw=resp_json)
 
 
@@ -627,14 +636,14 @@ class LLMProvider:
                 if or_key:
                     return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
             if "chat" in op:
-                return os.getenv("GROQ_CHAT_MODEL", "llama-3.3-70b-versatile").strip()
+                return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
             if "expansion" in op:
-                return os.getenv("GROQ_EXPANSION_MODEL", "llama-3.1-8b-instant").strip()
+                return os.getenv("GROQ_EXPANSION_MODEL", "openai/gpt-oss-20b").strip()
             if "nutrition" in op:
-                return os.getenv("GROQ_NUTRITION_MODEL", "gemma2-9b-it").strip()
+                return os.getenv("GROQ_NUTRITION_MODEL", "openai/gpt-oss-20b").strip()
             if "interpretation" in op:
-                return os.getenv("GROQ_INTERPRETATION_MODEL", "llama-3.3-70b-versatile").strip()
-            return os.getenv("GROQ_CHAT_MODEL", "llama-3.3-70b-versatile").strip()
+                return os.getenv("GROQ_INTERPRETATION_MODEL", "openai/gpt-oss-120b").strip()
+            return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
 
         use_openrouter = (
             self.is_openrouter_active()
