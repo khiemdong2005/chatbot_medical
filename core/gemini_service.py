@@ -238,7 +238,8 @@ class GeminiMedicalService:
         if not has_image:
             return base_model
         provider = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
-        if not (provider.is_openrouter_active() or str(getattr(self, "api_key", "")).startswith("sk-or-")):
+        if not (provider.is_openrouter_active() or provider.is_groq_active()
+                or str(getattr(self, "api_key", "")).startswith(("sk-or-", "gsk_"))):
             return base_model
         vision_hints = ("-vl", "vision", "gemini", "gpt-4o", "claude-3", "claude-4", "pixtral", "qwen2.5-vl", "qwen-vl", "llama-3.2-11b-vision", "llama-3.2-90b-vision")
         if any(h in base_model.lower() for h in vision_hints):
@@ -257,6 +258,9 @@ class GeminiMedicalService:
         self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="chat")).strip()
         if model:
             self.model = model.strip()
+        elif self.llm_provider.is_groq_active() or self.api_key.startswith("gsk_"):
+            # Groq provider: dùng get_default_model để lấy GROQ_CHAT_MODEL
+            self.model = self.llm_provider.get_default_model("chat", api_key=self.api_key)
         elif self.llm_provider.is_openrouter_active() or self.api_key.startswith("sk-or-"):
             self.model = self.llm_provider.get_default_model("chat", api_key=self.api_key)
         else:
