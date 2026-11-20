@@ -34,8 +34,10 @@
     "Source calories, fat, fiber, sugar and protein are retained as dish-record values; their per-person basis and accuracy are not independently verified."
   ],
   "sha256": {
-    "foods.csv": "8f4d246e5f4bd65408572cef8a6013a1930ab63b99a9b694fb21cc9653192906",
     "recipes.json": "3f9cfe8f97a7522ebd47d88358dfbe7d03ba7f938924c168da1da9f7560d14f4"
+  },
+  "archived_source_sha256": {
+    "foods.csv": "8f4d246e5f4bd65408572cef8a6013a1930ab63b99a9b694fb21cc9653192906"
   },
   "status": "complete",
   "extraction_version": 2,

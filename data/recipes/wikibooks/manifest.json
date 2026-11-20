@@ -21,7 +21,9 @@
   },
   "images_downloaded": false,
   "sha256": {
-    "recipes.json": "b076be6a65cb709d36539081845382b9b82bc86c6475e3da87ddc3dd5a5d27b0",
+    "recipes.json": "b076be6a65cb709d36539081845382b9b82bc86c6475e3da87ddc3dd5a5d27b0"
+  },
+  "archived_source_sha256": {
     "raw_pages.jsonl": "ee4cf033ab7ecd47ccdff20981693b895b70f1878d581906a9174045f8a245ec"
   },
   "limitations": [
