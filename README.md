@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Framework-Flask%203.1-009688.svg)](https://flask.palletsprojects.com/)
 [![ChromaDB](https://img.shields.io/badge/RAG-ChromaDB%20(725%20docs)-orange.svg)](https://www.trychroma.com/)
-[![AI Providers](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter%20%7C%20Gemini-6366F1.svg)](#5-cấu-hình-ai-provider-groq--openrouter)
+[![AI Providers](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter%20%7C%20Gemini-6366F1.svg)](#2-tính-năng-cốt-lõi)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
 
 ---
@@ -94,44 +94,7 @@ Medical ChatBOT/
 
 ---
 
-## ⚙️ 5. Cấu Hình AI Provider (Groq + OpenRouter)
-
-Hệ thống hỗ trợ chuyển đổi linh hoạt giữa **Groq**, **OpenRouter** và **Google Gemini** qua `core/ai/llm_provider.py`.  
-Khuyến nghị dùng **Groq Free Tier** làm provider chính cho **ChatBOT & Dinh dưỡng** (tốc độ cao ~500–1,000 tok/s, 1,000 req/ngày, tự động dự phòng đa bucket `gpt-oss-120b → gpt-oss-20b → qwen3.8-27b`) kết hợp **OpenRouter (`:free` Vision)** cho nhánh đọc ảnh OCR:
-
-```env
-PORT=8000
-FLASK_DEBUG=true
-SECRET_KEY=<chuỗi-bí-mật-ngẫu-nhiên-64-ký-tự>
-
-# AI Provider chính: Groq (ChatBOT, Dinh dưỡng, Chuẩn hóa văn bản OCR)
-AI_PROVIDER=groq
-GROQ_API_KEY=gsk_...
-GROQ_BASE_URL=https://api.groq.com/openai/v1
-GROQ_CHAT_MODEL=openai/gpt-oss-120b
-GROQ_EXPANSION_MODEL=openai/gpt-oss-20b
-GROQ_NUTRITION_MODEL=openai/gpt-oss-20b
-GROQ_INTERPRETATION_MODEL=openai/gpt-oss-120b
-
-# OpenRouter Vision Fallback cho Đọc đơn thuốc (ảnh toàn trang + ảnh cắt LANCZOS)
-OPENROUTER_API_KEY=sk-or-v1-...
-OPENROUTER_OCR_MODEL=nvidia/nemotron-3.5-super-vl:free
-
-# Google OAuth 2.0, Gmail SMTP OTP & SpeedSMS VN (tùy chọn)
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=...
-SMTP_PASSWORD=...
-SPEEDSMS_AUTH_TOKEN=...
-```
-
----
-
-## 🚀 6. Hướng Dẫn Cài Đặt & Khởi Chạy
-
-### Cách 1: Chạy trực tiếp trên máy Local (Python `.venv` — Khuyến nghị)
+## 🚀 5. Hướng Dẫn Cài Đặt & Khởi Chạy (Python `.venv`)
 
 ```powershell
 # 1. Clone kho mã nguồn
@@ -161,39 +124,9 @@ Truy cập ứng dụng tại:
 - 📖 **Tài liệu API (Swagger / OpenAPI)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - 🩺 **Kiểm tra trạng thái**: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) • [http://127.0.0.1:8000/ready](http://127.0.0.1:8000/ready)
 
-### Cách 2: Khởi chạy bằng Docker Compose
-
-```bash
-cp .env.example .env
-docker compose up -d
-docker compose logs -f
-# Dừng hệ thống:
-docker compose down
-```
-
 ---
 
-## 🧪 7. Kiểm Tra Chất Lượng & Kiểm Thử
-
-```powershell
-# Kiểm tra cấu hình môi trường & kết nối cơ bản
-.\.venv\Scripts\python.exe scripts/check_config.py
-
-# Kiểm tra vệ sinh kho mã nguồn & cú pháp toàn bộ file Python
-.\.venv\Scripts\python.exe scripts/check_repository_hygiene.py
-
-# Kiểm tra Linter (Ruff) & cú pháp JavaScript
-.\.venv\Scripts\python.exe -m ruff check app.py routes/ core/
-node --check static/js/app.js
-node --check static/js/nutrition-flow.js
-
-# Chạy bộ kiểm thử pytest
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
----
-
-## ⚖️ 8. Tuyên Bố Miễn Trừ Trách Nhiệm Y Tế
+## ⚖️ 6. Tuyên Bố Miễn Trừ Trách Nhiệm Y Tế
 
 > **CẢNH BÁO QUAN TRỌNG:**  
 > MediMind Clinical AI là công cụ hỗ trợ tra cứu, sàng lọc thông tin sức khỏe và quản lý đơn thuốc tham khảo, **không thay thế** cho việc khám bệnh trực tiếp, chẩn đoán xác định hoặc kê đơn từ bác sĩ có chứng chỉ hành nghề.  
