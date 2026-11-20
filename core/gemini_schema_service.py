@@ -123,7 +123,16 @@ Dạng JSON:
         contents.append(prompt)
 
         preferred_model = llm_provider.get_default_model("prescription_ocr")
-        candidate_models = list(dict.fromkeys([preferred_model, "gemini-flash-latest"]))
+        # Build fallback chain: preferred vision model → backup vision models
+        # Không dùng gemini-flash-latest làm fallback vì cần Gemini API key riêng
+        backup_vision_models = [
+            "google/gemma-4-31b-it:free",          # multimodal, free
+            "google/gemma-4-26b-a4b-it:free",       # multimodal, free
+            "inclusionai/ling-3.2-flash:free",      # large ctx, free
+        ]
+        candidate_models = list(dict.fromkeys(
+            [preferred_model] + backup_vision_models
+        ))
 
         res = llm_provider.generate_json(
             contents=contents,
