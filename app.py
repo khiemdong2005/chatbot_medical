@@ -327,6 +327,16 @@ def create_app(test_config=None):
         return render_template("api_docs.html", paths=api_spec().get_json()["paths"])
 
 
+    @app.route("/favicon.ico")
+    def favicon():
+        """Biểu tượng trang web giúp tránh lỗi 404 trên trình duyệt."""
+        from flask import send_from_directory
+        return send_from_directory(
+            os.path.join(app.root_path, "static", "images"),
+            "floating-launcher-reference.png",
+            mimetype="image/png",
+        )
+
     @app.route("/")
     def index():
         """Trang chủ ứng dụng y tế MediMind."""

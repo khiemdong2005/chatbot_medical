@@ -108,9 +108,9 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
 
         contents_payload.append(prompt)
 
-        if llm_provider.is_openrouter_active():
+        if llm_provider.is_openrouter_active() or llm_provider.is_groq_active():
             candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
-            ocr_api_key = None
+            ocr_api_key = llm_provider.resolve_api_key(profile="ocr")
         else:
             candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
             ocr_api_key = GEMINI_API_KEY
@@ -175,9 +175,9 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
         """
 
-        if llm_provider.is_openrouter_active():
+        if llm_provider.is_openrouter_active() or llm_provider.is_groq_active():
             candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
-            ocr_api_key = None
+            ocr_api_key = llm_provider.resolve_api_key(profile="ocr")
         else:
             candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
             ocr_api_key = GEMINI_API_KEY
@@ -284,7 +284,9 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
             "facility": "SỞ Y TẾ TP. HỒ CHÍ MINH - BỆNH VIỆN BÌNH DÂN (DEMO)",
             "department": "Phòng khám Dịch Vụ 109 - (KTC)",
             "doctor": "BS. Nguyễn Văn Hùng",
-            "patient_name": "TRẦN TRUNG (49 tuổi - Nam)",
+            "patient_name": "TRẦN TRUNG",
+            "age": "49",
+            "gender": "Nam",
             "address": "Xã Bảo Bình, Huyện Cẩm Mỹ, Tỉnh Đồng Nai",
             "diagnosis": "Viêm dạ dày cấp khác (Mã ICD: K29.1)",
             "date": "25/09/2014",
@@ -318,18 +320,70 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
             },
             "medications": [
                 {
-                    "name": "YESOM 40 (Esomeprazol 40mg) - 63 Viên",
+                    "name": "YESOM 40 (Esomeprazol 40mg) - 21 Viên",
+                    "strength": "40mg",
                     "ingredient": "Esomeprazole 40mg",
                     "category": "Thuốc ức chế bơm proton thế hệ mới (PPI)",
                     "purpose": "Ức chế dạ dày tiết acid clohydric, giảm đau rát vùng thượng vị.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "21 viên (Đủ 21 ngày)",
                     "usage": "Uống nguyên viên vào buổi sáng trước khi ăn 30 phút."
                 },
                 {
                     "name": "SUCRATE GEL (Sucralfate 1g) - 63 Gói",
+                    "strength": "1g",
                     "ingredient": "Sucralfate 1g dạng gel",
                     "category": "Thuốc bảo vệ ổ loét dạ dày",
                     "purpose": "Tạo màng bảo vệ che phủ vết viêm trợt niêm mạc dạ dày.",
-                    "usage": "Ngày uống 3 lần, mỗi lần 1 gói trước bữa ăn."
+                    "dose": "1 gói",
+                    "frequency": "3 lần/ngày (Sáng - Trưa - Tối)",
+                    "days": "63 gói (Đủ 21 ngày)",
+                    "usage": "Ngày uống 3 lần, mỗi lần 1 gói trước bữa ăn 15-30 phút."
+                },
+                {
+                    "name": "ARTHUR 200mg (Trimebutine) - 63 Viên",
+                    "strength": "200mg",
+                    "ingredient": "Trimebutine maleate 200mg",
+                    "category": "Điều hòa nhu động đường tiêu hóa",
+                    "purpose": "Giảm co thắt, đầy hơi và rối loạn nhu động dạ dày - ruột.",
+                    "dose": "1 viên",
+                    "frequency": "3 lần/ngày (Sáng - Trưa - Tối)",
+                    "days": "63 viên (Đủ 21 ngày)",
+                    "usage": "Uống sau bữa ăn 15 phút."
+                },
+                {
+                    "name": "PAPAZE (Men tiêu hóa) - 63 Viên",
+                    "strength": "1 viên",
+                    "ingredient": "Papain + Simethicone",
+                    "category": "Men tiêu hóa & Kháng đầy hơi",
+                    "purpose": "Hỗ trợ tiêu hóa thức ăn, giảm chướng bụng và khó tiêu.",
+                    "dose": "1 viên",
+                    "frequency": "3 lần/ngày (Sáng - Trưa - Tối)",
+                    "days": "63 viên (Đủ 21 ngày)",
+                    "usage": "Uống sau bữa ăn 15 phút."
+                },
+                {
+                    "name": "BIOCID MH 3.5+2g - 21 Chai",
+                    "strength": "3.5g + 2g",
+                    "ingredient": "Nhôm hydroxyd + Magie hydroxyd",
+                    "category": "Kháng acid dạ dày dạng hỗn dịch",
+                    "purpose": "Trung hòa nhanh acid dịch vị, giảm nóng rát thượng vị.",
+                    "dose": "1/3 chai (~33ml)",
+                    "frequency": "3 lần/ngày (Sáng - Trưa - Tối)",
+                    "days": "21 chai (Đủ 21 ngày)",
+                    "usage": "Lắc đều chai, uống sau bữa ăn 1 giờ."
+                },
+                {
+                    "name": "DIGLUMISAN 1000mg - 63 Ống",
+                    "strength": "1000mg",
+                    "ingredient": "Arginine + Hỗ trợ chức năng gan",
+                    "category": "Hỗ trợ bảo vệ tế bào gan",
+                    "purpose": "Hỗ trợ chuyển hóa và bảo vệ chức năng gan mật.",
+                    "dose": "1 ống",
+                    "frequency": "3 lần/ngày (Sáng - Trưa - Tối)",
+                    "days": "63 ống (Đủ 21 ngày)",
+                    "usage": "Uống sau các bữa ăn."
                 }
             ],
             "warnings": [
@@ -374,30 +428,46 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
             "medications": [
                 {
                     "name": "Paracetamol 500mg - 10 Viên",
+                    "strength": "500mg",
                     "ingredient": "Paracetamol 500mg",
-                    "category": "Thuốc giảm đau hạ sốt giảm đau ngoại vi",
+                    "category": "Thuốc giảm đau hạ sốt ngoại vi",
                     "purpose": "Hạ nhiệt độ khi sốt trên 38.5°C, giảm đau rát họng khi nuốt thức ăn.",
+                    "dose": "1 viên",
+                    "frequency": "Khi sốt/đau (cách 4-6 giờ)",
+                    "days": "10 viên (5 ngày)",
                     "usage": "Uống 1 viên khi sốt hoặc đau rát, mỗi lần cách nhau tối thiểu 4-6 giờ."
                 },
                 {
                     "name": "Alpha Chymotrypsin 4.2mg (Chymoral) - 20 Viên",
+                    "strength": "4.2mg",
                     "ingredient": "Chymotrypsin 4200 IU",
                     "category": "Enzym kháng viêm dạng ngậm",
                     "purpose": "Giảm phù nề, tiêu dịch viêm sung huyết niêm mạc hầu họng và amidan.",
+                    "dose": "2 viên",
+                    "frequency": "2 lần/ngày (Sáng - Trưa)",
+                    "days": "20 viên (5 ngày)",
                     "usage": "Ngậm dưới lưỡi 2 viên/lần, ngày 2 lần sáng và trưa."
                 },
                 {
                     "name": "Desloratadine 5mg (Aerius) - 5 Viên",
+                    "strength": "5mg",
                     "ingredient": "Desloratadine 5mg",
                     "category": "Kháng Histamin H1 thế hệ 2",
                     "purpose": "Giảm phản xạ kích ứng đường thở, chống xuất tiết niêm mạc mũi họng.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Tối)",
+                    "days": "5 viên (5 ngày)",
                     "usage": "Uống 1 viên vào buổi tối sau ăn."
                 },
                 {
                     "name": "Dung dịch Natri Clorid 0.9% - 1 Chai 500ml",
+                    "strength": "0.9%",
                     "ingredient": "NaCl 0.9% đẳng trương",
                     "category": "Dung dịch sát khuẩn vệ sinh niêm mạc",
                     "purpose": "Rửa trôi vi khuẩn bám dính, làm dịu niêm mạc họng.",
+                    "dose": "15ml",
+                    "frequency": "3 lần/ngày (Sáng - Trưa - Tối)",
+                    "days": "1 chai 500ml (5 ngày)",
                     "usage": "Súc họng sâu 3-4 lần/ngày sau các bữa ăn và trước khi ngủ."
                 }
             ],

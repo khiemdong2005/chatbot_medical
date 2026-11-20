@@ -256,6 +256,10 @@ class _OpenRouterClient:
 # Key format: gsk_...
 # ==============================================================================
 
+class _GroqHTTPError(_OpenRouterHTTPError):
+    """Dedicated HTTP error for Groq so logs clearly distinguish Groq from OpenRouter."""
+
+
 class _GroqModels:
     """Mimics _OpenRouterModels via Groq's OpenAI-compatible Chat Completions API."""
     ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
@@ -303,7 +307,7 @@ class _GroqModels:
             with urllib.request.urlopen(req, timeout=self._timeout) as resp:
                 return json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as he:
-            raise _OpenRouterHTTPError(he.code, f"Groq HTTP {he.code}") from None
+            raise _GroqHTTPError(he.code, f"Groq HTTP {he.code}") from None
         except urllib.error.URLError as ue:
             raise TimeoutError(f"Groq connection error: {ue.reason}") from None
 
@@ -361,7 +365,7 @@ class _GroqModels:
             if isinstance(code, str) and re.fullmatch(r"[45][0-9]{2}", code):
                 code = int(code)
             status = code if isinstance(code, int) and 400 <= code <= 599 else 502
-            raise _OpenRouterHTTPError(status, f"Groq completion error ({status})")
+            raise _GroqHTTPError(status, f"Groq completion error ({status})")
 
         choices = response.get("choices")
         choice = choices[0] if isinstance(choices, list) and choices and isinstance(choices[0], dict) else {}
@@ -913,7 +917,7 @@ class LLMProvider:
         config_kwargs: Dict[str, Any] = {}
         if json_mode:
             config_kwargs["response_mime_type"] = "application/json"
-        if schema and provider != "openrouter":
+        if schema and provider not in ("openrouter", "groq"):
             config_kwargs["response_json_schema"] = schema
         if system_instruction:
             config_kwargs["system_instruction"] = system_instruction
@@ -924,8 +928,8 @@ class LLMProvider:
         if provider == "openrouter" and reasoning_enabled is not None:
             config_kwargs["reasoning_enabled"] = reasoning_enabled
 
-        if provider == "openrouter":
-            # Many free models do not accept structured-output parameters.
+        if provider in ("openrouter", "groq"):
+            # Many free/OpenAI-compatible models do not accept Gemini structured-output params.
             # The caller's prompt describes the schema; validation remains local.
             config = config_kwargs
         else:

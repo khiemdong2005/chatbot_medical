@@ -66,6 +66,81 @@ def _ocr_needs_second_pass(result: Dict[str, Any], doc_type_hint: str) -> bool:
             return False
     return True
 
+def _structure_ocr_text_with_groq(ocr_result: Dict[str, Any], doc_type: str = "prescription") -> Optional[Dict[str, Any]]:
+    """
+    Khi Vision AI (OpenRouter/Gemini) tạm quá tải (429) nhưng EasyOCR đã đọc được text thô,
+    dùng Groq text LLM (openai/gpt-oss-120b) để chuẩn hóa & dọn nhiễu chính tả đơn thuốc thành JSON.
+    """
+    if doc_type == "lab_test":
+        return None
+    raw_lines = [str(line.get("text", "")).strip() for line in (ocr_result.get("lines") or []) if str(line.get("text", "")).strip()]
+    if len(raw_lines) < 3:
+        return None
+    try:
+        from core.llm_provider import llm_provider
+        if not llm_provider.is_groq_active():
+            return None
+        joined_text = "\n".join(raw_lines)[:4500]
+        prompt = (
+            "Dưới đây là văn bản thô trích xuất từ EasyOCR trên ảnh đơn thuốc tiếng Việt (có thể bị lỗi dấu/ký tự OCR).\n"
+            "Hãy bóc tách CHỈ các thông tin có thật trong văn bản OCR (không bịa thuốc không có trong đơn), "
+            "sửa lỗi ký tự OCR rõ ràng và trả về DUY NHẤT JSON hợp lệ:\n"
+            "{\n"
+            '  "doc_type": "prescription",\n'
+            '  "facility": "",\n'
+            '  "doctor": "",\n'
+            '  "patient_name": "",\n'
+            '  "dob": "",\n'
+            '  "age": "",\n'
+            '  "gender": "",\n'
+            '  "diagnosis": "",\n'
+            '  "date": "",\n'
+            '  "medications": [\n'
+            '    {"name": "", "brand_name": "", "active_ingredient": "", "strength": "", "quantity": "", "schedule": "", "usage": ""}\n'
+            "  ]\n"
+            "}\n\n"
+            f"VĂN BẢN OCR:\n{joined_text}"
+        )
+        groq_key = llm_provider.resolve_api_key(profile="chat")
+        groq_model = llm_provider.get_default_model("chat", api_key=groq_key)
+        res = llm_provider.generate_json(
+            contents=prompt,
+            model=groq_model,
+            api_key=groq_key,
+            provider="groq",
+            temperature=0.1,
+            max_output_tokens=2048,
+            operation="ocr_text_structuring",
+            profile="chat",
+        )
+        if isinstance(res, dict) and isinstance(res.get("medications"), list) and res["medications"]:
+            cleaned_meds = []
+            for item in res["medications"]:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get("name") or item.get("brand_name") or "").strip()
+                if not name:
+                    continue
+                cleaned_meds.append({
+                    "name": name,
+                    "brand_name": str(item.get("brand_name") or name).strip(),
+                    "active_ingredient": str(item.get("active_ingredient") or "").strip(),
+                    "strength": str(item.get("strength") or "").strip(),
+                    "quantity": str(item.get("quantity") or "").strip(),
+                    "days": str(item.get("quantity") or "").strip(),
+                    "schedule": str(item.get("schedule") or "").strip(),
+                    "frequency": str(item.get("schedule") or "").strip(),
+                    "usage": str(item.get("usage") or "").strip(),
+                    "instructions": str(item.get("usage") or "").strip(),
+                })
+            if cleaned_meds:
+                res["medications"] = cleaned_meds
+                return res
+    except Exception as exc:
+        logger.warning("Groq OCR text structuring fallback unavailable (%s).", type(exc).__name__)
+    return None
+
+
 def process_medical_document_pipeline(
     file_path: str,
     original_filename: str = "",
@@ -231,8 +306,10 @@ def process_medical_document_pipeline(
         )
 
     if not gemini_data:
-        # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
-        gemini_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+        # Nếu Vision API bận/429 -> thử chuẩn hóa text EasyOCR qua Groq LLM trước khi fallback regex
+        gemini_data = _structure_ocr_text_with_groq(ocr_result, doc_type=doc_type)
+        if not gemini_data:
+            gemini_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
     else:
         # Nếu Gemini chạy được nhưng có trường bị khuyết, bổ sung từ OCR
         ocr_fallback = extract_schema_from_ocr(ocr_result, doc_type=doc_type)

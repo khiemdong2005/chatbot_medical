@@ -425,6 +425,8 @@ class GeminiMedicalService:
                 from core.intake_service import last_assistant_question
                 clinical_context["previous_question"] = last_assistant_question(dialogue_history[-1]["content"])[:350]
 
+        is_groq = str(getattr(self, "api_key", "")).startswith("gsk_")
+        ref_char_limit = 2200 if is_groq else 6000
         dialogue_text = json.dumps({
             "current_message": str(user_message)[:2000],
             "history": dialogue_history,
@@ -433,7 +435,7 @@ class GeminiMedicalService:
             "optional_unanswered_question": str(clinical_hint or "")[:600],
             "reference_documents": [{"source_id": source_id,
                                      "title": str(doc.get("title", ""))[:240],
-                                     "content": doc["content"][:6000]}
+                                     "content": doc["content"][:ref_char_limit]}
                                     for source_id, doc in references.items()]
         }, ensure_ascii=False)
         if has_image:
@@ -493,11 +495,40 @@ class GeminiMedicalService:
                     )
 
             def _do_generate():
-                return active_client.models.generate_content(
-                    model=target_model,
-                    contents=req_contents,
-                    config=config
-                )
+                try:
+                    return active_client.models.generate_content(
+                        model=target_model,
+                        contents=req_contents,
+                        config=config
+                    )
+                except Exception as gen_err:
+                    # Nếu Groq model chính (gpt-oss-120b) chạm trần 8,000 TPM (429),
+                    # chuyển lần lượt qua các bucket riêng (gpt-oss-20b -> qwen/qwen3.8-27b) để tránh degraded.
+                    is_429 = (getattr(gen_err, "status_code", None) == 429 or getattr(gen_err, "code", None) == 429)
+                    if is_groq and not has_image and is_429:
+                        fallback_chain = [
+                            m for m in (
+                                (os.getenv("GROQ_EXPANSION_MODEL") or "openai/gpt-oss-20b").strip(),
+                                "qwen/qwen3.8-27b",
+                            )
+                            if m and m != target_model
+                        ]
+                        last_fb_err = gen_err
+                        for fb_model in fallback_chain:
+                            try:
+                                logger.info("[REQ-%s] Groq %s hit 429 TPM; falling back to %s.", req_id, target_model, fb_model)
+                                return active_client.models.generate_content(
+                                    model=fb_model,
+                                    contents=req_contents,
+                                    config=config
+                                )
+                            except Exception as fb_err:
+                                last_fb_err = fb_err
+                                if getattr(fb_err, "status_code", None) == 429 or getattr(fb_err, "code", None) == 429:
+                                    continue
+                                raise
+                        raise last_fb_err
+                    raise
 
             policy = getattr(self, "retry_policy", None) or RetryPolicy()
 
@@ -599,6 +630,12 @@ class GeminiMedicalService:
                 "additionalProperties": False,
             },
         )
+        is_groq = str(getattr(self, "api_key", "")).startswith("gsk_")
+        ctx_limit = 2200 if is_groq else 6000
+        verify_model = (
+            (os.getenv("GROQ_EXPANSION_MODEL") or "openai/gpt-oss-20b").strip()
+            if is_groq else self.model
+        )
         payload = json.dumps({
             "question": str(user_message)[:2000],
             "language": lang,
@@ -606,12 +643,12 @@ class GeminiMedicalService:
             "clinical_context": clinical_context,
             "points": [{"index": index, **point} for index, point in enumerate(points, start=1)],
             "source_contexts": {
-                source_id: references[source_id]["content"][:6000]
+                source_id: references[source_id]["content"][:ctx_limit]
                 for source_id in dict.fromkeys(point["source_id"] for point in points)
             },
         }, ensure_ascii=False)
         try:
-            result = self.client.models.generate_content(model=self.model, contents=payload, config=config)
+            result = self.client.models.generate_content(model=verify_model, contents=payload, config=config)
             verdict = _parse_json_object(result.text)
             accepted = verdict.get("accepted") if verdict else None
             if not isinstance(accepted, list) or any(type(index) is not int or not 1 <= index <= len(points)

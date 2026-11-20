@@ -1564,8 +1564,31 @@ const STATIC_VI_EN_TEXT = {
   "Uống đủ nước, tái khám nếu sốt kéo dài trên 3 ngày.": "Maintain hydration; return for follow-up if fever persists beyond 3 days.",
   "NGÀY TÁI KHÁM": "FOLLOW-UP",
   "Không hẹn tái khám": "No follow-up scheduled",
-  // Floating Chat Widget
+  // Floating Chat Widget & Confirmed Prescription Dossier
   "Trợ lý y tế MediMind": "MediMind Health Assistant",
+  "Đóng trợ lý": "Close assistant",
+  "Tắt hoàn toàn": "Dismiss assistant",
+  "Thông báo": "Notifications",
+  "PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC": "CLASSIFICATION: ORIGINAL PRESCRIPTION",
+  "PHÂN LOẠI: PHIẾU XÉT NGHIỆM": "CLASSIFICATION: LAB REPORT",
+  "Tài liệu y tế": "Medical Document",
+  "✓ Đã đối soát & xác nhận": "✓ Verified & Confirmed",
+  "Dò lại đơn gốc": "Review Original",
+  "Xem Lịch sử / Quét thêm": "History / Scan More",
+  "HỒ SƠ BỆNH NHÂN": "PATIENT RECORD",
+  "Ngày/Năm sinh:": "DOB / Birth Year:",
+  "Chưa xác định": "Not specified",
+  "Giới tính:": "Gender:",
+  "Mã bệnh án": "Record ID",
+  "Nơi khám": "Facility",
+  "Chẩn đoán": "Diagnosis",
+  "Cố vấn Lâm sàng MediMind": "MediMind Clinical Advisor",
+  "Hướng dẫn đơn thuốc": "Prescription Guidance",
+  "Tư vấn đơn thuốc": "Ask About Prescription",
+  "Danh mục thuốc trong toa": "Prescribed Medications",
+  "Lịch uống & Cữ thuốc trong ngày": "Daily Medication Schedule",
+  "Tổng cấp:": "Total Dispensed:",
+  "Chưa rõ số lượng": "Quantity not specified",
   "Đang trực tuyến": "Online",
   "Chào bạn, tôi là Trợ lý y tế MediMind!": "Hello, I am the MediMind Health Assistant!",
   "Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé.": "I am right here whenever you need help. Ask me about medication timing, lab test meanings, or which medical specialty to visit.",
@@ -6898,6 +6921,9 @@ function renderPrescriptionResult(data) {
 
   resSec.innerHTML = html;
   resSec.classList.remove('hidden');
+  if (typeof currentLang !== 'undefined' && currentLang === 'en' && typeof applyLanguage === 'function') {
+    applyLanguage();
+  }
 }
 
 // Hàm chuyển đổi mượt mà giữa 2 tab trong cùng 1 bản
@@ -8130,7 +8156,8 @@ function initHospitalInteractiveMap() {
   if (typeof L === 'undefined') return;
 
   if (!hospitalLeafletMap) {
-    hospitalLeafletMap = L.map('hospital-interactive-map').setView([10.7769, 106.6850], 13);
+    hospitalLeafletMap = L.map('hospital-interactive-map', { zoomControl: false }).setView([10.7769, 106.6850], 13);
+    L.control.zoom({ position: 'topleft' }).addTo(hospitalLeafletMap);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(hospitalLeafletMap);

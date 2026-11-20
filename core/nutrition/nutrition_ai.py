@@ -128,8 +128,17 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
     from core.llm_provider import llm_provider
-    key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or os.getenv("OPENROUTER_API_KEY") or "").strip()
-    model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
+    use_groq = llm_provider.is_groq_active()
+    if use_groq:
+        key = (os.getenv("GROQ_API_KEY") or "").strip()
+        model = (os.getenv("GROQ_NUTRITION_MODEL") or "openai/gpt-oss-20b").strip()
+        active_provider = "groq"
+        want_json_mode = True
+    else:
+        key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or os.getenv("OPENROUTER_API_KEY") or "").strip()
+        model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
+        active_provider = "openrouter"
+        want_json_mode = False
     if not key or key.startswith("YOUR_") or len(key) <= 10:
         raise NutritionAIError("not_configured")
     if not model or not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
@@ -242,11 +251,43 @@ QUY TẮC:
         "diet_preferences": [value for value in personalization.get("diet_preferences", []) if value in
                              {"no_added_sugar", "not_spicy", "not_fried", "low_salt"}],
     }
-    payload = json.dumps({"user_input": condition, "recipe_type": recipe_type,
-                         "guidance": guidance, "personalization": model_context,
-                         "candidates": [{k: recipe[k] for k in
-                             ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note", "calories", "sugar", "fat", "fiber", "protein")
-                             if k in recipe} for recipe in recipes]}, ensure_ascii=False)
+    if use_groq:
+        # Groq Free Tier giới hạn 8,000 TPM/request (tránh HTTP 413 Payload Too Large):
+        # Giữ tối đa 16 món cân bằng giữa one-dish, main, soup, side và bỏ `steps` dài dòng
+        # (validate_selection sẽ ghép lại toàn bộ steps/ingredients chuẩn từ catalog gốc).
+        one_dishes = [r for r in recipes if r.get("is_one_dish")]
+        soups = [r for r in recipes if r.get("dish_role") == "soup" and r not in one_dishes]
+        mains = [r for r in recipes if r.get("dish_role") == "main" and r not in one_dishes]
+        sides = [r for r in recipes if r.get("dish_role") == "side" and r not in one_dishes]
+        others = [r for r in recipes if r not in one_dishes and r not in soups and r not in mains and r not in sides]
+        picked: List[Dict] = []
+        for pool, cap in ((one_dishes, 8), (mains, 4), (soups, 4), (sides, 3), (others, 4)):
+            for item in pool[:cap]:
+                if item not in picked and len(picked) < 16:
+                    picked.append(item)
+        if not picked:
+            picked = recipes[:16]
+        compact_fields = ("id", "title", "dish_role", "is_one_dish", "ingredients",
+                          "rule_tags", "calories", "sugar", "fat", "fiber", "protein")
+        compact_candidates = []
+        for recipe in picked:
+            entry = {k: recipe[k] for k in compact_fields if k in recipe}
+            if isinstance(entry.get("ingredients"), list):
+                entry["ingredients"] = [str(x)[:60] for x in entry["ingredients"][:10]]
+            compact_candidates.append(entry)
+        compact_guidance = [
+            {k: (str(v)[:200] if isinstance(v, str) else v) for k, v in g.items()}
+            for g in (guidance or [])[:4]
+        ]
+        payload = json.dumps({"user_input": condition, "recipe_type": recipe_type,
+                              "guidance": compact_guidance, "personalization": model_context,
+                              "candidates": compact_candidates}, ensure_ascii=False)
+    else:
+        payload = json.dumps({"user_input": condition, "recipe_type": recipe_type,
+                             "guidance": guidance, "personalization": model_context,
+                             "candidates": [{k: recipe[k] for k in
+                                 ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note", "calories", "sugar", "fat", "fiber", "protein")
+                                 if k in recipe} for recipe in recipes]}, ensure_ascii=False)
 
     # This model may not support JSON Schema or JSON-mode parameters. Prompt
     # for JSON and validate the parsed selection against the canonical catalog.
@@ -262,8 +303,8 @@ QUY TẮC:
             operation="nutrition_ai",
             profile="nutrition",
             api_key=key,
-            provider="openrouter",
-            json_mode=False,
+            provider=active_provider,
+            json_mode=want_json_mode,
             reasoning_enabled=False,
         )
         result = validate_selection(raw_result, recipes, len(guidance))
