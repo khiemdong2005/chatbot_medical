@@ -84,7 +84,7 @@ class GeminiQueryExpansionProvider(QueryExpansionProvider):
         from core.llm_provider import llm_provider
         self.llm_provider = llm_provider
         self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="query_expansion")).strip()
-        self.model = model or os.getenv("RAG_QUERY_EXPANSION_MODEL") or self.llm_provider.get_default_model("expansion") or DEFAULT_EXPANSION_MODEL
+        self.model = model or os.getenv("RAG_QUERY_EXPANSION_MODEL") or self.llm_provider.get_default_model("expansion", api_key=self.api_key) or DEFAULT_EXPANSION_MODEL
         self._client = None
 
     @property

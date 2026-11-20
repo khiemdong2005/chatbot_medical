@@ -6,7 +6,8 @@ from typing import Dict, Any, List, Optional, Tuple
 from core.triage import analyze_symptoms, assess_emergency_risk, apply_safety_guardrails, remove_accents
 from core.rag_service import medical_rag_service
 from core.gemini_service import (GeminiMedicalService, sanitize_history, sanitize_health_context,
-                                sanitize_intake_facts, reference_sources)
+                                sanitize_intake_facts, numbered_references, reference_sources,
+                                normalize_follow_up_question)
 from core.observability import metrics_collector
 
 logger = logging.getLogger("ChatService")
@@ -24,33 +25,27 @@ OUT_OF_SCOPE_PATTERNS = (
 # ---------------------------------------------------------------------------
 # VULN-08: Prompt Injection Filter
 # ---------------------------------------------------------------------------
-# Patterns that signal an attempt to override or escape the system prompt.
-# These are matched case-insensitively against the user message.
 _INJECTION_PATTERNS = (
-    # Explicit instruction-override attempts
     r"ignore\s+(?:all\s+)?(?:previous|prior|above|your)\s+instructions?",
     r"disregard\s+(?:all\s+)?(?:previous|prior|above|your)\s+instructions?",
     r"forget\s+(?:everything|all|your\s+instructions?)",
     r"(?:new|updated?|revised?)\s+(?:system\s+)?(?:instructions?|prompt|directive|role|persona)",
-    r"you\s+are\s+now\s+(?:a\s+)?(?!a\s+medical)",  # role-swap except legit "you are now a medical ..."
+    r"you\s+are\s+now\s+(?:a\s+)?(?!a\s+medical)",
     r"act\s+as\s+(?:if\s+you\s+are\s+)?(?:a\s+)?(?:different|another|evil|hacker|DAN|jailbreak)",
     r"pretend\s+(?:you\s+are|to\s+be)\s+(?:a\s+)?(?:different|another|evil|hacker|DAN)",
-    r"\bDAN\b",  # "Do Anything Now" jailbreak
+    r"\bDAN\b",
     r"jailbreak",
     r"(?:override|bypass|disable|remove)\s+(?:safety|filter|restriction|guardrail|system)",
     r"(?:ignore|skip|disable)\s+(?:(?:your|all|the)\s+)?(?:safety|filter|restriction|guardrail|ethical|moral)",
-    # Role/system prompt injection via delimiters
     r"(?:SYSTEM|ASSISTANT|USER)\s*:\s*(?:you\s+are|ignore|forget|disregard)",
     r"<\s*(?:system|sys|prompt|instruction)\s*>",
     r"\[\s*(?:SYSTEM|INST|SYS)\s*\]",
     r"###\s*(?:System|Instruction|Prompt)\s*:",
-    # Vietnamese variants
     r"bỏ\s+qua\s+(?:tất\s+cả\s+)?(?:hướng\s+dẫn|lệnh|chỉ\s+thị)\s+(?:trước|trên|cũ)",
     r"quên\s+(?:tất\s+cả|hướng\s+dẫn|lệnh|chỉ\s+thị)",
     r"(?:bây\s+giờ\s+)?bạn\s+là\s+(?:một\s+)?(?:AI|trợ\s+lý|bot)\s+khác",
     r"giả\s+vờ\s+(?:bạn\s+là|như)\s+(?:AI|trợ\s+lý)\s+(?:khác|không\s+bị\s+hạn\s+chế)",
     r"(?:vô\s+hiệu\s+hóa|tắt|bỏ\s+qua)\s+(?:bộ\s+lọc|hạn\s+chế|an\s+toàn|kiểm\s+duyệt)",
-    # Token smuggling via encoding hints
     r"base64\s*:\s*[A-Za-z0-9+/=]{20,}",
 )
 
@@ -60,15 +55,7 @@ _COMPILED_INJECTION_PATTERNS = [
 
 
 def detect_and_sanitize_injection(message: str) -> Tuple[str, bool]:
-    """VULN-08: Detect prompt injection patterns and sanitize the message.
-
-    Strategy: strip the matched injection segment from the message rather than
-    blocking outright, so users who accidentally trigger a pattern still receive
-    a medical response for the legitimate portion of their query.
-
-    Returns:
-        (sanitized_message, was_injected)
-    """
+    """VULN-08: Detect prompt injection patterns and sanitize the message."""
     if not message:
         return message, False
 
@@ -76,13 +63,10 @@ def detect_and_sanitize_injection(message: str) -> Tuple[str, bool]:
     sanitized = message
 
     for pattern in _COMPILED_INJECTION_PATTERNS:
-        match = pattern.search(sanitized)
-        if match:
+        if pattern.search(sanitized):
             was_injected = True
-            # Remove only the matched injection fragment
             sanitized = pattern.sub("", sanitized)
 
-    # Collapse extra whitespace after removal
     if was_injected:
         sanitized = re.sub(r"\s{2,}", " ", sanitized).strip()
         logger.warning(
@@ -103,6 +87,11 @@ def enforce_question_limit(answer: str, max_questions: int,
     seen = 0
     facts = facts or {}
     answered = set(facts.get("answered_topics", {}))
+    if facts.get("duration"):
+        answered.add("duration")
+    if facts.get("vitals", {}).get("temperature"):
+        answered.add("temperature")
+    answered.update(f"pain_{field}" for field, value in facts.get("pain", {}).items() if value)
     prior_questions = {last_assistant_question(turn.get("content", "")).casefold()
                        for turn in (history or []) if turn.get("role") == "assistant"}
     prior_questions.update(item.get("question", "").casefold()
@@ -120,39 +109,6 @@ def enforce_question_limit(answer: str, max_questions: int,
 
     limited = re.sub(r"[^.!?\n]*\?", keep_allowed, answer)
     return re.sub(r"\n{3,}", "\n\n", limited).strip()
-
-
-def ensure_final_sections(answer: str, result: dict, lang: str) -> str:
-    """Keep a final reply usable when the provider omits the requested sections."""
-    folded = remove_accents(answer.lower()).replace("đ", "d")
-    headings = (("danh gia", "tu cham soc", "dinh huong") if lang == "vi"
-                else ("assessment", "self-care", "care routing"))
-    if all(heading in folded for heading in headings):
-        return answer
-
-    raw_tips = result.get("home_care_tips", [])
-    tips = [tip.strip() for tip in raw_tips if isinstance(tip, str) and tip.strip()
-            and not re.search(r"\b(?:thuốc|liều|mg|medicine|dose|tablet|kháng sinh|paracetamol|ibuprofen|aspirin|NSAID)\b",
-                              tip, re.IGNORECASE)][:3]
-    if len(tips) < 2:
-        tips = (["Nghỉ ngơi và tránh hoạt động làm tăng khó chịu.",
-                 "Ghi lại thời điểm và mức độ triệu chứng để trao đổi khi đi khám."]
-                if lang == "vi" else
-                ["Rest and avoid activities that worsen discomfort.",
-                 "Note when symptoms occur and how severe they are for a clinician."])
-    specialist = result.get("specialist")
-    if not isinstance(specialist, str) or not specialist.strip() or specialist in ("Chưa xác định", "Undetermined"):
-        specialist = "Y học gia đình hoặc Nội tổng quát" if lang == "vi" else "primary care"
-    assessment = answer or ("Chưa đủ thông tin để nhận định nguyên nhân." if lang == "vi"
-                            else "There is not enough information to suggest a cause.")
-    if lang == "vi":
-        return (f"**Đánh giá sơ bộ & giải thích:** {assessment}\n\n"
-                f"**Tự chăm sóc tại nhà:** {' '.join(tips)}\n\n"
-                f"**Định hướng chuyên khoa & dấu hiệu cần khám:** Nếu triệu chứng kéo dài, hãy khám {specialist}. "
-                "Đi khám ngay nếu tình trạng nặng lên đột ngột.")
-    return (f"**Preliminary assessment:** {assessment}\n\n"
-            f"**Self-care:** {' '.join(tips)}\n\n"
-            f"**Care routing:** See {specialist} if symptoms persist. Seek urgent care if they suddenly worsen.")
 
 
 def retrieval_query(message, facts):
@@ -199,6 +155,7 @@ def process_clinical_chat(
     metrics_collector.increment("requests_total")
     lang = lang if lang in ALLOWED_LANGUAGES else "vi"
     history = sanitize_history(history)
+    has_session_facts = intake_facts is not None
     intake_facts = sanitize_intake_facts(intake_facts)
     health_context = sanitize_health_context(health_context)
 
@@ -217,8 +174,28 @@ def process_clinical_chat(
     if not user_message and not has_image:
         raise ValueError("Vui lòng nhập nội dung tin nhắn hoặc đính kèm ảnh triệu chứng.")
 
-    from core.intake_service import requests_consultation_conclusion
-    final_mode = consultation_mode == "final" or requests_consultation_conclusion(user_message)
+    from core.intake_service import (
+        PAIN_PATTERNS, abdominal_pain, extract_clinical_facts_from_text,
+        identify_missing_information, is_general_health_definition, is_informational_query,
+        question_topic, requests_consultation_conclusion, select_next_question,
+    )
+    if consultation_mode == "informational" or (consultation_mode != "final" and is_informational_query(user_message)):
+        consultation_mode = "informational"
+    elif consultation_mode == "final" or requests_consultation_conclusion(user_message):
+        consultation_mode = "final"
+    if consultation_mode != "collecting":
+        clinical_hint = None
+    if not has_session_facts and consultation_mode != "informational":
+        facts = extract_clinical_facts_from_text(user_message)
+        if abdominal_pain(facts):
+            facts["pain"] = {key: match.group() for key, pattern in PAIN_PATTERNS.items()
+                             if (match := re.search(pattern, user_message, re.IGNORECASE))}
+        intake_facts = sanitize_intake_facts(facts)
+        if not clinical_hint and consultation_mode == "collecting":
+            clinical_hint = select_next_question(identify_missing_information(facts), lang=lang)
+
+    follow_up = (enforce_question_limit(clinical_hint, 1, history=history, facts=intake_facts)
+                 if isinstance(clinical_hint, str) else "")
 
     if gemini_service is None:
         gemini_service = GeminiMedicalService()
@@ -228,7 +205,10 @@ def process_clinical_chat(
     # -------------------------------------------------------------
     triage_start = time.perf_counter()
     previous = history[-1].get("content", "") if history and history[-1].get("role") == "assistant" else ""
-    emergency = assess_emergency_risk(user_message, lang=lang, previous_question=previous)
+    general_definition = not has_image and is_general_health_definition(user_message)
+    emergency = {} if general_definition else assess_emergency_risk(
+        user_message, lang=lang, previous_question=previous
+    )
     triage_ms = (time.perf_counter() - triage_start) * 1000.0
     metrics_collector.record_latency("triage_latency_ms", triage_ms)
 
@@ -247,7 +227,7 @@ def process_clinical_chat(
         return {
             "answer": emergency["message"],
             "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
-            "risk_score": 90,
+            "risk_score": None,
             "symptoms": emergency["symptoms"],
             "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
             "is_emergency": True,
@@ -314,23 +294,26 @@ def process_clinical_chat(
     # TẦNG 2: TRUY VẤN TRI THỨC Y KHOA RAG TỪ CHROMADB
     # -------------------------------------------------------------
     rag_docs = []
-    try:
-        retrieval_start = time.perf_counter()
-        rag_docs = medical_rag_service.retrieve_context(
-            retrieval_query(user_message, intake_facts),
-            top_k=2,
-            lang=lang
-        )
-        retrieval_ms = (time.perf_counter() - retrieval_start) * 1000.0
-        metrics_collector.record_latency("retrieval_latency_ms", retrieval_ms)
-        if rag_docs:
-            metrics_collector.increment("retrieval_success_total")
-        else:
+    # A pending intake question depends on what the patient has reported, not on a reference article.
+    if not follow_up:
+        try:
+            retrieval_start = time.perf_counter()
+            retrieval_facts = {} if consultation_mode == "informational" else intake_facts
+            rag_docs = medical_rag_service.retrieve_context(
+                retrieval_query(user_message, retrieval_facts),
+                top_k=2,
+                lang=lang
+            )
+            retrieval_ms = (time.perf_counter() - retrieval_start) * 1000.0
+            metrics_collector.record_latency("retrieval_latency_ms", retrieval_ms)
+            if rag_docs:
+                metrics_collector.increment("retrieval_success_total")
+            else:
+                metrics_collector.increment("retrieval_miss_total")
+            metrics_collector.log_event("retrieval", req_id, retrieval_ms, "SUCCESS" if rag_docs else "EMPTY")
+        except Exception as e:
             metrics_collector.increment("retrieval_miss_total")
-        metrics_collector.log_event("retrieval", req_id, retrieval_ms, "SUCCESS" if rag_docs else "EMPTY")
-    except Exception as e:
-        metrics_collector.increment("retrieval_miss_total")
-        logger.warning("[REQ-%s] Retrieval unavailable (%s).", req_id, type(e).__name__)
+            logger.warning("[REQ-%s] Retrieval unavailable (%s).", req_id, type(e).__name__)
 
     # -------------------------------------------------------------
     # TẦNG 3: BỘ NÃO SUY LUẬN AI (Gemini) + FALLBACK DỰ PHÒNG NỘI BỘ
@@ -348,10 +331,10 @@ def process_clinical_chat(
             image_mime_type=image_mime_type,
             lang=lang,
             request_id=req_id,
-            clinical_hint=clinical_hint,
+            clinical_hint=follow_up or None,
             intake_facts=intake_facts,
             health_context=health_context,
-            consultation_mode="final" if final_mode else "collecting"
+            consultation_mode=consultation_mode
         )
     except Exception as err:
         logger.warning("[REQ-%s] Gemini service unavailable (%s).", req_id, type(err).__name__)
@@ -359,6 +342,7 @@ def process_clinical_chat(
 
     if gemini_result and isinstance(gemini_result, dict) and gemini_result.get("answer"):
         triage_result = gemini_result
+        degraded = triage_result.get("degraded") is True
     else:
         # Kích hoạt Fallback Engine và đánh dấu trạng thái degraded
         degraded = True
@@ -367,29 +351,29 @@ def process_clinical_chat(
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
 
         # Kiểm tra an toàn khẩn cấp: Đánh giá lại dấu hiệu cấp cứu deterministically trước khi tạo fallback
-        fallback_emergency = assess_emergency_risk(user_message, lang=lang)
+        fallback_emergency = {} if general_definition else assess_emergency_risk(user_message, lang=lang)
         if fallback_emergency.get("is_emergency"):
             emg_symptoms = fallback_emergency.get("symptoms", [])
             symptom_str = ", ".join(emg_symptoms) if emg_symptoms else ("Dấu hiệu cấp cứu" if lang == "vi" else "Emergency symptoms")
             if lang == "vi":
                 emg_answer = (
-                    f"⚠️ **CẢNH BÁO LÂM SÀNG KHẨN CẤP:** Hệ thống đang tạm thời gián đoạn dịch vụ AI, nhưng đã phát hiện dấu hiệu nguy kịch: **{symptom_str}**.\n\n"
-                    "**TUYỆT ĐỐI KHÔNG CHỜ ĐỢI AI PHỤC HỒI.** Hãy gọi ngay Cấp cứu (**115**) hoặc nhờ người thân đưa đến Khoa Cấp cứu gần nhất ngay lập tức!"
+                    f"⚠️ **CẢNH BÁO NGUY CƠ CAO:** Hệ thống đang tạm thời gián đoạn dịch vụ AI, nhưng có dấu hiệu cần được đánh giá khẩn cấp: **{symptom_str}**.\n\n"
+                    "Không chờ AI trả lời lại. Bạn cần đến Khoa Cấp cứu gần nhất để được nhân viên y tế kiểm tra, đặc biệt nếu triệu chứng vẫn còn hoặc nặng lên."
                 )
                 risk_lvl = "Nguy cơ cao (Cần thăm khám khẩn)"
-                spec = "Cấp cứu 115 / Khoa Cấp cứu"
+                spec = "Khoa Cấp cứu"
             else:
                 emg_answer = (
-                    f"⚠️ **CLINICAL EMERGENCY ALERT:** The AI service is temporarily unavailable, but potential life-threatening signs were detected: **{symptom_str}**.\n\n"
-                    "**DO NOT WAIT FOR AI SERVICE RECOVERY.** Immediately call Emergency Services (**911 / 115**) or proceed to the nearest emergency room right now!"
+                    f"⚠️ **HIGH-RISK WARNING:** The AI service is temporarily unavailable, but these signs need urgent assessment: **{symptom_str}**.\n\n"
+                    "Do not wait for the AI service to recover. Seek urgent in-person assessment at the nearest emergency department, especially if symptoms persist or worsen."
                 )
                 risk_lvl = "High Risk (Immediate Care Needed)"
-                spec = "Emergency 115 / ER Department"
+                spec = "Emergency Department"
             triage_result = {
                 "answer": emg_answer,
                 "symptoms": emg_symptoms,
                 "risk_level": risk_lvl,
-                "risk_score": 90,
+                "risk_score": None,
                 "specialist": spec,
                 "visual_findings": [],
                 "differential_diagnosis": ["Dấu hiệu cấp cứu tim mạch / hô hấp / thần kinh / nhãn khoa"],
@@ -398,23 +382,9 @@ def process_clinical_chat(
                 "sources": []
             }
         else:
-            question = clinical_hint if isinstance(clinical_hint, str) else ""
-            if question and any(question in turn["content"] for turn in history if turn["role"] == "assistant"):
-                question = ""
-            if final_mode:
-                answer = (
-                    "**Đánh giá sơ bộ & giải thích:** Dịch vụ AI đang gián đoạn nên chưa đủ cơ sở để nhận định nguyên nhân từ các thông tin hiện có.\n\n"
-                    "**Tự chăm sóc:** Nghỉ ngơi, tránh hoạt động làm tăng khó chịu và ghi lại diễn biến triệu chứng.\n\n"
-                    "**Định hướng thăm khám:** Hãy liên hệ bác sĩ Y học gia đình hoặc Nội tổng quát để được đánh giá. Đi khám ngay nếu triệu chứng nặng lên đột ngột."
-                    if lang == "vi" else
-                    "**Preliminary assessment:** The AI service is unavailable, so the available facts do not support a cause.\n\n"
-                    "**Self-care:** Rest, avoid activities that worsen discomfort, and note how symptoms change.\n\n"
-                    "**Care routing:** Contact a primary care clinician for assessment. Seek urgent care if symptoms suddenly worsen."
-                )
-            else:
-                answer = ("Mình tạm chưa kết nối được dịch vụ AI nên chưa thể đánh giá tình trạng hoặc chọn thuốc cho bạn."
-                          if lang == "vi" else "The AI service is temporarily unavailable, so I cannot assess your condition or choose medicines.")
-                answer += " " + (question or ("Bạn có thể thử gửi lại sau ít phút." if lang == "vi" else "Please try again in a few minutes."))
+            answer = ("Mình tạm chưa kết nối được dịch vụ AI."
+                      if lang == "vi" else "The AI service is temporarily unavailable.")
+            answer += " " + (follow_up or ("Bạn có thể thử gửi lại sau ít phút." if lang == "vi" else "Please try again in a few minutes."))
             triage_result = {"answer": answer, "symptoms": intake_facts.get("present_symptoms", []),
                              "risk_level": "Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
                              "risk_score": None, "specialist": "Chưa xác định" if lang == "vi" else "Undetermined",
@@ -426,32 +396,47 @@ def process_clinical_chat(
     # -------------------------------------------------------------
     raw_answer = triage_result.get("answer", "")
     facts = intake_facts or {}
+    grounding_status = triage_result.get("grounding_status")
     if not triage_result.get("is_emergency"):
-        raw_answer = enforce_question_limit(raw_answer, 0 if final_mode else 1,
+        proposed_question = normalize_follow_up_question(triage_result.get("follow_up_question"), lang)
+        model_question = (enforce_question_limit(proposed_question, 1, history=history, facts=facts)
+                          if consultation_mode == "collecting" else "")
+        safety_question = follow_up and question_topic(follow_up) in {"dyspnea", "chest_pain", "swallowing_ability"}
+        next_question = follow_up if safety_question else model_question or follow_up
+
+        if not degraded and grounding_status == "verified" and model_question and not follow_up:
+            raw_answer = f"{raw_answer}\n\n{model_question}"
+        elif next_question and not degraded:
+            raw_answer = next_question
+            grounding_status = "clarification"
+            triage_result.update(
+                risk_level="Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
+                risk_score=None, specialist="", differential_diagnosis=[],
+            )
+        raw_answer = enforce_question_limit(raw_answer, 1 if consultation_mode == "collecting" else 0,
                                             history=history, facts=facts)
-        if final_mode:
-            raw_answer = ensure_final_sections(raw_answer, triage_result, lang)
-        if not final_mode and "?" not in raw_answer and clinical_hint:
-            raw_answer = enforce_question_limit(f"{raw_answer} {clinical_hint}".strip(), 1,
-                                                history=history, facts=facts)
+        if not raw_answer:
+            raw_answer = ("Mình chưa đủ dữ kiện để trả lời chắc chắn."
+                          if lang == "vi" else "I don't have enough information for a reliable answer.")
     if any(turn.get("role") == "assistant" for turn in history):
         body = re.sub(r"^\s*(?:xin chào(?: bạn)?|chào bạn|hello(?: there)?|hi there)[!,.:;–—\s]+",
                       "", raw_answer, count=1, flags=re.IGNORECASE)
         if body and body != raw_answer:
             raw_answer = body[:1].upper() + body[1:]
-    from core.intake_service import abdominal_pain, pain_ready
+    from core.intake_service import pain_ready
     if (lang == "vi" and not has_image and abdominal_pain(facts) and not pain_ready(facts)
             and not triage_result.get("is_emergency")):
         triage_result.update(risk_level="Chưa đủ thông tin", risk_score=None,
                              specialist="Chưa xác định", differential_diagnosis=[])
-    # A hint must never replace a model's actual answer, especially urgent
-    # guidance. The model receives it as optional data and chooses one follow-up.
     guardrail_start = time.perf_counter()
     cleaned_answer = apply_safety_guardrails(raw_answer, lang=lang)
     guardrail_ms = (time.perf_counter() - guardrail_start) * 1000.0
     metrics_collector.record_latency("guardrail_latency_ms", guardrail_ms)
     if cleaned_answer != raw_answer:
         metrics_collector.increment("unsafe_guardrail_block_total")
+        if grounding_status == "verified":
+            grounding_status = "insufficient"
+            cleaned_answer = re.sub(r" +\[[0-9]+\]", "", cleaned_answer)
 
     # Chuẩn hóa cấu trúc đầu ra theo hợp đồng y tế
     default_risk = "Chưa xác định (Cần thêm thông tin)" if lang == "vi" else "Undetermined (Needs more information)"
@@ -476,9 +461,12 @@ def process_clinical_chat(
     if not isinstance(diff_diag, list):
         diff_diag = []
 
-    sources = reference_sources(rag_docs)
-    rag_available = medical_rag_service.is_available()
-    rag_status = "ready" if rag_docs else ("not_ready" if not rag_available else "no_match")
+    sources = []
+    source_ids = triage_result.get("verified_source_ids")
+    if grounding_status == "verified" and cleaned_answer == raw_answer and isinstance(source_ids, list):
+        references = numbered_references(rag_docs)
+        sources = reference_sources([references[source_id] for source_id in source_ids
+                                     if isinstance(source_id, str) and source_id in references])
 
     total_ms = (time.perf_counter() - total_start) * 1000.0
     metrics_collector.record_latency("total_request_latency_ms", total_ms)
@@ -488,11 +476,14 @@ def process_clinical_chat(
         metrics_collector.increment("requests_success")
     metrics_collector.log_event("chat_service", req_id, total_ms, "DEGRADED" if degraded else "SUCCESS")
 
+    rag_available = medical_rag_service.is_available()
+    rag_status = "ready" if rag_docs else ("not_ready" if not rag_available else "no_match")
+
     return {
         "answer": cleaned_answer,
         "risk_level": triage_result.get("risk_level", default_risk),
         "risk_score": risk_score,
-        "symptoms": triage_result.get("symptoms", []),
+        "symptoms": triage_result.get("symptoms") or facts.get("present_symptoms", []),
         "specialist": triage_result.get("specialist", default_spec),
         "visual_findings": visual_findings,
         "differential_diagnosis": diff_diag,
@@ -502,6 +493,7 @@ def process_clinical_chat(
         "ai_error_code": ai_error_code if degraded else None,
         "sources": sources,
         "rag_status": rag_status,
+        "grounding_status": grounding_status or ("unavailable" if degraded else "not_applicable"),
         "knowledge_limitation": (
             "Kho tri thức y văn RAG hiện chưa sẵn sàng nên phản hồi chưa có trích dẫn y văn đối chiếu."
             if not rag_available else ""
@@ -542,22 +534,32 @@ def execute_chat_workflow(
             message=message,
             image_bytes=image_bytes,
             user_id=user_id,
-            guest_token=guest_token
+            guest_token=guest_token,
+            include_summary=False,
+            lang=lang,
         )
         if intake_res.get("next_question"):
             clinical_hint = intake_res["next_question"]
 
-    if intake_res and intake_res.get("status") == "emergency":
+    if intake_res and intake_res.get("needs_red_flag_confirmation"):
+        res = {
+            "answer": intake_res["answer"],
+            "risk_level": "Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
+            "risk_score": None, "symptoms": [], "specialist": "", "visual_findings": [],
+            "differential_diagnosis": [], "is_emergency": False, "degraded": False, "sources": [],
+            "needs_red_flag_confirmation": True, "grounding_status": "clarification",
+        }
+    elif intake_res and intake_res.get("status") == "emergency":
         # The intake layer sees the persisted last question even if the client
         # omits history; never let a later model call dilute its urgent finding.
         res = {
             "answer": intake_res["answer"],
             "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
-            "risk_score": 90,
+            "risk_score": None,
             "symptoms": intake_res.get("emergency_symptoms", []),
-            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency / ER Department",
+            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
             "visual_findings": [], "differential_diagnosis": [],
-            "is_emergency": True, "degraded": False, "sources": [],
+            "is_emergency": True, "degraded": False, "sources": [], "grounding_status": "emergency",
         }
     else:
         res = chat_processor(
@@ -581,7 +583,13 @@ def execute_chat_workflow(
             try:
                 intake_service.record_assistant_reply(
                     conversation_id, res["answer"],
-                    user_id=user_id, guest_token=guest_token
+                    user_id=user_id, guest_token=guest_token,
+                    expected_turn_count=intake_res.get("turn_count"),
+                    assessment={
+                        "consultation_mode": intake_res.get("consultation_mode", "collecting"),
+                        **{key: res.get(key) for key in
+                           ("is_emergency", "specialist", "risk_level", "grounding_status", "sources", "degraded")},
+                    },
                 )
                 persistence_saved = True
             except Exception as e:

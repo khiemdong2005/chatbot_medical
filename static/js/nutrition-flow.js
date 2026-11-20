@@ -135,14 +135,15 @@
   }
   function _trNotice(data) {
     const raw = String(data?.notice || '').trim();
-    if (!_isEn() || !raw) return raw;
-    if (raw.startsWith('Gemini chưa trả được gợi ý hợp lệ.')) {
-      return 'AI ranking is temporarily unavailable. Showing safety-filtered reference recipes from the Python rule engine.';
+    if (String(data?.provider_status || '').startsWith('fallback_')) {
+      return _t(
+        'AI tạm thời chưa thể xếp hạng món ăn. Hệ thống đang hiển thị các gợi ý tham khảo đã được lọc theo yêu cầu của bạn.',
+        'AI ranking is temporarily unavailable. Showing reference recipes screened against your stated requirements.'
+      );
     }
-    const aiMatch = raw.match(/^Gemini đã chọn (\d+) công thức từ (\d+) ứng viên liên quan trong (\d+) công thức qua bộ lọc\./);
-    if (aiMatch) {
-      const extra = raw.includes('Chưa có bộ quy tắc riêng') ? ' No condition-specific rule set matched your input.' : '';
-      return `Gemini selected ${aiMatch[1]} recipe(s) from ${aiMatch[2]} relevant candidates out of ${aiMatch[3]} safety-filtered recipes. For nutritional reference only, not a therapeutic diet.${extra}`;
+    if (!_isEn() || !raw) return raw;
+    if (data?.provider_status === 'ai_clarification_with_options') {
+      return 'You can browse screened reference recipes below. Add more dietary details for personalized AI ranking; these options are not AI ranked.';
     }
     if (raw.startsWith('Bạn vẫn có thể xem các công thức tham khảo bên dưới.')) {
       return 'You can browse general safety-filtered options below. Add allergy or dietary details for personalized AI ranking.';
@@ -175,7 +176,10 @@
     }
     const total = data?.catalog?.total || '';
     const src = data?.catalog?.source || 'the local catalog';
-    return `Python rule filters check declared ingredients and cited clinical guidance first. Gemini only selects and explains pre-filtered recipes without altering ingredients or steps.${total ? ` The catalog currently holds ${total} recipes from ${src}.` : ''} Ingredient tags are scanned automatically and do not constitute clinical certification.`;
+    const aiExplanation = data?.provider_status === 'ai_ranked'
+      ? ' AI selected and explained only pre-filtered recipes without altering ingredients or steps.'
+      : ' The displayed recipes have not been ranked by AI.';
+    return `Python rule filters check declared ingredients and cited clinical guidance first.${aiExplanation}${total ? ` The catalog currently holds ${total} recipes from ${src}.` : ''} Ingredient tags are scanned automatically and do not constitute clinical certification.`;
   }
   const artworkIds = new Set(['oat_porridge', 'pumpkin_soup', 'rice_carrot', 'soft_egg', 'sweet_potato', 'chicken_congee', 'tofu_pumpkin', 'warm_water', 'warm_milk', 'oat_drink', 'cucumber_water', 'warm_soy', 'pear_water', 'barley_water']);
   // ponytail: keyword-based SVG mapping avoids hosting thousands of food photos. Upgrade to CDN photos when real image dataset is available.
@@ -326,11 +330,11 @@
       'Ít dầu mỡ': 'Less oil', 'Ít muối': 'Less salt' };
     const bmiCategoryEn = { 'Thiếu cân': 'Underweight', 'Trong khoảng tham chiếu': 'Reference range',
       'Thừa cân': 'Overweight', 'Béo phì': 'Obesity' };
-    const metric = [
-      profile.height_cm ? `${profile.height_cm} cm` : '',
-      profile.weight_kg ? `${profile.weight_kg} kg` : '',
-      profile.bmi ? `BMI ${profile.bmi}${profile.bmi_category ? ` · ${_isEn() ? bmiCategoryEn[profile.bmi_category] || profile.bmi_category : profile.bmi_category}` : ''}` : ''
-    ].filter(Boolean).join(' · ');
+    const metrics = [
+      profile.height_cm ? { icon: '↟', value: `${profile.height_cm} cm` } : null,
+      profile.weight_kg ? { icon: '▣', value: `${profile.weight_kg} kg` } : null,
+      profile.bmi ? { icon: '▥', value: `BMI ${profile.bmi}` } : null
+    ].filter(Boolean);
     const profileTitle = profile.allergy_needs_review
       ? _t('Cần làm rõ dị ứng trong hồ sơ', 'Please clarify your profile allergy')
       : profile.used ? _t('Đã áp dụng hồ sơ của bạn', 'Your profile is applied')
@@ -339,7 +343,7 @@
       ? _t('Tên dị ứng chưa được nhận diện; hệ thống chưa tự gợi ý món.', 'Unrecognized allergy; automatic suggestions are paused.')
       : allergies.length ? `${_t('Dị ứng:', 'Allergies:')} ${allergyText}`
         : _t('Chưa khai báo dị ứng thực phẩm', 'No food allergies declared');
-    el('nf-context').innerHTML = `<div class="nf-context-main"><div><strong>${safe(profileTitle)}</strong><p>${metric ? `${safe(metric)} · ` : ''}${safe(allergySummary)}</p></div><button type="button" class="nf-profile-link">${_t('Sửa hồ sơ →', 'Edit profile →')}</button></div>${preferences.length ? `<div class="nf-preferences">${preferences.map(value => `<span class="nf-preference-chip">${safe(_isEn() ? preferenceEn[value] || value : value)}</span>`).join('')}</div>` : ''}`;
+    el('nf-context').innerHTML = `<div class="nf-context-main${metrics.length ? '' : ' nf-context-main--no-metrics'}">${metrics.length ? `<div class="nf-context-metrics">${metrics.map(item => `<span class="nf-context-metric"><span aria-hidden="true">${item.icon}</span><b>${safe(item.value)}</b></span>`).join('')}</div>` : ''}<div class="nf-context-copy"><span class="nf-context-symbol" aria-hidden="true">☷</span><div><strong>${safe(profileTitle)}</strong><p>${profile.bmi_category ? `${safe(_isEn() ? bmiCategoryEn[profile.bmi_category] || profile.bmi_category : profile.bmi_category)} · ` : ''}${safe(allergySummary)}</p></div></div><button type="button" class="nf-profile-link">${_t('Sửa hồ sơ →', 'Edit profile →')}</button></div>${preferences.length ? `<div class="nf-preferences">${preferences.map(value => `<span class="nf-preference-chip">${safe(_isEn() ? preferenceEn[value] || value : value)}</span>`).join('')}</div>` : ''}`;
     el('nf-context').hidden = false;
   }
 
@@ -404,7 +408,7 @@
           <span class="nf-meal-time-tag">${safe(mealLabel)}</span>
         </div>
         <h2 class="nf-meal-hero-title">${safe(titleText)}</h2>
-        <div class="nf-meal-energy"><span>${_t('Tổng kcal các món · ước tính theo nguồn', 'Listed dishes · source kcal estimate')}</span><strong>${kcal(fms.total_calories) || _t('Chưa có số liệu', 'No kcal data')}</strong><small>${safe(calorieNote || '')}</small></div>
+        <div class="nf-meal-energy"><div class="nf-meal-energy-total"><span class="nf-meal-energy-icon" aria-hidden="true">🔥</span><div><span>${_t('Tổng kcal các món · ước tính theo nguồn', 'Listed dishes · source kcal estimate')}</span><strong>${kcal(fms.total_calories) || _t('Chưa có số liệu', 'No kcal data')}</strong></div></div><div class="nf-meal-energy-note"><span aria-hidden="true">🍴</span><small>${safe(calorieNote || '')}</small></div></div>
         <div class="nf-meal-hero-rationale">
           <div class="nf-rationale-head">
             <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
@@ -429,15 +433,27 @@
   }
 
   function updateViewModeUI() {
-    const hasFullMeal = state.type === 'food' && Boolean(state.lastData?.full_meal_set);
-    if (!hasFullMeal && state.viewMode === 'full_meal') {
-      state.viewMode = 'single_dishes';
-    }
     const switcher = el('nf-mode-switcher');
     const mealFilters = el('nf-meal-filters');
     const fullMealWrap = el('nf-full-meal-wrap');
     const cards = el('nf-cards');
     const loadMore = el('nf-load-more');
+
+    // Chế độ Nước uống: tuyệt đối ẩn bộ chuyển đổi mâm cơm và bộ lọc bữa ăn
+    if (state.type === 'drink') {
+      state.viewMode = 'single_dishes';
+      if (switcher) switcher.hidden = true;
+      if (mealFilters) mealFilters.hidden = true;
+      if (fullMealWrap) { fullMealWrap.hidden = true; fullMealWrap.innerHTML = ''; }
+      if (cards) cards.hidden = false;
+      if (loadMore) loadMore.hidden = !state.lastData?.has_more;
+      return;
+    }
+
+    const hasFullMeal = state.type === 'food' && Boolean(state.lastData?.full_meal_set?.dishes?.length >= 2);
+    if (!hasFullMeal && state.viewMode === 'full_meal') {
+      state.viewMode = 'single_dishes';
+    }
 
     if (switcher) switcher.hidden = !hasFullMeal;
     if (switcher) {
@@ -453,7 +469,7 @@
       if (loadMore) loadMore.hidden = true;
     } else {
       if (fullMealWrap) fullMealWrap.hidden = true;
-      if (mealFilters) mealFilters.hidden = (state.type === 'drink');
+      if (mealFilters) mealFilters.hidden = false;
       if (cards) cards.hidden = false;
       if (loadMore) loadMore.hidden = !state.lastData?.has_more;
     }
@@ -542,8 +558,8 @@
       : '';
     const compactAiNotice = data.provider_status === 'ai_ranked'
       ? (_isEn()
-        ? `${data.recipes.length} dishes selected from ${data.considered_count} filtered candidates.`
-        : `${data.recipes.length} món được chọn từ ${data.considered_count} ứng viên đã qua lọc.`)
+        ? `AI selected ${data.recipes.length} dishes from ${data.considered_count} filtered candidates.`
+        : `AI đã chọn ${data.recipes.length} món từ ${data.considered_count} ứng viên đã qua lọc.`)
       : _trNotice(data);
     notice.textContent = addedPrefix + compactAiNotice;
     if (el('nf-question')) el('nf-question').textContent = _trQuestion(data.clarification_question || '');
@@ -586,7 +602,7 @@
       state.recipes = [];
       state.lastData = null;
       state.lastAddedCount = 0;
-      state.viewMode = 'full_meal';
+      state.viewMode = type === 'drink' ? 'single_dishes' : 'full_meal';
       state.selectedMeal = 'all';
     }
     el('nf-results-title').textContent = type === 'drink'
@@ -624,7 +640,9 @@
       state.avoidanceNote = body.data.avoidance_note || '';
       el('nf-catalog-stats').hidden = !body.data.catalog;
       el('nf-avoidance').hidden = !state.avoidance.length && !state.avoidanceNote;
-      el('nf-notice').hidden = !body.data.notice;
+      el('nf-notice').hidden = !body.data.notice
+        && body.data.provider_status !== 'ai_ranked'
+        && !String(body.data.provider_status || '').startsWith('fallback_');
       el('nf-notice').dataset.mode = body.data.provider_status === 'ai_ranked' ? 'ai' : 'general';
       el('nf-clarification').hidden = !body.data.needs_clarification;
       el('nf-question').textContent = body.data.clarification_question || '';
@@ -674,7 +692,10 @@
       // Chuyển đổi giữa Thực đơn đủ món vs Món đơn lẻ
       document.querySelectorAll('[data-nf-view]').forEach(btn => {
         btn.addEventListener('click', () => {
-          state.viewMode = btn.dataset.nfView;
+          const target = btn.dataset.nfView;
+          const hasFullMeal = state.type === 'food' && Boolean(state.lastData?.full_meal_set?.dishes?.length >= 2);
+          if (target === 'full_meal' && !hasFullMeal) return;
+          state.viewMode = target;
           updateViewModeUI();
           renderCards();
         });

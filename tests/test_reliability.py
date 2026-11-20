@@ -26,7 +26,7 @@ def reset_state():
 def test_emergency_precheck_under_circuit_open_outage():
     """
     INVARIANT: Even when Gemini is completely down and Circuit Breaker is OPEN,
-    emergency pre-check MUST short-circuit deterministically and return 115 alert
+    emergency pre-check MUST short-circuit deterministically and return an urgent warning
     without ever attempting to call Gemini.
     """
     gemini_circuit_breaker.trip_for_test()
@@ -44,8 +44,10 @@ def test_emergency_precheck_under_circuit_open_outage():
     )
 
     assert res["is_emergency"] is True
-    assert "115" in res["answer"]
-    assert res["risk_score"] == 90
+    assert "đánh giá trực tiếp khẩn" in res["answer"].lower()
+    assert "115" not in res["answer"]
+    assert res["risk_level"].startswith("Nguy cơ cao")
+    assert res["risk_score"] is None
     assert mock_gemini.generate_clinical_response.call_count == 0
 
 

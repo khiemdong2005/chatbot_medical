@@ -1,10 +1,9 @@
-"""Gemini ranks supplied recipes; it cannot create or alter their ingredients."""
+"""OpenRouter ranks supplied recipes; it cannot create or alter ingredients."""
 import json
 import os
 import re
 from typing import Any, Dict, List
 
-from core.settings import settings
 
 
 class NutritionAIError(Exception):
@@ -17,7 +16,9 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
     if not isinstance(value, dict) or type(value.get("needs_clarification")) is not bool:
         raise NutritionAIError("invalid_response")
     choices = value.get("recommendations")
-    question = value.get("clarification_question")
+    question = value.get("clarification_question", "")
+    if question is None and not value["needs_clarification"]:
+        question = ""
     if not isinstance(choices, list) or not isinstance(question, str) or len(question) > 400:
         raise NutritionAIError("invalid_response")
     if value["needs_clarification"]:
@@ -127,11 +128,11 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
     from core.llm_provider import llm_provider
-    key = llm_provider.resolve_api_key(profile="nutrition")
-    model = llm_provider.get_default_model("nutrition")
-    if not key:
+    key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or os.getenv("OPENROUTER_API_KEY") or "").strip()
+    model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
+    if not key or key.startswith("YOUR_") or len(key) <= 10:
         raise NutritionAIError("not_configured")
-    if not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
+    if not model or not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
         raise NutritionAIError("configuration")
     schema = {
         "type": "object", "additionalProperties": False,
@@ -149,42 +150,83 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
                     "reason": {"type": "string"}, "caution": {"type": "string"},
                     "source_ids": {"type": "array", "items": {"type": "integer"}}
                 }, "required": ["recipe_id", "display_title", "reason", "caution", "source_ids"]
-            }},
-            "full_meal_set": {
-                "type": "object", "additionalProperties": False,
-                "properties": {
-                    "title": {"type": "string"},
-                    "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
-                    "rationale": {"type": "string"},
-                    "main_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
-                    "soup_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
-                    "side_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
-                    "staple_text": {"type": "string"}
-                }, "required": ["title", "meal_time", "rationale", "main_recipe_id", "soup_recipe_id"]
-            }
+            }}
         }, "required": ["needs_clarification", "clarification_question", "recommendations"]
     }
-    instruction = """Bạn chọn công thức tham khảo từ danh mục MediMind theo mô tả của người dùng.
+    if recipe_type == "food":
+        schema["properties"]["full_meal_set"] = {
+            "type": "object", "additionalProperties": False,
+            "properties": {
+                "title": {"type": "string"},
+                "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
+                "rationale": {"type": "string"},
+                "main_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
+                "soup_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
+                "side_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
+                "staple_text": {"type": "string"}
+            }, "required": ["title", "meal_time", "rationale", "main_recipe_id", "soup_recipe_id"]
+        }
+
+    fms_format = """  "full_meal_set": {
+    "title": "string",
+    "meal_time": "string",
+    "rationale": "string",
+    "main_recipe_id": "string",
+    "soup_recipe_id": "string",
+    "side_recipe_id": "string",
+    "staple_text": "string"
+  }""" if recipe_type == "food" else '  "full_meal_set": null'
+
+    fms_rule = "7. Với thức ăn, nếu tạo full_meal_set, chọn một món chính, một món canh và có thể thêm một món rau/phụ từ candidates; ID khác nhau, không lặp với recommendations. Món rau/phụ TUYỆT ĐỐI KHÔNG TRÙNG NGUYÊN LIỆU ĐẠM HOẶC THÀNH PHẦN CHÍNH với món chính hoặc món canh trong thực đơn." if recipe_type == "food" else "7. Với thức uống, không tạo full_meal_set (đặt full_meal_set = null)."
+
+    instruction = f"""Bạn chọn công thức tham khảo từ danh mục MediMind theo mô tả của người dùng.
 Chỉ chọn recipe_id có trong candidates. Không thêm, đổi nguyên liệu, cách nấu, số kcal hay chỉ số dinh dưỡng.
-Các món đã qua bộ lọc nguyên liệu, điều kiện được hỗ trợ và dị ứng đã khai báo. Việc qua bộ lọc không chứng nhận món an toàn hoặc điều trị bệnh.
-Ưu tiên đúng yêu cầu ăn uống. Với 'ít đường', so sánh số sugar của những món có dữ liệu theo hướng tương đối; thiếu số liệu là chưa biết, không phải ít đường. Không đặt ngưỡng y khoa.
-BMI chỉ là ngữ cảnh tham khảo ở người lớn. Không suy diễn nhu cầu năng lượng, mục tiêu giảm cân hay giới hạn 2.000 kcal/ngày từ BMI. Kcal nguồn chưa được kiểm chứng lâm sàng.
-Giải thích bằng nguyên liệu, kết cấu và cách chế biến thật sự có trong công thức. Không bịa vi chất, cơ chế chữa bệnh, tác dụng điều trị hoặc độ an toàn dị ứng tuyệt đối.
-source_ids là chỉ số 0-based của guidance thực sự hỗ trợ lý do; dùng [] nếu không có nguồn phù hợp.
-Với thức ăn, recommendations ưu tiên món ăn trọn vị có is_one_dish=true, đa dạng bữa, tối đa 6 món. Đồ uống chọn từ ứng viên thức uống.
-Nếu tạo full_meal_set, chọn một món chính, một món canh và có thể thêm một món rau/phụ từ candidates; ID khác nhau, không lặp với recommendations. Món rau/phụ TUYỆT ĐỐI KHÔNG TRÙNG NGUYÊN LIỆU ĐẠM HOẶC THÀNH PHẦN CHÍNH (như cùng là đậu hũ, cùng là nấm, cùng thịt bò/gà/heo/tôm/cá) với món chính hoặc món canh trong thực đơn; ưu tiên rau củ quả xanh/luộc/xào thanh đạm. Bỏ trống staple_text để hệ thống nhắc người dùng chọn tinh bột phù hợp dị ứng; phần đó không có kcal trong tổng.
-Không tạo full_meal_set nếu thiếu món chính hoặc canh. Nếu không thể chọn món phù hợp, trả needs_clarification=true, recommendations=[] và một câu hỏi ngắn.
-Nếu chọn được, needs_clarification=false và clarification_question="". Nội dung trả về bằng tiếng Việt.
+
+CẤU TRÚC PHẢN HỒI JSON BẮT BUỘC:
+{{
+  "needs_clarification": boolean,
+  "clarification_question": "string (nếu cần clarification)",
+  "recommendations": [
+    {{
+      "recipe_id": "string",
+      "display_title": "string",
+      "meal_time": "string (breakfast|lunch|dinner|snack)",
+      "dish_role": "string (main|soup|side|staple|drink)",
+      "key_nutrients": "string",
+      "reason": "string (10-500 chars)",
+      "caution": "string (<= 400 chars)",
+      "source_ids": [int]
+    }}
+  ],
+{fms_format}
+}}
+
+QUY TẮC:
+1. Các món đã qua bộ lọc nguyên liệu, điều kiện được hỗ trợ và dị ứng đã khai báo.
+2. Ưu tiên đúng yêu cầu ăn uống. Với 'ít đường', so sánh số sugar của những món có dữ liệu theo hướng tương đối; thiếu số liệu là chưa biết, không phải ít đường. Không đặt ngưỡng y khoa.
+3. BMI chỉ là ngữ cảnh tham khảo ở người lớn. Không suy diễn nhu cầu năng lượng, mục tiêu giảm cân hay giới hạn 2.000 kcal/ngày từ BMI. Kcal nguồn chưa được kiểm chứng lâm sàng.
+4. Giải thích bằng nguyên liệu, kết cấu và cách chế biến thật sự có trong công thức. Không bịa vi chất, cơ chế chữa bệnh, tác dụng điều trị hoặc độ an toàn dị ứng tuyệt đối.
+5. source_ids là chỉ số 0-based của guidance thực sự hỗ trợ lý do; dùng [] nếu không có nguồn phù hợp.
+6. Với thức ăn, recommendations chọn các món ăn trọn vị có is_one_dish=true, đa dạng bữa (sáng, trưa, tối), tối đa 5-6 món. Tuyệt đối không chọn chè ngọt, đồ ngọt tráng miệng làm bữa ăn chính cho người bệnh. Đồ uống chọn từ ứng viên thức uống.
+{fms_rule}
+8. Bỏ trống staple_text để hệ thống nhắc người dùng chọn tinh bột phù hợp dị ứng.
+9. Nếu không thể chọn món phù hợp, trả needs_clarification=true, recommendations=[] và một câu hỏi ngắn.
+10. Nội dung trả về bằng tiếng Việt.
 """
     from core.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
     from core.retry_policy import ErrorClassification
-    from core.llm_provider import llm_provider, LLMProviderError
+    from core.llm_provider import LLMProviderError
 
     nutrition_breaker = get_circuit_breaker("nutrition")
     if not nutrition_breaker.can_execute():
         raise NutritionAIError("unavailable")
 
-    gen_timeout = float(os.getenv("GEMINI_GENERATION_TIMEOUT_SECONDS", str(settings.gemini.timeout_nutrition)))
+    try:
+        gen_timeout = float(os.getenv("OPENROUTER_NUTRITION_TIMEOUT_SECONDS", "90"))
+        if not 10 <= gen_timeout <= 180:
+            raise ValueError("timeout out of range")
+    except ValueError:
+        raise NutritionAIError("configuration") from None
     from core.recipe_catalog import classify_dish_role, is_standalone_one_dish
     for r in recipes:
         if "dish_role" not in r:
@@ -206,7 +248,8 @@ Nếu chọn được, needs_clarification=false và clarification_question="". 
                              ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note", "calories", "sugar", "fat", "fiber", "protein")
                              if k in recipe} for recipe in recipes]}, ensure_ascii=False)
 
-    # Thực thi qua Unified LLM Provider (OpenRouter)
+    # This model may not support JSON Schema or JSON-mode parameters. Prompt
+    # for JSON and validate the parsed selection against the canonical catalog.
     try:
         raw_result = llm_provider.generate_json(
             contents=payload,
@@ -218,20 +261,27 @@ Nếu chọn được, needs_clarification=false và clarification_question="". 
             timeout_seconds=gen_timeout,
             operation="nutrition_ai",
             profile="nutrition",
-            api_key=key
+            api_key=key,
+            provider="openrouter",
+            json_mode=False,
+            reasoning_enabled=False,
         )
         result = validate_selection(raw_result, recipes, len(guidance))
+        if recipe_type == "drink":
+            result["full_meal_set"] = None
         result["model"] = model
         return result
     except NutritionAIError:
         raise
     except CircuitBreakerOpenError:
-        raise NutritionAIError("unavailable")
+        raise NutritionAIError("unavailable") from None
     except LLMProviderError as lpe:
         if lpe.classification == ErrorClassification.RATE_LIMIT:
             reason = "quota"
-        elif lpe.classification in (ErrorClassification.AUTH_ERROR, ErrorClassification.BAD_REQUEST):
+        elif lpe.classification == ErrorClassification.AUTH_ERROR:
             reason = "credentials_or_access"
+        elif lpe.classification == ErrorClassification.BAD_REQUEST or getattr(lpe.original_exception, "status_code", None) == 404:
+            reason = "configuration"
         elif lpe.classification == ErrorClassification.SCHEMA_ERROR:
             reason = "invalid_response"
         else:
@@ -240,7 +290,9 @@ Nếu chọn được, needs_clarification=false và clarification_question="". 
     except Exception as error:
         code = getattr(error, "code", None)
         reason = "invalid_response" if isinstance(error, (ValueError, TypeError, AttributeError)) else "unavailable"
-        if code in (400, 401, 403):
+        if code in (400, 404):
+            reason = "configuration"
+        elif code in (401, 403):
             reason = "credentials_or_access"
         elif code == 429:
             reason = "quota"

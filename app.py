@@ -1356,7 +1356,6 @@ def create_app(test_config=None):
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
 
-
         return jsonify({
             "success": True,
             "conversation_id": s["conversation_id"],
@@ -1466,6 +1465,8 @@ def create_app(test_config=None):
             draft = intake_service.get_summary(conversation_id, user_id=user_id, guest_token=guest_token)
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên tư vấn để lưu."}), 404
         if not user_id:
             return jsonify({"error": "Vui lòng đăng nhập để lưu vào hồ sơ."}), 401
         if data.get("save_to_record") is not True:
@@ -1474,7 +1475,7 @@ def create_app(test_config=None):
                 or data.get("reviewed_facts") != draft.get("part_a_patient_facts")):
             return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
         if draft.get("ready_to_finalize") is False:
-            return jsonify({"error": "Phiếu đang là bản nháp. Hãy bổ sung vị trí đau, thời gian và tính chất hoặc mức độ đau."}), 422
+            return jsonify({"error": "Bản tóm tắt còn thiếu dữ kiện cần thiết. Hãy bổ sung phần đã đánh dấu trước khi lưu."}), 422
         res = intake_service.confirm_summary(conversation_id, user_id=user_id, guest_token=guest_token)
         if not res.get("success"):
             return jsonify(res), 500
@@ -1511,7 +1512,15 @@ def create_app(test_config=None):
             )
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
-
+        except KeyError:
+            archived = None
+            if user_id:
+                from core.consultation_service import get_clinical_summary
+                _, saved, _ = get_clinical_summary(user_id, conversation_id=conversation_id)
+                archived = saved.get("summary")
+            if isinstance(archived, dict) and archived.get("part_a_patient_facts"):
+                return jsonify({"conversation_id": conversation_id, "summary": archived, "archived": True})
+            return jsonify({"error": "Không tìm thấy bản tóm tắt của phiên này."}), 404
 
         return jsonify({
             "conversation_id": conversation_id,
@@ -2180,6 +2189,7 @@ def create_app(test_config=None):
         - loai_hinh: loại hình cơ sở (Phòng khám, Bệnh viện,...)
         - chuyen_khoa: chuyên khoa (Tai Mũi Họng, Nội tổng hợp,...)
         - quan_huyen: quận huyện (Quận 10, Quận 1,...)
+        - tinh_tp / region: khu vực tỉnh thành (hcm, hanoi,...)
         """
         page = max(1, request.args.get("page", 1, type=int))
         limit = min(50, max(1, request.args.get("limit", 12, type=int)))
@@ -2187,6 +2197,7 @@ def create_app(test_config=None):
         loai_hinh = request.args.get("loai_hinh", "").strip()
         chuyen_khoa = request.args.get("chuyen_khoa", "").strip()
         quan_huyen = request.args.get("quan_huyen", "").strip()
+        tinh_tp = request.args.get("tinh_tp", "").strip() or request.args.get("region", "").strip()
 
         result = service_get_facilities(
             page=page,
@@ -2194,19 +2205,22 @@ def create_app(test_config=None):
             search=search,
             loai_hinh=loai_hinh,
             chuyen_khoa=chuyen_khoa,
-            quan_huyen=quan_huyen
+            quan_huyen=quan_huyen,
+            tinh_tp=tinh_tp
         )
         return jsonify(result)
 
     @app.route("/api/facilities/filters", methods=["GET"])
     def get_facilities_filters():
         """Trả về thống kê số lượng loại hình, chuyên khoa và quận huyện thực tế."""
-        return jsonify(service_get_facilities_filters())
+        tinh_tp = request.args.get("tinh_tp", "").strip() or request.args.get("region", "").strip()
+        return jsonify(service_get_facilities_filters(tinh_tp=tinh_tp))
 
     @app.route("/api/facilities/map-markers", methods=["GET"])
     def get_facilities_map_markers():
         """Trả về dữ liệu tinh gọn của tất cả cơ sở có tọa độ để vẽ markers lên bản đồ."""
-        return jsonify(service_get_facilities_map_markers())
+        tinh_tp = request.args.get("tinh_tp", "").strip() or request.args.get("region", "").strip()
+        return jsonify(service_get_facilities_map_markers(tinh_tp=tinh_tp))
 
     @app.route("/")
     def index():

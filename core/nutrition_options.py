@@ -2,7 +2,8 @@
 from copy import deepcopy
 from datetime import datetime, date
 import math
-from typing import Any, Dict, List
+import re
+from typing import Any, Dict, List, Optional
 import unicodedata
 from core.recipe_catalog import imported_recipes, catalog_stats, retrieve_candidates, title_key
 
@@ -304,20 +305,24 @@ def _is_valid_main(r: Dict) -> bool:
     if not r:
         return False
     title = str(r.get("title", "")).lower()
-    if any(k in title for k in ["canh ", "canh", "súp", "sup", "cháo", "chao", "lẩu", "bún", "phở", "hủ tiếu", "mì ", "miến", "bánh canh", "nui"]):
+    if any(k in title for k in ["canh ", "canh:", "súp", "sup", "cháo", "chao", "lẩu", "bún", "phở", "hủ tiếu", "mì ", "miến", "bánh canh", "nui", "chè ", "trà ", "sữa ", "bánh mì baguette", "nước mắm", "gia vị", "nước chấm", "bánh tro", "bánh ít", "bánh ngọt", "caramel", "pudding"]):
         return False
     from core.recipe_catalog import classify_dish_role
     role = r.get("dish_role") or classify_dish_role(r)
-    return role == "main"
+    if role == "main":
+        return True
+    tags = _extract_main_ingredient_tags(r)
+    return bool(tags & {"đậu", "nấm", "trứng", "bò", "heo", "gà", "vịt", "cá", "tôm", "mực", "cua", "ốc", "ếch"})
 
 
 def _is_valid_soup(r: Dict) -> bool:
     if not r:
         return False
     title = str(r.get("title", "")).lower()
+    t = re.sub(r"bánh\s+canh", "", title)
     from core.recipe_catalog import classify_dish_role
     role = r.get("dish_role") or classify_dish_role(r)
-    return "canh" in title or "súp" in title or role == "soup"
+    return bool(re.search(r"\b(canh|súp)\b", t)) or role == "soup"
 
 
 def _extract_main_ingredient_tags(recipe: Dict) -> set:
@@ -352,7 +357,7 @@ def _is_valid_side(r: Dict, main_id: str = None, soup_id: str = None, main_r: Di
     if r.get("id") in (main_id, soup_id):
         return False
     title = str(r.get("title", "")).lower()
-    if any(k in title for k in ["canh ", "canh", "súp", "cháo", "lẩu", "bún", "phở", "mì", "miến", "bánh canh"]):
+    if any(k in title for k in ["canh ", "canh", "súp", "cháo", "lẩu", "bún", "phở", "mì", "miến", "bánh canh", "khoai", "bắp luộc", "ngô luộc", "sắn"]):
         return False
     from core.recipe_catalog import classify_dish_role
     role = r.get("dish_role") or classify_dish_role(r)
@@ -371,6 +376,14 @@ def _is_valid_side(r: Dict, main_id: str = None, soup_id: str = None, main_r: Di
             return False
 
     return True
+
+
+def _main_score(r: Dict) -> int:
+    title = str(r.get("title", "")).lower()
+    if any(k in title for k in ["gà", "cá", "đậu hũ", "tàu hũ", "đậu phụ", "nấm", "chả", "thịt", "trứng", "bò", "heo", "ếch"]):
+        return 3
+    tags = _extract_main_ingredient_tags(r)
+    return 2 if tags else 1
 
 
 def _side_score(r: Dict) -> int:
@@ -401,53 +414,50 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
                 side_pool.sort(key=lambda r: -_side_score(r))
                 side_r = side_pool[0] if side_pool else None
 
-            dishes = [
-                {"role": "main", "role_label": "Món chính", "recipe": main_r},
-                {"role": "soup", "role_label": "Món canh", "recipe": soup_r}
-            ]
             if side_r:
-                dishes.append({"role": "side", "role_label": "Món rau / phụ", "recipe": side_r})
-
-            return {
-                "title": ai_fms.get("title", "Mâm cơm gợi ý cho 1 bữa"),
-                "meal_time": ai_fms.get("meal_time", "dinner"),
-                "meal_label": _MEAL_LABELS.get(ai_fms.get("meal_time", "dinner"), "Bữa tối"),
-                "rationale": ai_fms.get("rationale", "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng."),
-                "staple_text": ai_fms.get("staple_text") or "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
-                "dishes": dishes
-            }
+                dishes = [
+                    {"role": "main", "role_label": "Món chính", "recipe": main_r},
+                    {"role": "soup", "role_label": "Món canh", "recipe": soup_r},
+                    {"role": "side", "role_label": "Món rau / phụ", "recipe": side_r}
+                ]
+                return {
+                    "title": ai_fms.get("title", "Mâm cơm gợi ý cho 1 bữa"),
+                    "meal_time": ai_fms.get("meal_time", "dinner"),
+                    "meal_label": _MEAL_LABELS.get(ai_fms.get("meal_time", "dinner"), "Bữa tối"),
+                    "rationale": ai_fms.get("rationale", "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng."),
+                    "staple_text": ai_fms.get("staple_text") or "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
+                    "dishes": dishes
+                }
 
     main_candidates = [r for r in recipes if _is_valid_main(r)] or [r for r in candidates if _is_valid_main(r)]
+    main_candidates.sort(key=lambda r: -_main_score(r))
     soup_candidates = [r for r in recipes if _is_valid_soup(r)] or [r for r in candidates if _is_valid_soup(r)]
 
-    if not main_candidates or not soup_candidates:
-        return None
+    # Mâm cơm 1 bữa chuẩn vị: BẮT BUỘC đủ 3 món: Món chính + Món canh + Món rau / phụ
+    if main_candidates and soup_candidates:
+        main_r = main_candidates[0]
+        soup_filtered = [r for r in soup_candidates if r.get("id") != main_r.get("id")]
+        if soup_filtered:
+            soup_r = soup_filtered[0]
+            side_candidates = [r for r in recipes if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)] or [r for r in candidates if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)]
+            side_candidates.sort(key=lambda r: -_side_score(r))
+            if side_candidates:
+                side_r = side_candidates[0]
+                dishes = [
+                    {"role": "main", "role_label": "Món chính", "recipe": main_r},
+                    {"role": "soup", "role_label": "Món canh", "recipe": soup_r},
+                    {"role": "side", "role_label": "Món rau / phụ", "recipe": side_r}
+                ]
+                return {
+                    "title": "Mâm cơm gợi ý cho 1 bữa",
+                    "meal_time": "dinner",
+                    "meal_label": "Bữa tối",
+                    "rationale": "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng.",
+                    "staple_text": "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
+                    "dishes": dishes
+                }
 
-    main_r = main_candidates[0]
-    soup_filtered = [r for r in soup_candidates if r.get("id") != main_r.get("id")]
-    if not soup_filtered:
-        return None
-    soup_r = soup_filtered[0]
-
-    side_candidates = [r for r in recipes if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)] or [r for r in candidates if _is_valid_side(r, main_r["id"], soup_r["id"], main_r, soup_r)]
-    side_candidates.sort(key=lambda r: -_side_score(r))
-    side_r = side_candidates[0] if side_candidates else None
-
-    dishes = [
-        {"role": "main", "role_label": "Món chính", "recipe": main_r},
-        {"role": "soup", "role_label": "Món canh", "recipe": soup_r}
-    ]
-    if side_r:
-        dishes.append({"role": "side", "role_label": "Món rau / phụ", "recipe": side_r})
-
-    return {
-        "title": "Mâm cơm gợi ý cho 1 bữa",
-        "meal_time": "dinner",
-        "meal_label": "Bữa tối",
-        "rationale": "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng.",
-        "staple_text": "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
-        "dishes": dishes
-    }
+    return None
 
 
 def _profile_context(profile, dob, prepared):
@@ -510,7 +520,7 @@ def _meal_calories(meal, prepared):
 
 def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=None,
                           profile=None, dob=None) -> Dict[str, Any]:
-    """Filter canonical recipes first, then let Gemini select and explain IDs."""
+    """Filter canonical recipes first, then let AI select and explain IDs."""
     from core.nutrition_rules import prepare_nutrition_candidates
     from core.nutrition_ai import NutritionAIError, select_recipes
 
@@ -551,13 +561,13 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                   catalog=stats, catalog_type_count=type_count, eligible_count=len(eligible), considered_count=len(candidates),
                   has_more=False,
                   avoidance=prepared["avoidance"], avoidance_note=prepared["avoidance_note"],
-                  limitations=prepared.get("limitations", []), gemini_used=False,
+                  limitations=prepared.get("limitations", []), gemini_used=False, ai_used=False,
                   needs_clarification=False, clarification_question="",
                   selection_explanation="Python kiểm tra nhãn nguyên liệu và các quy tắc có nguồn trước. "
-                      "Gemini chỉ được chọn và giải thích các công thức đã qua bộ lọc; không thay đổi nguyên liệu hoặc cách nấu. "
+                      "AI chỉ được chọn và giải thích các công thức đã qua bộ lọc; không thay đổi nguyên liệu hoặc cách nấu. "
                       f'Kho hiện có {stats["total"]} công thức từ {stats["source"]}. '
                       + ("Danh mục món Việt được chọn theo tiêu chí món quen thuộc và nguyên liệu địa phương; nhãn này không chứng nhận nguồn gốc địa lý hay độ phù hợp với bệnh. " if stats["cuisine"] == "VN" else "") +
-                      "Bộ tìm kiếm lấy một nhóm ứng viên liên quan từ các công thức qua bộ lọc để gửi Gemini; không gửi cả kho trong mỗi yêu cầu. "
+                      "Bộ tìm kiếm lấy một nhóm ứng viên liên quan từ các công thức qua bộ lọc để AI xếp hạng; không gửi cả kho trong mỗi yêu cầu. "
                       "Nhãn của công thức nhập được quét tự động từ văn bản, chưa được rà soát chuyên môn từng món. Việc được gợi ý không xác nhận phù hợp y khoa.")
     if not candidates:
         if eligible and seen:
@@ -602,7 +612,9 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                                                     "bmi_category": result["profile_context"].get("bmi_category"),
                                                     "diet_preferences": prepared.get("preference_codes", [])})
         ai_fms = selection.get("full_meal_set")
-        result.update(recipes=selection["recipes"], gemini_used=True,
+        # gemini_used is a legacy response field retained for older clients.
+        # provider_status and ai_used describe the provider result accurately.
+        result.update(recipes=selection["recipes"], gemini_used=True, ai_used=True,
                       needs_clarification=selection["needs_clarification"],
                       clarification_question=selection["clarification_question"], model=selection["model"],
                       provider_status="ai_needs_clarification" if selection["needs_clarification"] else "ai_ranked",
@@ -622,22 +634,25 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                         "Món có kết cấu mềm trong kho công thức; có thể tham khảo nếu muốn ăn và dùng được các nguyên liệu."
                         if "soft" in tags else
                         "Một công thức qua bộ lọc nguyên liệu để bạn tham khảo theo sở thích.")
-                    item.update(ai_caution="Đây là lựa chọn tham khảo của hệ thống, chưa được Gemini xếp hạng theo thông tin cá nhân.",
+                    item.update(ai_caution="Đây là lựa chọn tham khảo của hệ thống, chưa được AI xếp hạng theo thông tin cá nhân.",
                                 source_ids=[], selection_origin="guided_catalog")
                     preview.append(item)
                 result.update(recipes=preview, provider_status="ai_clarification_with_options",
+                              gemini_used=False, ai_used=False,
                               recommendation_scope="guided_catalog",
                               clarification_question="Bạn có dị ứng thực phẩm hoặc chế độ ăn riêng cần lưu ý không? Bạn có thể bổ sung để gợi ý sát hơn.",
-                              notice="Bạn vẫn có thể xem các công thức tham khảo bên dưới. Gemini cần thêm thông tin để cá nhân hóa; các món này chưa được AI xếp hạng.")
+                              notice="Bạn vẫn có thể xem các công thức tham khảo bên dưới. AI cần thêm thông tin để cá nhân hóa; các món này chưa được AI xếp hạng.")
             else:
                 result["notice"] = "Cần thêm thông tin trước khi gợi ý món."
         else:
-            result["notice"] = f'Gemini đã chọn {len(selection["recipes"])} công thức từ {len(candidates)} ứng viên liên quan trong {len(eligible)} công thức qua bộ lọc. Đây là gợi ý tham khảo, không phải chế độ ăn điều trị.'
+            result["notice"] = f'AI đã chọn {len(selection["recipes"])} công thức từ {len(candidates)} ứng viên liên quan trong {len(eligible)} công thức qua bộ lọc. Đây là gợi ý tham khảo, không phải chế độ ăn điều trị.'
             if not prepared["recognized"]:
                 result["notice"] += " Chưa có bộ quy tắc riêng cho nội dung bạn nhập."
     except NutritionAIError as error:
-        result.update(recipes=candidates[:8], provider_status="fallback_" + error.code, recommendation_scope="filtered_catalog",
-                      notice="Gemini chưa trả được gợi ý hợp lệ. Bạn đang xem danh sách tham khảo qua bộ lọc Python, chưa được AI xếp hạng.")
+        result.update(recipes=candidates[:8], provider_status="fallback_" + error.code,
+                      gemini_used=False, ai_used=False, recommendation_scope="filtered_catalog",
+                      selection_explanation="Danh sách tham khảo được lấy từ kho công thức và lọc bằng Python theo yêu cầu của bạn. AI chưa xếp hạng các món này.",
+                      notice="AI tạm thời chưa thể xếp hạng món ăn. Hệ thống đang hiển thị các gợi ý tham khảo đã được lọc theo yêu cầu của bạn.")
 
     # Enrich every recipe with meal_time, dish_role, key_nutrients, and clinical explanation
     for r in result.get("recipes", []):
@@ -646,8 +661,8 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                                           "chưa xác nhận phù hợp với khẩu phần hoặc bệnh nền của bạn.")
         _enrich_recipe(r, condition)
 
-    # Build full meal set if in food mode and recipes exist
-    if recipe_type == "food" and result.get("recipes"):
+    # Build full meal set if in food mode and recipes exist (require at least 2 recipes or explicit AI meal set)
+    if recipe_type == "food" and result.get("recipes") and (ai_fms or len(result["recipes"]) >= 2):
         full_meal = _build_full_meal_set(condition, result["recipes"], candidates, ai_fms)
         if full_meal:
             for d in full_meal["dishes"]:
@@ -655,68 +670,77 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
             _meal_calories(full_meal, prepared)
             result["full_meal_set"] = full_meal
 
-            # Tách biệt hoàn toàn món lẻ và mâm cơm:
-            # 1. Món lẻ (Các món đơn lẻ theo bữa) BẮT BUỘC là món ăn trọn vị (One-dish meals:
-            #    bún, phở, mì, miến, cơm tấm, cơm chiên, cơm gà, cháo, súp, bánh cuốn, xôi...)
-            #    hoặc thức uống/chè cho bữa phụ, chứ KHÔNG phải bát canh suông hay đĩa rau luộc bóc tách từ mâm cơm.
-            # 2. TUYỆT ĐỐI KHÔNG chứa các món thành phần trong mâm cơm (không trùng ID hoặc tiêu đề).
-            if len(result["recipes"]) >= 2 and not result.get("needs_clarification"):
-                from core.recipe_catalog import is_standalone_one_dish, classify_meal_times
+            from core.recipe_catalog import is_standalone_one_dish, classify_meal_times
 
-                fms_ids = {d["recipe"]["id"] for d in full_meal["dishes"]}
-                fms_titles = {title_key(d["recipe"]) for d in full_meal["dishes"]}
+            fms_ids = {d["recipe"]["id"] for d in full_meal["dishes"]}
+            fms_titles = {title_key(d["recipe"]) for d in full_meal["dishes"]}
 
-                # Lấy các món ban đầu mà Gemini đã chọn thỏa mãn: không trùng mâm cơm và BẮT BUỘC là món trọn vị (loại bỏ hoàn toàn món phụ/canh)
-                initial_singles = [
-                    r for r in result["recipes"]
-                    if r["id"] not in fms_ids and title_key(r) not in fms_titles and is_standalone_one_dish(r) and (r.get("dish_role") != "side")
-                ]
+            # 1. Lọc món đơn lẻ từ kết quả AI đã chọn: loại bỏ mọi món trong mâm cơm và chỉ giữ món trọn vị
+            singles = [
+                r for r in result["recipes"]
+                if r["id"] not in fms_ids and title_key(r) not in fms_titles and is_standalone_one_dish(r)
+            ]
 
-                selected_ids = {r["id"] for r in initial_singles} | fms_ids
-                selected_titles = {title_key(r) for r in initial_singles} | fms_titles
+            selected_ids = {r["id"] for r in singles} | fms_ids
+            selected_titles = {title_key(r) for r in singles} | fms_titles
 
-                # Bổ sung từ candidates và eligible các món lẻ trọn vị phong phú theo từng bữa (sáng, trưa, tối, phụ)
-                available_pool = [
-                    c for c in candidates + eligible
-                    if is_standalone_one_dish(c) and c["id"] not in selected_ids and title_key(c) not in selected_titles and (c.get("dish_role") != "side")
-                ]
+            # 2. Bổ sung từ candidates và eligible: CHỈ CHỌN các món trọn vị (is_standalone_one_dish == True)
+            available_pool = [
+                c for c in candidates + eligible
+                if c["id"] not in selected_ids and title_key(c) not in selected_titles and is_standalone_one_dish(c)
+            ]
 
-                target_meals = ["breakfast", "lunch", "dinner", "snack"]
-                for target_meal in target_meals:
-                    if len(initial_singles) >= 5:
-                        break
-                    for cand in available_pool:
-                        cand_meals = cand.get("possible_meals") or classify_meal_times(cand)
-                        if target_meal in cand_meals and cand["id"] not in selected_ids and title_key(cand) not in selected_titles:
-                            cand_copy = deepcopy(cand)
-                            cand_copy["meal_time"] = target_meal
-                            _enrich_recipe(cand_copy, condition)
-                            initial_singles.append(cand_copy)
-                            selected_ids.add(cand["id"])
-                            selected_titles.add(title_key(cand))
-                            break
-
+            target_meals = ["breakfast", "lunch", "dinner", "snack"]
+            # Ưu tiên 2a: món trọn vị theo từng bữa ăn
+            for target_meal in target_meals:
+                if len(singles) >= 5:
+                    break
                 for cand in available_pool:
-                    if len(initial_singles) >= 5:
-                        break
-                    if cand["id"] not in selected_ids and title_key(cand) not in selected_titles:
+                    if cand["id"] in selected_ids or title_key(cand) in selected_titles:
+                        continue
+                    cand_meals = cand.get("possible_meals") or classify_meal_times(cand)
+                    if target_meal in cand_meals:
                         cand_copy = deepcopy(cand)
+                        cand_copy["meal_time"] = target_meal
+                        cand_copy["meal_label"] = _MEAL_LABELS.get(target_meal, "Bữa ăn")
                         _enrich_recipe(cand_copy, condition)
-                        initial_singles.append(cand_copy)
+                        singles.append(cand_copy)
                         selected_ids.add(cand["id"])
                         selected_titles.add(title_key(cand))
+                        break
 
-                if len(initial_singles) < 4:
-                    for r in result["recipes"]:
-                        if r["id"] not in selected_ids and title_key(r) not in selected_titles and is_standalone_one_dish(r) and (r.get("dish_role") != "side"):
-                            initial_singles.append(r)
-                            selected_ids.add(r["id"])
-                            selected_titles.add(title_key(r))
-                            if len(initial_singles) >= 5:
+            # Ưu tiên 2b: món trọn vị còn lại trong pool
+            for cand in available_pool:
+                if len(singles) >= 5:
+                    break
+                if cand["id"] not in selected_ids and title_key(cand) not in selected_titles:
+                    cand_copy = deepcopy(cand)
+                    _enrich_recipe(cand_copy, condition)
+                    singles.append(cand_copy)
+                    selected_ids.add(cand["id"])
+                    selected_titles.add(title_key(cand))
+
+            # Dự phòng: Nếu không có đủ món trọn vị (ví dụ trong tập test nhỏ), lấy các món không trùng mâm cơm
+            if not singles:
+                singles = [
+                    r for r in result["recipes"]
+                    if r["id"] not in fms_ids and title_key(r) not in fms_titles
+                ]
+                if not singles:
+                    for cand in candidates + eligible:
+                        if cand["id"] not in fms_ids and title_key(cand) not in fms_titles and cand["id"] not in selected_ids:
+                            cand_copy = deepcopy(cand)
+                            _enrich_recipe(cand_copy, condition)
+                            singles.append(cand_copy)
+                            selected_ids.add(cand["id"])
+                            if len(singles) >= 3:
                                 break
 
-                if initial_singles:
-                    result["recipes"] = initial_singles
+            result["recipes"] = singles
+        else:
+            result["full_meal_set"] = None
+    else:
+        result["full_meal_set"] = None
 
     result["has_more"] = bool(result["recipes"]) and len({title_key(r) for r in remaining}) > len(result["recipes"])
     return result

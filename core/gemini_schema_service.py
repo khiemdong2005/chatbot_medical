@@ -6,10 +6,32 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger("GeminiSchemaService")
 
-def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", api_key: str = "") -> Optional[Dict[str, Any]]:
+
+def _get_image_mime_type(file_path: str) -> str:
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == ".png":
+        return "image/png"
+    elif ext == ".pdf":
+        return "application/pdf"
+    elif ext == ".webp":
+        return "image/webp"
+    return "image/jpeg"
+
+
+def extract_with_gemini_schema(
+    image_path: str,
+    doc_type: str = "prescription",
+    api_key: str = "",
+    crop_image_path: Optional[str] = None,
+    ocr_result: Optional[Dict[str, Any]] = None,
+    **kwargs
+) -> Optional[Dict[str, Any]]:
     """
-    [2.B] Gemini đọc thẳng ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng qua Unified LLM Provider:
-      - Đơn thuốc: patient_name, dob, age, gender, diagnosis, facility, doctor, date, medications
+    [2.B] Đọc ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng qua Unified LLM Provider:
+      - Hỗ trợ cơ chế kép (Dual-image): Ảnh 1 toàn trang (bố cục/hành chính) + Ảnh 2 cắt phóng to LANCZOS (đọc chi tiết thuốc).
+      - Đảm bảo thực thi trong DUY NHẤT 1 lần gọi Vision API qua OpenRouter/Gemini.
+      - Nếu không có ảnh cắt, tự động fallback gửi ảnh toàn trang.
+      - Chép trung thực từng hàng thuốc, tách riêng biệt dược, hoạt chất, số lượng, lịch dùng, cách dùng.
     """
     from core.llm_provider import llm_provider
 
@@ -18,66 +40,165 @@ def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", 
     if not llm_provider.is_configured(profile="ocr", explicit_key=api_key):
         return None
 
+    auto_crop = False
     try:
+        from google.genai import types
+
         with open(image_path, "rb") as f:
             file_bytes = f.read()
 
-        mime_type = "image/jpeg"
-        ext = os.path.splitext(image_path)[1].lower()
-        if ext == ".png":
-            mime_type = "image/png"
-        elif ext == ".pdf":
-            mime_type = "application/pdf"
+        mime_type = _get_image_mime_type(image_path)
 
-        prompt = """
-Bạn là Hệ thống AI Chuyên gia Đọc & Bóc tách Đơn Thuốc Y Tế Lâm Sàng. Chỉ ghi nội dung đọc được trên ảnh; không suy đoán chẩn đoán, tên thuốc, liều dùng hay thông tin hành chính. Nếu một trường không đọc rõ, hãy để chuỗi rỗng; nếu một dòng thuốc không đủ căn cứ để xác định tên, đừng tạo dòng đó.
+        # Tự động phát hiện và cắt nếu crop_image_path chưa được truyền nhưng có ocr_result
+        if not crop_image_path and ocr_result and doc_type in ("prescription", "auto"):
+            try:
+                from core.prescription_crop_service import crop_and_upscale_medication_region
+                crop_image_path = crop_and_upscale_medication_region(image_path, ocr_result)
+                if crop_image_path and os.path.exists(crop_image_path):
+                    auto_crop = True
+            except Exception as ce:
+                logger.debug("Automatic crop attempt failed: %s", ce)
 
-Với đơn thuốc: đọc ảnh theo chiều đúng trước khi tách bảng. Mỗi hàng thuốc thực sự trong phần thân phiếu là một mục medications, có hoặc không có số thứ tự; giữ đúng thứ tự trên ảnh. Phải phân biệt nhãn cột STT/Tên thuốc/Hàm lượng/Số lượng với dữ liệu của hàng. Không tạo mục riêng từ tên hoạt chất trong ngoặc, dòng cách dùng, tiêu đề, ngày tháng, mã chẩn đoán, mã hồ sơ, số lượng đứng riêng, chữ ký hoặc lời dặn. Số lượng ở cột bên phải phải được ghép với đúng dòng thuốc cùng hàng; nếu không đọc chắc, để trống. Chỉ thêm thuốc khi đọc được tên ở hàng thuốc trên ảnh, không suy từ chẩn đoán hay kiến thức y khoa. Trường patient_name chỉ là tên nằm sau nhãn "Họ tên" hoặc "Tên bệnh nhân", bỏ nhãn khỏi giá trị. Trường doctor phải là tên bác sĩ ở phần ký tên; cụm "Bác sĩ điều trị" đứng một mình là nhãn, không phải tên. Trường facility chỉ chứa tên cơ sở y tế đọc rõ ở đầu phiếu.
+        # 1. Chuẩn bị ảnh toàn trang (Image 1)
+        contents = [
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type)
+        ]
 
-YÊU CẦU SCHEMA JSON TRẢ VỀ:
-{
+        # 2. Chuẩn bị ảnh cắt phóng to danh sách thuốc (Image 2) nếu có
+        has_crop = False
+        if crop_image_path and os.path.exists(crop_image_path) and crop_image_path != image_path:
+            try:
+                with open(crop_image_path, "rb") as cf:
+                    crop_bytes = cf.read()
+                crop_mime = _get_image_mime_type(crop_image_path)
+                contents.append(types.Part.from_bytes(data=crop_bytes, mime_type=crop_mime))
+                has_crop = True
+            except Exception as ce:
+                logger.warning("Could not load cropped medication image: %s", ce)
+
+        if has_crop:
+            doc_intro = """BẠN ĐANG NHẬN ĐƯỢC 2 ẢNH CỦA CÙNG MỘT ĐƠN THUỐC (CÙNG MỘT TÀI LIỆU):
+- Ảnh 1: Toàn bộ trang đơn thuốc để xác định bố cục và thông tin hành chính.
+- Ảnh 2: Ảnh cắt phóng to chi tiết vùng bảng thuốc để đọc chữ rõ nét."""
+        else:
+            doc_intro = """BẠN ĐANG NHẬN ĐƯỢC 1 ẢNH TOÀN BỘ TRANG ĐƠN THUỐC để xác định bố cục và đọc chữ."""
+
+        prompt = f"""
+{doc_intro}
+
+Hãy chép từng hàng thuốc theo đúng thứ tự trên ảnh.
+
+Quy tắc:
+- Chỉ ghi chữ nhìn thấy trên ảnh; không đoán dựa vào kiến thức y khoa.
+- Tách tên biệt dược in đậm và hoạt chất trong ngoặc.
+- Không thay tên biệt dược bằng tên hoạt chất.
+- Không tự thêm số lượng, buổi uống hoặc cách dùng.
+- Nếu chữ không rõ, để trống trường đó và ghi tên trường vào uncertain_fields.
+- Chỉ trả về JSON, không thêm Markdown.
+
+Dạng JSON:
+{{
   "doc_type": "prescription",
-  "patient_name": "Họ và tên bệnh nhân (viết chữ in hoa theo đơn hoặc để trống)",
-  "dob": "Ngày tháng năm sinh ghi trên đơn (ví dụ: 20/11/2010 hoặc 1982 nếu chỉ có năm sinh, hoặc để trống)",
-  "age": "Tuổi bệnh nhân nếu ghi rõ trên đơn (ví dụ: 40 hoặc để trống)",
-  "gender": "Giới tính (Nam hoặc Nữ nếu có trên đơn, hoặc để trống)",
-  "diagnosis": "Chẩn đoán bệnh (ghi đầy đủ tên bệnh và mã ICD nếu có trên đơn)",
-  "facility": "Tên bệnh viện hoặc phòng khám",
-  "doctor": "Tên bác sĩ kê đơn",
-  "date": "Ngày kê đơn",
+  "facility": "",
+  "doctor": "",
+  "patient_name": "",
+  "dob": "",
+  "age": "",
+  "gender": "",
+  "diagnosis": "",
+  "date": "",
   "medications": [
-    {
-      "name": "Tên biệt dược hoặc hoạt chất thuốc",
-      "strength": "Hàm lượng (ví dụ: 500mg, 40mg, 1g, 200mg)",
-      "purpose": "Công dụng chính ngắn gọn (ví dụ: Giảm tiết acid dạ dày, Trị trào ngược dạ dày, Bảo vệ niêm mạc, Giảm co thắt, Bổ gan)",
-      "dose": "Liều dùng mỗi lần (ví dụ: 1 viên, 1 gói, 1 ống)",
-      "frequency": "Tần suất uống trong ngày (ví dụ: 2 lần / ngày (Sáng 1 - Chiều 1))",
-      "days": "Số ngày uống hoặc tổng số lượng cấp phát (ví dụ: 20 viên, 10 ngày)",
-      "usage": "Chỉ ghi cách dùng thực sự in trên phiếu hoặc hướng dẫn chi tiết, hoặc để trống"
-    }
+    {{
+      "stt": 1,
+      "brand_name_as_printed": "",
+      "ingredients_as_printed": "",
+      "quantity_as_printed": "",
+      "schedule_as_printed": "",
+      "usage_as_printed": "",
+      "uncertain_fields": []
+    }}
   ]
-}
-
-BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
+}}
 """
-        # Ưu tiên model OCR được cấu hình trên OpenRouter
+        contents.append(prompt)
+
         preferred_model = llm_provider.get_default_model("prescription_ocr")
         candidate_models = list(dict.fromkeys([preferred_model, "inclusionai/ling-3.2-flash:free"]))
-        contents = [
-            {"type": "image_bytes", "data": file_bytes, "mime_type": mime_type},
-            prompt
-        ]
-        return llm_provider.generate_json(
+
+        res = llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
             api_key=api_key,
             operation="prescription_ocr"
         )
 
+        if not isinstance(res, dict):
+            return None
+
+        # Chuẩn hóa cấu trúc kết quả trả về để tương thích tuyệt đối với pipeline
+        if "medications" in res and isinstance(res["medications"], list):
+            normalized_meds = []
+            for item in res["medications"]:
+                if not isinstance(item, dict):
+                    continue
+                brand_name = str(item.get("brand_name_as_printed") or item.get("brand_name") or "").strip()
+                active_ingredient = str(item.get("ingredients_as_printed") or item.get("active_ingredient") or "").strip()
+                name = str(item.get("name") or brand_name or active_ingredient).strip()
+                if not name:
+                    continue
+
+                quantity = str(item.get("quantity_as_printed") or item.get("quantity") or item.get("days") or "").strip()
+                schedule = str(item.get("schedule_as_printed") or item.get("schedule") or item.get("frequency") or "").strip()
+                usage = str(item.get("usage_as_printed") or item.get("usage") or item.get("instructions") or "").strip()
+                uncertain = item.get("uncertain_fields") or []
+                needs_review = bool(item.get("needs_review") or uncertain)
+
+                # Bóc tách strength từ brand_name hoặc ingredients nếu có
+                strength = str(item.get("strength") or "").strip()
+                if not strength:
+                    m_str = re.search(
+                        r"(\d+(?:\.\d+)?\s*(?:mg|mcg|ml|g|iu)(?:\s*\+\s*\d+(?:\.\d+)?\s*(?:mg|mcg|ml|g|iu))*|\(\d+.*?\)/\d+ml)",
+                        brand_name, re.IGNORECASE
+                    )
+                    if m_str:
+                        strength = m_str.group(1).strip()
+
+                dose = str(item.get("dose") or "").strip()
+                if not dose:
+                    m_dose = re.search(r"(\d+\s*(?:viên|vien|gói|goi|ống|ong|lọ|lo|chai|hộp|hop))", f"{usage} {schedule}", re.IGNORECASE)
+                    dose = m_dose.group(1).strip() if m_dose else ""
+
+                normalized_meds.append({
+                    "stt": item.get("stt"),
+                    "name": name,
+                    "brand_name": brand_name,
+                    "active_ingredient": active_ingredient,
+                    "strength": strength,
+                    "dose": dose,
+                    "frequency": schedule,
+                    "schedule": schedule,
+                    "days": quantity,
+                    "quantity": quantity,
+                    "unit": "",
+                    "usage": usage,
+                    "instructions": usage,
+                    "purpose": str(item.get("purpose") or "").strip(),
+                    "needs_review": needs_review,
+                    "uncertain_fields": uncertain
+                })
+            res["medications"] = normalized_meds
+
+        return res
+
     except Exception as e:
         logger.warning("Gemini schema extraction failed (%s).", type(e).__name__)
-
-    return None
+        return None
+    finally:
+        if auto_crop and crop_image_path and os.path.exists(crop_image_path):
+            try:
+                os.remove(crop_image_path)
+            except Exception:
+                pass
 
 
 def extract_with_gemini_text(raw_text: str, doc_type: str = "prescription", api_key: str = "") -> Optional[Dict[str, Any]]:
