@@ -480,8 +480,20 @@ class GeminiMedicalService:
 
             target_model = self._resolve_runtime_model(has_image=has_image) if hasattr(self, "_resolve_runtime_model") else self.model
 
+            active_client = self.client
+            if has_image and str(getattr(self, "api_key", "")).startswith("gsk_"):
+                # Groq text-only không hỗ trợ vision -> định tuyến ảnh sang OpenRouter/Gemini vision client
+                provider = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
+                vision_key = provider.resolve_api_key(profile="vision")
+                if vision_key and not vision_key.startswith("gsk_"):
+                    active_client = provider.get_client(
+                        vision_key,
+                        timeout_seconds=getattr(self, "timeout_seconds", 25.0),
+                        profile="vision",
+                    )
+
             def _do_generate():
-                return self.client.models.generate_content(
+                return active_client.models.generate_content(
                     model=target_model,
                     contents=req_contents,
                     config=config

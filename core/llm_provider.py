@@ -283,9 +283,13 @@ class _GroqModels:
                     parts.append(str(text))
         return "\n\n".join(parts)
 
+    def _endpoint(self) -> str:
+        base = (os.getenv("GROQ_BASE_URL") or "https://api.groq.com/openai/v1").rstrip("/")
+        return f"{base}/chat/completions"
+
     def _post_completion(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         req = urllib.request.Request(
-            self.ENDPOINT,
+            self._endpoint(),
             data=json.dumps(payload).encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {self._api_key}",
@@ -448,9 +452,10 @@ class LLMProvider:
             return explicit_key.strip()
 
         prof = (profile or "").lower()
+        is_vision_ocr = any(tag in prof for tag in ("ocr", "prescription", "vision"))
 
-        # Groq primary provider
-        if self.is_groq_active():
+        # Groq primary provider (text-only: không hỗ trợ vision/OCR -> bỏ qua cho tác vụ OCR/Vision)
+        if self.is_groq_active() and not is_vision_ocr:
             groq_key = os.getenv("GROQ_API_KEY", "").strip()
             if groq_key:
                 return groq_key
@@ -630,11 +635,11 @@ class LLMProvider:
         )
         if use_groq:
             # Groq không hỗ trợ vision — OCR fallback sang OpenRouter hoặc Gemini
-            if "ocr" in op or "prescription" in op:
-                # OCR cần vision model — Groq không hỗ trợ, dùng OpenRouter OCR model
+            if "ocr" in op or "prescription" in op or "vision" in op:
                 or_key = os.getenv("OPENROUTER_API_KEY", "").strip()
                 if or_key:
                     return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
+                return (os.getenv("OCR_MODEL") or settings.gemini.ocr_model).strip()
             if "chat" in op:
                 return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
             if "expansion" in op:
