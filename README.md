@@ -1,193 +1,200 @@
-# 🩺 MediMind AI — Clinical Assistant & Symptom Triage Platform
-> **Nền tảng Trợ lý AI Y tế Lâm sàng & Sàng lọc Triệu chứng End-to-End**  
-> Kết hợp giữa **Clinical Triage Protocol**, **Medical Safety Guardrails**.
+# 🩺 MediMind Clinical AI — Nền Tảng Tư Vấn Y Tế Lâm Sàng, Đọc Đơn Thuốc & Dinh Dưỡng Trị Liệu
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Framework](https://img.shields.io/badge/Framework-Flask%203.1.0-emerald.svg)](https://flask.palletsprojects.com/)
-[![Medical Protocol](https://img.shields.io/badge/Protocol-Clinical%20Triage%20Guidelines-red.svg)](#-nguyên-tắc-an-toàn-y-tế)
+> **Cổng dịch vụ y tế số hỗ trợ sàng lọc triệu chứng, bóc tách đơn thuốc lâm sàng, gợi ý dinh dưỡng theo bệnh lý và tra cứu mạng lưới cơ sở y tế toàn quốc.**  
+> Thiết kế theo **Kiến trúc Phân khu Nghiệp vụ (Feature-Sliced Modular Monolith)** với **Clinical Triage Protocol**, **RAG MedlinePlus** và **Medical Safety Guardrails**.
+
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Framework-Flask%203.1-009688.svg)](https://flask.palletsprojects.com/)
+[![ChromaDB](https://img.shields.io/badge/RAG-ChromaDB%20(725%20docs)-orange.svg)](https://www.trychroma.com/)
+[![AI Providers](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter%20%7C%20Gemini-6366F1.svg)](#5-cấu-hình-ai-provider-groq--openrouter)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
 
 ---
 
-## 📖 1. Giới thiệu Tổng quan (Overview)
+## 📖 1. Giới Thiệu Tổng Quan
 
-**MediMind AI** là hệ thống trợ lý y tế số thông minh hỗ trợ người bệnh sàng lọc triệu chứng ban đầu, đánh giá mức độ nguy cơ lâm sàng, cảnh báo cờ đỏ cấp cứu và kết xuất hồ sơ tóm tắt tiền khám (*Pre-Consultation Summary*) gửi trực tiếp cho bác sĩ chuyên khoa trong vòng 30 giây.
+**MediMind Clinical AI** là nền tảng trợ lý y tế số đa chức năng dành cho người dân và cơ sở y tế, hỗ trợ xuyên suốt từ sàng lọc triệu chứng ban đầu, chuẩn bị phiếu tiền khám (*Pre-Visit Summary*), số hóa đơn thuốc thành lịch uống thuốc 4 cữ, xây dựng thực đơn dinh dưỡng an toàn theo thể trạng đến tra cứu bản đồ cơ sở khám chữa bệnh.
 
-Hệ thống được thiết kế theo tiêu chuẩn an toàn y tế nghiêm ngặt, tuân thủ hướng dẫn điều trị của **Bộ Y Tế** và các tài liệu chuẩn quốc tế như **MedlinePlus**, giúp giảm tải áp lực tiếp đón bệnh nhân tại khoa khám bệnh và tối ưu hóa thời gian hội chẩn lâm sàng.
-
----
-
-## 🌟 2. Tính năng Cốt lõi (Key Features)
-
-* 🚨 **AI Clinical Triage & Red Flag Detection**:
-  * Phát hiện tức thời dấu hiệu cấp cứu đe dọa tính mạng (*đau thắt ngực, đột quỵ, co giật, khó thở dữ dội, sốc phản vệ, nôn/ho ra máu...*).
-  * Kích hoạt quy trình khẩn cấp hướng dẫn người bệnh gọi **Cấp cứu 115** hoặc di chuyển khẩn đến cơ sở y tế gần nhất.
-  * Phân tầng nguy cơ 3 cấp độ: **Xanh (Nhẹ / Theo dõi)** $\rightarrow$ **Vàng (Cần khám chuyên khoa)** $\rightarrow$ **Đỏ (Khẩn cấp 115)**.
-* 🛡️ **Medical Safety Guardrails (Rào chắn an toàn)**:
-  * Tuyệt đối **không chẩn đoán khẳng định** ("Triệu chứng có thể liên quan..." thay vì kết luận áp đặt).
-  * Tuyệt đối **không tự ý kê đơn kháng sinh** hoặc thuốc đặc trị.
-  * Tự động kiểm tra tiền sử dị ứng và chống chỉ định (ví dụ: dị ứng Penicillin / NSAIDs / Paracetamol).
-* 📚 **Grounded Citations (Đối chiếu chuẩn y khoa)**:
-  * Mọi thông tin phản hồi đều đính kèm nguồn trích dẫn đối soát chính thống (*Cục Quản lý Khám chữa bệnh - kcb.vn*, *MedlinePlus*).
-* 🧪 **Multimodal Lab Scanner (Phân tích sinh hóa máu)**:
-  * Bóc tách và so sánh các chỉ số sinh hóa máu quan trọng (*Glucose đói, Cholesterol toàn phần, Men gan SGOT/AST, Creatinine thận*) với dải tham chiếu chuẩn.
-  * Cảnh báo nguy cơ bất thường (tiền tiểu đường, rối loạn lipid máu, suy giảm chức năng gan/thận).
-* 📋 **Pre-Consultation Summary (Bản tóm tắt bệnh án cho Bác sĩ)**:
-  * Kết xuất bệnh sử hiện tại (*HPI - History of Present Illness*), danh sách dị ứng, chẩn đoán phân biệt sơ bộ (*Differential Diagnosis*) kèm độ tin cậy và đề xuất cận lâm sàng (*Suggested Lab Orders*).
+Mọi phản hồi y khoa được thiết kế với rào chắn an toàn chặt chẽ:
+- **Ưu tiên phát hiện cờ đỏ cấp cứu** (*đau thắt ngực, khó thở dữ dội, đột quỵ, xuất huyết...*) để điều hướng **Cấp cứu 115** tức thì (<10ms).
+- **Đối chiếu nguồn y văn chuẩn** từ kho tri thức **MedlinePlus (NIH)** qua ChromaDB + BM25 Hybrid RAG.
+- **Không kê đơn kháng sinh hay kết luận chẩn đoán áp đặt**; luôn bảo vệ người dùng khỏi khuyến nghị thiếu căn cứ.
 
 ---
 
-## 🏗️ 3. Kiến trúc Hệ thống (System Architecture)
+## 🌟 2. Tính Năng Cốt Lõi
 
-```text
-[ Người Bệnh / Web UI (Single Page Application) ]
-                         │
-                         ├──► [ POST /api/chat ]
-                         │            │
-                         │            ▼
-                         │   [ assess_emergency_risk ]
-                         │            │
-                         │    ┌───────┴───────┐
-                         │    ▼               ▼
-                         │ [CỜ ĐỎ CẤP CỨU]  [TRIỆU CHỨNG THƯỜNG]
-                         │    │               │
-                         │    ▼               ▼
-                         │ [Bypass 115]   [analyze_symptoms]
-                         │                    │
-                         │                    ├── Tính Risk Score (0 - 100)
-                         │                    ├── Định tuyến Chuyên khoa
-                         │                    ├── Khuyến nghị OTC & Cảnh báo
-                         │                    └── Trích xuất Grounded Sources
-                         │
-                         ├──► [ POST /api/upload-lab ] ──► Bóc tách chỉ số xét nghiệm & Amazon S3
-                         │
-                         └──► [ GET /api/clinical-summary ] ──► Xuất tóm tắt bệnh sử cho Bác sĩ
-```
+| Phân khu | Mô tả chi tiết |
+| :--- | :--- |
+| **💬 ChatBOT Lâm Sàng & Intake** | Sàng lọc triệu chứng đa lượt (`/api/chat`, `/api/intake/*`), nhận diện cờ đỏ cấp cứu 115, truy xuất RAG MedlinePlus (725 tài liệu ChromaDB + 364 tài liệu BM25 dự phòng), kiểm chứng bằng chứng y khoa (`grounded_points`), hỗ trợ song ngữ **Tiếng Việt / Tiếng Anh** và xuất phiếu tóm tắt trước khám. |
+| **💊 Đọc Đơn Thuốc Lâm Sàng (Hybrid OCR)** | Kiến trúc đa tầng kết hợp **OpenCV + EasyOCR tiếng Việt cục bộ**, cắt phóng to vùng thuốc chuẩn **LANCZOS** gửi **Vision AI** (OpenRouter/Gemini), tự động chuẩn hóa văn bản OCR bằng **Groq LLM** khi Vision API bận, cho phép đối chiếu trực tiếp ảnh gốc và tạo **lịch uống thuốc 4 cữ (Sáng – Trưa – Chiều/Tối – Trước ngủ)**. Hỗ trợ 3 đơn mẫu lâm sàng (*Tiêu hóa*, *Hô hấp*, *Tim mạch*). |
+| **🥗 Dinh Dưỡng Trị Liệu** | Lọc công thức theo bệnh lý & dị ứng từ kho chuẩn **ViFoodRec & Wikibooks**, tích hợp rào chắn từ chối lâm sàng (*clinical safeguard*) cho nhóm bệnh cần chỉ định bác sĩ, xếp hạng món ăn thông minh bằng **Groq (`openai/gpt-oss-20b`)**, gợi ý nhóm thực phẩm nên ăn / nên tránh và bữa ăn hoàn chỉnh. |
+| **🗺️ Bản Đồ Cơ Sở Y Tế & Đặt Lịch** | Tra cứu **2,144 cơ sở y tế** (TP.HCM & Hà Nội) trên bản đồ tương tác **Leaflet + OpenStreetMap**, lọc theo tỉnh thành, quận huyện, loại hình, chuyên khoa và lưu lịch hẹn khám cá nhân. |
+| **🔐 Xác Thực & Bảo Mật** | Đăng nhập / Đăng ký (bắt buộc xác thực OTP 6 số), **Google OAuth 2.0**, Quên mật khẩu & Đổi mật khẩu, gửi OTP qua **Gmail SMTP** và **SpeedSMS Việt Nam**, bảo vệ **CSRF Origin/Referer**, **Rate Limiting**, **Security Headers (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)** và Zero-PHI Logging. |
+| **🌐 Song Ngữ (VI ↔ EN)** | Chuyển đổi ngôn ngữ tức thì trên toàn bộ giao diện (Trang chủ, ChatBOT, Đơn thuốc, Dinh dưỡng, Bản đồ, Modal Đăng nhập) và đồng bộ ngôn ngữ phản hồi của AI. |
 
 ---
 
-## 📂 4. Cấu trúc Thư mục Dự án (Project Structure)
+## 🏗️ 3. Kiến Trúc & Cấu Trúc Thư Mục
+
+Hệ thống được tổ chức theo mô hình **Feature-Sliced Modular Monolith**: tách mỏng `app.py` (465 dòng), phân chia routes theo 5 miền tính năng tại `routes/` và gom lõi nghiệp vụ thành **7 phân khu trong `core/`** (kèm facade tương thích ngược tại `core/<module>.py`).
 
 ```text
 Medical ChatBOT/
-├── app.py                      # Flask Application Server & Định tuyến 4 APIs
-├── requirements.txt            # Danh sách dependencies (Flask, Boto3, Pydantic, Requests)
-├── .env.example                # Cấu hình môi trường (Port, API Keys, AWS S3)
-├── README.md                   # Tài liệu kỹ thuật dự án
+├── app.py                            # Application Factory, Security Middleware, /health, /ready, /favicon.ico, /docs
+├── main_fastapi.py                   # Điểm vào FastAPI Gateway (tùy chọn)
+├── ingest.py                         # Điểm vào nạp dữ liệu RAG
+├── requirements.txt                  # Thư viện runtime chính
+├── .env.example                      # Mẫu biến môi trường
 │
-├── core/                       # Lõi Xử lý Nghiệp vụ Lâm sàng
-│   ├── __init__.py
-│   ├── prompts.py              # Medical Safety Prompts & Guardrails Tiếng Việt
-│   └── triage.py               # Thuật toán Triage, Red Flags, Risk Scoring & Routing
+├── routes/                           # 5 phân khu Flask routes độc lập
+│   ├── auth_routes.py                #   /api/auth/* (Login, Register, Profile, OTP, Forgot Password, Google OAuth)
+│   ├── chat_routes.py                #   /api/chat, /api/intake/*, /api/clinical-summary, /api/consultations
+│   ├── ocr_routes.py                 #   /api/prescription/*, /api/scan-files, /api/upload-lab, /uploads/*
+│   ├── nutrition_routes.py           #   /api/nutrition/options, /api/nutrition/analyze
+│   └── facilities_routes.py          #   /api/facilities/*, /api/appointments/*
 │
-├── templates/
-│   └── index.html              # Giao diện Web lâm sàng thời gian thực (SPA)
+├── core/                             # 7 phân khu lõi nghiệp vụ (có shim tương thích tại core/*.py)
+│   ├── ai/                           #   llm_provider (Groq/OpenRouter/Gemini), prompts, retry_policy, circuit_breaker
+│   ├── chat/                         #   chat_service, gemini_service, rag_service, query_expansion, reranker, grounding, intake, triage
+│   ├── ocr/                          #   pipeline_orchestrator, gemini_schema_service, prescription_crop, ocr_extractor, reconciliation
+│   ├── nutrition/                    #   nutrition_options, nutrition_ai, nutrition_rules, nutrition_service, recipe_catalog
+│   ├── auth/                         #   otp_service, email_service, sms_service, csrf_protection, rate_limit, security_headers
+│   ├── facilities/                   #   facilities_service, appointment_service
+│   └── shared/                       #   settings, models, migrations, db_utils, api_errors, validation_service, logging_redaction
 │
-└── static/
-    ├── css/                    # Giao diện y khoa hiện đại, responsive
-    └── js/                     # Xử lý tương tác AJAX, render markdown, upload file
+├── templates/                        # Giao diện HTML (index.html, api_docs.html)
+├── static/                           # Tài nguyên frontend (css/, js/, images/, vendor/)
+├── data/                             # Dữ liệu runtime đã tối ưu
+│   ├── CSKCB_Data/                   #   2,144 cơ sở khám chữa bệnh (TP.HCM & Hà Nội)
+│   ├── curated/ready_documents/      #   364 tài liệu y khoa chuẩn cho BM25 fallback
+│   └── recipes/                      #   Công thức chuẩn ViFoodRec & Wikibooks (recipes.json)
+├── medical_vectordb/                 # ChromaDB Vector Store (collection v4 active: 725 tài liệu)
+├── instance/                         # Cơ sở dữ liệu SQLite cục bộ (medimind.db)
+├── uploads/                          # Kho tệp tải lên được bảo vệ theo owner_id
+├── scripts/                          # Script CI/bảo trì (check_config, check_repository_hygiene, ingest, ...) & scripts/offline/
+└── tests/                            # Bộ kiểm thử tự động pytest
 ```
 
 ---
 
-## 🔌 5. Đặc tả API Endpoints (API Specification)
+## 🔌 4. Danh Mục API Chính
 
-| Phương thức | Endpoint | Chức năng | Dữ liệu đầu vào | Dữ liệu đầu ra |
-|:---:|:---|:---|:---|:---|
-| `GET` | `/` | Tải giao diện Web SPA | Không | HTML/CSS/JS Application |
-| `POST` | `/api/chat` | Phân tích triệu chứng & Phân tầng Triage | `{"message": "string", "history": []}` | `answer`, `risk_level`, `risk_score`, `specialist`, `medications`, `sources` |
-| `POST` | `/api/upload-lab` | Tiếp nhận và phân tích phiếu xét nghiệm máu | `multipart/form-data` (file ảnh) | `extracted_metrics`, `ai_summary`, `s3_url` |
-| `GET` | `/api/clinical-summary` | Kết xuất tóm tắt bệnh án sơ bộ cho bác sĩ | Không | `chief_complaint`, `hpi`, `differential_diagnosis`, `suggested_orders`, `contraindications` |
+| Nhóm | Phương thức | Endpoint | Chức năng |
+| :--- | :---: | :--- | :--- |
+| **Hệ thống** | `GET` | `/`, `/health`, `/ready`, `/docs`, `/openapi.json` | Giao diện web, kiểm tra sống/sẵn sàng và tài liệu OpenAPI |
+| **ChatBOT** | `POST` | `/api/chat` | Tư vấn lâm sàng 4 tầng (Emergency → RAG → LLM → Safety Guardrails) |
+| **ChatBOT** | `POST` / `GET` | `/api/intake/session`, `/api/intake/message`, `/api/clinical-summary` | Hỏi bệnh có cấu trúc & phiếu tóm tắt tiền khám |
+| **Đơn thuốc** | `POST` | `/api/prescription/scan`, `/api/prescription/confirm` | Quét ảnh/preset đơn thuốc & xác nhận tạo lịch uống 4 cữ |
+| **Đơn thuốc** | `GET` / `DELETE` | `/api/prescription/history`, `/api/scan-files` | Quản lý lịch sử đơn thuốc & tài liệu đã quét (yêu cầu đăng nhập) |
+| **Dinh dưỡng** | `POST` | `/api/nutrition/options`, `/api/nutrition/analyze` | Gợi ý danh sách công thức AI-ranked & phân tích thực phẩm theo bệnh lý |
+| **Cơ sở y tế** | `GET` | `/api/facilities`, `/api/facilities/filters`, `/api/facilities/map-markers` | Tra cứu, lọc và hiển thị 2,144 cơ sở y tế trên bản đồ |
+| **Đặt lịch** | `GET` / `POST` / `DELETE` | `/api/appointments` | Quản lý lịch hẹn khám cá nhân |
+| **Xác thực** | `POST` / `GET` | `/api/auth/login`, `/register`, `/me`, `/otp/send`, `/otp/verify`, `/google/login` | Đăng nhập, đăng ký OTP, hồ sơ cá nhân, quên mật khẩu & Google OAuth |
 
 ---
 
-## 🚀 6. Hướng dẫn Cài đặt & Vận hành (Local Setup)
+## ⚙️ 5. Cấu Hình AI Provider (Groq + OpenRouter)
 
-### Cách 1: Khởi chạy Nhanh bằng Docker Compose (Khuyến nghị — 1 Chạm)
+Hệ thống hỗ trợ chuyển đổi linh hoạt giữa **Groq**, **OpenRouter** và **Google Gemini** qua `core/ai/llm_provider.py`.  
+Khuyến nghị dùng **Groq Free Tier** làm provider chính cho **ChatBOT & Dinh dưỡng** (tốc độ cao ~500–1,000 tok/s, 1,000 req/ngày, tự động dự phòng đa bucket `gpt-oss-120b → gpt-oss-20b → qwen3.8-27b`) kết hợp **OpenRouter (`:free` Vision)** cho nhánh đọc ảnh OCR:
 
-#### Yêu cầu tiên quyết
-* **Docker Engine**: Phiên bản 24.0+ hoặc Docker Desktop.
-* **Docker Compose**: Phiên bản 2.20+ hoặc Docker Compose v5+.
+```env
+PORT=8000
+FLASK_DEBUG=true
+SECRET_KEY=<chuỗi-bí-mật-ngẫu-nhiên-64-ký-tự>
 
-#### Các bước thực hiện:
+# AI Provider chính: Groq (ChatBOT, Dinh dưỡng, Chuẩn hóa văn bản OCR)
+AI_PROVIDER=groq
+GROQ_API_KEY=gsk_...
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+GROQ_CHAT_MODEL=openai/gpt-oss-120b
+GROQ_EXPANSION_MODEL=openai/gpt-oss-20b
+GROQ_NUTRITION_MODEL=openai/gpt-oss-20b
+GROQ_INTERPRETATION_MODEL=openai/gpt-oss-120b
+
+# OpenRouter Vision Fallback cho Đọc đơn thuốc (ảnh toàn trang + ảnh cắt LANCZOS)
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_OCR_MODEL=nvidia/nemotron-3.5-super-vl:free
+
+# Google OAuth 2.0, Gmail SMTP OTP & SpeedSMS VN (tùy chọn)
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=...
+SMTP_PASSWORD=...
+SPEEDSMS_AUTH_TOKEN=...
+```
+
+---
+
+## 🚀 6. Hướng Dẫn Cài Đặt & Khởi Chạy
+
+### Cách 1: Chạy trực tiếp trên máy Local (Python `.venv` — Khuyến nghị)
+
+```powershell
+# 1. Clone kho mã nguồn
+git clone https://github.com/khiemdong2005/chatbot_medical.git
+cd chatbot_medical
+
+# 2. Tạo và kích hoạt môi trường ảo .venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+# (Linux/macOS: source .venv/bin/activate)
+
+# 3. Cài đặt thư viện (bao gồm ChromaDB và EasyOCR cho đọc đơn thuốc cục bộ)
+pip install -r requirements.txt
+pip install easyocr
+
+# 4. Tạo file cấu hình .env từ mẫu và điền API keys
+Copy-Item .env.example .env
+
+# 5. Khởi chạy server bằng đúng Python trong .venv
+.\.venv\Scripts\python.exe app.py
+```
+
+> ⚠️ **Lưu ý quan trọng trên Windows:** Luôn khởi chạy bằng **`.\.venv\Scripts\python.exe app.py`** (hoặc kích hoạt `.venv` trước) thay vì `python app.py` toàn hệ thống để đảm bảo nạp đủ `chromadb`, `easyocr` và `opencv`.
+
+Truy cập ứng dụng tại:
+- 🏥 **Giao diện Web MediMind**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- 📖 **Tài liệu API (Swagger / OpenAPI)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- 🩺 **Kiểm tra trạng thái**: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) • [http://127.0.0.1:8000/ready](http://127.0.0.1:8000/ready)
+
+### Cách 2: Khởi chạy bằng Docker Compose
+
 ```bash
-# 1. Sao chép cấu hình môi trường
 cp .env.example .env
-
-# 2. Khởi chạy toàn bộ hệ thống (FastAPI, RAG ChromaDB, Observability)
 docker compose up -d
-
-# 3. (Tùy chọn) Nạp dữ liệu RAG nếu cần tạo collection mới
-docker compose run --rm medical-api python ingest.py
-
-# 4. Kiểm tra logs đang chạy
 docker compose logs -f
-```
-
-#### Các điểm truy cập chính:
-* 🏥 **Giao diện Tư vấn Sức khỏe**: [http://localhost:8000](http://localhost:8000)
-* 📊 **Dashboard Giám sát Cục bộ**: [http://localhost:8000/system](http://localhost:8000/system)
-* 🩺 **Liveness Probe**: [http://localhost:8000/health](http://localhost:8000/health)
-* 🚀 **Readiness Probe**: [http://localhost:8000/ready](http://localhost:8000/ready)
-* 📈 **Local Metrics Snapshot**: [http://localhost:8000/api/system/metrics](http://localhost:8000/api/system/metrics)
-* 📖 **Tài liệu Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-Dừng container an toàn:
-```bash
+# Dừng hệ thống:
 docker compose down
 ```
 
 ---
 
-### Cách 2: Khởi chạy Trực tiếp trên Máy (Python Local)
+## 🧪 7. Kiểm Tra Chất Lượng & Kiểm Thử
 
-### Bước 1: Clone kho mã nguồn
-```bash
-git clone https://github.com/khiemdong2005/chatbot_medical.git
-cd chatbot_medical
-```
+```powershell
+# Kiểm tra cấu hình môi trường & kết nối cơ bản
+.\.venv\Scripts\python.exe scripts/check_config.py
 
-### Bước 2: Tạo môi trường ảo và cài đặt thư viện
-```bash
-# Khởi tạo môi trường ảo Python
-python -m venv venv
+# Kiểm tra vệ sinh kho mã nguồn & cú pháp toàn bộ file Python
+.\.venv\Scripts\python.exe scripts/check_repository_hygiene.py
 
-# Kích hoạt môi trường (Windows PowerShell / CMD)
-.\venv\Scripts\activate
-# Hoặc trên Linux/macOS:
-# source venv/bin/activate
+# Kiểm tra Linter (Ruff) & cú pháp JavaScript
+.\.venv\Scripts\python.exe -m ruff check app.py routes/ core/
+node --check static/js/app.js
+node --check static/js/nutrition-flow.js
 
-# Cài đặt toàn bộ dependencies
-pip install -r requirements.txt
-```
-
-### Bước 3: Cấu hình biến môi trường
-Tạo file `.env` từ file mẫu:
-```bash
-cp .env.example .env
-```
-*(Tùy chỉnh các tham số cấu hình `PORT`, `AWS_ACCESS_KEY_ID`, `S3_BUCKET_NAME` nếu cần).*
-
-### Bước 4: Khởi chạy Server
-```bash
-python app.py
-```
-Mở trình duyệt web và truy cập: **`http://localhost:8000`** hoặc **`http://127.0.0.1:8000`**.
-
-Các điểm chạy bổ sung sau khi sắp xếp thư mục:
-
-```bash
-# FastAPI gateway (nếu cần)
-python -m core.main_fastapi
-
-# Nạp lại corpus RAG: chỉ chạy khi chủ động muốn tạo phiên bản chỉ mục mới
-python -m scripts.ingest
+# Chạy bộ kiểm thử pytest
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
 ---
 
-## ⚖️ 7. Tuyên bố Miễn trừ Trách nhiệm Y tế (Medical Disclaimer)
+## ⚖️ 8. Tuyên Bố Miễn Trừ Trách Nhiệm Y Tế
 
 > **CẢNH BÁO QUAN TRỌNG:**  
-> MediMind AI là hệ thống hỗ trợ tham khảo và sàng lọc thông tin y tế ban đầu, **hoàn toàn không thay thế** cho việc chẩn đoán, thăm khám, kê đơn hoặc điều trị trực tiếp từ các bác sĩ chuyên khoa hoặc nhân viên y tế có chứng chỉ hành nghề.  
-> Trong trường hợp xuất hiện các triệu chứng nguy kịch đe dọa tính mạng, người bệnh hoặc người nhà cần gọi ngay **Cấp cứu 115** hoặc di chuyển khẩn cấp tới cơ sở y tế gần nhất.
+> MediMind Clinical AI là công cụ hỗ trợ tra cứu, sàng lọc thông tin sức khỏe và quản lý đơn thuốc tham khảo, **không thay thế** cho việc khám bệnh trực tiếp, chẩn đoán xác định hoặc kê đơn từ bác sĩ có chứng chỉ hành nghề.  
+> Khi xuất hiện dấu hiệu nguy hiểm đến tính mạng (*đau thắt ngực, khó thở dữ dội, yếu liệt nửa người, co giật, chảy máu nặng...*), hãy gọi ngay **Cấp cứu 115** hoặc đến khoa Cấp cứu gần nhất.
