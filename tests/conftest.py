@@ -12,8 +12,29 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Đảm bảo thư mục instance luôn tồn tại cho các tiến trình SQLite cục bộ
-(PROJECT_ROOT / "instance").mkdir(parents=True, exist_ok=True)
+# ==============================================================================
+# CÔ LẬP HOÀN TOÀN DB / WAL / UPLOADS / AUDIT LOGS TRƯỚC KHI IMPORT APP (PHASE 0)
+# ==============================================================================
+_EXISTING_ISO_DIR = os.environ.get("MEDIMIND_TEST_ISOLATION_DIR", "").strip()
+if _EXISTING_ISO_DIR:
+    _ISO_DIR = Path(_EXISTING_ISO_DIR)
+    _OWNS_ISO_DIR = False
+else:
+    _ISO_DIR = Path(tempfile.mkdtemp(prefix="medimind_pytest_"))
+    os.environ["MEDIMIND_TEST_ISOLATION_DIR"] = str(_ISO_DIR)
+    _OWNS_ISO_DIR = True
+
+_ISO_DB_DIR = _ISO_DIR / "instance"
+_ISO_UPLOADS_DIR = _ISO_DIR / "uploads"
+_ISO_LOGS_DIR = _ISO_DIR / "logs"
+_ISO_DB_DIR.mkdir(parents=True, exist_ok=True)
+_ISO_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+_ISO_LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+_ISO_DB_FILE = _ISO_DB_DIR / "test_medimind.db"
+os.environ["DATABASE_URL"] = f"sqlite:///{_ISO_DB_FILE.resolve().as_posix()}"
+os.environ["SECURITY_AUDIT_LOG_PATH"] = str(_ISO_LOGS_DIR / "security_audit.json")
+os.environ["UPLOAD_FOLDER"] = str(_ISO_UPLOADS_DIR)
 
 # ==============================================================================
 # CẤU HÌNH MÔI TRƯỜNG KIỂM THỬ TẤT ĐỊNH & ZERO-SECRETS
@@ -30,8 +51,19 @@ os.environ["GOOGLE_API_KEY"] = ""
 os.environ["GEMINI_NUTRITION_API_KEY"] = ""
 os.environ["AI_PROVIDER"] = ""
 os.environ["OPENROUTER_API_KEY"] = ""
+os.environ["OPENROUTER_CHAT_API_KEY"] = ""
+os.environ["OPENROUTER_NUTRITION_API_KEY"] = ""
 os.environ["TWILIO_ACCOUNT_SID"] = ""
 os.environ["SPEEDSMS_API_KEY"] = ""
+os.environ["SPEEDSMS_AUTH_TOKEN"] = ""
+os.environ["SPEEDSMS_SENDER"] = ""
+os.environ["SMTP_SERVER"] = ""
+os.environ["SMTP_USERNAME"] = ""
+os.environ["SMTP_PASSWORD"] = ""
+os.environ["GOOGLE_CLIENT_ID"] = ""
+os.environ["GOOGLE_CLIENT_SECRET"] = ""
+os.environ["GOOGLE_MAPS_API_KEY"] = ""
+os.environ["PINECONE_API_KEY"] = ""
 os.environ["RAG_QUERY_EXPANSION_ENABLED"] = "false"
 os.environ["RAG_VECTOR_SEARCH_ENABLED"] = "false"
 os.environ["RAG_RERANK_ENABLED"] = "false"
@@ -93,11 +125,14 @@ def network_call_guard(request):
 
 @pytest.fixture(autouse=True)
 def clean_intake_test_state():
-    """Tự động dọn dẹp các bản ghi intake kiểm thử để đảm bảo tính độc lập giữa các test."""
+    """Tự động dọn dẹp các bản ghi intake và bộ đếm rate limit giữa các test."""
     from core.intake_service import intake_service
+    from core.rate_limit_service import rate_limit_service
     intake_service._sessions.clear()
+    rate_limit_service.clear_all()
     yield
     intake_service._sessions.clear()
+    rate_limit_service.clear_all()
     try:
         from core.intake_service import intake_db_context
         with intake_db_context():
@@ -107,6 +142,25 @@ def clean_intake_test_state():
                 IntakeSessionRecord.conversation_id.like("conv_%")
             ).delete(synchronize_session=False)
             db.session.commit()
+    except Exception:
+        pass
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Giải phóng kết nối SQLite cô lập và xóa thư mục tạm khi phiên pytest kết thúc."""
+    if not _OWNS_ISO_DIR:
+        return
+    try:
+        import app as app_module
+        singleton = getattr(app_module, "app", None)
+        if singleton is not None:
+            with singleton.app_context():
+                db.session.remove()
+                db.engine.dispose()
+    except Exception:
+        pass
+    try:
+        shutil.rmtree(_ISO_DIR, ignore_errors=True)
     except Exception:
         pass
 

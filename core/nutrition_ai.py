@@ -4,8 +4,6 @@ import os
 import re
 from typing import Any, Dict, List
 
-from google import genai
-from google.genai import types
 from core.settings import settings
 
 
@@ -129,12 +127,8 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
     from core.llm_provider import llm_provider
-    if llm_provider.is_openrouter_active():
-        key = llm_provider.resolve_api_key(profile="nutrition")
-        model = llm_provider.get_default_model("nutrition")
-    else:
-        key = (os.getenv("GEMINI_NUTRITION_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
-        model = os.getenv("GEMINI_NUTRITION_MODEL", "gemini-flash-lite-latest").strip()
+    key = llm_provider.resolve_api_key(profile="nutrition")
+    model = llm_provider.get_default_model("nutrition")
     if not key:
         raise NutritionAIError("not_configured")
     if not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
@@ -182,12 +176,12 @@ Nếu tạo full_meal_set, chọn một món chính, một món canh và có th�
 Không tạo full_meal_set nếu thiếu món chính hoặc canh. Nếu không thể chọn món phù hợp, trả needs_clarification=true, recommendations=[] và một câu hỏi ngắn.
 Nếu chọn được, needs_clarification=false và clarification_question="". Nội dung trả về bằng tiếng Việt.
 """
-    from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
-    from core.retry_policy import RetryPolicy, execute_with_retry, ErrorClassification
+    from core.circuit_breaker import CircuitBreakerOpenError, get_circuit_breaker
+    from core.retry_policy import ErrorClassification
     from core.llm_provider import llm_provider, LLMProviderError
-    from unittest.mock import MagicMock
 
-    if not gemini_circuit_breaker.can_execute():
+    nutrition_breaker = get_circuit_breaker("nutrition")
+    if not nutrition_breaker.can_execute():
         raise NutritionAIError("unavailable")
 
     gen_timeout = float(os.getenv("GEMINI_GENERATION_TIMEOUT_SECONDS", str(settings.gemini.timeout_nutrition)))
@@ -212,59 +206,7 @@ Nếu chọn được, needs_clarification=false và clarification_question="". 
                              ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note", "calories", "sugar", "fat", "fiber", "protein")
                              if k in recipe} for recipe in recipes]}, ensure_ascii=False)
 
-    # Nếu môi trường kiểm thử trực tiếp mock genai.Client
-    if isinstance(genai.Client, MagicMock) or hasattr(genai.Client, "mock_calls"):
-        try:
-            timeout_ms = max(10000, int(gen_timeout * 1000))
-            client = genai.Client(api_key=key, http_options=types.HttpOptions(
-                timeout=timeout_ms, retry_options=types.HttpRetryOptions(attempts=1)))
-
-            config = types.GenerateContentConfig(system_instruction=instruction, temperature=0.2,
-                max_output_tokens=2600, response_mime_type="application/json", response_json_schema=schema)
-
-            def _do_generate():
-                return client.models.generate_content(
-                    model=model,
-                    contents=payload,
-                    config=config
-                )
-
-            policy = RetryPolicy(
-                max_attempts=int(os.getenv("AI_RETRY_MAX_ATTEMPTS", str(settings.retry.max_attempts))),
-                base_delay=float(os.getenv("AI_RETRY_BASE_DELAY_SECONDS", str(settings.retry.base_delay_seconds))),
-                max_delay=float(os.getenv("AI_RETRY_MAX_DELAY_SECONDS", str(settings.retry.max_delay_seconds))),
-                jitter=settings.retry.jitter
-            )
-
-            response = execute_with_retry(
-                _do_generate,
-                policy=policy,
-                circuit_breaker=gemini_circuit_breaker,
-                stage="nutrition_ai"
-            )
-            result = validate_selection(json.loads(response.text or ""), recipes, len(guidance))
-            result["model"] = model
-            return result
-        except NutritionAIError:
-            raise
-        except CircuitBreakerOpenError:
-            raise NutritionAIError("unavailable")
-        except Exception as error:
-            code = getattr(error, "code", None)
-            reason = "invalid_response" if isinstance(error, (ValueError, TypeError, AttributeError)) else "unavailable"
-            if code in (400, 401, 403):
-                reason = "credentials_or_access"
-            elif code == 429:
-                reason = "quota"
-            raise NutritionAIError(reason) from None
-        finally:
-            if client is not None:
-                try:
-                    client.close()
-                except Exception:
-                    pass
-
-    # Runtime chính thức chuyển qua Unified LLM Provider
+    # Thực thi qua Unified LLM Provider (OpenRouter)
     try:
         raw_result = llm_provider.generate_json(
             contents=payload,

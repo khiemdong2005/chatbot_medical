@@ -22,7 +22,6 @@ Mục đích:
 """
 
 import os
-import re
 import math
 import time
 import logging

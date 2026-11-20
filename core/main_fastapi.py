@@ -12,6 +12,7 @@ Mục đích:
 
 import os
 import sys
+import time
 import uuid
 import logging
 from pathlib import Path
@@ -31,13 +32,27 @@ load_dotenv()
 from pydantic import field_validator
 
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.concurrency import run_in_threadpool
-from starlette.middleware.wsgi import WSGIMiddleware
+# VULN-11: starlette.middleware.wsgi.WSGIMiddleware is deprecated in Starlette ≥ 0.21.
+# Preferred replacement: a2wsgi (https://github.com/abersheeran/a2wsgi).
+# If a2wsgi is not installed, fall back to the starlette implementation with a logged warning.
+try:
+    from a2wsgi import WSGIMiddleware  # preferred: pip install a2wsgi
+except ImportError:
+    import warnings as _warnings
+    _warnings.warn(
+        "VULN-11 [MediMind Security]: a2wsgi is not installed. Falling back to the deprecated "
+        "starlette.middleware.wsgi.WSGIMiddleware. Install a2wsgi to resolve this: pip install a2wsgi",
+        DeprecationWarning,
+        stacklevel=1,
+    )
+    from starlette.middleware.wsgi import WSGIMiddleware  # deprecated fallback
 from starlette.routing import Route
 
 from core.api_errors import fastapi_api_error, status_code_to_error_code, ErrorCode
@@ -46,9 +61,10 @@ from core.chat_service import process_clinical_chat, execute_chat_workflow
 from core.health_context import validate_chat_request
 from core.storage_service import decode_and_validate_base64_image
 from core.gemini_service import GeminiMedicalService
-from core.observability import metrics_collector
+from core.observability import metrics_collector, record_http_metrics
 from core.rag_service import medical_rag_service
 from core.circuit_breaker import gemini_circuit_breaker
+from core.rate_limit_service import rate_limit_service
 from core.security_patch import get_rate_limit_identity, check_chat_rate_limit
 from core.routers.deps import require_admin
 from core.settings import get_settings
@@ -103,7 +119,8 @@ app.add_middleware(
 
 @app.middleware("http")
 async def security_headers_middleware(request: Request, call_next):
-    """Bơm đồng nhất Security Headers cho các route native của FastAPI (Phase 8.3)."""
+    """Bơm đồng nhất Security Headers cho các route native của FastAPI (Phase 8.3) và ghi nhận HTTP RED metrics."""
+    start_time = time.time()
     response = await call_next(request)
     is_https = is_request_https(
         request.url.scheme == "https",
@@ -112,6 +129,15 @@ async def security_headers_middleware(request: Request, call_next):
     )
     for k, v in get_security_headers(is_https=is_https).items():
         response.headers[k] = v
+
+    path = request.url.path
+    is_wsgi_compat = (
+        path == "/metrics"
+        or path.startswith("/uploads/")
+        or any(path == f"/api/{p}" or path.startswith(f"/api/{p}/") for p in FLASK_COMPAT_PREFIXES)
+    )
+    if not is_wsgi_compat and not path.startswith("/static/"):
+        record_http_metrics(request.method, path, response.status_code, max(0.0, time.time() - start_time))
     return response
 
 
@@ -147,7 +173,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Normalize Pydantic request validation exceptions."""
-    errors = exc.errors()
+    errors = jsonable_encoder(exc.errors(), custom_encoder={Exception: str})
     first_msg = errors[0].get("msg", "Dữ liệu yêu cầu không hợp lệ.") if errors else "Dữ liệu yêu cầu không hợp lệ."
     return fastapi_api_error(ErrorCode.VALIDATION_ERROR, first_msg, status_code=400, details=errors)
 
@@ -241,7 +267,12 @@ class ChatMessageRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse, summary="Giao diện Web Trợ lý Sức khỏe MediMind")
 async def get_index(request: Request):
     """Phục vụ toàn bộ giao diện Web."""
-    return templates.TemplateResponse(request, "index.html", context={"request": request})
+    google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        context={"request": request, "google_maps_api_key": google_maps_api_key},
+    )
 
 
 def extract_request_identity(request: Request) -> tuple[Optional[int], Optional[str], bool]:
@@ -323,6 +354,8 @@ async def chat_endpoint(request: Request, req: ChatMessageRequest):
     )
     rate_id = get_rate_limit_identity(user_id=user_id, guest_token=guest_token, client_ip=client_ip)
     is_testing = os.getenv("TESTING", "").lower() in ("1", "true") or getattr(flask_app_instance, "testing", False)
+    if not rate_limit_service.check_chat_ip_rate_limit(client_ip, max_requests=60, window_seconds=60, enforce=not is_testing):
+        raise HTTPException(status_code=429, detail="Quá nhiều yêu cầu từ địa chỉ mạng của bạn. Vui lòng thử lại sau.")
     if not check_chat_rate_limit(rate_id, max_requests=25, window_seconds=60, enforce=not is_testing):
         raise HTTPException(status_code=429, detail="Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại.")
 
@@ -344,7 +377,14 @@ async def chat_endpoint(request: Request, req: ChatMessageRequest):
         )
         response = JSONResponse(content=result)
         if is_new_guest and guest_token:
-            response.set_cookie(key="guest_token", value=guest_token, httponly=True, samesite="lax")
+            cookie_secure = bool(settings.server.is_production or settings.security.session_cookie_secure)
+            response.set_cookie(
+                key="guest_token",
+                value=guest_token,
+                httponly=True,
+                samesite="lax",
+                secure=cookie_secure,
+            )
         return response
     except PermissionError as pe:
         raise HTTPException(status_code=403, detail=str(pe))
@@ -473,6 +513,10 @@ for prefix in FLASK_COMPAT_PREFIXES:
                                    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]))
     app.router.routes.append(Route(f"/api/{prefix}/{{rest:path}}", flask_gateway,
                                    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]))
+
+# Mount Flask handlers for uploaded document previews and Prometheus metrics (keeping Flask guards intact)
+app.router.routes.append(Route("/uploads/{rest:path}", flask_gateway, methods=["GET"]))
+app.router.routes.append(Route("/metrics", flask_gateway, methods=["GET"]))
 
 
 if __name__ == "__main__":

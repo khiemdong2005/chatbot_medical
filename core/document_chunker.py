@@ -54,13 +54,13 @@ def generate_deterministic_id(file_name: str, source_url: str = "", part_index: 
 
 
 def find_boundary_split_point(text: str, max_chars: int, min_chunk_chars: int = 200) -> int:
-    """
+    r"""
     Tìm điểm cắt tối ưu trong chuỗi `text` không vượt quá `max_chars`,
     tuân thủ nghiêm ngặt thứ tự ưu tiên ranh giới ngữ nghĩa:
       1. Ranh giới đoạn văn (\n\s*\n)
       2. Ranh giới dòng mới (\n)
-      3. Ranh giới kết thúc câu ([.!?]\\s+)
-      4. Ranh giới từ trắng (\\s+)
+      3. Ranh giới kết thúc câu ([.!?]\s+)
+      4. Ranh giới từ trắng (\s+)
       5. Fallback max_chars nếu văn bản không chứa khoảng trắng (chuỗi liền).
     """
     if len(text) <= max_chars:

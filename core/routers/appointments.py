@@ -3,8 +3,7 @@ core/routers/appointments.py
 FastAPI native router cho hệ thống Đặt lịch hẹn khám cơ sở y tế (Medical Appointments).
 Bảo vệ bằng session authentication và kiểm tra tính toàn vẹn giao dịch.
 """
-from typing import Any, Dict
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from core.routers.deps import require_authenticated_user
 from core.appointment_service import (

@@ -163,6 +163,8 @@ class TestConfigMapsMigration:
     """Kiểm thử cấu hình maps trên FastAPI native router."""
 
     def test_get_maps_config(self, api_client):
+        # VULN-01 Remediation: Flask orphan endpoint removed.
+        # FastAPI endpoint at /api/config/maps still exists (native handler).
         res = api_client.get("/api/config/maps")
         assert res.status_code == 200
         data = res.json()
@@ -435,15 +437,23 @@ class TestSemanticParityFlaskVsFastAPI:
         assert set(data_fa["loai_hinh"].keys()) == set(data_fl["loai_hinh"].keys())
 
     def test_config_maps_parity(self, api_client, flask_client):
+        # VULN-01 Remediation (Security Audit): Flask orphan endpoint /api/config/maps
+        # was removed to eliminate unauthenticated API key exposure vector.
+        # FastAPI native handler still returns 200; Flask returns 404 (removed).
+        # This is the expected post-remediation behavior — not a regression.
         res_fastapi = api_client.get("/api/config/maps")
         res_flask = flask_client.get("/api/config/maps")
 
-        assert res_fastapi.status_code == res_flask.status_code == 200
+        # FastAPI: native endpoint still serves config (200)
+        assert res_fastapi.status_code == 200
         data_fa = res_fastapi.json()
-        data_fl = res_flask.get_json()
+        assert "has_key" in data_fa
+        assert "key" in data_fa
 
-        assert data_fa["has_key"] == data_fl["has_key"]
-        assert data_fa["key"] == data_fl["key"]
+        # Flask: orphan endpoint removed by VULN-01 fix → must be 404
+        assert res_flask.status_code == 404, (
+            "SECURITY: Flask /api/config/maps must return 404 after VULN-01 remediation!"
+        )
 
     def test_unauthenticated_endpoints_both_return_401(self, api_client, flask_client):
         endpoints = [

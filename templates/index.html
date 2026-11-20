@@ -1213,14 +1213,14 @@
               <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Khu vực địa
                 lý</span>
               <div class="grid grid-cols-3 gap-1.5" id="facilityRegionButtons">
-                <button aria-pressed="true"
-                  class="py-1.5 px-2 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-medium text-center">TP.
+                <button type="button" aria-pressed="true" onclick="selectFacilityRegionTab('hcm', this)"
+                  class="py-1.5 px-2 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-medium text-center cursor-pointer">TP.
                   HCM</button>
-                <button
-                  class="py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition">Hà
+                <button type="button" aria-pressed="false" onclick="selectFacilityRegionTab('hn', this)"
+                  class="py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition cursor-pointer">Hà
                   Nội</button>
-                <button
-                  class="py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition">Đà
+                <button type="button" aria-pressed="false" onclick="selectFacilityRegionTab('dn', this)"
+                  class="py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition cursor-pointer">Đà
                   Nẵng</button>
               </div>
             </div>
@@ -2594,7 +2594,8 @@
 
               <div class="relative flex items-center">
 
-                <input type="password" id="set-new-pass" aria-label="Mật khẩu mới" placeholder="Nhập mật khẩu mới"
+                <input type="password" id="set-new-pass" minlength="8" aria-label="Mật khẩu mới"
+                  aria-describedby="settings-password-rule" placeholder="Nhập mật khẩu mới"
                   data-i18n-placeholder="set_ph_new_pass"
                   class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
 
@@ -2617,6 +2618,11 @@
 
               </div>
 
+              <p id="settings-password-rule" class="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                <span id="settings-password-rule-icon" aria-hidden="true">•</span>
+                <span data-i18n="pwd_rule_min8">Tối thiểu 8 ký tự (không tính khoảng trắng đầu/cuối)</span>
+              </p>
+
             </div>
 
 
@@ -2630,8 +2636,9 @@
 
               <div class="relative flex items-center">
 
-                <input type="password" id="set-confirm-pass" aria-label="Xác nhận mật khẩu mới"
-                  placeholder="Xác nhận mật khẩu mới" data-i18n-placeholder="set_ph_confirm_pass"
+                <input type="password" id="set-confirm-pass" minlength="8" aria-label="Xác nhận mật khẩu mới"
+                  aria-describedby="settings-confirm-rule" placeholder="Xác nhận mật khẩu mới"
+                  data-i18n-placeholder="set_ph_confirm_pass"
                   class="w-full bg-[#101827] border border-slate-300 dark:border-white/10 rounded-xl pl-3.5 pr-9 py-2 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
 
                 <button type="button" onclick="togglePasswordVisibility('set-confirm-pass')"
@@ -2652,6 +2659,11 @@
                 </button>
 
               </div>
+
+              <p id="settings-confirm-rule" class="hidden mt-1.5 flex items-center gap-1.5 text-[11px] font-medium">
+                <span id="settings-confirm-rule-icon" aria-hidden="true">•</span>
+                <span id="settings-confirm-rule-text"></span>
+              </p>
 
             </div>
 
@@ -3030,9 +3042,9 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </span>
-                <input type="password" id="register-password" required minlength="6" autocomplete="new-password"
-                  data-i18n-placeholder="ph_password" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
-                  class="auth-4e-input w-full pl-12 pr-12">
+                <input type="password" id="register-password" required minlength="8" autocomplete="new-password"
+                  aria-describedby="register-password-rule" data-i18n-placeholder="ph_register_password"
+                  placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)" class="auth-4e-input w-full pl-12 pr-12">
                 <button type="button" onclick="toggleAuthPasswordVisibility('register-password', this)"
                   aria-label="Hiện/ẩn mật khẩu"
                   class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
@@ -3043,6 +3055,10 @@
                   </svg>
                 </button>
               </div>
+              <p id="register-password-rule" class="flex items-center gap-1.5 text-xs font-medium text-[#61667a] pl-1 pt-0.5">
+                <span id="register-password-rule-icon" aria-hidden="true">•</span>
+                <span data-i18n="pwd_rule_min8">Tối thiểu 8 ký tự (không tính khoảng trắng đầu/cuối)</span>
+              </p>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -3055,9 +3071,9 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </span>
-                <input type="password" id="register-confirm-password" required minlength="6" autocomplete="new-password"
-                  data-i18n-placeholder="ph_confirm_password" placeholder="Nhập lại mật khẩu"
-                  class="auth-4e-input w-full pl-12 pr-12">
+                <input type="password" id="register-confirm-password" required minlength="8" autocomplete="new-password"
+                  aria-describedby="register-confirm-rule" data-i18n-placeholder="ph_confirm_password"
+                  placeholder="Nhập lại mật khẩu" class="auth-4e-input w-full pl-12 pr-12">
                 <button type="button" onclick="toggleAuthPasswordVisibility('register-confirm-password', this)"
                   aria-label="Hiện/ẩn mật khẩu"
                   class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
@@ -3068,14 +3084,20 @@
                   </svg>
                 </button>
               </div>
+              <p id="register-confirm-rule" class="hidden flex items-center gap-1.5 text-xs font-medium pl-1 pt-0.5">
+                <span id="register-confirm-rule-icon" aria-hidden="true">•</span>
+                <span id="register-confirm-rule-text"></span>
+              </p>
             </div>
 
             <button type="submit" data-i18n="btn_register_submit"
               class="btn-primary auth-4e-cta-btn w-full mt-2 cursor-pointer">Đăng ký</button>
 
-            <p data-i18n="auth_register_terms"
-              class="text-center text-xs font-medium text-[#61667a] leading-relaxed px-1 pt-0.5">
-              Bằng việc đăng ký, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật y tế của MediMind.
+            <p class="text-center text-xs font-medium text-[#61667a] leading-relaxed px-1 pt-0.5">
+              <button type="button" onclick="openDisclaimerModal()" data-i18n="auth_register_terms"
+                class="hover:text-[#282b35] underline underline-offset-2 transition-colors cursor-pointer">
+                Bằng việc đăng ký, bạn đồng ý với Điều khoản &amp; Bảo mật Y tế của MediMind.
+              </button>
             </p>
 
             <p class="text-center text-sm font-medium text-[#61667a]">
@@ -3098,7 +3120,7 @@
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                   </svg>
                 </span>
-                <input type="text" id="forgot-identifier" required
+                <input type="text" id="forgot-identifier" required data-i18n-placeholder="ph_forgot_identifier"
                   placeholder="Nhập email hoặc số điện thoại đã đăng ký" class="auth-4e-input w-full pl-12 pr-4">
               </div>
             </div>
@@ -3112,8 +3134,10 @@
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </span>
-                <input type="password" id="forgot-new-password" required minlength="6"
-                  placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" class="auth-4e-input w-full pl-12 pr-12">
+                <input type="password" id="forgot-new-password" required minlength="8" autocomplete="new-password"
+                  aria-describedby="forgot-password-rule" data-i18n-placeholder="ph_forgot_new_password"
+                  placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)"
+                  class="auth-4e-input w-full pl-12 pr-12">
                 <button type="button" onclick="toggleAuthPasswordVisibility('forgot-new-password', this)"
                   aria-label="Hiện/ẩn mật khẩu"
                   class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
@@ -3124,6 +3148,39 @@
                   </svg>
                 </button>
               </div>
+              <p id="forgot-password-rule" class="flex items-center gap-1.5 text-xs font-medium text-[#61667a] pl-1 pt-0.5">
+                <span id="forgot-password-rule-icon" aria-hidden="true">•</span>
+                <span data-i18n="pwd_rule_min8">Tối thiểu 8 ký tự (không tính khoảng trắng đầu/cuối)</span>
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label for="forgot-confirm-password" data-i18n="lbl_confirm_new_password" class="auth-4e-label">Xác nhận
+                mật khẩu mới</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e91a0] pointer-events-none">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input type="password" id="forgot-confirm-password" required minlength="8" autocomplete="new-password"
+                  aria-describedby="forgot-confirm-rule" data-i18n-placeholder="ph_confirm_new_password"
+                  placeholder="Nhập lại mật khẩu mới" class="auth-4e-input w-full pl-12 pr-12">
+                <button type="button" onclick="toggleAuthPasswordVisibility('forgot-confirm-password', this)"
+                  aria-label="Hiện/ẩn mật khẩu"
+                  class="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-[#61667a] hover:text-[#282b35] transition-colors cursor-pointer">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path
+                      d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+              <p id="forgot-confirm-rule" class="hidden flex items-center gap-1.5 text-xs font-medium pl-1 pt-0.5">
+                <span id="forgot-confirm-rule-icon" aria-hidden="true">•</span>
+                <span id="forgot-confirm-rule-text"></span>
+              </p>
             </div>
 
             <button type="submit" data-i18n="btn_forgot_submit"
@@ -3191,17 +3248,11 @@
         </div>
       </div>
 
-      <!-- Bottom Legal Policy Bar (Matching 4exam.net footer layout) -->
+      <!-- Bottom Legal Policy Bar (Consolidated single policy trigger) -->
       <div
         class="w-full max-w-[368px] mx-auto lg:max-w-none pt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs font-medium text-[#61667a] shrink-0">
-        <div class="flex flex-wrap items-center gap-5">
-          <button type="button" onclick="openDisclaimerModal()"
-            class="hover:text-[#282b35] transition-colors cursor-pointer">Chính sách cookie</button>
-          <button type="button" onclick="openDisclaimerModal()"
-            class="hover:text-[#282b35] transition-colors cursor-pointer">Điều khoản sử dụng</button>
-          <button type="button" onclick="openDisclaimerModal()"
-            class="hover:text-[#282b35] transition-colors cursor-pointer">Chính sách bảo mật</button>
-        </div>
+        <button type="button" onclick="openDisclaimerModal()"
+          class="hover:text-[#282b35] underline underline-offset-2 transition-colors cursor-pointer">Điều khoản &amp; Bảo mật Y tế</button>
         <span class="hidden sm:inline text-[#9ca1b4]">© MediMind AI</span>
       </div>
 
@@ -3248,10 +3299,9 @@
 
         <div>
 
-          <h3 id="disclaimer-modal-title" class="text-base sm:text-lg font-bold text-white">Tuyên bố Miễn trừ Trách
-            nhiệm Y tế</h3>
+          <h3 id="disclaimer-modal-title" class="text-base sm:text-lg font-bold text-white">Điều khoản, Bảo mật &amp; Miễn trừ Y tế</h3>
 
-          <p class="text-xs text-slate-400 font-medium">Mục đích Giáo dục &amp; Nghiên cứu Thử nghiệm</p>
+          <p class="text-xs text-slate-400 font-medium">Quy định sử dụng, Cookie phiên &amp; An toàn lâm sàng</p>
 
         </div>
 
@@ -3281,9 +3331,17 @@
 
         </div>
 
+        <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-400/25 text-sky-100 space-y-1">
+
+          <span class="font-bold text-sky-300 block">3. Bảo mật Dữ liệu &amp; Cookie Phiên Đăng nhập:</span>
+
+          <span>MediMind chỉ sử dụng cookie phiên thiết yếu (HttpOnly) để duy trì đăng nhập, không dùng cookie quảng cáo. Mật khẩu và mã OTP được bảo vệ bằng hàm băm an toàn; dữ liệu hồ sơ y tế chỉ phục vụ tài khoản của bạn.</span>
+
+        </div>
+
         <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/25 text-rose-200 space-y-1">
 
-          <span class="font-bold text-rose-300 block">3. Giới hạn đối với Tình huống Khẩn cấp:</span>
+          <span class="font-bold text-rose-300 block">4. Giới hạn đối với Tình huống Khẩn cấp:</span>
 
           <span>Hệ thống không thể xử lý các ca cấp cứu đe dọa tính mạng (đau ngực cấp, đột quỵ, khó thở dữ dội, sốc
             phản vệ...). Khi gặp dấu hiệu nguy cấp, vui lòng liên hệ ngay <strong>115</strong> hoặc đến khoa cấp cứu
@@ -4075,12 +4133,12 @@
           Bình Thạnh, TP.HCM</p>
       </div>
 
-      <!-- Cảnh báo minh bạch tính năng Lưu lịch nhắc -->
+      <!-- Thông báo minh bạch tính năng Lưu lịch hẹn -->
       <div
         class="p-3 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-900 dark:text-sky-200 text-xs flex items-start space-x-2.5">
         <span class="text-base leading-none">⏰</span>
-        <p class="leading-relaxed"><strong>Lưu lịch nhắc cá nhân:</strong> Thông tin sẽ được lưu trực tiếp trên thiết bị
-          của bạn để nhắc ngày giờ đi khám. Để hoàn tất đăng ký khám chính thức, vui lòng liên hệ tổng đài bệnh viện.
+        <p class="leading-relaxed"><strong>Lưu lịch hẹn cá nhân:</strong> Thông tin được lưu trong hồ sơ tài khoản MediMind
+          của bạn để tự theo dõi (mô phỏng; chưa kết nối trực tiếp hệ thống bệnh viện — vui lòng gọi tổng đài cơ sở để xác nhận tiếp nhận khám).
         </p>
       </div>
 
@@ -4438,18 +4496,21 @@
       limit: 12,
       total: 0,
       totalPages: 1,
+      region: 'hcm',
       search: '',
       loai_hinh: 'all',
       chuyen_khoa: 'all',
       quan_huyen: 'all',
       facilities: []
     };
+    window.currentFacilityState = currentFacilityState;
 
     // Bản đồ & Markers
     let gMap = null;
     let leafletMap = null;
     let leafletMarkerCluster = null;
     let mapMarkersData = [];
+    window.mapMarkersData = mapMarkersData;
     let leafletMarkersById = {};
     let gMarkersById = {};
     let activeFacilityId = null;
@@ -4880,6 +4941,8 @@
         currentFacilityState.total = data.total;
         currentFacilityState.totalPages = data.total_pages;
         currentFacilityState.facilities = data.data || [];
+        window.currentFacilityState = currentFacilityState;
+        window.mapMarkersData = mapMarkersData;
 
         renderFacilityCards(currentFacilityState.facilities);
         renderPagination();
@@ -5522,6 +5585,40 @@
       );
     }
 
+    function selectFacilityRegionTab(region, btn) {
+      currentFacilityState.region = region || 'hcm';
+      const container = document.getElementById('facilityRegionButtons');
+      if (container) {
+        container.querySelectorAll('button').forEach(b => {
+          b.setAttribute('aria-pressed', 'false');
+          b.className = 'py-1.5 px-2 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium text-center transition cursor-pointer';
+        });
+      }
+      if (btn) {
+        btn.setAttribute('aria-pressed', 'true');
+        btn.className = 'py-1.5 px-2 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-medium text-center cursor-pointer';
+      }
+      if (region !== 'hcm') {
+        const regionLabel = region === 'hn' ? 'Hà Nội' : 'Đà Nẵng';
+        currentFacilityState.total = 0;
+        currentFacilityState.totalPages = 1;
+        currentFacilityState.facilities = [];
+        updateHeaderCounters();
+        renderPagination();
+        const grid = document.getElementById('hospitalCardsGrid');
+        if (grid) {
+          grid.innerHTML = `
+            <div class="col-span-full py-12 px-4 text-center text-slate-400 space-y-2">
+              <p class="text-sm font-semibold text-slate-200">Dữ liệu khu vực ${regionLabel} đang được cập nhật</p>
+              <p class="text-xs leading-relaxed">Hiện danh mục cơ sở khám chữa bệnh trên MediMind mới tích hợp đầy đủ cho TP. Hồ Chí Minh. Chọn lại TP. HCM để tra cứu và đặt lịch.</p>
+            </div>
+          `;
+        }
+        return;
+      }
+      fetchFacilities(1);
+    }
+
     function openBookingNotice() {
       if (!currentDrawerFacility) return;
       closeHospitalDetails();
@@ -5795,7 +5892,7 @@
     </div>
   </div>
   <div id="medical-toast-container" role="status" aria-live="polite"
-    class="fixed top-5 right-5 sm:right-8 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
+    class="fixed top-5 right-5 sm:right-8 z-[120] flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
 </body>
 
 </html>

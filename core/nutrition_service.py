@@ -4,8 +4,6 @@ Dịch vụ Phân tích Dinh dưỡng Lâm sàng & Pha chế Bữa ăn Trị li�
 Hỗ trợ cả cơ sở dữ liệu mẫu chuẩn y khoa và AI Sinh động lực (Gemini).
 """
 
-import os
-import json
 import logging
 import re
 from typing import Dict, Any, Optional

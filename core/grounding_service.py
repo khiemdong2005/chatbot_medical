@@ -185,11 +185,13 @@ def parse_frequency_to_schedule(frequency_str: str, usage_str: str = "") -> Dict
         "external": {"time": "Khi cần", "active": False, "note": ""},
     }
 
-    # Bóc tách trước ăn / sau ăn / cách dùng đặc biệt
+    # Bóc tách trước ăn / sau ăn / cách dùng đặc biệt (không tự gán "Sau khi ăn" nếu đơn không ghi)
     is_topical = any(k in comb for k in ("boi", "thoa", "xoa", "dung ngoai", "ngoai da", "apply", "topical"))
-    timing_note = "Sau khi ăn 30 phút"
+    timing_note = "Theo chỉ dẫn trên đơn gốc"
     if "truoc an" in comb or "before meal" in comb:
         timing_note = "Trước khi ăn 30 phút"
+    elif "sau an" in comb or "after meal" in comb or "sau khi an" in comb:
+        timing_note = "Sau khi ăn 30 phút"
     elif "ngam" in comb or "sublingual" in comb:
         timing_note = "Ngậm dưới lưỡi"
     elif "suc hong" in comb or "gargle" in comb:
@@ -231,12 +233,15 @@ def parse_frequency_to_schedule(frequency_str: str, usage_str: str = "") -> Dict
         for slot in ("morning", "evening"):
             schedule[slot]["active"] = True
             schedule[slot]["note"] = timing_note
+    elif any(k in comb for k in ("1 lan", "1 time", "once daily", "qd", "cach 24h")):
+        schedule["morning"]["active"] = True
+        schedule["morning"]["note"] = timing_note
     elif is_topical:
         schedule["external"]["active"] = True
         schedule["external"]["note"] = usage_str.strip() or "Dùng ngoài da khi cần"
     else:
-        schedule["morning"]["active"] = True
-        schedule["morning"]["note"] = timing_note
+        # Không tự gán giờ uống mặc định 07:00 khi tần suất/hướng dẫn chưa đọc được
+        schedule["schedule_unverified"] = True
 
     return schedule
 

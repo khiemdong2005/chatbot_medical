@@ -53,7 +53,9 @@ Trả về kết quả dưới dạng Markdown có cấu trúc (gồm các tiêu
         }
 
     try:
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+        preferred_model = llm_provider.get_default_model("interpretation")
+        fallback_chat = llm_provider.get_default_model("chat")
+        candidate_models = list(dict.fromkeys([m for m in (preferred_model, fallback_chat, "openrouter/free") if m]))
         res_text = llm_provider.generate_text(
             prompt=prompt,
             candidate_models=candidate_models,

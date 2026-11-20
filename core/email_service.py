@@ -5,10 +5,13 @@
 
 import os
 import html
+import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional, Dict, Any
+from typing import Optional
+
+logger = logging.getLogger("EmailService")
 
 
 class EmailService:
@@ -28,14 +31,17 @@ class EmailService:
         return bool(self.server and self.username and self.password)
 
     def send_email(self, to_email: str, subject: str, html_body: str, text_body: Optional[str] = None) -> bool:
-        """Gửi thư điện tử qua giao thức SMTP. Nếu chưa cấu hình, in ra terminal để test."""
+        """Gửi thư điện tử qua giao thức SMTP. Trả về False nếu chưa cấu hình hoặc gửi thất bại."""
+        allow_sim = (
+            os.getenv("ALLOW_DEV_OTP_SIMULATOR", "").lower() in ("1", "true", "yes")
+            or os.getenv("TESTING", "").lower() in ("1", "true", "yes")
+        )
         if not self.is_configured():
-            print("\n" + "=" * 70)
-            print(f"📧 [DEV EMAIL SIMULATOR] Gửi tới: {to_email}")
-            print(f"📌 Tiêu đề: {subject}")
-            print(f"📝 Nội dung:\n{text_body or html_body}")
-            print("=" * 70 + "\n")
-            return True
+            if allow_sim:
+                logger.info("[Email Service] Test/simulator mode active; email delivery simulated without printing secrets.")
+                return True
+            logger.warning("[Email Service] SMTP chưa được cấu hình (CONFIGURATION REQUIRED).")
+            return False
 
         try:
             msg = MIMEMultipart("alternative")
@@ -55,27 +61,22 @@ class EmailService:
                 s.login(self.username, self.password)
                 s.sendmail(self.sender_email, [to_email], msg.as_string())
 
-            print(f"✅ [Email Service] Đã gửi thư thành công tới: {to_email}")
+            logger.info("[Email Service] Đã gửi thư thành công tới %s.", to_email)
             return True
         except Exception as e:
-            print(f"❌ [Email Service] Gửi thư qua Gmail thất bại: {e}")
-            print(f"👉 Lý do: Máy chủ Google (smtp.gmail.com) từ chối xác thực tài khoản '{self.username}' với mật khẩu ứng dụng hiện tại.")
-            # Dự phòng Dev Simulator: In mã ra console để không làm nghẽn quy trình thử nghiệm
-            print("\n" + "=" * 70)
-            print(f"📧 [FALLBACK DEV EMAIL SIMULATOR] Gửi tới: {to_email}")
-            print(f"📌 Tiêu đề: {subject}")
-            print(f"📝 Nội dung:\n{text_body or html_body}")
-            print("=" * 70 + "\n")
-            if os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1") or os.getenv("ENV") == "development":
-                print("⚠️ [Email Service] Đang ở chế độ Development -> Cho phép vượt qua kiểm tra và dùng mã trên Terminal để tiếp tục.")
-                return True
+            logger.error("[Email Service] Gửi thư qua SMTP thất bại (%s).", type(e).__name__)
             return False
 
     def send_verification_otp(self, to_email: str, otp_code: str, full_name: Optional[str] = None, purpose: str = "register") -> bool:
         """Gửi mã OTP 6 số xác thực 2 lớp / Đăng ký qua Email với giao diện y tế cao cấp."""
         raw_name = full_name or "Quý bệnh nhân"
         name = html.escape(str(raw_name), quote=True)
-        purpose_title = "Xác thực tài khoản mới" if purpose == "register" else ("Đăng nhập thiết bị mới (2FA)" if purpose == "login_2fa" else "Xác nhận danh tính y tế")
+        purpose_titles = {
+            "register": "Xác thực tài khoản mới",
+            "login_2fa": "Đăng nhập thiết bị mới (2FA)",
+            "reset_pwd": "Đặt lại mật khẩu tài khoản",
+        }
+        purpose_title = purpose_titles.get(purpose, "Xác nhận danh tính y tế")
         subject = f"[{otp_code}] Mã xác thực {purpose_title} - MediMind Clinical AI"
 
         formatted_otp = " ".join(list(otp_code))

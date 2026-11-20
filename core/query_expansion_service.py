@@ -15,18 +15,16 @@ Mục đích:
 import os
 import re
 import time
-import json
-import uuid
 import hashlib
 import logging
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Optional
 
 from dotenv import load_dotenv
 from core.retry_policy import (
-    RetryPolicy, execute_with_retry, classify_exception, ErrorClassification
+    classify_exception
 )
 from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
 from core.observability import metrics_collector
@@ -43,7 +41,16 @@ DEFAULT_EXPANSION_PROVIDER = os.getenv("RAG_QUERY_EXPANSION_PROVIDER", settings.
 DEFAULT_EXPANSION_TIMEOUT = float(
     os.getenv("QUERY_EXPANSION_TIMEOUT_SECONDS") or os.getenv("RAG_QUERY_EXPANSION_TIMEOUT_SECONDS") or str(settings.rag.query_expansion_timeout_seconds)
 )
-DEFAULT_EXPANSION_MODEL = os.getenv("RAG_QUERY_EXPANSION_MODEL", settings.gemini.expansion_model)
+_EXPANSION_MODEL_RAW = (
+    os.getenv("RAG_QUERY_EXPANSION_MODEL")
+    or os.getenv("OPENROUTER_EXPANSION_MODEL")
+    or settings.gemini.expansion_model
+).strip()
+DEFAULT_EXPANSION_MODEL = (
+    "openrouter/free"
+    if _EXPANSION_MODEL_RAW.startswith("gemini-") and not os.getenv("RAG_QUERY_EXPANSION_MODEL")
+    else _EXPANSION_MODEL_RAW
+)
 
 
 @dataclass
@@ -77,7 +84,7 @@ class GeminiQueryExpansionProvider(QueryExpansionProvider):
         from core.llm_provider import llm_provider
         self.llm_provider = llm_provider
         self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="query_expansion")).strip()
-        self.model = model or DEFAULT_EXPANSION_MODEL
+        self.model = model or os.getenv("RAG_QUERY_EXPANSION_MODEL") or self.llm_provider.get_default_model("expansion") or DEFAULT_EXPANSION_MODEL
         self._client = None
 
     @property
@@ -117,7 +124,6 @@ class GeminiQueryExpansionProvider(QueryExpansionProvider):
         prompt = f"Medical query: {query.strip()[:1000]}"
 
         try:
-            from core.llm_provider import LLMProviderError
             response_text = self.llm_provider.generate_text(
                 prompt=prompt,
                 model=self.model,

@@ -14,7 +14,7 @@ except ImportError:
         def __init__(self, status_code=500, detail=""):
             self.status_code = status_code
             self.detail = detail
-from core.db_utils import get_flask_app
+from core.db_utils import get_flask_app, app_db_context
 
 logger = logging.getLogger("RouterDeps")
 
@@ -63,8 +63,9 @@ def extract_request_identity(request: Request) -> Tuple[Optional[int], Optional[
 
 def require_authenticated_user(request: Request) -> int:
     """
-    FastAPI dependency: Bắt buộc phiên người dùng đã xác thực.
+    FastAPI dependency: Bắt buộc phiên người dùng đã xác thực và đang hoạt động.
     Nếu không có phiên hoặc phiên hết hạn -> ném canonical 401.
+    Nếu tài khoản đã bị tạm khóa -> ném 403.
     """
     user_id, _, _ = extract_request_identity(request)
     if not user_id:
@@ -72,6 +73,19 @@ def require_authenticated_user(request: Request) -> int:
             status_code=401,
             detail="Vui lòng đăng nhập để thực hiện chức năng này."
         )
+    try:
+        from core.models import db, User
+        with app_db_context():
+            user = db.session.get(User, user_id)
+            if user is not None and getattr(user, "account_status", "active") != "active":
+                raise HTTPException(
+                    status_code=403,
+                    detail="Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ quản trị viên."
+                )
+    except HTTPException:
+        raise
+    except Exception:
+        pass
     return user_id
 
 

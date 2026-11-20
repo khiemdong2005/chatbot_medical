@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 if hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -31,7 +31,7 @@ load_dotenv()
 from core.settings import settings
 
 # Nạp cơ sở dữ liệu và các mô hình
-from core.models import db, User, MedicalDocument, ClinicalConsultation, MedicalAppointment, init_db
+from core.models import db, User, MedicalDocument, ClinicalConsultation, init_db
 from core.db_utils import commit_or_rollback
 from core.otp_service import otp_manager
 from core.storage_service import (
@@ -90,6 +90,19 @@ def valid_birth_date(value, formats=("%d/%m/%Y",)):
     return False
 
 
+def _phone_lookup_variants(raw_phone: str):
+    digits = "".join(filter(str.isdigit, raw_phone or ""))
+    if not digits:
+        return []
+    variants = [raw_phone.strip(), digits]
+    if digits.startswith("84") and len(digits) in (11, 12):
+        variants.append("0" + digits[2:])
+    elif digits.startswith("0") and len(digits) in (10, 11):
+        variants.append("84" + digits[1:])
+    # Giữ thứ tự và loại trùng lặp
+    return list(dict.fromkeys(v for v in variants if v))
+
+
 def find_login_user(identifier):
     if "@" in identifier:
         # Prefer the exact spelling for legacy accounts that differ only by case.
@@ -98,12 +111,12 @@ def find_login_user(identifier):
             return exact
         matches = User.query.filter(db.func.lower(User.email) == identifier.lower()).limit(2).all()
         return matches[0] if len(matches) == 1 else None
-    phone = "".join(filter(str.isdigit, identifier))
-    if not phone:
+    phone_variants = _phone_lookup_variants(identifier)
+    if not phone_variants:
         return None
+    pseudo_emails = [f"{v}@phone.medimind" for v in phone_variants]
     return User.query.filter(
-        (User.phone_number == identifier) | (User.phone_number == phone) |
-        (User.email == f"{phone}@phone.medimind")
+        User.phone_number.in_(phone_variants) | User.email.in_(pseudo_emails)
     ).first()
 
 
@@ -118,8 +131,14 @@ def create_app(test_config=None):
 
     is_testing = bool(test_config and test_config.get("TESTING"))
     app.secret_key = settings.get_effective_secret_key(testing=is_testing)
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL") or settings.paths.database_url
+    db_uri = os.getenv("DATABASE_URL") or settings.paths.database_url
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    if not str(db_uri).startswith("sqlite"):
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "pool_pre_ping": True,
+            "pool_recycle": 300,
+        }
     app.config["JSON_AS_ASCII"] = False
     # Refresh edited templates locally even when the debugger is disabled.
     app.config["TEMPLATES_AUTO_RELOAD"] = not settings.server.is_production
@@ -183,8 +202,11 @@ def create_app(test_config=None):
             status_code=500
         )
 
-    # Thư mục lưu trữ tệp tin mặc định
-    default_upload_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+    # Thư mục lưu trữ tệp tin mặc định (cho phép ghi đè qua UPLOAD_FOLDER cho môi trường test/deploy)
+    default_upload_folder = (
+        os.getenv("UPLOAD_FOLDER")
+        or os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+    )
     app.config["UPLOAD_FOLDER"] = default_upload_folder
 
     # Ghi đè cấu hình kiểm thử nếu có TRƯỚC KHI init_db
@@ -193,6 +215,43 @@ def create_app(test_config=None):
     elif settings.server.is_production:
         app.config["DEBUG"] = False
         app.debug = False
+
+    # VULN-06 FIX: Warn when SESSION_COOKIE_SECURE=False in a non-development environment.
+    # Placed AFTER test_config update so test overrides are respected.
+    # This guard does NOT block startup or change .env — warning only.
+    _flask_env = (os.getenv("FLASK_ENV") or os.getenv("ENV") or "").lower().strip()
+    _is_dev_env = _flask_env in ("development", "dev", "") or settings.server.testing
+    _session_secure = app.config.get("SESSION_COOKIE_SECURE", False)
+    if not _is_dev_env and not _session_secure and not is_testing:
+        logger.warning(
+            "CẢNH BÁO BẢO MẬT [VULN-06]: SESSION_COOKIE_SECURE=False trong môi trường non-development! "
+            "Session cookie sẽ được gửi qua kết nối HTTP không mã hóa, dễ bị đánh cắp. "
+            "Vui lòng thiết lập SESSION_COOKIE_SECURE=true trong file .env khi triển khai với HTTPS. "
+            f"[FLASK_ENV={_flask_env or 'unset'}, is_production={settings.server.is_production}]"
+        )
+
+    # VULN-12 FIX: Startup warning — OPENROUTER_API_KEY rotation reminder.
+    # This is a documentation-only warning (no key rotation performed here).
+    # Rotate OPENROUTER_API_KEY, OPENROUTER_CHAT_API_KEY, and OPENROUTER_NUTRITION_API_KEY
+    # periodically in the .env file and restart the application.
+    _openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+    _is_placeholder_key = (
+        not _openrouter_key
+        or _openrouter_key.startswith("YOUR_")
+        or _openrouter_key in ("your_openrouter_api_key_here",)
+        or len(_openrouter_key) < 10
+    )
+    if not is_testing:
+        if _is_placeholder_key:
+            logger.warning(
+                "CẢNH BÁO BẢO MẬT [VULN-12]: OPENROUTER_API_KEY chưa được cấu hình hoặc "
+                "đang dùng giá trị placeholder. Vui lòng cấu hình API key hợp lệ trong .env."
+            )
+        else:
+            logger.info(
+                "BẢO MẬT [VULN-12]: OPENROUTER_API_KEY đã được cấu hình. "
+                "Nhắc nhở: Rotate API key định kỳ (khuyến nghị mỗi 90 ngày) và cập nhật .env."
+            )
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
@@ -214,6 +273,10 @@ def create_app(test_config=None):
     # ==============================================================
     # HỆ THỐNG XÁC THỰC DANH TÍNH & PHÂN QUYỀN (RBAC)
     # ==============================================================
+
+    # SECURITY (VULN-02): Generic error response — không tiết lộ tình trạng tồn tại tài khoản.
+    # Dùng chung cho mọi trường hợp đăng nhập thất bại (user not found / wrong password / role mismatch).
+    _LOGIN_FAILURE_RESPONSE = {"success": False, "error": "Thông tin đăng nhập không chính xác. Vui lòng kiểm tra lại."}
 
     @app.route("/api/auth/login", methods=["POST"])
     def auth_login():
@@ -238,18 +301,29 @@ def create_app(test_config=None):
         user = find_login_user(raw_identifier)
 
         if not user:
-            return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
+            # SECURITY (VULN-02): Timing-equalization — chạy dummy scrypt để cân bằng
+            # thời gian phản hồi với trường hợp user tồn tại (tránh timing side-channel).
+            # Dùng check_password_hash với hash giả cùng thuật toán scrypt mặc định của werkzeug.
+            from werkzeug.security import check_password_hash as _chk
+            _chk("scrypt:32768:8:1$medimind_dummy_salt_v2$" + "a" * 64, password)
+            return jsonify(_LOGIN_FAILURE_RESPONSE), 401
 
         # Kiểm tra phân quyền truy cập
+        # SECURITY (VULN-02): Role mismatch cũng trả 401 + generic message,
+        # nhưng vẫn chạy check_password để không tiết lộ sớm qua timing.
         if role and user.role != role:
-            return jsonify({
-                "success": False, 
-                "error": f"Tài khoản này không có quyền truy cập vai trò '{role}'."
-            }), 403
+            user.check_password(password)  # timing equalization
+            return jsonify(_LOGIN_FAILURE_RESPONSE), 401
 
         # Xác thực mật khẩu
         if not user.check_password(password):
-            return jsonify({"success": False, "error": "Mật khẩu không chính xác. Vui lòng kiểm tra lại."}), 401
+            return jsonify(_LOGIN_FAILURE_RESPONSE), 401
+
+        if getattr(user, "account_status", "active") != "active":
+            return jsonify({
+                "success": False,
+                "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ quản trị viên."
+            }), 403
 
         # Xóa bộ đếm sai mật khẩu sau khi đăng nhập thành công
         rate_limit_service.reset_login_attempts(client_ip, raw_identifier)
@@ -299,6 +373,10 @@ def create_app(test_config=None):
 
         if not raw_identifier or not password:
             return jsonify({"success": False, "error": "Vui lòng điền đầy đủ Email/SĐT và mật khẩu."}), 400
+
+        # SECURITY (VULN-04): Enforce minimum password length 8 chars (OWASP ASVS Level 1)
+        if len(password) < 8:
+            return jsonify({"success": False, "error": "Mật khẩu phải có tối thiểu 8 ký tự."}), 400
 
         if not full_name:
             full_name = "Bệnh nhân mới"
@@ -367,7 +445,7 @@ def create_app(test_config=None):
             return jsonify({"authenticated": False, "user": None})
 
         user = db.session.get(User, user_id)
-        if not user:
+        if not user or getattr(user, "account_status", "active") != "active":
             session.clear()
             return jsonify({"authenticated": False, "user": None})
 
@@ -474,8 +552,8 @@ def create_app(test_config=None):
         if not current_password or not new_password:
             return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới."}), 400
 
-        if len(new_password) < 6:
-            return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 6 ký tự."}), 400
+        if len(new_password) < 8:
+            return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 8 ký tự."}), 400
 
         if not user.check_password(current_password):
             return jsonify({"success": False, "error": "Mật khẩu hiện tại không chính xác."}), 401
@@ -550,21 +628,43 @@ def create_app(test_config=None):
                 (User.email == f"{identifier}@phone.medimind")
             ).first()
             if dup_acc:
+                # SECURITY (VULN-02): Generic response — không tiết lộ tài khoản đã tồn tại
+                # qua HTTP status 409. Trả 200 với message trung lập để bảo vệ quyền riêng tư.
+                # Không tạo OTP, không gửi SMS/Email, không tạo tài khoản trùng.
                 return jsonify({
-                    "success": False,
-                    "error": "Email hoặc Số điện thoại này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập!"
-                }), 409
+                    "success": True,
+                    "message": "Nếu thông tin đăng ký hợp lệ, mã xác minh sẽ được gửi. Nếu bạn đã có tài khoản, vui lòng đăng nhập hoặc sử dụng chức năng Quên mật khẩu.",
+                    "channel": channel,
+                    "identifier": identifier,
+                    "cooldown": 59,
+                    "expires_in": otp_manager.ttl
+                }), 200
         elif purpose == "login_2fa":
-            exist_acc = User.query.filter(
-                (db.func.lower(User.email) == identifier.lower()) |
-                (User.phone_number == identifier) |
-                (User.email == f"{identifier}@phone.medimind")
-            ).first()
+            exist_acc = find_login_user(identifier)
             if not exist_acc:
+                # SECURITY (VULN-02): Silent no-op — không tiết lộ tài khoản không tồn tại.
+                # Trả 200 với cùng cấu trúc JSON như OTP thật. Không tạo OTP, không gửi SMS/Email.
                 return jsonify({
-                    "success": False,
-                    "error": "Tài khoản không tồn tại trên hệ thống. Vui lòng đăng ký tài khoản mới!"
-                }), 404
+                    "success": True,
+                    "message": "Nếu tài khoản tồn tại, mã OTP đã được gửi.",
+                    "channel": channel,
+                    "identifier": identifier,
+                    "cooldown": 59,
+                    "expires_in": otp_manager.ttl
+                }), 200
+        elif purpose == "reset_pwd":
+            exist_acc = find_login_user(identifier)
+            if not exist_acc:
+                # SECURITY (VULN-02): Silent no-op — phản hồi đồng nhất tuyệt đối với trường hợp tồn tại tài khoản.
+                return jsonify({
+                    "success": True,
+                    "message": "Nếu tài khoản tồn tại, mã xác thực đặt lại mật khẩu đã được gửi.",
+                    "channel": channel,
+                    "identifier": identifier,
+                    "cooldown": otp_manager.cooldown,
+                    "expires_in": otp_manager.ttl
+                }), 200
+            full_name = exist_acc.full_name or full_name
 
         success, msg, cooldown = otp_manager.request_otp(
             identifier=identifier,
@@ -576,9 +676,14 @@ def create_app(test_config=None):
         if not success:
             return jsonify({"success": False, "error": msg, "cooldown": cooldown}), 429 if cooldown > 0 else 400
 
+        res_message = (
+            "Nếu tài khoản tồn tại, mã xác thực đặt lại mật khẩu đã được gửi."
+            if purpose == "reset_pwd"
+            else msg
+        )
         res_data = {
             "success": True,
-            "message": msg,
+            "message": res_message,
             "channel": channel,
             "identifier": identifier,
             "cooldown": cooldown,
@@ -619,6 +724,22 @@ def create_app(test_config=None):
         if purpose == "register" and dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
             return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
 
+        # Validate password policy before consuming the OTP so invalid registration or reset input never burns the user's OTP code.
+        if purpose == "register" and isinstance(user_data, dict) and user_data:
+            raw_reg_pw = (user_data.get("password") or "").strip()
+            if raw_reg_pw and len(raw_reg_pw) < 8:
+                return jsonify({"success": False, "error": "Mật khẩu phải có tối thiểu 8 ký tự."}), 400
+        elif purpose == "reset_pwd":
+            raw_reset_pw = (
+                (user_data.get("new_password") if isinstance(user_data, dict) else "")
+                or data.get("new_password")
+                or ""
+            ).strip()
+            if not raw_reset_pw:
+                return jsonify({"success": False, "error": "Vui lòng nhập mật khẩu mới."}), 400
+            if len(raw_reset_pw) < 8:
+                return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 8 ký tự."}), 400
+
         success, err_msg = otp_manager.verify_otp(
             identifier=identifier,
             channel=channel,
@@ -654,6 +775,12 @@ def create_app(test_config=None):
                 import secrets
                 password = secrets.token_urlsafe(12)
 
+            # SECURITY (VULN-04): Enforce minimum password length 8 chars (OWASP ASVS Level 1)
+            # Note: auto-generated passwords (token_urlsafe(12)) always exceed 8 chars — this check
+            # only rejects explicitly-provided passwords that are too short.
+            elif len(password) < 8:
+                return jsonify({"success": False, "error": "Mật khẩu phải có tối thiểu 8 ký tự."}), 400
+
             new_user = User(
                 email=email,
                 full_name=full_name,
@@ -670,6 +797,8 @@ def create_app(test_config=None):
             except Exception:
                 return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
+            session.permanent = True
+            session.clear()
             session["user_id"] = new_user.id
             session["user_role"] = new_user.role
 
@@ -679,12 +808,54 @@ def create_app(test_config=None):
                 "user": new_user.to_dict()
             }), 201
 
+        # Nếu là kịch bản Đặt lại mật khẩu (Forgot Password with OTP)
+        if purpose == "reset_pwd":
+            new_password = (
+                (user_data.get("new_password") if isinstance(user_data, dict) else "")
+                or data.get("new_password")
+                or ""
+            ).strip()
+            if len(new_password) < 8:
+                return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 8 ký tự."}), 400
+
+            user = find_login_user(identifier)
+            if not user:
+                # SECURITY (VULN-02): Trả 400 generic thay vì 404 để không tiết lộ tài khoản không tồn tại.
+                return jsonify({"success": False, "error": "Mã OTP không hợp lệ hoặc đã hết hạn."}), 400
+
+            user.set_password(new_password)
+            try:
+                commit_or_rollback()
+            except Exception:
+                return jsonify({"success": False, "error": "Không thể cập nhật mật khẩu mới vào cơ sở dữ liệu."}), 500
+
+            # Dọn trạng thái otp_verified_store vừa tạo (không giữ dư thừa sau khi reset xong)
+            otp_manager.is_verified(identifier, channel, consume=True)
+            # Mở khóa bộ đếm đăng nhập nếu trước đó bị khóa do quên mật khẩu & làm mới session
+            from core.rate_limit_service import rate_limit_service
+            rate_limit_service.reset_login_attempts(get_request_client_ip(), identifier)
+            session.clear()
+
+            return jsonify({
+                "success": True,
+                "reset_completed": True,
+                "message": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới."
+            })
+
         # Nếu là kịch bản Đăng nhập 2FA (2FA Login)
         if purpose == "login_2fa":
             user = find_login_user(identifier)
 
             if not user:
-                return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
+                # SECURITY (VULN-02): Trả 400 generic thay vì 404 để không tiết lộ tài khoản không tồn tại.
+                # Edge case: OTP hợp lệ nhưng tài khoản đã bị xóa sau khi OTP được tạo.
+                return jsonify({"success": False, "error": "Mã OTP không hợp lệ hoặc đã hết hạn."}), 400
+
+            if getattr(user, "account_status", "active") != "active":
+                return jsonify({
+                    "success": False,
+                    "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ quản trị viên."
+                }), 403
 
             session["user_id"] = user.id
             session["user_role"] = user.role
@@ -876,6 +1047,8 @@ def create_app(test_config=None):
 
         # TRƯỜNG HỢP 1: TỪ LẦN THỨ 2 TRỞ ĐI (Tài khoản Google đã có trong CSDL -> Vào luôn ngay lập tức)
         if user:
+            if getattr(user, "account_status", "active") != "active":
+                return redirect("/?google_auth=error&error_reason=account_suspended")
             if avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
@@ -1044,6 +1217,12 @@ def create_app(test_config=None):
         # Tìm hoặc tạo người dùng
         user = User.query.filter_by(email=email).first()
         if user:
+            if getattr(user, "account_status", "active") != "active":
+                return flask_api_error(
+                    ErrorCode.FORBIDDEN,
+                    "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ quản trị viên.",
+                    status_code=403,
+                )
             # Đồng bộ lại Avatar và Họ tên từ Google nếu chưa có
             if avatar_url and not user.avatar_url:
                 user.avatar_url = avatar_url
@@ -1110,6 +1289,13 @@ def create_app(test_config=None):
         rate_id = get_rate_limit_identity(user_id=user_id, guest_token=guest_token, client_ip=client_ip)
         if not check_chat_rate_limit(rate_id, max_requests=25, window_seconds=60, enforce=not app.config.get("TESTING")):
             return jsonify({"error": "Bạn đang gửi tin nhắn quá nhanh. Vui lòng đợi ít phút rồi thử lại."}), 429
+
+        # VULN-10 FIX: Secondary IP-level rate limit to prevent guest-token rotation bypass.
+        # Applied regardless of identity type (authenticated users are exempt from token rotation,
+        # but IP limit provides a backstop for all callers).
+        from core.rate_limit_service import rate_limit_service as _rls
+        if not _rls.check_chat_ip_rate_limit(client_ip, max_requests=60, window_seconds=60, enforce=not app.config.get("TESTING")):
+            return jsonify({"error": "Quá nhiều yêu cầu từ địa chỉ IP này. Vui lòng thử lại sau."}), 429
 
         image_bytes = None
         image_mime_type = "image/jpeg"
@@ -1676,52 +1862,104 @@ def create_app(test_config=None):
     @app.route("/api/prescription/confirm", methods=["POST"])
     def confirm_prescription():
         """
-        Lưu dữ liệu đơn thuốc sau khi người dùng đã dò lại và xác nhận chính xác.
-        Cho phép cập nhật thông tin đã chỉnh sửa (nếu có) vào MedicalDocument.
+        Lưu dữ liệu đơn thuốc hoặc phiếu xét nghiệm sau khi người dùng đã dò lại và xác nhận chính xác.
+        Giữ route legacy tương thích ngược nhưng bắt buộc xác thực và bảo toàn loại tài liệu.
         """
         user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({
+                "status": "error",
+                "error": "Vui lòng đăng nhập để xác nhận và lưu tài liệu y tế.",
+                "message": "Vui lòng đăng nhập để xác nhận và lưu tài liệu y tế.",
+            }), 401
+
         data = request.get_json(silent=True) or {}
         doc_id = data.get("document_id")
 
-        if doc_id and user_id:
+        if doc_id:
             try:
                 doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
-                if doc:
-                    if doc.doc_type == "ocr_draft":
-                        doc.doc_type = "prescription"
-                    if data.get("patient_name"):
-                        doc.patient_name = data["patient_name"]
-                    if data.get("diagnosis"):
-                        doc.diagnosis = data["diagnosis"]
-                    if data.get("facility"):
-                        doc.facility = data["facility"]
-                    if data.get("doctor"):
-                        doc.doctor = data["doctor"]
+                if not doc:
+                    return jsonify({
+                        "status": "error",
+                        "error": "Không tìm thấy tài liệu thuộc quyền sở hữu của bạn.",
+                        "message": "Không tìm thấy tài liệu thuộc quyền sở hữu của bạn.",
+                    }), 404
 
+                existing_parsed = {}
+                if doc.parsed_data:
+                    try:
+                        existing_parsed = json.loads(doc.parsed_data)
+                    except Exception:
+                        existing_parsed = {}
+
+                resolved_type = data.get("doc_type") or existing_parsed.get("doc_type")
+                if doc.doc_type == "ocr_draft":
+                    doc.doc_type = "lab_test" if resolved_type == "lab_test" else "prescription"
+
+                if data.get("patient_name"):
+                    doc.patient_name = data["patient_name"]
+                if data.get("diagnosis"):
+                    doc.diagnosis = data["diagnosis"]
+                if data.get("facility"):
+                    doc.facility = data["facility"]
+                if data.get("doctor"):
+                    doc.doctor = data["doctor"]
+
+                if doc.doc_type == "lab_test":
+                    labs = data.get("labs") or data.get("metrics") or []
+                    doc.summary = f"{len(labs)} chỉ số xét nghiệm"
+                else:
                     meds = data.get("medications", [])
-                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if isinstance(m, dict) and m.get("name")]
                     sum_text = f"{len(meds)} loại thuốc"
                     if med_names:
                         sum_text += f": {', '.join(med_names)}"
                         if len(meds) > 3:
                             sum_text += f" và {len(meds) - 3} thuốc khác"
-
                     doc.summary = sum_text
-                    doc.parsed_data = json.dumps(data, ensure_ascii=False)
-                    db.session.commit()
+
+                doc.parsed_data = json.dumps(data, ensure_ascii=False)
+                db.session.commit()
             except Exception as e:
                 db.session.rollback()
                 logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
+                return jsonify({
+                    "status": "error",
+                    "error": "Không thể cập nhật xác nhận tài liệu y tế.",
+                    "message": "Không thể cập nhật xác nhận tài liệu y tế.",
+                }), 500
 
         return jsonify({"status": "success", "message": "Đã xác nhận đơn thuốc thành công.", "data": data})
 
 
     @app.route("/uploads/<filename>")
     def serve_uploaded_file(filename):
-        """Phục vụ file ảnh đơn thuốc an toàn cho người dùng xem và đối soát."""
+        """Phục vụ file ảnh đơn thuốc an toàn cho người dùng xem và đối soát.
+
+        VULN-05 FIX: Require authenticated session + verify MedicalDocument ownership
+        before serving any uploaded file. Unauthenticated or unauthorised requests
+        receive 401/403 respectively, preventing insecure direct object reference.
+        """
         from flask import send_from_directory
         from werkzeug.utils import secure_filename
+
+        # --- VULN-05: Authentication gate ---
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem file."}), 401
+
         clean_name = secure_filename(filename)
+        if not clean_name:
+            return jsonify({"status": "error", "message": "Tên file không hợp lệ."}), 400
+
+        # --- VULN-05: Ownership verification via MedicalDocument.owner_id ---
+        doc = MedicalDocument.query.filter_by(
+            storage_filename=clean_name, owner_id=user_id
+        ).first()
+        if not doc:
+            return jsonify({"status": "error", "message": "Không tìm thấy tài liệu hoặc bạn không có quyền truy cập."}), 403
+
         upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
         return send_from_directory(upload_folder, clean_name)
 
@@ -1927,7 +2165,6 @@ def create_app(test_config=None):
     # QUẢN LÝ DỮ LIỆU CƠ SỞ Y TẾ (CSKCB REST API)
     # ==============================================================
     from core.facilities_service import (
-        load_facilities_data,
         get_facilities as service_get_facilities,
         get_facilities_filters as service_get_facilities_filters,
         get_facilities_map_markers as service_get_facilities_map_markers
@@ -1970,17 +2207,6 @@ def create_app(test_config=None):
     def get_facilities_map_markers():
         """Trả về dữ liệu tinh gọn của tất cả cơ sở có tọa độ để vẽ markers lên bản đồ."""
         return jsonify(service_get_facilities_map_markers())
-
-    @app.route("/api/config/maps", methods=["GET"])
-    def get_maps_config():
-        """Cung cấp cấu hình Google Maps API cho frontend."""
-        from core.settings import get_settings
-        settings = get_settings()
-        key = (settings.security.google_maps_api_key or os.getenv("GOOGLE_MAPS_API_KEY", "") or "").strip()
-        return jsonify({
-            "has_key": bool(key),
-            "key": key if key else ""
-        })
 
     @app.route("/")
     def index():

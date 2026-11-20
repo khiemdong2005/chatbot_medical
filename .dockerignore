@@ -45,6 +45,16 @@ evaluation/cache/
 # Large Model weights (Optional reranker weights; mounted via volume if needed)
 models/
 
+# Runtime data, local SQLite databases, uploads & logs (CRITICAL: Never bake dev PHI/DB into container image)
+instance/
+*.db
+*.db-wal
+*.db-shm
+uploads/*
+!uploads/.gitkeep
+logs/
+*.bak
+
 # Agent/IDE local metadata
 .agents/
 .claude/

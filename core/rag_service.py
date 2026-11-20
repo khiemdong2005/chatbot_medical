@@ -16,7 +16,6 @@ import math
 import re
 import unicodedata
 from collections import Counter
-import sys
 import json
 import logging
 from pathlib import Path
@@ -128,6 +127,7 @@ class MedicalRAGService:
             except Exception:
                 self.no_df_cutoff = True
         self._lexical_index = None
+        self._curated_corpus_cache = None
         self.client = None
         self.collection = None
         self.collection_name = collection_name or self._resolve_active_collection_name()
@@ -191,12 +191,63 @@ class MedicalRAGService:
             self.collection = None
 
     def is_available(self) -> bool:
-        """Kiểm tra xem hệ thống RAG đã sẵn sàng hoạt động chưa."""
+        """Kiểm tra xem hệ thống RAG Vector (ChromaDB) đã sẵn sàng hoạt động chưa."""
         try:
             return self.collection is not None and self.collection.count() > 0
         except Exception as error:
             logger.warning("Reference collection unavailable (%s).", type(error).__name__)
             return False
+
+    def _curated_corpus_dir(self) -> Path:
+        return BASE_DIR / "data" / "curated" / "ready_documents"
+
+    def _load_curated_corpus_rows(self) -> List[Tuple[str, Dict[str, Any]]]:
+        """Nạp kho bài viết y văn đã kiểm duyệt trên đĩa cho BM25 fallback khi ChromaDB vắng mặt."""
+        if self._curated_corpus_cache is not None:
+            return self._curated_corpus_cache
+        corpus_dir = self._curated_corpus_dir()
+        rows: List[Tuple[str, Dict[str, Any]]] = []
+        if not corpus_dir.exists():
+            self._curated_corpus_cache = rows
+            return rows
+        for json_path in sorted(corpus_dir.glob("*.json")):
+            try:
+                data = json.loads(json_path.read_text(encoding="utf-8"))
+                if not isinstance(data, dict):
+                    continue
+                if data.get("qa_status") and data.get("qa_status") != "APPROVED":
+                    continue
+                title_en = str(data.get("title") or data.get("title_en") or "").strip()
+                title_vi = str(data.get("title_vi") or "").strip()
+                body = str(data.get("summary") or data.get("page_content") or "").strip()
+                kw_vi = " ".join(str(k) for k in (data.get("keywords_vi") or []) if isinstance(k, str))
+                kw_en = " ".join(str(k) for k in (data.get("keywords_en") or []) if isinstance(k, str))
+                full_text = "\n".join(part for part in (title_vi, title_en, kw_vi, kw_en, body) if part).strip()
+                if not full_text:
+                    continue
+                meta = {
+                    "title": title_vi or title_en or json_path.stem,
+                    "title_en": title_en,
+                    "category": str(data.get("category_vi") or data.get("category") or "").strip(),
+                    "source": str(data.get("source") or "MedlinePlus").strip(),
+                    "source_url": str(data.get("source_url") or "").strip(),
+                    "retrieval_source": "curated_disk_bm25",
+                }
+                rows.append((full_text, meta))
+            except Exception:
+                continue
+        self._curated_corpus_cache = rows
+        return rows
+
+    def lexical_available(self) -> bool:
+        """True nếu có ChromaDB collection HOẶC có kho curated cục bộ cho BM25 fallback."""
+        if self.is_available():
+            return True
+        try:
+            is_default_dir = self.db_dir.resolve() == VECTOR_DB_DIR.resolve()
+        except Exception:
+            is_default_dir = str(self.db_dir) == str(VECTOR_DB_DIR)
+        return is_default_dir and bool(self._load_curated_corpus_rows())
 
     def expand_query(self, query: str) -> str:
         """
@@ -217,16 +268,28 @@ class MedicalRAGService:
 
     def _bm25_matches(self, query, limit, no_df_cutoff: Optional[bool] = None):
         effective_no_df = self.no_df_cutoff if no_df_cutoff is None else no_df_cutoff
-        key = (self.collection_name, self.collection.count())
-        if not self._lexical_index or self._lexical_index[0] != key:
-            corpus = self.collection.get(include=["documents", "metadatas"])
-            documents, metadata = corpus.get("documents") or [], corpus.get("metadatas") or []
-            rows = [(doc, metadata[index] if index < len(metadata) and isinstance(metadata[index], dict) else {})
-                    for index, doc in enumerate(documents) if isinstance(doc, str) and doc.strip()]
-            counts = [Counter(search_tokens((meta or {}).get("title", "") + " " + doc)) for doc, meta in rows]
-            df = Counter(term for row in counts for term in row)
-            lengths = [sum(row.values()) for row in counts]
-            self._lexical_index = key, rows, counts, df, lengths
+        if self.collection is not None:
+            key = (self.collection_name, self.collection.count())
+            if not self._lexical_index or self._lexical_index[0] != key:
+                corpus = self.collection.get(include=["documents", "metadatas"])
+                documents, metadata = corpus.get("documents") or [], corpus.get("metadatas") or []
+                rows = [(doc, metadata[index] if index < len(metadata) and isinstance(metadata[index], dict) else {})
+                        for index, doc in enumerate(documents) if isinstance(doc, str) and doc.strip()]
+                counts = [Counter(search_tokens((meta or {}).get("title", "") + " " + doc)) for doc, meta in rows]
+                df = Counter(term for row in counts for term in row)
+                lengths = [sum(row.values()) for row in counts]
+                self._lexical_index = key, rows, counts, df, lengths
+        else:
+            disk_rows = self._load_curated_corpus_rows()
+            if not disk_rows:
+                return []
+            key = ("curated_disk", len(disk_rows))
+            if not self._lexical_index or self._lexical_index[0] != key:
+                rows = disk_rows
+                counts = [Counter(search_tokens((meta or {}).get("title", "") + " " + (meta or {}).get("title_en", "") + " " + doc)) for doc, meta in rows]
+                df = Counter(term for row in counts for term in row)
+                lengths = [sum(row.values()) for row in counts]
+                self._lexical_index = key, rows, counts, df, lengths
         _, rows, counts, df, lengths = self._lexical_index
         size = len(rows)
         average = sum(lengths) / max(size, 1) or 1
@@ -374,12 +437,13 @@ class MedicalRAGService:
     def retrieve_candidates(self, user_query: str, top_k: int = 20, lang: str = "vi",
                             no_df_cutoff: Optional[bool] = None, source_diversity: bool = False) -> List[Dict[str, Any]]:
         """Retrieve ranked candidates, retaining branch metadata and scores for later stages."""
-        if not isinstance(user_query, str) or not user_query.strip() or not self.is_available():
+        if not isinstance(user_query, str) or not user_query.strip() or not self.lexical_available():
             return []
         effective_no_df = self.no_df_cutoff if no_df_cutoff is None else no_df_cutoff
         top_k = max(1, min(20, top_k)) if type(top_k) is int else 2
         query = self.expand_query(user_query[:2000])
-        pool = min(self.collection.count(), top_k * 3)
+        total_docs = self.collection.count() if self.collection is not None else len(self._load_curated_corpus_rows())
+        pool = min(max(total_docs, 1), top_k * 3)
 
         # 1. Base lexical branch (bm25_original)
         branches = [("bm25_original", self.lexical_search(query, pool, no_df_cutoff=effective_no_df))]

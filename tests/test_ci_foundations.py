@@ -9,6 +9,7 @@ Kiểm thử nền tảng kiểm định tự động (CI/CD Foundation Tests):
 """
 
 import os
+import sys
 import json
 import hashlib
 import subprocess
@@ -26,7 +27,7 @@ def test_pytest_discovery_isolation():
     assert "testpaths = tests" in content, "pytest.ini phải cấu hình testpaths = tests"
 
     # Chạy collect-only để xác minh các tệp được thu thập
-    cmd = ["python", "-m", "pytest", "--collect-only", "-q"]
+    cmd = [sys.executable, "-m", "pytest", "--collect-only", "-q"]
     proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
     assert proc.returncode == 0, f"Lỗi thu thập pytest: {proc.stderr}"
     

@@ -104,5 +104,5 @@ def test_ocr_schema_uses_configured_model_and_one_fallback(tmp_path):
         extract_with_gemini_schema(str(image))
 
     assert generate.call_args.kwargs["candidate_models"] == [
-        "gemini-flash-lite-latest", "gemini-flash-latest"
+        "gemini-flash-lite-latest", "inclusionai/ling-3.2-flash:free"
     ]

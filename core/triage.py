@@ -350,13 +350,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
             "is_emergency": True,
             "visual_findings": [],
             "differential_diagnosis": ["Tình trạng cấp cứu tim mạch/hô hấp/tuần hoàn"],
-            "sources": [
-                {
-                    "title": "Quy trình Cấp cứu Ban đầu - Bộ Y Tế",
-                    "source": "Cục Quản lý Khám chữa bệnh",
-                    "url": "https://kcb.vn"
-                }
-            ]
+            "sources": []
         }
 
     risk_score = 30
@@ -445,7 +439,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
         advice_bullets = [
             "**Súc họng nước muối ấm (0.9%):** Súc 3 lần/ngày giúp sạch họng, giảm đau rát.",
             "**Uống nhiều nước ấm:** Bổ sung 1.5 - 2 lít nước ấm và nghỉ ngơi nơi thoáng khí.",
-            "**Hạ sốt an toàn:** Dùng Paracetamol 500mg nếu sốt >38.5°C (cách nhau 4-6 giờ, nếu không dị ứng).",
+            "**Theo dõi thân nhiệt an toàn:** Lau ấm khi sốt, không tự ý phối hợp thuốc; hỏi ý kiến bác sĩ hoặc dược sĩ trước khi dùng thuốc hạ sốt phù hợp thể trạng.",
             "⚠️ **Đi khám ngay:** Nếu sốt cao liên tục >48 giờ, khó thở hoặc khạc đờm đặc vàng/xanh."
         ]
     elif is_cough_throat:
@@ -509,11 +503,5 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
         "differential_diagnosis": diff_diag,
         "visual_findings": visual_findings_result,
         "is_emergency": False,
-        "sources": [
-            {
-                "title": "MedlinePlus Medical Encyclopedia - NIH",
-                "source": "Thư viện Y khoa Quốc gia Hoa Kỳ",
-                "url": "https://medlineplus.gov"
-            }
-        ]
+        "sources": []
     }

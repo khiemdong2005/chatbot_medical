@@ -19,8 +19,6 @@ def extract_with_gemini_schema(image_path: str, doc_type: str = "prescription", 
         return None
 
     try:
-        from google.genai import types
-
         with open(image_path, "rb") as f:
             file_bytes = f.read()
 
@@ -62,11 +60,11 @@ YÊU CẦU SCHEMA JSON TRẢ VỀ:
 
 BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙNG ```json, KHÔNG BÌNH LUẬN THÊM).
 """
-        # Ưu tiên model OCR được cấu hình; chỉ giữ một model dự phòng còn hỗ trợ.
+        # Ưu tiên model OCR được cấu hình trên OpenRouter
         preferred_model = llm_provider.get_default_model("prescription_ocr")
-        candidate_models = list(dict.fromkeys([preferred_model, "gemini-flash-latest"]))
+        candidate_models = list(dict.fromkeys([preferred_model, "inclusionai/ling-3.2-flash:free"]))
         contents = [
-            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+            {"type": "image_bytes", "data": file_bytes, "mime_type": mime_type},
             prompt
         ]
         return llm_provider.generate_json(
@@ -80,3 +78,44 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (KHÔNG DÙ
         logger.warning("Gemini schema extraction failed (%s).", type(e).__name__)
 
     return None
+
+
+def extract_with_gemini_text(raw_text: str, doc_type: str = "prescription", api_key: str = "") -> Optional[Dict[str, Any]]:
+    """
+    [2.B-TEXT] Bóc tách văn bản PDF thuần đã rút trích thành JSON chuẩn y khoa qua OpenRouter.
+    Tránh gửi nhị phân application/pdf vào trường image_url không được hỗ trợ.
+    """
+    if not isinstance(raw_text, str) or not raw_text.strip():
+        return None
+    from core.llm_provider import llm_provider
+
+    if not api_key:
+        api_key = llm_provider.resolve_api_key(profile="ocr")
+    if not llm_provider.is_configured(profile="ocr", explicit_key=api_key):
+        return None
+
+    try:
+        schema_hint = (
+            '{"doc_type":"lab_test","patient_name":"","dob":"","age":"","gender":"","diagnosis":"","facility":"","doctor":"","date":"","metrics":[{"test_name":"","result":"","unit":"","reference_range":"","flag_on_paper":""}]}'
+            if doc_type == "lab_test"
+            else '{"doc_type":"prescription","patient_name":"","dob":"","age":"","gender":"","diagnosis":"","facility":"","doctor":"","date":"","medications":[{"name":"","strength":"","purpose":"","dose":"","frequency":"","days":"","usage":""}]}'
+        )
+        prompt = (
+            "Bạn là Hệ thống AI Bóc tách Tài liệu Y tế Lâm sàng từ văn bản PDF đã trích xuất.\n"
+            "Chỉ trích xuất thông tin thực sự có trong văn bản bên dưới; KHÔNG bịa đặt tên thuốc, hàm lượng, liều dùng hoặc chỉ số.\n"
+            "Nếu trường nào không rõ hãy để chuỗi rỗng.\n\n"
+            f"MẪU SCHEMA JSON BẮT BUỘC:\n{schema_hint}\n\n"
+            f"VĂN BẢN TÀI LIỆU:\n{raw_text[:20000]}\n\n"
+            "CHỈ TRẢ VỀ 1 ĐỐI TƯỢNG JSON HỢP LỆ."
+        )
+        preferred_model = llm_provider.get_default_model("chat")
+        candidate_models = list(dict.fromkeys([preferred_model, "openrouter/free"]))
+        return llm_provider.generate_json(
+            contents=prompt,
+            candidate_models=candidate_models,
+            api_key=api_key,
+            operation="prescription_ocr",
+        )
+    except Exception as e:
+        logger.warning("Text schema extraction failed (%s).", type(e).__name__)
+        return None

@@ -7,8 +7,8 @@ và bảo vệ thông tin nhạy cảm (Zero Secret Leaks).
 import os
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, SecretStr
+from typing import Optional, Any, List
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger("MediMindSettings")
@@ -385,12 +385,17 @@ class Settings(BaseSettings):
         if is_prod and not (testing or self.server.testing):
             raise RuntimeError("Yêu cầu cấu hình SECRET_KEY an toàn trong môi trường Production!")
 
+        # VULN-07 FIX: Replace static hard-coded fallback with per-process random key.
+        # Sessions are invalidated on each restart (acceptable for dev).
+        import secrets as _secrets
+        _random_dev_key = _secrets.token_hex(32)
         logger.warning(
-            "CẢNH BÁO BẢO MẬT: Không tìm thấy SECRET_KEY trong cấu hình! "
-            "Đang sử dụng development secret key cố định cho phiên chạy này. "
-            "Vui lòng thiết lập SECRET_KEY rõ ràng trong file .env."
+            "CẢNH BÁO BẢO MẬT [VULN-07]: Không tìm thấy SECRET_KEY trong cấu hình! "
+            "Đang sử dụng per-process random secret key cho phiên chạy này — "
+            "mọi session sẽ bị vô hiệu khi khởi động lại. "
+            "Vui lòng thiết lập SECRET_KEY rõ ràng trong file .env để ổn định session."
         )
-        return "dev-insecure-secret-key-change-in-production-medimind-2026"
+        return _random_dev_key
 
     def __repr__(self) -> str:
         return (

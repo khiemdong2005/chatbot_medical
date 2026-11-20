@@ -129,6 +129,33 @@ class RateLimitService:
             logger.warning("Tin nhắn chat vượt ngưỡng tần suất (429) cho định danh %s.", identity.split(":")[0])
         return allowed
 
+    def check_chat_ip_rate_limit(
+        self,
+        client_ip: str,
+        max_requests: int = 60,
+        window_seconds: int = 60,
+        enforce: bool = True
+    ) -> bool:
+        """VULN-10: IP-level rate limit for /api/chat — secondary gate that cannot be
+        bypassed by rotating guest tokens.
+
+        Policy: max 60 requests per IP per 60 seconds (lenient enough for legitimate
+        users behind shared NAT, tight enough to block token-rotation abuse).
+        Applied in ADDITION to the existing identity-based limit.
+        No Redis required — uses same in-memory backend.
+        """
+        if not enforce:
+            return True
+        clean_ip = (client_ip or "127.0.0.1").strip()
+        key = f"chat_ip:{clean_ip}"
+        allowed = self.backend.check_and_increment(key, max_requests, window_seconds)
+        if not allowed:
+            logger.warning(
+                "VULN-10: Chat IP rate limit exceeded (429) for IP %s — possible guest-token rotation attack.",
+                clean_ip
+            )
+        return allowed
+
     def get_chat_identity(
         self,
         user_id: Optional[int] = None,

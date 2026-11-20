@@ -18,7 +18,6 @@ Mục đích:
 ================================================================================
 """
 
-import os
 import time
 import logging
 import threading

@@ -6,7 +6,10 @@
 
 import os
 import re
+import logging
 from typing import Optional, Dict, Any
+
+logger = logging.getLogger("SmsService")
 
 
 class SmsService:
@@ -56,17 +59,26 @@ class SmsService:
 
         message_text = f"[{brand_name}] Ma xac thuc y te (OTP) cua ban la: {otp_code}. Hieu luc trong 5 phut. Tuyet doi khong chia se cho nguoi khac."
 
-        # Chế độ Dev Simulator khi chưa có API Key
+        allow_sim = (
+            os.getenv("ALLOW_DEV_OTP_SIMULATOR", "").lower() in ("1", "true", "yes")
+            or os.getenv("TESTING", "").lower() in ("1", "true", "yes")
+        )
+        # Chế độ Simulator chỉ kích hoạt khi TESTING hoặc ALLOW_DEV_OTP_SIMULATOR=1 (không in plaintext OTP mặc định)
         if not self.is_configured():
-            print("\n" + "=" * 70)
-            print(f"📱 [DEV SMS SIMULATOR - VN ONLY] Gửi tới SĐT: {norm_phone}")
-            print(f"🔑 Mã OTP 6 số: {otp_code}")
-            print(f"💬 Tin nhắn: {message_text}")
-            print("=" * 70 + "\n")
-            return True
+            if allow_sim:
+                logger.info("[SMS Service] Test/simulator mode active; SMS OTP delivery simulated.")
+                return True
+            logger.warning("[SMS Service] SpeedSMS chưa được cấu hình (CONFIGURATION REQUIRED: SPEEDSMS_AUTH_TOKEN).")
+            return False
 
         # Gửi qua SpeedSMS nếu có Token (Cổng SMS Việt Nam)
         if self.speedsms_token:
+            if self.speedsms_sms_type != 2 and not self.speedsms_sender:
+                logger.warning(
+                    "[SMS Service] CONFIGURATION REQUIRED: SPEEDSMS_SENDER is required when SPEEDSMS_SMS_TYPE=%s.",
+                    self.speedsms_sms_type,
+                )
+                return False
             try:
                 import json
                 import urllib.request
@@ -94,12 +106,11 @@ class SmsService:
                         tran_id = data_info.get("tranId")
                         total_sms = data_info.get("totalSMS")
                         total_price = data_info.get("totalPrice")
-                        print(f"✅ [SpeedSMS] Đã gửi mã OTP tới {norm_phone} | tranId={tran_id} | totalSMS={total_sms} | totalPrice={total_price}")
+                        logger.info("[SpeedSMS] Sent SMS OTP | tranId=%s | totalSMS=%s | totalPrice=%s", tran_id, total_sms, total_price)
                         return True
-                    else:
-                        print(f"❌ [SpeedSMS Error] Phản hồi lỗi: {res_json}")
+                    logger.warning("[SpeedSMS Error] Delivery rejected (status=%s).", res_json.get("status"))
             except Exception as e:
-                print(f"❌ [SpeedSMS Error] Gửi SMS thất bại tới {norm_phone}: {e}")
+                logger.warning("[SpeedSMS Error] Gửi SMS thất bại (%s).", type(e).__name__)
 
         return False
 

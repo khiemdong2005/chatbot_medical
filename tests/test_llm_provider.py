@@ -53,12 +53,12 @@ class TestLLMProviderLifecycle:
     def test_shared_client_reuse(self):
         """Các lần gọi cùng API key và timeout tái sử dụng đúng 1 client duy nhất."""
         provider = LLMProvider()
-        with patch("google.genai.Client") as mock_client_cls:
+        with patch("core.llm_provider._OpenRouterClient") as mock_client_cls:
             mock_inst = MagicMock()
             mock_client_cls.return_value = mock_inst
 
-            c1 = provider.get_client("AIzaSyTestKey1234567890", timeout_seconds=15.0)
-            c2 = provider.get_client("AIzaSyTestKey1234567890", timeout_seconds=15.0)
+            c1 = provider.get_client("sk-or-v1-test-key-1234567890", timeout_seconds=15.0)
+            c2 = provider.get_client("sk-or-v1-test-key-1234567890", timeout_seconds=15.0)
 
             assert c1 is c2
             assert mock_client_cls.call_count == 1
@@ -78,9 +78,9 @@ class TestLLMProviderLifecycle:
         assert "chưa được cấu hình" in err.message
 
     def test_resolve_api_key_prioritizes_nutrition_profile(self, monkeypatch):
-        """Profile nutrition đọc đúng GEMINI_NUTRITION_API_KEY khi có cấu hình."""
-        monkeypatch.setenv("GEMINI_NUTRITION_API_KEY", "nutri_key_123456789")
-        monkeypatch.setenv("GEMINI_API_KEY", "general_key_123456789")
+        """Profile nutrition đọc đúng OPENROUTER_NUTRITION_API_KEY khi có cấu hình."""
+        monkeypatch.setenv("OPENROUTER_NUTRITION_API_KEY", "nutri_key_123456789")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "general_key_123456789")
 
         provider = LLMProvider()
         assert provider.resolve_api_key(profile="nutrition") == "nutri_key_123456789"

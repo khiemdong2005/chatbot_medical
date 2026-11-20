@@ -8,11 +8,9 @@ import re
 from urllib.parse import urlsplit
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 from core.prompts import VIETNAMESE_MEDICAL_SYSTEM_PROMPT
 from core.retry_policy import (
-    RetryPolicy, execute_with_retry, classify_exception, ErrorClassification, extract_retry_after
+    RetryPolicy, execute_with_retry, classify_exception, ErrorClassification, redact_provider_error
 )
 from core.circuit_breaker import gemini_circuit_breaker, CircuitBreakerOpenError
 from core.observability import metrics_collector
@@ -121,6 +119,15 @@ def reference_sources(documents):
     return result
 
 
+class _GenConfig(dict):
+    """Config container supporting both dict access (OpenRouter) and attribute access (tests/SDK)."""
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError as exc:
+            raise AttributeError(name) from exc
+
+
 class GeminiMedicalService:
     """
     Dịch vụ giao tiếp với Google Gemini API (sử dụng SDK chính thức google-genai).
@@ -134,6 +141,7 @@ class GeminiMedicalService:
     llm_provider: Any = llm_provider
     retry_policy: Any = None
     timeout_seconds: float = 25.0
+    last_error_info: Optional[Dict[str, Any]] = None
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         self.llm_provider = llm_provider
@@ -141,12 +149,10 @@ class GeminiMedicalService:
         self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="chat")).strip()
         if model:
             self.model = model.strip()
-        elif self.llm_provider.is_openrouter_active():
-            self.model = self.llm_provider.get_default_model("chat")
         else:
-            self.model = (os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL")
-                          or settings.gemini.chat_model or "gemini-flash-lite-latest").strip()
+            self.model = self.llm_provider.get_default_model("chat")
         self._client = None
+        self.last_error_info = None
         self.timeout_seconds = float(os.getenv("GEMINI_GENERATION_TIMEOUT_SECONDS", str(settings.gemini.timeout_chat)))
         max_attempts = int(os.getenv("AI_RETRY_MAX_ATTEMPTS", str(settings.retry.max_attempts)))
         base_delay = float(os.getenv("AI_RETRY_BASE_DELAY_SECONDS", str(settings.retry.base_delay_seconds)))
@@ -182,6 +188,21 @@ class GeminiMedicalService:
             and re.fullmatch(r"[A-Za-z0-9_.:/-]+", getattr(self, "model", ""))
         )
 
+    def _resolve_runtime_model(self, has_image: bool) -> str:
+        """Use a vision-capable model when image input is present and chat model is text-only."""
+        base_model = (getattr(self, "model", "") or self.llm_provider.get_default_model("chat")).strip()
+        if not has_image:
+            return base_model
+        lower_m = base_model.lower()
+        already_multimodal = any(tok in lower_m for tok in ("gemini", "-vl", "vision", "gpt-4o", "claude-3"))
+        if already_multimodal:
+            return base_model
+        vision_model = os.getenv("OPENROUTER_VISION_MODEL", "").strip()
+        if vision_model:
+            return vision_model
+        ocr_model = self.llm_provider.get_default_model("ocr")
+        return ocr_model or base_model
+
     def generate_clinical_response(
         self,
         user_message: str,
@@ -202,12 +223,14 @@ class GeminiMedicalService:
         - Kiểm chứng schema JSON chặt chẽ; JSON hỏng/thiếu trường bắt buộc sẽ trả None để kích hoạt fallback.
         """
         req_id = request_id or uuid.uuid4().hex[:8]
+        self.last_error_info = None
         metrics_collector.increment("ai_request_count")
         if not self.is_configured() or not self.client:
             self.api_key = self.llm_provider.resolve_api_key(profile="chat")
 
         if not self.is_configured() or not self.client:
-            logger.info(f"[REQ-{req_id}] GEMINI_API_KEY chưa cấu hình hoặc không sẵn sàng. Chuyển Fallback.")
+            self.last_error_info = {"classification": ErrorClassification.AUTH_ERROR.value, "status_code": None, "error_type": "UNCONFIGURED"}
+            logger.info(f"[REQ-{req_id}] AI Provider chưa cấu hình hoặc không sẵn sàng. Chuyển Fallback.")
             metrics_collector.increment("ai_fallback_count")
             metrics_collector.log_event("generation", req_id, 0.0, "FALLBACK", error_class="AUTH_ERROR")
             return None
@@ -303,7 +326,7 @@ class GeminiMedicalService:
         if has_image:
             prompt_content = dialogue_text
             try:
-                image_part = types.Part.from_bytes(data=image_bytes, mime_type=image_mime_type)
+                image_part = {"type": "image_bytes", "data": image_bytes, "mime_type": image_mime_type}
                 req_contents = [image_part, prompt_content]
             except Exception as e_part:
                 logger.warning("[REQ-%s] Image encoding unavailable (%s).", req_id, type(e_part).__name__)
@@ -313,12 +336,13 @@ class GeminiMedicalService:
             req_contents = prompt_content
 
         try:
-            config = types.GenerateContentConfig(
-                system_instruction=instruction_prompt,
-                temperature=0.25,
-                max_output_tokens=2400,
-                response_mime_type="application/json",
-                response_json_schema={"type": "object", "properties": {
+            target_model = self._resolve_runtime_model(has_image=has_image) if hasattr(self, "_resolve_runtime_model") else self.model
+            config = _GenConfig({
+                "system_instruction": instruction_prompt,
+                "temperature": 0.25,
+                "max_output_tokens": 2400,
+                "response_mime_type": "application/json",
+                "response_json_schema": {"type": "object", "properties": {
                     "answer": {"type": "string"},
                     "risk_level": {"type": "string"}, "specialist": {"type": "string"},
                     "risk_score": {"anyOf": [{"type": "integer"}, {"type": "null"}]},
@@ -327,7 +351,7 @@ class GeminiMedicalService:
                        for key in ("visual_findings", "symptoms", "differential_diagnosis", "home_care_tips")}
                 }, "required": ["answer", "risk_level", "risk_score", "specialist", "is_emergency",
                                   "visual_findings", "symptoms", "differential_diagnosis", "home_care_tips"]}
-            )
+            })
 
             retries_count = 0
 
@@ -344,7 +368,7 @@ class GeminiMedicalService:
 
             def _do_generate():
                 return self.client.models.generate_content(
-                    model=self.model,
+                    model=target_model,
                     contents=req_contents,
                     config=config
                 )
@@ -365,6 +389,7 @@ class GeminiMedicalService:
             parsed = self._validate_and_parse_json(raw_text)
 
             if parsed is None:
+                self.last_error_info = {"classification": ErrorClassification.SCHEMA_ERROR.value, "status_code": 200, "error_type": "JSON_SCHEMA_INVALID"}
                 metrics_collector.increment("ai_fallback_count")
                 metrics_collector.record_error("SCHEMA_ERROR")
                 metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
@@ -388,6 +413,7 @@ class GeminiMedicalService:
 
         except CircuitBreakerOpenError:
             latency = time.time() - start_time
+            self.last_error_info = {"classification": ErrorClassification.CIRCUIT_OPEN.value, "status_code": 503, "error_type": "CircuitBreakerOpenError"}
             metrics_collector.increment("circuit_open_count")
             metrics_collector.increment("ai_fallback_count")
             metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
@@ -397,6 +423,12 @@ class GeminiMedicalService:
         except Exception as e:
             latency = time.time() - start_time
             cls = classify_exception(e)
+            http_status = getattr(e, "status_code", None) or getattr(e, "code", None) or getattr(e, "http_status", None)
+            self.last_error_info = {
+                "classification": cls.value,
+                "status_code": int(http_status) if isinstance(http_status, int) else None,
+                "error_type": type(e).__name__,
+            }
             metrics_collector.increment("ai_fallback_count")
             metrics_collector.record_error(cls.value)
             if cls == ErrorClassification.RATE_LIMIT:
@@ -408,7 +440,10 @@ class GeminiMedicalService:
             metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
             metrics_collector.record_attempts(retries_count + 1)
             metrics_collector.log_event("generation", req_id, latency * 1000.0, "FALLBACK", error_class=cls.value, retry_count=retries_count)
-            logger.warning("[REQ-%s] Gemini unavailable (%s: %s), elapsed %.2fs.", req_id, cls.value, type(e).__name__, latency)
+            logger.warning(
+                "[REQ-%s] Gemini unavailable (%s: %s), elapsed %.2fs.",
+                req_id, cls.value, redact_provider_error(e), latency
+            )
             return None
 
     def _validate_and_parse_json(self, raw_text: str) -> Optional[Dict[str, Any]]:

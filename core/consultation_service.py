@@ -5,7 +5,7 @@ Dịch vụ quản lý các phiên tư vấn lâm sàng (Clinical Consultations)
 import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple
-from core.models import db, ClinicalConsultation, User
+from core.models import ClinicalConsultation, User
 from core.db_utils import app_db_context, commit_or_rollback
 
 logger = logging.getLogger("ConsultationService")

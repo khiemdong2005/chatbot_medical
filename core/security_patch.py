@@ -2,11 +2,9 @@
 # MEDIMIND CLINICAL AI - ENTERPRISE SECURITY & HARDENING MODULE
 # ==============================================================
 
-import os
 import secrets
 import html
 from typing import Optional, Dict
-from core.cache_service import cache_service
 
 # 1. BẢO VỆ CHỮ KÝ TỆP TIN (MAGIC BYTES VERIFICATION)
 # Ngăn chặn lỗ hổng Arbitrary File Upload ngụy trang đuôi mở rộng

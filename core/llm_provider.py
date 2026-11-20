@@ -30,8 +30,7 @@ from core.retry_policy import (
     RetryPolicy,
     ErrorClassification,
     classify_exception,
-    execute_with_retry,
-    MaxRetriesExceededError
+    execute_with_retry
 )
 from core.circuit_breaker import (
     CircuitBreaker,
@@ -90,7 +89,15 @@ class _OpenRouterModels:
             if isinstance(item, str):
                 parts.append({"type": "text", "text": item})
             elif isinstance(item, dict):
-                if "text" in item:
+                if item.get("type") == "image_bytes" and item.get("data"):
+                    mime = item.get("mime_type") or "image/jpeg"
+                    raw_bytes = item["data"]
+                    b64 = base64.b64encode(raw_bytes).decode("ascii") if isinstance(raw_bytes, (bytes, bytearray)) else str(raw_bytes)
+                    parts.append({
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime};base64,{b64}"}
+                    })
+                elif "text" in item:
                     parts.append({"type": "text", "text": str(item["text"])})
                 else:
                     parts.append(item)
@@ -119,6 +126,8 @@ class _OpenRouterModels:
             headers={
                 "Authorization": f"Bearer {self._api_key}",
                 "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": "MediMind-Clinical-AI/1.0",
                 "HTTP-Referer": "https://medimind.local",
                 "X-Title": "MediMind Clinical AI",
             },
@@ -131,6 +140,7 @@ class _OpenRouterModels:
             err_body = ""
             try:
                 err_body = he.read().decode("utf-8", errors="replace")[:300]
+                err_body = re.sub(r"(?:sk-or-[A-Za-z0-9_-]+|AIza[A-Za-z0-9_-]+|Bearer\s+[A-Za-z0-9._-]+)", "[REDACTED]", err_body)
             except Exception:
                 pass
             raise _OpenRouterHTTPError(he.code, f"OpenRouter HTTP {he.code}: {err_body}") from None
@@ -166,7 +176,7 @@ class _OpenRouterModels:
         }
         if temperature is not None:
             payload["temperature"] = float(temperature)
-        if max_tokens is not None and int(max_tokens) >= 2048:
+        if max_tokens is not None and int(max_tokens) > 0:
             payload["max_tokens"] = int(max_tokens)
         if want_json:
             payload["response_format"] = {"type": "json_object"}
@@ -175,11 +185,18 @@ class _OpenRouterModels:
             resp_json = self._post_completion(payload)
         except _OpenRouterHTTPError as e:
             # Một số model :free không hỗ trợ response_format -> thử lại không có response_format
-            if e.status_code == 400 and "response_format" in payload:
+            if e.status_code in (400, 422) and "response_format" in payload:
                 payload.pop("response_format", None)
                 resp_json = self._post_completion(payload)
             else:
                 raise
+
+        if isinstance(resp_json, dict) and resp_json.get("error"):
+            err_obj = resp_json["error"]
+            err_code = err_obj.get("code") if isinstance(err_obj, dict) else 502
+            err_msg = err_obj.get("message") if isinstance(err_obj, dict) else str(err_obj)
+            safe_code = err_code if isinstance(err_code, int) and 400 <= err_code < 600 else 502
+            raise _OpenRouterHTTPError(safe_code, f"OpenRouter payload error {safe_code}: {str(err_msg)[:240]}")
 
         choices = resp_json.get("choices") or []
         content = ""
@@ -228,10 +245,8 @@ class LLMProvider:
     # ==========================================================================
 
     def is_openrouter_active(self) -> bool:
-        """Kiểm tra xem hệ thống có đang cấu hình chạy OpenRouter hay không."""
-        provider = os.getenv("AI_PROVIDER", "").strip().lower()
-        openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-        return provider == "openrouter" and bool(openrouter_key)
+        """Hệ thống sử dụng OpenRouter API làm cổng AI duy nhất."""
+        return True
 
     def resolve_api_key(
         self,
@@ -239,44 +254,39 @@ class LLMProvider:
         explicit_key: Optional[str] = None
     ) -> str:
         """
-        Xác định API Key theo Profile một cách an toàn:
-        - Nếu AI_PROVIDER=openrouter -> ưu tiên OPENROUTER_API_KEY (bỏ qua key Gemini cũ nếu caller truyền nhầm).
+        Xác định OpenRouter API Key theo Profile một cách an toàn:
         - Nếu có explicit_key -> ưu tiên số 1.
-        - Profile 'nutrition' -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
-        - Profile 'chat' -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
-        - Mặc định -> GEMINI_API_KEY -> GOOGLE_API_KEY.
+        - Profile 'nutrition' -> OPENROUTER_NUTRITION_API_KEY -> OPENROUTER_API_KEY.
+        - Profile 'chat' -> OPENROUTER_CHAT_API_KEY -> OPENROUTER_API_KEY.
+        - Mặc định -> OPENROUTER_API_KEY.
         """
         if explicit_key and isinstance(explicit_key, str) and explicit_key.strip():
             return explicit_key.strip()
 
-        if self.is_openrouter_active():
-            return os.getenv("OPENROUTER_API_KEY", "").strip()
-
         prof = (profile or "").lower()
         if prof in ("nutrition", "nutrition_ai"):
-            key = os.getenv("GEMINI_NUTRITION_API_KEY") or settings.gemini.nutrition_api_key or ""
-            if key:
+            key = os.getenv("OPENROUTER_NUTRITION_API_KEY") or ""
+            if key.strip():
                 return key.strip()
 
         if prof in ("chat", "chat_generation"):
-            key = os.getenv("GEMINI_CHAT_API_KEY") or settings.gemini.chat_api_key or ""
-            if key:
+            key = os.getenv("OPENROUTER_CHAT_API_KEY") or ""
+            if key.strip():
                 return key.strip()
 
-        key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or settings.gemini.api_key or ""
-        return key.strip()
+        return os.getenv("OPENROUTER_API_KEY", "").strip()
 
     def is_configured(
         self,
         profile: Optional[str] = None,
         explicit_key: Optional[str] = None
     ) -> bool:
-        """Kiểm tra tính hợp lệ của API Key mà không thực hiện kết nối mạng."""
+        """Kiểm tra tính hợp lệ của OpenRouter API Key mà không thực hiện kết nối mạng."""
         key = self.resolve_api_key(profile=profile, explicit_key=explicit_key)
         return bool(
             key
             and not key.startswith("YOUR_")
-            and key != "your_google_gemini_api_key_here"
+            and key not in ("your_openrouter_api_key_here", "your_google_gemini_api_key_here")
             and len(key) > 10
         )
 
@@ -290,41 +300,19 @@ class LLMProvider:
         timeout_seconds: float = 15.0
     ) -> Any:
         """
-        Khởi tạo hoặc tái sử dụng AI Client (OpenRouter hoặc Gemini) một cách lười (Lazy) và an toàn đa luồng.
+        Khởi tạo hoặc tái sử dụng OpenRouter Client một cách lười (Lazy) và an toàn đa luồng.
         Không thực hiện bất kỳ lệnh gọi mạng nào lúc khởi tạo.
         """
-        use_openrouter = isinstance(api_key, str) and api_key.startswith("sk-or-")
         timeout_ms = max(10000, int(timeout_seconds * 1000))
-        cache_key = f"{'or' if use_openrouter else 'gm'}_{hash(api_key)}_{timeout_ms}"
+        cache_key = f"or_{hash(api_key)}_{timeout_ms}"
 
         with self._lock:
             if cache_key in self._clients:
                 return self._clients[cache_key]
 
-            if use_openrouter:
-                client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds)
-                self._clients[cache_key] = client
-                return client
-
-            try:
-                from google import genai
-                from google.genai import types
-
-                http_options = types.HttpOptions(
-                    timeout=timeout_ms,
-                    retry_options=types.HttpRetryOptions(attempts=1)
-                )
-                client = genai.Client(api_key=api_key, http_options=http_options)
-                self._clients[cache_key] = client
-                return client
-            except Exception as e:
-                logger.error("Không thể khởi tạo Gemini Client (%s).", type(e).__name__)
-                raise LLMProviderError(
-                    message=f"Không thể khởi tạo Gemini Client: {type(e).__name__}",
-                    classification=ErrorClassification.AUTH_ERROR,
-                    operation="client_initialization",
-                    original_exception=e
-                ) from None
+            client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds)
+            self._clients[cache_key] = client
+            return client
 
     # ==========================================================================
     # 3. STAGE-SPECIFIC DEFAULTS (TIMEOUT, RETRY, CIRCUIT BREAKER, MODEL)
@@ -380,32 +368,19 @@ class LLMProvider:
         return get_circuit_breaker("gemini_main")
 
     def get_default_model(self, operation: str) -> str:
-        """Lấy model mặc định cho từng tác vụ."""
+        """Lấy model OpenRouter mặc định cho từng tác vụ."""
         op = operation.lower()
-        if self.is_openrouter_active():
-            if "chat" in op:
-                return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
-            if "expansion" in op:
-                return os.getenv("OPENROUTER_EXPANSION_MODEL", "openrouter/free").strip()
-            if "nutrition" in op:
-                return os.getenv("OPENROUTER_NUTRITION_MODEL", "openrouter/free").strip()
-            if "ocr" in op or "prescription" in op:
-                return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
-            if "interpretation" in op:
-                return os.getenv("OPENROUTER_INTERPRETATION_MODEL", "openrouter/free").strip()
-            return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
-
         if "chat" in op:
-            return (os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL") or settings.gemini.chat_model).strip()
+            return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
         if "expansion" in op:
-            return (os.getenv("GEMINI_EXPANSION_MODEL") or settings.gemini.expansion_model).strip()
+            return os.getenv("OPENROUTER_EXPANSION_MODEL", "openrouter/free").strip()
         if "nutrition" in op:
-            return (os.getenv("GEMINI_NUTRITION_MODEL") or settings.gemini.nutrition_model).strip()
+            return os.getenv("OPENROUTER_NUTRITION_MODEL", "openrouter/free").strip()
         if "ocr" in op or "prescription" in op:
-            return (os.getenv("OCR_MODEL") or settings.gemini.ocr_model).strip()
+            return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
         if "interpretation" in op:
-            return (os.getenv("INTERPRETATION_MODEL") or settings.gemini.interpretation_model).strip()
-        return settings.gemini.chat_model
+            return os.getenv("OPENROUTER_INTERPRETATION_MODEL", "openrouter/free").strip()
+        return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
 
     # ==========================================================================
     # 4. CORE EXECUTION ENGINE (WITH RETRY, BREAKER, METRICS & PRIVACY LOGS)
@@ -571,8 +546,6 @@ class LLMProvider:
         circuit_breaker: Optional[CircuitBreaker] = None
     ) -> str:
         """Sinh văn bản tự do (Plain Text / Markdown / Query Expansion)."""
-        from google.genai import types
-
         config_kwargs: Dict[str, Any] = {}
         if system_instruction:
             config_kwargs["system_instruction"] = system_instruction
@@ -581,7 +554,7 @@ class LLMProvider:
         if max_output_tokens is not None:
             config_kwargs["max_output_tokens"] = max_output_tokens
 
-        config = types.GenerateContentConfig(**config_kwargs) if config_kwargs else None
+        config = config_kwargs if config_kwargs else None
 
         def _call(client, m):
             res = client.models.generate_content(
@@ -622,8 +595,6 @@ class LLMProvider:
         circuit_breaker: Optional[CircuitBreaker] = None
     ) -> Dict[str, Any]:
         """Sinh và parse cấu trúc dữ liệu JSON có bảo chứng schema."""
-        from google.genai import types
-
         config_kwargs: Dict[str, Any] = {
             "response_mime_type": "application/json"
         }
@@ -636,7 +607,7 @@ class LLMProvider:
         if max_output_tokens is not None:
             config_kwargs["max_output_tokens"] = max_output_tokens
 
-        config = types.GenerateContentConfig(**config_kwargs)
+        config = config_kwargs
 
         def _call(client, m):
             res = client.models.generate_content(

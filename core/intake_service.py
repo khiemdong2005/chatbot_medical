@@ -718,23 +718,28 @@ def generate_pre_visit_summary(
         specialist = "Y học gia đình / Chăm sóc ban đầu"
         care_approach = "Triệu chứng ở mức độ nhẹ ban đầu. Người bệnh có thể nghỉ ngơi, uống đủ nước ấm, giữ ấm cơ thể và theo dõi diễn biến trong 24-48 giờ tới."
 
-    # Truy vấn nguồn y văn RAG tham chiếu
+    # Truy vấn nguồn y văn RAG tham chiếu (KHÔNG tạo citation giả nếu RAG không sẵn sàng)
     rag_sources = session_data.get("sources", [])
     if not rag_sources:
         try:
             rag_docs = medical_rag_service.retrieve_context(chief_complaint, top_k=2)
             rag_sources = [
                 {
-                    "title": d.get("title", "Hướng dẫn Y tế MedlinePlus"),
-                    "source": d.get("source", "MedlinePlus (NIH)"),
-                    "url": d.get("source_url", "https://medlineplus.gov")
+                    "title": d.get("title", ""),
+                    "source": d.get("source", ""),
+                    "url": d.get("source_url", "")
                 }
                 for d in rag_docs
+                if d.get("source_url")
             ]
         except Exception:
-            rag_sources = [
-                {"title": "MedlinePlus Medical Encyclopedia", "source": "NIH Hoa Kỳ", "url": "https://medlineplus.gov"}
-            ]
+            rag_sources = []
+
+    limitation_note = (
+        "Kết quả do trợ lý AI tổng hợp phục vụ tham khảo và tóm tắt trước khám. Đây KHÔNG phải là chẩn đoán y khoa chính thức thay thế bác sĩ điều trị."
+    )
+    if not rag_sources:
+        limitation_note += " Hiện chưa truy xuất được tài liệu y văn RAG đối chiếu trực tiếp cho tình trạng này."
 
     part_b = {
         "title": "Phần B — Đánh giá sơ bộ & Hướng tiếp cận chăm sóc",
@@ -743,7 +748,7 @@ def generate_pre_visit_summary(
         "recommended_specialist": specialist,
         "care_approach": care_approach,
         "sources": rag_sources,
-        "limitations": "Kết quả do trợ lý AI tổng hợp phục vụ tham khảo và tóm tắt trước khám. Đây KHÔNG phải là chẩn đoán y khoa chính thức thay thế bác sĩ điều trị.",
+        "limitations": limitation_note,
         "version": version,
         "created_at": created_at,
         "confirmation_status": confirmation_label
@@ -1337,7 +1342,11 @@ def mask_pii_on_image(image_path: str, bboxes_to_mask: list) -> str:
     """
     (Tùy chọn) Che thông tin định danh (PII: tên, ngày sinh, địa chỉ)
     trước khi gửi ảnh ra API bên ngoài.
+    Chỉ trả về đường dẫn tệp đã che khi thực sự vẽ che ít nhất 1 vùng tọa độ hợp lệ.
+    Nếu không có tọa độ để che, trả lại đường dẫn gốc (caller phải nhận biết và chặn gửi ngoài).
     """
+    if not bboxes_to_mask:
+        return image_path
     try:
         with open(image_path, "rb") as f:
             chunk = f.read()
@@ -1345,16 +1354,24 @@ def mask_pii_on_image(image_path: str, bboxes_to_mask: list) -> str:
         img = cv2.imdecode(img_arr, cv2.IMREAD_COLOR)
         if img is None:
             return image_path
-            
+
+        masked_count = 0
         for box in bboxes_to_mask:
             if len(box) == 4 and isinstance(box[0], (int, float)):
                 # box dạng [x1, y1, x2, y2]
                 x1, y1, x2, y2 = map(int, box)
-                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 0), -1)
+                if x2 > x1 and y2 > y1:
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 0), -1)
+                    masked_count += 1
             elif len(box) >= 4 and isinstance(box[0], (list, tuple)):
                 # polygon box [[x1, y1], [x2, y2], ...]
                 pts = np.array(box, dtype=np.int32)
-                cv2.fillPoly(img, [pts], (0, 0, 0))
+                if pts.shape[0] >= 3:
+                    cv2.fillPoly(img, [pts], (0, 0, 0))
+                    masked_count += 1
+
+        if masked_count == 0:
+            return image_path
 
         out_path = os.path.splitext(image_path)[0] + "_masked.jpg"
         is_success, buffer = cv2.imencode(".jpg", img)

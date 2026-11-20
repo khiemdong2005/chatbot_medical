@@ -19,22 +19,32 @@ from core.image_preprocessor import preprocess_prescription_image
 
 # Global singleton EasyOCR Reader để tránh nạp lại mô hình nhiều lần gây chậm
 _OCR_READER = None
+_EASYOCR_UNAVAILABLE = False
 
 
 def get_ocr_reader():
     """
-    Khởi tạo hoặc trả về bộ đọc EasyOCR tiếng Việt + tiếng Anh.
-    Singleton pattern: Tải trọng số 1 lần duy nhất trong suốt vòng đời ứng dụng.
+    Khởi tạo hoặc trả về bộ đọc EasyOCR tiếng Việt + tiếng Anh (tùy chọn).
+    Singleton pattern: Tải trọng số 1 lần duy nhất trong suốt vòng đời ứng dụng;
+    nếu không cài easyocr, ghi cảnh báo nhẹ 1 lần để fallback sang Windows WinRT / AI Vision.
     """
-    global _OCR_READER
-    if _OCR_READER is None:
+    global _OCR_READER, _EASYOCR_UNAVAILABLE
+    if _OCR_READER is None and not _EASYOCR_UNAVAILABLE:
         try:
             import easyocr
             print("[OCR ENGINE] Đang khởi tạo mô hình EasyOCR (Ngôn ngữ: Tiếng Việt + Tiếng Anh)...")
             start_t = time.time()
             _OCR_READER = easyocr.Reader(['vi', 'en'], gpu=False, verbose=False)
             print(f"[OCR ENGINE] Mô hình OCR sẵn sàng ({time.time() - start_t:.2f}s)!")
+        except ImportError as e:
+            _EASYOCR_UNAVAILABLE = True
+            if os.name == "nt":
+                print(f"[OCR ENGINE INFO] EasyOCR tùy chọn chưa được cài ({e}); chuyển sang Windows WinRT OCR fallback.")
+            else:
+                print(f"[OCR ENGINE WARNING] EasyOCR chưa được cài ({e}); không có engine OCR cục bộ.")
+            _OCR_READER = None
         except Exception as e:
+            _EASYOCR_UNAVAILABLE = True
             print(f"[OCR ENGINE ERROR] Không thể khởi tạo EasyOCR: {e}")
             _OCR_READER = None
     return _OCR_READER

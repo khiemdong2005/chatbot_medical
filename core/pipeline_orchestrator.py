@@ -11,7 +11,7 @@ load_dotenv()
 from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
 from core.ocr_parallel_service import extract_ocr_parallel
-from core.gemini_schema_service import extract_with_gemini_schema
+from core.gemini_schema_service import extract_with_gemini_schema, extract_with_gemini_text
 from core.reconciliation_service import reconcile_parallel_results, extract_schema_from_ocr
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
@@ -62,6 +62,74 @@ def _ocr_needs_second_pass(result: Dict[str, Any], doc_type_hint: str) -> bool:
                     continue
             return False
     return True
+
+
+def _redact_pdf_pii_text(raw_text: str) -> str:
+    """Redact common phone numbers, emails, and national ID numbers before optional cloud text extraction."""
+    if not raw_text:
+        return ""
+    masked = re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "[REDACTED_EMAIL]", raw_text)
+    masked = re.sub(r"(?<!\d)(?:\+84|0)[1-9]\d{8,9}(?!\d)", "[REDACTED_PHONE]", masked)
+    masked = re.sub(r"(?<!\d)\d{9}(?:\d{3})?(?!\d)", "[REDACTED_ID]", masked)
+    return masked
+
+
+def _build_ocr_result_from_pdf_text(pdf_text: str) -> Dict[str, Any]:
+    """Convert pypdf plain text lines into standard ocr_result structure for local schema parsing."""
+    lines = []
+    rows = []
+    for idx, raw_line in enumerate(pdf_text.splitlines()):
+        clean = raw_line.strip()
+        if not clean:
+            continue
+        y_c = float(idx * 14 + 7)
+        item = {
+            "text": clean,
+            "confidence": 0.99,
+            "box": [],
+            "x_min": 0,
+            "x_max": 0,
+            "y_min": idx * 14,
+            "y_max": idx * 14 + 14,
+            "y_center": y_c,
+        }
+        lines.append(item)
+        rows.append({"y_center": y_c, "text": clean, "items": [item]})
+    return {
+        "success": True,
+        "duration_sec": 0.0,
+        "total_lines": len(lines),
+        "total_rows": len(rows),
+        "avg_confidence": 0.99 if lines else 0.0,
+        "orientation_deg": 0,
+        "lines": lines,
+        "rows": rows,
+        "raw_text": pdf_text,
+        "source": "pypdf_text",
+    }
+
+
+def _detect_pii_bboxes_from_ocr(ocr_result: Dict[str, Any]) -> list:
+    """Trích xuất bounding box các dòng OCR chứa thông tin định danh cá nhân (PII)."""
+    import re
+    pii_bboxes = []
+    pii_markers = (
+        "họ tên", "ho ten", "họ và tên", "ho va ten", "bệnh nhân", "benh nhan",
+        "người bệnh", "nguoi benh", "ngày sinh", "ngay sinh", "địa chỉ", "dia chi",
+        "điện thoại", "dien thoai", "sđt", "sdt", "cccd", "cmnd", "bhyt", "mã bn", "ma bn"
+    )
+    for line in (ocr_result or {}).get("lines", []) or []:
+        box = line.get("box") or []
+        txt = str(line.get("text") or "").strip().lower()
+        if not box or not txt:
+            continue
+        has_marker = any(m in txt for m in pii_markers)
+        has_phone = bool(re.search(r"(?<!\d)(?:\+84|0)(?:3|5|7|8|9)\d{8}(?!\d)", txt))
+        has_dob_or_id = bool(re.search(r"\b\d{1,2}[/-]\d{1,2}[/-](?:19|20)\d{2}\b|\b\d{9,12}\b", txt))
+        if has_marker or has_phone or has_dob_or_id:
+            pii_bboxes.append(box)
+    return pii_bboxes
+
 
 def process_medical_document_pipeline(
     file_path: str,
@@ -149,17 +217,48 @@ def process_medical_document_pipeline(
         prep_res = preprocess_lightweight(file_path, need_clahe=need_clahe)
         active_image_path = prep_res.get("processed_path", file_path)
 
-    # (Tùy chọn) Che PII trước khi gửi đi nếu người dùng bật
-    if mask_pii:
-        active_image_path = mask_pii_on_image(active_image_path, [])
-
     # ==============================================================
     # [2] TRÍCH XUẤT OCR VÀ GEMINI
-    #     Nhánh A: OCR Cục bộ (EasyOCR)
-    #     Nhánh B: Gemini Vision Multimodal theo Response Schema
+    #     Nhánh A: OCR Cục bộ (EasyOCR hoặc pypdf text cho PDF)
+    #     Nhánh B: Vision/Text Schema theo Response Schema
     # ==============================================================
-    # 2.A: OCR cục bộ
-    ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
+    uses_text_pdf_only = bool(is_pdf and not embedded_img_path)
+    if uses_text_pdf_only:
+        if not pdf_text.strip():
+            return {
+                "status": "failed",
+                "needs_review": True,
+                "stage": "[2.A] PDF Extraction",
+                "error_code": "PDF_UNREADABLE",
+                "message": "Không trích xuất được văn bản hay hình ảnh từ tệp PDF (có thể tệp bị mã hóa hoặc scan). Vui lòng tải lên ảnh JPG/PNG rõ nét.",
+                "uploaded_filename": filename_clean,
+            }
+        ocr_result = _build_ocr_result_from_pdf_text(pdf_text)
+        pii_protection = {"requested": bool(mask_pii), "masked": False, "blocked_external_ai": False}
+        safe_pdf_text = pdf_text
+        if mask_pii:
+            safe_pdf_text = _redact_pdf_pii_text(pdf_text)
+            pii_protection["masked"] = True
+            pii_protection["method"] = "text_redaction"
+    else:
+        ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
+        pii_protection = {"requested": bool(mask_pii), "masked": False, "blocked_external_ai": False}
+        if mask_pii:
+            pii_bboxes = _detect_pii_bboxes_from_ocr(ocr_result)
+            masked_candidate = mask_pii_on_image(active_image_path, pii_bboxes)
+            if not masked_candidate or masked_candidate == active_image_path or not os.path.exists(masked_candidate):
+                return {
+                    "status": "blocked",
+                    "needs_review": True,
+                    "stage": "[1.5] PII Protection Guard",
+                    "error_code": "PII_MASKING_UNAVAILABLE",
+                    "message": "Đã bật chế độ bảo vệ PII nhưng hệ thống không xác định và che được vùng thông tin cá nhân trên tài liệu, nên đã chặn gửi ảnh ra nhà cung cấp AI bên ngoài.",
+                    "pii_protection": {"requested": True, "masked": False, "blocked_external_ai": True},
+                    "uploaded_filename": filename_clean,
+                }
+            active_image_path = masked_candidate
+            pii_protection["masked"] = True
+        safe_pdf_text = ""
     ocr_candidates = [(active_image_path, ocr_result)]
     # Geometric correction and resizing can erase small text. Keep an
     # independent reading of the original image for comparison.
@@ -193,13 +292,18 @@ def process_medical_document_pipeline(
     )
 
     # 2.B: Gemini Schema extraction
-    gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
-    if not isinstance(gemini_data, dict):
-        gemini_data = None
-    if not gemini_data and not mask_pii and selected_ocr_path != active_image_path:
-        gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type)
+    if uses_text_pdf_only:
+        gemini_data = extract_with_gemini_text(safe_pdf_text, doc_type=doc_type)
+    else:
+        gemini_data = extract_with_gemini_schema(active_image_path, doc_type=doc_type)
         if not isinstance(gemini_data, dict):
             gemini_data = None
+        if not gemini_data and not mask_pii and selected_ocr_path != active_image_path:
+            gemini_data = extract_with_gemini_schema(selected_ocr_path, doc_type=doc_type)
+            if not isinstance(gemini_data, dict):
+                gemini_data = None
+    if not isinstance(gemini_data, dict):
+        gemini_data = None
     gemini_succeeded = bool(gemini_data)
     model_doc_type = gemini_data.get("doc_type") if gemini_data else None
     if model_doc_type in ("prescription", "lab_test") and model_doc_type != doc_type:
@@ -207,6 +311,19 @@ def process_medical_document_pipeline(
         selected_ocr_path, ocr_result = max(
             ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
         )
+
+    if not uses_text_pdf_only and not gemini_succeeded and ocr_result.get("success") is False:
+        return {
+            "status": "failed",
+            "needs_review": True,
+            "stage": "[2] OCR & Vision Extraction",
+            "error_code": "OCR_OR_AI_ANALYSIS_FAILED",
+            "message": "Không có bộ máy OCR cục bộ khả dụng và AI Vision tạm thời không phản hồi. Vui lòng thử lại sau hoặc nhập thủ công.",
+            "ocr_engine": ocr_result.get("engine", "none"),
+            "ocr_error": ocr_result.get("error", ""),
+            "uploaded_filename": filename_clean,
+            "pii_protection": pii_protection,
+        }
 
     if not gemini_data:
         # Nếu Gemini API bận hoặc không khả dụng -> Fallback xây schema từ OCR
@@ -312,7 +429,10 @@ def process_medical_document_pipeline(
         "extraction_warning": extraction_warning,
         "review_schema_version": 3,
         "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
-        "requires_user_confirmation": True
+        "ocr_engine": ocr_result.get("engine") or ("pypdf_text" if uses_text_pdf_only else "unknown"),
+        "ai_vision_used": gemini_succeeded,
+        "requires_user_confirmation": True,
+        "pii_protection": pii_protection
     }
 
 
@@ -403,7 +523,8 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         # Không tự ý điền mặc định "1 viên" nếu tài liệu không ghi rõ liều
         has_dose = bool(med.get("dose") and str(med.get("dose")).strip())
         m_dose = med.get("dose") if has_dose else "Chưa rõ liều (Cần đối chiếu đơn)"
-        needs_review_item = med.get("needs_review", False) or not has_dose
+        schedule_unverified = bool(sched.get("schedule_unverified"))
+        needs_review_item = med.get("needs_review", False) or not has_dose or schedule_unverified
 
         for slot_key in ["morning", "noon", "evening", "bedtime", "external"]:
             s_info = sched.get(slot_key)
@@ -478,8 +599,8 @@ def _build_unified_timeline(medications: list) -> list:
             if slot_info and slot_info.get("active"):
                 s["drugs"].append({
                     "name": med.get("standard_name") or med.get("name"),
-                    "dose": med.get("dose", "1 viên"),
-                    "note": slot_info.get("note", "Uống sau ăn"),
+                    "dose": med.get("dose") or "Chưa rõ liều (Cần đối chiếu đơn)",
+                    "note": slot_info.get("note") or "Theo chỉ dẫn của bác sĩ/dược sĩ",
                     "needs_review": med.get("needs_review", False)
                 })
 

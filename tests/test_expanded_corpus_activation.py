@@ -18,7 +18,7 @@ ACTIVE_CONFIG = ROOT / "medical_vectordb" / "active_collection.json"
 DEV_DATASET_PATH = ROOT / "evaluation" / "rag_dev_dataset.json"
 HOLDOUT_DATASET_PATH = ROOT / "evaluation" / "rag_test_dataset.json"
 
-SHADOW_COLLECTION = "medical_knowledge_expanded_v3_20261115_000308"
+SHADOW_COLLECTION = "medical_knowledge_expanded_v4_20261115_005612"
 ACTIVE_V2_COLLECTION = "medical_knowledge_shadow_v2_20261114_211653"
 
 def _has_seeded_vectordb():
@@ -47,16 +47,16 @@ def test_merged_source_counts():
 
 @requires_chromadb
 def test_shadow_collection_integrity():
-    """Verify expanded v3 collection chunk count, length boundaries, and provenance."""
+    """Verify expanded v4 collection chunk count, length boundaries, and provenance."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)
-    assert rag.collection is not None, "Shadow collection must be accessible"
-    assert rag.collection.count() == 687, f"Expected 687 chunks, got {rag.collection.count()}"
+    assert rag.collection is not None, "Expanded V4 collection must be accessible"
+    assert rag.collection.count() == 725, f"Expected 725 chunks, got {rag.collection.count()}"
 
     corpus = rag.collection.get(include=["documents", "metadatas"])
     documents = corpus.get("documents") or []
     metadatas = corpus.get("metadatas") or []
 
-    assert len(documents) == 687
+    assert len(documents) == 725
     for doc, meta in zip(documents, metadatas):
         assert len(doc) >= 200, f"Tiny chunk detected: {len(doc)} chars in {meta.get('chunk_id')}"
         assert meta.get("chunking_version") == "v2_sentence_contextual"
@@ -69,14 +69,14 @@ def test_shadow_collection_integrity():
 
 @requires_chromadb
 def test_safety_flag_preservation():
-    """Verify all 4 approved-with-flag documents retain their safety flags in the collection."""
+    """Verify all 4 approved-with-flag documents retain their safety flags in the V4 collection."""
     rag = MedicalRAGService(collection_name=SHADOW_COLLECTION)
     flagged = rag.collection.get(
         where={"qa_status": "APPROVED_WITH_SAFETY_FLAG"},
         include=["metadatas"]
     )
     metadatas = flagged.get("metadatas") or []
-    assert len(metadatas) == 10, f"Expected 10 flagged chunks, got {len(metadatas)}"
+    assert len(metadatas) == 11, f"Expected 11 flagged chunks, got {len(metadatas)}"
 
     flagged_urls = {m.get("source_url") for m in metadatas}
     expected_urls = {
@@ -120,27 +120,31 @@ def test_active_pointer_invariant():
 
 @requires_chromadb
 def test_safe_activation_and_rollback_cycle():
-    """Verify atomic activation of shadow collection and instant rollback restore."""
+    """Verify atomic rollback to V2 and safe restoration of expanded V4 collection."""
     orig_content = ACTIVE_CONFIG.read_text(encoding="utf-8")
     orig_data = json.loads(orig_content)
 
-    temp_data = dict(orig_data)
-    temp_data["active_collection"] = SHADOW_COLLECTION
-    temp_data["document_count"] = 687
-    temp_data["source_file_count"] = 364
+    temp_data = {
+        "active_collection": ACTIVE_V2_COLLECTION,
+        "document_count": 408,
+        "source_file_count": 241,
+        "embedding_model": "all-MiniLM-L6-v2",
+        "embedding_dimension": 384,
+        "chunking_version": "v2_sentence_contextual",
+    }
 
     try:
-        # 1. Switch to shadow
+        # 1. Rollback to V2
         save_manifest_atomic(temp_data, ACTIVE_CONFIG)
-        rag_shadow = MedicalRAGService()
-        assert rag_shadow.collection_name == SHADOW_COLLECTION
-        assert rag_shadow.collection.count() == 687
+        rag_v2 = MedicalRAGService()
+        assert rag_v2.collection_name == ACTIVE_V2_COLLECTION
+        assert rag_v2.collection.count() == 408
 
-        # 2. Rollback to original
+        # 2. Restore expanded V4
         save_manifest_atomic(orig_data, ACTIVE_CONFIG)
         rag_restored = MedicalRAGService()
         assert rag_restored.collection_name == orig_data["active_collection"]
-        assert rag_restored.collection.count() == orig_data["document_count"]
+        assert rag_restored.collection.count() == orig_data["document_count"] == 725
     finally:
         # Guarantee restore
         save_manifest_atomic(orig_data, ACTIVE_CONFIG)

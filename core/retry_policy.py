@@ -15,19 +15,28 @@ Mục đích:
 ================================================================================
 """
 
-import os
 import re
 import time
 import random
 import logging
-from enum import Enum
 from dataclasses import dataclass, field
-from typing import Callable, Any, Optional, Set, Dict
+from typing import Callable, Any, Optional, Set
 
 from core.ai_types import ErrorClassification
 from core.circuit_breaker import CircuitBreakerOpenError
 
 logger = logging.getLogger("RetryPolicy")
+
+
+def redact_provider_error(exc: Optional[Exception]) -> str:
+    """Format an upstream HTTP/AI error with safe status_code only (Zero-PHI / Zero-Secret)."""
+    if exc is None:
+        return ""
+    code = getattr(exc, "status_code", None) or getattr(exc, "code", None) or getattr(exc, "http_status", None)
+    name = type(exc).__name__
+    if isinstance(code, int):
+        return f"{name} status={code}"
+    return name
 
 
 def classify_exception(exc: Exception) -> ErrorClassification:
@@ -45,11 +54,13 @@ def classify_exception(exc: Exception) -> ErrorClassification:
     # 1. Kiểm tra mã lỗi số (HTTP status_code / code)
     code = getattr(exc, "status_code", None) or getattr(exc, "code", None) or getattr(exc, "http_status", None)
     if isinstance(code, int):
-        if code in (401, 403):
+        if code in (401, 402, 403):
             return ErrorClassification.AUTH_ERROR
         if code == 429:
             return ErrorClassification.RATE_LIMIT
-        if code == 400:
+        if code == 408:
+            return ErrorClassification.TIMEOUT
+        if code in (400, 404, 422):
             return ErrorClassification.BAD_REQUEST
         if code in (500, 502, 503, 504):
             return ErrorClassification.SERVER_ERROR
@@ -219,10 +230,11 @@ def execute_with_retry(
                 circuit_breaker.record_failure(last_classification)
 
             # Kiểm tra xem lỗi có được phép thử lại không
+            err_detail = redact_provider_error(exc)
             if last_classification not in policy.retryable_classes:
                 logger.warning(
                     "%s Stage '%s' encountered non-retryable error %s (%s). Failing immediately.",
-                    req_tag, stage, last_classification.value, type(exc).__name__
+                    req_tag, stage, last_classification.value, err_detail
                 )
                 raise exc
 
@@ -231,7 +243,7 @@ def execute_with_retry(
                 logger.warning(
                     "%s Stage '%s' exhausted max attempts (%d/%d) on %s (%s).",
                     req_tag, stage, attempt, policy.max_attempts,
-                    last_classification.value, type(exc).__name__
+                    last_classification.value, err_detail
                 )
                 raise exc
 
@@ -242,7 +254,7 @@ def execute_with_retry(
             logger.info(
                 "%s Stage '%s' attempt %d/%d failed with %s (%s). Retrying in %.2fs...",
                 req_tag, stage, attempt, policy.max_attempts,
-                last_classification.value, type(exc).__name__, delay
+                last_classification.value, err_detail, delay
             )
 
             if on_retry is not None:

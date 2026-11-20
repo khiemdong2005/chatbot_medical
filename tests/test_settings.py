@@ -107,7 +107,10 @@ def test_missing_optional_configs_do_not_fail():
 
 
 def test_secret_key_development_fallback():
-    """Khi thiếu SECRET_KEY ở môi trường Development, trả về stable dev fallback và không raise."""
+    """VULN-07: Khi thiếu SECRET_KEY ở môi trường Development, trả về per-process
+    random key (không phải static fallback) và không raise.
+    Key phải có độ dài đủ mạnh (64 hex chars = 32 bytes entropy).
+    """
     s = Settings(
         FLASK_ENV="development",
         ENV="development",
@@ -116,7 +119,26 @@ def test_secret_key_development_fallback():
     )
     with patch.dict(os.environ, {"SECRET_KEY": "", "FLASK_ENV": "development", "ENV": "development"}):
         dev_key = s.get_effective_secret_key(testing=False)
-        assert dev_key == "dev-insecure-secret-key-change-in-production-medimind-2026"
+        # VULN-07: Must NOT be the old hard-coded insecure fallback
+        assert dev_key != "dev-insecure-secret-key-change-in-production-medimind-2026", (
+            "VULN-07: Hard-coded fallback key must be replaced by random key"
+        )
+        # Must be a valid hex string of at least 64 chars (32 bytes)
+        assert len(dev_key) >= 64, f"Random dev key too short: {len(dev_key)} chars"
+        assert all(c in "0123456789abcdef" for c in dev_key), (
+            "Random dev key must be a hex string"
+        )
+        # Two calls on fresh Settings instances must produce different keys
+        s2 = Settings(
+            FLASK_ENV="development",
+            ENV="development",
+            SECRET_KEY=None,
+            _env_file=None
+        )
+        dev_key2 = s2.get_effective_secret_key(testing=False)
+        assert dev_key != dev_key2, (
+            "VULN-07: Each settings instance must generate a unique random key"
+        )
 
 
 def test_secret_key_production_missing_raises_error():

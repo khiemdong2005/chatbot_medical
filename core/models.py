@@ -8,10 +8,16 @@ db = SQLAlchemy()
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
+def _utc_now_naive() -> datetime.datetime:
+    """Timezone-aware UTC converted to naive UTC for cross-dialect SQLite/Postgres DateTime columns."""
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Tự động kích hoạt chế độ WAL Mode và timeout 5000ms để triệt tiêu lỗi 'database is locked'."""
-    if "sqlite" in str(type(dbapi_connection)).lower() or hasattr(dbapi_connection, "cursor"):
+    """Tự động kích hoạt chế độ WAL Mode và timeout 5000ms CHỈ cho SQLite connection."""
+    conn_mod = getattr(type(dbapi_connection), "__module__", "").lower()
+    if conn_mod.startswith("sqlite") or conn_mod.startswith("pysqlite") or conn_mod.startswith("aiosqlite"):
         try:
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA journal_mode=WAL;")
@@ -44,8 +50,8 @@ class User(db.Model):
     bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
     avatar_url = db.Column(db.String(500), nullable=True)
     clinical_profile = db.Column(db.Text, nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now_naive)
+    updated_at = db.Column(db.DateTime, default=_utc_now_naive, onupdate=_utc_now_naive)
 
     def set_password(self, password: str) -> None:
         """Băm mật khẩu 1 chiều an toàn bằng thuật toán scrypt/pbkdf2."""
@@ -123,7 +129,7 @@ class MedicalDocument(db.Model):
     summary = db.Column(db.Text, nullable=True)  # Tóm tắt nhanh danh mục thuốc / chỉ số
     parsed_data = db.Column(db.Text, nullable=True)  # Toàn bộ JSON kết quả phân tích để xem lại ngay
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now_naive)
 
     owner = db.relationship("User", backref=db.backref("documents", lazy=True, cascade="all, delete-orphan"))
 
@@ -176,7 +182,7 @@ class ClinicalConsultation(db.Model):
     symptoms = db.Column(db.Text, nullable=True)  # JSON-encoded string
     specialist = db.Column(db.String(100), nullable=True)
     is_emergency = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now_naive)
 
     user = db.relationship("User", backref=db.backref("consultations", lazy=True, cascade="all, delete-orphan"))
 
@@ -222,7 +228,7 @@ class IntakeSessionRecord(db.Model):
     is_confirmed = db.Column(db.Boolean, default=False)
     version = db.Column(db.Integer, default=1)
     created_at = db.Column(db.String(50), nullable=True)
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=_utc_now_naive, onupdate=_utc_now_naive)
 
     user = db.relationship("User", backref=db.backref("intake_sessions", lazy=True, cascade="all, delete-orphan"))
 
@@ -257,6 +263,50 @@ class IntakeSessionRecord(db.Model):
 
 
 
+# ==============================================================
+# VULN-03 FIX: OTP Storage Model — PostgreSQL/SQLite persistent backend
+# Replaces in-memory dict (_store, _verified_store) in OtpManager.
+# OTP codes stored as keyed HMAC-SHA256 (never plaintext).
+# ==============================================================
+
+class OtpRecord(db.Model):
+    """
+    Lưu trữ bền vững bản ghi OTP dưới dạng HMAC-SHA256 (không lưu mã thô).
+    Hỗ trợ cả SQLite (dev/test) và PostgreSQL (production).
+    """
+    __tablename__ = "otp_store"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    # "{channel}:{identifier_normalized}" — ví dụ "email:user@example.com"
+    key = db.Column(db.String(320), nullable=False, index=True)
+    # HMAC-SHA256 hex digest của mã OTP (không lưu plaintext)
+    otp_hmac = db.Column(db.String(64), nullable=False)
+    purpose = db.Column(db.String(32), nullable=False)
+    full_name = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.Float, nullable=False)
+    expires_at = db.Column(db.Float, nullable=False, index=True)
+    attempts = db.Column(db.Integer, default=0, nullable=False)
+    consumed = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<OtpRecord key={self.key!r} purpose={self.purpose!r} consumed={self.consumed}>"
+
+
+class OtpVerifiedRecord(db.Model):
+    """
+    Lưu trữ trạng thái 'đã xác thực OTP' với TTL (thay thế _verified_store in-memory).
+    is_verified() sẽ tra cứu và consume bản ghi này.
+    """
+    __tablename__ = "otp_verified_store"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    key = db.Column(db.String(320), nullable=False, unique=True, index=True)
+    expires_at = db.Column(db.Float, nullable=False, index=True)
+
+    def __repr__(self) -> str:
+        return f"<OtpVerifiedRecord key={self.key!r} expires_at={self.expires_at}>"
+
+
 class MedicalAppointment(db.Model):
     """Bảng lưu trữ lịch hẹn khám chữa bệnh tại các cơ sở y tế / bệnh viện."""
     __tablename__ = "medical_appointments"
@@ -273,7 +323,7 @@ class MedicalAppointment(db.Model):
     patient_phone = db.Column(db.String(20), nullable=False)
     note = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(30), default="pending", nullable=False)  # pending | confirmed | cancelled
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utc_now_naive)
 
     user = db.relationship("User", backref=db.backref("appointments", lazy=True, cascade="all, delete-orphan"))
 

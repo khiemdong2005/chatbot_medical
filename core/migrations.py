@@ -1,5 +1,5 @@
-import logging
-from datetime import datetime
+﻿import logging
+from datetime import datetime, timezone
 from sqlalchemy import inspect, text
 
 logger = logging.getLogger("MediMindMigrations")
@@ -52,7 +52,7 @@ MIGRATIONS = [
             risk_score INTEGER DEFAULT 30,
             symptoms TEXT,
             specialist VARCHAR(100),
-            is_emergency BOOLEAN DEFAULT 0,
+            is_emergency BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         );
@@ -79,8 +79,50 @@ MIGRATIONS = [
         None
     ),
     ("2026_11_08_consultation_sessions", "Group chat turns by session", None),
-    ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None)
+    ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None),
+    # VULN-03 FIX: Persistent OTP storage — replaces in-memory OtpManager dicts
+    (
+        "2026_11_18_otp_store_table",
+        "Tạo bảng otp_store để lưu trữ OTP bền vững (VULN-03)",
+        """
+        CREATE TABLE IF NOT EXISTS otp_store (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key VARCHAR(320) NOT NULL,
+            otp_hmac VARCHAR(64) NOT NULL,
+            purpose VARCHAR(32) NOT NULL,
+            full_name VARCHAR(255),
+            created_at REAL NOT NULL,
+            expires_at REAL NOT NULL,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            consumed BOOLEAN NOT NULL DEFAULT FALSE
+        );
+        CREATE INDEX IF NOT EXISTS ix_otp_store_key ON otp_store (key);
+        CREATE INDEX IF NOT EXISTS ix_otp_store_expires_at ON otp_store (expires_at)
+        """
+    ),
+    (
+        "2026_11_18_otp_verified_store_table",
+        "Tạo bảng otp_verified_store để lưu trạng thái verified OTP (VULN-03)",
+        """
+        CREATE TABLE IF NOT EXISTS otp_verified_store (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            key VARCHAR(320) NOT NULL UNIQUE,
+            expires_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS ix_otp_verified_store_key ON otp_verified_store (key);
+        CREATE INDEX IF NOT EXISTS ix_otp_verified_store_expires_at ON otp_verified_store (expires_at)
+        """
+    )
 ]
+
+
+def _adapt_sql_for_dialect(sql: str, dialect_name: str) -> str:
+    """Chuẩn hóa DDL migration cho cả SQLite và PostgreSQL mà không đổi schema version."""
+    adapted = sql
+    if dialect_name == "postgresql":
+        adapted = adapted.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+        adapted = adapted.replace("DOUBLE PRECISION", "DOUBLE PRECISION").replace(" REAL ", " DOUBLE PRECISION ")
+    return adapted
 
 
 def run_migrations(engine):
@@ -161,15 +203,16 @@ def run_migrations(engine):
                     cols = {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}
                     if "conversation_id" not in cols:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN conversation_id VARCHAR(100)"))
-                        conn.execute(text("CREATE UNIQUE INDEX uq_consultation_session ON clinical_consultations(user_id, conversation_id)"))
+                        conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_consultation_session ON clinical_consultations(user_id, conversation_id)"))
                     if "turns_json" not in cols:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN turns_json TEXT"))
                 elif version == "2026_11_08_confirmed_summary":
                     if "confirmed_summary" not in {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN confirmed_summary TEXT"))
                 elif sql:
-                    # Chạy câu lệnh SQL tạo bảng / index
-                    for stmt in sql.strip().split(";"):
+                    # Chạy câu lệnh SQL tạo bảng / index theo dialect thực tế (SQLite / PostgreSQL)
+                    dialect_sql = _adapt_sql_for_dialect(sql, getattr(engine.dialect, "name", "sqlite"))
+                    for stmt in dialect_sql.strip().split(";"):
                         stmt_clean = stmt.strip()
                         if stmt_clean:
                             conn.execute(text(stmt_clean))
@@ -177,7 +220,7 @@ def run_migrations(engine):
                 # Đánh dấu phiên bản đã hoàn tất
                 conn.execute(
                     text("INSERT INTO schema_migrations (version, description, applied_at) VALUES (:v, :d, :t)"),
-                    {"v": version, "d": desc, "t": datetime.utcnow()}
+                    {"v": version, "d": desc, "t": datetime.now(timezone.utc)}
                 )
                 applied_versions.add(version)
                 logger.info(f"✅ Áp dụng thành công migration [{version}]")

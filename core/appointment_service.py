@@ -4,8 +4,8 @@ Dịch vụ quản lý lịch hẹn khám chữa bệnh (Medical Appointments).
 Tuân thủ đầy đủ bất biến giao dịch Phase 5.2 (commit_or_rollback).
 """
 import logging
-from typing import Any, Dict, List, Optional, Tuple
-from core.models import db, MedicalAppointment
+from typing import Any, Dict, List, Tuple
+from core.models import MedicalAppointment
 from core.db_utils import app_db_context, commit_or_rollback
 
 logger = logging.getLogger("AppointmentService")
@@ -27,9 +27,29 @@ def create_user_appointment(user_id: int, payload: Dict[str, Any]) -> Tuple[bool
     Tiếp nhận và tạo mới lịch hẹn khám chữa bệnh:
     Trả về: (thành_công, payload_kết_quả, http_status_code)
     """
-    facility_id = (payload.get("facility_id") or "fac_unknown").strip()
-    facility_name = (payload.get("facility_name") or "Cơ sở Y tế").strip()
+    facility_id = str(payload.get("facility_id") or "fac_unknown").strip()
+    facility_name = (payload.get("facility_name") or "").strip()
     facility_address = (payload.get("facility_address") or "").strip()
+
+    # Chuẩn hóa theo dữ liệu CSKCB thật khi có facility_id hợp lệ từ danh mục bệnh viện
+    if facility_id and facility_id != "fac_unknown":
+        try:
+            from core.facilities_service import load_facilities_data
+            matched = next(
+                (item for item in load_facilities_data() if str(item.get("id")) == facility_id),
+                None,
+            )
+            if matched:
+                facility_name = (matched.get("ten") or matched.get("ten_ngan") or facility_name).strip()
+                facility_address = (
+                    matched.get("dia_chi_hien_thi_tren_web") or matched.get("dia_chi") or facility_address
+                ).strip()
+        except Exception:
+            pass
+
+    if not facility_name:
+        facility_name = "Cơ sở Y tế"
+
     specialty = (payload.get("specialty") or "Đa khoa").strip()
     appointment_date = (payload.get("appointment_date") or "").strip()
     appointment_time = (payload.get("appointment_time") or "").strip()

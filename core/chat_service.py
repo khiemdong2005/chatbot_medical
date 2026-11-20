@@ -2,7 +2,7 @@ import time
 import uuid
 import logging
 import re
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from core.triage import analyze_symptoms, assess_emergency_risk, apply_safety_guardrails, remove_accents
 from core.rag_service import medical_rag_service
 from core.gemini_service import (GeminiMedicalService, sanitize_history, sanitize_health_context,
@@ -20,6 +20,78 @@ OUT_OF_SCOPE_PATTERNS = (
     r"\b(?:lập trình|viết code|debug code|chính trị|tôn giáo)\b",
     r"\b(?:solve|math problem|weather forecast|write code|debug code|politics)\b",
 )
+
+# ---------------------------------------------------------------------------
+# VULN-08: Prompt Injection Filter
+# ---------------------------------------------------------------------------
+# Patterns that signal an attempt to override or escape the system prompt.
+# These are matched case-insensitively against the user message.
+_INJECTION_PATTERNS = (
+    # Explicit instruction-override attempts
+    r"ignore\s+(?:all\s+)?(?:previous|prior|above|your)\s+instructions?",
+    r"disregard\s+(?:all\s+)?(?:previous|prior|above|your)\s+instructions?",
+    r"forget\s+(?:everything|all|your\s+instructions?)",
+    r"(?:new|updated?|revised?)\s+(?:system\s+)?(?:instructions?|prompt|directive|role|persona)",
+    r"you\s+are\s+now\s+(?:a\s+)?(?!a\s+medical)",  # role-swap except legit "you are now a medical ..."
+    r"act\s+as\s+(?:if\s+you\s+are\s+)?(?:a\s+)?(?:different|another|evil|hacker|DAN|jailbreak)",
+    r"pretend\s+(?:you\s+are|to\s+be)\s+(?:a\s+)?(?:different|another|evil|hacker|DAN)",
+    r"\bDAN\b",  # "Do Anything Now" jailbreak
+    r"jailbreak",
+    r"(?:override|bypass|disable|remove)\s+(?:safety|filter|restriction|guardrail|system)",
+    r"(?:ignore|skip|disable)\s+(?:(?:your|all|the)\s+)?(?:safety|filter|restriction|guardrail|ethical|moral)",
+    # Role/system prompt injection via delimiters
+    r"(?:SYSTEM|ASSISTANT|USER)\s*:\s*(?:you\s+are|ignore|forget|disregard)",
+    r"<\s*(?:system|sys|prompt|instruction)\s*>",
+    r"\[\s*(?:SYSTEM|INST|SYS)\s*\]",
+    r"###\s*(?:System|Instruction|Prompt)\s*:",
+    # Vietnamese variants
+    r"bỏ\s+qua\s+(?:tất\s+cả\s+)?(?:hướng\s+dẫn|lệnh|chỉ\s+thị)\s+(?:trước|trên|cũ)",
+    r"quên\s+(?:tất\s+cả|hướng\s+dẫn|lệnh|chỉ\s+thị)",
+    r"(?:bây\s+giờ\s+)?bạn\s+là\s+(?:một\s+)?(?:AI|trợ\s+lý|bot)\s+khác",
+    r"giả\s+vờ\s+(?:bạn\s+là|như)\s+(?:AI|trợ\s+lý)\s+(?:khác|không\s+bị\s+hạn\s+chế)",
+    r"(?:vô\s+hiệu\s+hóa|tắt|bỏ\s+qua)\s+(?:bộ\s+lọc|hạn\s+chế|an\s+toàn|kiểm\s+duyệt)",
+    # Token smuggling via encoding hints
+    r"base64\s*:\s*[A-Za-z0-9+/=]{20,}",
+)
+
+_COMPILED_INJECTION_PATTERNS = [
+    re.compile(p, re.IGNORECASE | re.UNICODE) for p in _INJECTION_PATTERNS
+]
+
+
+def detect_and_sanitize_injection(message: str) -> Tuple[str, bool]:
+    """VULN-08: Detect prompt injection patterns and sanitize the message.
+
+    Strategy: strip the matched injection segment from the message rather than
+    blocking outright, so users who accidentally trigger a pattern still receive
+    a medical response for the legitimate portion of their query.
+
+    Returns:
+        (sanitized_message, was_injected)
+    """
+    if not message:
+        return message, False
+
+    was_injected = False
+    sanitized = message
+
+    for pattern in _COMPILED_INJECTION_PATTERNS:
+        match = pattern.search(sanitized)
+        if match:
+            was_injected = True
+            # Remove only the matched injection fragment
+            sanitized = pattern.sub("", sanitized)
+
+    # Collapse extra whitespace after removal
+    if was_injected:
+        sanitized = re.sub(r"\s{2,}", " ", sanitized).strip()
+        logger.warning(
+            "VULN-08 PROMPT INJECTION DETECTED: Injection patterns removed from user message. "
+            "Original length=%d, sanitized length=%d",
+            len(message), len(sanitized)
+        )
+
+    return sanitized, was_injected
 
 
 def enforce_question_limit(answer: str, max_questions: int,
@@ -136,6 +208,11 @@ def process_clinical_chat(
     if len(user_message) > MAX_MESSAGE_LENGTH:
         user_message = user_message[:MAX_MESSAGE_LENGTH]
 
+    # VULN-08: Prompt injection filter — sanitize before any downstream AI call
+    user_message, _injection_detected = detect_and_sanitize_injection(user_message)
+    if _injection_detected:
+        metrics_collector.increment("prompt_injection_attempts_total")
+
     has_image = bool(image_bytes and len(image_bytes) > 0)
     if not user_message and not has_image:
         raise ValueError("Vui lòng nhập nội dung tin nhắn hoặc đính kèm ảnh triệu chứng.")
@@ -207,20 +284,16 @@ def process_clinical_chat(
         }
 
     # -------------------------------------------------------------
-    # FAST-PATH CHÀO HỎI & KHỞI TẠO (Phản hồi tức thì < 0.01 giây)
+    # FAST-PATH CHÀO HỎI THUẦN TÚY (Không khớp nếu kèm triệu chứng hoặc hỏi bệnh)
     # -------------------------------------------------------------
-    greeting_patterns = [
-        r"^hello\b", r"^hi\b", r"^hey\b", r"^alo\b",
-        r"^xin ch[àa]o\b", r"^ch[àa]o\b", r"^ch[àa]o b[ạa]n\b", r"^b[áa]c s[ĩi]\s*ơi\b"
-    ]
-    is_greeting = any(re.search(pat, msg_clean) for pat in greeting_patterns) or msg_clean in ["hello", "hi", "chào", "xin chào"]
-    has_medical_keywords = any(w in msg_clean for w in [
-        "sốt", "sot", "đau", "dau", "ho", "rát", "rat", "nghẹt", "nghet", "mệt", "met",
-        "nôn", "non", "bụng", "bung", "ngứa", "ngua", "thuốc", "thuoc", "bệnh", "benh",
-        "fever", "pain", "cough", "ache", "rash", "vomit"
-    ])
-    if is_greeting and not has_medical_keywords and not has_image:
-        logger.info(f"[REQ-{req_id}] Kích hoạt Fast-path chào hỏi ban đầu (<0.01s)")
+    pure_greeting_re = re.compile(
+        r"^\s*(?:xin\s+)?(?:ch[àa]o(?:\s+(?:b[ạa]n|em|anh|ch[ịi]|b[áa]c\s*s[ĩi]|tr[ợo]\s*l[ýy]|medimind|bot|ai))?"
+        r"|hello(?:\s+there)?|hi(?:\s+there)?|hey|alo|b[áa]c\s*s[ĩi]\s*[ơo]i)(?:\s+(?:[ạa]|nh[ée]|nha|[ơo]i))?[!.,?\s]*$",
+        re.IGNORECASE,
+    )
+    is_pure_greeting = bool(pure_greeting_re.fullmatch(msg_clean))
+    if is_pure_greeting and not has_image:
+        logger.info(f"[REQ-{req_id}] Kích hoạt Fast-path chào hỏi thuần túy (<0.01s)")
         triage_result = analyze_symptoms(user_message, history, lang=lang, has_image=False)
         metrics_collector.increment("requests_success")
         return {
@@ -233,7 +306,8 @@ def process_clinical_chat(
             "differential_diagnosis": [],
             "is_emergency": False,
             "degraded": False,
-            "sources": triage_result.get("sources", [])
+            "sources": [],
+            "rag_status": "not_applicable",
         }
 
     # -------------------------------------------------------------
@@ -262,6 +336,7 @@ def process_clinical_chat(
     # TẦNG 3: BỘ NÃO SUY LUẬN AI (Gemini) + FALLBACK DỰ PHÒNG NỘI BỘ
     # -------------------------------------------------------------
     degraded = False
+    ai_error_code = None
     gemini_result = None
 
     try:
@@ -287,6 +362,8 @@ def process_clinical_chat(
     else:
         # Kích hoạt Fallback Engine và đánh dấu trạng thái degraded
         degraded = True
+        err_info = getattr(gemini_service, "last_error_info", None)
+        ai_error_code = (err_info.get("classification") if isinstance(err_info, dict) else None) or "UNAVAILABLE"
         logger.info(f"[REQ-{req_id}] Chuyển sang Fallback Engine (degraded=True)")
 
         # Kiểm tra an toàn khẩn cấp: Đánh giá lại dấu hiệu cấp cứu deterministically trước khi tạo fallback
@@ -400,6 +477,8 @@ def process_clinical_chat(
         diff_diag = []
 
     sources = reference_sources(rag_docs)
+    rag_available = medical_rag_service.is_available()
+    rag_status = "ready" if rag_docs else ("not_ready" if not rag_available else "no_match")
 
     total_ms = (time.perf_counter() - total_start) * 1000.0
     metrics_collector.record_latency("total_request_latency_ms", total_ms)
@@ -419,7 +498,14 @@ def process_clinical_chat(
         "differential_diagnosis": diff_diag,
         "is_emergency": bool(triage_result.get("is_emergency", False)),
         "degraded": degraded,
-        "sources": sources
+        "ai_status": "unavailable" if degraded else "ready",
+        "ai_error_code": ai_error_code if degraded else None,
+        "sources": sources,
+        "rag_status": rag_status,
+        "knowledge_limitation": (
+            "Kho tri thức y văn RAG hiện chưa sẵn sàng nên phản hồi chưa có trích dẫn y văn đối chiếu."
+            if not rag_available else ""
+        ),
     }
 
 

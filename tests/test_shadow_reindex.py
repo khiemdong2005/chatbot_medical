@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DEV_DATASET_PATH = ROOT / "evaluation" / "rag_dev_dataset.json"
 HOLDOUT_DATASET_PATH = ROOT / "evaluation" / "rag_test_dataset.json"
 SHADOW_COL_NAME = "medical_knowledge_shadow_v2_20261114_211653"
+ACTIVE_V4_COL_NAME = "medical_knowledge_expanded_v4_20261115_005612"
 
 def _has_seeded_vectordb():
     p = ROOT / "medical_vectordb" / "chroma.sqlite3"
@@ -46,15 +47,15 @@ class TestShadowCollectionIntegrity:
     """Kiểm tra sự tồn tại và tính hợp lệ của Shadow Collection."""
 
     def test_shadow_collection_exists_and_active_preserved(self):
-        """Shadow Collection tồn tại với 408 chunks, và Active Collection cũ (414 chunks) được bảo toàn nguyên vẹn."""
-        rag_old = MedicalRAGService(collection_name="medical_knowledge", vector_search_enabled=False)
+        """V2 rollback collection (408 chunks) và Active V4 collection (725 chunks) đều tồn tại và toàn vẹn."""
+        rag_active = MedicalRAGService(collection_name=ACTIVE_V4_COL_NAME, vector_search_enabled=False)
         rag_shadow = MedicalRAGService(collection_name=SHADOW_COL_NAME, vector_search_enabled=False)
 
-        assert rag_old.collection is not None
-        assert rag_old.collection.count() == 414, f"Active collection cũ bị biến đổi: {rag_old.collection.count()}"
+        assert rag_active.collection is not None
+        assert rag_active.collection.count() == 725, f"Active V4 collection count không đúng: {rag_active.collection.count()}"
 
         assert rag_shadow.collection is not None
-        assert rag_shadow.collection.count() == 408, f"Shadow collection count không đúng: {rag_shadow.collection.count()}"
+        assert rag_shadow.collection.count() == 408, f"V2 rollback collection count không đúng: {rag_shadow.collection.count()}"
 
     def test_shadow_collection_metadata_and_provenance(self):
         """Metadata của Shadow Collection lưu đầy đủ thông tin provenance và cấu hình chunking."""

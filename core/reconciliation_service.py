@@ -775,7 +775,7 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
             if any(m["name"] == cand_name for m in meds):
                 continue
 
-            str_val = known_strength
+            str_val = ""
             if has_strength:
                 raw_str = has_strength.group(1) or has_strength.group(2)
                 if raw_str and re.search(r"[A4][O0o]\s*mg", raw_str, re.IGNORECASE):
@@ -783,31 +783,47 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
                 elif raw_str:
                     str_val = re.sub(r"\s+", "", raw_str)
 
-            qty_val = "Theo đơn"
+            qty_val = ""
             if has_qty:
                 q_num = has_qty.group(1)
                 q_u = has_qty.group(2).lower()
                 q_u_clean = {"vien": "Viên", "v2n": "Viên", "goi": "Gói", "ong": "Ống"}.get(q_u, q_u.capitalize())
                 qty_val = f"{q_num} {q_u_clean}"
 
-            usage_val = "Uống sau ăn theo hướng dẫn của bác sĩ"
+            usage_val = ""
             if i + 1 < len(rows):
                 nxt = rows[i+1].get("text", "")
-                if any(k in nxt.lower() for k in ["uống", "uong", "sáng", "sang", "trưa", "trua", "chiều", "chieu", "tối", "toi"]):
+                if any(k in nxt.lower() for k in ["uống", "uong", "sáng", "sang", "trưa", "trua", "chiều", "chieu", "tối", "toi", "ngậm", "ngam", "bôi", "thoa"]):
                     u_clean = re.sub(r"Hẹn\s*tái\s*khám.*", "", nxt, flags=re.IGNORECASE).replace("|", " ").replace("_", " ").strip()
                     usage_val = re.sub(r"\s+", " ", u_clean)
-                    if "Uống sáng" in usage_val and "viên" in usage_val and not re.search(r"\d+", usage_val):
-                        usage_val = usage_val.replace("viên", "1 viên")
+
+            dose_src = f"{txt} {usage_val}"
+            m_dose = re.search(r"(\d+(?:[.,]\d+)?\s*(?:viên(?:\s*ngậm)?|gói|ống|ml|giọt|nhát))", dose_src, re.IGNORECASE)
+            dose_val = m_dose.group(1) if (m_dose and (usage_val or any(k in txt.lower() for k in ["uống", "uong", "sáng", "trưa", "chiều", "tối", "ngậm", "lần"]))) else ""
+
+            freq_val = ""
+            m_fr = re.search(r"(\d+)\s*l[aầ]n\s*(?:/|trên)?\s*(?:ngày|ngay)?", dose_src, re.IGNORECASE)
+            if m_fr:
+                freq_val = f"{m_fr.group(1)} lần / ngày"
+            else:
+                cues = []
+                if re.search(r"\bs[aá]ng\b|\bsang\b", dose_src, re.IGNORECASE): cues.append("Sáng")
+                if re.search(r"\btr[uư]a\b|\btrua\b", dose_src, re.IGNORECASE): cues.append("Trưa")
+                if re.search(r"\bchi[eề]u\b|\bchieu\b", dose_src, re.IGNORECASE): cues.append("Chiều")
+                if re.search(r"\bt[oố]i\b|\btoi\b", dose_src, re.IGNORECASE): cues.append("Tối")
+                if cues:
+                    freq_val = f"{len(cues)} lần / ngày ({' - '.join(cues)})"
 
             meds.append({
                 "name": cand_name,
-                "strength": str_val or "40mg",
+                "strength": str_val,
                 "quantity": qty_val,
-                "dose": "1 viên",
-                "frequency": "1 lần / ngày (Sáng)",
+                "dose": dose_val,
+                "frequency": freq_val,
                 "days": qty_val,
                 "usage": usage_val,
-                "purpose": known_purpose
+                "purpose": known_purpose,
+                "needs_review": not bool(str_val and dose_val and freq_val and qty_val)
             })
     return meds
 
@@ -1169,28 +1185,47 @@ def parse_clinical_prescription_blocks(lines: List[str]) -> List[Dict[str, Any]]
                 qty = f"{num} {u}"
 
         freq = ""
+        cues = []
+        if re.search(r"s[aá]ng|sang", full, re.IGNORECASE): cues.append("Sáng")
+        if re.search(r"tr[uư]a|trua", full, re.IGNORECASE): cues.append("Trưa")
+        if re.search(r"chi[eề]u|chieu", full, re.IGNORECASE): cues.append("Chiều")
+        if re.search(r"t[oố]i|toi", full, re.IGNORECASE): cues.append("Tối")
         m_f = re.search(r"(\d)\s*l[aầ]n", full, re.IGNORECASE)
         if m_f:
-            cues = []
-            if re.search(r"s[aá]ng|sang", full, re.IGNORECASE): cues.append("Sáng")
-            if re.search(r"tr[uư]a|trua", full, re.IGNORECASE): cues.append("Trưa")
-            if re.search(r"chi[eề]u|chieu", full, re.IGNORECASE): cues.append("Chiều")
-            if re.search(r"t[oố]i|toi", full, re.IGNORECASE): cues.append("Tối")
             freq = f"{m_f.group(1)} lần / ngày"
             if cues:
                 freq += f" ({' - '.join(cues)})"
+        elif cues:
+            freq = f"{len(cues)} lần / ngày ({' - '.join(cues)})"
 
-        dose = "1 viên" if "viên" in qty.lower() or "vien" in full.lower() or "v2n" in full.lower() else ("1 gói" if "gói" in qty.lower() or "gbi" in full.lower() else "1 ống")
-        if "ngậm" in full.lower():
-            dose = "1 viên ngậm"
+        dose = ""
+        m_dose = re.search(
+            r"(?:m[oỗ]i\s*l[aầ]n|s[aá]ng|tr[uư]a|chi[eề]u|t[oố]i|u[oố]ng|ng[aậ]m)\s*:?\s*(\d+(?:[.,]\d+)?\s*(?:vi[eê]n(?:\s*ng[aậ]m)?|g[oó]i|[oố]ng|ml|gi[oọ]t))",
+            full,
+            re.IGNORECASE,
+        )
+        if not m_dose:
+            m_dose = re.search(
+                r"(\d+(?:[.,]\d+)?\s*(?:vi[eê]n(?:\s*ng[aậ]m)?|g[oó]i|[oố]ng|ml|gi[oọ]t))\s*(?:tr[uư][oớ]c|sau|m[oỗ]i|s[aá]ng|tr[uư]a|chi[eề]u|t[oố]i|l[aầ]n)",
+                full,
+                re.IGNORECASE,
+            )
+        if m_dose:
+            dose = re.sub(r"\s+", " ", m_dose.group(1)).strip()
 
-        usage = "Uống sau ăn theo hướng dẫn của bác sĩ"
-        if "ngậm" in full.lower():
+        usage = ""
+        if "ngậm" in full.lower() or "ngam" in _ascii_fold(full):
             usage = "Ngậm tan từ từ trong miệng, không nhai nát"
         elif "sáng sau ăn" in full.lower() or "sang sau an" in _ascii_fold(full):
             usage = "Uống vào buổi sáng ngay sau khi ăn no"
-        elif "sáng" in full.lower() or "sang" in _ascii_fold(full):
-            usage = "Uống buổi sáng theo đơn bác sĩ"
+        elif any(k in _ascii_fold(full) for k in ("truoc an", "sau an", "uong", "boi", "thoa", "nho", "xit", "sang", "trua", "chieu", "toi")):
+            if len(b) > 1:
+                usage = clean_ocr_typos(" ".join(b[1:])).strip()
+            else:
+                usage = clean_ocr_typos(full).strip()
+
+        m_str = re.search(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu))\b", full, re.IGNORECASE)
+        strength = re.sub(r"\s+", "", m_str.group(1)) if m_str else ""
 
         low_full = _ascii_fold(full)
         matched = None
@@ -1204,26 +1239,12 @@ def parse_clinical_prescription_blocks(lines: List[str]) -> List[Dict[str, Any]]
 
         if matched:
             name = matched["name"]
-            strength = matched["strength"]
             purpose = matched["purpose"]
-            if matched.get("form") == "Viên":
-                dose = "1 viên"
-            elif matched.get("form") == "Gói":
-                dose = "1 gói"
-            elif matched.get("form") == "Ống":
-                dose = "1 ống"
-            elif matched.get("form") == "Viên ngậm":
-                dose = "1 viên ngậm"
-            if not qty and matched.get("default_qty"):
-                qty = matched["default_qty"]
-            elif not qty and matched.get("form"):
-                qty = f"Theo đơn ({matched['form']})"
         else:
             first_l = b[0]
             first_l = re.sub(r"^\s*[1-9]\d*[\.\,\/\)\-\|\s]+\s*", "", first_l)
             first_l = re.sub(r"\b0?\d+(?:[.,]00)?\s*(?:viên|vien|gói|goi|ống|ong)\b.*$", "", first_l, flags=re.IGNORECASE)
             name = _clean_medication_name(first_l.strip(" |,-;:"))
-            strength = ""
             purpose = "Thuốc điều trị theo chỉ định"
 
         if not is_plausible_medication_name(name):
@@ -1238,13 +1259,13 @@ def parse_clinical_prescription_blocks(lines: List[str]) -> List[Dict[str, Any]]
             "name": name,
             "standard_name": name,
             "strength": strength,
-            "quantity": qty or "Theo đơn",
-            "days": qty or "Theo đơn",
+            "quantity": qty,
+            "days": qty,
             "dose": dose,
-            "frequency": freq or "Theo chỉ dẫn bác sĩ",
+            "frequency": freq,
             "usage": usage,
             "purpose": purpose,
-            "needs_review": False
+            "needs_review": not bool(strength and dose and freq and qty)
         })
     return res
 
@@ -1301,52 +1322,36 @@ def _clean_and_refine_medication_list(meds: List[Dict[str, Any]], raw_text: str 
                 else:
                     norm_name = "Cefuroxim"
 
-            # Đặc trị Gastosic: tuyệt đối không bao giờ để hàm lượng 90mg / 96mg
-            if any(k in low_n for k in ["gastosic", "gastsus"]):
-                norm_strength = "Hỗn dịch gói"
-                norm_dose = "1 gói"
-                if not norm_days or "viên" in (norm_days or "").lower():
-                    norm_days = "30 Gói"
-            elif norm_strength == "0mg":
-                norm_strength = matched_kb["strength"]
+            # Nếu Gastosic bị đọc nhầm hàm lượng 90mg/96mg thì xóa con số sai, không tự bịa số lượng 30 Gói
+            if any(k in low_n for k in ["gastosic", "gastsus"]) and norm_strength in ("90mg", "96mg"):
+                norm_strength = ""
 
             if not norm_purpose:
                 norm_purpose = matched_kb["purpose"]
-
-            if not norm_days and matched_kb.get("default_qty") and re.search(r"\b\d+\s*(?:viên|vien|v2n|gói|goi|ống|ong)\b", raw_text, re.IGNORECASE):
-                norm_days = matched_kb["default_qty"]
-
-            if not norm_dose:
-                if matched_kb.get("form") == "Viên":
-                    norm_dose = "1 viên"
-                elif matched_kb.get("form") == "Gói":
-                    norm_dose = "1 gói"
-                elif matched_kb.get("form") == "Ống":
-                    norm_dose = "1 ống"
-                elif matched_kb.get("form") == "Viên ngậm":
-                    norm_dose = "1 viên ngậm"
-
-            if not norm_freq:
-                norm_freq = m.get("frequency") or ("2 lần / ngày" if any(num in (norm_days or "") for num in ["20", "30"]) else "")
-            if not norm_usage:
-                norm_usage = m.get("usage") or "Uống sau ăn theo hướng dẫn của bác sĩ"
 
         key_dedup = re.sub(r"\W+", "", norm_name.lower())[:8]
         if key_dedup in seen_names:
             continue
         seen_names.add(key_dedup)
 
+        final_dose = norm_dose or m.get("dose", "")
+        final_freq = norm_freq or m.get("frequency", "")
+        final_days = norm_days or m.get("days", "")
+        final_qty = norm_days or m.get("quantity", "")
+        final_usage = norm_usage or m.get("usage", "")
+        item_needs_review = bool(m.get("needs_review")) or not bool(norm_strength and final_dose and final_freq)
+
         clean_meds.append({
             "name": norm_name,
             "standard_name": norm_name,
             "strength": norm_strength,
-            "dose": norm_dose or m.get("dose", ""),
-            "frequency": norm_freq or m.get("frequency", ""),
-            "days": norm_days or m.get("days", ""),
-            "quantity": norm_days or m.get("quantity", ""),
-            "usage": norm_usage or m.get("usage", ""),
+            "dose": final_dose,
+            "frequency": final_freq,
+            "days": final_days,
+            "quantity": final_qty,
+            "usage": final_usage,
             "purpose": norm_purpose or m.get("purpose", ""),
-            "needs_review": False
+            "needs_review": item_needs_review
         })
     return clean_meds
 
@@ -1669,7 +1674,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                         "result": result_val or (parts[1] if len(parts) > 1 else ""),
                         "unit": unit_val or (parts[2] if len(parts) > 2 else ""),
                         "reference_range": ref_range or (parts[3] if len(parts) > 3 else ""),
-                        "flag_on_paper": flag_val or "Normal",
+                        "flag_on_paper": flag_val or "UNKNOWN",
                     })
             else:
                 m_single = re.match(
@@ -1683,7 +1688,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                         "result": m_single.group(2).replace(",", "."),
                         "unit": m_single.group(3),
                         "reference_range": (m_single.group(4) or "").strip(),
-                        "flag_on_paper": (m_single.group(5) or "Normal").strip(),
+                        "flag_on_paper": (m_single.group(5) or "UNKNOWN").strip(),
                     })
         data["metrics"] = metrics
 
@@ -1950,7 +1955,9 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                         nums_strictly_matched = False
                         break
 
+            missing_clinical = not bool(strength and (dose or freq))
             needs_review = (bool(med.get("needs_review"))
+                            or missing_clinical
                             or not (name_in_ocr and nums_strictly_matched)
                             or (matched_ocr_confidence is not None and matched_ocr_confidence < 0.7))
             med_confidence = 0.95 if not needs_review else 0.80

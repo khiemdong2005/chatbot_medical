@@ -2,7 +2,7 @@
 from copy import deepcopy
 from datetime import datetime, date
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import unicodedata
 from core.recipe_catalog import imported_recipes, catalog_stats, retrieve_candidates, title_key
 
