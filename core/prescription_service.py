@@ -25,6 +25,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv()
 
+GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
+
 from core.ocr_extractor import extract_prescription_text
 
 
@@ -46,6 +48,7 @@ def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filenam
 
     try:
         from core.llm_provider import llm_provider
+        from google.genai import types
 
         prompt = f"""
 Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI hàng đầu tại Việt Nam.
@@ -101,14 +104,20 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
                 img_bytes = f.read()
             ext = os.path.splitext(file_path)[1].lower()
             mime_type = "image/png" if ext == ".png" else "application/pdf" if ext == ".pdf" else "image/jpeg"
-            contents_payload.append({"type": "image_bytes", "data": img_bytes, "mime_type": mime_type})
+            contents_payload.append(types.Part.from_bytes(data=img_bytes, mime_type=mime_type))
 
         contents_payload.append(prompt)
 
-        candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+        if llm_provider.is_openrouter_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+            ocr_api_key = None
+        else:
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+            ocr_api_key = GEMINI_API_KEY
         data = llm_provider.generate_json(
             contents=contents_payload,
             candidate_models=candidate_models,
+            api_key=ocr_api_key,
             temperature=0.1,
             operation="prescription_ocr"
         )
@@ -147,6 +156,7 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
 
     try:
         from core.llm_provider import llm_provider
+        from google.genai import types
 
         with open(file_path, 'rb') as f:
             file_bytes = f.read()
@@ -165,14 +175,20 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
         """
 
-        candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+        if llm_provider.is_openrouter_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+            ocr_api_key = None
+        else:
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+            ocr_api_key = GEMINI_API_KEY
         contents = [
-            {"type": "image_bytes", "data": file_bytes, "mime_type": mime_type},
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
             prompt
         ]
         data = llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
+            api_key=ocr_api_key,
             operation="prescription_ocr"
         )
         if isinstance(data, dict):

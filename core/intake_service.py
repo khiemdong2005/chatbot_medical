@@ -1462,11 +1462,7 @@ def mask_pii_on_image(image_path: str, bboxes_to_mask: list) -> str:
     """
     (Tùy chọn) Che thông tin định danh (PII: tên, ngày sinh, địa chỉ)
     trước khi gửi ảnh ra API bên ngoài.
-    Chỉ trả về đường dẫn tệp đã che khi thực sự vẽ che ít nhất 1 vùng tọa độ hợp lệ.
-    Nếu không có tọa độ để che, trả lại đường dẫn gốc (caller phải nhận biết và chặn gửi ngoài).
     """
-    if not bboxes_to_mask:
-        return image_path
     try:
         with open(image_path, "rb") as f:
             chunk = f.read()
@@ -1474,24 +1470,16 @@ def mask_pii_on_image(image_path: str, bboxes_to_mask: list) -> str:
         img = cv2.imdecode(img_arr, cv2.IMREAD_COLOR)
         if img is None:
             return image_path
-
-        masked_count = 0
+            
         for box in bboxes_to_mask:
             if len(box) == 4 and isinstance(box[0], (int, float)):
                 # box dạng [x1, y1, x2, y2]
                 x1, y1, x2, y2 = map(int, box)
-                if x2 > x1 and y2 > y1:
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 0), -1)
-                    masked_count += 1
+                cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 0), -1)
             elif len(box) >= 4 and isinstance(box[0], (list, tuple)):
                 # polygon box [[x1, y1], [x2, y2], ...]
                 pts = np.array(box, dtype=np.int32)
-                if pts.shape[0] >= 3:
-                    cv2.fillPoly(img, [pts], (0, 0, 0))
-                    masked_count += 1
-
-        if masked_count == 0:
-            return image_path
+                cv2.fillPoly(img, [pts], (0, 0, 0))
 
         out_path = os.path.splitext(image_path)[0] + "_masked.jpg"
         is_success, buffer = cv2.imencode(".jpg", img)

@@ -1871,73 +1871,42 @@ def create_app(test_config=None):
     @app.route("/api/prescription/confirm", methods=["POST"])
     def confirm_prescription():
         """
-        Lưu dữ liệu đơn thuốc hoặc phiếu xét nghiệm sau khi người dùng đã dò lại và xác nhận chính xác.
-        Giữ route legacy tương thích ngược nhưng bắt buộc xác thực và bảo toàn loại tài liệu.
+        Lưu dữ liệu đơn thuốc sau khi người dùng đã dò lại và xác nhận chính xác.
+        Cho phép cập nhật thông tin đã chỉnh sửa (nếu có) vào MedicalDocument.
         """
         user_id = session.get("user_id")
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "error": "Vui lòng đăng nhập để xác nhận và lưu tài liệu y tế.",
-                "message": "Vui lòng đăng nhập để xác nhận và lưu tài liệu y tế.",
-            }), 401
-
         data = request.get_json(silent=True) or {}
         doc_id = data.get("document_id")
 
-        if doc_id:
+        if doc_id and user_id:
             try:
                 doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
-                if not doc:
-                    return jsonify({
-                        "status": "error",
-                        "error": "Không tìm thấy tài liệu thuộc quyền sở hữu của bạn.",
-                        "message": "Không tìm thấy tài liệu thuộc quyền sở hữu của bạn.",
-                    }), 404
+                if doc:
+                    if doc.doc_type == "ocr_draft":
+                        doc.doc_type = "prescription"
+                    if data.get("patient_name"):
+                        doc.patient_name = data["patient_name"]
+                    if data.get("diagnosis"):
+                        doc.diagnosis = data["diagnosis"]
+                    if data.get("facility"):
+                        doc.facility = data["facility"]
+                    if data.get("doctor"):
+                        doc.doctor = data["doctor"]
 
-                existing_parsed = {}
-                if doc.parsed_data:
-                    try:
-                        existing_parsed = json.loads(doc.parsed_data)
-                    except Exception:
-                        existing_parsed = {}
-
-                resolved_type = data.get("doc_type") or existing_parsed.get("doc_type")
-                if doc.doc_type == "ocr_draft":
-                    doc.doc_type = "lab_test" if resolved_type == "lab_test" else "prescription"
-
-                if data.get("patient_name"):
-                    doc.patient_name = data["patient_name"]
-                if data.get("diagnosis"):
-                    doc.diagnosis = data["diagnosis"]
-                if data.get("facility"):
-                    doc.facility = data["facility"]
-                if data.get("doctor"):
-                    doc.doctor = data["doctor"]
-
-                if doc.doc_type == "lab_test":
-                    labs = data.get("labs") or data.get("metrics") or []
-                    doc.summary = f"{len(labs)} chỉ số xét nghiệm"
-                else:
                     meds = data.get("medications", [])
-                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if isinstance(m, dict) and m.get("name")]
+                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
                     sum_text = f"{len(meds)} loại thuốc"
                     if med_names:
                         sum_text += f": {', '.join(med_names)}"
                         if len(meds) > 3:
                             sum_text += f" và {len(meds) - 3} thuốc khác"
-                    doc.summary = sum_text
 
-                doc.parsed_data = json.dumps(data, ensure_ascii=False)
-                db.session.commit()
+                    doc.summary = sum_text
+                    doc.parsed_data = json.dumps(data, ensure_ascii=False)
+                    db.session.commit()
             except Exception as e:
                 db.session.rollback()
                 logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
-                return jsonify({
-                    "status": "error",
-                    "error": "Không thể cập nhật xác nhận tài liệu y tế.",
-                    "message": "Không thể cập nhật xác nhận tài liệu y tế.",
-                }), 500
 
         return jsonify({"status": "success", "message": "Đã xác nhận đơn thuốc thành công.", "data": data})
 

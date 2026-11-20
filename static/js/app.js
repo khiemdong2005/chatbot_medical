@@ -5289,12 +5289,6 @@ async function handlePrescriptionFileSelected(e) {
 
     currentPrescriptionData = data;
 
-    if (data.status === 'review' && data.review_schema_version === 3 && data.document_id && typeof renderOcrReview === 'function') {
-      renderOcrReview(data, file);
-      showMedicalToast('Vui lòng đối chiếu lại thông tin trích xuất với phiếu gốc trước khi lưu.', 'info', 5000);
-      return;
-    }
-
     // Chuyển tới màn hình dò lại & đối chiếu OCR cho người dùng kiểm tra trước
     renderPrescriptionVerification(data);
     showMedicalToast('Đã detect thông tin đơn thuốc: Quý vị vui lòng dò lại và bấm "Xác nhận đúng" để xem lịch uống.', 'info', 5000);
@@ -6333,33 +6327,15 @@ async function confirmAndProceedPrescription() {
   if (docVal) currentPrescriptionData.doctor = docVal;
   if (diagVal) currentPrescriptionData.diagnosis = diagVal;
 
-  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument (tránh gọi API với hồ sơ mẫu demo)
-  const isDemo = Boolean(currentPrescriptionData.is_demo || !currentPrescriptionData.document_id);
-  const confirmEndpoint = (!isDemo && currentPrescriptionData.review_schema_version === 3 && currentPrescriptionData.document_id)
-    ? `/api/prescription/${currentPrescriptionData.document_id}/confirm`
-    : '/api/prescription/confirm';
-
-  if (!isDemo) {
-    try {
-      const res = await fetch(confirmEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...currentPrescriptionData, confirmed: true })
-      });
-      const resData = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        showMedicalToast(extractApiErrorMessage(resData, 'Chưa lưu được xác nhận đơn thuốc.'), 'error');
-        return;
-      }
-      if (confirmEndpoint !== '/api/prescription/confirm' && resData && typeof resData === 'object') {
-        if (!resData.preview_image_url && currentPrescriptionData.preview_image_url) {
-          resData.preview_image_url = currentPrescriptionData.preview_image_url;
-        }
-        currentPrescriptionData = { ...currentPrescriptionData, ...resData };
-      }
-    } catch (err) {
-      console.warn('Lỗi gửi xác nhận:', err);
-    }
+  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument
+  try {
+    fetch('/api/prescription/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentPrescriptionData)
+    }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
+  } catch (err) {
+    console.warn('Lỗi gửi xác nhận:', err);
   }
 
   // Ẩn màn hình dò lại

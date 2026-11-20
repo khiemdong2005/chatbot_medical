@@ -1,152 +1,8 @@
-import base64
-import json
-import os
 import re
-import subprocess
-import tempfile
 import time
 from statistics import median
 from typing import Dict, Any, List
 from core.ocr_extractor import get_ocr_reader
-
-_WINRT_OCR_SCRIPT = r"""
-$ProgressPreference = 'SilentlyContinue'
-$ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Runtime.WindowsRuntime
-$asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
-  $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
-})[0]
-function AwaitWinRT($WinRtTask, $ResultType) {
-  $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
-  $netTask = $asTask.Invoke($null, @($WinRtTask))
-  $netTask.Wait(-1) | Out-Null
-  return $netTask.Result
-}
-$null = [Windows.Storage.StorageFile, Windows.Storage, ContentType=WindowsRuntime]
-$null = [Windows.Graphics.Imaging.BitmapDecoder, Windows.Graphics.Imaging, ContentType=WindowsRuntime]
-$null = [Windows.Graphics.Imaging.SoftwareBitmap, Windows.Graphics.Imaging, ContentType=WindowsRuntime]
-$null = [Windows.Media.Ocr.OcrEngine, Windows.Foundation, ContentType=WindowsRuntime]
-$imgPath = [System.IO.Path]::GetFullPath($env:MEDIMIND_WINRT_OCR_IMAGE)
-$file = AwaitWinRT ([Windows.Storage.StorageFile]::GetFileFromPathAsync($imgPath)) ([Windows.Storage.StorageFile])
-$stream = AwaitWinRT ($file.OpenAsync([Windows.Storage.FileAccessMode]::Read)) ([Windows.Storage.Streams.IRandomAccessStream])
-try {
-  $decoder = AwaitWinRT ([Windows.Graphics.Imaging.BitmapDecoder]::CreateAsync($stream)) ([Windows.Graphics.Imaging.BitmapDecoder])
-  $bitmap = AwaitWinRT ($decoder.GetSoftwareBitmapAsync()) ([Windows.Graphics.Imaging.SoftwareBitmap])
-  $engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromUserProfileLanguages()
-  if ($null -eq $engine) {
-    $engine = [Windows.Media.Ocr.OcrEngine]::TryCreateFromLanguage([Windows.Globalization.Language]::new('en-US'))
-  }
-  if ($null -eq $engine) { [Console]::Error.WriteLine('WINRT_ENGINE_UNAVAILABLE'); exit 2 }
-  $ocrRes = AwaitWinRT ($engine.RecognizeAsync($bitmap)) ([Windows.Media.Ocr.OcrResult])
-  $linesOut = @()
-  foreach ($line in $ocrRes.Lines) {
-    $wordsOut = @()
-    foreach ($w in $line.Words) {
-      $r = $w.BoundingRect
-      $wordsOut += [PSCustomObject]@{
-        text = [string]$w.Text
-        x = [int][Math]::Round($r.X)
-        y = [int][Math]::Round($r.Y)
-        w = [int][Math]::Max(1, [Math]::Round($r.Width))
-        h = [int][Math]::Max(1, [Math]::Round($r.Height))
-      }
-    }
-    $linesOut += [PSCustomObject]@{ words = $wordsOut }
-  }
-  [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-  ConvertTo-Json -InputObject $linesOut -Depth 4 -Compress
-} finally {
-  if ($stream) { $stream.Dispose() }
-}
-"""
-
-
-class _WindowsWinrtReader:
-    """Built-in Windows 10/11 WinRT OCR adapter used locally when EasyOCR is absent."""
-
-    def __init__(self):
-        self.last_error = None
-
-    def readtext(self, image_or_path) -> list:
-        self.last_error = None
-        temp_path = None
-        target_path = image_or_path
-        if not isinstance(image_or_path, str):
-            import cv2
-            fd, temp_path = tempfile.mkstemp(suffix=".png")
-            os.close(fd)
-            cv2.imwrite(temp_path, image_or_path)
-            target_path = temp_path
-        try:
-            env = os.environ.copy()
-            env["MEDIMIND_WINRT_OCR_IMAGE"] = os.path.abspath(str(target_path))
-            encoded_cmd = base64.b64encode(_WINRT_OCR_SCRIPT.encode("utf-16le")).decode("ascii")
-            proc = subprocess.run(
-                ["powershell", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded_cmd],
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=12,
-                env=env,
-            )
-            if proc.returncode != 0:
-                stderr_msg = (proc.stderr or "").strip()
-                if "WINRT_ENGINE_UNAVAILABLE" in stderr_msg:
-                    self.last_error = "Windows WinRT OCR không tìm thấy gói ngôn ngữ nhận diện."
-                else:
-                    self.last_error = f"Windows WinRT OCR lỗi thực thi (exit={proc.returncode})."
-                return []
-            if not proc.stdout.strip():
-                return []
-            raw = proc.stdout.strip()
-            idx = raw.find("[")
-            if idx < 0:
-                idx = raw.find("{")
-            if idx < 0:
-                return []
-            parsed = json.loads(raw[idx:])
-            if isinstance(parsed, dict):
-                parsed = [parsed]
-            results = []
-            for line in parsed:
-                words = sorted(line.get("words") or [], key=lambda item: item.get("x", 0))
-                if not words:
-                    continue
-                groups = []
-                cur = [words[0]]
-                for w in words[1:]:
-                    prev = cur[-1]
-                    gap = w["x"] - (prev["x"] + prev["w"])
-                    col_gap = max(24.0, 2.2 * max(prev["h"], w["h"], 10))
-                    if gap > col_gap:
-                        groups.append(cur)
-                        cur = [w]
-                    else:
-                        cur.append(w)
-                groups.append(cur)
-                for grp in groups:
-                    text = " ".join(w["text"] for w in grp).strip()
-                    if not text:
-                        continue
-                    x1 = min(w["x"] for w in grp)
-                    y1 = min(w["y"] for w in grp)
-                    x2 = max(w["x"] + w["w"] for w in grp)
-                    y2 = max(w["y"] + w["h"] for w in grp)
-                    box = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
-                    results.append((box, text, 0.90))
-            return results
-        except subprocess.TimeoutExpired:
-            self.last_error = "Windows WinRT OCR quá thời gian xử lý."
-            return []
-        except Exception as exc:
-            self.last_error = f"Windows WinRT OCR lỗi: {type(exc).__name__}"
-            return []
-        finally:
-            if temp_path and os.path.exists(temp_path):
-                try:
-                    os.remove(temp_path)
-                except OSError:
-                    pass
 
 
 def _group_ocr_rows(lines: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -356,43 +212,19 @@ def extract_ocr_parallel(image_path: str, doc_type: str = "auto") -> Dict[str, A
     Đối với phiếu xét nghiệm: thêm thuật toán gom dòng/cột theo hàng ngang (table row grouping).
     """
     reader = get_ocr_reader()
-    engine_name = "easyocr"
     if reader is None:
-        if os.name == "nt":
-            reader = _WindowsWinrtReader()
-            engine_name = "winrt"
-        else:
-            engine_name = "none"
-    if reader is None:
-        return {
-            "success": False,
-            "engine": engine_name,
-            "error": "Không có bộ máy OCR cục bộ nào sẵn sàng (EasyOCR/WinRT).",
-            "lines": [],
-            "rows": [],
-            "raw_text": "",
-        }
+        return {"success": False, "error": "EasyOCR engine chưa sẵn sàng", "lines": [], "rows": [], "raw_text": ""}
 
     start_t = time.time()
     try:
         results = reader.readtext(image_path)
     except Exception as e:
-        return {"success": False, "engine": engine_name, "error": str(e), "lines": [], "rows": [], "raw_text": ""}
-
-    if not results and getattr(reader, "last_error", None):
-        return {
-            "success": False,
-            "engine": engine_name,
-            "error": reader.last_error,
-            "lines": [],
-            "rows": [],
-            "raw_text": "",
-        }
+        return {"success": False, "error": str(e), "lines": [], "rows": [], "raw_text": ""}
 
     results, orientation_deg, reading_results = _retry_page_orientation(reader, image_path, results)
     if not results:
         duration = round(time.time() - start_t, 2)
-        return {"success": True, "engine": engine_name, "lines": [], "rows": [], "raw_text": "", "duration": duration}
+        return {"success": True, "lines": [], "rows": [], "raw_text": "", "duration": duration}
 
     rough_text = " ".join(str(item[1]) for item in results)
     is_prescription = doc_type == "prescription" or (
@@ -435,7 +267,6 @@ def extract_ocr_parallel(image_path: str, doc_type: str = "auto") -> Dict[str, A
 
     return {
         "success": True,
-        "engine": engine_name,
         "duration_sec": duration,
         "total_lines": len(lines),
         "total_rows": len(rows),
