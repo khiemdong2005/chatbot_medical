@@ -590,7 +590,7 @@
             <div id="home-greeting-badge"
               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-xs font-extrabold uppercase tracking-widest text-slate-200 shadow-sm">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] animate-pulse"></span>
-              <span id="home-greeting-text">CHÀO BUỔI CHIỀU, KHIÊM NGUYỄN</span>
+              <span id="home-greeting-text">CHÀO BUỔI SÁNG</span>
             </div>
 
             <!-- Big Headline -->
@@ -602,7 +602,7 @@
 
             <!-- Subtitle -->
             <p data-i18n="home_hero_desc"
-              class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg font-normal">
+              class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl font-normal text-pretty">
               Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.
             </p>
 
@@ -637,8 +637,8 @@
 
             <!-- Trust badges -->
             <div
-              class="home-hero-trust flex flex-wrap items-center gap-x-6 gap-y-2.5 pt-2 text-xs sm:text-sm font-semibold text-slate-300">
-              <span class="flex items-center gap-2">
+              class="home-hero-trust flex flex-wrap items-center gap-x-5 lg:gap-x-6 gap-y-3.5 pt-2 text-xs sm:text-sm font-semibold text-slate-300 leading-normal">
+              <span class="flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -646,14 +646,14 @@
                 </svg>
                 <span data-i18n="home_badge_security">Thông tin được bảo mật</span>
               </span>
-              <span class="flex items-center gap-2">
+              <span class="flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span data-i18n="home_badge_data">Hỗ trợ dựa trên dữ liệu</span>
               </span>
-              <span class="flex items-center gap-2">
+              <span class="flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -699,15 +699,14 @@
               class="text-[11px] font-extrabold tracking-[0.18em] uppercase text-amber-600 dark:text-amber-400 block">KHÁM
               PHÁ</span>
             <h2 data-i18n="home_disc_title"
-              class="text-2xl sm:text-3xl font-black tracking-normal leading-[1.42] sm:leading-[1.38] text-slate-900 dark:text-white">
-              Mọi thứ bạn cần<br class="hidden sm:inline"> để sống khỏe hơn.
+              class="text-2xl sm:text-3xl font-black tracking-normal leading-[1.35] text-slate-900 dark:text-white" style="text-wrap: balance;">
+              Mọi thứ bạn cần để sống khỏe hơn.
             </h2>
           </div>
-          <div class="text-left md:text-right max-w-md">
+          <div class="text-left md:text-right max-w-lg">
             <p data-i18n="home_disc_desc"
-              class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal">
-              Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi
-              ngày.
+              class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal" style="text-wrap: pretty;">
+              Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.
             </p>
             <button onclick="switchTab('doctor-tab')"
               class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer">

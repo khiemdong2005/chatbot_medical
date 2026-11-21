@@ -508,7 +508,7 @@ const translations = {
     home_metric_status: "Khỏe mạnh",
     home_metric_sub: "Chỉ số hôm nay",
     home_disc_tag: "KHÁM PHÁ",
-    home_disc_title: "Mọi thứ bạn cần<br class=\"hidden sm:inline\"> để sống khỏe hơn.",
+    home_disc_title: "Mọi thứ bạn cần để sống khỏe hơn.",
     home_disc_desc: "Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.",
     home_disc_more: "Khám phá tất cả",
     home_c1_tag: "HỖ TRỢ 24/7",
@@ -958,7 +958,7 @@ const translations = {
     home_metric_status: "Optimal",
     home_metric_sub: "Daily Health Index",
     home_disc_tag: "DISCOVERY",
-    home_disc_title: "Everything you need<br class=\"hidden sm:inline\"> to live healthier.",
+    home_disc_title: "Everything you need to live healthier.",
     home_disc_desc: "Simple, intelligent tools designed to turn health management into a seamless daily habit.",
     home_disc_more: "Explore All",
     home_c1_tag: "24/7 SUPPORT",
@@ -9727,9 +9727,9 @@ function updateHomeGreeting() {
   const greetingEl = document.getElementById('home-greeting-text');
   if (!badge && !greetingEl) return;
 
-  const rawName = (currentUser && (currentUser.name || currentUser.full_name)) ? (currentUser.name || currentUser.full_name).trim() : 'KHIÊM NGUYỄN';
+  const rawName = (currentUser && (currentUser.name || currentUser.full_name)) ? (currentUser.name || currentUser.full_name).trim() : '';
 
-  // Hiển thị lời chào theo thời gian thực (Real-time Sáng / Chiều / Tối) + Tên User
+  // Hiển thị lời chào theo thời gian thực (Real-time Sáng / Chiều / Tối) + Tên User (nếu đã đăng nhập)
   const hour = new Date().getHours();
   let timeGreeting = "CHÀO BUỔI SÁNG";
   if (hour >= 12 && hour < 18) {
@@ -9738,14 +9738,19 @@ function updateHomeGreeting() {
     timeGreeting = "CHÀO BUỔI TỐI";
   }
 
-  if (typeof currentLang !== 'undefined' && currentLang === 'en') {
+  const isEn = (typeof currentLang !== 'undefined' && currentLang === 'en');
+  if (isEn) {
     if (hour >= 5 && hour < 12) timeGreeting = "GOOD MORNING";
     else if (hour >= 12 && hour < 18) timeGreeting = "GOOD AFTERNOON";
     else timeGreeting = "GOOD EVENING";
   }
 
   if (greetingEl) {
-    greetingEl.innerText = `${timeGreeting}, ${rawName.toUpperCase()}`;
+    if (rawName) {
+      greetingEl.innerText = `${timeGreeting}, ${rawName.toUpperCase()}`;
+    } else {
+      greetingEl.innerText = timeGreeting;
+    }
   }
   if (badge) {
     badge.classList.remove('hidden');

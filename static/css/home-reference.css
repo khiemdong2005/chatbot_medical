@@ -14,9 +14,9 @@ body #home-tab.active .home-hero-banner {
 
 #home-tab .home-hero-layout {
   display: grid;
-  grid-template-columns: minmax(0, 39fr) minmax(0, 61fr);
+  grid-template-columns: minmax(0, 52fr) minmax(0, 48fr);
   align-items: center;
-  gap: 12px;
+  gap: 24px;
 }
 
 #home-tab .home-hero-copy {
@@ -27,13 +27,17 @@ body #home-tab.active .home-hero-banner {
 
 #home-tab .home-hero-title {
   font-size: clamp(1.75rem, 2.8vw, 2.9rem);
-  line-height: 1.03;
-  letter-spacing: -.025em;
+  line-height: 1.25;
+  letter-spacing: -.02em;
   text-wrap: balance;
 }
 
 #home-tab .home-hero-trust {
-  max-width: 27rem;
+  max-width: 100%;
+}
+
+#home-tab .home-hero-trust > span {
+  white-space: nowrap;
 }
 
 #home-tab .home-hero-stage {
@@ -180,7 +184,7 @@ body:has(#home-tab.active) .floating-launcher-heart {
 @media (max-width: 639px) {
   #home-tab .home-hero-title {
     font-size: clamp(1.5rem, 7.2vw, 2rem);
-    line-height: 1.06;
+    line-height: 1.26;
   }
 
   #home-tab .home-hero-stage {
