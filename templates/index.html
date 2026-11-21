@@ -1040,12 +1040,34 @@
             <div>
               <h3 data-i18n="assistant_header_title"
                 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Trợ lý y tế MediMind</h3>
-              <p data-i18n="assistant_header_subtitle"
+              <p id="chat-mode-status"
                 class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 font-normal">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>Đang trực tuyến • Tham khảo MedlinePlus và Dược thư</span>
+                <span id="chat-mode-status-text">Chế độ Hỏi đáp y tế • Trả lời ngắn gọn &amp; chính xác</span>
               </p>
             </div>
+          </div>
+
+          <!-- Chat Consultation Mode Switcher Tabs -->
+          <div class="chat-mode-tabs flex items-center gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200/80 dark:border-white/10" role="tablist">
+            <button type="button" id="chat-mode-general-btn" role="tab" aria-selected="true"
+              onclick="setChatConsultationMode('general')" class="chat-mode-tab active"
+              title="Hỏi đáp y tế nhanh: trả lời ngắn gọn, chính xác như LLM">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span data-i18n="chat_mode_general">Hỏi đáp y tế</span>
+            </button>
+            <button type="button" id="chat-mode-intake-btn" role="tab" aria-selected="false"
+              onclick="setChatConsultationMode('intake')" class="chat-mode-tab"
+              title="Thăm khám lâm sàng: bác sĩ ân cần hỏi từng bước để tóm tắt trước khám">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span data-i18n="chat_mode_intake">Thăm khám &amp; Tóm tắt trước khám</span>
+            </button>
           </div>
         </div>
 

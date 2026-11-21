@@ -63,6 +63,10 @@ def validate_chat_request(data):
     cid = data.get("conversation_id")
     if cid is not None and (not isinstance(cid, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,100}", cid)):
         raise ValueError("Mã cuộc trò chuyện không hợp lệ.")
+    mode = data.get("consultation_mode")
+    if mode not in ("informational", "collecting", "final", "general", "intake", "clinical_intake"):
+        mode = None
     return {"message": message.strip(), "history": clean_history[-20:], "image": image,
             "lang": lang, "conversation_id": cid,
-            "health_context": validate_health_context(data.get("health_context"))}
+            "health_context": validate_health_context(data.get("health_context")),
+            "consultation_mode": mode}

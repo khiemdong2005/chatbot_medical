@@ -413,8 +413,8 @@ def process_clinical_chat(
                 risk_level="Chưa đủ thông tin" if lang == "vi" else "Insufficient information",
                 risk_score=None, specialist="", differential_diagnosis=[],
             )
-        raw_answer = enforce_question_limit(raw_answer, 1 if consultation_mode == "collecting" else 0,
-                                            history=history, facts=facts)
+        if consultation_mode == "collecting":
+            raw_answer = enforce_question_limit(raw_answer, 1, history=history, facts=facts)
         if not raw_answer:
             raw_answer = ("Mình chưa đủ dữ kiện để trả lời chắc chắn."
                           if lang == "vi" else "I don't have enough information for a reliable answer.")
@@ -513,7 +513,8 @@ def execute_chat_workflow(
     user_id: Optional[int] = None,
     guest_token: Optional[str] = None,
     request_id: Optional[str] = None,
-    chat_processor=None
+    chat_processor=None,
+    consultation_mode: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Điều phối luồng chat lâm sàng hợp nhất giữa Chat Service và Intake Service:
@@ -525,6 +526,14 @@ def execute_chat_workflow(
 
     if chat_processor is None:
         chat_processor = process_clinical_chat
+
+    norm_mode = None
+    if consultation_mode in ("general", "informational"):
+        norm_mode = "informational"
+    elif consultation_mode in ("intake", "clinical_intake", "collecting"):
+        norm_mode = "collecting"
+    elif consultation_mode == "final":
+        norm_mode = "final"
 
     intake_res = None
     clinical_hint = None
@@ -540,6 +549,8 @@ def execute_chat_workflow(
         )
         if intake_res.get("next_question"):
             clinical_hint = intake_res["next_question"]
+
+    effective_mode = norm_mode or (intake_res or {}).get("consultation_mode", "collecting")
 
     if intake_res and intake_res.get("needs_red_flag_confirmation"):
         res = {
@@ -569,11 +580,11 @@ def execute_chat_workflow(
             image_mime_type=image_mime_type,
             lang=lang,
             gemini_service=gemini_service,
-            clinical_hint=clinical_hint,
+            clinical_hint=clinical_hint if effective_mode == "collecting" else None,
             intake_facts=(intake_res or {}).get("facts"),
             health_context=health_context,
             request_id=request_id,
-            consultation_mode=(intake_res or {}).get("consultation_mode", "collecting"),
+            consultation_mode=effective_mode,
         )
 
     persistence_saved = False

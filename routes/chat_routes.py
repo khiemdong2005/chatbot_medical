@@ -81,7 +81,8 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
                 gemini_service=gemini_service,
                 user_id=user_id,
                 guest_token=guest_token,
-                chat_processor=getattr(sys.modules.get("app"), "process_clinical_chat", process_clinical_chat)
+                chat_processor=getattr(sys.modules.get("app"), "process_clinical_chat", process_clinical_chat),
+                consultation_mode=data.get("consultation_mode")
             )
             return jsonify(res)
         except PermissionError as pe:

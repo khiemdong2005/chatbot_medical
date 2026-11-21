@@ -187,7 +187,7 @@ class _OpenRouterModels:
         if temperature is not None:
             payload["temperature"] = float(temperature)
         if max_tokens is not None and int(max_tokens) > 0:
-            payload["max_tokens"] = int(max_tokens)
+            payload["max_tokens"] = max(int(max_tokens), 4096)
         if self._chat:
             routing: Dict[str, Any] = {}
             if os.getenv("OPENROUTER_CHAT_DATA_COLLECTION", "").strip().lower() == "deny":
@@ -240,6 +240,10 @@ class _OpenRouterModels:
                               if isinstance(part, dict) and isinstance(part.get("text"), str))
         if not isinstance(content, str):
             content = ""
+        if not content.strip() and isinstance(message, dict):
+            reasoning = message.get("reasoning", "")
+            if isinstance(reasoning, str) and reasoning.strip():
+                content = reasoning
         return _OpenRouterResponse(text=content, raw=resp_json)
 
 
@@ -378,6 +382,10 @@ class _GroqModels:
             )
         if not isinstance(content, str):
             content = ""
+        if not content.strip() and isinstance(message, dict):
+            reasoning = message.get("reasoning", "")
+            if isinstance(reasoning, str) and reasoning.strip():
+                content = reasoning
         # Groq reasoning models (openai/gpt-oss-*) may put output only in "reasoning"
         # when max_tokens is too small — fall back to reasoning field if content is empty.
         if not content.strip() and isinstance(message, dict):

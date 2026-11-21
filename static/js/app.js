@@ -2589,6 +2589,27 @@ async function sendChatMessage() {
     renderChatHistoryList();
   }
 
+let activeChatMode = 'general';
+
+function setChatConsultationMode(mode) {
+  activeChatMode = (mode === 'intake') ? 'intake' : 'general';
+  const generalBtn = document.getElementById('chat-mode-general-btn');
+  const intakeBtn = document.getElementById('chat-mode-intake-btn');
+  const statusText = document.getElementById('chat-mode-status-text');
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+
+  if (generalBtn) generalBtn.classList.toggle('active', activeChatMode === 'general');
+  if (intakeBtn) intakeBtn.classList.toggle('active', activeChatMode === 'intake');
+
+  if (statusText) {
+    if (activeChatMode === 'intake') {
+      statusText.innerText = isEn ? 'Clinical Intake Mode • Pre-visit triage' : 'Chế độ Thăm khám lâm sàng • Bác sĩ trấn an & tóm tắt trước khám';
+    } else {
+      statusText.innerText = isEn ? 'General Q&A Mode • Concise & accurate' : 'Chế độ Hỏi đáp y tế • Trả lời ngắn gọn & chính xác';
+    }
+  }
+}
+
   // 2. Typing Indicator
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
@@ -2619,7 +2640,8 @@ async function sendChatMessage() {
         history: chatRequest.history,
         image: currentImage,
         lang: currentLang,
-        health_context: window.getChatHealthContext?.() || {}
+        health_context: window.getChatHealthContext?.() || {},
+        consultation_mode: activeChatMode === 'intake' ? 'collecting' : 'informational'
       }),
       signal: chatRequest.controller.signal
     });
@@ -9834,7 +9856,8 @@ async function sendFloatingChatMessage() {
         history: chatRequest.history,
         message: text,
         lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
-        health_context: window.getChatHealthContext?.() || {}
+        health_context: window.getChatHealthContext?.() || {},
+        consultation_mode: (typeof activeChatMode !== 'undefined' && activeChatMode === 'intake') ? 'collecting' : 'informational'
       }),
       signal: chatRequest.controller.signal
     });
