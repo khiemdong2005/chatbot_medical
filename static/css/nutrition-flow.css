@@ -23,14 +23,14 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 }
 
 #doctor-tab:has(#nf-search:not([hidden])) {
-  padding: 0 0 clamp(32px, 6svh, 64px);
+  padding: clamp(16px, 3svh, 32px) 0;
 }
 
 #doctor-tab #nf-search {
   display: flex;
   align-items: center;
   flex-direction: column;
-  padding-top: clamp(10px, 1.35svh, 15px);
+  margin-block: auto;
   text-align: center;
 }
 
@@ -188,7 +188,6 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 
 @media (max-width: 639px) {
   body:has(#doctor-tab.active #nf-search:not([hidden])) > main { padding-inline: 66px 16px !important; }
-  #doctor-tab:has(#nf-search:not([hidden])) { padding-bottom: 100px; }
   #doctor-tab .nf-hero-mascot { width: min(100%, clamp(180px, 57vw, 270px)); }
   #doctor-tab #nf-search #nf-search-title { font-size: clamp(25px, 6.4vw, 34px) !important; }
 }
@@ -1298,4 +1297,281 @@ body:not(.light-glass) #doctor-tab .nf-meal-pill.active { background: var(--nf-a
 
 @media (prefers-reduced-motion: reduce) {
   #doctor-tab .nf-card, #doctor-tab .nf-type-card, #doctor-tab .nf-condition-banner { transition: none; }
+}
+
+/* ==========================================================================
+   Combo Selector Tabs (Bữa ăn đầy đủ Combo 1, Combo 2, Combo 3)
+   ========================================================================== */
+#doctor-tab .nf-combo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  background: rgba(240, 249, 255, 0.7);
+  padding: 6px;
+  border-radius: 18px;
+  border: 1px solid #e0f2fe;
+}
+
+#doctor-tab .nf-combo-tab {
+  flex: 1 1 140px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+#doctor-tab .nf-combo-tab:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #bae6fd;
+}
+
+#doctor-tab .nf-combo-tab.active {
+  background: #ffffff;
+  border-color: #0284c7;
+  color: #0369a1;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+}
+
+#doctor-tab .nf-combo-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+#doctor-tab .nf-combo-tab-text {
+  display: flex;
+  flex-direction: column;
+}
+
+#doctor-tab .nf-combo-tab-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: inherit;
+}
+
+#doctor-tab .nf-combo-tab-badge {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+#doctor-tab .nf-combo-tab.active .nf-combo-tab-badge {
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.dark #doctor-tab .nf-combo-bar,
+body:not(.light-glass) #doctor-tab .nf-combo-bar {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark #doctor-tab .nf-combo-tab,
+body:not(.light-glass) #doctor-tab .nf-combo-tab {
+  color: #94a3b8;
+}
+
+.dark #doctor-tab .nf-combo-tab:hover,
+body:not(.light-glass) #doctor-tab .nf-combo-tab:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.dark #doctor-tab .nf-combo-tab.active,
+body:not(.light-glass) #doctor-tab .nf-combo-tab.active {
+  background: #1e293b;
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.dark #doctor-tab .nf-combo-tab.active .nf-combo-tab-badge,
+body:not(.light-glass) #doctor-tab .nf-combo-tab.active .nf-combo-tab-badge {
+  color: #7dd3fc;
+}
+
+/* ==========================================================================
+   Hydration Priority Alert & Safety Badges
+   ========================================================================== */
+#doctor-tab .nf-hydration-alert {
+  margin: 14px 0 20px;
+}
+
+#doctor-tab .nf-hydration-card {
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(240, 253, 250, 0.95) 100%);
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.1);
+}
+
+#doctor-tab .nf-hydration-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+#doctor-tab .nf-hydration-pill {
+  font-size: 11px;
+  font-weight: 800;
+  color: #0284c7;
+  letter-spacing: .05em;
+  background: #e0f2fe;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #bae6fd;
+}
+
+#doctor-tab .nf-hydration-src {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0284c7;
+  text-decoration: underline;
+}
+
+#doctor-tab .nf-hydration-title {
+  margin: 4px 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0369a1;
+}
+
+#doctor-tab .nf-hydration-lead {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+#doctor-tab .nf-hydration-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#doctor-tab .nf-hydration-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #1e293b;
+}
+
+#doctor-tab .nf-hydration-list .nf-check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+#doctor-tab .nf-hydration-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#doctor-tab .nf-hydration-warning .nf-warn-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+#doctor-tab .nf-hydration-warning strong {
+  display: block;
+  font-weight: 800;
+  margin-bottom: 2px;
+  color: #881337;
+}
+
+#doctor-tab .nf-allergy-safe-notice {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  color: #854d0e;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+#doctor-tab .nf-portion-clarity-badge {
+  margin: 10px 0 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.dark #doctor-tab .nf-hydration-card,
+body:not(.light-glass) #doctor-tab .nf-hydration-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(19, 78, 74, 0.4) 100%);
+  border-color: #0284c7;
+}
+
+.dark #doctor-tab .nf-hydration-title,
+body:not(.light-glass) #doctor-tab .nf-hydration-title {
+  color: #38bdf8;
+}
+
+.dark #doctor-tab .nf-hydration-lead,
+body:not(.light-glass) #doctor-tab .nf-hydration-lead,
+.dark #doctor-tab .nf-hydration-list li,
+body:not(.light-glass) #doctor-tab .nf-hydration-list li {
+  color: #cbd5e1;
+}
+
+.dark #doctor-tab .nf-hydration-warning,
+body:not(.light-glass) #doctor-tab .nf-hydration-warning {
+  background: rgba(136, 19, 55, 0.25);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: #fca5a5;
+}
+
+.dark #doctor-tab .nf-hydration-warning strong,
+body:not(.light-glass) #doctor-tab .nf-hydration-warning strong {
+  color: #fda4af;
+}
+
+.dark #doctor-tab .nf-allergy-safe-notice,
+body:not(.light-glass) #doctor-tab .nf-allergy-safe-notice {
+  background: rgba(113, 63, 18, 0.25);
+  border-color: rgba(234, 179, 8, 0.3);
+  color: #fef08a;
+}
+
+.dark #doctor-tab .nf-portion-clarity-badge,
+body:not(.light-glass) #doctor-tab .nf-portion-clarity-badge {
+  background: rgba(20, 83, 45, 0.25);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
 }

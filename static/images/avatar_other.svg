@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <!-- Facebook Style Unisex / Neutral Default Avatar -->
+  <defs>
+    <clipPath id="circleClipOther">
+      <circle cx="64" cy="64" r="64" />
+    </clipPath>
+  </defs>
+  <rect width="128" height="128" fill="#E4E6EB" />
+  <g clip-path="url(#circleClipOther)">
+    <!-- Smooth Neutral Head -->
+    <circle cx="64" cy="45" r="23" fill="#8A8D91" />
+    <!-- Rounded Unisex Shoulders & Torso -->
+    <path fill="#8A8D91" d="M64 76c-20 0-35 12-39 30-1.5 7-2 15-2 22h82c0-7-.5-15-2-22-4-18-19-30-39-30z" />
+  </g>
+</svg>

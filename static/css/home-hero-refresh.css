@@ -1,0 +1,79 @@
+/* Photo-led home hero */
+body .home-hero-banner { background: linear-gradient(90deg,rgba(8,43,58,.94) 0%,rgba(9,49,65,.84) 43%,rgba(13,55,68,.5) 100%), url('/static/images/home-care-hero.png') center 44%/cover no-repeat !important; border:0 !important; box-shadow:none !important; padding:clamp(28px,5vw,72px) !important; }
+body .home-hero-banner > .absolute { display:none; }
+body .home-hero-banner h1 { color:#fff !important; -webkit-text-fill-color:#fff !important; font-size:clamp(34px,4vw,56px); line-height:1.12; letter-spacing:-.04em; max-width:650px; }
+body .home-hero-banner [data-i18n="home_hero_desc"] { color:#e8f3f6 !important; font-size:16px; line-height:1.7; }
+body .home-hero-banner [data-i18n="home_badge_security"],body .home-hero-banner [data-i18n="home_badge_data"] { color:#d4e7ec !important; }
+body .home-hero-banner .lg\:col-span-7 button { min-height:48px; border-radius:10px; transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease !important; }
+body .home-hero-banner .lg\:col-span-7 button:hover { transform:translateY(-3px); box-shadow:0 9px 22px #061e2d55 !important; }
+body .home-hero-banner .lg\:col-span-7 button:active { transform:translateY(0) scale(.98); }
+body .home-hero-banner button:focus-visible { outline:3px solid #8ee2f3; outline-offset:3px; }
+body .home-guide { background:rgba(255,255,255,.97); color:#173647; padding:26px; border-radius:14px; box-shadow:0 16px 45px #08273835; }
+body .home-guide-eyebrow { color:#187d9a; font-size:10px; font-weight:800; letter-spacing:.12em; }
+body .home-guide h2 { margin:8px 0 15px; color:#173647 !important; font-size:19px; font-weight:700; }
+body .home-guide button { width:100%; display:flex; align-items:center; gap:12px; padding:15px 2px; text-align:left; color:#173647 !important; border-top:1px solid #dce7e9; background:transparent; transition:background .2s,transform .2s; }
+body .home-guide button:hover { background:#edf8fa; transform:translateX(4px); }
+body .home-guide button:active { transform:scale(.985); }
+body .home-guide button strong,body .home-guide button small { display:block; }
+body .home-guide button strong { font-size:13px; font-weight:700; }
+body .home-guide button small { margin-top:4px; color:#607d87; font-size:11px; line-height:1.4; }
+body .home-guide-icon { display:grid; place-items:center; flex:0 0 34px; height:34px; border-radius:50%; color:#087c98; background:#e5f4f6; font-size:18px; }
+body .home-guide-arrow { margin-left:auto; color:#31859a; transition:transform .2s; }
+body .home-guide button:hover .home-guide-arrow { transform:translateX(4px); }
+@media(max-width:1023px) { body .home-hero-banner { background-position:62% center !important; } body .home-guide { max-width:550px; } }
+@media(max-width:600px) { body .home-hero-banner { padding:28px 22px !important; background-position:66% center !important; } body .home-hero-banner h1 { font-size:34px; } body .home-hero-banner [data-i18n="home_hero_desc"] { font-size:14px; } body .home-guide { padding:20px; } }
+@media(prefers-reduced-motion:reduce) { body .home-hero-banner button,body .home-guide-arrow { transition:none !important; } }
+body.light-glass #home-tab .home-hero-banner, body:not(.light-glass) #home-tab .home-hero-banner { background:linear-gradient(90deg,rgba(8,43,58,.94) 0%,rgba(9,49,65,.84) 43%,rgba(13,55,68,.5) 100%),url('/static/images/home-care-hero.png') center 44%/cover no-repeat !important; }
+body.light-glass #home-tab .home-hero-banner [data-i18n="home_hero_desc"],body:not(.light-glass) #home-tab .home-hero-banner [data-i18n="home_hero_desc"] { color:#e8f3f6 !important; }
+body.light-glass #home-tab .home-hero-banner, body:not(.light-glass) #home-tab .home-hero-banner { background:linear-gradient(90deg,rgba(238,250,255,.87),rgba(232,249,255,.46)),url('/static/images/home-ocean-wellness.png') center center/cover no-repeat !important; }
+body.light-glass #home-tab .home-hero-banner h1,body:not(.light-glass) #home-tab .home-hero-banner h1 { color:#102e45 !important; -webkit-text-fill-color:#102e45 !important; }
+body.light-glass #home-tab .home-hero-banner [data-i18n="home_hero_desc"],body:not(.light-glass) #home-tab .home-hero-banner [data-i18n="home_hero_desc"] { color:#38556a !important; }
+body #home-tab .home-hero-banner [data-i18n="home_badge_security"],body #home-tab .home-hero-banner [data-i18n="home_badge_data"] { color:#46677a !important; }
+/* Gentle motion for the health illustration. */
+@keyframes home-ring-breathe { 0%, 100% { opacity: .48; } 50% { opacity: 1; } }
+@keyframes home-heartbeat { 0%, 40%, 100% { transform: scale(1); } 12% { transform: scale(1.1); } 22% { transform: scale(1.02); } 30% { transform: scale(1.07); } }
+@keyframes home-icon-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(-n+3) { animation: home-ring-breathe 4.8s ease-in-out infinite; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(2) { animation-delay: -.8s; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(3) { animation-delay: -1.6s; }
+body #home-tab .home-hero-banner [class*="ring-6"] > svg { animation: home-heartbeat 3.2s ease-in-out infinite; transform-origin: center; }
+body #home-tab .home-hero-banner [title="Khám lâm sàng"] > svg, body #home-tab .home-hero-banner [title="Hồ sơ bệnh án"] > svg, body #home-tab .home-hero-banner [title="Chỉ số sinh tồn"] > svg { animation: home-icon-float 3.8s ease-in-out infinite; }
+body #home-tab .home-hero-banner [title="Hồ sơ bệnh án"] > svg { animation-delay: -1.2s; }
+body #home-tab .home-hero-banner [title="Chỉ số sinh tồn"] > svg { animation-delay: -2.4s; }
+@media (prefers-reduced-motion: reduce) { body #home-tab .home-hero-banner [class*="w-[340px]"] > div, body #home-tab .home-hero-banner [class*="ring-6"] > svg, body #home-tab .home-hero-banner [title] > svg { animation: none !important; } }
+/* Balance the hero on desktop while keeping the stacked mobile layout. */
+@media (min-width: 1024px) {
+  body #home-tab .home-hero-banner .lg\:col-span-7 { grid-column: span 6 / span 6; }
+  body #home-tab .home-hero-banner .lg\:col-span-5 { grid-column: span 6 / span 6; justify-content: flex-start; padding-left: clamp(8px, 3vw, 44px); overflow: visible; }
+  body #home-tab .home-hero-banner .lg\:col-span-5 > [class*="w-[340px]"] { margin-left: 0; margin-right: 0; transform: scale(1.08); }
+  body #home-tab .home-hero-banner .lg\:col-span-5 > [class*="-bottom-2"] { right: auto; left: clamp(215px, 22vw, 320px); }
+}
+/* Spatial orbit: each ring rotates on a different 3D axis. */
+@keyframes orbit3d-a { from { transform: rotateX(62deg) rotateY(-18deg) rotateZ(0deg); } to { transform: rotateX(62deg) rotateY(-18deg) rotateZ(360deg); } }
+@keyframes orbit3d-b { from { transform: rotateX(20deg) rotateY(65deg) rotateZ(0deg); } to { transform: rotateX(20deg) rotateY(65deg) rotateZ(-360deg); } }
+@keyframes orbit3d-c { from { transform: rotateX(67deg) rotateY(30deg) rotateZ(0deg); } to { transform: rotateX(67deg) rotateY(30deg) rotateZ(360deg); } }
+@keyframes orbit3d-core { 0%,100% { transform: translateZ(26px) rotateY(-10deg) rotateX(4deg); } 50% { transform: translateZ(38px) rotateY(10deg) rotateX(-5deg); } }
+@keyframes orbit3d-satellite { 0%,100% { transform: translateY(0) translateZ(8px); } 50% { transform: translateY(-10px) translateZ(35px); } }
+body #home-tab .home-hero-banner [class*="w-[340px]"] { perspective: 850px; transform-style: preserve-3d; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(-n+3) { border-width: 2px; border-color: rgba(56,170,220,.5); box-shadow: inset 0 0 12px rgba(45,167,215,.18), 0 0 8px rgba(25,151,208,.2); opacity: 1; backface-visibility: visible; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(1) { animation: orbit3d-a 18s linear infinite; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(2) { animation: orbit3d-b 15s linear infinite; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(3) { animation: orbit3d-c 12s linear infinite; }
+body #home-tab .home-hero-banner [class*="ring-6"] { animation: orbit3d-core 6s ease-in-out infinite; box-shadow: 0 20px 28px rgba(0,86,160,.3), inset 0 5px 12px rgba(255,255,255,.32), 0 0 0 8px rgba(73,190,230,.2); }
+body #home-tab .home-hero-banner [title="Khám lâm sàng"],body #home-tab .home-hero-banner [title="Chỉ số sinh tồn"] { animation: orbit3d-satellite 4s ease-in-out infinite; }
+body #home-tab .home-hero-banner [title="Chỉ số sinh tồn"] { animation-delay: -2s; }
+@media (prefers-reduced-motion: reduce) {
+ body #home-tab .home-hero-banner [class*="w-[340px]"] > div { animation: none !important; }
+ body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(1) { transform: rotateX(62deg) rotateY(-18deg); }
+ body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(2) { transform: rotateX(20deg) rotateY(65deg); }
+ body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(3) { transform: rotateX(67deg) rotateY(30deg); }
+}
+/* Keep the familiar concentric layout, with a restrained dimensional core. */
+@keyframes calm-ring-depth { 0%,100% { opacity:.45; transform:rotateX(12deg) rotateY(-6deg); } 50% { opacity:.85; transform:rotateX(18deg) rotateY(6deg); } }
+@keyframes calm-heart-depth { 0%,100% { transform:translateZ(8px) rotateY(-5deg) scale(1); } 50% { transform:translateZ(16px) rotateY(5deg) scale(1.035); } }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(-n+3) { border-width:1px; border-color:rgba(54,168,217,.35); box-shadow:none; animation:calm-ring-depth 9s ease-in-out infinite; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(2) { animation-delay:-.7s; }
+body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(3) { animation-delay:-1.4s; }
+body #home-tab .home-hero-banner [class*="ring-6"] { animation:calm-heart-depth 7s ease-in-out infinite; box-shadow:0 12px 26px rgba(25,112,176,.24), inset 0 4px 12px rgba(255,255,255,.25), 0 0 0 8px rgba(73,190,230,.16); }
+body #home-tab .home-hero-banner [title="Khám lâm sàng"],body #home-tab .home-hero-banner [title="Chỉ số sinh tồn"] { animation:none; }
+@media (prefers-reduced-motion: reduce) { body #home-tab .home-hero-banner [class*="w-[340px]"] > div:nth-child(-n+3) { animation:none !important; transform:none; } body #home-tab .home-hero-banner [class*="ring-6"] { animation:none !important; } }

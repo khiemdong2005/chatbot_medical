@@ -227,6 +227,12 @@ body.chat-scene-active #chat-tab #send-btn { background: #138ac0 !important; }
 }
 
 @media (max-width: 639px) {
+  body > header .header-notification-wrap { position: static; }
+  body > header #notif-dropdown-menu {
+    right: .75rem;
+    width: min(20rem, calc(100% - 1.5rem));
+  }
+
   #notif-btn { width: 38px; height: 38px; }
   .header-chopper-portrait { width: 34px; height: 34px; }
   #header-chopper { width: 34px; height: 34px; }

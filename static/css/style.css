@@ -1153,13 +1153,79 @@ body:not(.light-glass) #prescription-result-section .text-sky-900 {
 body:not(.light-glass) #prescription-result-section .text-slate-950 {
   color: #F8FAFC !important;
 }
-body:not(.light-glass) #prescription-result-section #btn-subtab-meds {
-  background-color: #0284C7 !important;
-  color: #FFFFFF !important;
+
+/* Shared palette for the confirmed prescription and lab results. */
+.prescription-result {
+  --prescription-panel: #10243b;
+  --prescription-surface: #172f49;
+  --prescription-hover: #1d3a56;
+  --prescription-border: #395674;
+  --prescription-text: #f4f8ff;
+  --prescription-muted: #bbcee4;
+  --prescription-accent: #89d9ff;
+  --prescription-active: #08658d;
+  color: var(--prescription-text);
 }
-body:not(.light-glass) #prescription-result-section #btn-subtab-meds svg,
-body:not(.light-glass) #prescription-result-section #btn-subtab-meds span {
-  color: #FFFFFF !important;
+
+.prescription-panel {
+  background-color: var(--prescription-panel);
+  border-color: var(--prescription-border);
+}
+
+.prescription-surface {
+  background-color: var(--prescription-surface);
+  border-color: var(--prescription-border);
+}
+
+.prescription-divider { border-color: var(--prescription-border); }
+.prescription-value { color: var(--prescription-text); }
+.prescription-muted { color: var(--prescription-muted); }
+.prescription-accent { color: var(--prescription-accent); }
+
+.prescription-tab {
+  color: var(--prescription-muted);
+  border: 1px solid transparent;
+}
+
+.prescription-tab:hover {
+  background-color: var(--prescription-hover);
+  color: var(--prescription-text);
+}
+
+.prescription-tab[aria-pressed="true"],
+.prescription-primary {
+  color: #fff;
+  background-color: var(--prescription-active);
+}
+
+button.prescription-primary:hover { background-color: #075573; }
+button.prescription-accent:hover { color: var(--prescription-text); }
+
+.prescription-tab-count { border: 1px solid currentColor; }
+.prescription-lab-row:hover { background-color: var(--prescription-hover); }
+
+.prescription-result button:focus-visible {
+  outline: 2px solid var(--prescription-accent);
+  outline-offset: 2px;
+}
+
+@media print {
+  .prescription-result {
+    --prescription-panel: #fff;
+    --prescription-surface: #f1f5f9;
+    --prescription-hover: #e2e8f0;
+    --prescription-border: #cbd5e1;
+    --prescription-text: #0f172a;
+    --prescription-muted: #334155;
+    --prescription-accent: #075985;
+  }
+
+  .prescription-tab[aria-pressed="true"],
+  .prescription-primary {
+    color: var(--prescription-text);
+    border-color: var(--prescription-border);
+    background-color: var(--prescription-surface);
+  }
 }
 
 

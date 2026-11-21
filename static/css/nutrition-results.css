@@ -6,10 +6,14 @@
   padding-top: 62px;
 }
 
-#doctor-tab #nf-results > .nf-back { margin: 0 10px 24px 0 !important; }
+#doctor-tab #nf-results > .nf-back {
+  display: inline-flex !important;
+  margin: 0 0 16px 0 !important;
+}
 #doctor-tab #nf-results > .nf-overline {
-  vertical-align: middle;
-  margin-bottom: 24px !important;
+  display: block !important;
+  width: fit-content !important;
+  margin: 0 0 14px 0 !important;
   color: #d7f4ff !important;
   background: rgba(86, 176, 239, .23) !important;
   border-color: rgba(146, 219, 255, .25) !important;
@@ -30,6 +34,9 @@
   font-size: .9em;
   font-weight: 400;
   filter: drop-shadow(0 5px 6px rgba(0, 25, 60, .25));
+}
+#doctor-tab #nf-results[data-type="drink"] #nf-results-title::before {
+  content: '🍵';
 }
 
 #doctor-tab #nf-results .nf-condition-banner {
