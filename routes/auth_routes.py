@@ -16,6 +16,15 @@ from core.settings import settings
 logger = logging.getLogger("MediMindApp")
 
 
+def _start_authenticated_session(user):
+    guest_token = session.get("guest_token") if not session.get("user_id") else None
+    session.clear()
+    session["user_id"] = user.id
+    session["user_role"] = user.role
+    if guest_token:
+        session["guest_token"] = guest_token
+
+
 def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_login_user):
     # ==============================================================
     # HỆ THỐNG XÁC THỰC DANH TÍNH & PHÂN QUYỀN (RBAC)
@@ -76,10 +85,7 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         rate_limit_service.reset_login_attempts(client_ip, raw_identifier)
 
         # Khởi tạo phiên làm việc (Session) & Chống Session Fixation
-        session.permanent = True
-        session.clear()
-        session["user_id"] = user.id
-        session["user_role"] = user.role
+        _start_authenticated_session(user)
 
         return jsonify({
             "success": True,
@@ -172,10 +178,7 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         except Exception:
             return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
-        session.permanent = True
-        session.clear()
-        session["user_id"] = new_user.id
-        session["user_role"] = new_user.role
+        _start_authenticated_session(new_user)
 
         return jsonify({
             "success": True,
@@ -544,10 +547,7 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
             except Exception:
                 return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
-            session.permanent = True
-            session.clear()
-            session["user_id"] = new_user.id
-            session["user_role"] = new_user.role
+            _start_authenticated_session(new_user)
 
             return jsonify({
                 "success": True,
@@ -988,10 +988,7 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
             commit_or_rollback()
 
         # Khởi tạo Session & Chống Session Fixation
-        session.permanent = True
-        session.clear()
-        session["user_id"] = user.id
-        session["user_role"] = user.role
+        _start_authenticated_session(user)
 
         return jsonify({
             "success": True,

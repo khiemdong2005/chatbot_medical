@@ -112,7 +112,8 @@ MIGRATIONS = [
         CREATE INDEX IF NOT EXISTS ix_otp_verified_store_key ON otp_verified_store (key);
         CREATE INDEX IF NOT EXISTS ix_otp_verified_store_expires_at ON otp_verified_store (expires_at)
         """
-    )
+    ),
+    ("2026_11_22_appointment_pre_visit_summary", "Store confirmed pre-visit summaries on appointments", None),
 ]
 
 
@@ -209,6 +210,12 @@ def run_migrations(engine):
                 elif version == "2026_11_08_confirmed_summary":
                     if "confirmed_summary" not in {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN confirmed_summary TEXT"))
+                elif version == "2026_11_22_appointment_pre_visit_summary":
+                    current_schema = inspect(conn)
+                    if current_schema.has_table("medical_appointments"):
+                        columns = {c["name"] for c in current_schema.get_columns("medical_appointments")}
+                        if "pre_visit_summary" not in columns:
+                            conn.execute(text("ALTER TABLE medical_appointments ADD COLUMN pre_visit_summary JSON"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index theo dialect thực tế (SQLite / PostgreSQL)
                     dialect_sql = _adapt_sql_for_dialect(sql, getattr(engine.dialect, "name", "sqlite"))

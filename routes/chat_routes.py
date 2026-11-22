@@ -1,6 +1,5 @@
 """Clinical ChatBOT, Structured Intake & Pre-Visit Consultation routes."""
 
-import json
 import logging
 import sys
 import uuid
@@ -9,7 +8,7 @@ from flask import jsonify, request, session
 from core.chat_service import execute_chat_workflow, process_clinical_chat
 from core.db_utils import commit_or_rollback
 from core.health_context import validate_chat_request
-from core.intake_service import intake_service
+from core.intake_service import StaleIntakeVersionError, intake_service
 from core.models import ClinicalConsultation, db
 from core.storage_service import decode_and_validate_base64_image
 
@@ -112,13 +111,24 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
     def intake_get_or_create_session():
         """Khởi tạo hoặc tải lại phiên hỏi bệnh lâm sàng có cấu trúc."""
         data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"error": "Nội dung yêu cầu phải là đối tượng JSON."}), 400
         conversation_id = data.get("conversation_id")
 
         user_id, guest_token = _get_request_identity()
         try:
+            if data.get("flow") == "previsit":
+                validated = validate_chat_request(data)
+                return jsonify({"success": True, **intake_service.open_previsit(
+                    validated["conversation_id"], user_id=user_id, guest_token=guest_token, lang=validated["lang"]
+                )})
             s = intake_service.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên hỏi bệnh."}), 404
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
 
         return jsonify({
             "success": True,
@@ -159,6 +169,35 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
           - Cập nhật Tóm tắt trước khám 2 phần (Phần A & Phần B)
         """
         data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"error": "Nội dung yêu cầu phải là đối tượng JSON."}), 400
+        if data.get("flow") == "previsit":
+            user_id, guest_token = _get_request_identity()
+            try:
+                validated = validate_chat_request(data)
+                skip = data.get("skip") is True
+                if not (validated["message"] or skip):
+                    raise ValueError("Vui lòng nhập câu trả lời.")
+                return jsonify(intake_service.process_message(
+                    conversation_id=validated["conversation_id"],
+                    message="" if skip else validated["message"],
+                    user_id=user_id,
+                    guest_token=guest_token,
+                    lang=validated["lang"],
+                    previsit=True,
+                    skip=skip,
+                    expected_version=data.get("expected_version"),
+                ))
+            except PermissionError as error:
+                return jsonify({"error": str(error)}), 403
+            except KeyError:
+                return jsonify({"error": "Không tìm thấy phiên hỏi bệnh."}), 404
+            except StaleIntakeVersionError as error:
+                return jsonify({"error": str(error)}), 409
+            except ValueError as error:
+                return jsonify({"error": str(error)}), 400
+            except RuntimeError:
+                return jsonify({"error": "Chưa lưu được câu trả lời. Vui lòng thử lại."}), 503
         conversation_id = data.get("conversation_id")
         user_message = (data.get("message") or "").strip()
         image_str = data.get("image")
@@ -192,6 +231,8 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
     def intake_update_fact():
         """Chỉnh sửa 1 dữ kiện lâm sàng (tăng version và yêu cầu xác nhận lại)."""
         data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"error": "Nội dung yêu cầu phải là đối tượng JSON."}), 400
         conversation_id = data.get("conversation_id")
         field = data.get("field")
         value = data.get("value")
@@ -202,15 +243,30 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
 
         user_id, guest_token = _get_request_identity()
         try:
+            previsit = data.get("flow") == "previsit"
+            lang = validate_chat_request(data)["lang"] if previsit else "vi"
             res = intake_service.update_fact(
                 conversation_id,
                 field,
                 value,
                 user_id=user_id,
-                guest_token=guest_token
+                guest_token=guest_token,
+                previsit=previsit,
+                lang=lang,
+                expected_version=data.get("expected_version"),
             )
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên hỏi bệnh."}), 404
+        except StaleIntakeVersionError as error:
+            return jsonify({"error": str(error)}), 409
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+        except RuntimeError:
+            if not previsit:
+                raise
+            return jsonify({"error": "Chưa lưu được chỉnh sửa. Vui lòng thử lại."}), 503
 
 
         return jsonify(res)
@@ -240,27 +296,21 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
             return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
         if draft.get("ready_to_finalize") is False:
             return jsonify({"error": "Bản tóm tắt còn thiếu dữ kiện cần thiết. Hãy bổ sung phần đã đánh dấu trước khi lưu."}), 422
-        res = intake_service.confirm_summary(conversation_id, user_id=user_id, guest_token=guest_token)
+        try:
+            res = intake_service.confirm_summary(
+                conversation_id, user_id=user_id, guest_token=guest_token,
+                reviewed_version=data.get("version"), reviewed_facts=data.get("reviewed_facts"), save_to_record=True,
+            )
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên tư vấn để lưu."}), 404
+        except StaleIntakeVersionError as error:
+            return jsonify({"error": str(error)}), 409
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 422
+        except PermissionError as error:
+            return jsonify({"error": str(error)}), 403
         if not res.get("success"):
             return jsonify(res), 500
-        snapshot = res["summary"]
-        if snapshot["version"] != data["version"] or snapshot["part_a_patient_facts"] != data["reviewed_facts"]:
-            return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
-        facts = snapshot["part_a_patient_facts"]
-        assessment = snapshot["part_b_system_assessment"]
-        row = ClinicalConsultation.query.filter_by(user_id=user_id, conversation_id=conversation_id).first()
-        if row is None:
-            row = ClinicalConsultation(user_id=user_id, conversation_id=conversation_id)
-            db.session.add(row)
-        row.message = facts["chief_complaint"]
-        row.answer = assessment["care_approach"]
-        row.symptoms = json.dumps(facts["symptoms_present"], ensure_ascii=False)
-        row.specialist = assessment["recommended_specialist"]
-        row.risk_level = assessment["triage_status"]
-        row.is_emergency = assessment["triage_badge"] == "emergency"
-        row.confirmed_summary = json.dumps(snapshot, ensure_ascii=False)
-        row.turns_json = None
-        commit_or_rollback()
         return jsonify(res)
 
     @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])

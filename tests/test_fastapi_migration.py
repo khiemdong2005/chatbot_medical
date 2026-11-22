@@ -251,6 +251,43 @@ class TestAppointmentsMigration:
         res_list_after = api_client.get("/api/appointments")
         assert not any(a["id"] == appt_id for a in res_list_after.json().get("appointments", []))
 
+    def test_appointment_attaches_only_the_callers_confirmed_summary(self, flask_client):
+        user_id = 9002
+        conversation_id = str(uuid.uuid4())
+        summary = {"is_confirmed": True, "version": 2, "part_a_patient_facts": {"chief_complaint": "Đau họng"}}
+        with transactional_session() as sess:
+            sess.add(ClinicalConsultation(
+                user_id=user_id,
+                conversation_id=conversation_id,
+                confirmed_summary=json.dumps(summary),
+                message="Đau họng",
+                answer="",
+            ))
+
+        payload = {
+            "appointment_date": "2026-12-20",
+            "appointment_time": "09:30",
+            "patient_name": "Nguyễn Văn Test",
+            "patient_phone": "0901234567",
+            "pre_visit_conversation_id": conversation_id,
+            "pre_visit_summary_version": 2,
+            "pre_visit_summary": {"is_confirmed": True, "part_a_patient_facts": {"chief_complaint": "Giả mạo"}},
+        }
+        headers = {"Origin": "http://localhost"}
+        flask_client.set_cookie(get_cookie_name(), make_signed_auth_cookie(user_id + 1))
+        assert flask_client.post("/api/appointments", json=payload, headers=headers).status_code == 400
+
+        flask_client.set_cookie(get_cookie_name(), make_signed_auth_cookie(user_id))
+        stale = flask_client.post("/api/appointments", json={**payload, "pre_visit_summary_version": 1}, headers=headers)
+        assert stale.status_code == 400
+
+        created = flask_client.post("/api/appointments", json=payload, headers=headers)
+        assert created.status_code == 201
+        appointment = created.json["appointment"]
+        assert appointment["pre_visit_summary"] == summary
+        listed = flask_client.get("/api/appointments").json["appointments"]
+        assert next(item for item in listed if item["id"] == appointment["id"])["pre_visit_summary"] == summary
+
     def test_appointments_cross_user_isolation(self, api_client):
         """User B không thể hủy lịch hẹn của User A."""
         user_a = 9003

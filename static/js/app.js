@@ -47,7 +47,10 @@ function checkPendingBookingAfterAuth() {
     request ||= JSON.parse(sessionStorage.getItem(PENDING_BOOKING_STORAGE_KEY));
     sessionStorage.removeItem(PENDING_BOOKING_STORAGE_KEY);
   } catch (_) { }
-  if (!request) return;
+  if (!request) {
+    if (currentUser && typeof PrevisitIntake !== 'undefined') PrevisitIntake.resumeAfterLogin();
+    return;
+  }
   hideAuthContextBanner();
   setTimeout(() => {
     if (currentUser) openFacilityBookingModal(request.id, request.drawerFacility);
@@ -710,7 +713,7 @@ const translations = {
     chat_welcome_title: "Hôm nay mình có thể giúp gì cho bạn?",
     chat_welcome_subtitle: "Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.",
     chat_mode_general: "Hỏi đáp y tế",
-    chat_mode_intake: "Thăm khám & Tóm tắt trước khám",
+    chat_mode_intake: "Hỏi bệnh trước khám",
     mode_general_desc: "Chế độ Hỏi đáp y tế • Trả lời ngắn gọn & chính xác",
     mode_general_placeholder: "Đặt câu hỏi y tế (ví dụ: đau đầu uống thuốc gì, sốt xuất huyết là gì...)...",
     mode_intake_desc: "Chế độ Thăm khám lâm sàng • Bác sĩ ân cần, lắng nghe & trấn an",
@@ -849,8 +852,12 @@ const translations = {
     book_modal_ph_phone: "Ví dụ: 0912 345 678",
     book_modal_lbl_email: "Email liên hệ",
     book_modal_ph_email: "Ví dụ: user@gmail.com",
-    book_modal_lbl_note: "Lý do khám / Tóm tắt trước khám",
-    book_modal_ph_note: "Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc...",
+    book_modal_lbl_note: "Ghi chú thêm (không bắt buộc)",
+    book_modal_ph_note: "Ví dụ: Tôi muốn trao đổi thêm về kết quả khám lần trước",
+    book_previsit_heading: "Thông tin trước khám",
+    book_previsit_optional: "Bạn có thể trả lời vài câu để chuẩn bị bản tóm tắt.",
+    book_previsit_confirmed: "Bạn đã xác nhận bản tóm tắt này.",
+    book_previsit_review: "Xem tóm tắt",
     book_modal_btn_cancel: "Hủy",
     book_modal_btn_submit: "Xác nhận đặt lịch",
     book_btn_next: "Tiếp theo",
@@ -865,10 +872,16 @@ const translations = {
     book_step3_afternoon: "Buổi chiều (13:30 - 17:00)",
     book_step4_summary_spec: "Chuyên khoa:",
     book_step4_terms: "Tôi đồng ý chia sẻ thông tin liên hệ và lý do khám với cơ sở y tế để được phục vụ chu đáo nhất.",
-    book_attach_summary_label: "Đính kèm hồ sơ tóm tắt lâm sàng chi tiết cho bác sĩ",
+    book_attach_summary_label: "Đính kèm bản tóm tắt đã xác nhận vào lịch hẹn",
+    previsit_saved_title: "Tóm tắt trước khám",
+    previsit_saved_patient: "Thông tin người bệnh tự khai",
+    previsit_saved_missing: "Thông tin cần làm rõ",
+    previsit_saved_assessment: "Đánh giá sơ bộ của MediMind",
+    previsit_saved_sources: "Nguồn tham khảo",
+    previsit_saved_incomplete: "Quay lại đoạn chat để bổ sung thông tin trước khi xác nhận.",
+    previsit_saved_consent: "Tôi đồng ý lưu bản tóm tắt này vào hồ sơ của mình.",
+    previsit_saved_close: "Đóng",
     book_attach_summary_desc: "Tự động gửi thông tin triệu chứng, bệnh sử và kết luận tư vấn AI cho bác sĩ tiếp nhận.",
-    book_summary_btn_view: "Xem trước tóm tắt",
-    book_summary_empty_text: "Chưa có tóm tắt trước khám từ phiên tư vấn AI gần đây. Bạn vẫn có thể tiếp tục đặt lịch bình thường.",
     book_summary_badge_ready: "Sẵn sàng đính kèm",
     book_summary_badge_none: "Chưa có tóm tắt",
     appt_badge_summary_attached: "Đã đính kèm tóm tắt trước khám",
@@ -1160,7 +1173,7 @@ const translations = {
     chat_welcome_title: "How can I help you today?",
     chat_welcome_subtitle: "Describe your symptoms or ask a question to begin the conversation.",
     chat_mode_general: "Medical Q&A",
-    chat_mode_intake: "Clinical Intake & Summary",
+    chat_mode_intake: "Pre-visit questions",
     mode_general_desc: "Medical Q&A Mode • Concise & Accurate Answers",
     mode_general_placeholder: "Ask a medical question (e.g. headache remedies, dengue fever signs...)...",
     mode_intake_desc: "Clinical Intake Mode • Empathetic & Reassuring Doctor",
@@ -1299,8 +1312,12 @@ const translations = {
     book_modal_ph_phone: "e.g. +84 912 345 678",
     book_modal_lbl_email: "Contact Email",
     book_modal_ph_email: "e.g. user@gmail.com",
-    book_modal_lbl_note: "Reason for Visit / Pre-visit Clinical Summary",
-    book_modal_ph_note: "e.g. Sore throat, mild fever for 2 days...",
+    book_modal_lbl_note: "Additional note (optional)",
+    book_modal_ph_note: "e.g. I would like to discuss my previous test results",
+    book_previsit_heading: "Before your visit",
+    book_previsit_optional: "You can answer a few questions to prepare a summary.",
+    book_previsit_confirmed: "You have confirmed this summary.",
+    book_previsit_review: "View summary",
     book_modal_btn_cancel: "Cancel",
     book_modal_btn_submit: "Confirm Appointment",
     book_btn_next: "Next",
@@ -1315,10 +1332,16 @@ const translations = {
     book_step3_afternoon: "Afternoon (13:30 - 17:00)",
     book_step4_summary_spec: "Specialty:",
     book_step4_terms: "I agree to share contact info and visit reason with the medical facility for optimal care.",
-    book_attach_summary_label: "Attach detailed clinical summary for the physician",
+    book_attach_summary_label: "Attach the confirmed summary to this appointment",
+    previsit_saved_title: "Pre-visit summary",
+    previsit_saved_patient: "Patient-reported information",
+    previsit_saved_missing: "Information to clarify",
+    previsit_saved_assessment: "MediMind preliminary assessment",
+    previsit_saved_sources: "References",
+    previsit_saved_incomplete: "Return to the conversation to add details before confirming.",
+    previsit_saved_consent: "I agree to save this summary to my record.",
+    previsit_saved_close: "Close",
     book_attach_summary_desc: "Automatically send reported symptoms, medical intake facts, and AI triage findings to the attending physician.",
-    book_summary_btn_view: "Preview summary",
-    book_summary_empty_text: "No recent pre-visit AI summary found. You can still proceed with booking normally.",
     book_summary_badge_ready: "Ready to attach",
     book_summary_badge_none: "No summary",
     appt_badge_summary_attached: "Pre-visit summary attached",
@@ -1931,14 +1954,12 @@ function closeLanguageDropdown() {
 }
 
 function setLanguage(lang) {
-  if (lang !== currentLang && typeof preVisitSummaryRequest !== 'undefined' && preVisitSummaryRequest && typeof closePreVisitSummaryModal === 'function') closePreVisitSummaryModal();
   currentLang = lang;
   try { localStorage.setItem('medimind_lang', lang); } catch (e) { }
   closeLanguageDropdown();
   populateDobDropdowns();
   applyLanguage();
   updateAuthUI();
-  if (typeof syncChatSummaryButton === 'function') syncChatSummaryButton();
   if (typeof updateSummarySaveButton === 'function') updateSummarySaveButton();
   window.dispatchEvent(new Event('medimind:langchange'));
 }
@@ -2169,7 +2190,7 @@ function switchTab(tabId, updateHistory = true) {
     openLoginModal();
     return;
   }
-  if (tabId !== 'chat-tab' && (preVisitSummaryRequest || reviewedIntakeSummary?.id)) {
+  if (tabId !== 'chat-tab' && reviewedIntakeSummary?.id) {
     closePreVisitSummaryModal();
   }
 
@@ -2288,7 +2309,6 @@ function syncChatSceneState(hasMessages) {
   const populated = hasMessages ?? Boolean(document.getElementById('chat-messages')?.children.length);
   tab.classList.toggle('chat-has-messages', populated);
   tab.classList.toggle('chat-empty', !populated);
-  syncChatSummaryButton();
 }
 
 function toggleChatHistoryPanel(force) {
@@ -2351,7 +2371,6 @@ function resetChat() {
 let currentConversationId = null;
 let currentIntakeSummary = null;
 let activeChatRequest = null;
-let preVisitSummaryRequest = null;
 let pendingPreVisitSummarySave = null;
 let reviewedIntakeSummary = null;
 
@@ -2362,13 +2381,12 @@ function chatAccountKey() {
 function setChatSending(sending) {
   document.querySelectorAll('#send-btn, #floating-chat-window button[onclick="sendFloatingChatMessage()"]')
     .forEach(button => { button.disabled = sending; button.setAttribute('aria-busy', String(sending)); });
-  syncChatSummaryButton();
   window.dispatchEvent(new CustomEvent('medimind:chat-busy', { detail: { busy: sending } }));
 }
 
 function beginChatRequest(typingId) {
   if (activeChatRequest) return null;
-  if (preVisitSummaryRequest || reviewedIntakeSummary?.id) closePreVisitSummaryModal();
+  if (reviewedIntakeSummary?.id) closePreVisitSummaryModal();
   const request = {
     controller: new AbortController(), conversationId: currentConversationId,
     accountKey: chatAccountKey(), typingId, history: chatHistory.slice()
@@ -2388,7 +2406,6 @@ function finishChatRequest(request) {
   if (activeChatRequest === request) {
     activeChatRequest = null;
     setChatSending(false);
-    refreshPreVisitSummaryAfterReply();
   }
 }
 
@@ -2844,12 +2861,9 @@ function setChatConsultationMode(mode, { triggerGreeting = false, silent = false
 
   // 1. Update Mode Tabs
   const generalBtn = document.getElementById('chat-mode-general-btn');
-  const intakeBtn = document.getElementById('chat-mode-intake-btn');
-  if (generalBtn && intakeBtn) {
+  if (generalBtn) {
     generalBtn.classList.toggle('active', !isIntake);
-    generalBtn.setAttribute('aria-selected', String(!isIntake));
-    intakeBtn.classList.toggle('active', isIntake);
-    intakeBtn.setAttribute('aria-selected', String(isIntake));
+    generalBtn.setAttribute('aria-pressed', String(!isIntake));
   }
 
   // 2. Update Header Subtitle
@@ -2931,99 +2945,7 @@ function setChatConsultationMode(mode, { triggerGreeting = false, silent = false
   }
 }
 
-async function handlePreVisitSummaryButtonClick() {
-  const activeSession = chatSessions.find(s => s.id === currentConversationId);
-  const sessionFacts = currentIntakeSummary?.part_a_patient_facts || activeSession?.facts;
-  const hasFacts = hasPreVisitSummaryFacts(sessionFacts);
-
-  if (hasFacts || (currentIntakeSummary && currentIntakeSummary.summary_available !== false)) {
-    openPreVisitSummaryModal();
-    return;
-  }
-
-  // Chưa có dữ kiện khám -> Chuyển sang chế độ Thăm khám lâm sàng kèm lời chào trấn an của bác sĩ!
-  setChatConsultationMode('intake', { triggerGreeting: true });
-}
-
-function syncChatSummaryButton() {
-  const button = document.getElementById('chat-summary-button');
-  if (!button) return;
-  const dict = translations[currentLang] || translations.vi;
-  const loading = Boolean(preVisitSummaryRequest);
-  const saving = Boolean(currentConversationId && pendingPreVisitSummarySave?.id === currentConversationId);
-  button.disabled = loading || saving;
-  button.setAttribute('aria-busy', String(loading || saving));
-  const label = loading ? dict.intake_summary_loading :
-    saving ? dict.intake_summary_saving : dict.intake_btn_summary;
-  const textEl = document.getElementById('chat-summary-btn-text');
-  if (textEl) {
-    textEl.textContent = label;
-  } else {
-    button.textContent = label;
-  }
-}
-
-function refreshPreVisitSummaryAfterReply() {
-  if (reviewedIntakeSummary?.awaitingReply && reviewedIntakeSummary.id === currentConversationId &&
-    !activeChatRequest && !preVisitSummaryRequest) {
-    openPreVisitSummaryModal({ refresh: true });
-  }
-}
-
-async function openPreVisitSummaryModal({ refresh = false } = {}) {
-  const button = document.getElementById('chat-summary-button');
-  const modal = document.getElementById('previsit-summary-modal');
-  const id = currentConversationId;
-  const dict = translations[currentLang] || translations.vi;
-  if (!id) {
-    showMedicalToast(dict.intake_summary_start_chat, 'info');
-    document.getElementById('user-input')?.focus();
-    return;
-  }
-  if (!modal || button?.disabled || preVisitSummaryRequest) return;
-  const request = {
-    id, account: chatAccountKey(), controller: new AbortController(),
-    awaitingReply: Boolean(activeChatRequest)
-  };
-  const isCurrent = () => preVisitSummaryRequest === request &&
-    currentConversationId === id && chatAccountKey() === request.account;
-  preVisitSummaryRequest = request;
-  syncChatSummaryButton();
-  try {
-    const response = await fetch('/api/intake/summary/' + encodeURIComponent(id) + '?lang=' + encodeURIComponent(currentLang), {
-      signal: request.controller.signal,
-      cache: 'no-store'
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!isCurrent()) return;
-    if (response.status === 404 || (response.ok &&
-      (!data.summary?.part_a_patient_facts || data.summary.summary_available === false))) {
-      showMedicalToast(activeChatRequest ? dict.intake_summary_preparing : dict.intake_summary_unavailable, 'info');
-      return;
-    }
-    if (!response.ok) throw new Error(dict.intake_summary_load_error);
-    if (!refresh) lastFocusedModalElement = button;
-    currentIntakeSummary = data.summary;
-    renderPreVisitSummaryInModal(data.summary, id, request.awaitingReply);
-    modal.classList.remove('hidden');
-    if (!refresh) document.getElementById('previsit-summary-close')?.focus();
-  } catch (error) {
-    if (isCurrent() && error.name !== 'AbortError') showMedicalToast(dict.intake_summary_load_error, 'error');
-  } finally {
-    if (preVisitSummaryRequest === request) {
-      preVisitSummaryRequest = null;
-      syncChatSummaryButton();
-      if (request.awaitingReply) refreshPreVisitSummaryAfterReply();
-    }
-  }
-}
-
 function closePreVisitSummaryModal() {
-  if (preVisitSummaryRequest) {
-    preVisitSummaryRequest.controller.abort();
-    preVisitSummaryRequest = null;
-    syncChatSummaryButton();
-  }
   const modal = document.getElementById('previsit-summary-modal');
   reviewedIntakeSummary = null;
   if (modal && !modal.classList.contains('hidden')) {
@@ -3044,6 +2966,7 @@ function handlePreVisitSummaryKeys(event) {
     .filter(element => element.getClientRects().length);
   const first = focusable[0];
   const last = focusable.at(-1);
+  if (!first) return;
   if (event.shiftKey && event.target === first) {
     event.preventDefault();
     last.focus();
@@ -3053,50 +2976,94 @@ function handlePreVisitSummaryKeys(event) {
   }
 }
 
+function renderPreVisitSummaryRows(container, rows) {
+  if (!container) return;
+  container.replaceChildren();
+  for (const [label, value] of rows) {
+    if (!value) continue;
+    const row = document.createElement('div');
+    row.className = 'py-2.5';
+    const name = document.createElement('dt');
+    name.className = 'text-xs font-semibold text-slate-600 dark:text-slate-400';
+    name.textContent = label;
+    const detail = document.createElement('dd');
+    detail.className = 'mt-0.5 break-words whitespace-pre-line text-sm text-slate-900 dark:text-slate-100';
+    detail.textContent = value;
+    row.append(name, detail);
+    container.append(row);
+  }
+}
+
 function renderPreVisitSummaryInModal(summary, id = currentConversationId, awaitingReply = false) {
   reviewedIntakeSummary = { id, summary, awaitingReply };
   const partA = summary.part_a_patient_facts || {};
   const partB = summary.part_b_system_assessment || {};
   const dict = translations[currentLang] || translations.vi;
+  const label = (vi, en) => currentLang === 'en' ? en : vi;
 
   const statusText = document.getElementById('modal-summary-status-text');
   const createdAt = document.getElementById('modal-summary-created-at');
-  if (statusText) statusText.innerText = `${dict.intake_summary_version}: v${summary.version || partB.version || 1} • ${summary.is_confirmed ? dict.intake_summary_confirmed : dict.intake_summary_review_pending}`;
+  if (statusText) statusText.innerText = summary.is_confirmed ? dict.intake_summary_confirmed : dict.intake_summary_review_pending;
   if (createdAt) createdAt.innerText = partB.created_at || '';
 
-  // Part A
-  const cEl = document.getElementById('summary-a-complaint');
-  const dEl = document.getElementById('summary-a-duration');
-  const pEl = document.getElementById('summary-a-present');
-  const dnEl = document.getElementById('summary-a-denied');
-  const vEl = document.getElementById('summary-a-vitals');
-  const attEl = document.getElementById('summary-a-attachments');
+  const emptyValues = new Set([
+    '--', 'Chưa rõ', 'Chưa ghi nhận cụ thể', 'Chưa ghi nhận lý do khám',
+    'Chưa rõ các chỉ số tự đo', 'Chưa rõ tiền sử dị ứng', 'Chưa rõ thuốc đang dùng',
+    'Không có tệp hình ảnh đính kèm'
+  ]);
+  const known = value => typeof value === 'string' && !emptyValues.has(value.trim()) ? value.trim() : '';
+  const list = values => Array.isArray(values) ? values.map(known).filter(Boolean).join(', ') : '';
+  const history = partA.patient_reported_history || {};
+  const historyValue = (field, previousValue) => {
+    const item = history[field];
+    const text = known(item?.text) || known(previousValue);
+    if (item?.status === 'skipped') return label('Đã bỏ qua', 'Skipped');
+    if (item?.status === 'unknown') return label('Chưa rõ theo lời người bệnh', 'Patient unsure');
+    if (item?.status === 'denied' && field !== 'medications') {
+      const denial = label('Người bệnh cho biết không có', 'Patient reported none');
+      return text ? `${denial} · ${text}` : denial;
+    }
+    return text || label('Chưa cung cấp', 'Not provided');
+  };
+  const pain = partA.pain || {};
+  const context = Array.isArray(partA.contextual_answers) ? partA.contextual_answers : [];
+  renderPreVisitSummaryRows(document.getElementById('summary-a-facts'), [
+    [label('Lý do khám', 'Reason for visit'), known(partA.chief_complaint)],
+    [label('Thời điểm bắt đầu', 'Onset'), known(partA.duration)],
+    [label('Vị trí đau', 'Pain location'), known(pain.location)],
+    [label('Tính chất đau', 'Pain description'), known(pain.quality)],
+    [label('Mức độ đau tự đánh giá', 'Self-reported pain level'), known(pain.severity)],
+    [label('Tần suất đau', 'Pain frequency'), known(partA.pain_frequency)],
+    [label('Triệu chứng ghi nhận', 'Recorded symptoms'), list(partA.symptoms_present)],
+    [label('Triệu chứng người bệnh cho biết không có', 'Symptoms the patient reported absent'), list(partA.symptoms_denied)],
+    [label('Ảnh hưởng đến sinh hoạt', 'Impact on daily activities'), known(partA.activity_impact)],
+    [label('Dị ứng', 'Allergies'), historyValue('allergies', partA.allergies)],
+    [label('Thuốc đang dùng hoặc đã dùng', 'Current or recent medication'), historyValue('medications', partA.current_medications)],
+    [label('Bệnh đang điều trị, tiền sử liên quan', 'Relevant conditions or history'), historyValue('conditions')],
+    [label('Chỉ số tự đo', 'Self-reported measurements'), known(partA.vitals)],
+    [label('Ảnh đính kèm', 'Attached images'), known(partA.attachments_and_observations)],
+    ...context.filter(item => item && known(item.question)).map(item => [known(item.question), known(item.answer)])
+  ]);
   const mEl = document.getElementById('summary-a-missing');
+  const missingSection = document.getElementById('summary-a-missing-section');
+  const missing = list(partA.missing_or_unclear_info);
+  if (mEl) mEl.innerText = missing;
+  if (missingSection) missingSection.hidden = !missing;
 
-  if (cEl) cEl.innerText = [partA.chief_complaint, ...Object.values(partA.pain || {})].filter(Boolean).join(' · ') || '--';
-  if (dEl) dEl.innerText = partA.duration || '--';
-  if (pEl) pEl.innerText = (partA.symptoms_present && partA.symptoms_present.length) ? partA.symptoms_present.join(', ') : '--';
-  if (dnEl) dnEl.innerText = (partA.symptoms_denied && partA.symptoms_denied.length) ? partA.symptoms_denied.join(', ') : 'Chưa có triệu chứng phủ nhận';
-  if (vEl) vEl.innerText = partA.vitals || 'Chưa có chỉ số tự đo tại nhà';
-  if (attEl) attEl.innerText = partA.attachments_and_observations || 'Không có tệp hình ảnh đính kèm';
-  if (mEl) mEl.innerText = (partA.missing_or_unclear_info && partA.missing_or_unclear_info.length) ? partA.missing_or_unclear_info.join('; ') : 'Đã đủ thông tin cơ bản';
-
-  const algEl = document.getElementById('summary-a-allergies');
-  const medEl = document.getElementById('summary-a-medications');
-  if (algEl) algEl.innerText = partA.allergies || 'Chưa ghi nhận tiền sử dị ứng đặc biệt';
-  if (medEl) medEl.innerText = partA.current_medications || 'Chưa ghi nhận thuốc đang dùng thường xuyên';
-
-  // Part B
-  const bStatus = document.getElementById('summary-b-status');
-  const bSpec = document.getElementById('summary-b-specialist');
-  const bAppr = document.getElementById('summary-b-approach');
+  const assessment = document.getElementById('summary-b-assessment');
+  const hasAssessment = partB.triage_badge === 'assessed' || partB.triage_badge === 'emergency';
+  if (assessment) assessment.hidden = !hasAssessment;
+  renderPreVisitSummaryRows(document.getElementById('summary-b-facts'), hasAssessment ? [
+    [label('Phân luồng', 'Triage status'), known(partB.triage_status)],
+    [label('Chuyên khoa gợi ý', 'Suggested specialty'), known(partB.recommended_specialist)],
+    [label('Hướng tiếp cận chăm sóc', 'Care guidance'), known(partB.care_approach)],
+  ] : []);
+  const sourcesSection = document.getElementById('summary-b-sources-section');
   const bSources = document.getElementById('summary-b-sources');
-
-  if (bStatus) bStatus.innerText = partB.triage_status || '--';
-  if (bSpec) bSpec.innerText = partB.recommended_specialist || '--';
-  if (bAppr) bAppr.innerText = partB.care_approach || '--';
+  const sources = hasAssessment ? verifiedChatSources(partB.sources) : [];
+  if (sourcesSection) sourcesSection.hidden = !sources.length;
   if (bSources) {
-    bSources.innerHTML = verifiedChatSources(partB.sources).map(source =>
+    bSources.innerHTML = sources.map(source =>
       `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">[${source.number}] ${escapeHtml(source.title)}</a>`).join('<br>');
   }
 
@@ -3126,6 +3093,17 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
   updateSummarySaveButton();
 }
 
+function showSavedPreVisitSummary(summary) {
+  const modal = document.getElementById('previsit-summary-modal');
+  if (!modal) return;
+  recordModalTriggerFocus();
+  renderPreVisitSummaryInModal(summary, null);
+  modal.classList.remove('hidden');
+  const content = document.getElementById('previsit-summary-content');
+  if (content) content.scrollTop = 0;
+  document.getElementById('previsit-summary-close')?.focus();
+}
+
 function updateSummarySaveButton() {
   const button = document.getElementById('modal-btn-confirm');
   const checkEl = document.getElementById('summary-consent-check');
@@ -3150,7 +3128,6 @@ async function confirmCurrentIntake() {
   const dict = translations[currentLang] || translations.vi;
   pendingPreVisitSummarySave = review;
   updateSummarySaveButton();
-  syncChatSummaryButton();
   try {
     const res = await fetch('/api/intake/confirm-summary', {
       method: 'POST',
@@ -3187,7 +3164,6 @@ async function confirmCurrentIntake() {
   } finally {
     pendingPreVisitSummarySave = null;
     updateSummarySaveButton();
-    syncChatSummaryButton();
   }
 }
 
@@ -5211,8 +5187,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Đóng modal & dropdown khi bấm Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (document.getElementById('previsit-intake')?.open) return;
       const preVisitModal = document.getElementById('previsit-summary-modal');
-      if (preVisitSummaryRequest || (preVisitModal && !preVisitModal.classList.contains('hidden'))) {
+      if (preVisitModal && !preVisitModal.classList.contains('hidden')) {
         closePreVisitSummaryModal();
         return;
       }
@@ -7643,7 +7620,6 @@ function saveOrUpdateCurrentSession(lastUserText, triageData, intakeData) {
   if (chatSessions.length > 30) chatSessions.length = 30;
   saveSessionsToStorage();
   renderChatHistoryList();
-  syncChatSummaryButton();
 }
 
 function renderChatHistoryList(filterQuery = '') {
@@ -7838,7 +7814,6 @@ async function syncServerConsultations() {
       if (hasNew) {
         saveSessionsToStorage();
         renderChatHistoryList();
-        syncChatSummaryButton();
       }
     }
   } catch (err) {
@@ -8690,7 +8665,8 @@ let currentBookingStep = 1;
 let currentBookingFacility = null;
 let selectedBookingSpecialty = '';
 let selectedBookingSlot = '';
-let currentBookingSummaryData = null;
+let bookingSummaryReference = null;
+let bookingSummaryRequest = 0;
 
 const DEFAULT_MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
 const DEFAULT_AFTERNOON_SLOTS = ['13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
@@ -8735,6 +8711,9 @@ function openFacilityBookingModal(facId, drawerFacility) {
 
   const specialties = fac.specialties?.length ? fac.specialties : ['Khám tổng quát'];
   currentBookingFacility = { ...fac, specialties };
+  bookingSummaryReference = null;
+  document.getElementById('book-modal-note').value = '';
+  renderBookingPreVisitSummary(null);
 
   const idEl = document.getElementById('book-modal-facility-id');
   const nameEl = document.getElementById('book-modal-facility-name');
@@ -8993,190 +8972,41 @@ async function handleBookingStepNext() {
 }
 
 async function checkAndPrepareBookingPreVisitSummary() {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  const sectionEl = document.getElementById('book-modal-summary-section');
-  const emptyHint = document.getElementById('book-summary-empty-hint');
-  const badgeEl = document.getElementById('book-summary-status-badge');
-  const previewBtn = document.getElementById('book-summary-btn-preview');
+  const modal = document.getElementById('facility-booking-modal');
   const checkbox = document.getElementById('book-modal-attach-summary');
-  const noteInput = document.getElementById('book-modal-note');
-
-  if (!sectionEl) return;
-
-  currentBookingSummaryData = null;
-  if (badgeEl) {
-    badgeEl.innerText = isEn ? 'Checking...' : 'Đang đồng bộ...';
-    badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30';
-  }
-
+  if (!currentBookingFacility || !modal || modal.classList.contains('hidden') || !checkbox) return;
+  const revision = ++bookingSummaryRequest;
+  const account = chatAccountKey();
+  const previous = bookingSummaryReference;
+  const wasChecked = checkbox.checked;
+  checkbox.disabled = true;
+  let next = null;
   try {
-    let summary = null;
-    if (typeof currentConversationId !== 'undefined' && currentConversationId) {
-      try {
-        const langParam = encodeURIComponent((typeof currentLang !== 'undefined' && currentLang) || 'vi');
-        const intakeRes = await fetch(`/api/intake/summary/${encodeURIComponent(currentConversationId)}?lang=${langParam}`, { credentials: 'same-origin' });
-        if (intakeRes.ok) {
-          const intakeData = await intakeRes.json();
-          if (intakeData && intakeData.summary) {
-            summary = intakeData.summary;
-          }
-        }
-      } catch (_) { }
-    }
-
-    if (!summary) {
-      try {
-        const sumRes = await fetch('/api/clinical-summary', { credentials: 'same-origin' });
-        if (sumRes.ok) {
-          const sumData = await sumRes.json();
-          if (sumData && sumData.summary && sumData.status !== 'no_data') {
-            summary = sumData.summary;
-          }
-        }
-      } catch (_) { }
-    }
-
-    if (summary) {
-      currentBookingSummaryData = summary;
-      if (checkbox) {
-        checkbox.disabled = false;
-        checkbox.checked = true;
-      }
-      if (badgeEl) {
-        badgeEl.innerText = isEn ? 'AI Synced' : 'Đã đồng bộ AI';
-        badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
-      }
-      if (previewBtn) previewBtn.classList.remove('hidden');
-      if (emptyHint) emptyHint.classList.add('hidden');
-
-      const partA = summary.part_a_patient_facts || summary.facts || summary || {};
-      const chief = partA.chief_complaint || (Array.isArray(partA.symptoms_present) && partA.symptoms_present.length > 0 ? partA.symptoms_present.join(', ') : (isEn ? 'General consultation' : 'Khám tổng quát'));
-
-      if (noteInput && !noteInput.value.trim() && chief) {
-        // Điền trực tiếp triệu chứng/lý do khám từ tóm tắt AI (không lặp lại tiền tố "Lý do khám:")
-        noteInput.value = chief;
-      }
-    } else {
-      if (previewBtn) previewBtn.classList.add('hidden');
-      if (noteInput && noteInput.value.trim()) {
-        if (checkbox) {
-          checkbox.disabled = false;
-          checkbox.checked = true;
-        }
-        if (badgeEl) {
-          badgeEl.innerText = isEn ? 'Manual note' : 'Khai báo sơ bộ';
-          badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30';
-        }
-        if (emptyHint) emptyHint.classList.add('hidden');
-      } else {
-        if (checkbox) {
-          checkbox.checked = false;
-          checkbox.disabled = true;
-        }
-        if (badgeEl) {
-          badgeEl.innerText = isEn ? 'No summary' : 'Chưa có tóm tắt';
-          badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-slate-500/15 text-slate-500 dark:text-slate-400 border border-slate-500/20';
-        }
-        if (emptyHint) emptyHint.classList.remove('hidden');
-      }
-    }
-  } catch (err) {
-    console.warn('Lỗi kiểm tra tóm tắt trước khám cho lịch hẹn:', err);
-    if (checkbox) {
-      checkbox.checked = false;
-      checkbox.disabled = true;
-    }
-    if (emptyHint) emptyHint.classList.remove('hidden');
-  }
+    next = await PrevisitIntake.bookingSummary();
+  } catch (_) { }
+  if (revision !== bookingSummaryRequest || account !== chatAccountKey()) return;
+  bookingSummaryReference = next;
+  renderBookingPreVisitSummary(next, Boolean(wasChecked && next && next.id === previous?.id && next.version === previous.version));
 }
 
-function onBookingNoteInputChanged() {
-  const noteInput = document.getElementById('book-modal-note');
+function renderBookingPreVisitSummary(reference, keepChecked = false) {
+  const dict = translations[currentLang] || translations.vi;
+  const section = document.getElementById('book-summary-attachment');
   const checkbox = document.getElementById('book-modal-attach-summary');
-  const badgeEl = document.getElementById('book-summary-status-badge');
-  const emptyHint = document.getElementById('book-summary-empty-hint');
-  const previewBtn = document.getElementById('book-summary-btn-preview');
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-
-  if (!currentBookingSummaryData && noteInput && checkbox) {
-    const val = noteInput.value.trim();
-    if (val) {
-      checkbox.disabled = false;
-      checkbox.checked = true;
-      if (badgeEl) {
-        badgeEl.innerText = isEn ? 'Manual note' : 'Khai báo sơ bộ';
-        badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30';
-      }
-      if (previewBtn) previewBtn.classList.remove('hidden');
-      if (emptyHint) emptyHint.classList.add('hidden');
-    } else {
-      checkbox.checked = false;
-      checkbox.disabled = true;
-      if (badgeEl) {
-        badgeEl.innerText = isEn ? 'No summary' : 'Chưa có tóm tắt';
-        badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-slate-500/15 text-slate-500 dark:text-slate-400 border border-slate-500/20';
-      }
-      if (previewBtn) previewBtn.classList.add('hidden');
-      if (emptyHint) emptyHint.classList.remove('hidden');
-    }
+  const launcher = document.getElementById('book-intake-button');
+  const description = document.getElementById('book-previsit-description');
+  if (section) section.hidden = !reference;
+  if (checkbox) {
+    checkbox.disabled = !reference;
+    checkbox.checked = keepChecked;
   }
-}
-
-function onToggleAttachSummary(isChecked) {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  const badgeEl = document.getElementById('book-summary-status-badge');
-
-  if (isChecked) {
-    if (badgeEl) {
-      badgeEl.innerText = currentBookingSummaryData
-        ? (isEn ? 'AI Synced' : 'Đã đồng bộ AI')
-        : (isEn ? 'Confirmed' : 'Đã xác nhận');
-      badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
-    }
-    showMedicalToast(isEn ? 'Pre-visit summary will be attached to appointment.' : 'Đã xác nhận đính kèm tóm tắt trước khám vào lịch hẹn.', 'success', 2500);
-  } else {
-    if (badgeEl) {
-      badgeEl.innerText = isEn ? 'Not attached' : 'Không đính kèm';
-      badgeEl.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase font-mono bg-slate-500/15 text-slate-500 dark:text-slate-400 border border-slate-500/20';
-    }
-    showMedicalToast(isEn ? 'Pre-visit summary will NOT be attached.' : 'Đã bỏ chọn đính kèm tóm tắt trước khám.', 'info', 2500);
-  }
-}
-
-function previewCurrentBookingSummary() {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  let summary = currentBookingSummaryData;
-  if (!summary) {
-    const noteVal = document.getElementById('book-modal-note')?.value?.trim();
-    if (noteVal) {
-      summary = {
-        title: isEn ? 'Preliminary Pre-visit Summary' : 'Phiếu Tóm Tắt Trước Khám Sơ Bộ',
-        version: 1,
-        is_confirmed: true,
-        part_a_patient_facts: {
-          chief_complaint: noteVal,
-          symptoms_present: [noteVal],
-          symptoms_denied: [],
-          duration: '',
-          vitals: '',
-          allergies: '',
-          current_medications: ''
-        },
-        part_b_system_assessment: {
-          triage_status: isEn ? 'Pre-booked clinic visit' : 'Đặt hẹn khám chuyên khoa',
-          recommended_specialist: selectedBookingSpecialty || (isEn ? 'General Practice' : 'Đa khoa')
-        }
-      };
-    }
-  }
-  if (!summary) {
-    showMedicalToast(isEn ? 'No summary data available to preview.' : 'Chưa có dữ liệu tóm tắt để xem trước.', 'info');
-    return;
-  }
-  if (typeof renderPreVisitSummaryInModal === 'function') {
-    renderPreVisitSummaryInModal(summary, null);
-    document.getElementById('modal-btn-confirm')?.classList.add('hidden');
-    document.getElementById('previsit-summary-modal')?.classList.remove('hidden');
+  for (const [element, textKey] of [
+    [launcher, reference ? 'book_previsit_review' : 'chat_mode_intake'],
+    [description, reference ? 'book_previsit_confirmed' : 'book_previsit_optional']
+  ]) {
+    if (!element) continue;
+    element.dataset.i18n = textKey;
+    element.textContent = dict[textKey];
   }
 }
 
@@ -9193,25 +9023,13 @@ function openAppointmentPreVisitSummary(apptId) {
   } else {
     try {
       summaryObj = JSON.parse(appt.pre_visit_summary);
-    } catch (_) {
-      summaryObj = {
-        title: isEn ? 'Pre-visit Clinical Summary' : 'Phiếu Tóm Tắt Trước Khám',
-        part_a_patient_facts: {
-          chief_complaint: appt.note || (isEn ? 'General appointment' : 'Khám theo lịch hẹn')
-        },
-        part_b_system_assessment: {
-          recommended_specialist: appt.specialty || '',
-          risk_level: isEn ? 'Pre-booked appointment' : 'Phiếu hẹn khám cơ sở y tế',
-          triage_status: isEn ? 'Pre-booked clinic visit' : 'Phiếu đặt hẹn khám chuyên khoa'
-        }
-      };
-    }
+    } catch (_) { }
   }
-  if (typeof renderPreVisitSummaryInModal === 'function') {
-    renderPreVisitSummaryInModal(summaryObj, null);
-    document.getElementById('modal-btn-confirm')?.classList.add('hidden');
-    document.getElementById('previsit-summary-modal')?.classList.remove('hidden');
+  if (!summaryObj?.part_a_patient_facts) {
+    showMedicalToast(isEn ? 'This summary could not be read.' : 'Không đọc được bản tóm tắt này.', 'info');
+    return;
   }
+  showSavedPreVisitSummary(summaryObj);
 }
 
 async function handleFacilityBookingSubmit(e) {
@@ -9236,27 +9054,11 @@ async function handleFacilityBookingSubmit(e) {
   const note = document.getElementById('book-modal-note')?.value?.trim() || '';
   const dateVal = document.getElementById('book-modal-date')?.value;
   const termsChecked = document.getElementById('book-modal-terms')?.checked;
-  const attachSummary = document.getElementById('book-modal-attach-summary')?.checked;
-  let summaryPayload = (attachSummary && currentBookingSummaryData) ? currentBookingSummaryData : null;
-  if (attachSummary && !summaryPayload && note) {
-    summaryPayload = {
-      title: isEn ? 'Preliminary Pre-visit Summary' : 'Phiếu Tóm Tắt Trước Khám Sơ Bộ',
-      version: 1,
-      is_confirmed: true,
-      part_a_patient_facts: {
-        chief_complaint: note,
-        symptoms_present: [note],
-        symptoms_denied: [],
-        duration: '',
-        vitals: '',
-        allergies: '',
-        current_medications: ''
-      },
-      part_b_system_assessment: {
-        triage_status: isEn ? 'Pre-booked clinic visit' : 'Đặt hẹn khám chuyên khoa',
-        recommended_specialist: selectedBookingSpecialty || (isEn ? 'General Practice' : 'Đa khoa')
-      }
-    };
+  const attachCheckbox = document.getElementById('book-modal-attach-summary');
+  const summaryReference = attachCheckbox.checked && !attachCheckbox.disabled ? bookingSummaryReference : null;
+  if (attachCheckbox.checked && !summaryReference) {
+    showMedicalToast(isEn ? 'Your summary is still loading.' : 'Đang tải bản tóm tắt, vui lòng chờ.', 'info');
+    return;
   }
 
   if (!patName || !patPhone) {
@@ -9290,7 +9092,10 @@ async function handleFacilityBookingSubmit(e) {
         patient_phone: patPhone,
         patient_email: patEmail,
         note: note,
-        pre_visit_summary: summaryPayload
+        ...(summaryReference && {
+          pre_visit_conversation_id: summaryReference.id,
+          pre_visit_summary_version: summaryReference.version
+        })
       })
     });
 
@@ -9326,6 +9131,8 @@ const submitFacilityAppointment = handleFacilityBookingSubmit;
 function closeFacilityBookingModal() {
   const modal = document.getElementById('facility-booking-modal');
   if (modal) modal.classList.add('hidden');
+  bookingSummaryRequest++;
+  bookingSummaryReference = null;
   restoreModalTriggerFocus();
 }
 
@@ -9440,7 +9247,7 @@ function renderUserAppointments() {
             </div>
             ${appt.note ? `
               <div class="pt-1 border-t border-slate-200/60 dark:border-white/5 text-[11px] text-slate-500 dark:text-slate-400 italic">
-                "${appt.note}"
+                "${escapeHtml(appt.note)}"
               </div>
             ` : ''}
             ${appt.pre_visit_summary ? `
@@ -10105,9 +9912,7 @@ async function openConsultationSummaryDetail(sessionId) {
     const response = await fetch('/api/clinical-summary?conversation_id=' + encodeURIComponent(sessionId));
     const data = await response.json();
     if (!response.ok || !data.summary) throw new Error(data.error || data.message || "Không tìm thấy bản tóm tắt đã lưu.");
-    renderPreVisitSummaryInModal(data.summary, null);
-    document.getElementById('modal-btn-confirm')?.classList.add('hidden');
-    document.getElementById('previsit-summary-modal')?.classList.remove('hidden');
+    showSavedPreVisitSummary(data.summary);
   } catch (error) {
     showMedicalToast(error.message || "Không tải được bản tóm tắt của phiên này.", "error");
   }
