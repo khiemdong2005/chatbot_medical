@@ -272,6 +272,7 @@ class MedicalAppointment(db.Model):
     patient_name = db.Column(db.String(120), nullable=False)
     patient_phone = db.Column(db.String(20), nullable=False)
     note = db.Column(db.Text, nullable=True)
+    pre_visit_summary = db.Column(db.JSON(none_as_null=True), nullable=True)
     status = db.Column(db.String(30), default="pending", nullable=False)  # pending | confirmed | cancelled
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -290,6 +291,7 @@ class MedicalAppointment(db.Model):
             "patient_name": self.patient_name,
             "patient_phone": self.patient_phone,
             "note": self.note or "",
+            "pre_visit_summary": self.pre_visit_summary,
             "status": self.status,
             "created_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else ""
         }

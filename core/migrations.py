@@ -79,7 +79,8 @@ MIGRATIONS = [
         None
     ),
     ("2026_11_08_consultation_sessions", "Group chat turns by session", None),
-    ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None)
+    ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None),
+    ("2026_11_22_appointment_pre_visit_summary", "Store confirmed pre-visit summaries on appointments", None),
 ]
 
 
@@ -167,6 +168,12 @@ def run_migrations(engine):
                 elif version == "2026_11_08_confirmed_summary":
                     if "confirmed_summary" not in {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN confirmed_summary TEXT"))
+                elif version == "2026_11_22_appointment_pre_visit_summary":
+                    current_schema = inspect(conn)
+                    if current_schema.has_table("medical_appointments"):
+                        columns = {c["name"] for c in current_schema.get_columns("medical_appointments")}
+                        if "pre_visit_summary" not in columns:
+                            conn.execute(text("ALTER TABLE medical_appointments ADD COLUMN pre_visit_summary JSON"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     for stmt in sql.strip().split(";"):
