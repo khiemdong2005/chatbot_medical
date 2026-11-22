@@ -1340,6 +1340,19 @@ body:not(.light-glass) #doctor-tab .nf-meal-pill.active { background: var(--nf-a
   box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
 }
 
+#doctor-tab .nf-combo-refresh-tab {
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px dashed #94a3b8;
+  color: #334155;
+}
+
+#doctor-tab .nf-combo-refresh-tab:hover {
+  background: #f8fafc;
+  border-color: #0284c7;
+  color: #0284c7;
+  transform: translateY(-1px);
+}
+
 #doctor-tab .nf-combo-tab-icon {
   font-size: 20px;
   line-height: 1;

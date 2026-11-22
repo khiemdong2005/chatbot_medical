@@ -1,0 +1,1194 @@
+[
+  {
+    "id": "canonical_staple_com_trang",
+    "title": "Cơm trắng (Gạo tẻ)",
+    "subtitle": "Cơm trắng dẻo truyền thống nấu từ gạo tẻ",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "traditional_vietnamese",
+    "ingredients": [
+      {
+        "name": "Gạo tẻ trắng",
+        "amount": "100",
+        "unit": "g"
+      },
+      {
+        "name": "Nước lọc",
+        "amount": "150",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Vo nhẹ gạo tẻ 1-2 lần với nước sạch để giữ lại vitamin nhóm B.",
+      "Cho nước vào nồi theo tỷ lệ 1 phần gạo : 1.4-1.5 phần nước.",
+      "Nấu chín bằng nồi cơm điện đến khi hạt cơm dẻo xốp, chín đều.",
+      "Xới đều cơm và ủ ấm 5-10 phút trước khi dùng."
+    ],
+    "cooking_time": "30 phút",
+    "servings": "1 bát con (150g cơm chín)",
+    "serving_unit": "bát con",
+    "serving_weight_g": 150.0,
+    "calories": 195.0,
+    "fat": 0.45,
+    "fiber": 0.6,
+    "sugar": 0.15,
+    "protein": 4.05,
+    "carbohydrates": 42.3,
+    "sodium_mg": 4.5,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn cho 1 người trưởng thành (1 bát con ~ 150g cơm chín)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-01007",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam (Vietnamese Food Composition Table), Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 1: Ngũ cốc, Mã số 01007 (Cơm gạo tẻ), trang 42",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_cooked_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 130.0,
+      "protein_100g": 2.7,
+      "fat_100g": 0.3,
+      "carbs_100g": 28.2,
+      "fiber_100g": 0.4
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5 (hệ số quy đổi khẩu phần tham chiếu 150g cơm chín)",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "rice",
+      "water"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "steaming",
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_com_trang.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_com_trang.jpg"
+  },
+  {
+    "id": "canonical_staple_com_gao_lut",
+    "title": "Cơm gạo lứt (Đỏ / Nâu)",
+    "subtitle": "Gạo lứt giàu chất xơ, chỉ số đường huyết (GI) thấp",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "healthy_vietnamese",
+    "ingredients": [
+      {
+        "name": "Gạo lứt đỏ hoặc nâu",
+        "amount": "100",
+        "unit": "g"
+      },
+      {
+        "name": "Nước lọc",
+        "amount": "200",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Ngâm gạo lứt trong nước ấm từ 2-4 giờ trước khi nấu để hạt gạo mềm và dễ tiêu.",
+      "Đong nước theo tỷ lệ 1 phần gạo : 1.8-2.0 phần nước.",
+      "Nấu chín bằng nồi cơm điện chế độ gạo lứt hoặc hấp cách thủy.",
+      "Ủ ấm 15 phút trước khi thưởng thức."
+    ],
+    "cooking_time": "45 phút",
+    "servings": "1 bát con (150g cơm chín)",
+    "serving_unit": "bát con",
+    "serving_weight_g": 150.0,
+    "calories": 165.0,
+    "fat": 1.35,
+    "fiber": 2.7,
+    "sugar": 0.3,
+    "protein": 3.75,
+    "carbohydrates": 34.5,
+    "sodium_mg": 3.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn cho 1 người (1 bát con ~ 150g cơm gạo lứt chín)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-01002",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam, Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 1: Ngũ cốc, Mã số 01002 (Gạo lứt), trang 40; hệ số nở chín cơm 2.3",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_cooked_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 110.0,
+      "protein_100g": 2.5,
+      "fat_100g": 0.9,
+      "carbs_100g": 23.0,
+      "fiber_100g": 1.8
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5 (hệ số quy đổi 150g cơm chín)",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "brown_rice",
+      "water"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "steaming",
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_com_gao_lut.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_com_gao_lut.jpg"
+  },
+  {
+    "id": "canonical_staple_bun_tuoi",
+    "title": "Bún tươi luộc",
+    "subtitle": "Bún sợi gạo tươi ăn kèm món chính và món canh",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "traditional_vietnamese",
+    "ingredients": [
+      {
+        "name": "Bún gạo tươi",
+        "amount": "150",
+        "unit": "g"
+      },
+      {
+        "name": "Nước sôi",
+        "amount": "500",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Đun sôi nước sạch trong nồi sâu lòng.",
+      "Trần bún tươi trong nước sôi 1 phút để sợi bún sạch và mềm thơm.",
+      "Vớt bún ra rổ, để ráo nước trước khi ăn."
+    ],
+    "cooking_time": "5 phút",
+    "servings": "1 đĩa nhỏ (150g bún tươi)",
+    "serving_unit": "đĩa nhỏ",
+    "serving_weight_g": 150.0,
+    "calories": 165.0,
+    "fat": 0.15,
+    "fiber": 0.45,
+    "sugar": 0.15,
+    "protein": 2.55,
+    "carbohydrates": 38.55,
+    "sodium_mg": 12.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (1 đĩa nhỏ ~ 150g bún tươi)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-01026",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam, Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 1: Ngũ cốc, Mã số 01026 (Bún), trang 46",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 110.0,
+      "protein_100g": 1.7,
+      "fat_100g": 0.1,
+      "carbs_100g": 25.7,
+      "fiber_100g": 0.3
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "rice_vermicelli",
+      "water"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_bun_tuoi.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_bun_tuoi.jpg"
+  },
+  {
+    "id": "canonical_staple_banh_pho_tuoi",
+    "title": "Bánh phở tươi",
+    "subtitle": "Sợi bánh phở tráng từ bột gạo hấp",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "traditional_vietnamese",
+    "ingredients": [
+      {
+        "name": "Bánh phở tươi",
+        "amount": "150",
+        "unit": "g"
+      },
+      {
+        "name": "Nước sôi",
+        "amount": "500",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Đun sôi nước sạch.",
+      "Cho bánh phở tươi vào vá lưới trần nhanh trong nước sôi 20-30 giây.",
+      "Nhấc lên để ráo nước rồi dùng kèm món mặn hoặc nước canh."
+    ],
+    "cooking_time": "5 phút",
+    "servings": "1 bát con (150g bánh phở)",
+    "serving_unit": "bát con",
+    "serving_weight_g": 150.0,
+    "calories": 180.0,
+    "fat": 0.3,
+    "fiber": 0.45,
+    "sugar": 0.15,
+    "protein": 3.0,
+    "carbohydrates": 41.0,
+    "sodium_mg": 10.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (1 bát con ~ 150g bánh phở)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-01029",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam, Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 1: Ngũ cốc, Mã số 01029 (Bánh phở), trang 48",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 120.0,
+      "protein_100g": 2.0,
+      "fat_100g": 0.2,
+      "carbs_100g": 27.3,
+      "fiber_100g": 0.3
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "rice_noodle",
+      "water"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_banh_pho_tuoi.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_banh_pho_tuoi.jpg"
+  },
+  {
+    "id": "canonical_staple_khoai_lang_luoc",
+    "title": "Khoai lang luộc / hấp",
+    "subtitle": "Khoai lang luộc chín mềm giàu chất xơ hòa tan",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "healthy_vietnamese",
+    "ingredients": [
+      {
+        "name": "Khoai lang củ",
+        "amount": "150",
+        "unit": "g"
+      },
+      {
+        "name": "Nước lọc",
+        "amount": "300",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Rửa sạch bùn đất bên ngoài củ khoai.",
+      "Cho vào nồi luộc hoặc xửng hấp trong 20-25 phút đến khi chín mềm.",
+      "Để nguội bớt, bóc vỏ và dùng."
+    ],
+    "cooking_time": "25 phút",
+    "servings": "1 củ vừa (150g)",
+    "serving_unit": "củ vừa",
+    "serving_weight_g": 150.0,
+    "calories": 129.0,
+    "fat": 0.15,
+    "fiber": 4.5,
+    "sugar": 6.3,
+    "protein": 2.4,
+    "carbohydrates": 30.0,
+    "sodium_mg": 82.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (1 củ vừa ~ 150g phần ăn được)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-02005",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam, Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 2: Củ và sản phẩm chế biến, Mã số 02005 (Khoai lang), trang 54",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 86.0,
+      "protein_100g": 1.6,
+      "fat_100g": 0.1,
+      "carbs_100g": 20.0,
+      "fiber_100g": 3.0
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "sweet_potato",
+      "water"
+    ],
+    "ingredient_groups": [
+      "root_tuber"
+    ],
+    "cooking_methods": [
+      "steaming",
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg"
+  },
+  {
+    "id": "canonical_staple_khoai_tay_luoc",
+    "title": "Khoai tây luộc / nghiền",
+    "subtitle": "Khoai tây luộc mềm cung cấp carbohydrate phức hợp và kali",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "healthy_vietnamese",
+    "ingredients": [
+      {
+        "name": "Khoai tây củ",
+        "amount": "150",
+        "unit": "g"
+      },
+      {
+        "name": "Nước lọc",
+        "amount": "300",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Rửa sạch khoai tây, gọt vỏ và cắt khối vừa ăn.",
+      "Luộc ngập nước 15-20 phút đến khi mềm xiên đũa qua được.",
+      "Vớt ra ăn nguyên củ hoặc nghiền nhẹ."
+    ],
+    "cooking_time": "20 phút",
+    "servings": "1 củ vừa (150g)",
+    "serving_unit": "củ vừa",
+    "serving_weight_g": 150.0,
+    "calories": 130.5,
+    "fat": 0.15,
+    "fiber": 2.7,
+    "sugar": 0.9,
+    "protein": 3.0,
+    "carbohydrates": 30.0,
+    "sodium_mg": 9.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (1 củ vừa ~ 150g)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-02008",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam, Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 2: Củ và sản phẩm chế biến, Mã số 02008 (Khoai tây), trang 56",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 87.0,
+      "protein_100g": 2.0,
+      "fat_100g": 0.1,
+      "carbs_100g": 20.0,
+      "fiber_100g": 1.8
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "potato",
+      "water"
+    ],
+    "ingredient_groups": [
+      "root_tuber"
+    ],
+    "cooking_methods": [
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_khoai_tay_luoc.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_khoai_tay_luoc.jpg"
+  },
+  {
+    "id": "canonical_staple_bap_luoc",
+    "title": "Bắp (Ngô) nếp luộc",
+    "subtitle": "Bắp nếp luộc dẻo thơm giàu chất xơ",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "traditional_vietnamese",
+    "ingredients": [
+      {
+        "name": "Trái bắp nếp tươi",
+        "amount": "150",
+        "unit": "g"
+      },
+      {
+        "name": "Nước lọc",
+        "amount": "400",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Rửa sạch bắp, giữ lại lớp vỏ non trong cùng khi luộc để nước ngọt thơm.",
+      "Luộc bắp ngập nước 15-20 phút đến khi hạt bắp trong và dẻo.",
+      "Vớt bắp ra để ráo và dùng."
+    ],
+    "cooking_time": "20 phút",
+    "servings": "1 trái vừa (150g phần ăn được)",
+    "serving_unit": "trái vừa",
+    "serving_weight_g": 150.0,
+    "calories": 144.0,
+    "fat": 1.8,
+    "fiber": 3.6,
+    "sugar": 4.5,
+    "protein": 5.1,
+    "carbohydrates": 28.5,
+    "sodium_mg": 22.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (1 trái vừa ~ 150g phần ăn được)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "national_food_table",
+    "source_name": "Viện Dinh Dưỡng Quốc Gia Việt Nam",
+    "source_record_id": "NIN-2007-01018",
+    "source_reference": "Bảng thành phần thực phẩm Việt Nam, Bộ Y tế - Viện Dinh Dưỡng, NXB Y Học 2007, Nhóm 1: Ngũ cốc, Mã số 01018 (Ngô nếp tươi luộc), trang 44",
+    "source_url": "https://viendinhduong.vn",
+    "original_nutrition_basis": "per_100g_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 96.0,
+      "protein_100g": 3.4,
+      "fat_100g": 1.2,
+      "carbs_100g": 19.0,
+      "fiber_100g": 2.4
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5",
+    "allergen_tags": [],
+    "allergen_status": "assessed_not_detected",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "corn",
+      "water"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "boiling"
+    ],
+    "license": "CC-BY-4.0",
+    "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
+    "image_link": "/static/images/recipes/canonical_staple_bap_luoc.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_bap_luoc.jpg"
+  },
+  {
+    "id": "canonical_staple_yen_mach_nau",
+    "title": "Yến mạch nguyên cám nấu chín",
+    "subtitle": "Cháo yến mạch nguyên chất giàu chất xơ beta-glucan",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "healthy_vietnamese",
+    "ingredients": [
+      {
+        "name": "Yến mạch cán dẹt nguyên cám",
+        "amount": "40",
+        "unit": "g"
+      },
+      {
+        "name": "Nước lọc",
+        "amount": "250",
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Đun sôi 250ml nước trong nồi nhỏ.",
+      "Cho 40g yến mạch vào khuấy đều.",
+      "Nấu lửa nhỏ trong 5-7 phút đến khi yến mạch sánh mịn.",
+      "Múc ra bát dùng thay phần cơm."
+    ],
+    "cooking_time": "10 phút",
+    "servings": "1 bát nhỏ (150g chín)",
+    "serving_unit": "bát nhỏ",
+    "serving_weight_g": 150.0,
+    "calories": 106.5,
+    "fat": 2.28,
+    "fiber": 2.55,
+    "sugar": 0.5,
+    "protein": 3.81,
+    "carbohydrates": 18.0,
+    "sodium_mg": 3.0,
+    "nutrition_basis": "per_reference_serving_150g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (1 bát nhỏ ~ 150g nấu chín từ 40g thô)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "usda_fooddata_central",
+    "source_name": "USDA FoodData Central",
+    "source_record_id": "FDC-1101825",
+    "source_reference": "U.S. Department of Agriculture, Agricultural Research Service. FoodData Central, FDC ID: 1101825 (Cereals, oats, regular and quick, unenriched, cooked with water)",
+    "source_url": "https://fdc.nal.usda.gov/fdc-app.html#/food-details/1101825/nutrients",
+    "original_nutrition_basis": "per_100g_cooked_with_water",
+    "original_nutrient_values": {
+      "calories_100g": 71.0,
+      "protein_100g": 2.54,
+      "fat_100g": 1.52,
+      "carbs_100g": 12.0,
+      "fiber_100g": 1.7
+    },
+    "conversion_formula": "value_150g = value_100g * 1.5",
+    "allergen_tags": [
+      "oats"
+    ],
+    "allergen_status": "known_present",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "unknown",
+        "evidence": null,
+        "uncertainty_reason": "Yến mạch nguyên chất không chứa gluten, nhưng nguy cơ nhiễm chéo tại cơ sở chế biến ngũ cốc thường gặp trừ khi có chứng nhận Gluten-Free"
+      }
+    },
+    "normalized_ingredients": [
+      "oats",
+      "water"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "boiling"
+    ],
+    "license": "Public Domain",
+    "license_note": "Dữ liệu công khai USDA FoodData Central",
+    "image_link": "/static/images/recipes/canonical_staple_yen_mach_nau.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_yen_mach_nau.jpg"
+  },
+  {
+    "id": "canonical_staple_banh_mi_nguyen_cam",
+    "title": "Bánh mì đen nguyên cám",
+    "subtitle": "Bánh mì ngũ cốc nguyên cám giàu chất xơ",
+    "recipe_type": "food",
+    "primary_role": "staple",
+    "secondary_roles": [],
+    "eligible_combo_roles": [
+      "staple"
+    ],
+    "language": "vi",
+    "cuisine": "VN",
+    "cuisine_basis": "healthy_vietnamese",
+    "ingredients": [
+      {
+        "name": "Bánh mì nguyên cám",
+        "amount": "60",
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cắt 2 lát bánh mì nguyên cám khoảng 60g.",
+      "Nướng nhẹ trên chảo chống dính 1-2 phút cho thơm giòn.",
+      "Dùng kèm món súp hoặc món mặn."
+    ],
+    "cooking_time": "3 phút",
+    "servings": "2 lát (60g)",
+    "serving_unit": "lát",
+    "serving_weight_g": 60.0,
+    "calories": 148.2,
+    "fat": 2.04,
+    "fiber": 4.08,
+    "sugar": 2.5,
+    "protein": 7.38,
+    "carbohydrates": 24.78,
+    "sodium_mg": 280.0,
+    "nutrition_basis": "per_reference_serving_60g",
+    "reference_portion_note": "Khẩu phần tham chiếu tiêu chuẩn (2 lát bánh mì vừa ~ 60g)",
+    "nutrition_verified": true,
+    "nutrient_provenance": "usda_fooddata_central",
+    "source_name": "USDA FoodData Central",
+    "source_record_id": "FDC-172688",
+    "source_reference": "U.S. Department of Agriculture, Agricultural Research Service. FoodData Central, FDC ID: 172688 (Bread, whole-wheat, commercially prepared)",
+    "source_url": "https://fdc.nal.usda.gov/fdc-app.html#/food-details/172688/nutrients",
+    "original_nutrition_basis": "per_100g_edible_portion",
+    "original_nutrient_values": {
+      "calories_100g": 247.0,
+      "protein_100g": 12.3,
+      "fat_100g": 3.4,
+      "carbs_100g": 41.3,
+      "fiber_100g": 6.8
+    },
+    "conversion_formula": "value_60g = value_100g * 0.60 (hệ số quy đổi cho khẩu phần tham chiếu 2 lát = 60g)",
+    "allergen_tags": [
+      "wheat_gluten"
+    ],
+    "allergen_status": "known_present",
+    "allergen_assessments": {
+      "shrimp": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "crab": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "squid_octopus": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "fish": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "mollusk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "peanut": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "sesame": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "egg": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "cow_milk": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "soy": {
+        "status": "assessed_not_detected",
+        "evidence": null,
+        "uncertainty_reason": null
+      },
+      "wheat_gluten": {
+        "status": "known_present",
+        "evidence": "bột mì nguyên cám (whole-wheat flour)",
+        "uncertainty_reason": null
+      }
+    },
+    "normalized_ingredients": [
+      "whole_wheat_bread"
+    ],
+    "ingredient_groups": [
+      "grain"
+    ],
+    "cooking_methods": [
+      "raw_fresh"
+    ],
+    "license": "Public Domain",
+    "license_note": "Dữ liệu công khai USDA FoodData Central",
+    "image_link": "/static/images/recipes/canonical_staple_banh_mi_nguyen_cam.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_banh_mi_nguyen_cam.jpg"
+  }
+]

@@ -1,0 +1,1260 @@
+[
+  {
+    "id": "healthy_eating",
+    "name": "1. Ăn lành mạnh (Healthy Eating)",
+    "input": {
+      "profile": {},
+      "query": "ăn lành mạnh"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_HEALTHY_BALANCED"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [],
+    "key_match_counts": {},
+    "individual_exclusions": {},
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 2446,
+    "total_role_memberships": 2446,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1405,
+      "soup": 203,
+      "vegetable": 190,
+      "standalone": 397,
+      "beverage": 97,
+      "dessert": 82,
+      "snack": 62
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2433 [main_dish]: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361 [main_dish]: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3749 [soup]: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "gout",
+    "name": "2. Bệnh gút cấp (Acute Gout)",
+    "input": {
+      "profile": {
+        "conditions": [
+          "gout"
+        ]
+      },
+      "query": "bệnh gút"
+    },
+    "recognized_conditions": [
+      "gout",
+      "gout",
+      "gout",
+      "gout"
+    ],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_GOUT_ORGAN_MEATS",
+      "RULE_GOUT_ALCOHOL",
+      "RULE_GOUT_SEAFOOD_LIMIT",
+      "RULE_GOUT_RED_MEAT_LIMIT"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [
+        "alcohol"
+      ],
+      "ingredient_groups": [
+        "organ_meat"
+      ],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [
+        "vegetable"
+      ],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [
+        "beef"
+      ],
+      "avoided_ingredient_groups": [
+        "seafood"
+      ],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "ingredient:alcohol",
+      "ingredient_group:organ_meat",
+      "residual:organ_meat"
+    ],
+    "key_match_counts": {
+      "ingredient:alcohol": 0,
+      "ingredient_group:organ_meat": 0,
+      "residual:organ_meat": 24
+    },
+    "individual_exclusions": {
+      "ingredient:alcohol": 0,
+      "ingredient_group:organ_meat": 0,
+      "residual:organ_meat": 24
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 2422,
+    "total_role_memberships": 2422,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1392,
+      "soup": 203,
+      "vegetable": 186,
+      "standalone": 390,
+      "beverage": 97,
+      "dessert": 82,
+      "snack": 62
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_812: Bắp bò xốt pate chấm muối tắc",
+      "vifoodrec_1806: Mì Trứng Xào Lòng Vịt",
+      "vifoodrec_526: Tim heo hầm hạt sen",
+      "vifoodrec_237: Bánh rán kẹp pate thịt xông khói",
+      "vifoodrec_1865: Lòng Heo Chiên Sả Ớt"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2433 [main_dish]: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361 [main_dish]: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3749 [soup]: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "hyperuricemia",
+    "name": "3. Tăng acid uric (Asymptomatic Hyperuricemia)",
+    "input": {
+      "profile": {},
+      "query": "tăng acid uric, kiêng hải sản"
+    },
+    "recognized_conditions": [
+      "gout",
+      "gout"
+    ],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_GOUT_SEAFOOD_LIMIT",
+      "RULE_GOUT_RED_MEAT_LIMIT"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [
+        "seafood"
+      ],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [
+        "vegetable"
+      ],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [
+        "beef"
+      ],
+      "avoided_ingredient_groups": [
+        "seafood"
+      ],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "ingredient_group:seafood"
+    ],
+    "key_match_counts": {
+      "ingredient_group:seafood": 465
+    },
+    "individual_exclusions": {
+      "ingredient_group:seafood": 464
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 1982,
+    "total_role_memberships": 1982,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1117,
+      "soup": 154,
+      "vegetable": 157,
+      "standalone": 319,
+      "beverage": 97,
+      "dessert": 82,
+      "snack": 46
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_714: Gỏi rau mầm",
+      "vifoodrec_3085: Kho Quẹt Tóp Mỡ Tôm Khô",
+      "vifoodrec_2433: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_797: Bánh tôm chiên củ sắn",
+      "vifoodrec_590: Bánh canh cá lóc"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2608 [main_dish]: Bánh Chưng Cốm Đón Tết",
+      "vifoodrec_1545 [main_dish]: LẩU MắM MiềN Tây",
+      "vifoodrec_1205 [dessert]: Tàu Hủ Kem Trứng Ca Cao",
+      "vifoodrec_138 [main_dish]: Đậu hũ chiên sả ớt"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "diabetes",
+    "name": "4. Đái tháo đường Type 2 (Diabetes)",
+    "input": {
+      "profile": {
+        "conditions": [
+          "diabetes"
+        ]
+      },
+      "query": "đái tháo đường type 2"
+    },
+    "recognized_conditions": [
+      "diabetes",
+      "diabetes",
+      "diabetes"
+    ],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_DIABETES_FREE_SUGARS",
+      "RULE_DIABETES_SUGAR_SWEETENED_BEV",
+      "RULE_DIABETES_FIBER_PREFERENCE"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": [
+        "dessert"
+      ]
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [
+        "grain",
+        "vegetable"
+      ],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {
+        "sugar": "low"
+      }
+    },
+    "index_keys_used": [
+      "role:dessert"
+    ],
+    "key_match_counts": {
+      "role:dessert": 82
+    },
+    "individual_exclusions": {
+      "role:dessert": 82
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 2364,
+    "total_role_memberships": 2364,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1405,
+      "soup": 203,
+      "vegetable": 190,
+      "standalone": 397,
+      "beverage": 97,
+      "dessert": 0,
+      "snack": 62
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_1576: Chè Cốm Dẹp",
+      "vifoodrec_1205: Tàu Hủ Kem Trứng Ca Cao",
+      "vifoodrec_3966: Chè Vừng Đen",
+      "vifoodrec_1727: Chè Đậu Xanh Bột Báng Phổ Tai",
+      "vifoodrec_3807: Chè Thạch"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2433 [main_dish]: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361 [main_dish]: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3749 [soup]: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "fatty_liver",
+    "name": "5. Gan nhiễm mỡ (Fatty Liver)",
+    "input": {
+      "profile": {
+        "conditions": [
+          "fatty_liver"
+        ]
+      },
+      "query": "gan nhiễm mỡ, không ăn đồ chiên"
+    },
+    "recognized_conditions": [
+      "fatty_liver",
+      "fatty_liver"
+    ],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_FATTY_LIVER_ALCOHOL",
+      "RULE_FATTY_LIVER_DEEP_FRIED"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [
+        "alcohol"
+      ],
+      "ingredient_groups": [],
+      "cooking_methods": [
+        "deep_frying"
+      ],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [
+        "boiling",
+        "steaming"
+      ],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [
+        "frying"
+      ],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "ingredient:alcohol",
+      "cooking_method:deep_frying"
+    ],
+    "key_match_counts": {
+      "ingredient:alcohol": 0,
+      "cooking_method:deep_frying": 764
+    },
+    "individual_exclusions": {
+      "ingredient:alcohol": 0,
+      "cooking_method:deep_frying": 756
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 1690,
+    "total_role_memberships": 1690,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 841,
+      "soup": 189,
+      "vegetable": 142,
+      "standalone": 284,
+      "beverage": 96,
+      "dessert": 81,
+      "snack": 47
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_2368: Tôm Chiên Sa Tế",
+      "vifoodrec_138: Đậu hũ chiên sả ớt",
+      "vifoodrec_3920: Cá Rô Phi Chiên Xù",
+      "vifoodrec_1532: Heo Quay Bằng Nồi Chiên Không Dầu",
+      "vifoodrec_2433: Sườn Non Chiên Sả Ớt"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2608 [main_dish]: Bánh Chưng Cốm Đón Tết",
+      "vifoodrec_1545 [main_dish]: LẩU MắM MiềN Tây",
+      "vifoodrec_1205 [dessert]: Tàu Hủ Kem Trứng Ca Cao",
+      "vifoodrec_789 [standalone]: Phở bò"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "shrimp_allergy",
+    "name": "6. Dị ứng tôm (Shrimp Allergy)",
+    "input": {
+      "profile": {
+        "allergies": [
+          "shrimp"
+        ]
+      },
+      "query": "dị ứng tôm"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [
+      "shrimp"
+    ],
+    "activated_rules": [
+      "RULE_HEALTHY_BALANCED"
+    ],
+    "hard_constraints": {
+      "allergens": [
+        "shrimp"
+      ],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "allergen:shrimp"
+    ],
+    "key_match_counts": {
+      "allergen:shrimp": 484
+    },
+    "individual_exclusions": {
+      "allergen:shrimp": 483
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 1963,
+    "total_role_memberships": 1963,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1102,
+      "soup": 165,
+      "vegetable": 156,
+      "standalone": 311,
+      "beverage": 97,
+      "dessert": 82,
+      "snack": 40
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_1545: LẩU MắM MiềN Tây",
+      "vifoodrec_714: Gỏi rau mầm",
+      "vifoodrec_2368: Tôm Chiên Sa Tế",
+      "vifoodrec_3085: Kho Quẹt Tóp Mỡ Tôm Khô",
+      "vifoodrec_2433: Sườn Non Chiên Sả Ớt"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2608 [main_dish]: Bánh Chưng Cốm Đón Tết",
+      "vifoodrec_1205 [dessert]: Tàu Hủ Kem Trứng Ca Cao",
+      "vifoodrec_138 [main_dish]: Đậu hũ chiên sả ớt",
+      "vifoodrec_1532 [main_dish]: Heo Quay Bằng Nồi Chiên Không Dầu"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "cow_milk_allergy",
+    "name": "7. Dị ứng sữa bò (Cow Milk Allergy)",
+    "input": {
+      "profile": {
+        "allergies": [
+          "cow_milk"
+        ]
+      },
+      "query": "dị ứng sữa bò"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [
+      "cow_milk"
+    ],
+    "activated_rules": [
+      "RULE_HEALTHY_BALANCED"
+    ],
+    "hard_constraints": {
+      "allergens": [
+        "cow_milk"
+      ],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "allergen:cow_milk"
+    ],
+    "key_match_counts": {
+      "allergen:cow_milk": 220
+    },
+    "individual_exclusions": {
+      "allergen:cow_milk": 216
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 2230,
+    "total_role_memberships": 2230,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1287,
+      "soup": 202,
+      "vegetable": 185,
+      "standalone": 387,
+      "beverage": 53,
+      "dessert": 61,
+      "snack": 45
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_1433: Trứng Cuộn Xúc Xích",
+      "vifoodrec_2405: Sinh Tố Chuối Sữa Tươi",
+      "vifoodrec_1345: Chả Giò Rau Củ Phô Mai",
+      "vifoodrec_1735: Khoai Tây Bọc Phô Mai Chiên",
+      "vifoodrec_1205: Tàu Hủ Kem Trứng Ca Cao"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2433 [main_dish]: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361 [main_dish]: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3749 [soup]: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "multi_allergy",
+    "name": "8. Nhiều dị ứng (Tôm + Trứng + Sữa bò)",
+    "input": {
+      "profile": {
+        "allergies": [
+          "shrimp",
+          "egg",
+          "cow_milk"
+        ]
+      },
+      "query": "dị ứng tôm và trứng"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [
+      "shrimp",
+      "egg",
+      "cow_milk"
+    ],
+    "activated_rules": [
+      "RULE_HEALTHY_BALANCED"
+    ],
+    "hard_constraints": {
+      "allergens": [
+        "shrimp",
+        "egg",
+        "cow_milk"
+      ],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "allergen:shrimp",
+      "allergen:egg",
+      "allergen:cow_milk"
+    ],
+    "key_match_counts": {
+      "allergen:shrimp": 484,
+      "allergen:egg": 520,
+      "allergen:cow_milk": 220
+    },
+    "individual_exclusions": {
+      "allergen:shrimp": 483,
+      "allergen:egg": 513,
+      "allergen:cow_milk": 216
+    },
+    "overlap_exclusion_count": 197,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 1431,
+    "total_role_memberships": 1431,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 786,
+      "soup": 158,
+      "vegetable": 127,
+      "standalone": 225,
+      "beverage": 52,
+      "dessert": 60,
+      "snack": 13
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_1433: Trứng Cuộn Xúc Xích",
+      "vifoodrec_3324: Bánh Bông Lan Trứng Nướng",
+      "vifoodrec_2872: Trứng Cuộn Lá Tía Tô",
+      "vifoodrec_1169: Chả Trứng Nấm Rơm",
+      "vifoodrec_1545: LẩU MắM MiềN Tây"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2608 [main_dish]: Bánh Chưng Cốm Đón Tết",
+      "vifoodrec_138 [main_dish]: Đậu hũ chiên sả ớt",
+      "vifoodrec_1532 [main_dish]: Heo Quay Bằng Nồi Chiên Không Dầu",
+      "vifoodrec_1026 [main_dish]: Nem chay rán"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "gout_diabetes",
+    "name": "9. Nhiều bệnh lý (Gút + Tiểu đường)",
+    "input": {
+      "profile": {
+        "conditions": [
+          "gout",
+          "diabetes"
+        ]
+      },
+      "query": "gút và tiểu đường"
+    },
+    "recognized_conditions": [
+      "gout",
+      "gout",
+      "gout",
+      "gout",
+      "diabetes",
+      "diabetes",
+      "diabetes"
+    ],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_GOUT_ORGAN_MEATS",
+      "RULE_GOUT_ALCOHOL",
+      "RULE_GOUT_SEAFOOD_LIMIT",
+      "RULE_GOUT_RED_MEAT_LIMIT",
+      "RULE_DIABETES_FREE_SUGARS",
+      "RULE_DIABETES_SUGAR_SWEETENED_BEV",
+      "RULE_DIABETES_FIBER_PREFERENCE"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [
+        "alcohol"
+      ],
+      "ingredient_groups": [
+        "organ_meat"
+      ],
+      "cooking_methods": [],
+      "roles": [
+        "dessert"
+      ]
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [
+        "grain",
+        "vegetable"
+      ],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [
+        "beef"
+      ],
+      "avoided_ingredient_groups": [
+        "seafood"
+      ],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {
+        "sugar": "low"
+      }
+    },
+    "index_keys_used": [
+      "ingredient:alcohol",
+      "ingredient_group:organ_meat",
+      "role:dessert",
+      "residual:organ_meat"
+    ],
+    "key_match_counts": {
+      "ingredient:alcohol": 0,
+      "ingredient_group:organ_meat": 0,
+      "role:dessert": 82,
+      "residual:organ_meat": 24
+    },
+    "individual_exclusions": {
+      "ingredient:alcohol": 0,
+      "ingredient_group:organ_meat": 0,
+      "role:dessert": 82,
+      "residual:organ_meat": 24
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 2340,
+    "total_role_memberships": 2340,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 1392,
+      "soup": 203,
+      "vegetable": 186,
+      "standalone": 390,
+      "beverage": 97,
+      "dessert": 0,
+      "snack": 62
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_1576: Chè Cốm Dẹp",
+      "vifoodrec_1205: Tàu Hủ Kem Trứng Ca Cao",
+      "vifoodrec_2298: Mề Gà Xào Sả Ớt Cay",
+      "vifoodrec_1864: Mì Trộn Lòng Heo",
+      "vifoodrec_3966: Chè Vừng Đen"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2433 [main_dish]: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361 [main_dish]: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3749 [soup]: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "diabetes_shrimp_nofrying",
+    "name": "10. Đa ràng buộc (Tiểu đường + Dị ứng tôm + Không chiên)",
+    "input": {
+      "profile": {
+        "conditions": [
+          "diabetes"
+        ],
+        "allergies": [
+          "shrimp"
+        ]
+      },
+      "query": "tiểu đường, dị ứng tôm, không ăn đồ chiên"
+    },
+    "recognized_conditions": [
+      "diabetes",
+      "diabetes",
+      "diabetes"
+    ],
+    "recognized_allergies": [
+      "shrimp"
+    ],
+    "activated_rules": [
+      "RULE_DIABETES_FREE_SUGARS",
+      "RULE_DIABETES_SUGAR_SWEETENED_BEV",
+      "RULE_DIABETES_FIBER_PREFERENCE"
+    ],
+    "hard_constraints": {
+      "allergens": [
+        "shrimp"
+      ],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [
+        "deep_frying"
+      ],
+      "roles": [
+        "dessert"
+      ]
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [
+        "grain",
+        "vegetable"
+      ],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {
+        "sugar": "low"
+      }
+    },
+    "index_keys_used": [
+      "allergen:shrimp",
+      "cooking_method:deep_frying",
+      "role:dessert"
+    ],
+    "key_match_counts": {
+      "allergen:shrimp": 484,
+      "cooking_method:deep_frying": 764,
+      "role:dessert": 82
+    },
+    "individual_exclusions": {
+      "allergen:shrimp": 483,
+      "cooking_method:deep_frying": 756,
+      "role:dessert": 82
+    },
+    "overlap_exclusion_count": 145,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 1270,
+    "total_role_memberships": 1270,
+    "pool_breakdown": {
+      "staple": 10,
+      "main_dish": 645,
+      "soup": 153,
+      "vegetable": 116,
+      "standalone": 217,
+      "beverage": 96,
+      "dessert": 0,
+      "snack": 33
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_1545: LẩU MắM MiềN Tây",
+      "vifoodrec_714: Gỏi rau mầm",
+      "vifoodrec_2368: Tôm Chiên Sa Tế",
+      "vifoodrec_3085: Kho Quẹt Tóp Mỡ Tôm Khô",
+      "vifoodrec_138: Đậu hũ chiên sả ớt"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2608 [main_dish]: Bánh Chưng Cốm Đón Tết",
+      "vifoodrec_789 [standalone]: Phở bò",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3102 [standalone]: Bánh Cuốn Nhân Thịt Nấm"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  },
+  {
+    "id": "unsupported_allergen",
+    "name": "11. Dị ứng chưa hỗ trợ (Hạt cây - Tree Nuts)",
+    "input": {
+      "profile": {
+        "allergies": [
+          "tree_nuts"
+        ]
+      },
+      "query": "dị ứng hạt điều và óc chó"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [],
+    "activated_rules": [],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [],
+    "key_match_counts": {},
+    "individual_exclusions": {},
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 0,
+    "total_role_memberships": 0,
+    "pool_breakdown": {
+      "staple": 0,
+      "main_dish": 0,
+      "soup": 0,
+      "vegetable": 0,
+      "standalone": 0,
+      "beverage": 0,
+      "dessert": 0,
+      "snack": 0
+    },
+    "is_combo_viable": false,
+    "is_standalone_viable": false,
+    "sample_excluded": [
+      "ALL_RECIPES_HALTED (UNSUPPORTED_ALLERGEN_HALT)"
+    ],
+    "sample_surviving": [],
+    "unresolved_constraints": [],
+    "safety_status": "UNSUPPORTED_ALLERGEN_HALT",
+    "reference_parity": true
+  },
+  {
+    "id": "ckd_safeguard",
+    "name": "12. Rào chắn suy thận mạn (CKD Safeguard)",
+    "input": {
+      "profile": {
+        "conditions": [
+          "ckd"
+        ]
+      },
+      "query": "bệnh nhân suy thận mạn"
+    },
+    "recognized_conditions": [
+      "ckd"
+    ],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_CKD_SAFEGUARD"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [],
+    "key_match_counts": {},
+    "individual_exclusions": {},
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 0,
+    "total_role_memberships": 0,
+    "pool_breakdown": {
+      "staple": 0,
+      "main_dish": 0,
+      "soup": 0,
+      "vegetable": 0,
+      "standalone": 0,
+      "beverage": 0,
+      "dessert": 0,
+      "snack": 0
+    },
+    "is_combo_viable": false,
+    "is_standalone_viable": false,
+    "sample_excluded": [
+      "ALL_RECIPES_HALTED (CKD_INSUFFICIENT_CLINICAL_DATA)"
+    ],
+    "sample_surviving": [],
+    "unresolved_constraints": [
+      "ckd_stage_unspecified"
+    ],
+    "safety_status": "INSUFFICIENT_CLINICAL_DATA",
+    "reference_parity": true
+  },
+  {
+    "id": "unmapped_disease",
+    "name": "13. Rào chắn bệnh lý phức tạp (Ung thư dạ dày)",
+    "input": {
+      "profile": {},
+      "query": "ung thư dạ dày"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [],
+    "activated_rules": [],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [],
+    "key_match_counts": {},
+    "individual_exclusions": {},
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 0,
+    "total_role_memberships": 0,
+    "pool_breakdown": {
+      "staple": 0,
+      "main_dish": 0,
+      "soup": 0,
+      "vegetable": 0,
+      "standalone": 0,
+      "beverage": 0,
+      "dessert": 0,
+      "snack": 0
+    },
+    "is_combo_viable": false,
+    "is_standalone_viable": false,
+    "sample_excluded": [
+      "ALL_RECIPES_HALTED (UNMAPPED_DISEASE_SAFEGUARD)"
+    ],
+    "sample_surviving": [],
+    "unresolved_constraints": [],
+    "safety_status": "UNMAPPED_DISEASE_SAFEGUARD",
+    "reference_parity": true
+  },
+  {
+    "id": "empty_candidate_pool",
+    "name": "14. Tập ứng viên rỗng (Loại trừ toàn bộ vai trò món ăn)",
+    "input": {
+      "profile": {
+        "disliked_ingredients": [
+          "tat ca cac mon"
+        ]
+      },
+      "query": "không ăn bất kỳ món nào"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_HEALTHY_BALANCED"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": [
+        "snack",
+        "main_dish",
+        "vegetable",
+        "standalone",
+        "soup",
+        "staple",
+        "beverage",
+        "other",
+        "dessert"
+      ]
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "role:snack",
+      "role:main_dish",
+      "role:vegetable",
+      "role:standalone",
+      "role:soup",
+      "role:staple",
+      "role:beverage",
+      "role:other",
+      "role:dessert"
+    ],
+    "key_match_counts": {
+      "role:snack": 62,
+      "role:main_dish": 1405,
+      "role:vegetable": 190,
+      "role:standalone": 397,
+      "role:soup": 203,
+      "role:staple": 10,
+      "role:beverage": 97,
+      "role:other": 25,
+      "role:dessert": 82
+    },
+    "individual_exclusions": {
+      "role:snack": 62,
+      "role:main_dish": 1405,
+      "role:vegetable": 190,
+      "role:standalone": 397,
+      "role:soup": 203,
+      "role:staple": 10,
+      "role:beverage": 97,
+      "role:other": 0,
+      "role:dessert": 82
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 0,
+    "total_role_memberships": 0,
+    "pool_breakdown": {
+      "staple": 0,
+      "main_dish": 0,
+      "soup": 0,
+      "vegetable": 0,
+      "standalone": 0,
+      "beverage": 0,
+      "dessert": 0,
+      "snack": 0
+    },
+    "is_combo_viable": false,
+    "is_standalone_viable": false,
+    "sample_excluded": [
+      "vifoodrec_3188: Bánh Chưng Gấc",
+      "vifoodrec_2433: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819: Vịt nấu chao",
+      "vifoodrec_3749: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "sample_surviving": [],
+    "unresolved_constraints": [],
+    "safety_status": "NO_ELIGIBLE_CANDIDATES",
+    "reference_parity": true
+  },
+  {
+    "id": "combo_incomplete_standalone_viable",
+    "name": "15. Thiếu thành phần combo nhưng standalone hợp lệ (Không ăn tinh bột / staple)",
+    "input": {
+      "profile": {
+        "disliked_ingredients": [
+          "staple"
+        ]
+      },
+      "query": "không ăn cơm"
+    },
+    "recognized_conditions": [],
+    "recognized_allergies": [],
+    "activated_rules": [
+      "RULE_HEALTHY_BALANCED"
+    ],
+    "hard_constraints": {
+      "allergens": [],
+      "ingredients": [
+        "staple",
+        "rice"
+      ],
+      "ingredient_groups": [],
+      "cooking_methods": [],
+      "roles": []
+    },
+    "soft_constraints": {
+      "preferred_ingredients": [],
+      "preferred_ingredient_groups": [],
+      "preferred_cooking_methods": [],
+      "avoided_ingredients": [],
+      "avoided_ingredient_groups": [],
+      "avoided_cooking_methods": [],
+      "nutrient_limits": {}
+    },
+    "index_keys_used": [
+      "ingredient:staple",
+      "ingredient:rice"
+    ],
+    "key_match_counts": {
+      "ingredient:staple": 0,
+      "ingredient:rice": 66
+    },
+    "individual_exclusions": {
+      "ingredient:staple": 0,
+      "ingredient:rice": 66
+    },
+    "overlap_exclusion_count": 0,
+    "before_filter_count": 2471,
+    "clean_catalog_base": 2446,
+    "surviving_unique_count": 2380,
+    "total_role_memberships": 2380,
+    "pool_breakdown": {
+      "staple": 9,
+      "main_dish": 1376,
+      "soup": 193,
+      "vegetable": 184,
+      "standalone": 379,
+      "beverage": 96,
+      "dessert": 82,
+      "snack": 61
+    },
+    "is_combo_viable": true,
+    "is_standalone_viable": true,
+    "sample_excluded": [
+      "vifoodrec_3977: Cơm Cháy Kho Quẹt",
+      "vifoodrec_619: Cải ngồng xào nấm",
+      "vifoodrec_2371: Gỏi Gà Xé Phay",
+      "vifoodrec_432: Canh bạch quả bí đỏ",
+      "vifoodrec_2411: Cơm Gà Chính Gốc Hội An"
+    ],
+    "sample_surviving": [
+      "vifoodrec_3188 [main_dish]: Bánh Chưng Gấc",
+      "vifoodrec_2433 [main_dish]: Sườn Non Chiên Sả Ớt",
+      "vifoodrec_2361 [main_dish]: 4 Cách Chế Biến Xúc Xích Vị Tiêu",
+      "vifoodrec_819 [main_dish]: Vịt nấu chao",
+      "vifoodrec_3749 [soup]: Canh Khổ Qua Cá Thác Lác"
+    ],
+    "unresolved_constraints": [],
+    "safety_status": "PASSED_KNOWN_CONSTRAINTS",
+    "reference_parity": true
+  }
+]

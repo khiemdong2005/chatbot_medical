@@ -181,7 +181,7 @@
       : ' The displayed recipes have not been ranked by AI.';
     return `Python rule filters check declared ingredients and cited clinical guidance first.${aiExplanation}${total ? ` The catalog currently holds ${total} recipes from ${src}.` : ''} Ingredient tags are scanned automatically and do not constitute clinical certification.`;
   }
-  const artworkIds = new Set(['oat_porridge', 'pumpkin_soup', 'rice_carrot', 'soft_egg', 'sweet_potato', 'chicken_congee', 'tofu_pumpkin', 'warm_water', 'warm_milk', 'oat_drink', 'cucumber_water', 'warm_soy', 'pear_water', 'barley_water']);
+  const artworkIds = new Set(['oat_porridge', 'pumpkin_soup', 'rice_carrot', 'soft_egg', 'sweet_potato', 'chicken_congee', 'tofu_pumpkin', 'warm_water', 'warm_milk', 'oat_drink', 'cucumber_water', 'warm_soy', 'pear_water', 'barley_water', 'bread', 'white_rice', 'rice_noodles']);
   // ponytail: keyword-based SVG mapping avoids hosting thousands of food photos. Upgrade to CDN photos when real image dataset is available.
   function matchArtwork(recipe) {
     if (recipe && recipe.id && artworkIds.has(recipe.id)) return recipe.id;
@@ -195,6 +195,9 @@
       if (/lúa mạch|gạo lứt|ý dĩ|thảo mộc|trà|barley/.test(text)) return 'barley_water';
       return 'warm_water';
     }
+    if (/bánh mì|bread|sandwich|toast|baguette/.test(text)) return 'bread';
+    if (/cơm trắng|cơm dẻo|gạo tẻ|bát cơm|cơm nóng|gạo lứt/.test(text)) return 'white_rice';
+    if (/bún|phở|bánh phở|hủ tiếu|mì|miến|noodle/.test(text)) return 'rice_noodles';
     if (/đậu hũ|đậu phụ|tàu hũ|tofu|hẹ/.test(text)) return 'tofu_pumpkin';
     if (/cháo|bổi|congee|porridge/.test(text)) {
       if (/phô mai|sữa|ngũ cốc|yến mạch|chuối/.test(text)) return 'oat_porridge';
@@ -209,8 +212,9 @@
     return 'category-food';
   }
   function artwork(recipe) {
-    if (recipe.source_image_url && (recipe.source_image_url.startsWith('/static/') || recipe.source_image_url.startsWith('http'))) {
-      return recipe.source_image_url;
+    const img = recipe?.image_link || recipe?.source_image_url;
+    if (img && (img.startsWith('/static/') || img.startsWith('http'))) {
+      return img;
     }
     return fallbackArtwork(recipe);
   }
@@ -371,7 +375,7 @@
         <div class="nf-combo-bar" role="tablist" aria-label="${_t('Chọn combo mâm cơm', 'Select meal combo')}">
           ${combos.map((c, i) => {
             const isActive = i === activeIdx;
-            const emoji = i === 0 ? '🍱' : i === 1 ? '🍲' : '🥗';
+            const emoji = i === 0 ? '🍱' : i === 1 ? '🍲' : i === 2 ? '🥗' : i === 3 ? '🥘' : i === 4 ? '🍜' : '🍛';
             return `
               <button type="button" class="nf-combo-tab ${isActive ? 'active' : ''}" data-nf-combo="${i}" role="tab" aria-selected="${isActive}">
                 <span class="nf-combo-tab-icon">${emoji}</span>
@@ -382,6 +386,13 @@
               </button>
             `;
           }).join('')}
+          <button type="button" class="nf-combo-tab nf-combo-refresh-tab" id="nf-btn-refresh-combos" title="${_t('Đổi mâm cơm khác từ kho ứng viên hợp lệ', 'Refresh meal suggestions')}">
+            <span class="nf-combo-tab-icon">🔄</span>
+            <span class="nf-combo-tab-text">
+              <strong class="nf-combo-tab-title">${_t('Đổi món khác', 'Refresh')}</strong>
+              <span class="nf-combo-tab-badge">${_t('Làm mới', 'New options')}</span>
+            </span>
+          </button>
         </div>
       `;
     }
@@ -389,8 +400,8 @@
     const dishesMarkup = currentCombo.dishes.map((item, index) => {
       const r = item.recipe;
       const roleTag = _isEn()
-        ? (item.role === 'main' ? 'Main dish' : item.role === 'soup' ? 'Soup' : 'Vegetable / side')
-        : (item.role_label || 'Món ăn trong bữa');
+        ? (item.role === 'staple' ? 'Staple' : item.role === 'main' ? 'Main dish' : item.role === 'soup' ? 'Soup' : 'Vegetable / side')
+        : (item.role_label || (item.role === 'staple' ? 'Tinh bột chủ lực' : 'Món ăn trong bữa'));
       const titleFor = _recipeTitle(r);
       return `
         <article class="nf-meal-dish-card" data-nf-meal-dish="${index}" role="button" tabindex="0" aria-label="${safe(_t('Xem công thức', 'View recipe'))}: ${safe(titleFor)}">
@@ -672,13 +683,16 @@
     renderCards();
   }
 
-  async function chooseType(type, append = false) {
+  async function chooseType(type, append = false, refresh = false) {
     if (state.request) state.request.abort();
     const controller = new AbortController();
     state.request = controller;
     state.type = type;
     if (el('nf-results')) el('nf-results').dataset.type = type;
     const previous = append ? state.recipes.slice() : [];
+    const excludeIds = append
+      ? previous.map(recipe => recipe.id)
+      : (refresh && state.seenComboRecipeIds ? Array.from(state.seenComboRecipeIds) : []);
     if (!append) {
       state.recipes = [];
       state.lastData = null;
@@ -709,13 +723,21 @@
     el('nf-status').textContent = _t('Đang tìm gợi ý cho bạn…', 'Finding suggestions for you…');
     if (!append) show('results');
     try {
-      const response = await fetch('/api/nutrition/options', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ condition: state.query, recipe_type: type, exclude_recipe_ids: previous.map(recipe => recipe.id) }), signal: controller.signal });
+      const response = await fetch('/api/nutrition/options', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ condition: state.query, recipe_type: type, exclude_recipe_ids: excludeIds }), signal: controller.signal });
       const body = await response.json();
       if (!response.ok || !body.success || !Array.isArray(body.data?.recipes)) throw new Error(body.error || _t('Không thể tải gợi ý.', 'Unable to load suggestions.'));
       if (state.request !== controller) return;
       const incoming = body.data.recipes.filter(recipe => !previous.some(old => old.id === recipe.id));
       state.recipes = previous.concat(incoming);
       state.lastData = body.data;
+      if (Array.isArray(body.data?.meal_combos)) {
+        if (!state.seenComboRecipeIds) state.seenComboRecipeIds = new Set();
+        body.data.meal_combos.forEach(c => {
+          (c.dishes || []).forEach(d => {
+            if (d.recipe?.id) state.seenComboRecipeIds.add(d.recipe.id);
+          });
+        });
+      }
       state.lastAddedCount = append ? incoming.length : 0;
       el('nf-load-more').hidden = !body.data.has_more;
       state.sources = Array.isArray(body.data.sources) ? body.data.sources : [];
@@ -748,6 +770,7 @@
         const query = el('nf-query').value.trim();
         if (!query) { el('nf-query').focus(); return; }
         state.query = query;
+        state.seenComboRecipeIds = new Set();
         show('type');
       });
       el('nf-edit-query').addEventListener('click', () => { show('search'); el('nf-query').focus(); });
@@ -809,6 +832,11 @@
             if (combos[idx]) {
               renderFullMeal(combos[idx]);
             }
+            return;
+          }
+          const refreshBtn = event.target.closest('#nf-btn-refresh-combos');
+          if (refreshBtn) {
+            chooseType(state.type, false, true);
             return;
           }
           const switchBtn = event.target.closest('#nf-btn-switch-singles');

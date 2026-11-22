@@ -1,0 +1,3228 @@
+[
+  {
+    "id": "vifoodrec_0",
+    "title": "Mực ống hấp củ đậu",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "squid_octopus",
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Mực ống hấp củ đậu: món đạm mực chính"
+  },
+  {
+    "id": "vifoodrec_2",
+    "title": "Canh ba màu",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "peanut",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Canh ba màu: món canh rau củ ăn cơm"
+  },
+  {
+    "id": "vifoodrec_3",
+    "title": "Tàu hủ ky chiên xả ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy",
+      "sesame",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Tàu hủ ky chiên: món đạm thực vật chính"
+  },
+  {
+    "id": "vifoodrec_4",
+    "title": "Gỏi ngó sen tôm thịt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "shrimp",
+      "fish",
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Gỏi ngó sen tôm thịt: đạm tôm thịt cao"
+  },
+  {
+    "id": "vifoodrec_5",
+    "title": "Bánh tráng cuốn xốt Mayo",
+    "ground_truth_primary_role": "snack",
+    "ground_truth_eligible_combo_roles": [
+      "snack"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Bánh tráng cuốn: món ăn chơi"
+  },
+  {
+    "id": "vifoodrec_6",
+    "title": "Ốc hương xào củ dừa",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Ốc hương xào: món đạm ốc chính"
+  },
+  {
+    "id": "vifoodrec_7",
+    "title": "Cơm hến trộn",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "mollusk",
+      "peanut",
+      "sesame",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Cơm hến trộn: món ăn độc lập một bữa"
+  },
+  {
+    "id": "vifoodrec_8",
+    "title": "Ếch kho măng lá quế",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Ếch kho măng: món đạm chính ăn cơm"
+  },
+  {
+    "id": "vifoodrec_18",
+    "title": "Canh sườn nha đam",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Canh sườn nha đam: món canh ăn cơm"
+  },
+  {
+    "id": "vifoodrec_19",
+    "title": "Cháo hàu sữa đậu xanh",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "mollusk",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Cháo hàu sữa: món cháo độc lập một bữa"
+  },
+  {
+    "id": "vifoodrec_21",
+    "title": "Rau củ kho mía",
+    "ground_truth_primary_role": "vegetable",
+    "ground_truth_eligible_combo_roles": [
+      "vegetable"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Rau củ kho mía: món củ kho ăn kèm"
+  },
+  {
+    "id": "vifoodrec_23",
+    "title": "Thịt bê xào cải rổ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Thịt bê xào cải rổ: món xào thịt đạm chính"
+  },
+  {
+    "id": "vifoodrec_24",
+    "title": "Gỏi mít thịt ba chỉ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Gỏi mít thịt ba chỉ: gỏi thịt đạm chính"
+  },
+  {
+    "id": "vifoodrec_26",
+    "title": "Canh thơm cá ngừ",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Canh thơm cá ngừ: món canh chua cá ăn cơm"
+  },
+  {
+    "id": "vifoodrec_36",
+    "title": "Trà sữa hoa đậu biếc",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Trà sữa hoa đậu biếc: đồ uống"
+  },
+  {
+    "id": "vifoodrec_38",
+    "title": "Bún giò heo nấu giấm",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Bún giò heo nấu giấm: món bún độc lập"
+  },
+  {
+    "id": "vifoodrec_40",
+    "title": "Lẩu cháo chim cút hạt sen",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Lẩu cháo chim cút: món lẩu độc lập"
+  },
+  {
+    "id": "vifoodrec_46",
+    "title": "Mì Quảng xào lươn",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Mì Quảng xào lươn: món mì độc lập"
+  },
+  {
+    "id": "vifoodrec_84",
+    "title": "Chè bà ba",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Chè bà ba: tráng miệng ngọt"
+  },
+  {
+    "id": "vifoodrec_85",
+    "title": "Gà quay xốt kem nấm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Gà quay xốt kem nấm: món đạm gà mặn, xốt kem mặn"
+  },
+  {
+    "id": "vifoodrec_146",
+    "title": "Chả tôm chiên lá trà xanh",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "shrimp",
+      "soy",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Chả tôm chiên lá trà xanh: món chả tôm mặn"
+  },
+  {
+    "id": "vifoodrec_389",
+    "title": "Bánh canh chay",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Bánh canh chay: món bánh canh độc lập"
+  },
+  {
+    "id": "vifoodrec_590",
+    "title": "Bánh canh cá lóc",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Bánh canh cá lóc: món bánh canh độc lập"
+  },
+  {
+    "id": "vifoodrec_643",
+    "title": "Trà sữa thạch kem hạt chia",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Trà sữa thạch kem: đồ uống"
+  },
+  {
+    "id": "vifoodrec_789",
+    "title": "Phở bò",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Phở bò: món phở độc lập"
+  },
+  {
+    "id": "vifoodrec_1172",
+    "title": "Chè Khoai Lang Bột Báng Nước Cốt Dừa",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Chè khoai lang bột báng: món tráng miệng ngọt"
+  },
+  {
+    "id": "vifoodrec_1173",
+    "title": "Bánh Mì Xoắn Ốc Nhân Kem Trứng",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Bánh mì xoắn ốc: bánh ngọt nhân kem, không có mollusk"
+  },
+  {
+    "id": "vifoodrec_1375",
+    "title": "Cơm Nguội Bọc Trứng Cút Chiên Xù",
+    "ground_truth_primary_role": "snack",
+    "ground_truth_eligible_combo_roles": [
+      "snack"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Cơm nguội bọc trứng cút: món ăn chơi"
+  },
+  {
+    "id": "vifoodrec_1461",
+    "title": "Xúc Xích Chiên Bơ Khoai Tây Nghiền",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Xúc xích chiên bơ khoai tây: món đạm chính"
+  },
+  {
+    "id": "vifoodrec_1567",
+    "title": "Canh Bí Đao Nấu Mọc",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Canh Bí Đao Nấu Mọc: món canh ăn cơm"
+  },
+  {
+    "id": "vifoodrec_1753",
+    "title": "Cốm Từ Cơm Nguội",
+    "ground_truth_primary_role": "snack",
+    "ground_truth_eligible_combo_roles": [
+      "snack"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Cốm từ cơm nguội: ăn vặt"
+  },
+  {
+    "id": "vifoodrec_1949",
+    "title": "Bún Tươi Xào Nấm Bông Hẹ",
+    "ground_truth_primary_role": "staple",
+    "ground_truth_eligible_combo_roles": [
+      "staple"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Bún tươi xào nấm: phần tinh bột xào ăn kèm"
+  },
+  {
+    "id": "vifoodrec_3185",
+    "title": "Canh Bí Xanh Hầm Xương",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Canh Bí Xanh Hầm Xương: món canh ăn cơm"
+  },
+  {
+    "id": "vifoodrec_3952",
+    "title": "Rau Muống Xào Bò",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Rau Muống Xào Bò: món xào thịt bò đạm chính"
+  },
+  {
+    "id": "vifoodrec_12",
+    "title": "Măng trúc kho ruốc Huế",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_37",
+    "title": "Váng đậu cuộn rau củ chiên",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_54",
+    "title": "Gà chiên xốt táo",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_68",
+    "title": "Bánh quẩy nhồi chả tôm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "sesame",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_101",
+    "title": "Cuốn lá lốt thịt ếch",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_115",
+    "title": "Lẩu cá dìa",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_128",
+    "title": "Cá hường chiên sả nghệ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_141",
+    "title": "Ốc giác xào cải thìa",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_157",
+    "title": "Bún củ hủ dừa lá chanh",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_174",
+    "title": "Gà chiên lá é",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_190",
+    "title": "Canh thịt bò cải xoong",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_204",
+    "title": "Jambon cuộn thanh cua",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "crab",
+      "egg",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_217",
+    "title": "Gnocchi khoai tây xào bò",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "soy",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_237",
+    "title": "Bánh rán kẹp pate thịt xông khói",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_256",
+    "title": "Cá điêu hồng nướng riềng mẻ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_269",
+    "title": "Vịt om tương me",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_286",
+    "title": "Cá đối kho thơm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_303",
+    "title": "Lẩu nghêu sò ốc hến",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish",
+      "mollusk",
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_315",
+    "title": "Gỏi xoài cá trê",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut",
+      "shrimp",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_326",
+    "title": "Cá rim giấm mè",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_344",
+    "title": "Cháo lươn khoai môn đậu xanh",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_359",
+    "title": "Trứng chiên cốm xanh",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_371",
+    "title": "Canh tôm bánh gạo",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "crab",
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_386",
+    "title": "Đậu hũ nhồi nấm bào ngư",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_398",
+    "title": "Hoành thánh chay áp chảo",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_408",
+    "title": "Canh đu đủ lá lốt",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_422",
+    "title": "Cá bống trứng kho tiêu",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_436",
+    "title": "TẾT 3 MIỀN – Miền Bắc: Cuốn đậu mơ su hào",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_449",
+    "title": "Canh cá cơm lá me đất",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_466",
+    "title": "Lẩu cá thác lác khổ qua",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_481",
+    "title": "Lươn xào lăn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_494",
+    "title": "Cá basa chiên giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_507",
+    "title": "Bún xào hải sản",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "shrimp",
+      "soy",
+      "squid_octopus"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_519",
+    "title": "Lẩu gà mắc khén",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_530",
+    "title": "Gà xào giấm gừng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_551",
+    "title": "Cá hồi cuộn cơm chiên",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg",
+      "fish",
+      "sesame",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_563",
+    "title": "Chả giò tàu hũ ky",
+    "ground_truth_primary_role": "snack",
+    "ground_truth_eligible_combo_roles": [
+      "snack"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish",
+      "sesame"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_577",
+    "title": "Chả cá chiên bánh tráng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_592",
+    "title": "Nấm bào ngư hấp sả",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_605",
+    "title": "Canh gân bò chua cay",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_623",
+    "title": "Gỏi củ kiệu",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_635",
+    "title": "Cá chiên xốt cam",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_649",
+    "title": "Gà nướng lá húng lủi",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_663",
+    "title": "Canh mực nấu chua",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "squid_octopus"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_677",
+    "title": "Khoai môn hạt sen chiên xù",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "sesame",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_693",
+    "title": "Bông cải trộn tôm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_710",
+    "title": "Gỏi xoài cá cơm chiên",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_724",
+    "title": "Sườn cuộn bacon chiên mè",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "sesame",
+      "soy",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_745",
+    "title": "Canh măng cua đồng",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "crab",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_761",
+    "title": "Chả ốc chiên",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish",
+      "mollusk",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_773",
+    "title": "Đùi ếch nướng lá cách",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_792",
+    "title": "Đọt su xào trứng bắc thảo",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_807",
+    "title": "Chả chay cuốn rong biển",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_819",
+    "title": "Vịt nấu chao",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_836",
+    "title": "Cá rô phi kho lá lốt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_852",
+    "title": "Cá lá lốt chiên mè",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish",
+      "sesame",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_863",
+    "title": "Chả nghêu húng quế",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_877",
+    "title": "Bánh tét lá cẩm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_890",
+    "title": "Gà hấp cải bẹ xanh",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_909",
+    "title": "Mực lụi sả nướng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "squid_octopus"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_935",
+    "title": "Lườn cá hồi chiên nước mắm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_949",
+    "title": "Đậu hũ nhồi xốt me",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_963",
+    "title": "Cua xào xốt tương",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "crab",
+      "egg",
+      "mollusk",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_982",
+    "title": "Bắp cải hấp nấm tôm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "sesame",
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1001",
+    "title": "Bánh bèo",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1018",
+    "title": "Nấm chiên giòn xốt chanh dây",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "shrimp",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1034",
+    "title": "Cánh gà chiên ngũ cốc",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "fish",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1046",
+    "title": "Bì bún chay",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "peanut",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1065",
+    "title": "CANH SƯỜN CỦ SEN A-TI-SÔ",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1075",
+    "title": "Canh cải cầu vồng nấu cua",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "crab",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1092",
+    "title": "Tàu hũ ki cuộn tôm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1104",
+    "title": "Bò nướng sa tế",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "fish",
+      "soy",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1123",
+    "title": "Viên chả mực chiên giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "squid_octopus",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1140",
+    "title": "Bắp xào trứng muối",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1166",
+    "title": "Gà Xốt Cam",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1183",
+    "title": "Bún Gạo Lứt Xào Chay",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "mollusk",
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1197",
+    "title": "Lá Lốt Cuộn Thịt Chiên Giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "shrimp",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1215",
+    "title": "Giò Heo Muối Chiên Giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1227",
+    "title": "Nem Chay Váng Đậu",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1245",
+    "title": "Chè Thốt Nốt Dừa Dằm",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1259",
+    "title": "Cà Tím Nhồi Thịt Hấp",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1274",
+    "title": "Bánh Mì Nướng Tôm Phô Mai",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "shrimp",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1293",
+    "title": "Đậu Hủ Xào Chua Ngọt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1307",
+    "title": "Đậu Hũ Ki Khìa Nước Dừa",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1321",
+    "title": "Gỏi Vỏ Dưa Hấu Tôm Thịt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1340",
+    "title": "Tai Heo Cuộn Mộc Nhĩ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1364",
+    "title": "Chả LụA Bì ỚT Xiêm Xanh",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1382",
+    "title": "Bánh Tét/ Bánh Chưng Chiên",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1396",
+    "title": "Sườn Xào Chua Ngọt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1407",
+    "title": "Chả Cua Chiên ÁP ChảO",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "crab",
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1422",
+    "title": "Ruốc Tôm Khô",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1436",
+    "title": "Bún Mắm Nêm Đà Nẵng",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1448",
+    "title": "ThịT Viên ThậP CẩM Chiên",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1476",
+    "title": "Ba Rọi Xông Khói Cuộn Ức Gà Sốt Kem",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1494",
+    "title": "Khoai Tây Chiên Bơ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1512",
+    "title": "GỏI Măng Tươi LưỡI Heo",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1533",
+    "title": "Xôi Xoài",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "sesame"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1546",
+    "title": "Bánh Canh Chả Cá Nha Trang",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1561",
+    "title": "Hoành Thánh Nhân Chả Cá Chiên",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1575",
+    "title": "Bánh Mì Táo",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1590",
+    "title": "Bã Bắp (Ngô) Chiên Giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1608",
+    "title": "Gỏi Lươn Hoa Chuối",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1624",
+    "title": "Lẩu Gà Tứ Xuyên",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1637",
+    "title": "Chè Bà Ba (Chè Thưng)",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1651",
+    "title": "Cánh Gà Chiên Nước Mắm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1671",
+    "title": "Cơm Chiên Cá Giòn",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1689",
+    "title": "Mít Xào Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "sesame"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1704",
+    "title": "Chè Khúc Bạch",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1727",
+    "title": "Chè Đậu Xanh Bột Báng Phổ Tai",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1740",
+    "title": "Cá Hú Kho Trái Bần",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1756",
+    "title": "Cá Lóc Quay Me, Cá Lóc Nướng Mỡ Hành",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1778",
+    "title": "Bánh Mì Nướng Muối Ớt",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1795",
+    "title": "Sữa Đậu Phộng",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1815",
+    "title": "Bánh Khoai Mì Nướng",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1832",
+    "title": "Cơm Chiên Giòn Đơn Giản",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1852",
+    "title": "Đuôi Heo Hầm Lạc",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1871",
+    "title": "Canh Mướp Hương Non Nấu Nấm",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1881",
+    "title": "Thập Cẩm Rau Củ XàO Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1902",
+    "title": "Cà Rốt Xào Nấm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1914",
+    "title": "Sườn Xào Chua Ngọt Hút Cơm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1927",
+    "title": "Canh Củ Lùn Nấu Nấm Kim Châm",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1943",
+    "title": "Đậu Hủ Non Hấp Nước Tương Gừng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "sesame",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1956",
+    "title": "Bánh Bột Lọc Chay Ngon",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1971",
+    "title": "Măng Tây Xào Nấm Hương Cà Rốt Baby",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_1987",
+    "title": "Chè Bột Nếp Vo Viên",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2004",
+    "title": "Sinh Tố Yến Mạch",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2020",
+    "title": "Mắm Thái Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2034",
+    "title": "Mì Gói Sốt Chanh Dây Chay",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2052",
+    "title": "Mắm Chưng Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2067",
+    "title": "Sườn Chay Xào Chua Ngọt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2081",
+    "title": "Tàu Hũ Nước Đường",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2095",
+    "title": "Cơm Rau Củ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2109",
+    "title": "Nấm Bào Ngư Kho Tiêu",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2129",
+    "title": "Bánh Tráng Trộn Hành Phi",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2146",
+    "title": "Canh Cà Rốt Khoai Tây Nấu Xương",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2158",
+    "title": "Mì Tôm Xào Thập Cẩm Chay",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2171",
+    "title": "Lẩu Gà Lá Giang",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2188",
+    "title": "Đậu Hủ Kho Khóm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2203",
+    "title": "Cháo Cá Lóc Rau Đắng",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2221",
+    "title": "Bánh Tráng Bơ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2235",
+    "title": "Canh Chua Lá Giang Nấu Cá Điêu Hồng",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2253",
+    "title": "Bò Hầm Củ Quả",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2266",
+    "title": "Nấm Rơm Kho Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2280",
+    "title": "Gà Hầm Trái Bí",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "mollusk",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2294",
+    "title": "Nước Đậu Xanh Rang",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2307",
+    "title": "Gỏi Sứa",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2325",
+    "title": "Gà Chiên Giòn Sốt Cay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2339",
+    "title": "Bánh Ít Nhân Đậu Và Dừa",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2349",
+    "title": "Canh Khổ Qua Nấu Tôm Khô",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2362",
+    "title": "Lẩu Gà Ớt Hiểm",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2378",
+    "title": "Cá Diêu Hồng Chiên Muối Tỏi",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2396",
+    "title": "Cá Hường Chiên Xả Ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2407",
+    "title": "Bún Thịt Xào",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish",
+      "peanut",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2420",
+    "title": "Cá Kho Măng Đậm Đà",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2433",
+    "title": "Sườn Non Chiên Sả Ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2451",
+    "title": "Trứng Chiên Lá Mơ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2463",
+    "title": "Thịt Dê Xào Sả Ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2475",
+    "title": "Bánh Tráng Nướng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2492",
+    "title": "Cá Thu Kho Nước Tương",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2509",
+    "title": "Mực Dồn Thịt Rim Kẹo",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "squid_octopus"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2528",
+    "title": "Bánh Đúc Lá Dứa Nước Cốt Dừa",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2542",
+    "title": "Thịt Kho Chả Quế",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2556",
+    "title": "Bánh Tét Chữ",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2573",
+    "title": "Bento Cá Hồi Xốt Xoài Chua Ngọt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2593",
+    "title": "Thịt Kho Hột Vịt Ngày Tết",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2606",
+    "title": "Vịt Nướng Sa Tế",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2623",
+    "title": "Bánh Xèo Miền Trung",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "sesame",
+      "shrimp",
+      "squid_octopus"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2657",
+    "title": "Miến Gà Nấu Măng",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2677",
+    "title": "Xôi Kẹp Khoai Tím",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2691",
+    "title": "Ốc Móng Tay Xào Tỏi",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2705",
+    "title": "Sữa Bắp Nữ Hoàng",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2720",
+    "title": "Bánh Giò Nhân Thịt Băm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2742",
+    "title": "Canh Mồng Tơi Nấu Cua Đồng",
+    "ground_truth_primary_role": "soup",
+    "ground_truth_eligible_combo_roles": [
+      "soup"
+    ],
+    "ground_truth_allergens": [
+      "crab"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2757",
+    "title": "Trà Túi Lọc Chanh Dây",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2769",
+    "title": "Trứng Gà Nướng Thái Lan",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2785",
+    "title": "Cá Khô Trộn Xoài",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2798",
+    "title": "Nước Ép Táo Cải Rổ",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2814",
+    "title": "Chả Đậu Xanh Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2830",
+    "title": "Thịt Bê Hấp Sả",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2842",
+    "title": "Bánh Mì Baguette Pháp",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2860",
+    "title": "Đậu Hũ Kho Nấm Rơm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2875",
+    "title": "Ốc Cà Na Xào Bơ Tỏi",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "fish",
+      "mollusk"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2889",
+    "title": "Thịt Heo Sốt Me",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "peanut"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2913",
+    "title": "Cá Bống Chiên Tỏi Ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2930",
+    "title": "Chả Cá Chiên Thơm Dai",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2942",
+    "title": "Bánh Canh Khoai Lang Tím",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2955",
+    "title": "Thịt Ba Chỉ Xào Nấm Đùi Gà",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "shrimp",
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2973",
+    "title": "Đậu Hũ Sốt Dầu Hào",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "mollusk",
+      "sesame",
+      "soy",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2986",
+    "title": "Cách Pha Chao Chấm Rau Luộc",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_2998",
+    "title": "Bánh Đúc Nóng Nấm Thịt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3017",
+    "title": "Cá Bạc Má Kho Tỏi Ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3042",
+    "title": "Nước Ép Thanh Long Đỏ",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3073",
+    "title": "Khổ Qua Xào Trứng Gà",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3091",
+    "title": "Khoai Tây Kẹp Xúc Xích Nướng Sốt Phô Mai",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3108",
+    "title": "Bánh Cuốn Lá Dứa Nhân Tôm Nấm",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3136",
+    "title": "Nước Chanh Sả Gừng",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3153",
+    "title": "Bánh Chuối Xanh Chiên",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3165",
+    "title": "Cánh Gà Kho Nước Mía",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3176",
+    "title": "Bánh Chuối Hấp Cốt Dừa",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3190",
+    "title": "Bánh Chuối Chiên Kiểu Mới",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3205",
+    "title": "Trà Bông Cúc Táo Đỏ Kỷ Tử",
+    "ground_truth_primary_role": "beverage",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3229",
+    "title": "Chè Cùi Bưởi",
+    "ground_truth_primary_role": "dessert",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3243",
+    "title": "Bánh Chả Cua",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "crab",
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3265",
+    "title": "Bánh Canh Xương Chả Thơm Ngon",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "egg"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3279",
+    "title": "Lẩu Cua Đồng",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "crab",
+      "egg",
+      "fish",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3293",
+    "title": "Sườn Non Chay Xào Sả Ớt",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3306",
+    "title": "Bánh Bột Lọc Chay",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3324",
+    "title": "Bánh Bông Lan Trứng Nướng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "egg",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3361",
+    "title": "Bún Mắm Nêm Miền Trung",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3397",
+    "title": "Sườn Xào Chua Ngọt Tại Nhà",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3411",
+    "title": "Sốt Tắc Chấm Bánh Tráng",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "peanut",
+      "shrimp"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3427",
+    "title": "Bánh Bắp Nhân Phô Mai Chiên Giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3444",
+    "title": "Hủ Tiếu Chay",
+    "ground_truth_primary_role": "standalone",
+    "ground_truth_eligible_combo_roles": [],
+    "ground_truth_allergens": [
+      "soy"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3476",
+    "title": "Nấm Kim Châm Chiên Giòn",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "fish",
+      "shrimp",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3493",
+    "title": "Bánh AFC Tôm Khô",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "cow_milk",
+      "shrimp",
+      "wheat_gluten"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  },
+  {
+    "id": "vifoodrec_3513",
+    "title": "Thịt Kho Su Hào",
+    "ground_truth_primary_role": "main_dish",
+    "ground_truth_eligible_combo_roles": [
+      "main_dish"
+    ],
+    "ground_truth_allergens": [
+      "fish"
+    ],
+    "human_curated": true,
+    "notes": "Curated by stratified culinary sampling"
+  }
+]

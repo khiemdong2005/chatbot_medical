@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" role="img" aria-label="Minh họa bún tươi và bánh phở">
+<title>Bún tươi luộc</title>
+<rect width="640" height="440" fill="#f7f6f2"/>
+<path d="M0 350C128 306 212 368 348 337S533 300 640 332V440H0Z" fill="#e8eeea" opacity=".55"/>
+<!-- Shadow -->
+<ellipse cx="320" cy="342" rx="205" ry="26" fill="#35585b" opacity=".08"/>
+<!-- Ceramic plate rim -->
+<ellipse cx="320" cy="275" rx="205" ry="80" fill="#fffdf7" stroke="#35585b" stroke-width="3"/>
+<ellipse cx="320" cy="273" rx="175" ry="62" fill="#f1f5f2" stroke="#d5dfd9" stroke-width="1.5"/>
+<!-- White Noodle strands coiled neatly -->
+<g fill="none" stroke="#fcfdfc" stroke-width="7" stroke-linecap="round">
+  <path d="M210 260 Q240 220 280 250 T340 240 T400 255" />
+  <path d="M225 275 Q265 240 310 270 T380 250 T430 270" stroke="#f5f7f4" stroke-width="6.5"/>
+  <path d="M240 245 Q280 225 320 245 T390 235" stroke="#f0f3ee" stroke-width="6"/>
+  <path d="M195 270 Q230 285 270 270 T350 280 T410 265" stroke="#f8faf7" stroke-width="7"/>
+  <path d="M260 255 Q295 275 335 255 T405 270" stroke="#ffffff" stroke-width="6.5"/>
+</g>
+<!-- Garnish / Herbs (rau thơm, tía tô, bạc hà) -->
+<g fill="#438a5e" stroke="#2a5c3e" stroke-width="1.5">
+  <path d="M310 215 C300 190 325 180 340 200 C350 215 330 230 310 215 Z" />
+  <path d="M335 210 C355 195 375 210 365 225 C350 240 330 225 335 210 Z" fill="#58a375"/>
+  <path d="M320 205 L345 215" stroke="#2a5c3e" stroke-width="1" fill="none"/>
+</g>
+<!-- Lime wedge -->
+<g transform="translate(195 285) rotate(-20)">
+  <path d="M-25 0 A25 25 0 0 1 25 0 Z" fill="#88c057" stroke="#48782a" stroke-width="2"/>
+  <path d="M-20 -2 A20 20 0 0 1 20 -2 Z" fill="#b2df8a"/>
+</g>
+</svg>
