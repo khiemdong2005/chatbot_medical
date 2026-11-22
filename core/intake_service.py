@@ -25,6 +25,7 @@ import datetime
 import logging
 import threading
 from contextlib import contextmanager
+from copy import deepcopy
 from typing import Dict, Any, List, Optional
 from core.triage import assess_emergency_risk, remove_accents
 
@@ -388,7 +389,7 @@ SYMPTOM_CLAUSE_BREAK = re.compile(r"[,.](?!\d)|[;!?\n]|\b(?:nhung|tuy nhien|song
 # 2. HÀM TRÍCH XUẤT DỮ KIỆN TỪ VĂN BẢN (FACT EXTRACTION)
 # ==============================================================================
 
-def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
+def extract_clinical_facts_from_text(text: str, *, previsit: bool = False) -> Dict[str, Any]:
     """
     Trích xuất dữ kiện có cấu trúc từ văn bản người bệnh nhập.
     Tách rõ:
@@ -420,6 +421,8 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
     for sym_key, sym_info in CANONICAL_SYMPTOMS.items():
         label = sym_info["label"]
         patterns = sym_info["patterns"]
+        if previsit and sym_key == "dau_bung":
+            patterns = [*patterns, "đau âm ỉ ở bụng", "đau quặn ở bụng"]
 
         matched = False
         is_denied = False
@@ -468,6 +471,12 @@ def extract_clinical_facts_from_text(text: str) -> Dict[str, Any]:
                 break
 
         if matched:
+            if previsit and sym_key == "dau_bung":
+                label = {
+                    "dau da day": "Đau dạ dày",
+                    "trao nguoc": "Trào ngược",
+                    "acid reflux": "Trào ngược",
+                }.get(pat_no_accent, "Đau bụng")
             if sym_key == "tuc_nguc" and "nhoi" in no_accent_text:
                 label = "Đau nhói ngực"
             elif sym_key == "tuc_nguc" and "tuc" not in no_accent_text and "that" not in no_accent_text:
@@ -588,7 +597,7 @@ PAIN_PATTERNS = {
 
 
 def abdominal_pain(facts):
-    return any("Đau bụng" in label for label in facts.get("present_symptoms", []))
+    return any(("Đau bụng" in label or label == "Đau dạ dày") for label in facts.get("present_symptoms", []))
 
 
 def pain_ready(facts):
@@ -698,6 +707,189 @@ def select_next_question(missing_list: List[str], turn_count: int = 1, lang: str
         return f"Bạn có thể chia sẻ thêm: {top_missing}?"
 
 
+PREVISIT_QUESTIONS = {
+    "chief_complaint": ("Bạn đang thấy thế nào?", "How are you feeling?"),
+    "duration": ("Vấn đề này bắt đầu từ khi nào?", "When did it start?"),
+    "progression": (
+        "Từ khi bắt đầu, bạn thấy đỡ hơn, nặng hơn hay vẫn như cũ?",
+        "Since it started, has it improved, worsened, or stayed the same?",
+    ),
+    "activity_impact": (
+        "Tình trạng này ảnh hưởng thế nào đến sinh hoạt của bạn?",
+        "How has this affected your daily activities?",
+    ),
+    "medications": (
+        "Bạn đang dùng thuốc gì, kể cả thuốc đã dùng cho tình trạng này?",
+        "What medication are you taking, including anything you took for this problem?",
+    ),
+    "allergies": ("Bạn có dị ứng với thuốc hay chất nào không?", "Do you have any allergies to medicines or other substances?"),
+    "conditions": ("Bạn có bệnh đang điều trị hoặc tiền sử nào liên quan không?", "Are you being treated for any conditions or is there any relevant medical history?"),
+}
+PREVISIT_SAFETY_TOPICS = {"red_flag", "dyspnea", "chest_pain", "swallowing_ability"}
+PREVISIT_HISTORY_TOPICS = frozenset({"medications", "allergies", "conditions"})
+PREVISIT_HISTORY_DENIAL = re.compile(
+    r"(?:khong|hong|khum|ko|chua|chang|no|none|not yet)(?: (?:a|co|dau|luon|het|ca|nhe))*"
+)
+PREVISIT_HISTORY_DENIAL_DETAIL = {
+    "allergies": r"di ung(?: gi| nao)?|no (?:known )?allergies",
+    "medications": r"(?:(?:uong|dung) )?thuoc(?: gi| nao)?|no (?:known )?medications",
+    "conditions": r"(?:benh(?: nen| man tinh)?|tien su)(?: gi| nao)?|dieu tri(?: gi| benh nao)?|no (?:known )?(?:medical history|conditions)",
+}
+PREVISIT_UNCERTAIN = re.compile(
+    r"(?:khong ro|khong chac(?: co)?|khong nho(?: ro)?|khong biet|chua do|not sure|no idea|"
+    r"i don['’]t know|i don['’]t remember)\b"
+)
+PREVISIT_CLEAR_DENIAL = re.compile(r"(?:khong(?: (?:a|co|bi|he|dau|con|thay|cam thay)\b.*)?|"
+                                     r"chua(?: (?:a|co|bi|thay)\b.*)?|no(?:[,]? (?:i |there is )?.*(?:not|n['’]t).*)?)")
+
+
+def previsit_question(session_data, lang="vi"):
+    """Select the first unanswered intake question from the patient's draft."""
+    if session_data.get("is_emergency") or session_data.get("is_confirmed"):
+        return "", None
+    messages = session_data.get("messages", [])
+    previous = messages[-1] if messages else {}
+    if previous.get("needs_red_flag_confirmation"):
+        return "red_flag", previous["content"]
+
+    facts = session_data["facts"]
+    answered = set(facts.get("previsit_topics", [])) | set(facts.get("answered_topics", {}))
+    localized = 1 if lang == "en" else 0
+    if not (facts.get("chief_complaint") or facts.get("present_symptoms")):
+        return "chief_complaint", PREVISIT_QUESTIONS["chief_complaint"][localized]
+
+    pending = []
+    for missing in identify_missing_information(facts):
+        question = select_next_question([missing], lang=lang)
+        topic = next((f"pain_{key}" for key, label in PAIN_QUESTIONS.items() if label == missing), None)
+        topic = topic or question_topic(question)
+        if topic and topic not in answered:
+            pending.append((topic, question))
+    if pending:
+        return next((item for item in pending if item[0] in PREVISIT_SAFETY_TOPICS), pending[0])
+
+    for topic, questions in PREVISIT_QUESTIONS.items():
+        if topic != "chief_complaint" and topic not in answered and not facts.get(topic):
+            return topic, questions[localized]
+    return "", None
+
+
+def _record_previsit_answer(facts, topic, question, text, *, skip=False):
+    topics = facts.setdefault("previsit_topics", [])
+    if topic not in topics:
+        topics.append(topic)
+    if topic in PREVISIT_HISTORY_TOPICS:
+        history = _previsit_history(facts)
+        history[topic] = _previsit_history_item(topic, text, skipped=skip)
+        facts["patient_reported_history"] = history
+        return
+    if skip:
+        return
+    if topic == "chief_complaint":
+        facts[topic] = text
+        return
+
+    folded = remove_accents(text).replace("đ", "d").strip(" .!?")
+    if not PREVISIT_UNCERTAIN.match(folded):
+        if topic in {"duration", "activity_impact"} and not facts.get(topic):
+            facts[topic] = text
+        elif topic == "pain_location" and not re.search(PAIN_PATTERNS["severity"], text):
+            facts.setdefault("pain", {}).setdefault("location", text)
+
+    answers = facts.setdefault("contextual_answers", [])
+    if answers and answers[-1].get("question") == question and text.startswith(answers[-1].get("answer", "")):
+        answers.pop()
+    if not _matches_previsit_fact(facts, topic, text):
+        answers.append({"question": question, "answer": text})
+        del answers[:-20]
+
+
+def _previsit_history_item(topic, text, *, skipped=False):
+    folded = " ".join(remove_accents(text).replace("đ", "d").strip(" .!?").split())
+    detail = PREVISIT_HISTORY_DENIAL_DETAIL[topic]
+    denied = PREVISIT_HISTORY_DENIAL.fullmatch(folded) or re.fullmatch(
+        rf"(?:(?:khong|hong|khum|ko|chua)(?: (?:tung|he|co|bi))* )?(?:{detail})", folded
+    )
+    if skipped:
+        status = "skipped"
+    elif not folded or PREVISIT_UNCERTAIN.match(folded):
+        status = "unknown"
+    elif denied and re.match(r"(?:khong|hong|khum|ko|chua|chang|no|none|not yet)\b", folded):
+        status = "denied"
+    else:
+        status = "reported"
+    return {"status": status, "text": text}
+
+
+def _previsit_history(facts):
+    if "patient_reported_history" in facts:
+        return dict(facts["patient_reported_history"])
+    # Older drafts retained the exact reply under the displayed question.
+    return {
+        topic: _previsit_history_item(topic, item["answer"])
+        for item in facts.get("contextual_answers", [])
+        for topic in PREVISIT_HISTORY_TOPICS
+        if isinstance(item, dict) and item.get("question") in PREVISIT_QUESTIONS[topic]
+        and isinstance(item.get("answer"), str)
+    }
+
+
+def _matches_previsit_fact(facts, topic, answer):
+    if not isinstance(answer, str):
+        return False
+    if topic in {"duration", "activity_impact"}:
+        value = facts.get(topic)
+    elif topic in {"pain_location", "pain_quality", "pain_severity"}:
+        value = facts.get("pain", {}).get(topic.removeprefix("pain_"))
+    else:
+        return False
+    def normalize(text):
+        return re.sub(r"\s+", "", text.strip(" .!?").casefold())
+
+    if topic == "pain_severity" and value and re.fullmatch(r"\d{1,2}", answer.strip()):
+        answer = f"{answer.strip()}/10"
+    if topic == "pain_quality":
+        answer = re.sub(r"^đau\s+", "", answer.strip(), flags=re.IGNORECASE)
+    return isinstance(value, str) and normalize(value) == normalize(answer)
+
+
+class StaleIntakeVersionError(ValueError):
+    """Raised before a modal write when the displayed draft is out of date."""
+
+
+def _check_previsit_version(session, expected_version):
+    if expected_version is not None and (type(expected_version) is not int or expected_version != session["version"]):
+        raise StaleIntakeVersionError("Phiên hỏi bệnh đã thay đổi. Vui lòng tải lại để tiếp tục.")
+
+
+def _validate_previsit_fact(field, value):
+    def valid_text(item):
+        return isinstance(item, str) and len(item) <= 2_000
+
+    if not isinstance(field, str):
+        raise ValueError("Thông tin chỉnh sửa không hợp lệ.")
+    if field in {"chief_complaint", "duration", "activity_impact"}:
+        valid = valid_text(value) or (field != "chief_complaint" and value is None)
+    elif field in {"present_symptoms", "denied_symptoms", "allergies", "medications"}:
+        valid = isinstance(value, list) and len(value) <= 20 and all(map(valid_text, value))
+    elif field in {"pain", "vitals"}:
+        valid = isinstance(value, dict) and len(value) <= 10 and all(map(valid_text, value.values()))
+    elif field == "patient_reported_history":
+        valid = isinstance(value, dict) and set(value) <= PREVISIT_HISTORY_TOPICS and all(
+            isinstance(item, dict) and valid_text(item.get("text"))
+            for item in value.values()
+        )
+    elif field == "contextual_answers":
+        valid = isinstance(value, list) and len(value) <= 20 and all(
+            isinstance(item, dict) and set(item) == {"question", "answer"} and all(map(valid_text, item.values()))
+            for item in value
+        )
+    else:
+        valid = False
+    if not valid:
+        raise ValueError("Thông tin chỉnh sửa không hợp lệ.")
+
+
 # ==============================================================================
 # 4. TẠO BẢN TÓM TẮT TRƯỚC KHÁM CHUẨN 2 PHẦN (PRE-VISIT SUMMARY)
 # ==============================================================================
@@ -770,6 +962,15 @@ def generate_pre_visit_summary(
     elif not medications and medication_use.get("status") == "no":
         meds_str = "Người bệnh phủ nhận đang dùng thuốc trong câu hỏi trước"
     missing_info = identify_missing_information(facts)
+    history = _previsit_history(facts) if "previsit_topics" in facts else None
+    contextual_answers = facts.get("contextual_answers", [])
+    if history is not None:
+        history_questions = {question for topic in PREVISIT_HISTORY_TOPICS for question in PREVISIT_QUESTIONS[topic]}
+        contextual_answers = [
+            item for item in contextual_answers if not isinstance(item, dict) or item.get("question") not in history_questions
+        ]
+        allergies_str = history.get("allergies", {}).get("text") or allergies_str
+        meds_str = history.get("medications", {}).get("text") or meds_str
 
     # Ảnh đính kèm & quan sát sơ bộ
     attachments = session_data.get("attachments", [])
@@ -787,10 +988,12 @@ def generate_pre_visit_summary(
         "allergies": allergies_str,
         "current_medications": meds_str,
         "activity_impact": facts.get("activity_impact") or "Chưa rõ",
-        "contextual_answers": facts.get("contextual_answers", []),
+        "contextual_answers": contextual_answers,
         "attachments_and_observations": attachments_str,
         "missing_or_unclear_info": missing_info or (["Chưa ghi nhận triệu chứng tự khai"] if not present_syms else [])
     }
+    if history is not None:
+        part_a["patient_reported_history"] = history
 
     # Đánh giá Phần B: Kết quả hệ thống
     assessment = next((message["verified_assessment"] for message in reversed(session_data.get("messages", []))
@@ -826,12 +1029,16 @@ def generate_pre_visit_summary(
     }
 
     summary_available = is_emergency or has_patient_facts(facts) or bool(attachments)
+    collection_complete = not abdominal_pain(facts) or pain_ready(facts)
+    if "previsit_topics" in facts:
+        _, remaining_question = previsit_question(session_data, lang)
+        collection_complete = remaining_question is None
     return {
         "part_a_patient_facts": part_a,
         "part_b_system_assessment": part_b,
         "is_confirmed": is_confirmed,
         "summary_available": summary_available,
-        "ready_to_finalize": is_emergency or (summary_available and (not abdominal_pain(facts) or pain_ready(facts))),
+        "ready_to_finalize": is_emergency or (summary_available and collection_complete),
         "version": version
     }
 
@@ -856,7 +1063,7 @@ class IntakeSessionManager:
         with self._lock:
             self._sessions.clear()
 
-    def _save_to_db(self, session_data: Dict[str, Any], raise_on_error: bool = False) -> bool:
+    def _save_to_db(self, session_data: Dict[str, Any], raise_on_error: bool = False, *, confirmed_summary=None) -> bool:
         """Đồng bộ phiên vào CSDL bền vững (hỗ trợ cả Flask và FastAPI)."""
         try:
             with intake_db_context():
@@ -879,6 +1086,25 @@ class IntakeSessionManager:
                 rec.is_confirmed = bool(session_data.get("is_confirmed", False))
                 rec.version = session_data.get("version", 1)
                 rec.created_at = session_data.get("created_at")
+                if confirmed_summary is not None:
+                    from core.models import ClinicalConsultation
+
+                    consultation = ClinicalConsultation.query.filter_by(
+                        user_id=rec.user_id, conversation_id=cid
+                    ).first()
+                    if consultation is None:
+                        consultation = ClinicalConsultation(user_id=rec.user_id, conversation_id=cid)
+                        db.session.add(consultation)
+                    facts = confirmed_summary["part_a_patient_facts"]
+                    assessment = confirmed_summary["part_b_system_assessment"]
+                    consultation.message = facts["chief_complaint"]
+                    consultation.answer = assessment["care_approach"]
+                    consultation.symptoms = json.dumps(facts["symptoms_present"], ensure_ascii=False)
+                    consultation.specialist = assessment["recommended_specialist"]
+                    consultation.risk_level = assessment["triage_status"]
+                    consultation.is_emergency = assessment["triage_badge"] == "emergency"
+                    consultation.confirmed_summary = json.dumps(confirmed_summary, ensure_ascii=False)
+                    consultation.turns_json = None
                 commit_or_rollback()
                 return True
         except Exception as e:
@@ -1064,6 +1290,69 @@ class IntakeSessionManager:
 
             return session
 
+    @staticmethod
+    def _previsit_transcript(messages):
+        transcript = []
+        previous_clarification = None
+        for message in messages:
+            if message.get("needs_red_flag_confirmation"):
+                previous_clarification = message["content"]
+            if message.get("sender") != "patient":
+                continue
+            # Older drafts recorded safety prompts explicitly, but usually saved only the answer.
+            question = message.get("previsit_question") or previous_clarification
+            if question:
+                transcript.append({"role": "assistant", "text": question})
+            previous_clarification = None
+            if message.get("content"):
+                transcript.append({"role": "user", "text": message["content"]})
+        return transcript
+
+    def _previsit_state(self, session, lang):
+        topic, question = previsit_question(session, lang)
+        summary = generate_pre_visit_summary(session, lang)
+        answer = question
+        if session.get("is_emergency"):
+            status = "emergency"
+            answer = next((message["content"] for message in reversed(session["messages"])
+                           if message.get("previsit_emergency")), None)
+            answer = answer or summary["part_b_system_assessment"]["care_approach"]
+        elif session.get("is_confirmed"):
+            status = "confirmed"
+        else:
+            status = "collecting" if question else "ready_for_review"
+        return {
+            "conversation_id": session["conversation_id"],
+            "status": status,
+            "facts": session["facts"],
+            "version": session["version"],
+            "is_confirmed": session["is_confirmed"],
+            "turn_count": session["turn_count"],
+            "next_question": question,
+            "transcript": self._previsit_transcript(session["messages"]),
+            "answer": answer,
+            "can_skip": bool(question and topic != "chief_complaint" and topic not in PREVISIT_SAFETY_TOPICS),
+            "needs_red_flag_confirmation": topic == "red_flag",
+            "summary_available": summary["summary_available"],
+            "summary": summary,
+        }
+
+    def _commit_previsit_state(self, session, lang):
+        state = self._previsit_state(session, lang)
+        self._save_to_db(session, raise_on_error=True)
+        self._sessions[session["conversation_id"]] = session
+        return state
+
+    def open_previsit(self, conversation_id, user_id=None, guest_token=None, lang="vi"):
+        with self._lock:
+            if conversation_id and not self._existing_session(conversation_id):
+                raise KeyError(conversation_id)
+            session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
+            if "previsit_topics" not in session["facts"]:
+                session["facts"]["previsit_topics"] = []
+                self._save_to_db(session)
+            return self._previsit_state(session, lang)
+
     def process_message(
         self,
         conversation_id: str,
@@ -1074,6 +1363,9 @@ class IntakeSessionManager:
         guest_token: Optional[str] = None,
         include_summary: bool = True,
         lang: str = "vi",
+        previsit: bool = False,
+        skip: bool = False,
+        expected_version: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Xử lý 1 lượt tin nhắn trong quy trình hỏi bệnh:
@@ -1083,31 +1375,59 @@ class IntakeSessionManager:
           4. Đánh giá trạng thái thu thập chính xác (không nhảy sớm sang ready_for_review nếu còn thiếu).
         """
         with self._lock:
+            if previsit and conversation_id and not self._existing_session(conversation_id):
+                raise KeyError(conversation_id)
             session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
+            if previsit:
+                _check_previsit_version(session, expected_version)
+                topic, question = previsit_question(session, lang)
+                if not question:
+                    return self._previsit_state(session, lang)
+                if skip and (topic == "chief_complaint" or topic in PREVISIT_SAFETY_TOPICS):
+                    raise ValueError("Vui lòng trả lời câu hỏi này trước khi tiếp tục.")
+                session = deepcopy(session)
+                session["facts"].setdefault("previsit_topics", [])
+                session["version"] += 1
             session["turn_count"] += 1
             user_text = message.strip()
 
             # Lưu tin nhắn người dùng
-            session["messages"].append({
-                "sender": "patient",
-                "content": user_text,
-                "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
-            })
-
+            if previsit or not skip:
+                turn = {
+                    "sender": "patient",
+                    "content": user_text,
+                    "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+                }
+                if previsit:
+                    turn["previsit_question"] = question
+                    if skip:
+                        turn["content"] = "Skipped" if lang == "en" else "Đã bỏ qua"
+                session["messages"].append(turn)
             if image_bytes:
                 session["attachments"].append(image_name or "clinical_image.jpg")
 
             # 1. Tiền kiểm cờ đỏ cấp cứu
             previous = session["messages"][-2] if len(session["messages"]) > 1 else {}
-            previous_question = previous.get("content", "") if previous.get("sender") == "assistant" else ""
+            previous_question = question if previsit else (
+                previous.get("content", "") if previous.get("sender") == "assistant" else ""
+            )
             emergency_res = {} if is_general_health_definition(user_text) else assess_emergency_risk(
                 user_text, lang=lang, previous_question=previous_question
             )
+            if previsit and topic == "red_flag" and not (emergency_res.get("is_emergency") or emergency_res.get("clarification")):
+                normalized = remove_accents(user_text).replace("đ", "d").strip(" .!?")
+                if not PREVISIT_CLEAR_DENIAL.fullmatch(normalized) or PREVISIT_UNCERTAIN.match(normalized):
+                    emergency_res["clarification"] = question
             if emergency_res.get("clarification"):
                 question = emergency_res["clarification"]
-                session["messages"].append({"sender": "assistant", "content": question})
+                assistant_turn = {"sender": "assistant", "content": question}
+                if previsit:
+                    assistant_turn["needs_red_flag_confirmation"] = True
+                session["messages"].append(assistant_turn)
                 session["status"] = "collecting"
                 _invalidate_summary_assessment(session)
+                if previsit:
+                    return self._commit_previsit_state(session, lang)
                 self._save_to_db(session)
                 return {"conversation_id": conversation_id, "status": "collecting", "facts": session["facts"],
                         "answer": question, "next_question": question, "needs_red_flag_confirmation": True,
@@ -1132,6 +1452,9 @@ class IntakeSessionManager:
                 if session.get("is_confirmed"):
                     session["is_confirmed"] = False
                     session["version"] = session.get("version", 1) + 1
+                if previsit:
+                    session["messages"].append({"sender": "assistant", "content": answer, "previsit_emergency": True})
+                    return self._commit_previsit_state(session, lang)
                 summary = generate_pre_visit_summary(session) if include_summary else None
                 self._save_to_db(session)
                 return {
@@ -1150,7 +1473,8 @@ class IntakeSessionManager:
 
             # 2. Trích xuất dữ kiện mới
             informational = not image_bytes and is_informational_query(user_text)
-            extracted = extract_clinical_facts_from_text(user_text)
+            history_reply = previsit and topic in PREVISIT_HISTORY_TOPICS
+            extracted = extract_clinical_facts_from_text("" if history_reply else user_text, previsit=previsit)
             current_facts = session["facts"]
             facts_changed = bool(image_bytes)
 
@@ -1190,7 +1514,7 @@ class IntakeSessionManager:
                 current_facts["activity_impact"] = extracted["activity_impact"]
                 facts_changed = True
 
-            if abdominal_pain(current_facts) and not informational:
+            if abdominal_pain(current_facts) and not informational and not history_reply:
                 slots = current_facts.setdefault("pain", {})
                 for field, pattern in PAIN_PATTERNS.items():
                     match = re.search(pattern, user_text, re.IGNORECASE)
@@ -1216,8 +1540,19 @@ class IntakeSessionManager:
 
             # The patient's short reply belongs to the last question actually
             # displayed, which may differ from the internal intake suggestion.
-            if bind_short_reply(user_text, previous_question, current_facts):
+            if not history_reply and bind_short_reply(user_text, previous_question, current_facts):
                 facts_changed = True
+
+            if previsit:
+                if skip or (not informational and not is_greeting_only(user_text)):
+                    _record_previsit_answer(current_facts, topic, question, user_text, skip=skip)
+                    facts_changed = True
+                if facts_changed:
+                    _invalidate_summary_assessment(session)
+                    session["is_confirmed"] = False
+                _, next_question = previsit_question(session, lang)
+                session["status"] = "collecting" if next_question else "ready_for_review"
+                return self._commit_previsit_state(session, lang)
 
             if facts_changed:
                 _invalidate_summary_assessment(session)
@@ -1293,22 +1628,49 @@ class IntakeSessionManager:
         field: str,
         value: Any,
         user_id: Optional[int] = None,
-        guest_token: Optional[str] = None
+        guest_token: Optional[str] = None,
+        previsit: bool = False,
+        lang: str = "vi",
+        expected_version: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Cho phép người bệnh sửa một dữ kiện (vd: sửa duration, sửa thân nhiệt).
         Khi sửa, đánh dấu phiên bản mới (version += 1) và đặt lại trạng thái cần xác nhận.
         """
         with self._lock:
+            if previsit and not self._existing_session(conversation_id):
+                raise KeyError(conversation_id)
             session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
+            if previsit:
+                session = deepcopy(session)
             facts = session["facts"]
+            if previsit:
+                _check_previsit_version(session, expected_version)
+                _validate_previsit_fact(field, value)
+                if field == "patient_reported_history":
+                    previous_history = _previsit_history(facts)
+                    value = {
+                        topic: item if item == previous_history.get(topic) else _previsit_history_item(topic, item["text"])
+                        for topic, item in value.items()
+                    }
+                elif field == "contextual_answers":
+                    facts["patient_reported_history"] = _previsit_history(facts)
+                if field in {"duration", "activity_impact", "pain"}:
+                    facts["contextual_answers"] = [
+                        item for item in facts.get("contextual_answers", [])
+                        if not isinstance(item, dict) or not isinstance(item.get("question"), str)
+                        or not _matches_previsit_fact(facts, question_topic(item["question"]), item.get("answer"))
+                    ]
 
-            if field in facts:
+            if field in facts or previsit:
                 facts[field] = value
                 _invalidate_summary_assessment(session)
                 session["version"] = session.get("version", 1) + 1
                 session["is_confirmed"] = False  # Bắt buộc xác nhận lại khi sửa dữ kiện quan trọng
-                session["status"] = "ready_for_review"
+                if not session.get("is_emergency"):
+                    session["status"] = "collecting" if previsit and previsit_question(session, lang)[1] else "ready_for_review"
+                if previsit:
+                    return self._commit_previsit_state(session, lang)
                 self._save_to_db(session)
 
             summary = generate_pre_visit_summary(session)
@@ -1324,11 +1686,23 @@ class IntakeSessionManager:
         self,
         conversation_id: str,
         user_id: Optional[int] = None,
-        guest_token: Optional[str] = None
+        guest_token: Optional[str] = None,
+        *,
+        reviewed_version: Optional[int] = None,
+        reviewed_facts: Optional[Dict[str, Any]] = None,
+        save_to_record: bool = False,
     ) -> Dict[str, Any]:
         """Bệnh nhân xác nhận: Lời khai đã phản ánh đúng thực tế tình trạng sức khỏe."""
         with self._lock:
+            if save_to_record and not self._existing_session(conversation_id):
+                raise KeyError(conversation_id)
             session = self.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
+            if save_to_record:
+                draft = generate_pre_visit_summary(session)
+                if reviewed_version != draft["version"] or reviewed_facts != draft["part_a_patient_facts"]:
+                    raise StaleIntakeVersionError("Bản nháp đã thay đổi. Hãy xem lại trước khi lưu.")
+                if not draft["ready_to_finalize"]:
+                    raise ValueError("Bản tóm tắt còn thiếu dữ kiện cần thiết. Hãy bổ sung phần đã đánh dấu trước khi lưu.")
             prev_confirmed = session.get("is_confirmed", False)
             prev_status = session.get("status", "ready_for_review")
 
@@ -1336,7 +1710,8 @@ class IntakeSessionManager:
             session["status"] = "confirmed"
 
             # Bắt buộc lưu thành công vào CSDL bền vững thì mới trả về thành công
-            saved = self._save_to_db(session)
+            summary = deepcopy(generate_pre_visit_summary(session))
+            saved = self._save_to_db(session, confirmed_summary=summary) if save_to_record else self._save_to_db(session)
             if not saved:
                 # Rollback in-memory status nếu ghi CSDL thất bại
                 session["is_confirmed"] = prev_confirmed
@@ -1349,7 +1724,6 @@ class IntakeSessionManager:
                     "is_confirmed": prev_confirmed
                 }
 
-            summary = generate_pre_visit_summary(session)
             return {
                 "success": True,
                 "conversation_id": conversation_id,

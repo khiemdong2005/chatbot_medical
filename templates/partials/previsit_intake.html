@@ -1,0 +1,56 @@
+<dialog id="previsit-intake" class="previsit-dialog" aria-labelledby="previsit-title">
+  <div class="previsit-card">
+    <div class="previsit-header">
+      <div class="previsit-icon" aria-hidden="true">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <rect x="5" y="4" width="14" height="17" rx="3"/>
+          <path d="M9 4V3h6v1m-3 5v6m-3-3h6"/>
+        </svg>
+      </div>
+      <button type="button" id="previsit-close" class="previsit-close" aria-label="Đóng" autofocus>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 6 12 12M18 6 6 18"/>
+        </svg>
+      </button>
+      <div>
+        <h2 id="previsit-title">Hỏi bệnh trước khám</h2>
+        <p id="previsit-stage">Chuẩn bị thông tin cho buổi khám</p>
+      </div>
+    </div>
+    <div id="previsit-body" class="previsit-body">
+      <p id="previsit-notice" class="previsit-notice" role="status" hidden></p>
+      <button type="button" id="previsit-retry" class="previsit-secondary" hidden>Thử lại</button>
+      <div id="previsit-transcript" class="previsit-transcript" role="log" aria-label="Đoạn hội thoại" tabindex="0" hidden></div>
+      <section id="previsit-review" aria-labelledby="previsit-review-heading" hidden>
+        <h3 id="previsit-review-heading" class="previsit-prompt" tabindex="-1">Thông tin bạn cung cấp</h3>
+        <div id="previsit-facts"></div>
+        <form id="previsit-edit-form" hidden>
+          <label id="previsit-edit-label" for="previsit-edit-value"></label>
+          <textarea id="previsit-edit-value" rows="2" maxlength="2000"></textarea>
+          <div class="previsit-actions">
+            <button type="button" id="previsit-edit-cancel" class="previsit-secondary">Huỷ</button>
+            <button type="submit" id="previsit-edit-save" class="previsit-primary">Lưu chỉnh sửa</button>
+          </div>
+        </form>
+      </section>
+    </div>
+    <form id="previsit-question-form" class="previsit-composer" hidden>
+      <div class="previsit-compose-row">
+        <textarea id="previsit-answer" rows="1" maxlength="2000" aria-label="Nhập tin nhắn"></textarea>
+        <button type="submit" id="previsit-next" class="previsit-primary">Gửi</button>
+      </div>
+      <div class="previsit-chat-tools">
+        <button type="button" id="previsit-skip" class="previsit-secondary" hidden>Không rõ / Bỏ qua</button>
+        <button type="button" id="previsit-peek" class="previsit-review-link" hidden>Xem thông tin đã khai</button>
+      </div>
+    </form>
+    <div id="previsit-review-actions" class="previsit-footer previsit-actions" hidden>
+      <button type="button" id="previsit-view-history" class="previsit-review-link" hidden>Xem cuộc trò chuyện</button>
+      <button type="button" id="previsit-new" class="previsit-secondary" hidden>Phiên mới</button>
+      <button type="button" id="previsit-finish" class="previsit-primary">Xác nhận và lưu vào hồ sơ</button>
+    </div>
+    <div id="previsit-history-actions" class="previsit-footer previsit-actions" hidden>
+      <button type="button" id="previsit-back-review" class="previsit-primary">Về tóm tắt</button>
+    </div>
+  </div>
+</dialog>

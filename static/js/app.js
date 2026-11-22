@@ -47,6 +47,8 @@ function checkPendingBookingAfterAuth() {
     setTimeout(() => {
       openFacilityBookingModal(fid);
     }, 450);
+  } else if (currentUser && typeof PrevisitIntake !== "undefined") {
+    PrevisitIntake.resumeAfterLogin();
   }
 }
 
@@ -719,6 +721,20 @@ const translations = {
     intake_summary_version: "Phiên bản",
     intake_summary_review_pending: "Chờ xác nhận",
     intake_summary_confirmed: "Đã xác nhận lời khai",
+    previsit_saved_patient: "Thông tin người bệnh tự khai",
+    previsit_saved_incomplete: "Quay lại đoạn chat để bổ sung thông tin trước khi xác nhận.",
+    previsit_saved_consent: "Tôi đồng ý lưu bản tóm tắt này vào hồ sơ của mình.",
+    previsit_saved_close: "Đóng",
+    book_previsit_review: "Xem tóm tắt",
+    book_previsit_optional: "Bạn có thể trả lời vài câu để chuẩn bị bản tóm tắt.",
+    book_previsit_heading: "Thông tin trước khám",
+    book_previsit_confirmed: "Bạn đã xác nhận bản tóm tắt này.",
+    previsit_saved_sources: "Nguồn tham khảo",
+    previsit_saved_missing: "Thông tin cần làm rõ",
+    previsit_saved_assessment: "Đánh giá sơ bộ của MediMind",
+    previsit_saved_title: "Tóm tắt trước khám",
+    book_attach_summary_label: "Đính kèm bản tóm tắt đã xác nhận vào lịch hẹn",
+    chat_mode_intake: "Hỏi bệnh trước khám",
     welcome_msg: "Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
     quick_1: "Sốt 38.5°C và đau cổ họng",
     quick_2: "Đau tức ngực, khó thở",
@@ -1119,6 +1135,20 @@ const translations = {
     intake_summary_version: "Version",
     intake_summary_review_pending: "Awaiting confirmation",
     intake_summary_confirmed: "Patient information confirmed",
+    previsit_saved_patient: "Patient-reported information",
+    previsit_saved_incomplete: "Return to the conversation to add details before confirming.",
+    previsit_saved_consent: "I agree to save this summary to my record.",
+    previsit_saved_close: "Close",
+    book_previsit_review: "View summary",
+    book_previsit_optional: "You can answer a few questions to prepare a summary.",
+    book_previsit_heading: "Before your visit",
+    book_previsit_confirmed: "You have confirmed this summary.",
+    previsit_saved_sources: "References",
+    previsit_saved_missing: "Information to clarify",
+    previsit_saved_assessment: "MediMind preliminary assessment",
+    previsit_saved_title: "Pre-visit summary",
+    book_attach_summary_label: "Attach the confirmed summary to this appointment",
+    chat_mode_intake: "Pre-visit questions",
     welcome_msg: "Hello, I am the MediMind Health Assistant. I can help you with preliminary symptom triage, prescription explanations, and specialty clinic guidance. What health concern are you experiencing?",
     quick_1: "Fever 38.5°C and sore throat",
     quick_2: "Chest tightness, dyspnea",
@@ -2820,50 +2850,94 @@ function handlePreVisitSummaryKeys(event) {
   }
 }
 
+function renderPreVisitSummaryRows(container, rows) {
+  if (!container) return;
+  container.replaceChildren();
+  for (const [label, value] of rows) {
+    if (!value) continue;
+    const row = document.createElement('div');
+    row.className = 'py-2.5';
+    const name = document.createElement('dt');
+    name.className = 'text-xs font-semibold text-slate-600 dark:text-slate-400';
+    name.textContent = label;
+    const detail = document.createElement('dd');
+    detail.className = 'mt-0.5 break-words whitespace-pre-line text-sm text-slate-900 dark:text-slate-100';
+    detail.textContent = value;
+    row.append(name, detail);
+    container.append(row);
+  }
+}
+
 function renderPreVisitSummaryInModal(summary, id = currentConversationId, awaitingReply = false) {
   reviewedIntakeSummary = { id, summary, awaitingReply };
   const partA = summary.part_a_patient_facts || {};
   const partB = summary.part_b_system_assessment || {};
   const dict = translations[currentLang] || translations.vi;
+  const label = (vi, en) => currentLang === 'en' ? en : vi;
 
   const statusText = document.getElementById('modal-summary-status-text');
   const createdAt = document.getElementById('modal-summary-created-at');
-  if (statusText) statusText.innerText = `${dict.intake_summary_version}: v${summary.version || partB.version || 1} • ${summary.is_confirmed ? dict.intake_summary_confirmed : dict.intake_summary_review_pending}`;
+  if (statusText) statusText.innerText = summary.is_confirmed ? dict.intake_summary_confirmed : dict.intake_summary_review_pending;
   if (createdAt) createdAt.innerText = partB.created_at || '';
 
-  // Part A
-  const cEl = document.getElementById('summary-a-complaint');
-  const dEl = document.getElementById('summary-a-duration');
-  const pEl = document.getElementById('summary-a-present');
-  const dnEl = document.getElementById('summary-a-denied');
-  const vEl = document.getElementById('summary-a-vitals');
-  const attEl = document.getElementById('summary-a-attachments');
+  const emptyValues = new Set([
+    '--', 'Chưa rõ', 'Chưa ghi nhận cụ thể', 'Chưa ghi nhận lý do khám',
+    'Chưa rõ các chỉ số tự đo', 'Chưa rõ tiền sử dị ứng', 'Chưa rõ thuốc đang dùng',
+    'Không có tệp hình ảnh đính kèm'
+  ]);
+  const known = value => typeof value === 'string' && !emptyValues.has(value.trim()) ? value.trim() : '';
+  const list = values => Array.isArray(values) ? values.map(known).filter(Boolean).join(', ') : '';
+  const history = partA.patient_reported_history || {};
+  const historyValue = (field, previousValue) => {
+    const item = history[field];
+    const text = known(item?.text) || known(previousValue);
+    if (item?.status === 'skipped') return label('Đã bỏ qua', 'Skipped');
+    if (item?.status === 'unknown') return label('Chưa rõ theo lời người bệnh', 'Patient unsure');
+    if (item?.status === 'denied' && field !== 'medications') {
+      const denial = label('Người bệnh cho biết không có', 'Patient reported none');
+      return text ? `${denial} · ${text}` : denial;
+    }
+    return text || label('Chưa cung cấp', 'Not provided');
+  };
+  const pain = partA.pain || {};
+  const context = Array.isArray(partA.contextual_answers) ? partA.contextual_answers : [];
+  renderPreVisitSummaryRows(document.getElementById('summary-a-facts'), [
+    [label('Lý do khám', 'Reason for visit'), known(partA.chief_complaint)],
+    [label('Thời điểm bắt đầu', 'Onset'), known(partA.duration)],
+    [label('Vị trí đau', 'Pain location'), known(pain.location)],
+    [label('Tính chất đau', 'Pain description'), known(pain.quality)],
+    [label('Mức độ đau tự đánh giá', 'Self-reported pain level'), known(pain.severity)],
+    [label('Tần suất đau', 'Pain frequency'), known(partA.pain_frequency)],
+    [label('Triệu chứng ghi nhận', 'Recorded symptoms'), list(partA.symptoms_present)],
+    [label('Triệu chứng người bệnh cho biết không có', 'Symptoms the patient reported absent'), list(partA.symptoms_denied)],
+    [label('Ảnh hưởng đến sinh hoạt', 'Impact on daily activities'), known(partA.activity_impact)],
+    [label('Dị ứng', 'Allergies'), historyValue('allergies', partA.allergies)],
+    [label('Thuốc đang dùng hoặc đã dùng', 'Current or recent medication'), historyValue('medications', partA.current_medications)],
+    [label('Bệnh đang điều trị, tiền sử liên quan', 'Relevant conditions or history'), historyValue('conditions')],
+    [label('Chỉ số tự đo', 'Self-reported measurements'), known(partA.vitals)],
+    [label('Ảnh đính kèm', 'Attached images'), known(partA.attachments_and_observations)],
+    ...context.filter(item => item && known(item.question)).map(item => [known(item.question), known(item.answer)])
+  ]);
   const mEl = document.getElementById('summary-a-missing');
+  const missingSection = document.getElementById('summary-a-missing-section');
+  const missing = list(partA.missing_or_unclear_info);
+  if (mEl) mEl.innerText = missing;
+  if (missingSection) missingSection.hidden = !missing;
 
-  if (cEl) cEl.innerText = [partA.chief_complaint, ...Object.values(partA.pain || {})].filter(Boolean).join(' · ') || '--';
-  if (dEl) dEl.innerText = partA.duration || '--';
-  if (pEl) pEl.innerText = (partA.symptoms_present && partA.symptoms_present.length) ? partA.symptoms_present.join(', ') : '--';
-  if (dnEl) dnEl.innerText = (partA.symptoms_denied && partA.symptoms_denied.length) ? partA.symptoms_denied.join(', ') : 'Chưa có triệu chứng phủ nhận';
-  if (vEl) vEl.innerText = partA.vitals || 'Chưa có chỉ số tự đo tại nhà';
-  if (attEl) attEl.innerText = partA.attachments_and_observations || 'Không có tệp hình ảnh đính kèm';
-  if (mEl) mEl.innerText = (partA.missing_or_unclear_info && partA.missing_or_unclear_info.length) ? partA.missing_or_unclear_info.join('; ') : 'Đã đủ thông tin cơ bản';
-
-  const algEl = document.getElementById('summary-a-allergies');
-  const medEl = document.getElementById('summary-a-medications');
-  if (algEl) algEl.innerText = partA.allergies || 'Chưa ghi nhận tiền sử dị ứng đặc biệt';
-  if (medEl) medEl.innerText = partA.current_medications || 'Chưa ghi nhận thuốc đang dùng thường xuyên';
-
-  // Part B
-  const bStatus = document.getElementById('summary-b-status');
-  const bSpec = document.getElementById('summary-b-specialist');
-  const bAppr = document.getElementById('summary-b-approach');
+  const assessment = document.getElementById('summary-b-assessment');
+  const hasAssessment = partB.triage_badge === 'assessed' || partB.triage_badge === 'emergency';
+  if (assessment) assessment.hidden = !hasAssessment;
+  renderPreVisitSummaryRows(document.getElementById('summary-b-facts'), hasAssessment ? [
+    [label('Phân luồng', 'Triage status'), known(partB.triage_status)],
+    [label('Chuyên khoa gợi ý', 'Suggested specialty'), known(partB.recommended_specialist)],
+    [label('Hướng tiếp cận chăm sóc', 'Care guidance'), known(partB.care_approach)],
+  ] : []);
+  const sourcesSection = document.getElementById('summary-b-sources-section');
   const bSources = document.getElementById('summary-b-sources');
-
-  if (bStatus) bStatus.innerText = partB.triage_status || '--';
-  if (bSpec) bSpec.innerText = partB.recommended_specialist || '--';
-  if (bAppr) bAppr.innerText = partB.care_approach || '--';
+  const sources = hasAssessment ? verifiedChatSources(partB.sources) : [];
+  if (sourcesSection) sourcesSection.hidden = !sources.length;
   if (bSources) {
-    bSources.innerHTML = verifiedChatSources(partB.sources).map(source =>
+    bSources.innerHTML = sources.map(source =>
       `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">[${source.number}] ${escapeHtml(source.title)}</a>`).join('<br>');
   }
 
@@ -2891,6 +2965,17 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
   if (confirmBtn) confirmBtn.classList.toggle('hidden', !canSave);
 
   updateSummarySaveButton();
+}
+
+function showSavedPreVisitSummary(summary) {
+  const modal = document.getElementById('previsit-summary-modal');
+  if (!modal) return;
+  recordModalTriggerFocus();
+  renderPreVisitSummaryInModal(summary, null);
+  modal.classList.remove('hidden');
+  const content = document.getElementById('previsit-summary-content');
+  if (content) content.scrollTop = 0;
+  document.getElementById('previsit-summary-close')?.focus();
 }
 
 function updateSummarySaveButton() {
@@ -4967,6 +5052,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Đóng modal & dropdown khi bấm Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (document.getElementById('previsit-intake')?.open) return;
       const preVisitModal = document.getElementById('previsit-summary-modal');
       if (preVisitSummaryRequest || (preVisitModal && !preVisitModal.classList.contains('hidden'))) {
         closePreVisitSummaryModal();
@@ -8437,6 +8523,48 @@ function getFacilityBadgeColor(badgeType) {
   return 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/40 font-semibold';
 }
 
+let bookingSummaryReference = null;
+let bookingSummaryRequest = 0;
+
+async function checkAndPrepareBookingPreVisitSummary() {
+  const modal = document.getElementById('facility-booking-modal');
+  const checkbox = document.getElementById('book-modal-attach-summary');
+  if (!modal || modal.classList.contains('hidden') || !checkbox) return;
+  const revision = ++bookingSummaryRequest;
+  const account = chatAccountKey();
+  const previous = bookingSummaryReference;
+  const wasChecked = checkbox.checked;
+  checkbox.disabled = true;
+  let next = null;
+  try {
+    next = await PrevisitIntake.bookingSummary();
+  } catch (_) { }
+  if (revision !== bookingSummaryRequest || account !== chatAccountKey()) return;
+  bookingSummaryReference = next;
+  renderBookingPreVisitSummary(next, Boolean(wasChecked && next && next.id === previous?.id && next.version === previous.version));
+}
+
+function renderBookingPreVisitSummary(reference, keepChecked = false) {
+  const dict = translations[currentLang] || translations.vi;
+  const section = document.getElementById('book-summary-attachment');
+  const checkbox = document.getElementById('book-modal-attach-summary');
+  const launcher = document.getElementById('book-intake-button');
+  const description = document.getElementById('book-previsit-description');
+  if (section) section.hidden = !reference;
+  if (checkbox) {
+    checkbox.disabled = !reference;
+    checkbox.checked = keepChecked;
+  }
+  for (const [element, textKey] of [
+    [launcher, reference ? 'book_previsit_review' : 'chat_mode_intake'],
+    [description, reference ? 'book_previsit_confirmed' : 'book_previsit_optional']
+  ]) {
+    if (!element) continue;
+    element.dataset.i18n = textKey;
+    element.textContent = dict[textKey];
+  }
+}
+
 function openFacilityBookingModal(facId) {
   recordModalTriggerFocus();
   if (!currentUser) {
@@ -8474,11 +8602,15 @@ function openFacilityBookingModal(facId) {
   }
 
   if (modal) modal.classList.remove('hidden');
+  document.getElementById('book-modal-attach-summary').checked = false;
+  checkAndPrepareBookingPreVisitSummary();
 }
 
 function closeFacilityBookingModal() {
   const modal = document.getElementById('facility-booking-modal');
   if (modal) modal.classList.add('hidden');
+  bookingSummaryRequest++;
+  bookingSummaryReference = null;
   restoreModalTriggerFocus();
 }
 
@@ -8502,6 +8634,13 @@ async function handleFacilityBookingSubmit(e) {
   const patName = document.getElementById('book-modal-name')?.value || currentUser?.full_name || currentUser?.name || '';
   const patPhone = document.getElementById('book-modal-phone')?.value || currentUser?.phone_number || currentUser?.phone || '';
 
+  const attachCheckbox = document.getElementById('book-modal-attach-summary');
+  const summaryReference = attachCheckbox.checked && !attachCheckbox.disabled ? bookingSummaryReference : null;
+  if (attachCheckbox.checked && !summaryReference) {
+    showMedicalToast(isEn ? 'Your summary is still loading.' : 'Đang tải bản tóm tắt, vui lòng chờ.', 'info');
+    return;
+  }
+
   try {
     const res = await fetch('/api/appointments', {
       method: 'POST',
@@ -8515,7 +8654,8 @@ async function handleFacilityBookingSubmit(e) {
         appointment_time: time,
         patient_name: patName,
         patient_phone: patPhone,
-        note: note || ''
+        note: note || '',
+        ...(summaryReference && { pre_visit_conversation_id: summaryReference.id, pre_visit_summary_version: summaryReference.version })
       })
     });
 
