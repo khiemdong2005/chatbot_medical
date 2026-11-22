@@ -443,8 +443,16 @@ class LLMProvider:
     def is_openrouter_active(self) -> bool:
         """Kiểm tra xem hệ thống có đang cấu hình chạy OpenRouter hay không."""
         provider = os.getenv("AI_PROVIDER", "").strip().lower()
-        openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-        return provider == "openrouter" and bool(openrouter_key)
+        if provider == "openrouter":
+            return True
+        openrouter_key = (
+            os.getenv("OPENROUTER_API_KEY")
+            or os.getenv("OPENROUTER_CHAT_API_KEY")
+            or os.getenv("OPENROUTER_OCR_API_KEY")
+            or os.getenv("OPENROUTER_NUTRITION_API_KEY")
+            or ""
+        ).strip()
+        return bool(openrouter_key)
 
     def resolve_api_key(
         self,
@@ -454,10 +462,11 @@ class LLMProvider:
         """
         Xác định API Key theo Profile một cách an toàn:
         - Nếu AI_PROVIDER=groq      -> ưu tiên GROQ_API_KEY (gsk_...).
-        - Nếu AI_PROVIDER=openrouter -> ưu tiên OPENROUTER_API_KEY (sk-or-...).
+        - Nếu AI_PROVIDER=openrouter -> ưu tiên OPENROUTER_*_API_KEY (sk-or-...).
         - Nếu có explicit_key        -> ưu tiên số 1.
-        - Profile 'nutrition' -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
-        - Profile 'chat'      -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
+        - Profile 'nutrition' -> OPENROUTER_NUTRITION_API_KEY -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
+        - Profile 'chat'      -> OPENROUTER_CHAT_API_KEY -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
+        - Profile 'ocr'       -> OPENROUTER_OCR_API_KEY -> OCR_MODEL / GEMINI_API_KEY.
         - Mặc định            -> GEMINI_API_KEY -> GOOGLE_API_KEY.
         """
         if explicit_key and isinstance(explicit_key, str) and explicit_key.strip():
@@ -480,9 +489,19 @@ class LLMProvider:
             or_chat_key = (os.getenv("OPENROUTER_CHAT_API_KEY") or "").strip()
             if or_chat_key:
                 return or_chat_key
+        if is_vision_ocr or prof in ("ocr", "prescription", "vision", "interpretation"):
+            or_ocr_key = (os.getenv("OPENROUTER_OCR_API_KEY") or "").strip()
+            if or_ocr_key:
+                return or_ocr_key
 
         if self.is_openrouter_active():
-            return os.getenv("OPENROUTER_API_KEY", "").strip()
+            return (
+                os.getenv("OPENROUTER_API_KEY")
+                or os.getenv("OPENROUTER_CHAT_API_KEY")
+                or os.getenv("OPENROUTER_OCR_API_KEY")
+                or os.getenv("OPENROUTER_NUTRITION_API_KEY")
+                or ""
+            ).strip()
 
         or_general_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
         if or_general_key:
