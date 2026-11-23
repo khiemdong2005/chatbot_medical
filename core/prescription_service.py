@@ -28,6 +28,13 @@ load_dotenv()
 GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
 
 from core.ocr_extractor import extract_prescription_text
+from core.gemini_schema_service import _sanitize_redacted_admin_field
+from core.prompts import (
+    PRESCRIPTION_OCR_FEW_SHOT_RULES,
+    PRESCRIPTION_OCR_HANDWRITTEN_RULE,
+    PRESCRIPTION_OCR_REDACTED_RULE,
+    PRESCRIPTION_OCR_SYSTEM_PROMPT,
+)
 
 
 def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filename: str = "", file_path: str = "") -> Optional[Dict[str, Any]]:
@@ -62,11 +69,14 @@ HƯỚNG DẪN ĐẶC BIỆT DÀNH CHO ĐƠN THUỐC LÂM SÀNG TẠI VIỆT NAM
 1. Đọc kỹ ảnh chụp để ĐỐI CHIẾU VỚI VĂN BẢN OCR, ĐẢM BẢO BÓC TÁCH ĐỦ VÀ CHÍNH XÁC 100% CÁC MỤC THUỐC (KHÔNG BỎ SÓT THUỐC NÀO):
    - Đơn thuốc tại Việt Nam thường kết hợp thuốc tân dược và thuốc Đông y / Y học cổ truyền.
    - Tuyệt đối không nhầm lẫn tên hoạt chất và không tự bịa tên thuốc.
+   - {PRESCRIPTION_OCR_HANDWRITTEN_RULE}
+   - {PRESCRIPTION_OCR_FEW_SHOT_RULES}
 2. THÔNG TIN BỆNH NHÂN & CHẨN ĐOÁN:
    - Họ tên bệnh nhân (kèm tuổi, giới tính nếu có).
    - Địa chỉ.
    - Chẩn đoán xác định.
    - Đợt dùng / Thời gian điều trị.
+   - {PRESCRIPTION_OCR_REDACTED_RULE}
 3. PHÂN BỔ THỜI GIAN BIỂU UỐNG THUỐC:
    - Sáng (06:30 - 08:00), Trưa (11:30 - 12:30), Tối (18:00 - 19:30), Trước ngủ (21:00 - 22:00).
    - Ghi rõ note: "Trước ăn (30 phút)", "Sau khi ăn", hoặc "Dùng ngoài da".
@@ -80,7 +90,10 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
   "facility": "Tên cơ sở y tế",
   "department": "Khoa phòng",
   "doctor": "Bác sĩ kê đơn",
-  "patient_name": "Họ và tên bệnh nhân (tuổi, giới tính)",
+  "patient_name": "",
+  "dob": "",
+  "age": "",
+  "gender": "",
   "address": "Địa chỉ",
   "diagnosis": "Chẩn đoán y khoa chi tiết",
   "date": "Ngày khám",
@@ -108,7 +121,10 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
 
         contents_payload.append(prompt)
 
-        if llm_provider.is_openrouter_active():
+        if llm_provider.is_groq_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr")]
+            ocr_api_key = None
+        elif llm_provider.is_openrouter_active():
             candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
             ocr_api_key = None
         else:
@@ -117,11 +133,17 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
         data = llm_provider.generate_json(
             contents=contents_payload,
             candidate_models=candidate_models,
+            system_instruction=PRESCRIPTION_OCR_SYSTEM_PROMPT,
             api_key=ocr_api_key,
             temperature=0.1,
             operation="prescription_ocr"
         )
         if isinstance(data, dict):
+            for admin_key in ("patient_name", "dob", "age"):
+                if admin_key in data:
+                    data[admin_key] = _sanitize_redacted_admin_field(data.get(admin_key))
+            if "gender" in data:
+                data["gender"] = _sanitize_redacted_admin_field(data.get("gender"), is_gender=True)
             data.setdefault("status", "success")
             data.setdefault("type", "prescription")
             data["scanned_by"] = "Kiến trúc Hybrid AI: Tiền xử lý OpenCV ➔ EasyOCR Tiếng Việt Cục bộ ➔ Gemini Multimodal Clinical NLP"
@@ -168,14 +190,20 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         elif ext == ".pdf":
             mime_type = "application/pdf"
 
-        prompt = """
+        prompt = f"""
         Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI.
         Hãy quan sát đơn thuốc y tế này (bao gồm chữ in và chữ viết tay):
+        {PRESCRIPTION_OCR_HANDWRITTEN_RULE}
+        {PRESCRIPTION_OCR_FEW_SHOT_RULES}
+        {PRESCRIPTION_OCR_REDACTED_RULE}
         Trích xuất facility, department, doctor, patient_name, dob, age, gender, diagnosis, date, duration, timeline 4 cữ (morning, noon, evening, bedtime), medications (name, strength, dose, frequency, days, usage, purpose) và warnings.
-        Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
+        Trả về DUY NHẤT một JSON hợp lệ dạng {{"status": "success", "type": "prescription", ...}}.
         """
 
-        if llm_provider.is_openrouter_active():
+        if llm_provider.is_groq_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr")]
+            ocr_api_key = None
+        elif llm_provider.is_openrouter_active():
             candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
             ocr_api_key = None
         else:
@@ -188,10 +216,16 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         data = llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
+            system_instruction=PRESCRIPTION_OCR_SYSTEM_PROMPT,
             api_key=ocr_api_key,
             operation="prescription_ocr"
         )
         if isinstance(data, dict):
+            for admin_key in ("patient_name", "dob", "age"):
+                if admin_key in data:
+                    data[admin_key] = _sanitize_redacted_admin_field(data.get(admin_key))
+            if "gender" in data:
+                data["gender"] = _sanitize_redacted_admin_field(data.get("gender"), is_gender=True)
             data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
             data["pipeline_mode"] = "End-to-End Vision Fallback"
             data["uploaded_filename"] = original_filename or os.path.basename(file_path)

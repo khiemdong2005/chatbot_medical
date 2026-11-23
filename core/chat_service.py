@@ -56,13 +56,33 @@ def enforce_question_limit(answer: str, max_questions: int,
     return re.sub(r"\n{3,}", "\n\n", limited).strip()
 
 
-def retrieval_query(message, facts):
+def conversation_search_context(message, history, max_user_turns=3):
+    """Earlier patient statements, used when the latest message is only a short screening reply.
+
+    A bare "có" / "hông" carries no searchable symptom. Recent user turns from the
+    same consultation supply the topic; long messages already stand on their own.
+    """
+    if not history or len(str(message).split()) > 7:
+        return ""
+    prior = [turn.get("content", "").strip() for turn in history
+             if isinstance(turn, dict) and turn.get("role") == "user"
+             and isinstance(turn.get("content"), str)]
+    prior = [text[:300] for text in prior if len(text.split()) >= 2]
+    if prior and prior[-1].strip().casefold() == str(message).strip().casefold():
+        prior = prior[:-1]
+    return " ".join(prior[-max_user_turns:])
+
+
+def retrieval_query(message, facts, history=None):
     """Keep the current question, while removing explicitly denied symptoms.
 
     Negation is used only to improve document relevance; this is not a diagnosis.
     The model still receives the complete original statement and denied facts.
+    For short replies the recent patient turns of the same consultation are
+    added, so retrieval searches the whole reported problem instead of "có".
     """
-    query = message
+    context = conversation_search_context(message, history)
+    query = f"{context}. {message}" if context else message
     for symptom in facts.get("denied_symptoms", []):
         for phrase in symptom.split("/"):
             phrase = phrase.strip()
@@ -243,7 +263,8 @@ def process_clinical_chat(
             retrieval_start = time.perf_counter()
             retrieval_facts = {} if consultation_mode == "informational" else intake_facts
             rag_docs = medical_rag_service.retrieve_context(
-                retrieval_query(user_message, retrieval_facts),
+                retrieval_query(user_message, retrieval_facts,
+                                history=None if consultation_mode == "informational" else history),
                 top_k=2,
                 lang=lang
             )
@@ -346,7 +367,7 @@ def process_clinical_chat(
 
         if not degraded and grounding_status == "verified" and model_question and not follow_up:
             raw_answer = f"{raw_answer}\n\n{model_question}"
-        elif next_question and not degraded:
+        elif next_question and not degraded and grounding_status != "unrecognized_input":
             raw_answer = next_question
             grounding_status = "clarification"
             triage_result.update(

@@ -43,6 +43,47 @@ def _source_valid(entry):
     return False
 
 
+def _parse_servings_count(servings_value) -> int:
+    """Parse number of servings from strings like '4 người', clamped to 1..12."""
+    match = re.search(r"(\d+)", str(servings_value or ""))
+    if not match:
+        return 1
+    return max(1, min(12, int(match.group(1))))
+
+
+def normalize_drink_calories(recipe) -> None:
+    """Calibrate drink calories to a realistic per-glass (250ml) estimate (40-180 kcal)."""
+    if not isinstance(recipe, dict) or recipe.get("recipe_type") != "drink":
+        return
+    raw_cal = recipe.get("calories")
+    servings_count = _parse_servings_count(recipe.get("servings"))
+    raw_per_serving = (
+        float(raw_cal) / servings_count
+        if isinstance(raw_cal, (int, float)) and not isinstance(raw_cal, bool) and math.isfinite(raw_cal) and raw_cal > 0
+        else 150.0
+    )
+    ing_text = normalize(" ".join(str(i.get("name", "")) for i in recipe.get("ingredients", []) if isinstance(i, dict)))
+    text = normalize(recipe.get("title", "")) + " " + ing_text
+
+    if re.search(r"\b(?:sua\s+dac|nuoc\s+cot\s+dua|kem\s+(?:tuoi|vanilla|cheese)|whipping|pho\s+mai|cheese|tran\s+chau|sau\s+rieng|base\s+rich|tra\s+sua|bo\s+sap)\b", text):
+        lo, hi = 130, 180
+    elif re.search(r"\b(?:sua\s+(?:tuoi|chua|dau|hat|gao|bap|ngo)|yakult|dau\s+(?:xanh|nanh|den|do|phong)|hat\s+(?:sen|chia)|gao\s+lut|yen\s+mach|sinh\s+to|xoai|mit|sa\s+po\s+che|chuoi)\b", text):
+        lo, hi = 95, 155
+    elif re.search(r"\b(?:duong|mat\s+ong|siro|mut|tao|cam|quyt|thanh\s+long|dua\s+(?:hau|gang|luoi)|nho|dao|dau|oi|thom|khom|le|coc|chanh\s+day|xi\s+muoi|hong\s+tao|long\s+nhan)\b", text):
+        lo, hi = 60, 115
+    else:
+        lo, hi = 40, 70
+
+    if lo <= raw_per_serving <= hi:
+        calibrated = round(raw_per_serving)
+    else:
+        ratio = max(0.0, min(1.0, (raw_per_serving - 50.0) / 250.0))
+        calibrated = round(lo + ratio * (hi - lo))
+    recipe["calories"] = int(max(lo, min(hi, calibrated)))
+    recipe["calories_basis"] = "per_serving"
+    recipe["serving_unit"] = "1 ly"
+
+
 @lru_cache(maxsize=4)
 def _read_catalog(path, version):
     if version is None:
@@ -74,6 +115,8 @@ def _read_catalog(path, version):
         recipe.setdefault("avoid", ["Đối chiếu nguyên liệu, dị ứng và hướng dẫn ăn uống cá nhân trước khi dùng."])
         recipe["imported"] = True
         recipe["source_provider"] = "ViFoodRec" if vietnamese else "Wikibooks Cookbook"
+        if recipe["recipe_type"] == "drink":
+            normalize_drink_calories(recipe)
         ids.add(recipe["id"])
         result.append(recipe)
     return result
@@ -112,7 +155,7 @@ EXPANSIONS = {
     "cang thang": "ca hoi ca nac ga nam hat sen chuoi rau xanh dau hu yen mach canh xao bun pho com vegetable soup fish oats",
     "met moi": "ga nac ca bo chao bun pho com mi truyen nang luong dam vitamin rau xanh chanh gung sam hat sen soup oats",
     "trao nguoc": "gao hap luoc rau yen mach khoai tay khoai lang ca nac ga hap bi do canh steamed boiled vegetable",
-    "gut": "dau hu uc ga thit ga chao bun pho mien com canh rau bi dao bi xanh dua leo ca rot khoai tay vegetable tofu chicken congee soup",
+    "gut": "can tay dua leo anh dao cherry tra xanh bi dao bi xanh cam buoi chanh tao trung bap cai ca chua cai thia bong cai ca rot khoai tay bi do chao mien com canh rau cu celery cucumber cherry green tea vitamin egg vegetable cabbage soup congee",
     "tieu duong": "rau xanh ca nac ga nac dau hu kho qua bi dao bi xanh canh xao vegetable fish chicken",
     "hypertension": "can tay rau cai ca nac nam cu cai ca chua dau xanh canh xao celery vegetable fish",
     "stomach": "chao sup khoai tay bi do dau hu non ca hap ga luoc chuoi mem soup congee steamed soft bun",
@@ -122,7 +165,7 @@ EXPANSIONS = {
 }
 
 STANDALONE_PATTERN = re.compile(
-    r'(?<!bó\s)\b(bún|phở|hủ tiếu|hủ tíu|hu tieu|mì|miến|bánh canh|cơm tấm|cơm chiên|cơm rang|cơm gà|cơm trộn|cơm hến|cơm lam|cơm sườn|cơm thố|cơm niêu|cháo|súp|bánh mì|xôi|bánh cuốn|bánh ướt|bánh xèo|bánh khọt|bánh hỏi|mì quảng|cao lầu|nui|bò kho|lẩu|pasta|spaghetti|sandwich|burger)\b',
+    r'(?<!bó\s)\b(bún|phở|hủ tiếu|hủ tíu|hu tieu|mì|miến|bánh canh|cơm tấm|cơm chiên|cơm rang|cơm gà|cơm gạo lứt|cơm trộn|cơm hến|cơm lam|cơm sườn|cơm thố|cơm niêu|cháo|súp|bánh mì|xôi|bánh cuốn|bánh ướt|bánh xèo|bánh khọt|bánh hỏi|mì quảng|cao lầu|nui|bò kho|lẩu|pasta|spaghetti|sandwich|burger)\b',
     re.IGNORECASE
 )
 
@@ -188,6 +231,7 @@ def retrieve_candidates(condition, recipes, limit=32, sort_by_sugar=False):
     expanded = query + " " + " ".join(v for k, v in EXPANSIONS.items() if re.search(r"\b" + re.escape(k) + r"\b", query))
     tokens = {t for t in re.findall(r"[a-z]{2,}", expanded) if t not in
               {"toi", "can", "muon", "the", "and", "for", "bi", "mon", "an", "uong", "sot", "ho", "mat", "ngu", "nhiet", "mieng", "dau", "mo", "it", "khong", "tranh", "giam", "nhieu"}}
+    is_gout = bool(re.search(r"\b(?:gut|gout|acid\s+uric)\b", query))
     def score(recipe):
         title = normalize(recipe.get("title", ""))
         categories = normalize(" ".join(recipe.get("categories", [])))
@@ -198,6 +242,19 @@ def retrieve_candidates(condition, recipes, limit=32, sort_by_sugar=False):
                     + bool(re.search(r"\b" + re.escape(t) + r"\b", ingredients)) for t in tokens)
         if any(re.search(r"\b" + word + r"\b", query) for word in ("sot", "ho", "nhiet mieng")):
             value += 5 * ("soft" in tags or "liquid" in tags)
+        if is_gout:
+            if "gout_friendly" in tags:
+                value += 25
+            if "purine_moderate_legume" in tags:
+                value -= 22
+            if recipe.get("recipe_type") == "food":
+                if re.search(r"\b(?:banh\s+(?:ran|xep|chung|tet|tro|it|bo|chuoi)|ngo\s+chien|dua\s+mon|nuoc\s+mam)\b", title):
+                    value -= 25
+            elif recipe.get("recipe_type") == "drink":
+                if re.search(r"\b(?:tra\s+sua|kem\s+cheese|pho\s+mai|ca\s+phe|tran\s+chau|sau\s+rieng|sua\s+dac)\b", title + " " + ingredients):
+                    value -= 25
+                if re.search(r"\b(?:can\s+tay|dua\s+leo|anh\s+dao|cherry|tra\s+xanh|bi\s+dao|tao|cam|buoi)\b", title):
+                    value += 18
         return value
     def priority_key(recipe):
         if sort_by_sugar:

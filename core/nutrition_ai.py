@@ -1,15 +1,53 @@
-"""OpenRouter ranks supplied recipes; it cannot create or alter ingredients."""
+"""LLM ranks supplied recipes via Groq (or OpenRouter); it cannot create or alter ingredients."""
 import json
+import logging
 import os
 import re
 from typing import Any, Dict, List
 
+logger = logging.getLogger("medimind.nutrition_ai")
 
 
 class NutritionAIError(Exception):
     def __init__(self, code: str):
         self.code = code
         super().__init__(code)
+
+
+def _compact_candidate(recipe: Dict[str, Any]) -> Dict[str, Any]:
+    """Serialize bounded candidate metadata to stay well within Groq ITPM limits."""
+    compact: Dict[str, Any] = {}
+    for key in (
+        "id",
+        "title",
+        "dish_role",
+        "is_one_dish",
+        "rule_tags",
+        "declared_allergens",
+        "purine_warning",
+        "calories",
+        "sugar",
+        "fat",
+        "fiber",
+        "protein",
+    ):
+        if key in recipe and recipe[key] not in (None, "", []):
+            compact[key] = recipe[key]
+
+    ingredients = recipe.get("ingredients")
+    if isinstance(ingredients, list):
+        compact["ingredients"] = [
+            str(item.get("name", "")).strip()
+            for item in ingredients[:8]
+            if isinstance(item, dict) and str(item.get("name", "")).strip()
+        ]
+
+    steps = recipe.get("steps")
+    if isinstance(steps, list) and steps:
+        hint = " -> ".join(str(s).strip() for s in steps[:2] if isinstance(s, str) and s.strip())
+        if hint:
+            compact["method_hint"] = hint[:90]
+    return compact
 
 
 def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Dict:
@@ -25,8 +63,11 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
         if choices or not question.strip():
             raise NutritionAIError("invalid_response")
         return {"needs_clarification": True, "clarification_question": question.strip(), "recipes": []}
-    if not 1 <= len(choices) <= min(6, len(recipes)):
+    max_choices = min(6, len(recipes))
+    if not choices or max_choices < 1:
         raise NutritionAIError("invalid_response")
+    if len(choices) > max_choices:
+        choices = choices[:max_choices]
     catalog = {recipe["id"]: recipe for recipe in recipes}
     from core.recipe_catalog import classify_dish_role, classify_meal_times
     seen = set()
@@ -35,7 +76,8 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
         if not isinstance(choice, dict):
             raise NutritionAIError("invalid_response")
         recipe_id = choice.get("recipe_id")
-        reason, caution = choice.get("reason"), choice.get("caution")
+        reason = choice.get("reason")
+        caution = "" if choice.get("caution") is None else choice.get("caution")
         sources = choice.get("source_ids")
         if (not isinstance(recipe_id, str) or recipe_id not in catalog or recipe_id in seen
                 or not isinstance(reason, str) or not 10 <= len(reason.strip()) <= 500
@@ -71,9 +113,10 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
         )
         display_title = choice.get("display_title")
         if display_title is not None:
-            if not isinstance(display_title, str) or not 1 <= len(display_title.strip()) <= 180:
+            if not isinstance(display_title, str) or len(display_title.strip()) > 180:
                 raise NutritionAIError("invalid_response")
-            recipe["display_title"] = recipe["title"] if recipe.get("language") == "vi" else display_title.strip()
+            if display_title.strip():
+                recipe["display_title"] = recipe["title"] if recipe.get("language") == "vi" else display_title.strip()
         selected.append(recipe)
 
     res = {"needs_clarification": False, "clarification_question": "", "recipes": selected}
@@ -128,12 +171,27 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
     from core.llm_provider import llm_provider
-    key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
-    model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
+    ai_provider_env = os.getenv("AI_PROVIDER", "").strip().lower()
+    nutrition_provider_env = os.getenv("NUTRITION_AI_PROVIDER", "").strip().lower()
+    if nutrition_provider_env:
+        use_groq = nutrition_provider_env == "groq"
+    elif ai_provider_env == "openrouter":
+        use_groq = False
+    else:
+        use_groq = llm_provider.is_groq_active() or bool((os.getenv("GROQ_API_KEY") or "").strip())
+
+    if use_groq:
+        key = (os.getenv("GROQ_API_KEY") or "").strip()
+        model = (os.getenv("GROQ_NUTRITION_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
+    else:
+        key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or os.getenv("OPENROUTER_API_KEY") or "").strip()
+        model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
     if not key or key.startswith("YOUR_") or len(key) <= 10:
         raise NutritionAIError("not_configured")
     if not model or not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
         raise NutritionAIError("configuration")
+    llm_candidates = recipes[:18] if use_groq else recipes
+    candidate_ids = [r["id"] for r in llm_candidates]
     schema = {
         "type": "object", "additionalProperties": False,
         "properties": {
@@ -142,7 +200,7 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
             "recommendations": {"type": "array", "maxItems": 6, "items": {
                 "type": "object", "additionalProperties": False,
                 "properties": {
-                    "recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
+                    "recipe_id": {"type": "string", "enum": candidate_ids},
                     "display_title": {"type": "string"},
                     "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
                     "dish_role": {"type": "string", "enum": ["main", "soup", "side", "staple", "drink"]},
@@ -160,9 +218,9 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
                 "title": {"type": "string"},
                 "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
                 "rationale": {"type": "string"},
-                "main_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
-                "soup_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
-                "side_recipe_id": {"type": "string", "enum": [r["id"] for r in recipes]},
+                "main_recipe_id": {"type": "string", "enum": candidate_ids},
+                "soup_recipe_id": {"type": "string", "enum": candidate_ids},
+                "side_recipe_id": {"type": "string", "enum": candidate_ids},
                 "staple_text": {"type": "string"}
             }, "required": ["title", "meal_time", "rationale", "main_recipe_id", "soup_recipe_id"]
         }
@@ -206,18 +264,21 @@ QUY TẮC:
 2. Ưu tiên đúng yêu cầu ăn uống. Với 'ít đường', so sánh số sugar của những món có dữ liệu theo hướng tương đối; thiếu số liệu là chưa biết, không phải ít đường. Không đặt ngưỡng y khoa.
 3. BMI chỉ là ngữ cảnh tham khảo ở người lớn. Không suy diễn nhu cầu năng lượng, mục tiêu giảm cân hay giới hạn 2.000 kcal/ngày từ BMI. Kcal nguồn chưa được kiểm chứng lâm sàng.
 4. Giải thích bằng nguyên liệu, kết cấu và cách chế biến thật sự có trong công thức. Không bịa vi chất, cơ chế chữa bệnh, tác dụng điều trị hoặc độ an toàn dị ứng tuyệt đối.
-5. source_ids là chỉ số 0-based của guidance thực sự hỗ trợ lý do; dùng [] nếu không có nguồn phù hợp.
+5. source_ids chỉ chứa các chỉ số nguyên 0-based hợp lệ (< số lượng phần tử trong guidance; dùng [] nếu guidance rỗng).
 6. Với thức ăn, recommendations chọn các món ăn trọn vị có is_one_dish=true, đa dạng bữa (sáng, trưa, tối), tối đa 5-6 món. Tuyệt đối không chọn chè ngọt, đồ ngọt tráng miệng làm bữa ăn chính cho người bệnh. Đồ uống chọn từ ứng viên thức uống.
 {fms_rule}
 8. Bỏ trống staple_text để hệ thống nhắc người dùng chọn tinh bột phù hợp dị ứng.
 9. Nếu không thể chọn món phù hợp, trả needs_clarification=true, recommendations=[] và một câu hỏi ngắn.
-10. Nội dung trả về bằng tiếng Việt.
+10. Nội dung trả về bằng tiếng Việt; mỗi reason dài khoảng 30-350 ký tự.
+11. NEGATIVE PROMPT CHO GÚT / ACID URIC: Khi user_input liên quan đến Gút hoặc Acid Uric, TUYỆT ĐỐI CẤM chọn bất kỳ món/thức uống nào chứa [Thịt gà/gia cầm, Thịt bò/heo/thịt đỏ, Nội tạng, Hải sản/cá, Các loại đậu/đậu phụ]. CHỈ chọn món rau xanh, củ quả, bí đao, trứng hoặc thức uống giàu vitamin C, lợi tiểu, ít purin.
+12. LÝ DO Y KHOA BẮT BUỘC (CLINICAL REASONING): Mọi field `reason` trong `recommendations` và `rationale` trong `full_meal_set` PHẢI nêu rõ nguyên liệu thực tế của món gắn với cơ chế/lợi ích y khoa cho tình trạng `user_input` (ví dụ Gút: "Sử dụng rau xanh và bí đao ít purin, hỗ trợ lợi tiểu và kiểm soát acid uric an toàn cho người bệnh Gút."). TUYỆT ĐỐI KHÔNG viết câu chung chung vô nghĩa như "Món có kết cấu mềm", "Đã qua bộ lọc nguyên liệu", hay "Công thức tham khảo".
 """
     from core.retry_policy import ErrorClassification
     from core.llm_provider import LLMProviderError
 
     try:
-        gen_timeout = float(os.getenv("OPENROUTER_NUTRITION_TIMEOUT_SECONDS", "90"))
+        timeout_raw = os.getenv("GROQ_NUTRITION_TIMEOUT_SECONDS") or os.getenv("OPENROUTER_NUTRITION_TIMEOUT_SECONDS") or "60"
+        gen_timeout = float(timeout_raw)
         if not 10 <= gen_timeout <= 180:
             raise ValueError("timeout out of range")
     except ValueError:
@@ -239,12 +300,9 @@ QUY TẮC:
     }
     payload = json.dumps({"user_input": condition, "recipe_type": recipe_type,
                          "guidance": guidance, "personalization": model_context,
-                         "candidates": [{k: recipe[k] for k in
-                             ("id", "title", "dish_role", "is_one_dish", "ingredients", "steps", "rule_tags", "declared_allergens", "metadata_note", "calories", "sugar", "fat", "fiber", "protein")
-                             if k in recipe} for recipe in recipes]}, ensure_ascii=False)
+                         "candidates": [_compact_candidate(recipe) for recipe in llm_candidates]}, ensure_ascii=False)
 
-    # This model may not support JSON Schema or JSON-mode parameters. Prompt
-    # for JSON and validate the parsed selection against the canonical catalog.
+    # Prompt for structured JSON and validate the parsed selection against the canonical catalog.
     try:
         raw_result = llm_provider.generate_json(
             contents=payload,
@@ -257,16 +315,31 @@ QUY TẮC:
             operation="nutrition_ai",
             profile="nutrition",
             api_key=key,
-            provider="openrouter",
-            json_mode=False,
+            provider="groq" if use_groq else "openrouter",
+            json_mode=True if use_groq else False,
             reasoning_enabled=False,
         )
         result = validate_selection(raw_result, recipes, len(guidance))
         if recipe_type == "drink":
             result["full_meal_set"] = None
+        if re.search(r"\b(?:gút|gut|gout|acid\s+uric)\b", condition, re.IGNORECASE):
+            from core.nutrition_rules import has_gout_forbidden_ingredients
+            safe_recipes = [r for r in result.get("recipes", []) if not has_gout_forbidden_ingredients(r)]
+            if not safe_recipes and not result.get("needs_clarification"):
+                raise NutritionAIError("invalid_response")
+            result["recipes"] = safe_recipes
+            fms = result.get("full_meal_set")
+            if isinstance(fms, dict):
+                pool_map = {r["id"]: r for r in recipes}
+                for key_id in ("main_recipe_id", "soup_recipe_id", "side_recipe_id"):
+                    rid = fms.get(key_id)
+                    if rid and rid in pool_map and has_gout_forbidden_ingredients(pool_map[rid]):
+                        result.pop("full_meal_set", None)
+                        break
         result["model"] = model
         return result
-    except NutritionAIError:
+    except NutritionAIError as err:
+        logger.warning("[nutrition_ai] Selection validation failed (%s)", err.code)
         raise
     except LLMProviderError as lpe:
         if lpe.classification == ErrorClassification.RATE_LIMIT:
@@ -279,6 +352,7 @@ QUY TẮC:
             reason = "invalid_response"
         else:
             reason = "unavailable"
+        logger.warning("[nutrition_ai] Provider call failed (%s -> %s)", lpe.classification.value, reason)
         raise NutritionAIError(reason) from None
     except Exception as error:
         code = getattr(error, "code", None)
@@ -289,4 +363,5 @@ QUY TẮC:
             reason = "credentials_or_access"
         elif code == 429:
             reason = "quota"
+        logger.warning("[nutrition_ai] Unexpected failure (%s -> %s)", type(error).__name__, reason)
         raise NutritionAIError(reason) from None

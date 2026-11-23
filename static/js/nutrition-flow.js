@@ -45,7 +45,11 @@
     'Bạc hà và món có bạc hà': 'Peppermint and mint-flavored items',
     'Nội tạng động vật': 'Organ meats',
     'Thịt đỏ và hải sản giàu purin': 'Red meat and high-purine seafood',
+    'Thịt đỏ (bò, heo) và thịt gia cầm (gà, vịt, chim cút)': 'Red meat (beef, pork) and poultry (chicken, duck, quail)',
+    'Hải sản và các loại cá giàu purin': 'Seafood and high-purine fish',
+    'Các loại đậu hạt & chế phẩm từ đậu': 'Beans, legumes & soy products',
     'Rượu, bia': 'Alcohol and beer',
+    'Đậu hạt & chế phẩm từ đậu (dùng lượng vừa phải)': 'Beans, legumes & soy products (use in moderation)',
     'Đường tinh luyện, mật ong, sữa đặc có đường': 'Refined sugar, honey, and sweetened condensed milk',
     'Nước ngọt, chè ngọt, bánh kẹo ngọt': 'Sugary soft drinks, sweet desserts, and pastries',
     'Mắm đậm đặc, dưa muối, cà muối': 'Fermented fish sauces and pickled vegetables',
@@ -80,8 +84,14 @@
     'Đây là các yếu tố có thể gây triệu chứng ở một số người bị trào ngược, không phải ai cũng cần kiêng giống nhau.': 'Potential reflux triggers for some individuals; tolerance varies from person to person.',
     'Có thể là yếu tố kích thích trào ngược ở một số người; đối chiếu với triệu chứng cá nhân.': 'Can relax the lower esophageal sphincter and trigger reflux in some people.',
     'Gan, cật và tim là nhóm rất giàu purin.': 'Liver, kidney and heart are very high in purines.',
+    'Gan, cật, phèo, mề và tim là nhóm rất giàu purin, làm tăng nhanh acid uric.': 'Liver, kidney, gizzard, and heart are very high in purines and can rapidly raise uric acid.',
+    'Thịt gia cầm và thịt đỏ chứa hàm lượng purin cao, dễ kích hoạt cơn đau khớp Gút.': 'Poultry and red meat contain high purine levels that can trigger gout flares.',
+    'Tôm, cua, ghẹ, hàu, sò, cá trích, cá thu... giàu purin cần loại trừ khi kiểm soát Gút.': 'Shrimp, crab, shellfish, and purine-rich fish should be strictly excluded in gout management.',
+    'Đậu xanh, đậu nành, đậu đen, đậu đỏ, đậu phụ/đậu hũ chứa purin thực vật cần tránh trong thực đơn Gút.': 'Mung beans, soy, black beans, red beans, and tofu should be excluded from this gout menu filter.',
+    'Làm giảm đào thải acid uric qua thận, đặc biệt nguy hiểm khi Gút chưa ổn định.': 'Impairs renal uric acid excretion, especially risky when gout is uncontrolled.',
     'Hạn chế khẩu phần và tần suất theo hướng dẫn cá nhân.': 'Limit portion size and frequency according to individual guidance.',
     'Hạn chế, đặc biệt trong giai đoạn gút chưa được kiểm soát.': 'Limit alcohol, especially when gout is not well controlled.',
+    'Đậu xanh, đậu nành, đậu đen, đậu phộng chứa purin thực vật mức trung bình; nên dùng lượng nhỏ và hạn chế trong đợt gút cấp.': 'Mung beans, soy, black beans, and peanuts contain moderate plant purines; consume in small portions and limit during acute gout flares.',
     'Hạn chế đường thêm và xét tổng carbohydrate theo khẩu phần.': 'Limit added sugars and consider total carbohydrates in the portion.',
     'Thường có nhiều đường tự do; hạn chế theo kế hoạch ăn uống cá nhân.': 'Often high in free sugars; limit according to an individual eating plan.',
     'Chứa hàm lượng muối/natri rất cao, gây giữ nước và tăng huyết áp.': 'Very high in sodium, promoting fluid retention and elevated blood pressure.',
@@ -187,12 +197,12 @@
     if (recipe && recipe.id && artworkIds.has(recipe.id)) return recipe.id;
     const text = ((recipe?.title || '') + ' ' + (recipe?.display_title || '') + ' ' + (recipe?.subtitle || '') + ' ' + (recipe?.benefit || '') + ' ' + (recipe?.ingredients || []).map(i => i.name || '').join(' ')).toLowerCase();
     if (state.type === 'drink') {
-      if (/đậu nành|đậu xanh|mè đen|sữa đậu|soya?/.test(text)) return 'warm_soy';
+      if (/đậu nành|đậu xanh|đậu đen|đậu phộng|mè đen|sữa đậu|soya?/.test(text)) return 'warm_soy';
       if (/yến mạch|oat/.test(text)) return 'oat_drink';
       if (/sữa|milk|cream/.test(text)) return 'warm_milk';
-      if (/dưa leo|dưa chuột|chanh|bạc hà|cucumber/.test(text)) return 'cucumber_water';
-      if (/lê|táo|trái cây|hoa quả|lựu|cam|bưởi|pear|apple/.test(text)) return 'pear_water';
-      if (/lúa mạch|gạo lứt|ý dĩ|thảo mộc|trà|barley/.test(text)) return 'barley_water';
+      if (/cần tây|dưa leo|dưa chuột|chanh|bạc hà|rau má|bí đao|celery|cucumber/.test(text)) return 'cucumber_water';
+      if (/anh đào|cherry|lê|táo|trái cây|hoa quả|lựu|cam|bưởi|thanh long|pear|apple|cherry|orange/.test(text)) return 'pear_water';
+      if (/trà xanh|lúa mạch|gạo lứt|ý dĩ|thảo mộc|trà|barley|green tea/.test(text)) return 'barley_water';
       return 'warm_water';
     }
     if (/đậu hũ|đậu phụ|tàu hũ|tofu|hẹ/.test(text)) return 'tofu_pumpkin';
@@ -252,7 +262,7 @@
     return `<p class="nf-limit-note">${safe(noteText)}</p>${items ? `<div class="nf-limit-items">${items}</div>` : ''}`;
   }
 
-  function show(stage) {
+  function show(stage, pushHistory = true) {
     state.stage = stage;
     ['search', 'type', 'results', 'detail'].forEach(name => { el('nf-' + name).hidden = name !== stage; });
     el('nf-evidence').hidden = !state.lastData || (stage !== 'results' && stage !== 'detail');
@@ -260,7 +270,34 @@
     const label = state.query ? state.query.charAt(0).toLocaleUpperCase(_isEn() ? 'en-US' : 'vi-VN') + state.query.slice(1) : '';
     document.querySelectorAll('#doctor-tab .nf-query-label').forEach(node => { node.textContent = label; });
     window.scrollTo({ top: 0, behavior: 'auto' });
+    if (pushHistory && typeof window.syncSubViewHistory === 'function') {
+      window.syncSubViewHistory('doctor-tab', stage, true);
+    }
   }
+
+  function resolveValidStage(stage) {
+    let target = ['search', 'type', 'results', 'detail'].includes(stage) ? stage : 'search';
+    if (target === 'detail' && !state.activeRecipe) {
+      target = (state.lastData || state.type) ? 'results' : 'search';
+    }
+    if (target === 'results' && !state.lastData && !state.type) {
+      target = state.query ? 'type' : 'search';
+    }
+    if (target === 'type' && !state.query) {
+      target = 'search';
+    }
+    return target;
+  }
+
+  window.applyNutritionSubView = function (stage) {
+    if (!el('nf-search')) return 'search';
+    const validStage = resolveValidStage(stage);
+    if (validStage === 'detail' && state.activeRecipe) {
+      renderDetail(state.activeRecipe);
+    }
+    show(validStage, false);
+    return validStage;
+  };
 
   function recipeSourceUrl(value) {
     try {
@@ -347,6 +384,28 @@
     el('nf-context').hidden = false;
   }
 
+  function _resolveFullMealTag(fms, nowDate = new Date()) {
+    const mapVi = { breakfast: 'Bữa sáng', lunch: 'Bữa trưa', dinner: 'Bữa tối', snack: 'Bữa phụ' };
+    const mapEn = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Light Meal' };
+    const pick = state.selectedMeal && state.selectedMeal !== 'all' ? state.selectedMeal : '';
+    if (pick && mapVi[pick]) return _isEn() ? mapEn[pick] : mapVi[pick];
+
+    const qNorm = String(state.query || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+    if (/\b(?:bua\s+sang|an\s+sang|buoi\s+sang|breakfast)\b/.test(qNorm)) return _isEn() ? 'Breakfast' : 'Bữa sáng';
+    if (/\b(?:bua\s+trua|an\s+trua|buoi\s+trua|lunch)\b/.test(qNorm)) return _isEn() ? 'Lunch' : 'Bữa trưa';
+    if (/\b(?:bua\s+toi|an\s+toi|buoi\s+toi|dinner)\b/.test(qNorm)) return _isEn() ? 'Dinner' : 'Bữa tối';
+    if (/\b(?:bua\s+phu|bua\s+xe|an\s+nhe|snack)\b/.test(qNorm)) return _isEn() ? 'Afternoon Snack' : 'Bữa phụ';
+
+    const hour = nowDate.getHours();
+    let slot = 'snack';
+    if (hour >= 5 && hour < 11) slot = 'breakfast';
+    else if (hour >= 11 && hour < 15) slot = 'lunch';
+    else if (hour >= 15 && hour < 17) slot = 'snack';
+    else if (hour >= 17 && hour < 22) slot = 'dinner';
+    if (hour >= 22 || hour < 5) return _isEn() ? 'Light Meal' : 'Bữa nhẹ';
+    return _isEn() ? mapEn[slot] : mapVi[slot];
+  }
+
   function renderFullMeal(fms) {
     const wrap = el('nf-full-meal-wrap');
     if (!wrap) return;
@@ -381,9 +440,7 @@
         </article>`;
     }).join('');
 
-    const mealLabel = _isEn()
-      ? (fms.meal_time === 'breakfast' ? 'Breakfast' : fms.meal_time === 'lunch' ? 'Lunch' : 'Dinner')
-      : (fms.meal_label || 'Bữa tối');
+    const mealLabel = _resolveFullMealTag(fms);
 
     const titleText = _isEn()
       ? 'One meal suggestion'
@@ -481,6 +538,38 @@
     }
   }
 
+  const _FOOD_TITLE_ICON = '<svg viewBox="0 0 40 40" fill="none"><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7"/><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const _DRINK_TITLE_ICON = '<svg viewBox="0 0 40 40" fill="none"><path d="m11 9 3 25h13l3-25H11Z" fill="#d9edf2"/><path d="M12 20h16" stroke="#95c6ce" stroke-width="2"/><path d="m11 9 3 25h13l3-25H11Zm11 16 4-21 6-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function updateResultsHeader(type) {
+    const isDrink = type === 'drink';
+    const iconEl = el('nf-results-icon');
+    const titleTextEl = el('nf-results-title-text');
+    const titleEl = el('nf-results-title');
+    const subtitleEl = el('nf-results-subtitle');
+    const detailBackBtn = document.querySelector('#nf-detail [data-nf-back="results"]');
+
+    if (iconEl) {
+      iconEl.classList.toggle('nf-type-drink', isDrink);
+      iconEl.classList.toggle('nf-type-food', !isDrink);
+      iconEl.innerHTML = isDrink ? _DRINK_TITLE_ICON : _FOOD_TITLE_ICON;
+    }
+    const titleLabel = isDrink ? _t('Gợi ý thức uống', 'Suggested drinks') : _t('Gợi ý món ăn', 'Suggested dishes');
+    if (titleTextEl) titleTextEl.textContent = titleLabel;
+    else if (titleEl) titleEl.textContent = titleLabel;
+
+    if (subtitleEl) {
+      subtitleEl.textContent = isDrink
+        ? _t('Mở thức uống để xem nguyên liệu, cách làm và năng lượng tham khảo', 'Open a drink to view ingredients, preparation steps, and estimated energy.')
+        : _t('Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.', 'Open a dish to view ingredients, preparation steps, and reference energy.');
+    }
+    if (detailBackBtn) {
+      detailBackBtn.textContent = isDrink
+        ? _t('← Xem thức uống khác', '← View other drinks')
+        : _t('← Xem món khác', '← View other dishes');
+    }
+  }
+
   function renderCards() {
     // Lọc theo bữa nếu người dùng chọn bữa cụ thể
     let displayed = state.recipes;
@@ -496,15 +585,19 @@
     el('nf-cards').innerHTML = displayed.map((recipe) => {
       const globalIndex = state.recipes.indexOf(recipe);
       const tagText = _trMealRoleTag(recipe);
+      const perServing = state.type === 'drink' || recipe.calories_basis === 'per_serving';
+      const kcalLabel = perServing ? _t('ước tính / 1 ly', 'est. / 1 glass') : _t('ước tính theo nguồn', 'source estimate');
+      const reasonTitle = state.type === 'drink' ? _t('Vì sao chọn thức uống này', 'Why this drink') : _t('Vì sao chọn món này', 'Why this dish');
       return `
       <button type="button" class="nf-card" data-nf-recipe="${globalIndex}">
         <span class="nf-art">${recipeImage(recipe)}<span class="nf-art-tag">${safe(tagText)}</span></span>
         <span class="nf-card-content">
           <strong>${safe(_recipeTitle(recipe))}</strong>
           ${recipe.imported ? '' : `<p>${safe(_recipeSubtitle(recipe))}</p>`}
-          ${kcal(recipe.calories) ? `<span class="nf-kcal">${kcal(recipe.calories)} · ${_t('ước tính theo nguồn', 'source estimate')}</span>` : ''}
+          ${kcal(recipe.calories) ? `<span class="nf-kcal">${kcal(recipe.calories)} · ${kcalLabel}</span>` : ''}
+          ${recipe.purine_warning ? `<span class="nf-purine-badge">⚠️ ${safe(recipe.purine_warning)}</span>` : ''}
           ${recipe.key_nutrients ? `<span class="nf-nutrients-badge"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất:', 'Nutrients:')}</b> ${safe(recipe.key_nutrients)}</span>` : ''}
-          ${recipe.recommendation_reason ? `<span class="nf-reason"><span class="nf-reason-header">${_t('Vì sao chọn món này', 'Why this dish')}</span><span class="nf-reason-text">${safe(_recipeReason(recipe))}</span></span>` : ''}
+          ${recipe.recommendation_reason ? `<span class="nf-reason"><span class="nf-reason-header">${reasonTitle}</span><span class="nf-reason-text">${safe(_recipeReason(recipe))}</span></span>` : ''}
           <span class="nf-card-footer"><span>◷ ${safe(_trTime(recipe.cooking_time || ''))}</span><b>${_t('Xem chi tiết →', 'View recipe →')}</b></span>
         </span>
       </button>`;
@@ -522,11 +615,14 @@
       ? (recipe.servings ? _t('Khẩu phần theo nguồn: ', 'Source servings: ') + safe(recipe.servings) : _t('Theo công thức gốc', 'Original recipe scale'))
       : _t('1 khẩu phần', '1 serving');
     const tagText = _trMealRoleTag(recipe);
+    const perServing = state.type === 'drink' || recipe.calories_basis === 'per_serving';
+    const detailKcalLabel = perServing ? _t('ước tính / 1 ly', 'est. / 1 glass') : _t('ước tính cho món', 'dish estimate');
+    const detailReasonTitle = state.type === 'drink' ? _t('Vì sao chọn thức uống này?', 'Why this drink?') : _t('Vì sao chọn món này?', 'Why this dish?');
     el('nf-detail-content').innerHTML = `<div class="nf-detail-grid">
       <div class="nf-detail-visual"><div class="nf-art">${recipeImage(recipe)}</div><p class="nf-detail-caption">◷ ${safe(_trTime(recipe.cooking_time || ''))} · ${safe(tagText)}</p></div>
-      <article class="nf-detail-copy"><p class="nf-overline">${safe(tagText)}</p><h2>${safe(displayTitle)}</h2><p class="nf-subtitle">${safe(_recipeSubtitle(recipe))}</p>${kcal(recipe.calories) ? `<span class="nf-kcal nf-kcal-detail">${kcal(recipe.calories)} · ${_t('ước tính cho món', 'dish estimate')}</span>` : ''}
+      <article class="nf-detail-copy"><p class="nf-overline">${safe(tagText)}</p><h2>${safe(displayTitle)}</h2><p class="nf-subtitle">${safe(_recipeSubtitle(recipe))}</p>${kcal(recipe.calories) ? `<span class="nf-kcal nf-kcal-detail">${kcal(recipe.calories)} · ${detailKcalLabel}</span>` : ''}
       ${recipe.key_nutrients ? `<div class="nf-nutrients-badge" style="margin-bottom: 14px;"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất then chốt:', 'Key nutrients:')}</b> ${safe(recipe.key_nutrients)}</div>` : ''}
-      ${recipe.recommendation_reason ? `<div class="nf-recommendation-box"><strong>${_t('Vì sao chọn món này?', 'Why this dish?')}</strong><p class="nf-recommendation-desc">${safe(_recipeReason(recipe))}</p>${recipe.ai_caution ? `<p class="nf-ai-caution">${safe(recipe.ai_caution)}</p>` : ''}</div>` : ''}
+      ${recipe.recommendation_reason ? `<div class="nf-recommendation-box"><strong>${detailReasonTitle}</strong><p class="nf-recommendation-desc">${safe(_recipeReason(recipe))}</p>${recipe.ai_caution ? `<p class="nf-ai-caution">${safe(recipe.ai_caution)}</p>` : ''}</div>` : ''}
       <h3>${_t('Thông tin công thức', 'Recipe note')}</h3><p class="nf-benefit">${safe(_recipeBenefit(recipe) || _t('Thông tin dinh dưỡng đang được cập nhật.', 'Nutritional details are being updated.'))}</p>
       <h3>${_t('Nguyên liệu', 'Ingredients')} · ${servingMeta}</h3><div class="nf-ingredients">${ingredients}</div>
       <h3>${_t('Cách chế biến', 'Preparation Steps')}</h3><div class="nf-steps">${steps}</div>
@@ -536,10 +632,7 @@
   }
 
   function applyResultsCopy() {
-    if (!el('nf-results-title')) return;
-    el('nf-results-title').textContent = state.type === 'drink'
-      ? _t('Gợi ý thức uống', 'Suggested drinks')
-      : _t('Gợi ý món ăn', 'Suggested dishes');
+    updateResultsHeader(state.type || 'food');
     const data = state.lastData;
     if (!data) return;
     renderContext(data);
@@ -557,9 +650,9 @@
       ? (_isEn() ? `Added ${state.lastAddedCount} more suggestion${state.lastAddedCount > 1 ? 's' : ''}. ` : `Đã thêm ${state.lastAddedCount} gợi ý mới. `)
       : '';
     const compactAiNotice = data.provider_status === 'ai_ranked'
-      ? (_isEn()
-        ? `AI selected ${data.recipes.length} dishes from ${data.considered_count} filtered candidates.`
-        : `AI đã chọn ${data.recipes.length} món từ ${data.considered_count} ứng viên đã qua lọc.`)
+      ? (state.type === 'drink'
+        ? _t('MediMind đã chọn lọc các thức uống an toàn và phù hợp nhất với yêu cầu và hồ sơ sức khỏe của bạn.', 'MediMind has selected the safest and most suitable drinks for your request and health profile.')
+        : _t('MediMind đã chọn lọc các món ăn an toàn và phù hợp nhất với yêu cầu và hồ sơ sức khỏe của bạn.', 'MediMind has selected the safest and most suitable dishes for your request and health profile.'))
       : _trNotice(data);
     notice.textContent = addedPrefix + compactAiNotice;
     if (el('nf-question')) el('nf-question').textContent = _trQuestion(data.clarification_question || '');
@@ -572,7 +665,9 @@
       _trSelectionExplanation(data) || _t('Danh sách tham khảo chung, chưa xác nhận mức độ phù hợp theo tình trạng của bạn.', 'General reference suggestions; suitability for your specific clinical condition has not been verified.'),
       limitations,
       excluded || excludedEn,
-      _t('Kcal là số liệu ước tính theo bản ghi món; không chia cho số người trong công thức. Tổng mâm cơm chưa tính phần tinh bột ăn kèm.', 'Kcal are source dish-record estimates, not divided by recipe servings. The meal total excludes the accompanying staple.'),
+      state.type === 'drink'
+        ? _t('Kcal thức uống được ước tính tham khảo cho 1 ly (khoảng 250ml) theo nhóm nguyên liệu và khẩu phần công thức.', 'Drink kcal are reference estimates for 1 glass (~250ml) based on ingredient group and recipe servings.')
+        : _t('Kcal là số liệu ước tính theo bản ghi món; không chia cho số người trong công thức. Tổng mâm cơm chưa tính phần tinh bột ăn kèm.', 'Kcal are source dish-record estimates, not divided by recipe servings. The meal total excludes the accompanying staple.'),
       data.profile_context?.bmi ? _t('BMI ở người lớn chỉ là chỉ số tham khảo, không tự quyết định mục tiêu kcal.', 'Adult BMI is only a reference and does not set a kcal target.') : ''
     ].filter(Boolean).join(' ');
     const sources = sourceLinks();
@@ -605,9 +700,7 @@
       state.viewMode = type === 'drink' ? 'single_dishes' : 'full_meal';
       state.selectedMeal = 'all';
     }
-    el('nf-results-title').textContent = type === 'drink'
-      ? _t('Gợi ý thức uống', 'Suggested drinks')
-      : _t('Gợi ý món ăn', 'Suggested dishes');
+    updateResultsHeader(type);
     if (!append) el('nf-cards').innerHTML = '';
     el('nf-load-more').disabled = true;
     if (!append) el('nf-load-more').hidden = true;
@@ -656,7 +749,7 @@
     }
   }
 
-  window.initNutritionStudio = function () {
+  window.initNutritionStudio = function (targetStage) {
     if (!el('nf-search')) return;
     if (!initialized) {
       initialized = true;
@@ -665,21 +758,30 @@
         const query = el('nf-query').value.trim();
         if (!query) { el('nf-query').focus(); return; }
         state.query = query;
-        show('type');
+        show('type', true);
       });
-      el('nf-edit-query').addEventListener('click', () => { show('search'); el('nf-query').focus(); });
+      el('nf-edit-query').addEventListener('click', () => {
+        if (typeof window.navigateTo === 'function') window.navigateTo('doctor-tab', 'search', true);
+        else show('search', true);
+        el('nf-query').focus();
+      });
       document.querySelectorAll('[data-nf-example]').forEach(button => button.addEventListener('click', () => {
         el('nf-query').value = button.dataset.nfExample;
         el('nf-query').focus();
       }));
       el('nf-context').addEventListener('click', event => {
-        if (event.target.closest('.nf-profile-link') && typeof switchTab === 'function') switchTab('profile-tab');
+        if (event.target.closest('.nf-profile-link')) {
+          if (typeof window.navigateTo === 'function') window.navigateTo('profile-tab');
+          else if (typeof switchTab === 'function') switchTab('profile-tab');
+        }
       });
       el('nf-load-more').addEventListener('click', () => chooseType(state.type, true));
       document.querySelectorAll('[data-nf-type]').forEach(button => button.addEventListener('click', () => chooseType(button.dataset.nfType)));
       document.querySelectorAll('[data-nf-back]').forEach(button => button.addEventListener('click', () => {
         if (state.request) { state.request.abort(); state.request = null; }
-        show(button.dataset.nfBack);
+        const backStage = button.dataset.nfBack || 'search';
+        if (typeof window.navigateTo === 'function') window.navigateTo('doctor-tab', backStage, true);
+        else show(backStage, true);
       }));
       el('nf-cards').addEventListener('click', event => {
         const button = event.target.closest('[data-nf-recipe]');
@@ -705,6 +807,7 @@
       document.querySelectorAll('[data-nf-meal]').forEach(pill => {
         pill.addEventListener('click', () => {
           state.selectedMeal = pill.dataset.nfMeal;
+          if (state.lastData?.full_meal_set) renderFullMeal(state.lastData.full_meal_set);
           updateViewModeUI();
           renderCards();
         });
@@ -739,10 +842,15 @@
 
       window.addEventListener('medimind:langchange', () => {
         if (!el('nf-search')) return;
+        updateResultsHeader(state.type || 'food');
         if (state.lastData) applyResultsCopy();
         if (state.stage === 'detail' && state.activeRecipe) renderDetail(state.activeRecipe);
       });
     }
-    show('search');
+    if (typeof window.applyNutritionSubView === 'function') {
+      window.applyNutritionSubView(targetStage || state.stage || 'search');
+    } else {
+      show('search', false);
+    }
   };
 })();

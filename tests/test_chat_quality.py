@@ -238,8 +238,52 @@ class ChatQualityTests(unittest.TestCase):
         context = json.loads(generate.call_args.kwargs["contents"])["clinical_context"]
         self.assertEqual(context["previous_question"], "Bạn bị đau họng từ khi nào?")
         self.assertEqual(context["patient_report"]["present_symptoms"], ["Đau rát họng / Nuốt đau"])
-        self.assertEqual(result["grounding_status"], "insufficient")
+        self.assertEqual(result["grounding_status"], "acknowledged")
         self.assertNotIn("tăng thân nhiệt", result["answer"])
+        self.assertNotIn("chưa tìm được tài liệu", result["answer"])
+
+    def test_short_screening_reply_searches_with_conversation_context(self):
+        history = [{"role": "user", "content": "Tôi bị đau họng từ hôm qua"},
+                   {"role": "assistant", "content": "Bạn có bị khó thở không?"}]
+        query = retrieval_query("hông", {}, history=history)
+        self.assertIn("đau họng", query)
+        self.assertIn("hông", query)
+        # A long standalone message is not diluted with older turns.
+        long_message = "Tôi bị ho khan kéo dài và hơi mệt vào buổi tối hôm nay"
+        self.assertEqual(retrieval_query(long_message, {}, history=history), long_message)
+
+    def test_empty_model_output_returns_valid_default_json(self):
+        service = provider()
+        service.client.models.generate_content.return_value = SimpleNamespace(text="")
+        result = service.generate_clinical_response("lntv205@gmail.com", [], rag_docs=[])
+        self.assertEqual(service.client.models.generate_content.call_count, 2)
+        self.assertEqual(result["grounding_status"], "unrecognized_input")
+        self.assertIn("không nhận diện được triệu chứng", result["answer"])
+        self.assertFalse(result["degraded"])
+        self.assertEqual(result["sources"], [])
+
+    def test_off_topic_input_asks_for_symptoms_instead_of_refusing(self):
+        response = {"response_kind": "clarify", "grounded_points": [], "follow_up_question": ""}
+        service = provider(response)
+        result = service.generate_clinical_response("lntv205@gmail.com", [], rag_docs=[])
+        self.assertEqual(result["grounding_status"], "unrecognized_input")
+        self.assertNotIn("chưa tìm được tài liệu", result["answer"])
+        prompt = service.client.models.generate_content.call_args.kwargs["config"].system_instruction
+        self.assertIn("OUTPUT CONTRACT", prompt)
+
+    def test_screening_reply_is_acknowledged_not_refused(self):
+        response = {"response_kind": "clarify", "grounded_points": [], "follow_up_question": ""}
+        service = provider(response)
+        service.client.models.generate_content.side_effect = [SimpleNamespace(text=json.dumps(response))]
+        result = service.generate_clinical_response(
+            "hông", [{"role": "user", "content": "Tôi bị đau họng"},
+                     {"role": "assistant", "content": "Bạn có bị khó thở không?"}],
+            rag_docs=[], intake_facts={"present_symptoms": ["Đau họng"], "denied_symptoms": ["Khó thở"]},
+        )
+        self.assertEqual(result["grounding_status"], "acknowledged")
+        self.assertIn("Đau họng", result["answer"])
+        self.assertIn("Khó thở", result["answer"])
+        self.assertNotIn("chưa tìm được tài liệu", result["answer"])
 
     @patch("core.chat_service.medical_rag_service.retrieve_context", return_value=[])
     def test_outage_is_honest_does_not_prescribe_or_guess_visuals(self, retrieval):
@@ -296,6 +340,61 @@ class ChatQualityTests(unittest.TestCase):
         log = " ".join(captured.output)
         self.assertIn("HTTP 401", log)
         self.assertNotIn("secret-key-and-synthetic-health-detail", log)
+
+    def test_groq_provider_resolves_endpoint_model_and_clean_payload(self):
+        import os
+        from google.genai import types
+        from core.llm_provider import LLMProvider
+
+        env_patch = {
+            "AI_PROVIDER": "groq",
+            "GROQ_API_KEY": "gsk_test_groq_key_123456",
+            "GROQ_MODEL": "",
+            "GROQ_CHAT_MODEL": "",
+        }
+        with patch.dict(os.environ, env_patch, clear=False):
+            lp = LLMProvider()
+            self.assertTrue(lp.is_groq_active())
+            self.assertFalse(lp.is_openrouter_active())
+            self.assertEqual(lp.resolve_api_key(profile="chat"), "gsk_test_groq_key_123456")
+            self.assertEqual(lp.get_default_model("chat"), "llama-3.3-70b-versatile")
+            client = lp.get_client("gsk_test_groq_key_123456", profile="chat")
+            self.assertEqual(client.models._endpoint(), "https://api.groq.com/openai/v1/chat/completions")
+
+            cfg = types.GenerateContentConfig(
+                system_instruction="Return JSON",
+                response_mime_type="application/json",
+            )
+            with patch.object(client.models, "_post_completion", return_value={"choices": [{"message": {"content": "{}"}}]}) as post:
+                res = client.models.generate_content(
+                    model="llama-3.3-70b-versatile",
+                    contents="hello",
+                    config=cfg,
+                )
+            self.assertEqual(res.text, "{}")
+            payload = post.call_args.args[0]
+            self.assertEqual(payload["model"], "llama-3.3-70b-versatile")
+            self.assertEqual(payload["response_format"], {"type": "json_object"})
+            self.assertNotIn("provider", payload)
+            self.assertNotIn("reasoning", payload)
+
+    def test_groq_404_falls_back_to_active_model(self):
+        from core.llm_provider import LLMProvider, _OpenRouterHTTPError
+
+        client = LLMProvider().get_client("gsk_test_groq_key_123456", provider="groq", profile="chat")
+        tried_models = []
+
+        def fake_post(payload):
+            tried_models.append(payload["model"])
+            if payload["model"] == "llama-3.3-70b-versatile":
+                raise _OpenRouterHTTPError(404, "Groq HTTP 404")
+            return {"choices": [{"message": {"content": '{"response_kind":"clarify"}'}}]}
+
+        with patch.object(client.models, "_post_completion", side_effect=fake_post):
+            res = client.models.generate_content(model="llama-3.3-70b-versatile", contents="hello")
+
+        self.assertEqual(tried_models, ["llama-3.3-70b-versatile", "qwen/qwen3.8-27b"])
+        self.assertEqual(res.text, '{"response_kind":"clarify"}')
 
 
 if __name__ == "__main__":

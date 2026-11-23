@@ -3,6 +3,8 @@ import difflib
 import unicodedata
 from typing import Dict, Any, List
 
+from core.gemini_schema_service import _sanitize_redacted_admin_field
+
 KNOWN_MEDS = [
     {
         "pattern": r"(?:scotol|shunorac)",
@@ -128,12 +130,12 @@ def _parse_dosing_details(text: str) -> Dict[str, str]:
     # Loại bỏ cụm số lượng tổng (SL: 30 Viên) để không nhầm sang liều dùng
     clean_dosing_txt = re.sub(r"\b(?:sl|sc|so\s*luong|qty)\s*[:.\-]?\s*\d+\s*(?:vien|goi|ong|chai|hop|lo|vi|tuyp|tablet|cap|sachet)?\b", "", f_txt, flags=re.IGNORECASE)
     m_each = re.search(
-        r"(?:moi\s*lan|uong|sang|trua|chieu|toi|take)\s*[:\-]?\s*(\d+(?:[\/.,]\d+)?)\s*(vien|goi|ong|ml|giot|nhát|nhat|tablet|tab|cap|capsule|sachet)\b",
+        r"(?:moi\s*lan|uong|sang|trua|chieu|toi|take)\s*[:\-]?\s*(\d+(?:[\/.,]\d+)?)\s*(vien|goi|ong|chai|lo|ml|giot|nhát|nhat|tablet|tab|cap|capsule|sachet)\b",
         clean_dosing_txt,
     )
     if not m_each:
         m_each = re.search(
-            r"\b(\d+(?:[\/.,]\d+)?|iv|jv|ur)\s*(vien|v|vx|goi|ong|ml|tablet|tab|cap|capsule|sachet)\b(?=\s*(?:[,;\/x]|lan|times|sang|trua|chieu|toi|truoc|sau|$))",
+            r"\b(\d+(?:[\/.,]\d+)?|iv|jv|ur)\s*(vien|v|vx|goi|ong|chai|lo|ml|tablet|tab|cap|capsule|sachet)\b(?=\s*(?:[,;\/x]|lan|times|sang|trua|chieu|toi|truoc|sau|$))",
             clean_dosing_txt,
         )
     if m_each:
@@ -241,6 +243,53 @@ def is_plausible_medication_name(name: str) -> bool:
     if re.fullmatch(rf"(?:{_MEDICATION_UNITS})", value, re.IGNORECASE):
         return False
     return True
+
+
+def _extract_gender_from_ocr_text(raw_text: str) -> str:
+    """Extract patient gender from OCR text without mistaking header/year words for 'Nam'."""
+    text = str(raw_text or "")
+    if not text:
+        return ""
+
+    label_pattern = (
+        r"(?:gi[oớờ8w]i[ \t]*t[iíì]nh|ph[aá]i|phal|\bgt\b|g8on[ \t]*tirah|giwn[ \t]*trh|"
+        r"isn[ \t]*trh|guntinn|giwo[ \t]*tlrh|iko[ \t]*trh|\(?im[ \t]*t[il1]rh)"
+        r"[ \t|:.;\-]*[,\\']?[ \t]*([A-Za-zÀ-ỹ]+)"
+    )
+    for m_gen in re.finditer(label_pattern, text, re.IGNORECASE):
+        g_raw = m_gen.group(1).lower()
+        if g_raw in {"nam", "am", "narn", "man", "male", "sam", "namtubi"} or g_raw.startswith("namtu"):
+            return "Nam"
+        if g_raw in {"nữ", "nu", "female"}:
+            return "Nữ"
+
+    header_lines = []
+    for line in text[:800].splitlines():
+        if re.search(
+            r"(?:cộng\s*hòa|cong\s*hoa|độc\s*lập|doc\s*lap|việt\s*nam|viet\s*nam|"
+            r"địa\s*chỉ|dia\s*chi|sở\s*y\s*tế|so\s*y\s*te|bệnh\s*viện|benh\s*vien|"
+            r"phòng\s*khám|phong\s*kham)",
+            line,
+            re.IGNORECASE,
+        ):
+            continue
+        header_lines.append(line)
+
+    cleaned_header = "\n".join(header_lines)
+    cleaned_header = re.sub(
+        r"\b(?:n[ăâä]m|nam\s*sinh|sinh\s*nam|qu[aả]ng\s*nam|h[aà]\s*nam|"
+        r"nam\s*đ[iị]nh|nam\s*dinh|mi[eề]n\s*nam|ph[ií]a\s*nam)\b",
+        " ",
+        cleaned_header,
+        flags=re.IGNORECASE,
+    )
+    has_nam = bool(re.search(r"\b(?:nam|male|namtubi)\b|,\s*am\b", cleaned_header, re.IGNORECASE))
+    has_nu = bool(re.search(r"\b(?:nữ|female)\b", cleaned_header, re.IGNORECASE))
+    if has_nam and not has_nu:
+        return "Nam"
+    if has_nu and not has_nam:
+        return "Nữ"
+    return ""
 
 
 def _normalized_entity(value: Any) -> str:
@@ -1451,7 +1500,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             if m_lbl:
                 tail = flat_line[m_lbl.end():].strip()
                 tail_split = re.split(
-                    r"\s+(?=(?:ng[aàå]y(?:\s*sinh|\s*[:.\-])|sinh\s*ng[aàå]y|n[aăä]m\s*sinh|tu[oổö6]i|age\b|dob\b|date\s*[:.\-]|gi[oớ]i\s*t[ií]nh|ph[aá]i\b|m[aã]\s*bhyt))",
+                    r"(?:^|\s+)(?=(?:ng[aàå]y(?:\s*sinh|\s*[:.\-])|sinh\s*ng[aàå]y|n[aăä]m\s*sinh|tu[oổö6]i|age\b|dob\b|date\s*[:.\-]|gi[oớ]i\s*t[ií]nh|ph[aá]i\b|m[aã]\s*bhyt|đ[iị]a\s*ch[iỉ]|c[aâ]n\s*n[aặ]ng|ch[aẩ]n\s*đo[aá]n))",
                     tail,
                     maxsplit=1,
                     flags=re.IGNORECASE,
@@ -1459,6 +1508,15 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 cand_name = tail_split[0].strip(" |,-;:")
                 cand_name = re.sub(r"^(?:(?:t[eêé]n\s*)?b[eệ]nh\s*nh[aâãáàảạ]n|h[oọ]\s*t[eêé]n)\s*[:.\-]*", "", cand_name, flags=re.IGNORECASE).strip()
                 cand_name = re.sub(r"\s+(?:địa\s*chỉ|ấp|xã|huyện|tỉnh|tuổi|nam|nữ|ngay|sinh).*$", "", cand_name, flags=re.IGNORECASE).strip()
+                if re.fullmatch(
+                    r"(?:nam|nữ|nu|giới\s*tính|gioi\s*tinh|phái|phai|năm\s*sinh|nam\s*sinh|"
+                    r"ngày\s*sinh|ngay\s*sinh|tuổi|tuoi|địa\s*chỉ|dia\s*chi|cân\s*nặng|can\s*nang|"
+                    r"chẩn\s*đoán|chan\s*doan|mã\s*bn|ma\s*bn|sđt|điện\s*thoại|dien\s*thoai)",
+                    cand_name,
+                    re.IGNORECASE,
+                ):
+                    cand_name = ""
+                cand_name = _sanitize_redacted_admin_field(cand_name)
                 if len(cand_name) >= 2 and not cand_name.isdigit():
                     data["patient_name"] = cand_name
                     break
@@ -1467,7 +1525,14 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             candidates = []
             for it in items:
                 clean_it = it.strip()
-                if re.search(r"(?:ho\s*ten|họ\s*tên|nruvi\s*benh|ncuời\s*benh|người\s*bệnh|bệnh\s*nhân|dchls|địa\s*chỉ|iuj[zi]|tuổi|tuoi|mã|bhyt)", clean_it, re.IGNORECASE):
+                if re.search(
+                    r"(?:ho\s*ten|họ\s*tên|nruvi\s*benh|ncuời\s*benh|người\s*bệnh|bệnh\s*nhân|"
+                    r"dchls|địa\s*chỉ|iuj[zi]|tuổi|tuoi|mã|bhyt|gi[oớ]i\s*t[ií]nh|ph[aá]i|"
+                    r"n[aăâ]m\s*sinh|ng[aà]y\s*sinh|sinh\s*ng[aà]y|ch[aẩ]n\s*đo[aá]n|"
+                    r"c[aâ]n\s*n[aặ]ng|sđt|điện\s*thoại|dien\s*thoai|^\s*(?:nam|nữ)\s*$|[:]\s*$)",
+                    clean_it,
+                    re.IGNORECASE,
+                ):
                     continue
                 if re.search(r"^\d+$", clean_it):
                     continue
@@ -1491,18 +1556,18 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
 
     # 3. Ngày sinh / Tuổi / Giới tính
     # Tuổi
-    m_age = re.search(r'\b([1-9]\d?)\s*(?:tuổi|tuoi|t[ikou][a-z0-9]{1,4}|\bt\b)', raw_text, re.IGNORECASE)
+    m_age = re.search(r'\b([1-9]\d?)[ \t]*(?:tuổi|tuoi|t[ikou][a-z0-9]{1,4}|\bt\b)', raw_text, re.IGNORECASE)
     if not m_age:
-        m_age = re.search(r'(?:tuổi|tuoi|age|sinb)[|\s:.;\-]*(\d{1,3})', raw_text, re.IGNORECASE)
+        m_age = re.search(r'(?:tuổi|tuoi|age|sinb)[ \t|:.;\-]*(\d{1,3})\b(?!\/)', raw_text, re.IGNORECASE)
     if m_age and 0 < int(m_age.group(1)) <= 120:
         data["age"] = m_age.group(1)
 
     if not data["dob"]:
-        dob_m = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|nam\s*sinh|sinh\s*nam|ns|sn|d\.o\.b|dob)[|\s:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_raw)
+        dob_m = re.search(r"(?:ngay[ \t]*sinh|sinh[ \t]*ngay|nam[ \t]*sinh|sinh[ \t]*nam|\bns\b|\bsn\b|d\.o\.b|\bdob\b)[ \t|:.\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_raw)
         if dob_m:
             data["dob"] = dob_m.group(1).replace("-", "/").replace(".", "/")
         else:
-            year_m = re.search(r"(?:nam\s*sinh|sinh\s*nam|ngay\s*sinh|sinh\s*ngay|sn|ns)[|\s:.\-]*(19\d{2}|20\d{2})", folded_raw)
+            year_m = re.search(r"(?:nam[ \t]*sinh|sinh[ \t]*nam|ngay[ \t]*sinh|sinh[ \t]*ngay|\bsn\b|\bns\b)[ \t|:.\-]*(19\d{2}|20\d{2})", folded_raw)
             if year_m:
                 data["dob"] = year_m.group(1)
 
@@ -1520,22 +1585,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 pass
 
     # Giới tính
-    m_gen = re.search(r'(?:gi[oớờ8w\w]*\s*[|\s:.]*t[iíì\w]{1,4}|ph[aá]i|phal|gt|\(?im\s*t[il1]rh)[|\s:.;\-]*[,\\\']?\s*([a-z]+)', raw_text, re.IGNORECASE)
-    if m_gen:
-        g_raw = m_gen.group(1).lower()
-        if any(k in g_raw for k in ['nam', 'am', 'narn', 'man', 'an', 'ton', 'sam']):
-            data["gender"] = "Nam"
-        elif any(k in g_raw for k in ['nữ', 'female']) or g_raw == 'nu':
-            data["gender"] = "Nữ"
-
-    if not data["gender"]:
-        header_sample = raw_text[:800]
-        if bool(re.search(r'\b(?:nam|sam|man|n[aâăä]m|namtubi)\b|\bNA\b', header_sample, re.IGNORECASE)):
-            data["gender"] = "Nam"
-        elif bool(re.search(r'\bnữ\b|female', header_sample, re.IGNORECASE)):
-            data["gender"] = "Nữ"
-        elif any(k in header_sample.lower() for k in ["guntinn", "giwo", "giwn", "g8on", "iko", "tlrh", "tirh"]):
-            data["gender"] = "Nam"
+    data["gender"] = _extract_gender_from_ocr_text(raw_text)
 
     # 4. Bác sĩ
     doctor_label_index = next((i for i, row in enumerate(rows) if re.search(
@@ -1743,6 +1793,11 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     ocr_text_lower = ocr_raw_text.lower()
 
     reconciled = dict(gemini_data) if gemini_data else {}
+    for admin_key in ("patient_name", "dob", "age"):
+        if admin_key in reconciled:
+            reconciled[admin_key] = _sanitize_redacted_admin_field(reconciled.get(admin_key))
+    if "gender" in reconciled:
+        reconciled["gender"] = _sanitize_redacted_admin_field(reconciled.get("gender"), is_gender=True)
     raw_facility = reconciled.get("facility", "")
     if _is_role_only_doctor(reconciled.get("doctor")):
         reconciled["doctor"] = ""
@@ -1772,30 +1827,34 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             "", str(reconciled["patient_name"]), flags=re.IGNORECASE,
         ).strip()
 
+    for admin_key in ("patient_name", "dob", "age"):
+        reconciled[admin_key] = _sanitize_redacted_admin_field(reconciled.get(admin_key))
+    reconciled["gender"] = _sanitize_redacted_admin_field(reconciled.get("gender"), is_gender=True)
+
     folded_ocr_raw = _ascii_fold(ocr_raw_text)
     import datetime
     current_year = datetime.datetime.now().year
 
     # 1. Trích xuất Tuổi & Ngày/Năm sinh
     if not reconciled.get("age"):
-        age_match = re.search(r"(?:tuổi|tuoi|age)[|\s:.;\-]*(\d{1,3})", ocr_raw_text, re.IGNORECASE)
+        age_match = re.search(r"(?:tuổi|tuoi|age)[ \t|:.;\-]*(\d{1,3})\b(?!\/)", ocr_raw_text, re.IGNORECASE)
         if age_match and 0 < int(age_match.group(1)) <= 120:
             reconciled["age"] = age_match.group(1)
         else:
-            age_match2 = re.search(r"\b([1-9]\d?)\s*(?:tuổi|tuoi|t[ou][a-z0-9]{1,4}|\bt\b)", ocr_raw_text, re.IGNORECASE)
+            age_match2 = re.search(r"\b([1-9]\d?)[ \t]*(?:tuổi|tuoi|t[ou][a-z0-9]{1,4}|\bt\b)", ocr_raw_text, re.IGNORECASE)
             if age_match2 and 0 < int(age_match2.group(1)) <= 120:
                 reconciled["age"] = age_match2.group(1)
             else:
-                age_match3 = re.search(r"(?:n[aăâ]m|nim)[\s|]*(?:s?[ieỉíìĩịyýỳỷỹỵ]*n[hb]|sinh)[\s|:.;\-]*([1-9]\d?)(?!\d)", ocr_raw_text, re.IGNORECASE)
+                age_match3 = re.search(r"(?:n[aăâ]m|nim)[ \t|]*(?:s?[ieỉíìĩịyýỳỷỹỵ]*n[hb]|sinh)[ \t|:.;\-]*([1-9]\d?)(?!\d|[\/\-])", ocr_raw_text, re.IGNORECASE)
                 if age_match3 and 0 < int(age_match3.group(1)) <= 120:
                     reconciled["age"] = age_match3.group(1)
 
     if not reconciled.get("dob"):
-        dob_match = re.search(r"(?:ngay\s*sinh|sinh\s*ngay|nam\s*sinh|sinh\s*nam|ns|sn|d\.o\.b|dob)[|\s:.;\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_ocr_raw)
+        dob_match = re.search(r"(?:ngay[ \t]*sinh|sinh[ \t]*ngay|nam[ \t]*sinh|sinh[ \t]*nam|\bns\b|\bsn\b|d\.o\.b|\bdob\b)[ \t|:.;\-]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})", folded_ocr_raw)
         if dob_match:
             reconciled["dob"] = dob_match.group(1).replace("-", "/").replace(".", "/")
         else:
-            year_match = re.search(r"(?:nam\s*sinh|sinh\s*nam|ngay\s*sinh|sinh\s*ngay|sn|ns)[|\s:.;\-]*(19\d{2}|20\d{2})", folded_ocr_raw)
+            year_match = re.search(r"(?:nam[ \t]*sinh|sinh[ \t]*nam|ngay[ \t]*sinh|sinh[ \t]*ngay|\bsn\b|\bns\b)[ \t|:.;\-]*(19\d{2}|20\d{2})", folded_ocr_raw)
             if year_match:
                 reconciled["dob"] = year_match.group(1)
             elif reconciled.get("age"):
@@ -1820,24 +1879,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
 
     # 2. Trích xuất Giới tính (Nam / Nữ)
     if not reconciled.get("gender"):
-        gender_match = re.search(r"(?:gi[oớờ8w]i\s*t[iíì]nh|ph[aá]i|gt|g8on\s*tirah|giwn\s*trh|isn\s*trh|guntinn|giwo\s*tlrh|iko\s*trh|\(?im\s*t[il1]rh)[|\s:.;\-]*[,\\\']?\s*([a-z]+)", ocr_raw_text, re.IGNORECASE)
-        if gender_match:
-            g_raw = gender_match.group(1).lower()
-            if any(k in g_raw for k in ["nam", "{am", "narn", "man", "an", "am", "ton", "sam"]):
-                reconciled["gender"] = "Nam"
-            elif any(k in g_raw for k in ["nữ", "female"]) or g_raw == "nu":
-                reconciled["gender"] = "Nữ"
-
-        if not reconciled.get("gender"):
-            header_sample = ocr_raw_text[:800]
-            has_nam = bool(re.search(r"\b(?:nam|sam|man)\b|\b'nam'\b|,\s*am\b", header_sample, re.IGNORECASE))
-            has_nu = bool(re.search(r"\bnữ\b|female", header_sample, re.IGNORECASE))
-            if has_nam and not has_nu:
-                reconciled["gender"] = "Nam"
-            elif has_nu and not has_nam:
-                reconciled["gender"] = "Nữ"
-            elif any(k in header_sample.lower() for k in ["guntinn", "giwo", "giwn", "g8on", "iko", "tIrh", "tirh"]):
-                reconciled["gender"] = "Nam"
+        reconciled["gender"] = _extract_gender_from_ocr_text(ocr_raw_text)
 
     # 3. Phục hồi Cơ sở y tế & Chẩn đoán
     if not reconciled.get("facility"):
