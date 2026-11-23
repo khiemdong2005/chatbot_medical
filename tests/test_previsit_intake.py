@@ -79,6 +79,7 @@ def test_previsit_resumes_questions_and_confirms_guest_draft_after_sign_in(clien
     assert edited["status"] == "ready_for_review"
     assert edited["transcript"] == state["transcript"]
     summary = edited["summary"]
+    assert "patient_intake_fhir" not in summary
     payload = {
         "conversation_id": cid, "save_to_record": True, "version": summary["version"],
         "reviewed_facts": summary["part_a_patient_facts"]
@@ -97,6 +98,20 @@ def test_previsit_resumes_questions_and_confirms_guest_draft_after_sign_in(clien
 
     saved = client.post("/api/intake/confirm-summary", json=payload)
     assert saved.status_code == 200
+    bundle = saved.json["summary"]["patient_intake_fhir"]
+    assert bundle["resourceType"] == "Bundle" and bundle["type"] == "collection"
+    questionnaire, response = [entry["resource"] for entry in bundle["entry"]]
+    assert questionnaire["resourceType"] == "Questionnaire"
+    assert response["resourceType"] == "QuestionnaireResponse" and response["status"] == "completed"
+    assert response["questionnaire"] == f"{questionnaire['url']}|{questionnaire['version']}"
+    answers = {item["linkId"]: item["answer"] for item in response["item"]}
+    assert answers.keys() <= {item["linkId"] for item in questionnaire["item"]}
+    assert answers["reason"] == [{"valueString": "Đau bụng bên phải từ tối qua"}]
+    assert answers["allergies-status"] == [{"valueString": "Đã bỏ qua"}]
+    assert "allergies" not in answers and "triage_status" not in answers
+    intake_service.clear()
+    reopened = client.get(f"/api/intake/summary/{cid}").get_json()
+    assert reopened["summary"]["patient_intake_fhir"] == bundle
     assert previsit(client, "session", conversation_id=cid).get_json()["status"] == "confirmed"
 
 

@@ -19,6 +19,7 @@ Tuân thủ nghiêm ngặt Quy chuẩn Lâm sàng (Mục 8, 9, 10, 13):
 """
 
 import os
+import json
 import re
 import uuid
 import datetime
@@ -28,6 +29,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from typing import Dict, Any, List, Optional
 from core.triage import assess_emergency_risk, remove_accents
+from core.chat.previsit_fhir import build_previsit_fhir_bundle
 from core.rag_service import medical_rag_service  # noqa: F401 - exported for backwards-compatible callers/tests
 
 logger = logging.getLogger("IntakeService")
@@ -1704,6 +1706,7 @@ class IntakeSessionManager:
                     raise StaleIntakeVersionError("Bản nháp đã thay đổi. Hãy xem lại trước khi lưu.")
                 if not draft["ready_to_finalize"]:
                     raise ValueError("Bản tóm tắt còn thiếu dữ kiện cần thiết. Hãy bổ sung phần đã đánh dấu trước khi lưu.")
+                fhir_bundle = build_previsit_fhir_bundle(session["facts"], draft["part_a_patient_facts"])
             prev_confirmed = session.get("is_confirmed", False)
             prev_status = session.get("status", "ready_for_review")
 
@@ -1712,6 +1715,8 @@ class IntakeSessionManager:
 
             # Bắt buộc lưu thành công vào CSDL bền vững thì mới trả về thành công
             summary = deepcopy(generate_pre_visit_summary(session))
+            if save_to_record:
+                summary["patient_intake_fhir"] = fhir_bundle
             saved = self._save_to_db(session, confirmed_summary=summary) if save_to_record else self._save_to_db(session)
             if not saved:
                 # Rollback in-memory status nếu ghi CSDL thất bại
@@ -1747,6 +1752,17 @@ class IntakeSessionManager:
                 raise KeyError(conversation_id)
             if not self.check_access(session, user_id, guest_token, claim_guest=False):
                 raise PermissionError("Bạn không có quyền truy cập hoặc thao tác trên phiên tư vấn y tế này.")
+            if session.get("is_confirmed") and user_id is not None:
+                with intake_db_context():
+                    from core.models import ClinicalConsultation
+
+                    record = ClinicalConsultation.query.filter_by(
+                        user_id=user_id, conversation_id=conversation_id
+                    ).first()
+                    if record and record.confirmed_summary:
+                        saved = json.loads(record.confirmed_summary)
+                        if isinstance(saved, dict) and saved.get("version") == session.get("version", 1):
+                            return saved
             return generate_pre_visit_summary(session)
 
 

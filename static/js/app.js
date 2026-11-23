@@ -733,6 +733,7 @@ const translations = {
     intake_summary_version: "Phiên bản",
     intake_summary_review_pending: "Chờ xác nhận",
     intake_summary_confirmed: "Đã xác nhận lời khai",
+    intake_summary_download_fhir: "Tải phiếu FHIR R4 (JSON)",
     welcome_msg: "Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
     quick_1: "Sốt 38.5°C và đau cổ họng",
     quick_2: "Đau tức ngực, khó thở",
@@ -1142,6 +1143,7 @@ const translations = {
     intake_summary_version: "Version",
     intake_summary_review_pending: "Awaiting confirmation",
     intake_summary_confirmed: "Patient information confirmed",
+    intake_summary_download_fhir: "Download FHIR R4 form (JSON)",
     welcome_msg: "Hello, I am the MediMind Health Assistant. I can help you with preliminary symptom triage, prescription explanations, and specialty clinic guidance. What health concern are you experiencing?",
     quick_1: "Fever 38.5°C and sore throat",
     quick_2: "Chest tightness, dyspnea",
@@ -3043,8 +3045,21 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
 
   const confirmBtn = document.getElementById('modal-btn-confirm');
   if (confirmBtn) confirmBtn.classList.toggle('hidden', !canSave);
+  document.getElementById('summary-download-fhir')?.classList.toggle('hidden', !summary.patient_intake_fhir);
 
   updateSummarySaveButton();
+}
+
+function downloadPreVisitFhir() {
+  const bundle = reviewedIntakeSummary?.summary?.patient_intake_fhir;
+  if (!bundle) return;
+  const file = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/fhir+json' });
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'medimind-previsit-fhir-r4.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function updateSummarySaveButton() {
