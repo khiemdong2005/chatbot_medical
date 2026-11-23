@@ -8,6 +8,7 @@ import os
 import re
 import logging
 from typing import Optional, Dict, Any
+from core.settings import is_configured_secret
 
 logger = logging.getLogger("SmsService")
 
@@ -21,8 +22,8 @@ class SmsService:
         self.speedsms_sender = os.getenv("SPEEDSMS_SENDER", "").strip()
 
     def is_configured(self) -> bool:
-        """Kiểm tra cấu hình cổng SMS nội địa."""
-        return bool(self.speedsms_token)
+        """Kiểm tra cấu hình cổng SMS nội địa (loại trừ giá trị placeholder mẫu)."""
+        return is_configured_secret(self.speedsms_token)
 
     def normalize_phone(self, phone: str) -> Optional[str]:
         """

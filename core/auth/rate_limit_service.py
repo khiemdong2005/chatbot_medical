@@ -32,15 +32,33 @@ class BaseRateLimitBackend(ABC):
 
 
 class MemoryRateLimitBackend(BaseRateLimitBackend):
-    """Tầng lưu trữ Rate Limit trên bộ nhớ RAM tiến trình (Thread-safe)."""
+    """Tầng lưu trữ Rate Limit trên bộ nhớ RAM tiến trình (Thread-safe, có dọn dẹp TTL)."""
 
-    def __init__(self):
+    def __init__(self, max_entries: int = 10000, cleanup_interval: float = 60.0):
         self._lock = threading.RLock()
         self._store: Dict[str, Dict[str, Any]] = {}
+        self._max_entries = max(100, int(max_entries))
+        self._cleanup_interval = max(1.0, float(cleanup_interval))
+        self._last_cleanup = time.time()
+
+    def _evict_if_needed(self, now: float) -> None:
+        """Dọn dẹp các bucket đã hết hạn và giới hạn trần bộ nhớ chống OOM."""
+        if (now - self._last_cleanup) >= self._cleanup_interval or len(self._store) >= self._max_entries:
+            expired_keys = [k for k, rec in self._store.items() if now > rec["expires_at"]]
+            for k in expired_keys:
+                self._store.pop(k, None)
+            self._last_cleanup = now
+
+            if len(self._store) >= self._max_entries:
+                overflow = len(self._store) - self._max_entries + 1
+                oldest_keys = sorted(self._store, key=lambda k: self._store[k]["expires_at"])[:overflow]
+                for k in oldest_keys:
+                    self._store.pop(k, None)
 
     def check_and_increment(self, key: str, max_requests: int, window_seconds: int) -> bool:
         with self._lock:
             now = time.time()
+            self._evict_if_needed(now)
             record = self._store.get(key)
             if not record or now > record["expires_at"]:
                 self._store[key] = {"count": 1, "expires_at": now + window_seconds}
@@ -59,6 +77,7 @@ class MemoryRateLimitBackend(BaseRateLimitBackend):
     def clear(self) -> None:
         with self._lock:
             self._store.clear()
+            self._last_cleanup = time.time()
 
 
 class RateLimitService:
@@ -92,6 +111,40 @@ class RateLimitService:
         clean_ip = (client_ip or "127.0.0.1").strip()
         key = f"login:{clean_ip}:{clean_id}"
         self.backend.reset(key)
+
+    def check_login_ip_rate_limit(
+        self,
+        client_ip: str,
+        max_attempts: int = 30,
+        window_seconds: int = 900
+    ) -> bool:
+        """
+        Bảo vệ chống Password Spraying trên nhiều tài khoản từ cùng một địa chỉ IP:
+        Giới hạn tổng số lần thử đăng nhập theo IP độc lập với identifier.
+        """
+        clean_ip = (client_ip or "127.0.0.1").strip()
+        key = f"login_ip:{clean_ip}"
+        allowed = self.backend.check_and_increment(key, max_attempts, window_seconds)
+        if not allowed:
+            logger.warning("Đăng nhập vượt ngưỡng tổng theo IP (429 - Password Spraying) cho IP %s.", clean_ip)
+        return allowed
+
+    def check_otp_send_ip_rate_limit(
+        self,
+        client_ip: str,
+        max_requests: int = 5,
+        window_seconds: int = 900
+    ) -> bool:
+        """
+        Bảo vệ chống SMS/Email OTP Bombing theo địa chỉ IP:
+        Giới hạn tối đa 5 yêu cầu gửi mã OTP trong 15 phút từ cùng một IP.
+        """
+        clean_ip = (client_ip or "127.0.0.1").strip()
+        key = f"otp_send_ip:{clean_ip}"
+        allowed = self.backend.check_and_increment(key, max_requests, window_seconds)
+        if not allowed:
+            logger.warning("Yêu cầu gửi OTP vượt ngưỡng theo IP (429 - OTP Bombing) cho IP %s.", clean_ip)
+        return allowed
 
     def check_otp_rate_limit(
         self,

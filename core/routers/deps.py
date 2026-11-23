@@ -38,7 +38,13 @@ def extract_request_identity(request: Request) -> Tuple[Optional[int], Optional[
             try:
                 serializer = flask_app.session_interface.get_signing_serializer(flask_app)
                 if serializer:
-                    data = serializer.loads(raw_cookie)
+                    lifetime = getattr(flask_app, "permanent_session_lifetime", None)
+                    max_age = (
+                        int(lifetime.total_seconds())
+                        if hasattr(lifetime, "total_seconds")
+                        else int(lifetime or 7200)
+                    )
+                    data = serializer.loads(raw_cookie, max_age=max_age)
                     if isinstance(data, dict):
                         user_id = data.get("user_id")
                         guest_token = data.get("guest_token")

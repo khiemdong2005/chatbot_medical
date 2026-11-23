@@ -5,11 +5,26 @@ Tuân thủ đầy đủ bất biến giao dịch Phase 5.2 (commit_or_rollback)
 """
 import json
 import logging
+import re
 from typing import Any, Dict, List, Tuple
 from core.models import ClinicalConsultation, MedicalAppointment
 from core.db_utils import app_db_context, commit_or_rollback
 
 logger = logging.getLogger("AppointmentService")
+
+_APPT_DATE_RE = re.compile(r"^(?:\d{4}-\d{2}-\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{4})$")
+_APPT_TIME_RE = re.compile(
+    r"^\d{1,2}:\d{2}(?:\s*(?:AM|PM))?(?:\s*[-–]\s*\d{1,2}:\d{2}(?:\s*(?:AM|PM))?)?$",
+    re.IGNORECASE,
+)
+
+
+def _clean_text(value: Any, default: str = "") -> str:
+    if isinstance(value, str):
+        return value.strip()
+    if value is None:
+        return default
+    return default
 
 
 def get_user_appointments(user_id: int) -> List[Dict[str, Any]]:
@@ -28,9 +43,13 @@ def create_user_appointment(user_id: int, payload: Dict[str, Any]) -> Tuple[bool
     Tiếp nhận và tạo mới lịch hẹn khám chữa bệnh:
     Trả về: (thành_công, payload_kết_quả, http_status_code)
     """
-    facility_id = str(payload.get("facility_id") or "fac_unknown").strip()
-    facility_name = (payload.get("facility_name") or "").strip()
-    facility_address = (payload.get("facility_address") or "").strip()
+    if not isinstance(payload, dict):
+        return False, {"success": False, "error": "Dữ liệu đặt lịch hẹn không hợp lệ."}, 400
+
+    raw_fac_id = payload.get("facility_id")
+    facility_id = (str(raw_fac_id).strip() if isinstance(raw_fac_id, (str, int)) and not isinstance(raw_fac_id, bool) else "fac_unknown") or "fac_unknown"
+    facility_name = _clean_text(payload.get("facility_name"))
+    facility_address = _clean_text(payload.get("facility_address"))
 
     # Chuẩn hóa theo dữ liệu CSKCB thật khi có facility_id hợp lệ từ danh mục bệnh viện
     if facility_id and facility_id != "fac_unknown":
@@ -51,12 +70,12 @@ def create_user_appointment(user_id: int, payload: Dict[str, Any]) -> Tuple[bool
     if not facility_name:
         facility_name = "Cơ sở Y tế"
 
-    specialty = (payload.get("specialty") or "Đa khoa").strip()
-    appointment_date = (payload.get("appointment_date") or "").strip()
-    appointment_time = (payload.get("appointment_time") or "").strip()
-    patient_name = (payload.get("patient_name") or "").strip()
-    patient_phone = (payload.get("patient_phone") or "").strip()
-    note = (payload.get("note") or "").strip()
+    specialty = _clean_text(payload.get("specialty")) or "Đa khoa"
+    appointment_date = _clean_text(payload.get("appointment_date"))
+    appointment_time = _clean_text(payload.get("appointment_time"))
+    patient_name = _clean_text(payload.get("patient_name"))
+    patient_phone = _clean_text(payload.get("patient_phone"))
+    note = _clean_text(payload.get("note"))
 
     if not appointment_date or not appointment_time or not patient_name or not patient_phone:
         return (
@@ -67,6 +86,23 @@ def create_user_appointment(user_id: int, payload: Dict[str, Any]) -> Tuple[bool
             },
             400
         )
+
+    # SECURITY (L-02): Kiểm tra độ dài và định dạng đầu vào đặt lịch khám
+    if len(facility_id) > 64 or len(facility_name) > 200 or len(facility_address) > 300:
+        return False, {"success": False, "error": "Thông tin cơ sở y tế vượt quá độ dài cho phép."}, 400
+    if len(specialty) > 120:
+        return False, {"success": False, "error": "Tên chuyên khoa tối đa 120 ký tự."}, 400
+    if len(patient_name) < 2 or len(patient_name) > 120:
+        return False, {"success": False, "error": "Họ tên người khám phải từ 2 đến 120 ký tự."}, 400
+    phone_digits = "".join(ch for ch in patient_phone if ch.isdigit())
+    if len(patient_phone) > 25 or len(phone_digits) < 9 or len(phone_digits) > 15:
+        return False, {"success": False, "error": "Số điện thoại liên hệ không hợp lệ (9-15 chữ số)."}, 400
+    if len(appointment_date) > 32 or not _APPT_DATE_RE.match(appointment_date):
+        return False, {"success": False, "error": "Ngày khám phải đúng định dạng YYYY-MM-DD hoặc DD/MM/YYYY."}, 400
+    if len(appointment_time) > 25 or not _APPT_TIME_RE.match(appointment_time):
+        return False, {"success": False, "error": "Giờ khám không hợp lệ (VD: 09:30 hoặc 08:00 - 09:30)."}, 400
+    if len(note) > 1000:
+        return False, {"success": False, "error": "Ghi chú khám tối đa 1000 ký tự."}, 400
 
     with app_db_context() as sess:
         pre_visit_summary = None

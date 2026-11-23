@@ -72,12 +72,13 @@ def register_ocr_routes(app, *, default_upload_folder):
             })
         except Exception as e:
             db.session.rollback()
+            logger.error("Lỗi lưu thông tin tài liệu upload: %s", e)
             if os.path.exists(meta["absolute_path"]):
                 try:
                     os.remove(meta["absolute_path"])
                 except Exception:
                     pass
-            return jsonify({"status": "error", "message": f"Không thể lưu thông tin tài liệu: {e}"}), 500
+            return jsonify({"status": "error", "message": "Không thể lưu thông tin tài liệu. Vui lòng thử lại sau."}), 500
 
 
     @app.route("/api/scan-files", methods=["GET"])
@@ -195,7 +196,8 @@ def register_ocr_routes(app, *, default_upload_folder):
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
 
             mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
-            profile_allergies = db.session.get(User, user_id).to_dict().get("allergies") or ""
+            user_obj = db.session.get(User, user_id)
+            profile_allergies = (user_obj.to_dict().get("allergies") or "") if user_obj else ""
             user_allergies = [s.strip() for s in profile_allergies.split(",") if s.strip()] if isinstance(profile_allergies, str) else list(profile_allergies)
             req_allergies = request.form.get("allergies")
             if req_allergies:
@@ -366,44 +368,173 @@ def register_ocr_routes(app, *, default_upload_folder):
     @app.route("/api/prescription/confirm", methods=["POST"])
     def confirm_prescription():
         """
-        Lưu dữ liệu đơn thuốc sau khi người dùng đã dò lại và xác nhận chính xác.
-        Cho phép cập nhật thông tin đã chỉnh sửa (nếu có) vào MedicalDocument.
+        Lưu dữ liệu đơn thuốc/xét nghiệm sau khi người dùng đã dò lại và xác nhận chính xác.
+        Bắt buộc đăng nhập, kiểm tra quyền sở hữu owner_id, chuẩn hóa schema trước khi lưu DB.
         """
         user_id = session.get("user_id")
-        data = request.get_json(silent=True) or {}
-        doc_id = data.get("document_id")
+        if not user_id:
+            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xác nhận tài liệu y tế."}), 401
 
-        if doc_id and user_id:
+        raw_data = request.get_json(silent=True)
+        if not isinstance(raw_data, dict):
+            return jsonify({"status": "error", "message": "Dữ liệu xác nhận không hợp lệ."}), 400
+
+        doc_id = raw_data.get("document_id")
+        try:
+            doc_id_int = int(doc_id) if doc_id is not None and not isinstance(doc_id, bool) else None
+        except (TypeError, ValueError):
+            doc_id_int = None
+
+        if not doc_id_int or doc_id_int <= 0:
+            return jsonify({"status": "error", "message": "Thiếu mã tài liệu (document_id) hợp lệ."}), 400
+
+        doc = MedicalDocument.query.filter_by(id=doc_id_int, owner_id=user_id).first()
+        if not doc:
+            return jsonify({"status": "error", "message": "Không tìm thấy tài liệu hoặc bạn không có quyền cập nhật."}), 404
+
+        def _clean_str(val, max_len: int = 250) -> str:
+            if not isinstance(val, str):
+                return ""
+            return val.strip()[:max_len]
+
+        def _clean_item_dict(item, max_keys: int = 20, max_val_len: int = 500) -> dict:
+            cleaned = {}
+            for idx, (k, v) in enumerate(item.items()):
+                if idx >= max_keys or not isinstance(k, str):
+                    continue
+                key_name = k.strip()[:64]
+                if not key_name:
+                    continue
+                if isinstance(v, str):
+                    cleaned[key_name] = v.strip()[:max_val_len]
+                elif isinstance(v, (int, float, bool)) or v is None:
+                    cleaned[key_name] = v
+            return cleaned
+
+        existing_parsed = {}
+        if doc.parsed_data:
             try:
-                doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
-                if doc:
-                    if doc.doc_type == "ocr_draft":
-                        doc.doc_type = "prescription"
-                    if data.get("patient_name"):
-                        doc.patient_name = data["patient_name"]
-                    if data.get("diagnosis"):
-                        doc.diagnosis = data["diagnosis"]
-                    if data.get("facility"):
-                        doc.facility = data["facility"]
-                    if data.get("doctor"):
-                        doc.doctor = data["doctor"]
+                loaded = json.loads(doc.parsed_data)
+                if isinstance(loaded, dict):
+                    existing_parsed = loaded
+            except (TypeError, ValueError):
+                existing_parsed = {}
 
-                    meds = data.get("medications", [])
-                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
-                    sum_text = f"{len(meds)} loại thuốc"
-                    if med_names:
-                        sum_text += f": {', '.join(med_names)}"
-                        if len(meds) > 3:
-                            sum_text += f" và {len(meds) - 3} thuốc khác"
+        sanitized = dict(existing_parsed)
+        sanitized["document_id"] = doc.id
 
-                    doc.summary = sum_text
-                    doc.parsed_data = json.dumps(data, ensure_ascii=False)
-                    db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
+        scalar_limits = {
+            "patient_name": 150,
+            "diagnosis": 500,
+            "facility": 250,
+            "doctor": 150,
+            "date": 64,
+            "dob": 64,
+            "age": 32,
+            "gender": 32,
+            "duration": 120,
+            "icd10_code": 32,
+            "icd10": 32,
+            "icd_code": 32,
+            "doc_title": 250,
+            "interpretation": 4000,
+            "uploaded_filename": 255,
+        }
+        for field, max_len in scalar_limits.items():
+            if field in raw_data and isinstance(raw_data[field], str):
+                sanitized[field] = _clean_str(raw_data[field], max_len)
 
-        return jsonify({"status": "success", "message": "Đã xác nhận đơn thuốc thành công.", "data": data})
+        raw_doc_type = _clean_str(raw_data.get("doc_type") or raw_data.get("type") or "", 32).lower()
+        existing_doc_type = _clean_str(existing_parsed.get("doc_type") or existing_parsed.get("type") or "", 32).lower()
+        if raw_doc_type in ("prescription", "lab_test"):
+            sanitized["doc_type"] = raw_doc_type
+            sanitized["type"] = raw_doc_type
+
+        if "medications" in raw_data and isinstance(raw_data["medications"], list):
+            sanitized["medications"] = [
+                _clean_item_dict(m) for m in raw_data["medications"][:50] if isinstance(m, dict)
+            ]
+
+        for lab_key in ("labs", "metrics"):
+            if lab_key in raw_data and isinstance(raw_data[lab_key], list):
+                sanitized[lab_key] = [
+                    _clean_item_dict(item) for item in raw_data[lab_key][:100] if isinstance(item, dict)
+                ]
+
+        if "warnings" in raw_data and isinstance(raw_data["warnings"], list):
+            clean_warnings = []
+            for w in raw_data["warnings"][:30]:
+                if isinstance(w, str):
+                    clean_warnings.append(w.strip()[:500])
+                elif isinstance(w, dict):
+                    clean_warnings.append(_clean_item_dict(w))
+            sanitized["warnings"] = clean_warnings
+
+        if "timeline" in raw_data and isinstance(raw_data["timeline"], dict):
+            clean_tl = {}
+            for slot in ("morning", "noon", "evening", "bedtime"):
+                slot_items = raw_data["timeline"].get(slot)
+                if isinstance(slot_items, list):
+                    clean_tl[slot] = [
+                        _clean_item_dict(item) if isinstance(item, dict) else _clean_str(item, 300)
+                        for item in slot_items[:30]
+                        if isinstance(item, (dict, str))
+                    ]
+            sanitized["timeline"] = clean_tl
+
+        preview_url = _clean_str(raw_data.get("preview_image_url"), 255)
+        if preview_url.startswith("/uploads/") and ".." not in preview_url:
+            sanitized["preview_image_url"] = preview_url
+
+        is_lab_doc = (
+            raw_doc_type == "lab_test"
+            or existing_doc_type == "lab_test"
+            or doc.doc_type == "lab_test"
+            or (bool(sanitized.get("labs") or sanitized.get("metrics")) and not sanitized.get("medications"))
+        )
+
+        try:
+            if is_lab_doc:
+                doc.doc_type = "lab_test"
+                sanitized["doc_type"] = "lab_test"
+            elif doc.doc_type == "ocr_draft":
+                doc.doc_type = "prescription"
+                sanitized.setdefault("doc_type", "prescription")
+
+            if sanitized.get("patient_name"):
+                doc.patient_name = sanitized["patient_name"]
+            if sanitized.get("diagnosis"):
+                doc.diagnosis = sanitized["diagnosis"]
+            if sanitized.get("facility"):
+                doc.facility = sanitized["facility"]
+            if sanitized.get("doctor"):
+                doc.doctor = sanitized["doctor"]
+
+            if is_lab_doc:
+                lab_items = sanitized.get("labs") or sanitized.get("metrics") or []
+                doc.summary = f"{len(lab_items)} chỉ số xét nghiệm"
+            else:
+                meds = sanitized.get("medications") or []
+                med_names = [
+                    m.get("standard_name") or m.get("name")
+                    for m in meds[:3]
+                    if isinstance(m, dict) and (m.get("standard_name") or m.get("name"))
+                ]
+                sum_text = f"{len(meds)} loại thuốc"
+                if med_names:
+                    sum_text += f": {', '.join(med_names)}"
+                    if len(meds) > 3:
+                        sum_text += f" và {len(meds) - 3} thuốc khác"
+                doc.summary = sum_text
+
+            doc.parsed_data = json.dumps(sanitized, ensure_ascii=False)
+            commit_or_rollback()
+        except Exception as e:
+            db.session.rollback()
+            logger.warning("Lỗi cập nhật xác nhận đơn thuốc: %s", e)
+            return jsonify({"status": "error", "message": "Không thể lưu xác nhận tài liệu. Vui lòng thử lại."}), 500
+
+        return jsonify({"status": "success", "message": "Đã xác nhận đơn thuốc thành công.", "data": sanitized})
 
 
     @app.route("/uploads/<filename>")

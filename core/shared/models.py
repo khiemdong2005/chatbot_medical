@@ -391,8 +391,10 @@ def seed_default_users() -> bool:
     if not seed_opt_in:
         return False
 
+    from core.settings import is_configured_secret
+
     dev_password = (os.getenv("DEV_SEED_PASSWORD") or "").strip()
-    if not dev_password:
+    if not is_configured_secret(dev_password):
         dev_password = secrets.token_urlsafe(16)
 
     # 1. Bác sĩ mẫu

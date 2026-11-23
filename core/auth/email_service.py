@@ -10,6 +10,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional
+from core.settings import is_configured_secret
 
 logger = logging.getLogger("EmailService")
 
@@ -28,7 +29,7 @@ class EmailService:
         self.sender_email = self.username or "no-reply@medimind.ai"
 
     def is_configured(self) -> bool:
-        return bool(self.server and self.username and self.password)
+        return bool(self.server) and is_configured_secret(self.username) and is_configured_secret(self.password)
 
     def send_email(self, to_email: str, subject: str, html_body: str, text_body: Optional[str] = None) -> bool:
         """Gửi thư điện tử qua giao thức SMTP. Trả về False nếu chưa cấu hình hoặc gửi thất bại."""

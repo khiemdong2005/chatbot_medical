@@ -39,7 +39,7 @@ from core.circuit_breaker import (
     CircuitBreakerOpenError,
     get_circuit_breaker
 )
-from core.settings import settings
+from core.settings import settings, is_configured_secret
 from core.observability import metrics_collector
 
 logger = logging.getLogger("LLMProvider")
@@ -293,6 +293,10 @@ class _GroqModels:
 
     def _endpoint(self) -> str:
         base = (os.getenv("GROQ_BASE_URL") or "https://api.groq.com/openai/v1").rstrip("/")
+        parsed = urlsplit(base)
+        if (parsed.scheme != "https" or parsed.netloc != "api.groq.com"
+                or parsed.path != "/openai/v1" or parsed.query or parsed.fragment):
+            raise _GroqHTTPError(400, "Invalid Groq base URL")
         return f"{base}/chat/completions"
 
     def _post_completion(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -438,7 +442,7 @@ class LLMProvider:
         """Kiểm tra Groq có được cấu hình làm primary provider không."""
         provider = os.getenv("AI_PROVIDER", "").strip().lower()
         groq_key = os.getenv("GROQ_API_KEY", "").strip()
-        return provider == "groq" and bool(groq_key)
+        return provider == "groq" and is_configured_secret(groq_key)
 
     def is_openrouter_active(self) -> bool:
         """Kiểm tra xem hệ thống có đang cấu hình chạy OpenRouter hay không."""
@@ -452,7 +456,7 @@ class LLMProvider:
             or os.getenv("OPENROUTER_NUTRITION_API_KEY")
             or ""
         ).strip()
-        return bool(openrouter_key)
+        return is_configured_secret(openrouter_key)
 
     def resolve_api_key(
         self,
@@ -483,42 +487,52 @@ class LLMProvider:
 
         if prof in ("nutrition", "nutrition_ai"):
             or_nutri_key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or "").strip()
-            if or_nutri_key:
+            if is_configured_secret(or_nutri_key):
                 return or_nutri_key
         if prof in ("chat", "chat_generation"):
             or_chat_key = (os.getenv("OPENROUTER_CHAT_API_KEY") or "").strip()
-            if or_chat_key:
+            if is_configured_secret(or_chat_key):
                 return or_chat_key
         if is_vision_ocr or prof in ("ocr", "prescription", "vision", "interpretation"):
             or_ocr_key = (os.getenv("OPENROUTER_OCR_API_KEY") or "").strip()
-            if or_ocr_key:
+            if is_configured_secret(or_ocr_key):
                 return or_ocr_key
 
         if self.is_openrouter_active():
-            return (
-                os.getenv("OPENROUTER_API_KEY")
-                or os.getenv("OPENROUTER_CHAT_API_KEY")
-                or os.getenv("OPENROUTER_OCR_API_KEY")
-                or os.getenv("OPENROUTER_NUTRITION_API_KEY")
-                or ""
-            ).strip()
+            for env_name in (
+                "OPENROUTER_API_KEY",
+                "OPENROUTER_CHAT_API_KEY",
+                "OPENROUTER_OCR_API_KEY",
+                "OPENROUTER_NUTRITION_API_KEY",
+            ):
+                candidate = (os.getenv(env_name) or "").strip()
+                if is_configured_secret(candidate):
+                    return candidate
+            return ""
 
         or_general_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
-        if or_general_key:
+        if is_configured_secret(or_general_key):
             return or_general_key
 
         if prof in ("nutrition", "nutrition_ai"):
-            key = os.getenv("GEMINI_NUTRITION_API_KEY") or settings.gemini.nutrition_api_key or ""
-            if key:
-                return key.strip()
+            key = (os.getenv("GEMINI_NUTRITION_API_KEY") or settings.gemini.nutrition_api_key or "").strip()
+            if is_configured_secret(key):
+                return key
 
         if prof in ("chat", "chat_generation"):
-            key = os.getenv("GEMINI_CHAT_API_KEY") or settings.gemini.chat_api_key or ""
-            if key:
-                return key.strip()
+            key = (os.getenv("GEMINI_CHAT_API_KEY") or settings.gemini.chat_api_key or "").strip()
+            if is_configured_secret(key):
+                return key
 
-        key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or settings.gemini.api_key or ""
-        return key.strip()
+        for candidate in (
+            os.getenv("GEMINI_API_KEY"),
+            os.getenv("GOOGLE_API_KEY"),
+            settings.gemini.api_key,
+        ):
+            clean = (candidate or "").strip()
+            if is_configured_secret(clean):
+                return clean
+        return ""
 
     def is_configured(
         self,
@@ -527,12 +541,7 @@ class LLMProvider:
     ) -> bool:
         """Kiểm tra tính hợp lệ của API Key mà không thực hiện kết nối mạng."""
         key = self.resolve_api_key(profile=profile, explicit_key=explicit_key)
-        return bool(
-            key
-            and not key.startswith("YOUR_")
-            and key != "your_google_gemini_api_key_here"
-            and len(key) > 10
-        )
+        return bool(is_configured_secret(key) and len(key) > 10)
 
     # ==========================================================================
     # 2. CLIENT LIFECYCLE (LAZY SINGLETON & THREAD-SAFE)
@@ -668,7 +677,7 @@ class LLMProvider:
             # Groq không hỗ trợ vision — OCR fallback sang OpenRouter hoặc Gemini
             if "ocr" in op or "prescription" in op or "vision" in op:
                 or_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-                if or_key:
+                if is_configured_secret(or_key):
                     return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
                 return (os.getenv("OCR_MODEL") or settings.gemini.ocr_model).strip()
             if "chat" in op:
@@ -746,9 +755,7 @@ class LLMProvider:
         else:
             effective_key = self.resolve_api_key(profile=profile or operation, explicit_key=api_key)
 
-        valid_key = bool(effective_key and not effective_key.startswith("YOUR_")
-                         and effective_key != "your_google_gemini_api_key_here"
-                         and len(effective_key) > 10)
+        valid_key = bool(is_configured_secret(effective_key) and len(effective_key) > 10)
         if not valid_key:
             metrics_collector.increment("llm_failure_total")
             metrics_collector.record_error("AUTH_ERROR")

@@ -440,7 +440,8 @@ class TestClinicalSummaryMigration:
         assert "summary" in data
         assert data["summary"]["part_a_patient_facts"]["chief_complaint"] == "Sốt nhẹ, ho có đờm"
         assert data["patient_name"] == "Trần Văn Khỏe"
-        assert data["patient_id"] == f"BN-2026-{user_id:04d}"
+        from datetime import datetime
+        assert data["patient_id"] == f"BN-{datetime.now().year}-{user_id:04d}"
 
 
 # ==============================================================================
