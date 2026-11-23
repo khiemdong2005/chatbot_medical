@@ -32,11 +32,11 @@
 
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.4">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.5">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=15">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=10">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=10">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=8">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=9">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=6">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=7">
@@ -1062,7 +1062,7 @@
               class="hidden mb-2 p-2 bg-slate-50 dark:bg-slate-800 border border-sky-400/50 rounded-2xl flex items-center justify-between transition-all">
               <div class="flex items-center space-x-2.5 overflow-hidden">
 
-                <img id="chat-image-preview-thumb" src="" alt="Ảnh tổn thương"
+                <img id="chat-image-preview-thumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Ảnh tổn thương"
                   class="w-10 h-10 rounded-xl object-cover border border-sky-300 shrink-0">
 
                 <div class="truncate">
@@ -1679,7 +1679,7 @@
 
 
           <input type="file" id="prescription-file-input" aria-label="Chọn tài liệu đơn thuốc lâm sàng"
-            accept=".jpg, .jpeg, .png, .pdf" class="hidden" onchange="handlePrescriptionFileSelected(event)">
+            accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" class="hidden" onchange="handlePrescriptionFileSelected(event)">
 
 
 
@@ -1867,7 +1867,7 @@
               class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-base cursor-pointer">✕</button>
           </div>
           <div class="p-3 overflow-auto flex-1 flex items-center justify-center bg-black/40">
-            <img id="prescription-lightbox-img" src="" alt="Đơn thuốc gốc"
+            <img id="prescription-lightbox-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Đơn thuốc gốc"
               class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg">
           </div>
         </div>
@@ -3643,7 +3643,7 @@
 
       <div class="rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[60vh]">
 
-        <img id="lightbox-img" src="" alt="Ảnh đối chiếu" class="w-full h-auto max-h-[60vh] object-contain">
+        <img id="lightbox-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Ảnh đối chiếu" class="w-full h-auto max-h-[60vh] object-contain">
 
       </div>
 
@@ -3997,7 +3997,7 @@
 
 
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.25"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.27"></script>
   <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.4"></script>
 
   <!-- ============================================================== -->

@@ -4,6 +4,7 @@ import json
 import time
 import re
 import logging
+import unicodedata
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -19,6 +20,22 @@ from core.reconciliation_service import reconcile_parallel_results, extract_sche
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
 from core.interpretation_service import generate_clinical_interpretation
+
+
+_MEDICATION_TOTAL = re.compile(
+    r"\b(?:cong\s*khoan|tong\s*so\s*khoan)[ \t]*[:.;]?[ \t]*(?:\|[ \t]*)?([1-9][0-9]{0,2})"
+    r"(?![ \t]*(?:\|[ \t]*)?(?:vien|goi|ong|chai|lo|hop|tuyp|ml)\b)"
+    r"(?=[ \t]*(?:khoan\b|[|\r\n]|$))",
+    re.IGNORECASE,
+)
+
+
+def _ocr_medication_totals(text: str) -> set[int]:
+    """Read explicit totals for prescription entries, excluding dispensed quantities."""
+    folded = "".join(char for char in unicodedata.normalize("NFD", text)
+                     if not unicodedata.combining(char))
+    return {int(match) for match in _MEDICATION_TOTAL.findall(folded)}
+
 
 def _ocr_variant_score(result: Dict[str, Any], doc_type: str) -> float:
     """Prefer the image pass that exposes actual table rows, not just more noise."""
@@ -59,10 +76,6 @@ def _ocr_needs_second_pass(result: Dict[str, Any], doc_type_hint: str) -> bool:
         parsed = extract_schema_from_ocr(result, doc_type=kind)
         key = "medications" if kind == "prescription" else "metrics"
         if parsed.get(key):
-            if kind == "prescription":
-                expected = re.search(r"(?:cộng|cong)\s*(?:khoản|khoan)\s*[:.]?\s*(\d+)", text, re.IGNORECASE)
-                if expected and len(parsed[key]) < int(expected.group(1)):
-                    continue
             return False
     return True
 
@@ -242,9 +255,11 @@ def process_medical_document_pipeline(
     # Geometric correction and resizing can erase small text. Keep an
     # independent reading of the original image for comparison.
     original_image_path = embedded_img_path if is_pdf and embedded_img_path else file_path
-    if (not mask_pii and original_image_path != active_image_path
-            and _ocr_needs_second_pass(ocr_result, doc_type_hint)
-            and os.path.splitext(original_image_path)[1].lower() != ".pdf"):
+    can_read_original = (
+        not mask_pii and original_image_path != active_image_path
+        and os.path.splitext(original_image_path)[1].lower() != ".pdf"
+    )
+    if can_read_original and _ocr_needs_second_pass(ocr_result, doc_type_hint):
         original_ocr = extract_ocr_parallel(original_image_path, doc_type=doc_type_hint)
         ocr_candidates.append((original_image_path, original_ocr))
 
@@ -266,16 +281,19 @@ def process_medical_document_pipeline(
         )
         doc_type = "lab_test" if (lab_score >= 3 and lab_score > rx_score) else "prescription"
 
-    selected_ocr_path, ocr_result = max(
-        ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
-    )
+    selected_ocr_path, ocr_result = ocr_candidates[0]
+    if len(ocr_candidates) > 1:
+        selected_ocr_path, ocr_result = max(
+            ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
+        )
 
     # 2.B: Gemini Schema extraction (Cơ chế ảnh toàn trang + ảnh cắt phóng to LANCZOS)
     crop_image_path = None
     if doc_type in ("prescription", "auto"):
         try:
             from core.prescription_crop_service import crop_and_upscale_medication_region
-            crop_image_path = crop_and_upscale_medication_region(active_image_path, ocr_result)
+            # The selected rows use coordinates from the image they were read from.
+            crop_image_path = crop_and_upscale_medication_region(selected_ocr_path, ocr_result)
         except Exception as e:
             logger.warning("Lỗi cắt phóng to vùng thuốc: %s", e)
             crop_image_path = None
@@ -284,7 +302,6 @@ def process_medical_document_pipeline(
         active_image_path,
         doc_type=doc_type,
         crop_image_path=crop_image_path,
-        ocr_result=ocr_result if selected_ocr_path == active_image_path else None,
     )
     if not isinstance(gemini_data, dict):
         gemini_data = None
@@ -292,8 +309,7 @@ def process_medical_document_pipeline(
         gemini_data = extract_with_gemini_schema(
             selected_ocr_path,
             doc_type=doc_type,
-            crop_image_path=None,
-            ocr_result=ocr_result
+            crop_image_path=crop_image_path,
         )
         if not isinstance(gemini_data, dict):
             gemini_data = None
@@ -301,17 +317,20 @@ def process_medical_document_pipeline(
     model_doc_type = gemini_data.get("doc_type") if gemini_data else None
     if model_doc_type in ("prescription", "lab_test") and model_doc_type != doc_type:
         doc_type = model_doc_type
-        selected_ocr_path, ocr_result = max(
-            ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
-        )
+        if len(ocr_candidates) > 1:
+            selected_ocr_path, ocr_result = max(
+                ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
+            )
 
     if not gemini_data:
         # Nếu Vision API bận/429 -> thử chuẩn hóa text EasyOCR qua Groq LLM trước khi fallback regex
         gemini_data = _structure_ocr_text_with_groq(ocr_result, doc_type=doc_type)
-        if not gemini_data:
-            gemini_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
-    else:
+    model_data = gemini_data or {}
+    if not gemini_data:
+        gemini_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+    elif gemini_succeeded:
         # Nếu Gemini chạy được nhưng có trường bị khuyết, bổ sung từ OCR
+        gemini_data = dict(model_data)
         ocr_fallback = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
         for hf in HEADER_FIELDS:
             if not gemini_data.get(hf) and ocr_fallback.get(hf):
@@ -329,6 +348,28 @@ def process_medical_document_pipeline(
     reconciled = reconcile_parallel_results(ocr_result, gemini_data, doc_type=doc_type)
 
     key = "metrics" if doc_type == "lab_test" else "medications"
+    totals = set()
+    if key == "medications":
+        totals = _ocr_medication_totals("\n".join(
+            str(candidate.get("raw_text") or "") for _, candidate in ocr_candidates
+        ) + ("\n" + pdf_text if is_pdf else ""))
+        if len(totals) == 1:
+            expected = next(iter(totals))
+            count = len(reconciled.get(key, []))
+            # Give Vision a chance to resolve noisy rows before repeating local OCR.
+            if count < expected and can_read_original and len(ocr_candidates) == 1:
+                original_ocr = extract_ocr_parallel(original_image_path, doc_type=doc_type_hint)
+                ocr_candidates.append((original_image_path, original_ocr))
+                totals.update(_ocr_medication_totals(str(original_ocr.get("raw_text") or "")))
+            if count != expected and totals == {expected}:
+                for path, candidate in ocr_candidates:
+                    if path == selected_ocr_path or not candidate.get("success", True):
+                        continue
+                    alternative = reconcile_parallel_results(candidate, model_data, doc_type=doc_type)
+                    alternative_count = len(alternative.get(key, []))
+                    if alternative_count == expected or count < alternative_count < expected:
+                        selected_ocr_path, ocr_result, reconciled = path, candidate, alternative
+                        break
     fields = REVIEW_FIELDS[key]
     draft = {field: reconciled.get(field) or "" for field in HEADER_FIELDS}
     draft[key] = []
@@ -358,6 +399,20 @@ def process_medical_document_pipeline(
         extraction_warning = (
             "Tên thuốc chưa được OCR xác nhận trên ảnh. Hãy đối chiếu từng dòng với phiếu gốc trước khi lưu."
         )
+    medication_count_mismatch = False
+    if key == "medications":
+        count = len(draft[key])
+        if totals and totals != {count}:
+            medication_count_mismatch = True
+            if len(totals) == 1:
+                expected = next(iter(totals))
+                count_warning = f"Đọc được {count} dòng thuốc. Đơn ghi tổng cộng {expected} dòng."
+            else:
+                count_warning = "OCR đọc được các giá trị tổng số dòng thuốc khác nhau trên đơn."
+            extraction_warning = (
+                f"{count_warning} Hãy đối chiếu số dòng với đơn gốc trước khi lưu."
+                + (f" {extraction_warning}" if extraction_warning else "")
+            )
     boxes = []
     normalize_points = None
     if (selected_ocr_path == active_image_path and prep_res.get("to_original")
@@ -412,6 +467,7 @@ def process_medical_document_pipeline(
         "boxes": boxes,
         "header_alternatives": reconciled.get("header_alternatives", {}),
         "extraction_warning": extraction_warning,
+        "medication_count_mismatch": medication_count_mismatch,
         "review_schema_version": 3,
         "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
         "requires_user_confirmation": True

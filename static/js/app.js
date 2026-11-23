@@ -5178,17 +5178,18 @@ async function handlePrescriptionFileSelected(e) {
 
     if (!res.ok) {
       if (res.status === 401) {
-        showMedicalToast('Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.', 'warning', 4500);
+        renderPrescriptionError({ message: 'Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.' });
         openLoginModal();
       } else {
-        showMedicalToast(extractApiErrorMessage(data, 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.'), 'error');
+        renderPrescriptionError({
+          message: extractApiErrorMessage(data, 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.')
+        });
       }
       return;
     }
 
     if (data.status === 'blocked' || data.status === 'failed' || data.status === 'rejected' || data.status === 'error') {
       renderPrescriptionError(data);
-      showMedicalToast(extractApiErrorMessage(data, 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.'), 'error', 5000);
       return;
     }
 
@@ -5200,13 +5201,23 @@ async function handlePrescriptionFileSelected(e) {
 
     currentPrescriptionData = data;
 
-    // Chuyển tới màn hình dò lại & đối chiếu OCR cho người dùng kiểm tra trước
+    const medications = data.data?.medications ?? data.medications;
+    const hasRecoveredMedication = Array.isArray(medications) && medications.some(
+      row => row?.needs_review === true && row.raw_ocr_name && row.anchor_evidence_text
+    );
+    if (data.document_id && (data.medication_count_mismatch === true || hasRecoveredMedication)) {
+      renderOcrReview(data, file);
+      return;
+    }
+
     renderPrescriptionVerification(data);
     showMedicalToast('Đã detect thông tin đơn thuốc: Quý vị vui lòng dò lại và bấm "Xác nhận đúng" để xem lịch uống.', 'info', 5000);
   } catch (err) {
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
-    showMedicalToast('Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.', 'error');
+    renderPrescriptionError({
+      message: 'Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng chọn lại ảnh hoặc thử lại sau.'
+    });
   }
 }
 
@@ -5217,8 +5228,10 @@ function renderOcrReview(draft, file) {
 
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
+  const verifySec = document.getElementById('prescription-verify-section');
   if (inputSec) inputSec.classList.add('hidden');
   if (histSec) histSec.classList.add('hidden');
+  if (verifySec) verifySec.classList.add('hidden');
 
   const layout = document.createElement('div');
   layout.className = 'grid gap-6 lg:grid-cols-12 items-start';
@@ -5340,7 +5353,7 @@ function renderOcrReview(draft, file) {
   const header = document.createElement('fieldset');
   header.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3 border-b border-slate-100 dark:border-slate-800';
   form.append(header);
-  const dData = draft.data || {};
+  const dData = draft.data || draft;
   for (const key of ['patient_name', 'dob', 'age', 'gender', 'doctor', 'facility', 'date', 'diagnosis']) {
     field(header, key, dData[key], false, draft.header_alternatives?.[key] || []);
   }
@@ -5368,7 +5381,7 @@ function renderOcrReview(draft, file) {
     const count = rows.children.length;
     const warning = typeof draft.extraction_warning === 'string' ? draft.extraction_warning.trim() : '';
     const guidance = count
-      ? `Đã nhận diện ${count} ${itemName}. Bạn có thể sửa chữ đọc sai, xóa dòng thừa hoặc thêm dòng còn thiếu trước khi xác nhận.`
+      ? `Bảng đối chiếu hiện có ${count} ${itemName}. Bạn có thể sửa chữ đọc sai, xóa dòng thừa hoặc thêm dòng còn thiếu trước khi xác nhận.`
       : `Chưa đọc được ${itemName} nào. Hãy đối chiếu ảnh gốc và thêm dòng thủ công trước khi xác nhận.`;
     reviewGuidance.textContent = warning
       ? (count ? `${warning} ${guidance}` : warning)
@@ -5444,7 +5457,8 @@ function renderOcrReview(draft, file) {
       row.append(optional);
     }
   }
-  const rowsData = Array.isArray(dData[key]) ? dData[key] : [];
+  const draftRows = dData[key] ?? draft[key];
+  const rowsData = Array.isArray(draftRows) ? draftRows : [];
   rowsData.forEach(item => addRow(item));
   updateReviewGuidance();
 
@@ -5509,7 +5523,7 @@ function renderPrescriptionError(data) {
   if (verifySec) verifySec.classList.add('hidden');
   if (!resSec) return;
   const msg = data.message || 'Không thể nhận diện nội dung từ hình ảnh đã tải lên.';
-  const previewLines = data.raw_ocr_preview && data.raw_ocr_preview.length > 0
+  const previewLines = Array.isArray(data.raw_ocr_preview) && data.raw_ocr_preview.length > 0
     ? `<div class="mt-3 p-3 rounded-xl bg-white/5 border border-white/10 text-left font-mono text-[11px] text-slate-300 space-y-1">
         <div class="font-bold text-slate-400 mb-1">Đoạn văn bản máy nhận diện được:</div>
         ${data.raw_ocr_preview.map(l => `<div>• ${escapeHtml(l)}</div>`).join('')}
@@ -5517,9 +5531,9 @@ function renderPrescriptionError(data) {
     : '';
 
   resSec.innerHTML = `
-    <div class="glass-panel p-6 border border-rose-500/30 bg-rose-950/20 backdrop-blur-2xl space-y-4 text-center">
+    <div role="alert" class="glass-panel p-6 border border-rose-500/30 bg-rose-950/20 backdrop-blur-2xl space-y-4 text-center">
       <div class="w-12 h-12 mx-auto rounded-full bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-rose-300 text-xl font-bold">⚠️</div>
-      <h3 class="text-lg font-black text-white">Chưa thể đọc rõ nội dung đơn thuốc</h3>
+      <h3 class="text-lg font-black text-white">Không thể xử lý đơn thuốc</h3>
       <p class="text-xs text-rose-200 max-w-md mx-auto leading-relaxed">${escapeHtml(msg)}</p>
       ${previewLines}
       <div class="pt-2 flex justify-center gap-3">
@@ -6007,6 +6021,7 @@ function renderPrescriptionVerification(data) {
   }
 
   const meds = (data.medications && data.medications.length > 0) ? data.medications : (data.data?.medications || []);
+  const extractionWarning = String(data.extraction_warning ?? '').trim();
   const fileName = data.uploaded_filename || 'DonThuoc_Goc.jpg';
   const scanAcc = (data.ocr_metrics?.avg_confidence != null && !isNaN(data.ocr_metrics.avg_confidence))
     ? Math.round(data.ocr_metrics.avg_confidence * 100) : null;
@@ -6126,19 +6141,22 @@ function renderPrescriptionVerification(data) {
                 <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 2. Danh Mục Thuốc Detect Được (${meds.length} loại thuốc)
               </h4>
-              <span class="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
-                ✓ Đã phân tích liều
-              </span>
             </div>
+
+            ${extractionWarning ? `
+              <p role="status" class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                ${escapeHtml(extractionWarning)}
+              </p>
+            ` : ''}
 
             <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
               ${meds.map((m, idx) => {
     const numStr = (idx + 1).toString().padStart(2, '0');
     const strength = m.strength ? `(${m.strength})` : '';
-    const dose = m.dose || '1 viên';
-    const freq = m.frequency || '2 lần/ngày';
-    const days = m.days || 'Theo đơn';
-    const isNeedsReview = m.needs_review;
+    const dose = String(m.dose ?? '').trim();
+    const freq = String(m.frequency ?? '').trim();
+    const days = String(m.quantity || m.days || '').trim();
+    const isNeedsReview = m.needs_review || !dose || !freq;
 
     return `
                   <div class="p-3 rounded-xl border ${isNeedsReview ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]'} transition-all space-y-1.5 text-xs">
@@ -6151,25 +6169,19 @@ function renderPrescriptionVerification(data) {
                         </div>
                       </div>
 
-                      <div>
-                        ${isNeedsReview ? `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                            ⚠️ Cần kiểm tra liều
-                          </span>
-                        ` : `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ Khớp OCR 100%
-                          </span>
-                        `}
-                      </div>
+                      ${isNeedsReview ? `
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                          ⚠️ Cần kiểm tra liều
+                        </span>
+                      ` : ''}
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 pt-1">
                       <div>
-                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> <strong>${escapeHtml(dose)} / lần</strong> • ${escapeHtml(freq)}
+                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> <strong>${dose ? `${escapeHtml(dose)} / lần` : 'Chưa đọc được'}</strong> • ${escapeHtml(freq || 'Chưa đọc được')}
                       </div>
                       <div>
-                        <span class="text-slate-400">Tổng cấp:</span> <strong>${escapeHtml(days)}</strong>
+                        <span class="text-slate-400">Tổng cấp:</span> <strong>${escapeHtml(days || 'Chưa đọc được')}</strong>
                       </div>
                       <div class="sm:col-span-2 text-slate-500 dark:text-slate-400">
                         <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng &amp; lưu ý:</span> ${escapeHtml(m.purpose || m.category || 'Thuốc điều trị')} • ${escapeHtml(m.usage || 'Uống theo chỉ dẫn')}
@@ -7259,19 +7271,24 @@ async function buildAllNotifications() {
 
   // 1. Build Appointment Notifications (real appointments only — never inject fake demo rows)
   let appts = [];
-  try {
-    const res = await fetch('/api/appointments');
-    if (res.ok) {
-      const data = await res.json();
-      appts = Array.isArray(data.appointments) ? data.appointments : [];
-      cachedUserAppointments = appts;
-    } else if (res.status === 401 || res.status === 403) {
-      cachedUserAppointments = [];
-      appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
-    } else {
+  if (currentUser && !currentUser.isDemo) {
+    try {
+      const res = await fetch('/api/appointments');
+      if (res.ok) {
+        const data = await res.json();
+        appts = Array.isArray(data.appointments) ? data.appointments : [];
+        cachedUserAppointments = appts;
+      } else if (res.status === 401 || res.status === 403) {
+        cachedUserAppointments = [];
+        appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+      } else {
+        appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+      }
+    } catch (_) {
       appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
     }
-  } catch (_) {
+  } else {
+    // Guest/demo mode: read local appointments directly without triggering 401 network error
     appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
   }
 
@@ -7664,24 +7681,32 @@ async function loadUserAppointments() {
   if (gridEl) gridEl.innerHTML = '';
 
   let appts = [];
-  try {
-    const res = await fetch('/api/appointments');
-    if (res.ok) {
-      const data = await res.json();
-      appts = data.appointments || [];
-      cachedUserAppointments = appts;
-    } else {
+  if (currentUser && !currentUser.isDemo) {
+    try {
+      const res = await fetch('/api/appointments');
+      if (res.ok) {
+        const data = await res.json();
+        appts = data.appointments || [];
+        cachedUserAppointments = appts;
+      } else {
+        appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+        cachedUserAppointments = appts;
+      }
+    } catch (err) {
+      console.warn('Lỗi nạp lịch hẹn:', err);
       appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
       cachedUserAppointments = appts;
     }
-  } catch (err) {
-    console.warn('Lỗi nạp lịch hẹn:', err);
+  } else {
+    // Guest or demo mode: read local guest appointments without 401 request
     appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+    if (appts.length === 0 && cachedUserAppointments && cachedUserAppointments.length > 0) {
+      appts = cachedUserAppointments;
+    }
     cachedUserAppointments = appts;
-  } finally {
-    if (loadingEl) loadingEl.classList.add('hidden');
   }
 
+  if (loadingEl) loadingEl.classList.add('hidden');
   renderUserAppointmentsGrid(appts);
   refreshNotificationEngine();
 }
@@ -7762,23 +7787,35 @@ function renderUserAppointmentsGrid(appts) {
 
 async function deleteUserAppointment(apptId) {
   if (!confirm('Bạn có chắc chắn muốn hủy phiếu đặt hẹn khám này không?')) return;
-  try {
-    const res = await fetch(`/api/appointments/${apptId}`, { method: 'DELETE' });
-    if (res.ok) {
-      showMedicalToast('Đã hủy lịch hẹn thành công.', 'success');
-      loadUserAppointments();
-      return;
+  if (currentUser && !currentUser.isDemo && typeof apptId === 'number' && apptId < 900000) {
+    try {
+      const res = await fetch(`/api/appointments/${apptId}`, { method: 'DELETE' });
+      if (res.ok) {
+        showMedicalToast('Đã hủy lịch hẹn thành công.', 'success');
+        loadUserAppointments();
+        return;
+      }
+    } catch (err) {
+      console.warn('Lỗi kết nối hủy lịch hẹn:', err);
     }
-  } catch (err) {
-    console.warn('Lỗi kết nối hủy lịch hẹn:', err);
   }
 
-  // Fallback for guest appointments
+  // Fallback for guest or demo appointments
   let guestAppts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
   guestAppts = guestAppts.filter(a => a.id != apptId);
   localStorage.setItem('medimind_guest_appointments', JSON.stringify(guestAppts));
+  cachedUserAppointments = (cachedUserAppointments || []).filter(a => a.id != apptId);
+
+  // Mark appt in readNotifs so it doesn't reappear in notifications
+  const readNotifs = getReadNotifsStore();
+  if (!readNotifs.includes(`appt_${apptId}`)) {
+    readNotifs.push(`appt_${apptId}`);
+    saveReadNotifsStore(readNotifs);
+  }
+
   showMedicalToast('Đã hủy lịch hẹn.', 'success');
   loadUserAppointments();
+  refreshNotificationEngine();
 }
 
 function viewAppointmentIntakeSummary(apptId) {

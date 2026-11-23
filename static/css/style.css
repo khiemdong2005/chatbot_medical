@@ -739,6 +739,7 @@ body:not(.light-glass) #profile-modal select option {
   font-weight: 500;
   box-shadow: none !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  color-scheme: dark !important;
 }
 
 #login-modal.auth-4exam-shell .auth-4e-input::placeholder {
@@ -760,14 +761,27 @@ body:not(.light-glass) #profile-modal select option {
 .auth-4e-input:-webkit-autofill,
 .auth-4e-input:-webkit-autofill:hover,
 .auth-4e-input:-webkit-autofill:focus,
-.auth-4e-input:-webkit-autofill:active {
+.auth-4e-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+input:autofill,
+input:autofill:hover,
+input:autofill:focus,
+input:autofill:active,
+textarea:-webkit-autofill,
+textarea:autofill,
+select:-webkit-autofill,
+select:autofill {
   -webkit-box-shadow: 0 0 0 1000px #091a32 inset !important;
   box-shadow: 0 0 0 1000px #091a32 inset !important;
   -webkit-text-fill-color: #ffffff !important;
   color: #ffffff !important;
-  caret-color: #ffffff !important;
-  border-color: rgba(56, 189, 248, 0.5) !important;
-  transition: background-color 5000s ease-in-out 0s !important;
+  caret-color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+  color-scheme: dark !important;
 }
 
 #login-modal.auth-4exam-shell .auth-4e-google-btn {

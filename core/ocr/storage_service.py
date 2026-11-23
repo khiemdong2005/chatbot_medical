@@ -5,7 +5,6 @@ import base64
 import zipfile
 from pathlib import Path
 from typing import Tuple, Optional, Dict, Any
-from werkzeug.utils import secure_filename
 from PIL import Image
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "doc"}
@@ -132,14 +131,13 @@ def process_secure_upload(file_obj, upload_folder: str) -> Tuple[bool, Dict[str,
         return False, {}, "Chưa chọn tệp hoặc tệp không hợp lệ."
 
     original_name = os.path.basename(file_obj.filename).strip()
-    safe_client_name = secure_filename(original_name)
-    if not safe_client_name:
-        safe_client_name = f"upload_{uuid.uuid4().hex[:8]}.png"
-
-    if "." not in safe_client_name:
+    # The upload is stored under a UUID. Read the suffix before any lossy
+    # filename conversion, which can erase a stem made entirely of Unicode.
+    suffix = Path(original_name).suffix
+    if not suffix:
         return False, {}, "Tệp không có phần mở rộng hợp lệ."
 
-    ext = safe_client_name.rsplit(".", 1)[-1].lower()
+    ext = suffix[1:].lower()
     if ext not in ALLOWED_EXTENSIONS:
         return False, {}, f"Định dạng '.{ext}' không được hỗ trợ. Vui lòng chọn JPG, PNG, PDF hoặc DOCX."
 

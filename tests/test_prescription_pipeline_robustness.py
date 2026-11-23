@@ -1,5 +1,6 @@
 """The scan should recover small type from the original when preprocessing loses it."""
 
+import pytest
 from PIL import Image
 
 import core.pipeline_orchestrator as pipe
@@ -28,6 +29,8 @@ def _setup_images(tmp_path, monkeypatch):
 
 
 def test_scan_uses_original_image_when_processed_ocr_loses_drug_row(tmp_path, monkeypatch):
+    from core import prescription_crop_service
+
     original, processed = _setup_images(tmp_path, monkeypatch)
     scans = {
         str(processed): _ocr("ĐƠN THUỐC", "Họ tên: TRẦN BÌNH"),
@@ -37,11 +40,15 @@ def test_scan_uses_original_image_when_processed_ocr_loses_drug_row(tmp_path, mo
     calls = []
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: (
         calls.append(path) or scans[path]))
+    crop_sources = []
+    monkeypatch.setattr(prescription_crop_service, "crop_and_upscale_medication_region",
+                        lambda path, ocr: crop_sources.append((path, ocr)))
     monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
 
     result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
 
     assert calls == [str(processed), str(original)]
+    assert crop_sources == [(str(original), scans[str(original)])]
     assert [item["name"] for item in result["data"]["medications"]] == ["Febuxostat"]
     assert result["boxes"][0]["points"][0] == [10 / 400, 10 / 600]
 
@@ -49,16 +56,72 @@ def test_scan_uses_original_image_when_processed_ocr_loses_drug_row(tmp_path, mo
 def test_clear_processed_ocr_does_not_repeat_expensive_pass(tmp_path, monkeypatch):
     original, processed = _setup_images(tmp_path, monkeypatch)
     good = _ocr("ĐƠN THUỐC", "Họ tên: TRẦN BÌNH", "Chẩn đoán: Gút",
-                "1. Febuxostat 40mg | 21 Viên", "Cộng khoản: 1")
+                "1. Amlodipine 5mg | 7 Viên",
+                "2. Metformin 500mg | 14 Viên | Hẹn tái khám ngày 01/10",
+                "Cộng khoản: 2")
     calls = []
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: (
         calls.append(path) or good))
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    vision_calls = []
+    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda path, **kw: (
+        vision_calls.append(path) or {"doc_type": "prescription", "medications": []}))
 
     result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
 
     assert calls == [str(processed)]
-    assert len(result["data"]["medications"]) == 1
+    assert vision_calls == [str(processed)]
+    assert [row["name"] for row in result["data"]["medications"]] == ["Amlodipine", "Metformin"]
+    assert result["medication_count_mismatch"] is False
+
+
+@pytest.mark.parametrize("printed_total", ["Tổng số khoản: | 2", "Cộng khoản; 2"])
+def test_scan_warns_when_reconciled_medication_count_disagrees_with_printed_total(tmp_path, monkeypatch, printed_total):
+    original, processed = _setup_images(tmp_path, monkeypatch)
+    scans = {
+        str(processed): _ocr("ĐƠN THUỐC", "Chẩn đoán: đau họng",
+                            "1. Febuxostat 40mg | 21 Viên", printed_total),
+        str(original): _ocr("ĐƠN THUỐC", "Chẩn đoán: đau họng", "1. Febuxostat 40mg | 21 Viên"),
+    }
+    monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: scans[path])
+    vision_calls = []
+    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda path, **kw: (
+        vision_calls.append(path) or {"doc_type": "prescription", "medications": []}))
+
+    result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
+
+    assert result["medication_count_mismatch"] is True
+    assert "Đọc được 1 dòng thuốc. Đơn ghi tổng cộng 2 dòng." in result["extraction_warning"]
+    assert [row["name"] for row in result["medications"]] == ["Febuxostat"]
+    assert vision_calls == [str(processed)]
+
+
+def test_missing_row_retry_runs_after_vision_and_uses_same_result(tmp_path, monkeypatch):
+    original, processed = _setup_images(tmp_path, monkeypatch)
+    partial_rows = (
+        "ĐƠN THUỐC", "Họ tên: TRẦN BÌNH", "Chẩn đoán: Gút",
+        "1. Amlodipine 5mg | 7 Viên",
+    )
+    scans = {
+        str(processed): _ocr(*partial_rows, "Cộng khoản; 2"),
+        str(original): _ocr(*partial_rows, "2. Metformin 500mg | 14 Viên", "Cộng khoản: 2"),
+    }
+    calls = []
+    monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: (
+        calls.append(("ocr", path)) or scans[path]))
+    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda path, **kw: (
+        calls.append(("vision", path)) or {"doc_type": "prescription", "medications": []}))
+
+    result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
+
+    assert calls == [("ocr", str(processed)), ("vision", str(processed)), ("ocr", str(original))]
+    assert [row["name"] for row in result["data"]["medications"]] == ["Amlodipine", "Metformin"]
+    assert result["medication_count_mismatch"] is False
+
+
+def test_ocr_medication_total_excludes_dispensed_quantities():
+    assert pipe._ocr_medication_totals(
+        "Tổng cộng: 21 viên\nCộng khoản: 1.000\nCộng khoản; 5 | Viên"
+    ) == set()
 
 
 def test_masked_scan_does_not_send_unmasked_original_to_model(tmp_path, monkeypatch):
