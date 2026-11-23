@@ -5398,15 +5398,6 @@ async function handlePrescriptionFileSelected(e) {
 
     currentPrescriptionData = data;
 
-    const medications = data.data?.medications ?? data.medications;
-    const hasRecoveredMedication = Array.isArray(medications) && medications.some(
-      row => row?.needs_review === true && row.raw_ocr_name && row.anchor_evidence_text
-    );
-    if (data.document_id && (data.medication_count_mismatch === true || hasRecoveredMedication)) {
-      renderOcrReview(data, file);
-      return;
-    }
-
     renderPrescriptionVerification(data);
     showMedicalToast('Đã detect thông tin đơn thuốc: Quý vị vui lòng dò lại và bấm "Xác nhận đúng" để xem lịch uống.', 'info', 5000);
   } catch (err) {
@@ -5615,31 +5606,16 @@ function renderOcrReview(draft, file) {
       reviewWarning.textContent = 'Dòng này có chữ chưa chắc chắn. Hãy đối chiếu ảnh gốc và sửa nếu cần.';
       row.append(reviewWarning);
     }
-    if (data.raw_ocr_name && data.raw_ocr_name !== data.name) {
-      const originalReading = document.createElement('p');
-      originalReading.className = 'text-[11px] text-slate-600 dark:text-slate-300';
-      originalReading.textContent = `OCR đọc: ${data.raw_ocr_name}. Hãy so với tên thuốc trên ảnh gốc.`;
-      row.append(originalReading);
-    }
-    if (data.raw_ocr_strength && data.raw_ocr_strength !== data.strength) {
-      const originalStrength = document.createElement('p');
-      originalStrength.className = 'text-[11px] text-slate-600 dark:text-slate-300';
-      originalStrength.textContent = `OCR đọc hàm lượng: ${data.raw_ocr_strength}. Hãy kiểm tra con số trên ảnh gốc.`;
-      row.append(originalStrength);
-    }
-    if (data.anchor_evidence_text) {
-      const anchorEvidence = document.createElement('p');
-      anchorEvidence.className = 'text-[11px] text-sky-700 dark:text-sky-300';
-      anchorEvidence.textContent = `Dòng OCR đối chiếu: ${data.anchor_evidence_text}. Bấm vào tên thuốc để xem vị trí trên ảnh.`;
-      row.append(anchorEvidence);
-    }
 
     const rowGrid = document.createElement('div');
     rowGrid.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5';
     row.append(rowGrid);
     const visibleKeys = keys.filter(k => k === keys[0] || String(data[k] ?? '').trim());
     const missingKeys = keys.filter(k => !visibleKeys.includes(k));
-    for (const k of visibleKeys) field(rowGrid, k, data[k], k === keys[0], [], k === 'name' ? data.anchor_points : null);
+    for (const k of visibleKeys) {
+      const val = (k === 'name' ? (data.standard_name || data.name) : data[k]) ?? '';
+      field(rowGrid, k, val, k === keys[0], [], k === 'name' ? data.anchor_points : null);
+    }
     if (missingKeys.length) {
       const optional = document.createElement('details');
       optional.className = 'rounded-lg border border-dashed border-slate-200 px-3 py-2 dark:border-slate-700';
@@ -5650,7 +5626,10 @@ function renderOcrReview(draft, file) {
       const extraGrid = document.createElement('div');
       extraGrid.className = 'mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5';
       optional.append(extraGrid);
-      for (const k of missingKeys) field(extraGrid, k, data[k]);
+      for (const k of missingKeys) {
+        const val = (k === 'name' ? (data.standard_name || data.name) : data[k]) ?? '';
+        field(extraGrid, k, val);
+      }
       row.append(optional);
     }
   }
@@ -5708,6 +5687,7 @@ function renderOcrReview(draft, file) {
       currentPrescriptionData = result;
       renderPrescriptionResult(result);
       loadPrescriptionHistory();
+      refreshNotificationEngine();
     } catch (error) { showMedicalToast(error.message, 'error'); }
     finally { save.disabled = false; }
   };
@@ -5931,8 +5911,6 @@ function resetPrescriptionScan() {
 // ==============================================================================
 // LỊCH SỬ ĐƠN THUỐC & PHIẾU XÉT NGHIỆM ĐÃ IMPORT (DATA NGƯỜI DÙNG)
 // ==============================================================================
-let cachedPrescriptionHistory = [];
-
 async function loadPrescriptionHistory() {
   const listEl = document.getElementById('prescription-history-list');
   const emptyEl = document.getElementById('prescription-history-empty');
@@ -5960,7 +5938,6 @@ async function loadPrescriptionHistory() {
 
     const data = await res.json();
     const history = data.history || [];
-    cachedPrescriptionHistory = history;
 
     if (countBadge) countBadge.innerText = (typeof currentLang !== 'undefined' && currentLang === 'en') ? `${history.length} records` : `${history.length} hồ sơ`;
 
@@ -6128,6 +6105,7 @@ async function deletePrescriptionHistoryItem(docId, e) {
     if (data.status === 'success') {
       showMedicalToast('Đã xóa thành công đơn thuốc khỏi lịch sử hồ sơ.', 'success', 3000);
       await loadPrescriptionHistory();
+      refreshNotificationEngine();
     } else {
       showMedicalToast(data.message || 'Không thể xóa đơn thuốc.', 'error');
     }
@@ -6380,11 +6358,6 @@ function renderPrescriptionVerification(data) {
                       <div class="sm:col-span-2 text-slate-500 dark:text-slate-400">
                         <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng &amp; lưu ý:</span> ${escapeHtml(m.purpose || m.category || 'Thuốc điều trị')} • ${escapeHtml(m.usage || 'Uống theo chỉ dẫn')}
                       </div>
-                      ${m.ocr_matched_text ? `
-                        <div class="sm:col-span-2 text-[10px] font-mono text-slate-400 bg-white/40 dark:bg-black/20 p-1.5 rounded">
-                          Dòng OCR đọc được: "${escapeHtml(m.ocr_matched_text)}"
-                        </div>
-                      ` : ''}
                     </div>
                   </div>
                 `;
@@ -6519,50 +6492,16 @@ function renderPrescriptionResult(data) {
   if (!resSec) return;
 
   const isLab = data.type === 'lab_test' || data.doc_type === 'lab_test';
-  const diag = escapeHtml(String(data.diagnosis || 'Chăm sóc & Điều trị'));
-  const doctor = escapeHtml(String(data.doctor || 'BS. Chuyên khoa'));
-  const patient = escapeHtml(String(data.patient_name || 'Bệnh nhân'));
-  const facility = escapeHtml(String(data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế'));
-  const dateStr = escapeHtml(String(data.date || 'Hôm nay'));
   const duration = data.duration ? escapeHtml(String(data.duration)) : 'Theo chỉ định';
-  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
-  const rawAge = (data.age || data.data?.age || '').toString().trim();
-  const rawGender = escapeHtml((data.gender || data.data?.gender || 'Nam').toString().trim());
-  const currentYear = new Date().getFullYear();
-
-  // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
-  let displayBirthInfo = '';
-  let displayAge = '';
-
-  const yearMatch = rawDob.match(/(19\d{2}|20\d{2})/);
-  if (yearMatch) {
-    const birthYear = parseInt(yearMatch[1], 10);
-    const calculatedAge = currentYear - birthYear;
-    const fullDateMatch = rawDob.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/);
-    if (fullDateMatch) {
-      displayBirthInfo = escapeHtml(fullDateMatch[1]);
-    } else {
-      displayBirthInfo = escapeHtml(birthYear.toString());
-    }
-    displayAge = `${calculatedAge} tuổi`;
-  } else if (rawAge && !isNaN(parseInt(rawAge, 10))) {
-    const parsedAge = parseInt(rawAge, 10);
-    displayAge = `${parsedAge} tuổi`;
-    displayBirthInfo = `${currentYear - parsedAge}`;
-  } else if (rawDob) {
-    displayBirthInfo = escapeHtml(rawDob);
-    displayAge = '';
-  } else {
-    displayBirthInfo = 'Chưa xác định';
-    displayAge = '';
-  }
-  const medId = escapeHtml(String(data.document_id ? `#MED-${data.document_id}` : '--'));
   const fileName = escapeHtml(String(data.uploaded_filename || 'Tài liệu y tế'));
   const scanAcc = (data.ocr_metrics?.avg_confidence != null && !isNaN(data.ocr_metrics.avg_confidence))
     ? Math.round(data.ocr_metrics.avg_confidence * 100) : null;
   const icdCode = data.icd10_code || data.icd10 || data.icd_code || null;
 
   if (isLab) {
+    const patient = escapeHtml(String(data.patient_name || 'Bệnh nhân'));
+    const facility = escapeHtml(String(data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế'));
+    const dateStr = escapeHtml(String(data.date || 'Hôm nay'));
     let html = `
       <div class="space-y-4 font-sans select-none text-slate-800 dark:text-slate-100">
         <!-- TOP TOOLBAR -->
@@ -6713,7 +6652,7 @@ function renderPrescriptionResult(data) {
   }
 
   let html = `
-    <div class="space-y-5 font-sans select-none text-slate-800 dark:text-slate-100">
+    <div class="prescription-result space-y-5 font-sans select-none">
 
       <!-- 1. TOP STATUS BAR (Phân loại đơn thuốc bản gốc) -->
       <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
@@ -6746,145 +6685,36 @@ function renderPrescriptionResult(data) {
         </div>
       </div>
 
-      <!-- 2. COMPACT CLINICAL HEADER: THẺ NGANG VỪA VẶN, GỌN GÀNG, KHÔNG DƯ KHOẢNG TRỐNG -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        
-        <!-- CỘT TRÁI (8/12): THÔNG TIN BỆNH NHÂN & NƠI KHÁM GỌN GÀNG -->
-        <div class="lg:col-span-8 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
-          
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex items-start gap-3.5">
-              <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-              </div>
-              <div>
-                <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
-
-                </div>
-                <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${patient}</h3>
-                
-<div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
-                  <span class="inline-flex items-center gap-1">
-                    <span class="text-slate-400 font-normal">Ngày/Năm sinh:</span> <strong class="text-slate-900 font-bold">${displayBirthInfo}</strong>
-                    ${displayAge ? `<span class="px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-bold">(${displayAge})</span>` : ''}
-                  </span>
-                  <span class="text-slate-300">•</span>
-                  <span class="inline-flex items-center gap-1">
-<span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 dark:text-white font-bold">${rawGender}</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="text-right shrink-0">
-              <span class="text-[10px] text-slate-400 uppercase font-bold block">Mã bệnh án</span>
-              <span class="inline-block mt-0.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-950 font-mono font-black text-xs">
-                ${medId}
-              </span>
-            </div>
-          </div>
-
-          <!-- NƠI KHÁM & CHẨN ĐOÁN -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-            <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
-              <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <span class="text-[9px] font-bold text-slate-400 uppercase block">Nơi khám</span>
-                <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${facility}</h4>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
-              <div class="min-w-0">
-                <span class="text-[9px] font-bold text-slate-400 uppercase block">Chẩn đoán</span>
-                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate block">${diag}</span>
-              </div>
-              ${icdCode ? `
-              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 shrink-0">
-                ${escapeHtml(icdCode)}
-              </span>` : ''}
-            </div>
-          </div>
-
-        </div>
-
-        <!-- CỘT PHẢI (4/12): CỐ VẤN LÂM SÀNG MEDIMIND -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-              </div>
-              <div>
-                <h4 class="text-xs font-black text-slate-900 dark:text-white tracking-tight leading-tight">Cố vấn Lâm sàng MediMind</h4>
-                <p class="text-[9px] text-slate-500 dark:text-slate-400">Hướng dẫn đơn thuốc</p>
-              </div>
-            </div>
-            <span class="text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 rounded-full">
-              Active
-            </span>
-          </div>
-
-          <div class="space-y-2 text-xs">
-            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 p-2.5 rounded-xl flex items-start gap-2 text-slate-700 dark:text-slate-200">
-              <span class="text-sky-600 dark:text-sky-400 font-bold text-[11px] shrink-0">1.</span>
-              <p class="text-[11px] leading-tight"><strong class="text-slate-900 dark:text-white font-bold">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
-            </div>
-            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 p-2.5 rounded-xl flex items-start gap-2 text-slate-700 dark:text-slate-200">
-              <span class="text-sky-600 dark:text-sky-400 font-bold text-[11px] shrink-0">2.</span>
-              <p class="text-[11px] leading-tight"><strong class="text-slate-900 dark:text-white font-bold">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
-            </div>
-          </div>
-
-          <button onclick="askBotAboutPrescription()" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm shadow-sky-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-            </svg>
-            <span>Tư vấn đơn thuốc</span>
-          </button>
-        </div>
-
-      </div>
-
-      <!-- 3. GỘP CHUNG 1 BẢN GỒM 2 TAB: "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC TRONG NGÀY" -->
-      <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
+      <!-- 2. GỘP CHUNG 1 BẢN GỒM 2 TAB: "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC TRONG NGÀY" -->
+      <div class="prescription-panel border rounded-2xl shadow-sm overflow-hidden">
         
         <!-- HEADER VỚI 2 TABS NẰM TRONG CÙNG 1 BẢN -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-white/[0.04]/80 border-b border-slate-200/80 gap-3">
+        <div class="prescription-surface flex flex-col xl:flex-row xl:items-center justify-between p-3 sm:p-4 border-b gap-3">
           
-          <div class="flex items-center gap-2 p-1 bg-slate-200/70 rounded-xl w-full sm:w-auto">
+          <div class="prescription-panel flex flex-col sm:flex-row gap-1 p-1 rounded-xl border w-full xl:w-auto">
             <!-- TAB 1: THUỐC TRONG TOA (MẶC ĐỊNH HIỆN ĐẦU TIÊN) -->
-            <button id="btn-subtab-meds" onclick="switchPrescriptionDossierTab('meds')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer">
-              <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <button id="btn-subtab-meds" type="button" aria-pressed="true" aria-controls="pane-prescription-meds" onclick="switchPrescriptionDossierTab('meds')" class="prescription-tab flex-1 xl:flex-none px-3 py-2.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
               <span>Danh mục thuốc trong toa</span>
-              <span class="px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 font-mono text-[10px]">
+              <span class="prescription-tab-count shrink-0 px-2 py-0.5 rounded-full font-mono text-[10px]">
                 0${meds.length}
               </span>
             </button>
 
             <!-- TAB 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
-            <button id="btn-subtab-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer">
-              <svg class="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <button id="btn-subtab-schedule" type="button" aria-pressed="false" aria-controls="pane-prescription-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="prescription-tab flex-1 xl:flex-none px-3 py-2.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span>Lịch uống &amp; Cữ thuốc trong ngày</span>
-              <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 dark:text-slate-200 font-mono text-[10px]">
-                0${activeDoseSlotsCount} cữ
+              <span class="prescription-tab-count shrink-0 px-2 py-0.5 rounded-full font-mono text-[10px] whitespace-nowrap">
+                ${activeDoseSlotsCount} cữ
               </span>
             </button>
           </div>
 
-          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium px-2 flex items-center gap-2">
-            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Điều trị: <strong>${duration}</strong> liên tục</span>
+          <div class="prescription-muted text-[11px] font-medium px-2 flex items-center gap-2">
+            <span><svg class="w-3.5 h-3.5 inline-block align-text-bottom mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Điều trị: <strong class="prescription-value">${duration}</strong> liên tục</span>
             ${icdCode ? `
-            <span class="text-sky-900 font-bold bg-sky-50 dark:bg-sky-500/10 border border-sky-200 px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
+            <span class="prescription-panel prescription-accent font-bold border px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
               ✓ Khớp chuẩn ICD-10 (${escapeHtml(icdCode)})
             </span>` : ''}
           </div>
@@ -6907,7 +6737,17 @@ function renderPrescriptionResult(data) {
     const dose = escapeHtml(String(m.dose || m.dosage || m.lieu || '--'));
     const days = escapeHtml(String(m.days || (m.quantity ? `${m.quantity} ${m.unit || 'viên'}` : 'Chưa rõ số lượng')));
     const strength = m.strength ? `(${escapeHtml(String(m.strength))})` : '';
-    const medQueryName = escapeHtml(String(m.name || m.standard_name || 'thuốc')).replace(/'/g, "\\'");
+    const medQueryName = String(m.standard_name || m.name || '')
+      .replace(/\[KDNT\]/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const medQueryStrength = String(m.strength || '').trim();
+    const hasStrength = medQueryName.toLowerCase().replace(/\s/g, '')
+      .includes(medQueryStrength.toLowerCase().replace(/\s/g, ''));
+    const medQueryLabel = medQueryName && medQueryStrength && !hasStrength
+      ? `${medQueryName} ${medQueryStrength}`
+      : medQueryName;
+    const medQueryAttribute = escapeHtml(medQueryLabel).replace(/"/g, '&quot;');
 
     return `
                 <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
@@ -6942,7 +6782,7 @@ function renderPrescriptionResult(data) {
                       <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
                       <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button onclick="askBotAboutSpecificMedicine('${medQueryName}')" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                    <button type="button" data-medicine="${medQueryAttribute}" onclick="askBotAboutSpecificMedicine(this.dataset.medicine)" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
                       <span>Tư vấn thuốc</span>
                       <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
@@ -6957,9 +6797,7 @@ function renderPrescriptionResult(data) {
         <!-- TAB NỘI DUNG 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
         <!-- ========================================== -->
         <div id="pane-prescription-schedule" class="hidden p-5 space-y-4">
-          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
-            Lộ trình phân bổ <strong>${activeDoseSlotsCount} cữ thuốc trong ngày</strong> theo chuẩn dược động học, đảm bảo hấp thu tối ưu:
-          </div>
+          ${activeDoseSlotsCount === 0 ? '<p class="text-sm text-slate-500 dark:text-slate-400">Chưa có cữ uống theo buổi trong đơn đã đối soát.</p>' : ''}
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${activeSlots.map(s => `
@@ -6971,7 +6809,7 @@ function renderPrescriptionResult(data) {
                     </div>
                     <div>
                       <h5 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide">${s.label}</h5>
-                      <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-semibold">${s.time}</span>
+                      ${data.source_only ? '' : `<span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-semibold">${s.time}</span>`}
                     </div>
                   </div>
                   <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-sky-950 font-mono">
@@ -6984,10 +6822,10 @@ function renderPrescriptionResult(data) {
                     <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
                       <div>
                         <strong class="font-bold text-slate-900 dark:text-white">${escapeHtml(String(it.name || 'Thuốc'))}</strong>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${escapeHtml(it.note || '')}</p>
                       </div>
                       <span class="font-mono font-bold text-sky-950 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 border border-sky-200">
-                        ${it.dose || '--'}
+                        ${escapeHtml(it.dose || '--')}
                       </span>
                     </div>
                   `).join('')}
@@ -6995,19 +6833,20 @@ function renderPrescriptionResult(data) {
               </div>
             `).join('')}
           </div>
+          ${tl.unassigned?.length ? `
+            <div class="space-y-2 text-sm">
+              <h5 class="font-bold">Thuốc chưa xếp theo buổi</h5>
+              <ul class="space-y-1">
+                ${tl.unassigned.map(it => `<li><strong>${escapeHtml(it.name)}</strong> · ${escapeHtml(it.note || 'Đơn chưa ghi tần suất hoặc thời điểm dùng.')}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
         </div>
 
       </div>
 
-      <!-- 4. BOTTOM BAR ACTIONS -->
+      <!-- 3. BOTTOM BAR ACTIONS -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-        <div class="flex items-center gap-2">
-          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-sm shadow-sky-500/20 flex items-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span>Bật nhắc nhở uống thuốc định kỳ</span>
-          </button>
-        </div>
-
         <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs">
           <span>← Quét đơn thuốc khác</span>
         </button>
@@ -7032,19 +6871,11 @@ function switchPrescriptionDossierTab(tabKey) {
 
   if (!btnMeds || !btnSched || !paneMeds || !paneSched) return;
 
-  if (tabKey === 'meds') {
-    // Active meds
-    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
-    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
-    paneMeds.classList.remove('hidden');
-    paneSched.classList.add('hidden');
-  } else {
-    // Active schedule
-    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
-    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
-    paneSched.classList.remove('hidden');
-    paneMeds.classList.add('hidden');
-  }
+  const showMeds = tabKey === 'meds';
+  btnMeds.setAttribute('aria-pressed', String(showMeds));
+  btnSched.setAttribute('aria-pressed', String(!showMeds));
+  paneMeds.classList.toggle('hidden', !showMeds);
+  paneSched.classList.toggle('hidden', showMeds);
 }
 
 
@@ -7274,27 +7105,13 @@ function selectSpecificSlot(slotId) {
   }
 }
 
-function setMedicationReminder() {
-  playMedicalChime();
-  showMedicalToast('Xem thử tính năng nhắc thuốc: Đây là bản minh họa giao diện các cữ uống thuốc trong ngày.', 'info', 4000);
-}
-
-function askBotAboutPrescription() {
-  if (!currentPrescriptionData) return;
-  const diag = currentPrescriptionData.diagnosis || '';
-  switchTab('chat-tab');
-  const chatInput = document.getElementById('chat-input') || document.getElementById('user-input');
-  if (chatInput) {
-    chatInput.value = `Xin bác sĩ tư vấn kỹ hơn về hướng điều trị, cách dùng thuốc và lưu ý kiêng khem cho chẩn đoán: "${diag}".`;
-    chatInput.focus();
-  }
-}
-
 function askBotAboutSpecificMedicine(medName) {
   switchTab('chat-tab');
-  const chatInput = document.getElementById('chat-input') || document.getElementById('user-input');
+  const chatInput = document.getElementById('user-input');
   if (chatInput) {
-    chatInput.value = `Bác sĩ giải thích giúp tôi công dụng, cách dùng và tác dụng phụ cần chú ý khi uống thuốc: "${medName}".`;
+    chatInput.value = medName
+      ? `Thuốc ${medName} có công dụng gì, dùng như thế nào và cần lưu ý những tác dụng phụ nào?`
+      : '';
     chatInput.focus();
   }
 }

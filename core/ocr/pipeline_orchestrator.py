@@ -5,6 +5,7 @@ import time
 import re
 import logging
 import unicodedata
+import tempfile
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
 
@@ -20,6 +21,8 @@ from core.reconciliation_service import reconcile_parallel_results, extract_sche
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
 from core.interpretation_service import generate_clinical_interpretation
+from core.ocr.prescription_transcription import read_transcription
+from core.ocr.vietocr_reader import reread_name_cells
 
 
 _MEDICATION_TOTAL = re.compile(
@@ -35,6 +38,219 @@ def _ocr_medication_totals(text: str) -> set[int]:
     folded = "".join(char for char in unicodedata.normalize("NFD", text)
                      if not unicodedata.combining(char))
     return {int(match) for match in _MEDICATION_TOTAL.findall(folded)}
+
+
+def _read_prescription_pdf(file_path):
+    from pypdf import PdfReader
+
+    reader = PdfReader(file_path)
+    pages = []
+    with tempfile.TemporaryDirectory(prefix="medimind-rx-") as folder:
+        for page in reader.pages:
+            rows = []
+            for line in (page.extract_text(extraction_mode="layout") or "").splitlines():
+                cells = [{"text": cell} for cell in re.split(r"\s{2,}", line.strip()) if cell]
+                if cells:
+                    rows.append({"text": " | ".join(cell["text"] for cell in cells), "items": cells})
+            if rows:
+                pages.append(rows)
+                continue
+
+            # Image-only scans can embed an image covering a complete page.
+            images = [image for image in page.images if 0 < len(image.data) <= 10 * 1024 * 1024
+                      and image.image is not None]
+            if not images:
+                pages.append([])
+                continue
+            image = max(images, key=lambda item: item.image.width * item.image.height)
+            path = os.path.join(folder, "page.png")
+            image.image.convert("RGB").save(path)
+            result = extract_ocr_parallel(path, doc_type="transcription")
+            if not result.get("success"):
+                return result
+            pages.append(result.get("rows") or [])
+    return {"success": True, "pages": pages}
+
+
+def process_prescription_transcription(
+    file_path: str,
+    original_filename: str = "",
+    enable_fallback: bool = False,
+) -> Dict[str, Any]:
+    """Read the printed source locally, with optional VLM crop-level fallback for hard cases."""
+    filename = original_filename or os.path.basename(file_path)
+    is_pdf = str(file_path).lower().endswith(".pdf")
+    prep = {}
+    reread_name = None
+    if is_pdf:
+        try:
+            result = _read_prescription_pdf(file_path)
+        except Exception as exc:
+            logger.warning("Prescription PDF transcription failed (%s).", type(exc).__name__)
+            return {"status": "failed", "message": "Không thể đọc PDF. Hãy thử xuất trang đơn thuốc thành ảnh JPG hoặc PNG."}
+    else:
+        quality = check_image_quality(file_path)
+        if not quality.get("passed", True):
+            return {"status": "rejected", "message": quality.get("recommendation") or "Ảnh chưa đủ rõ để đọc chữ."}
+        prep = preprocess_lightweight(file_path, need_clahe=quality.get("need_clahe", False), upscale_small=True)
+        active_image_path = prep.get("processed_path", file_path)
+        result = extract_ocr_parallel(active_image_path, doc_type="transcription")
+        # Rotated OCR boxes are projected back onto this same image.
+        if not result.get("orientation_deg"):
+            reread_name = reread_name_cells(active_image_path)
+    if not result.get("success", True):
+        return {"status": "failed", "message": "Bộ đọc chữ cục bộ chưa sẵn sàng. Vui lòng thử lại sau."}
+
+    transform = prep.get("to_original")
+    shape = prep.get("orig_shape")
+
+    def project_box(box):
+        if len(box) != 4 or not transform or not shape:
+            return []
+        width, height = shape
+        points = []
+        for x, y in box:
+            px, py, scale = [row[0] * x + row[1] * y + row[2] for row in transform]
+            if abs(scale) < 1e-8:
+                return []
+            points.append([float(px / scale / width), float(py / scale / height)])
+        return points
+
+    pages = result.get("pages") if is_pdf else [result.get("rows") or []]
+    header = {}
+    medicines = []
+    for rows in pages:
+        page_header, page_medicines = read_transcription(rows, project_box, reread_name)
+        for field, value in page_header.items():
+            header.setdefault(field, value)
+        medicines.extend(page_medicines)
+
+    # 1. Đối chiếu siêu tốc với danh mục thuốc quốc gia
+    try:
+        from core.ocr.drug_lexicon_service import get_drug_lexicon
+        from core.ocr.prescription_transcription import _printed_name
+        lex = get_drug_lexicon()
+        for med in medicines:
+            v_name = med.get("vietocr_name") or _printed_name(med.get("vietocr_text", ""))
+            raw_txt = med.get("name") or med.get("raw_ocr_name") or ""
+            clean_raw = _printed_name(raw_txt) or raw_txt
+
+            paren_name = ""
+            if med.get("raw_ocr_name"):
+                m_p = re.search(r"\(([^)]+)\)", med["raw_ocr_name"])
+                if m_p:
+                    paren_name = _printed_name(m_p.group(1))
+
+            v_match = lex.search(v_name, min_score=0.80) if v_name else {}
+            r_match = lex.search(clean_raw, min_score=0.75) if clean_raw else {}
+            p_match = lex.search(paren_name, min_score=0.80) if paren_name else {}
+
+            candidates = [m for m in (p_match, r_match, v_match) if m.get("is_matched")]
+            best_match = max(candidates, key=lambda x: x.get("match_confidence", 0.0)) if candidates else {}
+
+            if best_match.get("is_matched"):
+                med["standard_name"] = best_match.get("standard_name")
+                med["active_ingredient"] = best_match.get("active_ingredient")
+                med["category"] = best_match.get("category")
+                med["is_insurance_covered"] = best_match.get("is_insurance_covered", False)
+                med["match_confidence"] = best_match.get("match_confidence", 0.0)
+
+                # VietOCR đọc lại ô chữ và khớp chính xác Dược thư với độ tin cậy cao
+                if v_name and v_match.get("is_matched") and v_match.get("match_confidence", 0) >= 0.80:
+                    if not med.get("name") or v_match.get("match_confidence", 0) > r_match.get("match_confidence", 0):
+                        med["name"] = best_match.get("standard_name") or v_name
+                        med["needs_review"] = False
+                        med["raw_ocr_name"] = ""
+    except Exception as exc:
+        logger.debug("Local drug lexicon lookup error: %s", exc)
+
+    # 2. VLM Crop Fallback cho các dòng khó / mờ / confidence thấp (tối đa 3 dòng / đơn)
+    if enable_fallback and not is_pdf and medicines:
+        try:
+            from core.ocr.crop_fallback_service import refine_medication_with_crop_fallback
+            from core.llm_provider import llm_provider
+            api_key = llm_provider.resolve_api_key(profile="ocr")
+            if llm_provider.is_configured(profile="ocr", explicit_key=api_key):
+                fallback_count = 0
+                max_fallback = 3
+                for i, med in enumerate(medicines):
+                    is_hard_case = not med.get("name") or (med.get("needs_review") and med.get("match_confidence", 0.0) < 0.80)
+                    if is_hard_case and fallback_count < max_fallback:
+                        refined = refine_medication_with_crop_fallback(
+                            image_path=active_image_path,
+                            med=med,
+                            context=header.get("diagnosis", ""),
+                            api_key=api_key
+                        )
+                        medicines[i] = refined
+                        fallback_count += 1
+        except Exception as exc:
+            logger.warning("Crop fallback step encountered error: %s", exc)
+    totals = _ocr_medication_totals("\n".join(row["text"] for rows in pages for row in rows))
+    count = len(medicines)
+
+    # 3. PHAO CỨU SINH TOÀN TRANG (FULL-PAGE VLM VISION FALLBACK)
+    # Kích hoạt khi Local OCR thất bại (0 dòng thuốc hoặc đọc thiếu so với tổng khoản)
+    if enable_fallback and not is_pdf and (count == 0 or (totals and count < min(totals))):
+        try:
+            from core.ocr.gemini_schema_service import extract_with_gemini_schema
+            from core.llm_provider import llm_provider
+            api_key = llm_provider.resolve_api_key(profile="ocr")
+            if llm_provider.is_configured(profile="ocr", explicit_key=api_key):
+                logger.info("Local OCR missed rows (count=%d, totals=%s). Activating Full-Page Vision Fallback...", count, totals)
+                vlm_res = extract_with_gemini_schema(
+                    image_path=file_path,
+                    doc_type="prescription",
+                    api_key=api_key,
+                    ocr_result=result
+                )
+                if vlm_res and isinstance(vlm_res.get("medications"), list) and len(vlm_res["medications"]) > count:
+                    for h_field in ("patient_name", "age", "gender", "dob", "diagnosis", "facility", "doctor", "date"):
+                        v_val = str(vlm_res.get(h_field) or "").strip()
+                        curr_val = str(header.get(h_field) or "").strip()
+                        if v_val and (not curr_val or len(curr_val) <= 3 or curr_val.lower().startswith("mi")):
+                            header[h_field] = v_val
+
+                    medicines = vlm_res["medications"]
+                    count = len(medicines)
+                    try:
+                        from core.ocr.drug_lexicon_service import get_drug_lexicon
+                        lex = get_drug_lexicon()
+                        for med in medicines:
+                            q_name = med.get("name") or med.get("brand_name") or med.get("active_ingredient") or ""
+                            if q_name:
+                                m_cat = lex.search(q_name, min_score=0.75)
+                                if m_cat.get("is_matched"):
+                                    med["standard_name"] = m_cat.get("standard_name")
+                                    med["active_ingredient"] = med.get("active_ingredient") or m_cat.get("active_ingredient")
+                                    med["category"] = m_cat.get("category")
+                                    med["is_insurance_covered"] = m_cat.get("is_insurance_covered", False)
+                                    med["match_confidence"] = m_cat.get("match_confidence", 0.0)
+                    except Exception:
+                        pass
+        except Exception as vlm_exc:
+            logger.warning("Full-Page Vision Fallback error: %s", vlm_exc)
+
+    mismatch = bool(totals and totals != {count})
+    warning = ""
+    if mismatch and len(totals) == 1:
+        warning = f"Đọc được {count}/{next(iter(totals))} dòng thuốc. Hãy đối chiếu số dòng với ảnh gốc."
+    elif mismatch:
+        warning = "Tổng số dòng trên các vị trí của đơn chưa khớp. Hãy đối chiếu với tệp gốc."
+    elif not count:
+        warning = "Chưa nhận diện được dòng thuốc. Hãy đối chiếu ảnh gốc và thêm dòng thủ công."
+    boxes = [
+        {"text": line["text"], "points": points}
+        for line in result.get("lines", [])
+        if (points := project_box(line.get("box") or []))
+    ]
+    draft = {**header, "source_only": True, "medications": medicines}
+    return {
+        **draft, "status": "review", "type": "prescription", "doc_type": "prescription",
+        "data": draft, "boxes": boxes, "requires_user_confirmation": True,
+        "medication_count_mismatch": mismatch, "extraction_warning": warning,
+        "extraction_source": "local_ocr", "uploaded_filename": filename,
+    }
 
 
 def _ocr_variant_score(result: Dict[str, Any], doc_type: str) -> float:
@@ -481,7 +697,15 @@ REVIEW_FIELDS = {
 }
 
 
-def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allergies):
+def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allergies, *, source_only=False):
+    if source_only:
+        return {
+            **reconciled,
+            "status": "success", "type": doc_type, "doc_type": doc_type,
+            "source_only": True, "uploaded_filename": filename_clean,
+            "data": reconciled, "requires_user_confirmation": False,
+        }
+
     start_all = time.time()
     reconciled["doc_type"] = doc_type
     # ==============================================================

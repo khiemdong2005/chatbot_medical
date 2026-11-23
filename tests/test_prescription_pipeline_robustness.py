@@ -28,6 +28,101 @@ def _setup_images(tmp_path, monkeypatch):
     return original, processed
 
 
+def test_local_transcription_preserves_unreadable_rows_without_inferred_values(tmp_path, monkeypatch):
+    original, processed = _setup_images(tmp_path, monkeypatch)
+    scan = _ocr(
+        "ĐƠN THUỐC", "STT | Tên thuốc | SL",
+        "1 | Amoxicillin 500mg | 20 Viên",
+        "Uống sáng | 1 viên",
+        "2 | Paracetamoi (acetaminophen) (Tatanol [5O0mgl) | 14 Viên",
+        "Cộng khoản; 2",
+    )
+    scan["rows"][4]["items"][1]["confidence"] = 0.58
+    calls = []
+    monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: calls.append(path) or scan)
+
+    def unexpected_api(*args, **kwargs):
+        pytest.fail("Source-only transcription must not use a generative API")
+
+    monkeypatch.setattr(pipe, "extract_with_gemini_schema", unexpected_api)
+    monkeypatch.setattr(pipe, "_structure_ocr_text_with_groq", unexpected_api)
+    result = pipe.process_prescription_transcription(str(original))
+
+    assert calls == [str(processed)]
+    assert not result["medication_count_mismatch"]
+    first, second = result["medications"]
+    assert first["name"] == "Amoxicillin"
+    assert first["dose"] == "1 viên"
+    assert first["frequency"] == ""
+    assert first["days"] == "20 Viên"
+    assert second["name"] == second["strength"] == second["dose"] == second["frequency"] == ""
+    assert second["stt"] == "2"
+    assert second["raw_ocr_name"].startswith("Paracetamoi")
+    assert second["days"] == "14 Viên"
+    assert second["needs_review"] is True
+
+
+def test_local_transcription_keeps_product_marked_rows_and_ignores_fragments(tmp_path, monkeypatch):
+    original, _ = _setup_images(tmp_path, monkeypatch)
+    scan = _ocr(
+        "ĐƠN THUỐC", "STT | Tên thuốc | SL",
+        "1 Althax [KDNTI | 20 Vin",
+        "JO(mg | Jonon",
+        "524 | Cha",
+        "Cclimned | Aouwg | [KDNT] WUmg | 10 Ven",
+        "Cộng khoản: 2",
+    )
+    monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: scan)
+
+    result = pipe.process_prescription_transcription(str(original))
+
+    assert not result["medication_count_mismatch"]
+    names = result["medications"]
+    assert [med["name"] for med in names] == ["Althax", "Cclimned"]
+    assert names[0]["stt"] == "1"
+    assert not names[0]["quantity"]
+    assert not names[1]["quantity"]
+
+
+@pytest.mark.parametrize(("reread", "expected_name"), [
+    ("Naproxen (Ameproxen 500 [500mgl)", "Naproxen"),
+    ("Naproxol (Ameproxen 500 [500mgl)", ""),
+    ("", ""),
+])
+def test_vietocr_rereads_uncertain_name_cell_without_replacing_conflicting_text(
+        tmp_path, monkeypatch, reread, expected_name):
+    original, processed = _setup_images(tmp_path, monkeypatch)
+    scan = _ocr(
+        "ĐƠN THUỐC", "STT | Tên thuốc | SL",
+        "1 | Amoxicillin 500mg | 20 Viên",
+        "2 | Naproxen (Ameproxen 500 [soOmgl) | 7 Viên",
+        "Cộng khoản: 2",
+    )
+    clear_box = [[20, 25], [210, 25], [210, 52], [20, 52]]
+    uncertain_box = [[20, 65], [210, 65], [210, 92], [20, 92]]
+    scan["rows"][2]["items"][1]["box"] = clear_box
+    scan["rows"][3]["items"][1].update(box=uncertain_box, confidence=0.45)
+    monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: scan)
+    crops = []
+
+    def reader(path):
+        assert path == str(processed)
+        return lambda box: crops.append(box) or reread
+
+    monkeypatch.setattr(pipe, "reread_name_cells", reader)
+
+    result = pipe.process_prescription_transcription(str(original))
+
+    assert crops == [uncertain_box]
+    first, second = result["medications"]
+    assert first["name"] == "Amoxicillin"
+    assert second["name"] == expected_name
+    assert second["vietocr_text"] == reread
+    assert second["days"] == "7 Viên"
+    assert second["strength"] == second["dose"] == ""
+    assert second["needs_review"] is True
+
+
 def test_scan_uses_original_image_when_processed_ocr_loses_drug_row(tmp_path, monkeypatch):
     from core import prescription_crop_service
 

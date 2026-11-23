@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from typing import Dict, Any
 
-def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[str, Any]:
+def preprocess_lightweight(image_path: str, need_clahe: bool = False, *, upscale_small: bool = False) -> Dict[str, Any]:
     """
     [1] Tiền xử lý nhẹ (giữ cả ảnh gốc):
       - Giữ nguyên ảnh màu gốc RGB (không áp Bilateral / Grayscale mặc định).
@@ -35,6 +35,10 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
         scale = max_dim / float(max(h, w))
         new_w, new_h = int(w * scale), int(h * scale)
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        h, w = img.shape[:2]
+    elif upscale_small and max(h, w) < 1000:
+        scale = min(2.0, 1280 / max(h, w))
+        img = cv2.resize(img, (round(w * scale), round(h * scale)), interpolation=cv2.INTER_LANCZOS4)
         h, w = img.shape[:2]
 
     transform = np.diag([w / orig_shape[0], h / orig_shape[1], 1.0])

@@ -8,12 +8,14 @@ from pathlib import Path
 from flask import jsonify, request, session
 
 from core.db_utils import commit_or_rollback
-from core.models import MedicalDocument, User, db
+from core.models import MedicalDocument, db
 from core.pipeline_orchestrator import (
     HEADER_FIELDS,
     REVIEW_FIELDS,
+    build_reviewed_prescription_timeline,
     finalize_reviewed_document,
     process_medical_document_pipeline,
+    process_prescription_transcription,
 )
 from core.prescription_service import get_preset_data
 from core.reconciliation_service import is_plausible_medication_name
@@ -143,12 +145,14 @@ def register_ocr_routes(app, *, default_upload_folder):
     # ==============================================================
 
     @app.route("/api/prescription/scan", methods=["POST"])
+    @app.route("/api/ocr/analyze", methods=["POST"])
     def scan_prescription():
         """
-        Quét và phân tích đơn thuốc lâm sàng:
+        Chép nội dung đơn thuốc từ ảnh để người dùng đối chiếu.
+        Luồng phân tích phiếu xét nghiệm yêu cầu doc_type=lab_test.
         BẢO MẬT & TRUNG THỰC:
           - Bắt buộc đăng nhập khi tải file lên; lưu bản ghi MedicalDocument liên kết owner_id.
-          - Khi OCR / AI thất bại, trả về status failed/needs_review; không bịa dữ liệu mẫu.
+          - Khi không đọc được, trả trạng thái lỗi hoặc yêu cầu đối chiếu.
           - Presets chỉ hoạt động khi có tham số 'preset' cụ thể và luôn trả kèm is_demo=True.
           - Nếu không có file và không có preset, trả mã lỗi 400.
         """
@@ -159,6 +163,7 @@ def register_ocr_routes(app, *, default_upload_folder):
 
         # 1. Trường hợp người dùng tải tệp lên
         if "file" in request.files:
+            source_only = request.form.get("doc_type") != "lab_test"
             user_id = session.get("user_id")
             if not user_id:
                 return jsonify({
@@ -186,27 +191,32 @@ def register_ocr_routes(app, *, default_upload_folder):
                     file_type=meta["file_type"],
                     mime_type=meta["mime_type"],
                     doc_type="ocr_draft",
-                    owner_id=user_id
+                    owner_id=user_id,
+                    parsed_data=json.dumps({
+                        "source_only": True, "type": "prescription", "scan_pending": True
+                    }) if source_only else None,
                 )
                 db.session.add(doc)
                 commit_or_rollback()
                 doc_id = doc.id
             except Exception as e:
+                db.session.rollback()
                 logger.warning(f"Lỗi lưu MedicalDocument cho scan: {e}")
+                if source_only:
+                    return jsonify({"status": "failed", "message": "Không thể tạo bản nháp đơn thuốc."}), 500
 
-            mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
-            profile_allergies = db.session.get(User, user_id).to_dict().get("allergies") or ""
-            user_allergies = [s.strip() for s in profile_allergies.split(",") if s.strip()] if isinstance(profile_allergies, str) else list(profile_allergies)
-            req_allergies = request.form.get("allergies")
-            if req_allergies:
-                user_allergies.extend([a.strip() for a in req_allergies.split(",") if a.strip()])
-
-            res = process_medical_document_pipeline(
-                file_path=meta["absolute_path"],
-                original_filename=meta["original_filename"],
-                mask_pii=mask_pii,
-                user_allergies=user_allergies
-            )
+            if source_only:
+                res = process_prescription_transcription(
+                    file_path=meta["absolute_path"],
+                    original_filename=meta["original_filename"],
+                    enable_fallback=True,
+                )
+            else:
+                mask_pii = request.form.get("mask_pii", "false").lower() in ("true", "1")
+                res = process_medical_document_pipeline(
+                    file_path=meta["absolute_path"], original_filename=meta["original_filename"],
+                    doc_type_hint="lab_test", mask_pii=mask_pii,
+                )
 
             if doc_id:
                 res["document_id"] = doc_id
@@ -238,11 +248,15 @@ def register_ocr_routes(app, *, default_upload_folder):
                             draft_payload = dict(res.get("data") or res)
                             if "type" not in draft_payload:
                                 draft_payload["type"] = res.get("doc_type") or "prescription"
+                            if source_only:
+                                draft_payload["source_only"] = True
                             doc.parsed_data = json.dumps(draft_payload, ensure_ascii=False)
                             db.session.commit()
                     except Exception as commit_err:
                         logger.warning(f"Lỗi cập nhật parsed_data cho MedicalDocument {doc_id}: {commit_err}")
                         db.session.rollback()
+                        if source_only:
+                            return jsonify({"status": "failed", "message": "Không thể lưu bản nháp đơn thuốc."}), 500
             else:
                 if meta and meta.get("storage_filename"):
                     res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
@@ -275,15 +289,21 @@ def register_ocr_routes(app, *, default_upload_folder):
         if doc.doc_type != "ocr_draft" or not doc.parsed_data:
             return jsonify({"message": "Tài liệu không còn chờ xác nhận."}), 409
         draft = json.loads(doc.parsed_data)
+        if draft.get("scan_pending"):
+            return jsonify({"message": "Bản nháp đơn thuốc chưa sẵn sàng để xác nhận."}), 409
+        source_only = draft.get("source_only") is True
         override_kind = payload.get("doc_type")
-        kind = override_kind if override_kind in ("prescription", "lab_test") else draft["type"]
+        kind = draft["type"]
+        if source_only and override_kind not in (None, "prescription"):
+            return jsonify({"message": "Bản nháp này là đơn thuốc."}), 400
+        if not source_only and override_kind in ("prescription", "lab_test"):
+            kind = override_kind
         key = "medications" if kind == "prescription" else "metrics"
         fields = REVIEW_FIELDS[key]
         raw_rows = payload.get(key)
-        if isinstance(raw_rows, list):
-            rows = [r for r in raw_rows if isinstance(r, dict) and any(str(r.get(k, "")).strip() for k in fields)]
-        else:
-            rows = []
+        rows = raw_rows if isinstance(raw_rows, list) else []
+        if not source_only:
+            rows = [r for r in rows if isinstance(r, dict) and any(str(r.get(k, "")).strip() for k in fields)]
         if not 1 <= len(rows) <= 200:
             return jsonify({"message": "Cần ít nhất một dòng dữ liệu đã kiểm tra."}), 400
         def clean(row, keys):
@@ -302,7 +322,10 @@ def register_ocr_routes(app, *, default_upload_folder):
             for row in reviewed["medications"]
         ):
             return jsonify({"message": "Có dòng không phải tên thuốc (ví dụ ngày tháng hoặc nhãn trên phiếu). Vui lòng sửa hoặc xóa dòng đó."}), 400
-        result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft.get("allergies", []))
+        if source_only:
+            result = finalize_reviewed_document(reviewed, kind, doc.original_filename, [], source_only=True)
+        else:
+            result = finalize_reviewed_document(reviewed, kind, doc.original_filename, draft.get("allergies", []))
         result["document_id"] = doc.id
         changed = MedicalDocument.query.filter_by(id=doc.id, owner_id=owner, doc_type="ocr_draft").update({
             "doc_type": kind, "diagnosis": reviewed["diagnosis"], "facility": reviewed["facility"],
@@ -347,6 +370,8 @@ def register_ocr_routes(app, *, default_upload_folder):
         if doc.parsed_data:
             try:
                 parsed_json = json.loads(doc.parsed_data)
+                if doc.doc_type == "prescription" and parsed_json.get("source_only") and "timeline" not in parsed_json:
+                    parsed_json["timeline"] = build_reviewed_prescription_timeline(parsed_json.get("medications", []))
                 parsed_json["document_id"] = doc.id
                 parsed_json["uploaded_filename"] = doc.original_filename
                 parsed_json["uploaded_at"] = doc.created_at.strftime("%H:%M %d/%m/%Y") if doc.created_at else ""
@@ -377,6 +402,8 @@ def register_ocr_routes(app, *, default_upload_folder):
             try:
                 doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
                 if doc:
+                    if doc.parsed_data and json.loads(doc.parsed_data).get("source_only") is True:
+                        return jsonify({"message": "Hãy xác nhận qua màn hình đối chiếu đơn thuốc."}), 409
                     if doc.doc_type == "ocr_draft":
                         doc.doc_type = "prescription"
                     if data.get("patient_name"):

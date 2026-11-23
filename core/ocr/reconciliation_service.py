@@ -405,8 +405,8 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
 
 _PRESCRIPTION_FOOTER = re.compile(
     r"\b(?:c[ộo]ng\s*kho[ảa]n|t[ổo]ng\s*(?:c[ộo]ng|s[ốo]\s*kho[ảa]n)|"
-    r"b[áa]c\s*s[ĩi]\s*[đd]i[ềe]u\s*tr[ịi]|l[ờo]i\s*d[ặa]n|"
-    r"(?:h[ẹe]n\s*)?t[áa]i\s*kh[áa]m|ng[àa]y\s*h[ẹe]n)\b",
+    r"b[áa]c\s*s[ĩi0o]\s*(?:[đd]i[ềe]u\s*tr[ịi]|kh[áa]m\s*b[eệ]nh)?|l[ờoòó]i?\s*d[ặau][n|ng]|"
+    r"(?:h[ẹe]n\s*)?t[áa]i\s*kh[áa]m|kh[áa]m\s*l[ạa]i|ng[àa]y\s*h[ẹe]n)\b",
     re.IGNORECASE,
 )
 
@@ -436,13 +436,20 @@ def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
     start = None
     end = len(rows)
     for index, row in enumerate(rows):
-        folded = _ascii_fold(row.get("text", ""))
-        if re.search(r"\b(?:chan\s*doan|don\s*thuoc|toa\s*thuoc)\b", folded):
+        folded = _ascii_fold(row.get("text", "")).lower()
+        txt = row.get("text", "").strip()
+        if re.search(r"\b(?:chi\s*dinh\s*dung\s*thuoc|chi\s*dinh\s*dieu\s*tri|danh\s*muc\s*thuoc|thuoc\s*dieu\s*tr[iịj])\b", folded):
             start = index + 1
-        if re.search(r"\b(?:stt|ten\s*thuoc|ten\s*duoc\s*pham)\b", folded):
-            if re.search(r"^\s*[1-9]\d*[\.\,\/\)\-]", row.get("text", "").strip()) or re.search(r"\b(?:febuxostat|althax|banitasc|forgout|paracetamol)\b", folded):
+        elif re.search(r"\b(?:stt|ten\s*thuoc|ten\s*duoc\s*pham)\b", folded):
+            if re.search(r"^\s*[1-9]\d*[\.\,\/\)\-]", txt) or re.search(r"\b(?:febuxostat|althax|banitasc|forgout|paracetamol)\b", folded):
                 start = index
             else:
+                start = index + 1
+        elif re.search(r"^\s*1[\.\,\/\)\-\s]+[A-Za-zÀ-ỹ]", txt) or re.search(r"\b(?:yesom|althax|febuxostat|forgout|paracetamol)\b", folded):
+            if start is None:
+                start = index
+        elif re.search(r"\b(?:chan\s*doan|chan\s*coan|don\s*thuoc|toa\s*thuoc)\b", folded):
+            if start is None:
                 start = index + 1
         if start is not None and index >= start and _PRESCRIPTION_FOOTER.search(row.get("text") or ""):
             clean_row = _strip_prescription_footer(row)

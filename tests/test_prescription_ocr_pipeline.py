@@ -229,7 +229,9 @@ def test_confirm_doc_type_override_blank_rows_and_topical_external_slot(client, 
     png_buf = io.BytesIO()
     Image.new("RGB", (120, 120), "white").save(png_buf, format="PNG")
     png_buf.seek(0)
-    scan_res = client.post("/api/prescription/scan", data={"file": (png_buf, "switch_test.png")})
+    scan_res = client.post("/api/prescription/scan", data={
+        "file": (png_buf, "switch_test.png"), "doc_type": "lab_test",
+    })
     assert scan_res.status_code == 200
     doc_id = scan_res.get_json()["document_id"]
 

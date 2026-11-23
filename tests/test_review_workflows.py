@@ -40,29 +40,42 @@ def test_abdominal_pain_follow_up(test_app):
 
 
 @pytest.mark.parametrize(("kind", "rows_key", "original", "edit"), [
-    ("prescription", "medications", {"name": "QA", "strength": "50 mg"}, {"name": "QA", "strength": "5 mg"}),
+    ("prescription", "medications", {"name": "QA", "strength": "50 mg"},
+     {"name": "QA", "strength": "5 mg", "frequency": "Sáng - Tối", "usage": "Sau ăn"}),
     ("lab_test", "metrics", {"test_name": "QA", "result": "50", "reference_range": "1 - 9"},
      {"test_name": "QA", "result": "5", "reference_range": "1 - 9"}),
 ])
 def test_review_then_validate(client, test_users, kind, rows_key, original, edit):
     import core.pipeline_orchestrator as pipe
+    import routes.ocr_routes as ocr_routes
     uid = test_users["user_a_id"]
     with client.session_transaction() as session:
         session["user_id"] = uid
+    local_ocr = {
+        "rows": [
+            {"text": "STT | Tên thuốc | SL"},
+            {"text": f"1 | {original.get('name', '')} {original.get('strength', '')} | 7 Viên"},
+            {"text": "Cộng khoản: 1"},
+        ] if kind == "prescription" else [],
+        "lines": [], "raw_text": "",
+    }
     with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
           patch.object(pipe, "preprocess_lightweight", return_value={}),
-          patch.object(pipe, "extract_ocr_parallel", return_value={"lines": [], "raw_text": ""}),
-          patch.object(pipe, "extract_with_gemini_schema", return_value={"doc_type": kind, rows_key: [original]}),
+          patch.object(pipe, "extract_ocr_parallel", return_value=local_ocr),
+          patch.object(ocr_routes, "process_prescription_transcription", wraps=ocr_routes.process_prescription_transcription) as transcribe,
+          patch.object(pipe, "extract_with_gemini_schema", return_value={"doc_type": kind, rows_key: [original]}) as vision,
           patch.object(pipe, "generate_clinical_interpretation", return_value={}) as interpret,
           patch.object(pipe, "validate_prescription_rules", wraps=pipe.validate_prescription_rules) as drug_check,
           patch.object(pipe, "validate_lab_rules", wraps=pipe.validate_lab_rules) as lab_check):
         scan = client.post("/api/prescription/scan", data={
             "file": (io.BytesIO(bytes.fromhex("89504e470d0a1a0a") + bytes(250)), "test.png"),
+            **({"doc_type": "lab_test"} if kind == "lab_test" else {}),
         })
         draft = scan.get_json()
         assert draft["status"] == "review"
-        assert draft["review_schema_version"] == 3
-        assert draft["extraction_source"] == "ocr_gemini"
+        assert draft["extraction_source"] == ("local_ocr" if kind == "prescription" else "ocr_gemini")
+        assert transcribe.called == (kind == "prescription")
+        assert vision.called == (kind == "lab_test")
         assert not interpret.called and not drug_check.called and not lab_check.called
         assert draft["data"][rows_key][0][next(k for k in edit if edit[k] != original[k])] != ""
         doc_id = draft["document_id"]
@@ -72,17 +85,32 @@ def test_review_then_validate(client, test_users, kind, rows_key, original, edit
         assert client.get(detail).status_code == 404
         assert client.post(endpoint, json={rows_key: [edit]}).status_code == 400
         payload = {**REVIEW_HEADERS, "confirmed": True, rows_key: [edit]}
+        if kind == "prescription":
+            assert client.post("/api/prescription/confirm", json={
+                "document_id": doc_id, **payload,
+            }).status_code == 409
+            assert client.post(endpoint, json={
+                **payload, "medications": [edit, {"name": ""}],
+            }).status_code == 400
+            assert client.post(endpoint, json={
+                **payload, "doc_type": "lab_test",
+            }).status_code == 400
         assert client.post(endpoint, json=payload).status_code == 200
         assert client.post(endpoint, json=payload).status_code == 409
-        assert interpret.call_count == 1
-        check = drug_check if kind == "prescription" else lab_check
-        for field, value in edit.items():
-            assert check.call_args.args[0][0][field] == value
+        assert interpret.call_count == (1 if kind == "lab_test" else 0)
         saved = client.get(detail).json["data"]
         for field, value in edit.items():
             assert saved[rows_key][0][field] == value
         if kind == "lab_test":
+            for field, value in edit.items():
+                assert lab_check.call_args.args[0][0][field] == value
             assert saved[rows_key][0]["computed_flag"] == "Normal"
+        else:
+            assert saved["source_only"] is True
+            entry = {"name": "QA", "dose": "", "note": "Sáng - Tối · Sau ăn"}
+            assert saved["timeline"] == {
+                "morning": [entry], "noon": [], "evening": [entry], "bedtime": [], "unassigned": [],
+            }
 
 
 def test_scan_reports_ocr_fallback_when_gemini_unavailable(tmp_path):
@@ -129,16 +157,14 @@ def test_scan_returns_header_alternative_when_model_disagrees_with_ocr(tmp_path)
 
 @pytest.mark.parametrize("invalid_name", ["09/2014", "Bác sĩ điều trị", "63 Viên"])
 def test_prescription_confirmation_rejects_non_medication_rows(client, test_users, invalid_name):
-    import core.pipeline_orchestrator as pipe
+    import routes.ocr_routes as ocr_routes
 
     with client.session_transaction() as session:
         session["user_id"] = test_users["user_a_id"]
-    with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
-          patch.object(pipe, "preprocess_lightweight", return_value={}),
-          patch.object(pipe, "extract_ocr_parallel", return_value={"lines": [], "raw_text": ""}),
-          patch.object(pipe, "extract_with_gemini_schema", return_value={
-              "doc_type": "prescription", "medications": [{"name": "Thuốc mẫu"}]
-          })):
+    with patch.object(ocr_routes, "process_prescription_transcription", return_value={
+        "status": "review", "doc_type": "prescription", "source_only": True,
+        "medications": [{"name": "Thuốc mẫu"}],
+    }):
         scan = client.post("/api/prescription/scan", data={
             "file": (io.BytesIO(bytes.fromhex("89504e470d0a1a0a") + bytes(250)), "test.png"),
         })
