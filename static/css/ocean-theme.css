@@ -1480,6 +1480,35 @@ body.light-glass .text-slate-500 {
   outline: none !important;
 }
 
+/* ==========================================================================
+   AUTOFILL OVERRIDE (Fix White-on-White Contrast in WebKit/Chrome/Edge)
+   ========================================================================== */
+#login-modal .auth-4e-input:-webkit-autofill,
+#login-modal .auth-4e-input:-webkit-autofill:hover,
+#login-modal .auth-4e-input:-webkit-autofill:focus,
+#login-modal .auth-4e-input:-webkit-autofill:active,
+.auth-4e-input:-webkit-autofill,
+.auth-4e-input:-webkit-autofill:hover,
+.auth-4e-input:-webkit-autofill:focus,
+.auth-4e-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #091a32 inset !important;
+  box-shadow: 0 0 0 1000px #091a32 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
 #login-modal.auth-4exam-shell .auth-4e-google-btn,
 #login-modal .auth-4e-google-btn {
   height: 48px !important;
@@ -1570,3 +1599,90 @@ body.light-glass .text-slate-500 {
   box-shadow: 0 0 14px rgba(56, 189, 248, 0.4) !important;
   background-color: rgba(6, 26, 52, 0.8) !important;
 }
+
+/* MediMind Smart Bell Notifications */
+.notif-card {
+  position: relative;
+  background: rgba(14, 25, 45, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notif-card:hover {
+  background: rgba(19, 35, 62, 0.9);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateY(-1px);
+}
+
+.notif-card.is-read {
+  opacity: 0.65;
+}
+
+.notif-card.is-read:hover {
+  opacity: 0.95;
+}
+
+.notif-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.notif-card-badge.badge-appointment {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.notif-card-badge.badge-medication {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.notif-card-badge.badge-urgent {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.notif-take-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  transition: all 0.18s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.notif-take-btn:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+}
+
+.notif-taken-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+}
+

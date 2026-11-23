@@ -10,6 +10,14 @@
 
   <title>MediMind Clinical AI — Trợ lý Y tế &amp; Sàng lọc Lâm sàng</title>
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}?v=1">
+  <script>
+    document.documentElement.setAttribute('data-app-starting', '');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.removeAttribute('data-app-starting');
+    }, { once: true });
+  </script>
+
   <!-- Tailwind CSS CDN -->
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,16 +33,16 @@
 
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.3">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.4">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=15">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=10">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=10">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=7">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=8">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=6">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=7">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=15">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/previsit-intake.css') }}?v=5">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/previsit-intake.css') }}?v=6">
 
   <!-- Leaflet CSS & JS for Interactive Hospital Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -178,6 +186,9 @@
 </head>
 
 <body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative dark">
+  <div class="app-startup-status" role="status">
+    <span><i class="mm-spinner" aria-hidden="true"></i><span data-i18n="app_loading">Đang mở MediMind…</span></span>
+  </div>
 
   <!-- Ambient Glassy Twilight Lighting Blobs (Glassy Dashboard V5 Style) -->
 
@@ -282,8 +293,8 @@
 
 
 
-    <button onclick="resetChat()"
-      class="dock-btn group relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-sky-300 hover:bg-white/10 cursor-pointer">
+    <button type="button" onclick="resetChatFromControl(this)"
+      class="chat-reset-control chat-reset-icon dock-btn group relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-sky-300 hover:bg-white/10 cursor-pointer">
 
       <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -435,7 +446,7 @@
 
         <!-- Notification Dropdown Menu -->
         <div id="notif-dropdown-menu"
-          class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0e1626]/95 border border-white/10 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2 backdrop-blur-2xl">
+          class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0e1626]/95 border border-white/10 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2.5 backdrop-blur-2xl">
           <div class="flex items-center justify-between pb-2 border-b border-white/10 px-1">
             <div class="flex items-center space-x-2">
               <span class="font-bold text-sm text-white" id="notif-title" data-i18n="notif_title">Thông báo</span>
@@ -449,8 +460,24 @@
             </button>
           </div>
 
-          <!-- Notifications List (Empty by default for new accounts) -->
-          <div id="notif-items-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+          <!-- Notification Filter Tabs (Lịch khám & Nhắc uống thuốc) -->
+          <div class="flex items-center gap-1 p-1 bg-white/5 rounded-xl border border-white/5 text-[11px]" id="notif-filter-tabs">
+            <button type="button" onclick="filterNotifications('all')" id="notif-filter-all"
+              class="flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all bg-sky-500 text-white shadow-xs cursor-pointer">
+              Tất cả <span id="notif-tab-count-all" class="opacity-80 text-[10px] ml-0.5 font-bold"></span>
+            </button>
+            <button type="button" onclick="filterNotifications('appointment')" id="notif-filter-appointment"
+              class="flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer">
+              🏥 Lịch khám <span id="notif-tab-count-appointment" class="opacity-80 text-[10px] ml-0.5 font-bold"></span>
+            </button>
+            <button type="button" onclick="filterNotifications('medication')" id="notif-filter-medication"
+              class="flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer">
+              💊 Uống thuốc <span id="notif-tab-count-medication" class="opacity-80 text-[10px] ml-0.5 font-bold"></span>
+            </button>
+          </div>
+
+          <!-- Notifications List Container -->
+          <div id="notif-items-list" class="space-y-2 max-h-84 overflow-y-auto pr-1">
             <div id="notif-empty-state"
               class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
               <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor"
@@ -460,6 +487,18 @@
               </svg>
               <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">Không có thông báo mới</p>
             </div>
+          </div>
+
+          <!-- Dropdown Footer Links -->
+          <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] px-1 text-slate-400">
+            <button type="button" onclick="switchTab('my-appointments-tab'); closeNotificationDropdown();"
+              class="hover:text-sky-300 transition-colors flex items-center gap-1 cursor-pointer">
+              <span>📅 Quản lý lịch hẹn</span>
+            </button>
+            <button type="button" onclick="switchTab('ocr-tab'); closeNotificationDropdown();"
+              class="hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer">
+              <span>💊 Đơn thuốc đã lưu</span>
+            </button>
           </div>
         </div>
       </div>
@@ -845,8 +884,8 @@
               <p data-i18n="history_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Các phiên sàng
                 lọc và phân tích triệu chứng</p>
             </div>
-            <button type="button" id="chat-new-button" onclick="resetChat()"
-              class="w-full text-xs font-bold py-2.5 px-4 rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center space-x-2 transition-all shadow-md shadow-sky-600/30 cursor-pointer"
+            <button type="button" id="chat-new-button" onclick="resetChatFromControl(this)"
+              class="chat-reset-control w-full text-xs font-bold py-2.5 px-4 rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center space-x-2 transition-all shadow-md shadow-sky-600/30 cursor-pointer"
               title="Cuộc trò chuyện mới">
               <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
                 viewBox="0 0 24 24">
@@ -3959,7 +3998,7 @@
 
 
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.16"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.21"></script>
   <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.4"></script>
 
   <!-- ============================================================== -->
@@ -6021,7 +6060,7 @@
   <div id="medical-toast-container" role="status" aria-live="polite"
     class="fixed top-5 right-5 sm:right-8 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
   {% include 'partials/previsit_intake.html' %}
-  <script src="{{ url_for('static', filename='js/previsit-intake.js') }}?v=5"></script>
+  <script src="{{ url_for('static', filename='js/previsit-intake.js') }}?v=7"></script>
 </body>
 
 </html>

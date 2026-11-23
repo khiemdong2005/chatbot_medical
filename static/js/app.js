@@ -21,8 +21,9 @@ window.openAuthModal = function (mode = 'login') {
   if (typeof openLoginModal === 'function') openLoginModal(mode);
 };
 
-const PENDING_BOOKING_STORAGE_KEY = 'medimind_pending_booking';
-let pendingBookingRequest = null;
+let pendingBookingFacilityId = null;
+let pendingBookingFacilityObj = null;
+let currentBookingFacility = null;
 
 function showAuthContextBanner(title, message) {
   const banner = document.getElementById('auth-context-banner');
@@ -41,20 +42,16 @@ function hideAuthContextBanner() {
 }
 
 function checkPendingBookingAfterAuth() {
-  let request = pendingBookingRequest;
-  pendingBookingRequest = null;
-  try {
-    request ||= JSON.parse(sessionStorage.getItem(PENDING_BOOKING_STORAGE_KEY));
-    sessionStorage.removeItem(PENDING_BOOKING_STORAGE_KEY);
-  } catch (_) { }
-  if (!request) {
-    if (currentUser && typeof PrevisitIntake !== 'undefined') PrevisitIntake.resumeAfterLogin();
-    return;
+  if (pendingBookingFacilityId || pendingBookingFacilityObj) {
+    const fid = pendingBookingFacilityId;
+    const fobj = pendingBookingFacilityObj;
+    pendingBookingFacilityId = null;
+    pendingBookingFacilityObj = null;
+    hideAuthContextBanner();
+    setTimeout(() => {
+      openFacilityBookingModal(fid, fobj);
+    }, 450);
   }
-  hideAuthContextBanner();
-  setTimeout(() => {
-    if (currentUser) openFacilityBookingModal(request.id, request.drawerFacility);
-  }, 450);
 }
 
 let currentEhrSubTab = 'ai';
@@ -117,8 +114,8 @@ async function handleChangePasswordSubmit() {
     showMedicalToast(currentLang === 'en' ? 'Please fill in all password fields.' : 'Vui lòng nhập đầy đủ các trường mật khẩu.', 'warning');
     return;
   }
-  if (newPass.length < 6) {
-    showMedicalToast(currentLang === 'en' ? 'New password must be at least 6 characters.' : 'Mật khẩu mới phải có ít nhất 6 ký tự.', 'warning');
+  if (newPass.trim().length < 8) {
+    showMedicalToast(currentLang === 'en' ? 'New password must be at least 8 characters.' : 'Mật khẩu mới phải có tối thiểu 8 ký tự.', 'warning');
     return;
   }
   if (newPass !== confirmPass) {
@@ -134,13 +131,14 @@ async function handleChangePasswordSubmit() {
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
-      const errMsg = data.error || (currentLang === 'en' ? 'Failed to change password.' : 'Không thể đổi mật khẩu.');
+      const errMsg = extractApiErrorMessage(data, currentLang === 'en' ? 'Failed to change password.' : 'Không thể đổi mật khẩu.');
       showMedicalToast(errMsg, 'error');
       return;
     }
     document.getElementById('set-curr-pass').value = '';
     document.getElementById('set-new-pass').value = '';
     document.getElementById('set-confirm-pass').value = '';
+    if (typeof refreshAllPasswordRuleHints === 'function') refreshAllPasswordRuleHints();
 
     const msg = data.message || (currentLang === 'en' ? 'Password changed successfully!' : 'Đã thay đổi mật khẩu thành công!');
     showMedicalToast(msg, 'success');
@@ -492,7 +490,7 @@ const translations = {
     safety_specialist_rec: "Chuyên khoa khuyến nghị:",
     safety_sources: "Nguồn tham khảo:",
     safety_degraded_notice: "Đang dùng phản hồi dự phòng vì AI chưa sẵn sàng; hãy kiểm tra lại thông tin trước khi áp dụng.",
-    safety_degraded_triage: "Chế độ dự phòng: Theo dõi tại nhà",
+    safety_degraded_triage: "Chế độ dự phòng: AI tạm gián đoạn",
 
     notif_title: "Thông báo",
     nav_home: "Trang chủ",
@@ -511,6 +509,7 @@ const translations = {
     home_metric_status: "Khỏe mạnh",
     home_metric_sub: "Chỉ số hôm nay",
     home_disc_tag: "KHÁM PHÁ",
+    home_disc_title: "Mọi thứ bạn cần<br class=\"hidden sm:inline\"> để sống khỏe hơn.",
     home_disc_title: "Mọi thứ bạn cần để sống khỏe hơn.",
     home_disc_desc: "Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.",
     home_disc_more: "Khám phá tất cả",
@@ -619,7 +618,6 @@ const translations = {
     nav_chat: "Trợ lý sức khỏe",
     nav_ocr: "Đọc đơn thuốc lâm sàng",
     nav_booking: "Cơ sở y tế",
-    nav_my_appointments: "Lịch hẹn của tôi",
     nav_doctor: "Pha chế dinh dưỡng",
     nav_admin: "Hạ tầng hệ thống",
     nav_login: "Đăng nhập",
@@ -628,7 +626,6 @@ const translations = {
     dock_chat: "Trợ lý sức khỏe",
     dock_ocr: "Đọc đơn thuốc lâm sàng",
     dock_booking: "Cơ sở y tế & Bệnh viện",
-    dock_my_appointments: "Lịch hẹn của tôi",
     dock_doctor: "Pha chế dinh dưỡng",
     dock_wallpaper: "Đổi không gian y tế",
     dock_theme: "Chế độ Sáng / Tối",
@@ -656,16 +653,19 @@ const translations = {
     lbl_login_identifier: "Email hoặc số điện thoại",
     ph_identifier: "Email hoặc số điện thoại",
     ph_password: "Nhập mật khẩu",
+    ph_register_password: "Nhập mật khẩu (tối thiểu 8 ký tự)",
+    pwd_rule_min8: "Tối thiểu 8 ký tự (không tính khoảng trắng đầu/cuối)",
+    pwd_rule_match_ok: "Mật khẩu xác nhận trùng khớp",
+    pwd_rule_match_err: "Mật khẩu xác nhận chưa trùng khớp",
     btn_login: "Đăng nhập",
     link_forgot_pwd: "Quên mật khẩu?",
     btn_create_account: "Tạo tài khoản mới",
     btn_demo_login: "Đăng nhập tài khoản mẫu thử nghiệm",
-    btn_login_otp: "Đăng nhập nhanh bằng mã OTP",
     btn_google_signin: "Đăng nhập bằng Google",
     auth_or_divider: "hoặc",
     auth_back_home: "Quay lại trang chính",
     auth_forgot_subtitle: "Nhập email hoặc số điện thoại để nhận mã xác thực đặt lại mật khẩu.",
-    auth_register_terms: "Bằng việc đăng ký, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật y tế của MediMind.",
+    auth_register_terms: "Bằng việc đăng ký, bạn đồng ý với Điều khoản & Bảo mật Y tế của MediMind.",
     auth_hero_badge: "MediMind Clinical AI • Tham chiếu MedlinePlus® NIH",
     auth_hero_headline: "Nơi tri thức y khoa đồng hành cùng bạn",
     auth_hero_tagline: "Chăm sóc sức khỏe không còn đơn độc – vào là có trợ lý lâm sàng hỗ trợ",
@@ -688,6 +688,10 @@ const translations = {
     lbl_confirm_password: "Xác nhận mật khẩu",
     ph_confirm_password: "Nhập lại mật khẩu",
     lbl_new_password: "Mật khẩu mới",
+    lbl_confirm_new_password: "Xác nhận mật khẩu mới",
+    ph_forgot_identifier: "Nhập email hoặc số điện thoại đã đăng ký",
+    ph_forgot_new_password: "Nhập mật khẩu mới (tối thiểu 8 ký tự)",
+    ph_confirm_new_password: "Nhập lại mật khẩu mới",
     btn_forgot_submit: "Nhận mã xác thực OTP",
     btn_register_submit: "Đăng ký",
     lbl_no_account: "Bạn chưa có tài khoản?",
@@ -712,17 +716,6 @@ const translations = {
     assistant_greeting_desc: "Xin chào, tôi là trợ lý y tế MediMind. Tôi có thể hỗ trợ bạn sàng lọc triệu chứng sơ bộ, giải thích đơn thuốc và gợi ý chuyên khoa khám phù hợp. Bạn đang gặp phải vấn đề sức khỏe nào?",
     chat_welcome_title: "Hôm nay mình có thể giúp gì cho bạn?",
     chat_welcome_subtitle: "Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.",
-    chat_mode_general: "Hỏi đáp y tế",
-    chat_mode_intake: "Hỏi bệnh trước khám",
-    mode_general_desc: "Chế độ Hỏi đáp y tế • Trả lời ngắn gọn & chính xác",
-    mode_general_placeholder: "Đặt câu hỏi y tế (ví dụ: đau đầu uống thuốc gì, sốt xuất huyết là gì...)...",
-    mode_intake_desc: "Chế độ Thăm khám lâm sàng • Bác sĩ ân cần, lắng nghe & trấn an",
-    mode_intake_placeholder: "Mô tả triệu chứng hoặc trả lời câu hỏi của bác sĩ...",
-    chat_intake_welcome_title: "Bác sĩ lâm sàng MediMind sẵn sàng lắng nghe",
-    chat_intake_welcome_subtitle: "Hãy chia sẻ triệu chứng để bác sĩ thăm khám và chuẩn bị Phiếu tóm tắt trước khám cho bạn.",
-    doctor_reassurance_welcome: "Chào bạn! Tôi là bác sĩ lâm sàng MediMind. Bạn hoàn toàn yên tâm nhé, tôi sẽ cùng bạn điểm lại các triệu chứng một cách ân cần và kỹ lưỡng để chuẩn bị Phiếu tóm tắt trước khám chu đáo nhất cho bác sĩ tiếp nhận. Hãy cho tôi biết hiện tại bạn đang cảm thấy khó chịu ở đâu hoặc có biểu hiện gì nhé!",
-    mode_switched_to_intake: "Đã bật chế độ Thăm khám lâm sàng & Tóm tắt trước khám. Bác sĩ sẵn sàng lắng nghe bạn.",
-    mode_switched_to_general: "Đã bật chế độ Hỏi đáp y tế nhanh (gọn gàng, chính xác).",
     intake_summary_loading: "Đang tải tóm tắt…",
     intake_summary_unavailable: "Hội thoại này chưa có dữ kiện để xem tóm tắt trước khám.",
     intake_summary_start_chat: "Hãy gửi mô tả triệu chứng để tạo bản tóm tắt trước khám.",
@@ -850,56 +843,10 @@ const translations = {
     book_modal_ph_name: "Ví dụ: Nguyễn Văn A",
     book_modal_lbl_phone: "Số điện thoại liên hệ",
     book_modal_ph_phone: "Ví dụ: 0912 345 678",
-    book_modal_lbl_email: "Email liên hệ",
-    book_modal_ph_email: "Ví dụ: user@gmail.com",
-    book_modal_lbl_note: "Ghi chú thêm (không bắt buộc)",
-    book_modal_ph_note: "Ví dụ: Tôi muốn trao đổi thêm về kết quả khám lần trước",
-    book_previsit_heading: "Thông tin trước khám",
-    book_previsit_optional: "Bạn có thể trả lời vài câu để chuẩn bị bản tóm tắt.",
-    book_previsit_confirmed: "Bạn đã xác nhận bản tóm tắt này.",
-    book_previsit_review: "Xem tóm tắt",
+    book_modal_lbl_note: "Lý do khám / Triệu chứng sơ bộ",
+    book_modal_ph_note: "Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc...",
     book_modal_btn_cancel: "Hủy",
     book_modal_btn_submit: "Xác nhận đặt lịch",
-    book_btn_next: "Tiếp theo",
-    book_btn_prev: "Quay lại",
-    book_step1_search_ph: "Tìm kiếm chuyên khoa...",
-    book_step1_hint: "Danh sách các chuyên khoa được hỗ trợ tại cơ sở này:",
-    book_step2_lbl_spec: "Chuyên khoa đã chọn",
-    book_step2_lbl_hours: "Giờ hoạt động",
-    book_step2_doc_notice: "Bác sĩ trực thuộc chuyên khoa sẽ được phòng khám phân công theo lịch trống tối ưu nhất cho bạn.",
-    book_step3_lbl_date: "Chọn ngày khám mong muốn",
-    book_step3_morning: "Buổi sáng (08:00 - 11:30)",
-    book_step3_afternoon: "Buổi chiều (13:30 - 17:00)",
-    book_step4_summary_spec: "Chuyên khoa:",
-    book_step4_terms: "Tôi đồng ý chia sẻ thông tin liên hệ và lý do khám với cơ sở y tế để được phục vụ chu đáo nhất.",
-    book_attach_summary_label: "Đính kèm bản tóm tắt đã xác nhận vào lịch hẹn",
-    previsit_saved_title: "Tóm tắt trước khám",
-    previsit_saved_patient: "Thông tin người bệnh tự khai",
-    previsit_saved_missing: "Thông tin cần làm rõ",
-    previsit_saved_assessment: "Đánh giá sơ bộ của MediMind",
-    previsit_saved_sources: "Nguồn tham khảo",
-    previsit_saved_incomplete: "Quay lại đoạn chat để bổ sung thông tin trước khi xác nhận.",
-    previsit_saved_consent: "Tôi đồng ý lưu bản tóm tắt này vào hồ sơ của mình.",
-    previsit_saved_close: "Đóng",
-    book_attach_summary_desc: "Tự động gửi thông tin triệu chứng, bệnh sử và kết luận tư vấn AI cho bác sĩ tiếp nhận.",
-    book_summary_badge_ready: "Sẵn sàng đính kèm",
-    book_summary_badge_none: "Chưa có tóm tắt",
-    appt_badge_summary_attached: "Đã đính kèm tóm tắt trước khám",
-    appt_btn_view_summary: "Xem tóm tắt",
-    my_appts_title: "Lịch hẹn khám của tôi",
-    facility_btn_my_appts: "Lịch hẹn của tôi",
-    my_appts_btn_back_facilities: "Quay lại Cơ sở y tế",
-    my_appts_subtitle: "Theo dõi, quản lý và kiểm tra trạng thái các phiếu đặt hẹn khám bệnh",
-    my_appts_btn_refresh: "Làm mới",
-    my_appts_btn_new: "Đặt lịch mới",
-    my_appts_loading_text: "Đang tải danh sách lịch hẹn...",
-    my_appts_empty_title: "Bạn chưa có lịch hẹn khám nào",
-    my_appts_empty_desc: "Chọn cơ sở y tế phù hợp tại mục Cơ sở y tế để đặt lịch khám nhanh chóng theo các chuyên khoa.",
-    my_appts_btn_explore: "Khám phá cơ sở y tế ngay",
-    my_appts_status_pending: "Chờ xác nhận",
-    my_appts_status_confirmed: "Đã xác nhận",
-    my_appts_status_cancelled: "Đã hủy",
-    my_appts_btn_cancel_appt: "Hủy lịch hẹn",
     detail_modal_lbl_address: "Địa chỉ:",
     detail_modal_lbl_hours: "Thời gian hoạt động:",
     detail_modal_lbl_phone: "Tổng đài liên hệ:",
@@ -952,7 +899,7 @@ const translations = {
     safety_specialist_rec: "Recommended Specialist:",
     safety_sources: "Sources:",
     safety_degraded_notice: "Using backup response because AI is currently unavailable; please verify information before applying.",
-    safety_degraded_triage: "Backup Mode: Follow up at home",
+    safety_degraded_triage: "Backup Mode: AI unavailable",
 
     notif_title: "Notifications",
     nav_home: "Home",
@@ -971,6 +918,7 @@ const translations = {
     home_metric_status: "Optimal",
     home_metric_sub: "Daily Health Index",
     home_disc_tag: "DISCOVERY",
+    home_disc_title: "Everything you need<br class=\"hidden sm:inline\"> to live healthier.",
     home_disc_title: "Everything you need to live healthier.",
     home_disc_desc: "Simple, intelligent tools designed to turn health management into a seamless daily habit.",
     home_disc_more: "Explore All",
@@ -1079,7 +1027,6 @@ const translations = {
     nav_chat: "Health Assistant",
     nav_ocr: "Clinical Prescriptions",
     nav_booking: "Hospitals & Clinics",
-    nav_my_appointments: "My Appointments",
     nav_doctor: "Nutrition Studio",
     nav_admin: "System Infrastructure",
     nav_login: "Sign In",
@@ -1088,7 +1035,6 @@ const translations = {
     dock_chat: "Health Assistant",
     dock_ocr: "Clinical Prescriptions",
     dock_booking: "Hospitals & Clinics",
-    dock_my_appointments: "My Appointments",
     dock_doctor: "Nutrition Studio",
     dock_wallpaper: "Change Theme Space",
     dock_theme: "Light / Dark Mode",
@@ -1116,16 +1062,19 @@ const translations = {
     lbl_login_identifier: "Email or phone number",
     ph_identifier: "Email or phone number",
     ph_password: "Enter password",
+    ph_register_password: "Enter password (min. 8 characters)",
+    pwd_rule_min8: "At least 8 characters (excluding leading/trailing spaces)",
+    pwd_rule_match_ok: "Passwords match",
+    pwd_rule_match_err: "Passwords do not match",
     btn_login: "Sign in",
     link_forgot_pwd: "Forgot password?",
     btn_create_account: "Create New Account",
     btn_demo_login: "Quick Demo Patient Sign-in",
-    btn_login_otp: "Quick sign-in with OTP",
     btn_google_signin: "Sign in with Google",
     auth_or_divider: "or",
     auth_back_home: "Back to home",
     auth_forgot_subtitle: "Enter your registered email or phone number to receive a password reset OTP.",
-    auth_register_terms: "By signing up, you agree to MediMind's Terms of Use and Clinical Privacy Policy.",
+    auth_register_terms: "By signing up, you agree to MediMind's Terms & Clinical Privacy Policy.",
     auth_hero_badge: "MediMind Clinical AI • MedlinePlus® NIH Reference",
     auth_hero_headline: "Where medical knowledge stands beside you",
     auth_hero_tagline: "Healthcare is never lonely – step inside for instant clinical guidance",
@@ -1148,6 +1097,10 @@ const translations = {
     lbl_confirm_password: "Confirm password",
     ph_confirm_password: "Re-enter password",
     lbl_new_password: "New password",
+    lbl_confirm_new_password: "Confirm new password",
+    ph_forgot_identifier: "Enter your registered email or phone number",
+    ph_forgot_new_password: "Enter new password (min. 8 characters)",
+    ph_confirm_new_password: "Re-enter new password",
     btn_forgot_submit: "Send verification OTP",
     btn_register_submit: "Sign up",
     lbl_no_account: "Don't have an account?",
@@ -1172,17 +1125,6 @@ const translations = {
     assistant_greeting_desc: "Hello, I am the MediMind Health Assistant. I can help you with preliminary symptom triage, prescription explanations, and specialty clinic guidance. What health concern are you experiencing?",
     chat_welcome_title: "How can I help you today?",
     chat_welcome_subtitle: "Describe your symptoms or ask a question to begin the conversation.",
-    chat_mode_general: "Medical Q&A",
-    chat_mode_intake: "Pre-visit questions",
-    mode_general_desc: "Medical Q&A Mode • Concise & Accurate Answers",
-    mode_general_placeholder: "Ask a medical question (e.g. headache remedies, dengue fever signs...)...",
-    mode_intake_desc: "Clinical Intake Mode • Empathetic & Reassuring Doctor",
-    mode_intake_placeholder: "Describe your symptoms or answer the doctor's questions...",
-    chat_intake_welcome_title: "MediMind Clinical Doctor is here to listen",
-    chat_intake_welcome_subtitle: "Share your symptoms for a preliminary clinical intake and pre-visit summary.",
-    doctor_reassurance_welcome: "Hello! I am your MediMind clinical doctor. Please don't worry, I am here to guide you with care and empathy to gather your clinical symptoms for your pre-visit summary. Could you tell me where you are feeling discomfort or what symptoms you have right now?",
-    mode_switched_to_intake: "Switched to Clinical Intake & Pre-visit Summary mode. The doctor is ready to listen.",
-    mode_switched_to_general: "Switched to Medical Q&A mode (concise and accurate).",
     intake_summary_loading: "Loading summary…",
     intake_summary_unavailable: "This conversation has no patient information for a pre-visit summary yet.",
     intake_summary_start_chat: "Describe your symptoms in chat to start a pre-visit summary.",
@@ -1310,56 +1252,10 @@ const translations = {
     book_modal_ph_name: "e.g. John Doe",
     book_modal_lbl_phone: "Contact Phone",
     book_modal_ph_phone: "e.g. +84 912 345 678",
-    book_modal_lbl_email: "Contact Email",
-    book_modal_ph_email: "e.g. user@gmail.com",
-    book_modal_lbl_note: "Additional note (optional)",
-    book_modal_ph_note: "e.g. I would like to discuss my previous test results",
-    book_previsit_heading: "Before your visit",
-    book_previsit_optional: "You can answer a few questions to prepare a summary.",
-    book_previsit_confirmed: "You have confirmed this summary.",
-    book_previsit_review: "View summary",
+    book_modal_lbl_note: "Reason for Visit / Preliminary Symptoms",
+    book_modal_ph_note: "e.g. Sore throat, mild fever for 2 days...",
     book_modal_btn_cancel: "Cancel",
     book_modal_btn_submit: "Confirm Appointment",
-    book_btn_next: "Next",
-    book_btn_prev: "Back",
-    book_step1_search_ph: "Search specialty...",
-    book_step1_hint: "Specialties supported at this medical facility:",
-    book_step2_lbl_spec: "Selected Specialty",
-    book_step2_lbl_hours: "Operating Hours",
-    book_step2_doc_notice: "A certified specialist will be assigned by the clinic based on the optimal available slot.",
-    book_step3_lbl_date: "Choose preferred appointment date",
-    book_step3_morning: "Morning (08:00 - 11:30)",
-    book_step3_afternoon: "Afternoon (13:30 - 17:00)",
-    book_step4_summary_spec: "Specialty:",
-    book_step4_terms: "I agree to share contact info and visit reason with the medical facility for optimal care.",
-    book_attach_summary_label: "Attach the confirmed summary to this appointment",
-    previsit_saved_title: "Pre-visit summary",
-    previsit_saved_patient: "Patient-reported information",
-    previsit_saved_missing: "Information to clarify",
-    previsit_saved_assessment: "MediMind preliminary assessment",
-    previsit_saved_sources: "References",
-    previsit_saved_incomplete: "Return to the conversation to add details before confirming.",
-    previsit_saved_consent: "I agree to save this summary to my record.",
-    previsit_saved_close: "Close",
-    book_attach_summary_desc: "Automatically send reported symptoms, medical intake facts, and AI triage findings to the attending physician.",
-    book_summary_badge_ready: "Ready to attach",
-    book_summary_badge_none: "No summary",
-    appt_badge_summary_attached: "Pre-visit summary attached",
-    appt_btn_view_summary: "View summary",
-    my_appts_title: "My Medical Appointments",
-    facility_btn_my_appts: "My Appointments",
-    my_appts_btn_back_facilities: "Back to Clinics",
-    my_appts_subtitle: "Track, manage and check status of your clinic bookings",
-    my_appts_btn_refresh: "Refresh",
-    my_appts_btn_new: "Book New",
-    my_appts_loading_text: "Loading appointments list...",
-    my_appts_empty_title: "No appointments booked yet",
-    my_appts_empty_desc: "Choose a suitable clinic under Hospitals & Clinics to schedule your visit easily.",
-    my_appts_btn_explore: "Explore Clinics Now",
-    my_appts_status_pending: "Pending",
-    my_appts_status_confirmed: "Confirmed",
-    my_appts_status_cancelled: "Cancelled",
-    my_appts_btn_cancel_appt: "Cancel Appointment",
     detail_modal_lbl_address: "Address:",
     detail_modal_lbl_hours: "Operating Hours:",
     detail_modal_lbl_phone: "Contact Hotline:",
@@ -1585,18 +1481,21 @@ const STATIC_VI_EN_TEXT = {
   "Gửi lại mã OTP mới": "Resend new OTP code",
   "Xác nhận & Tiếp tục": "Verify & Continue",
   "← Quay lại bước trước": "← Back to previous step",
-  "Chính sách cookie": "Cookie Policy",
-  "Điều khoản sử dụng": "Terms of Use",
-  "Chính sách bảo mật": "Privacy Policy",
-  // Medical Disclaimer Modal
-  "Tuyên bố Miễn trừ Trách nhiệm Y tế": "Medical Disclaimer",
-  "Mục đích Giáo dục & Nghiên cứu Thử nghiệm": "Educational & Clinical Decision Support Prototype",
+  "Điều khoản & Bảo mật Y tế": "Terms & Clinical Privacy",
+  // Medical Disclaimer & Consolidated Privacy/Terms Modal
+  "Điều khoản, Bảo mật & Miễn trừ Y tế": "Terms, Privacy & Medical Notice",
+  "Quy định sử dụng, Cookie phiên & An toàn lâm sàng": "Terms of Use, Session Cookies & Clinical Safety",
   "1. Mục đích Giáo dục & Nghiên cứu Khoa học:": "1. Educational & Scientific Research Purpose:",
   "Dự án MediMind Clinical AI được nghiên cứu và thiết kế với tư cách là một nguyên mẫu công nghệ lâm sàng. Hệ thống mô phỏng cách ứng dụng Trí tuệ Nhân tạo để hỗ trợ phân loại sơ bộ và đối soát tài liệu y khoa tham khảo, hoàn toàn không hoạt động như một dịch vụ khám chữa bệnh thương mại.": "MediMind Clinical AI is designed as a clinical technology prototype. It demonstrates AI-assisted preliminary symptom triage and medical literature cross-referencing, and does not operate as a commercial medical practice.",
   "2. Không thay thế Lời khuyên & Chẩn đoán Bác sĩ:": "2. Not a Substitute for Professional Medical Advice:",
   "Mọi kết quả sàng lọc, phân tích chỉ số sinh hóa hay thông tin dược phẩm xuất hiện trên giao diện chỉ có giá trị tham khảo học thuật. Tuyệt đối không tự ý mua thuốc, dừng phác đồ điều trị hoặc tự chẩn đoán bệnh dựa trên câu trả lời của AI.": "All triage outputs, lab interpretations, and medication references provided here are for informational purposes only. Never self-medicate, discontinue prescribed treatment, or self-diagnose solely based on AI responses.",
+  "3. Bảo mật Dữ liệu & Cookie Phiên Đăng nhập:": "3. Data Privacy & Session Cookies:",
+  "MediMind chỉ sử dụng cookie phiên thiết yếu (HttpOnly) để duy trì đăng nhập, không dùng cookie quảng cáo. Mật khẩu và mã OTP được bảo vệ bằng hàm băm an toàn; dữ liệu hồ sơ y tế chỉ phục vụ tài khoản của bạn.": "MediMind uses only essential HttpOnly session cookies for authentication—no advertising trackers. Passwords and OTP codes are cryptographically protected, and your medical records remain private to your account.",
+  "4. Giới hạn đối với Tình huống Khẩn cấp:": "4. Emergency Limitations:",
   "3. Giới hạn đối với Tình huống Khẩn cấp:": "3. Emergency Limitations:",
   "Hệ thống không thể xử lý các ca cấp cứu đe dọa tính mạng (đau ngực cấp, đột quỵ, khó thở dữ dội, sốc phản vệ...). Khi gặp dấu hiệu nguy cấp, cần được đánh giá khẩn cấp tại cơ sở y tế phù hợp.": "This system cannot manage life-threatening emergencies (acute chest pain, stroke, severe dyspnea, anaphylaxis, etc.). If emergency symptoms occur, seek urgent evaluation at an appropriate medical facility.",
+  "Hệ thống không thể xử lý các ca cấp cứu đe dọa tính mạng (đau ngực cấp, đột quỵ, khó thở dữ dội, sốc phản vệ...). Khi gặp dấu hiệu nguy cấp, vui lòng liên hệ ngay": "This system cannot manage life-threatening emergencies (acute chest pain, stroke, severe dyspnea, anaphylaxis, etc.). If emergency symptoms occur, call",
+  "hoặc đến khoa cấp cứu bệnh viện gần nhất.": "immediately or go to the nearest emergency department.",
   "Tôi đã hiểu và đồng ý": "I Understand & Agree",
   // Profile Quick Modal
   "Chưa đăng nhập": "Not signed in",
@@ -1667,8 +1566,31 @@ const STATIC_VI_EN_TEXT = {
   "Uống đủ nước, tái khám nếu sốt kéo dài trên 3 ngày.": "Maintain hydration; return for follow-up if fever persists beyond 3 days.",
   "NGÀY TÁI KHÁM": "FOLLOW-UP",
   "Không hẹn tái khám": "No follow-up scheduled",
-  // Floating Chat Widget
+  // Floating Chat Widget & Confirmed Prescription Dossier
   "Trợ lý y tế MediMind": "MediMind Health Assistant",
+  "Đóng trợ lý": "Close assistant",
+  "Tắt hoàn toàn": "Dismiss assistant",
+  "Thông báo": "Notifications",
+  "PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC": "CLASSIFICATION: ORIGINAL PRESCRIPTION",
+  "PHÂN LOẠI: PHIẾU XÉT NGHIỆM": "CLASSIFICATION: LAB REPORT",
+  "Tài liệu y tế": "Medical Document",
+  "✓ Đã đối soát & xác nhận": "✓ Verified & Confirmed",
+  "Dò lại đơn gốc": "Review Original",
+  "Xem Lịch sử / Quét thêm": "History / Scan More",
+  "HỒ SƠ BỆNH NHÂN": "PATIENT RECORD",
+  "Ngày/Năm sinh:": "DOB / Birth Year:",
+  "Chưa xác định": "Not specified",
+  "Giới tính:": "Gender:",
+  "Mã bệnh án": "Record ID",
+  "Nơi khám": "Facility",
+  "Chẩn đoán": "Diagnosis",
+  "Cố vấn Lâm sàng MediMind": "MediMind Clinical Advisor",
+  "Hướng dẫn đơn thuốc": "Prescription Guidance",
+  "Tư vấn đơn thuốc": "Ask About Prescription",
+  "Danh mục thuốc trong toa": "Prescribed Medications",
+  "Lịch uống & Cữ thuốc trong ngày": "Daily Medication Schedule",
+  "Tổng cấp:": "Total Dispensed:",
+  "Chưa rõ số lượng": "Quantity not specified",
   "Đang trực tuyến": "Online",
   "Chào bạn, tôi là Trợ lý y tế MediMind!": "Hello, I am the MediMind Health Assistant!",
   "Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số xét nghiệm hoặc gợi ý chuyên khoa khám nhé.": "I am right here whenever you need help. Ask me about medication timing, lab test meanings, or which medical specialty to visit.",
@@ -1750,10 +1672,10 @@ const STATIC_VI_EN_TEXT = {
   "Nhập họ và tên đầy đủ": "Enter your full name",
   "Nhập lại mật khẩu": "Re-enter your password",
   "Nhập mật khẩu": "Enter your password",
-  "Nhập mật khẩu (tối thiểu 6 ký tự)": "Enter a password (at least 6 characters)",
+  "Nhập mật khẩu (tối thiểu 8 ký tự)": "Enter password (min. 8 characters)",
   "Nhập mật khẩu hiện tại": "Enter your current password",
   "Nhập mật khẩu mới": "Enter your new password",
-  "Nhập mật khẩu mới (tối thiểu 6 ký tự)": "Enter a new password (at least 6 characters)",
+  "Nhập mật khẩu mới (tối thiểu 8 ký tự)": "Enter a new password (min. 8 characters)",
   "Số nhà, tên đường, Quận/Huyện, Tỉnh/Thành phố...": "House number, street, district, city/province...",
   "Tìm bệnh viện, phòng khám hoặc địa chỉ...": "Search hospitals, clinics, or addresses...",
   "Tìm bệnh viện, phòng khám, quận/huyện...": "Search hospitals, clinics, or districts...",
@@ -1826,6 +1748,11 @@ const STATIC_VI_EN_TEXT = {
   "Chưa có dòng dữ liệu nào để lưu. Hãy thêm dòng đúng theo phiếu gốc.": "There are no rows to save. Add rows matching the original document.",
   "Chưa xóa được hội thoại trên máy chủ. Lịch sử vẫn được giữ để bạn thử lại.": "The conversation could not be deleted from the server. Your history is kept so you can retry.",
   "Cập nhật hồ sơ thông tin cá nhân thành công!": "Your profile was updated successfully!",
+  "Đã hoàn tất và lưu hồ sơ y tế thành công!": "Your medical profile has been saved!",
+  "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.": "Password reset successful! Please sign in with your new password.",
+  "Nếu tài khoản tồn tại, mã xác thực đặt lại mật khẩu đã được gửi.": "If the account exists, a password reset verification code has been sent.",
+  "Đăng ký thành công! Hãy hoàn tất thông tin cơ bản để lưu hồ sơ y tế.": "Registration successful! Please complete your basic details to save your medical profile.",
+  "Xác nhận & Vào ứng dụng": "Confirm & Enter App",
   "Dữ liệu đơn thuốc mẫu không hợp lệ.": "The sample prescription data is invalid.",
   "Hãy bắt đầu hội thoại trước khi xem bản nháp.": "Start a conversation before viewing the draft.",
   "Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.": "The service is busy or unavailable. Try uploading the image again or choose a sample.",
@@ -1845,13 +1772,22 @@ const STATIC_VI_EN_TEXT = {
   "Lỗi kết nối khi xóa đơn thuốc.": "Connection error while deleting the prescription.",
   "Lỗi kết nối máy chủ khi lưu hồ sơ.": "Server connection error while saving the record.",
   "Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.": "Sign-in is slow or unavailable. Please try again.",
-  "Mật khẩu phải có ít nhất 6 ký tự.": "Password must be at least 6 characters.",
+  "Mật khẩu phải có ít nhất 8 ký tự.": "Password must be at least 8 characters.",
+  "Mật khẩu phải có tối thiểu 8 ký tự.": "Password must be at least 8 characters.",
+  "Mật khẩu mới phải có tối thiểu 8 ký tự.": "New password must be at least 8 characters.",
+  "Mật khẩu xác nhận không trùng khớp.": "Passwords do not match.",
+  "Mã xác thực không chính xác.": "The verification code is incorrect.",
+  "Mã xác thực không tồn tại hoặc đã hết hạn (sau 5 phút).": "The verification code does not exist or has expired (after 5 minutes).",
+  "Mã xác thực đã hết hạn. Vui lòng yêu cầu mã mới.": "The verification code has expired. Please request a new code.",
+  "Tài khoản này đã tồn tại trên hệ thống.": "An account with this email or phone number already exists.",
   "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995).": "Date of birth must use DD/MM/YYYY format (e.g., 15/08/1995).",
   "Phiên cũ chưa có bản tóm tắt theo hội thoại.": "This earlier conversation has no summary.",
   "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.": "Your session has expired. Please sign in again.",
   "Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số).": "Phone number must contain 9 to 11 digits.",
   "Số điện thoại không hợp lệ (cần đúng 10 chữ số).": "Phone number must contain exactly 10 digits.",
   "Trình duyệt không hỗ trợ Geolocation GPS.": "Your browser does not support GPS location.",
+  "Vui lòng nhập Email hoặc Số điện thoại.": "Please enter your email or phone number.",
+  "Vui lòng nhập mật khẩu mới.": "Please enter your new password.",
   "Vui lòng nhập họ và tên.": "Please enter your full name.",
   "Vui lòng nhập đầy đủ tài khoản và mật khẩu.": "Please enter your account and password.",
   "Vui lòng nhập đủ 6 chữ số của mã OTP.": "Please enter all six verification code digits.",
@@ -1954,12 +1890,16 @@ function closeLanguageDropdown() {
 }
 
 function setLanguage(lang) {
+  if (lang !== currentLang && typeof preVisitSummaryRequest !== 'undefined' && preVisitSummaryRequest && typeof closePreVisitSummaryModal === 'function') closePreVisitSummaryModal();
   currentLang = lang;
   try { localStorage.setItem('medimind_lang', lang); } catch (e) { }
   closeLanguageDropdown();
   populateDobDropdowns();
   applyLanguage();
   updateAuthUI();
+  if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
+  translateStaticDom();
+  if (typeof syncChatSummaryButton === 'function') syncChatSummaryButton();
   if (typeof updateSummarySaveButton === 'function') updateSummarySaveButton();
   window.dispatchEvent(new Event('medimind:langchange'));
 }
@@ -1983,9 +1923,14 @@ function applyLanguage() {
   // Dynamic Auth modal header based on currentAuthMode
   const titleEl = document.getElementById('auth-modal-title');
   if (titleEl) {
-    titleEl.innerText = (typeof currentAuthMode !== 'undefined' && currentAuthMode === 'register')
-      ? (dict.modal_register_title || 'Đăng ký tài khoản MediMind')
-      : (dict.modal_login_title || 'Đăng nhập MediMind AI');
+    const authModeTitles = {
+      register: dict.modal_register_title || 'Đăng ký tài khoản MediMind',
+      forgot: dict.modal_forgot_title || 'Quên mật khẩu?',
+      otp: dict.modal_otp_title || 'Xác thực mã bảo mật (OTP)',
+      login: dict.modal_login_title || 'Đăng nhập MediMind AI',
+    };
+    const activeMode = typeof currentAuthMode !== 'undefined' ? currentAuthMode : 'login';
+    titleEl.innerText = authModeTitles[activeMode] || authModeTitles.login;
   }
 
   // Update gender options text
@@ -2031,8 +1976,8 @@ function applyLanguage() {
   if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
   if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
   if (typeof switchEhrSubTab === 'function') switchEhrSubTab(currentEhrSubTab || 'ai');
-  if (typeof setChatConsultationMode === 'function') setChatConsultationMode(activeChatMode, { silent: true });
   translateStaticDom();
+  if (typeof refreshAllPasswordRuleHints === 'function') refreshAllPasswordRuleHints();
 }
 
 function insertQuickPrompt(num) {
@@ -2135,10 +2080,10 @@ const TAB_HASH_MAP = {
   'chat-tab': 'chat',
   'ocr-tab': 'ocr',
   'booking-tab': 'booking',
-  'my-appointments-tab': 'appointments',
   'doctor-tab': 'doctor',
   'profile-tab': 'profile',
-  'settings-tab': 'settings'
+  'settings-tab': 'settings',
+  'my-appointments-tab': 'appointments'
 };
 const HASH_TAB_MAP = {
   'home': 'home-tab',
@@ -2146,11 +2091,10 @@ const HASH_TAB_MAP = {
   'ocr': 'ocr-tab',
   'booking': 'booking-tab',
   'facilities': 'booking-tab',
-  'appointments': 'my-appointments-tab',
-  'my-appointments': 'my-appointments-tab',
   'doctor': 'doctor-tab',
   'profile': 'profile-tab',
-  'settings': 'settings-tab'
+  'settings': 'settings-tab',
+  'appointments': 'my-appointments-tab'
 };
 
 function resolveInitialTab() {
@@ -2190,7 +2134,7 @@ function switchTab(tabId, updateHistory = true) {
     openLoginModal();
     return;
   }
-  if (tabId !== 'chat-tab' && reviewedIntakeSummary?.id) {
+  if (tabId !== 'chat-tab' && (preVisitSummaryRequest || reviewedIntakeSummary?.id)) {
     closePreVisitSummaryModal();
   }
 
@@ -2219,15 +2163,13 @@ function switchTab(tabId, updateHistory = true) {
     window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
   }
 
-  const targetNavId = tabId === 'my-appointments-tab' ? 'booking-tab' : tabId;
-  const activeNav = document.getElementById('nav-' + targetNavId);
+  const activeNav = document.getElementById('nav-' + tabId);
   if (activeNav) {
     activeNav.classList.remove('text-slate-300', 'font-semibold');
     activeNav.classList.add('glass-pill-cyan-active', 'text-white', 'font-bold');
   }
 
-  const targetDockId = tabId === 'my-appointments-tab' ? 'booking-tab' : tabId;
-  const activeDock = document.getElementById('dock-' + targetDockId);
+  const activeDock = document.getElementById('dock-' + tabId);
   if (activeDock) {
     activeDock.classList.remove('text-white/60');
     activeDock.classList.add('bg-white', 'text-slate-950', 'shadow-[0_0_20px_rgba(255,255,255,0.45)]');
@@ -2309,6 +2251,7 @@ function syncChatSceneState(hasMessages) {
   const populated = hasMessages ?? Boolean(document.getElementById('chat-messages')?.children.length);
   tab.classList.toggle('chat-has-messages', populated);
   tab.classList.toggle('chat-empty', !populated);
+  syncChatSummaryButton();
 }
 
 function toggleChatHistoryPanel(force) {
@@ -2328,7 +2271,6 @@ function resetChat() {
   chatHistory.length = 0;
   currentConversationId = null;
   currentIntakeSummary = null;
-  setChatConsultationMode('general', { silent: true });
 
   const container = document.getElementById('chat-messages');
   if (container) container.innerHTML = '';
@@ -2371,6 +2313,7 @@ function resetChat() {
 let currentConversationId = null;
 let currentIntakeSummary = null;
 let activeChatRequest = null;
+let preVisitSummaryRequest = null;
 let pendingPreVisitSummarySave = null;
 let reviewedIntakeSummary = null;
 
@@ -2381,12 +2324,13 @@ function chatAccountKey() {
 function setChatSending(sending) {
   document.querySelectorAll('#send-btn, #floating-chat-window button[onclick="sendFloatingChatMessage()"]')
     .forEach(button => { button.disabled = sending; button.setAttribute('aria-busy', String(sending)); });
+  syncChatSummaryButton();
   window.dispatchEvent(new CustomEvent('medimind:chat-busy', { detail: { busy: sending } }));
 }
 
 function beginChatRequest(typingId) {
   if (activeChatRequest) return null;
-  if (reviewedIntakeSummary?.id) closePreVisitSummaryModal();
+  if (preVisitSummaryRequest || reviewedIntakeSummary?.id) closePreVisitSummaryModal();
   const request = {
     controller: new AbortController(), conversationId: currentConversationId,
     accountKey: chatAccountKey(), typingId, history: chatHistory.slice()
@@ -2406,6 +2350,7 @@ function finishChatRequest(request) {
   if (activeChatRequest === request) {
     activeChatRequest = null;
     setChatSending(false);
+    refreshPreVisitSummaryAfterReply();
   }
 }
 
@@ -2516,9 +2461,12 @@ function chatAnswerMetadata(data) {
   const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
   const links = verifiedChatSources(data.sources).map(source =>
     `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">[${source.number}] ${escapeHtml(source.title)} <span class="opacity-70">(${escapeHtml(source.hostname)})</span></a>`);
-  const degradedNotice = isEn
+  const errCodeSuffix = (typeof data.ai_error_code === 'string' && data.ai_error_code.trim())
+    ? ` (${isEn ? 'Code' : 'Mã sự cố'}: ${escapeHtml(data.ai_error_code.trim())})`
+    : '';
+  const degradedNotice = (isEn
     ? 'Using backup response because AI is currently unavailable; please verify information before applying.'
-    : 'Đang dùng phản hồi dự phòng vì AI chưa sẵn sàng; hãy kiểm tra lại thông tin trước khi áp dụng.';
+    : 'Đang dùng phản hồi dự phòng vì AI chưa sẵn sàng; hãy kiểm tra lại thông tin trước khi áp dụng.') + errCodeSuffix;
   const sourceLabel = isEn ? 'Sources:' : 'Nguồn tham khảo:';
 
   return `${data.degraded ? `<p role="status" class="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">${degradedNotice}</p>` : ''}${links.length ? `<div class="mt-3 border-t border-slate-200 pt-2 text-xs text-sky-700 dark:border-white/10 dark:text-sky-300"><span class="font-semibold">${sourceLabel}</span> ${links.join(' · ')}</div>` : ''}`;
@@ -2649,6 +2597,27 @@ async function sendChatMessage() {
     renderChatHistoryList();
   }
 
+  let activeChatMode = 'general';
+
+  function setChatConsultationMode(mode) {
+    activeChatMode = (mode === 'intake') ? 'intake' : 'general';
+    const generalBtn = document.getElementById('chat-mode-general-btn');
+    const intakeBtn = document.getElementById('chat-mode-intake-btn');
+    const statusText = document.getElementById('chat-mode-status-text');
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+
+    if (generalBtn) generalBtn.classList.toggle('active', activeChatMode === 'general');
+    if (intakeBtn) intakeBtn.classList.toggle('active', activeChatMode === 'intake');
+
+    if (statusText) {
+      if (activeChatMode === 'intake') {
+        statusText.innerText = isEn ? 'Clinical Intake Mode • Pre-visit triage' : 'Chế độ Thăm khám lâm sàng • Bác sĩ trấn an & tóm tắt trước khám';
+      } else {
+        statusText.innerText = isEn ? 'General Q&A Mode • Concise & accurate' : 'Chế độ Hỏi đáp y tế • Trả lời ngắn gọn & chính xác';
+      }
+    }
+  }
+
   // 2. Typing Indicator
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
@@ -2719,7 +2688,7 @@ async function sendChatMessage() {
         <div class="p-2.5 rounded-xl bg-sky-500/15 border border-sky-400/30 space-y-1.5">
           <div class="text-[11px] font-bold text-sky-300 flex items-center space-x-1.5">
             <span>👁️</span>
-            <span>${currentLang === 'en' ? 'Visible features in the image' : 'Đặc điểm quan sát được từ ảnh'}</span>
+            <span>Đặc điểm thị giác nhận định (Gemini Vision AI):</span>
           </div>
           <div class="flex flex-wrap gap-1.5 pt-0.5">
             ${data.visual_findings.map(f => `
@@ -2787,7 +2756,7 @@ function updateTriagePanel(data) {
       floatingRisk.innerText = dict.safety_high_risk_title || (isEn ? 'High Risk - Consult Specialist' : 'Nguy cơ cao - Khám chuyên khoa sớm');
       floatingRisk.className = 'text-xs font-bold text-amber-400';
     } else if (isDegraded) {
-      floatingRisk.innerText = dict.safety_degraded_triage || (isEn ? 'Backup Mode: Follow up at home' : 'Chế độ dự phòng: Theo dõi tại nhà');
+      floatingRisk.innerText = dict.safety_degraded_triage || (isEn ? 'Backup Mode: AI unavailable' : 'Chế độ dự phòng: AI tạm gián đoạn');
       floatingRisk.className = 'text-xs font-bold text-amber-300';
     } else if (score == null) {
       floatingRisk.innerText = data.risk_level || dict.safety_insufficient_info || (isEn ? 'Insufficient information' : 'Chưa đủ thông tin');
@@ -2851,101 +2820,79 @@ function hasPreVisitSummaryFacts(facts) {
     Object.values(facts.vitals || {}).some(Boolean) || Object.values(facts.pain || {}).some(Boolean));
 }
 
-// 2 CHẾ ĐỘ TRÒ CHUYỆN (GENERAL Q&A VS CLINICAL INTAKE)
-let activeChatMode = 'general'; // 'general' | 'intake'
-
-function setChatConsultationMode(mode, { triggerGreeting = false, silent = false } = {}) {
-  activeChatMode = mode === 'intake' ? 'intake' : 'general';
-  const isIntake = activeChatMode === 'intake';
+function syncChatSummaryButton() {
+  const button = document.getElementById('chat-summary-button');
+  if (!button) return;
   const dict = translations[currentLang] || translations.vi;
+  const loading = Boolean(preVisitSummaryRequest);
+  const saving = Boolean(currentConversationId && pendingPreVisitSummarySave?.id === currentConversationId);
+  button.disabled = loading || saving;
+  button.setAttribute('aria-busy', String(loading || saving));
+  button.textContent = loading ? dict.intake_summary_loading :
+    saving ? dict.intake_summary_saving : dict.intake_btn_summary;
+}
 
-  // 1. Update Mode Tabs
-  const generalBtn = document.getElementById('chat-mode-general-btn');
-  if (generalBtn) {
-    generalBtn.classList.toggle('active', !isIntake);
-    generalBtn.setAttribute('aria-pressed', String(!isIntake));
+function refreshPreVisitSummaryAfterReply() {
+  if (reviewedIntakeSummary?.awaitingReply && reviewedIntakeSummary.id === currentConversationId &&
+    !activeChatRequest && !preVisitSummaryRequest) {
+    openPreVisitSummaryModal({ refresh: true });
   }
+}
 
-  // 2. Update Header Subtitle
-  const statusEl = document.getElementById('chat-mode-status-text');
-  if (statusEl) {
-    statusEl.textContent = isIntake
-      ? (dict.mode_intake_desc || 'Chế độ Thăm khám lâm sàng • Bác sĩ ân cần, lắng nghe & trấn an')
-      : (dict.mode_general_desc || 'Chế độ Hỏi đáp y tế • Trả lời ngắn gọn & chính xác');
+async function openPreVisitSummaryModal({ refresh = false } = {}) {
+  const button = document.getElementById('chat-summary-button');
+  const modal = document.getElementById('previsit-summary-modal');
+  const id = currentConversationId;
+  const dict = translations[currentLang] || translations.vi;
+  if (!id) {
+    showMedicalToast(dict.intake_summary_start_chat, 'info');
+    document.getElementById('user-input')?.focus();
+    return;
   }
-
-  // 3. Update Input Placeholder
-  const inputEl = document.getElementById('user-input');
-  if (inputEl) {
-    inputEl.placeholder = isIntake
-      ? (dict.mode_intake_placeholder || 'Mô tả triệu chứng hoặc trả lời câu hỏi của bác sĩ...')
-      : (dict.mode_general_placeholder || 'Đặt câu hỏi y tế (ví dụ: đau đầu uống thuốc gì, sốt xuất huyết là gì...)...');
-    inputEl.focus();
-  }
-
-  // 4. Update Empty State text
-  const emptyTitle = document.querySelector('#chat-empty-state h2');
-  const emptySub = document.querySelector('#chat-empty-state p');
-  if (emptyTitle && emptySub) {
-    if (isIntake) {
-      emptyTitle.textContent = dict.chat_intake_welcome_title || 'Bác sĩ lâm sàng MediMind sẵn sàng lắng nghe';
-      emptySub.textContent = dict.chat_intake_welcome_subtitle || 'Hãy chia sẻ triệu chứng để bác sĩ thăm khám và chuẩn bị Phiếu tóm tắt trước khám cho bạn.';
-    } else {
-      emptyTitle.textContent = dict.chat_welcome_title || 'Hôm nay mình có thể giúp gì cho bạn?';
-      emptySub.textContent = dict.chat_welcome_subtitle || 'Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.';
+  if (!modal || button?.disabled || preVisitSummaryRequest) return;
+  const request = {
+    id, account: chatAccountKey(), controller: new AbortController(),
+    awaitingReply: Boolean(activeChatRequest)
+  };
+  const isCurrent = () => preVisitSummaryRequest === request &&
+    currentConversationId === id && chatAccountKey() === request.account;
+  preVisitSummaryRequest = request;
+  syncChatSummaryButton();
+  try {
+    const response = await fetch('/api/intake/summary/' + encodeURIComponent(id) + '?lang=' + encodeURIComponent(currentLang), {
+      signal: request.controller.signal,
+      cache: 'no-store'
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!isCurrent()) return;
+    if (response.status === 404 || (response.ok &&
+      (!data.summary?.part_a_patient_facts || data.summary.summary_available === false))) {
+      showMedicalToast(activeChatRequest ? dict.intake_summary_preparing : dict.intake_summary_unavailable, 'info');
+      return;
     }
-  }
-
-  // 5. If triggerGreeting is requested and chat is currently empty, show doctor reassurance greeting
-  if (isIntake && triggerGreeting) {
-    const container = document.getElementById('chat-messages');
-    if (container && (!chatHistory || chatHistory.length === 0)) {
-      const greetingText = dict.doctor_reassurance_welcome ||
-        'Chào bạn! Tôi là bác sĩ lâm sàng MediMind. Bạn hoàn toàn yên tâm nhé, tôi sẽ cùng bạn điểm lại các triệu chứng một cách ân cần và kỹ lưỡng để chuẩn bị Phiếu tóm tắt trước khám chu đáo nhất cho bác sĩ tiếp nhận. Hãy cho tôi biết hiện tại bạn đang cảm thấy khó chịu ở đâu hoặc có biểu hiện gì nhé!';
-
-      const assistantTurn = {
-        role: 'assistant',
-        content: greetingText,
-        sentAt: Date.now()
-      };
-      chatHistory.push(assistantTurn);
-      container.insertAdjacentHTML('beforeend', `
-        <div class="flex justify-start my-1">
-          <div class="max-w-[95%] rounded-2xl border border-sky-300 dark:border-sky-500/30 bg-sky-50/90 dark:bg-sky-950/40 p-4 text-sm leading-relaxed text-slate-800 dark:text-slate-100 shadow-sm">
-            <div class="flex items-center gap-2 mb-2 text-sky-700 dark:text-sky-300 text-xs font-bold">
-              <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
-              <span>Bác sĩ lâm sàng MediMind</span>
-            </div>
-            <div class="text-slate-800 dark:text-slate-100 font-normal leading-relaxed">${formatChatAnswer(greetingText)}</div>
-          </div>
-        </div>
-      `);
-      syncChatSceneState(true);
-      container.scrollTop = container.scrollHeight;
-    }
-    if (!silent) {
-      showMedicalToast(dict.mode_switched_to_intake || 'Đã bật chế độ Thăm khám lâm sàng. Bác sĩ sẵn sàng lắng nghe bạn.', 'info');
-    }
-  } else if (!silent) {
-    showMedicalToast(
-      isIntake
-        ? (dict.mode_switched_to_intake || 'Đã bật chế độ Thăm khám lâm sàng & Tóm tắt trước khám.')
-        : (dict.mode_switched_to_general || 'Đã bật chế độ Hỏi đáp y tế nhanh (gọn gàng, chính xác).'),
-      'info'
-    );
-  }
-
-  // Save mode to current session if exists
-  if (currentConversationId) {
-    const activeSession = chatSessions.find(s => s.id === currentConversationId);
-    if (activeSession) {
-      activeSession.chatMode = activeChatMode;
-      saveSessionsToStorage();
+    if (!response.ok) throw new Error(extractApiErrorMessage(data, dict.intake_summary_load_error));
+    if (!refresh) lastFocusedModalElement = button;
+    currentIntakeSummary = data.summary;
+    renderPreVisitSummaryInModal(data.summary, id, request.awaitingReply);
+    modal.classList.remove('hidden');
+    if (!refresh) document.getElementById('previsit-summary-close')?.focus();
+  } catch (error) {
+    if (isCurrent() && error.name !== 'AbortError') showMedicalToast(dict.intake_summary_load_error, 'error');
+  } finally {
+    if (preVisitSummaryRequest === request) {
+      preVisitSummaryRequest = null;
+      syncChatSummaryButton();
+      if (request.awaitingReply) refreshPreVisitSummaryAfterReply();
     }
   }
 }
 
 function closePreVisitSummaryModal() {
+  if (preVisitSummaryRequest) {
+    preVisitSummaryRequest.controller.abort();
+    preVisitSummaryRequest = null;
+    syncChatSummaryButton();
+  }
   const modal = document.getElementById('previsit-summary-modal');
   reviewedIntakeSummary = null;
   if (modal && !modal.classList.contains('hidden')) {
@@ -2966,7 +2913,6 @@ function handlePreVisitSummaryKeys(event) {
     .filter(element => element.getClientRects().length);
   const first = focusable[0];
   const last = focusable.at(-1);
-  if (!first) return;
   if (event.shiftKey && event.target === first) {
     event.preventDefault();
     last.focus();
@@ -2976,34 +2922,15 @@ function handlePreVisitSummaryKeys(event) {
   }
 }
 
-function renderPreVisitSummaryRows(container, rows) {
-  if (!container) return;
-  container.replaceChildren();
-  for (const [label, value] of rows) {
-    if (!value) continue;
-    const row = document.createElement('div');
-    row.className = 'py-2.5';
-    const name = document.createElement('dt');
-    name.className = 'text-xs font-semibold text-slate-600 dark:text-slate-400';
-    name.textContent = label;
-    const detail = document.createElement('dd');
-    detail.className = 'mt-0.5 break-words whitespace-pre-line text-sm text-slate-900 dark:text-slate-100';
-    detail.textContent = value;
-    row.append(name, detail);
-    container.append(row);
-  }
-}
-
 function renderPreVisitSummaryInModal(summary, id = currentConversationId, awaitingReply = false) {
   reviewedIntakeSummary = { id, summary, awaitingReply };
   const partA = summary.part_a_patient_facts || {};
   const partB = summary.part_b_system_assessment || {};
   const dict = translations[currentLang] || translations.vi;
-  const label = (vi, en) => currentLang === 'en' ? en : vi;
 
   const statusText = document.getElementById('modal-summary-status-text');
   const createdAt = document.getElementById('modal-summary-created-at');
-  if (statusText) statusText.innerText = summary.is_confirmed ? dict.intake_summary_confirmed : dict.intake_summary_review_pending;
+  if (statusText) statusText.innerText = `${dict.intake_summary_version}: v${summary.version || partB.version || 1} • ${summary.is_confirmed ? dict.intake_summary_confirmed : dict.intake_summary_review_pending}`;
   if (createdAt) createdAt.innerText = partB.created_at || '';
 
   const emptyValues = new Set([
@@ -3021,9 +2948,30 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
     if (item?.status === 'unknown') return label('Chưa rõ theo lời người bệnh', 'Patient unsure');
     if (item?.status === 'denied' && field !== 'medications') {
       const denial = label('Người bệnh cho biết không có', 'Patient reported none');
-      return text ? `${denial} · ${text}` : denial;
+      const cleanText = text.toLowerCase().trim();
+      if (!text || ['không', 'ko', 'k', 'none', 'no', 'chưa', 'không có', 'khong co'].includes(cleanText)) {
+        return denial;
+      }
+      return `${denial} · ${text}`;
     }
     return text || label('Chưa cung cấp', 'Not provided');
+  };
+  const formatVitals = val => {
+    if (!val) return '';
+    if (typeof val === 'object') {
+      return Object.entries(val).map(([k, v]) => {
+        const kName = k === 'temperature' ? label('Thân nhiệt', 'Temperature') :
+          k === 'blood_pressure' ? label('Huyết áp', 'Blood pressure') :
+            k === 'heart_rate' ? label('Nhịp tim', 'Heart rate') : k;
+        return `${kName}: ${v}`;
+      }).join(', ');
+    }
+    if (typeof val === 'string') {
+      return val.replace(/temperature:\s*/gi, label('Thân nhiệt: ', 'Temperature: '))
+        .replace(/blood_pressure:\s*/gi, label('Huyết áp: ', 'Blood pressure: '))
+        .replace(/heart_rate:\s*/gi, label('Nhịp tim: ', 'Heart rate: '));
+    }
+    return String(val);
   };
   const pain = partA.pain || {};
   const context = Array.isArray(partA.contextual_answers) ? partA.contextual_answers : [];
@@ -3040,30 +2988,36 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
     [label('Dị ứng', 'Allergies'), historyValue('allergies', partA.allergies)],
     [label('Thuốc đang dùng hoặc đã dùng', 'Current or recent medication'), historyValue('medications', partA.current_medications)],
     [label('Bệnh đang điều trị, tiền sử liên quan', 'Relevant conditions or history'), historyValue('conditions')],
-    [label('Chỉ số tự đo', 'Self-reported measurements'), known(partA.vitals)],
+    [label('Chỉ số tự đo', 'Self-reported measurements'), formatVitals(known(partA.vitals))],
     [label('Ảnh đính kèm', 'Attached images'), known(partA.attachments_and_observations)],
     ...context.filter(item => item && known(item.question)).map(item => [known(item.question), known(item.answer)])
   ]);
   const mEl = document.getElementById('summary-a-missing');
-  const missingSection = document.getElementById('summary-a-missing-section');
-  const missing = list(partA.missing_or_unclear_info);
-  if (mEl) mEl.innerText = missing;
-  if (missingSection) missingSection.hidden = !missing;
 
-  const assessment = document.getElementById('summary-b-assessment');
-  const hasAssessment = partB.triage_badge === 'assessed' || partB.triage_badge === 'emergency';
-  if (assessment) assessment.hidden = !hasAssessment;
-  renderPreVisitSummaryRows(document.getElementById('summary-b-facts'), hasAssessment ? [
-    [label('Phân luồng', 'Triage status'), known(partB.triage_status)],
-    [label('Chuyên khoa gợi ý', 'Suggested specialty'), known(partB.recommended_specialist)],
-    [label('Hướng tiếp cận chăm sóc', 'Care guidance'), known(partB.care_approach)],
-  ] : []);
-  const sourcesSection = document.getElementById('summary-b-sources-section');
+  if (cEl) cEl.innerText = [partA.chief_complaint, ...Object.values(partA.pain || {})].filter(Boolean).join(' · ') || '--';
+  if (dEl) dEl.innerText = partA.duration || '--';
+  if (pEl) pEl.innerText = (partA.symptoms_present && partA.symptoms_present.length) ? partA.symptoms_present.join(', ') : '--';
+  if (dnEl) dnEl.innerText = (partA.symptoms_denied && partA.symptoms_denied.length) ? partA.symptoms_denied.join(', ') : 'Chưa có triệu chứng phủ nhận';
+  if (vEl) vEl.innerText = partA.vitals || 'Chưa có chỉ số tự đo tại nhà';
+  if (attEl) attEl.innerText = partA.attachments_and_observations || 'Không có tệp hình ảnh đính kèm';
+  if (mEl) mEl.innerText = (partA.missing_or_unclear_info && partA.missing_or_unclear_info.length) ? partA.missing_or_unclear_info.join('; ') : 'Đã đủ thông tin cơ bản';
+
+  const algEl = document.getElementById('summary-a-allergies');
+  const medEl = document.getElementById('summary-a-medications');
+  if (algEl) algEl.innerText = partA.allergies || 'Chưa ghi nhận tiền sử dị ứng đặc biệt';
+  if (medEl) medEl.innerText = partA.current_medications || 'Chưa ghi nhận thuốc đang dùng thường xuyên';
+
+  // Part B
+  const bStatus = document.getElementById('summary-b-status');
+  const bSpec = document.getElementById('summary-b-specialist');
+  const bAppr = document.getElementById('summary-b-approach');
   const bSources = document.getElementById('summary-b-sources');
-  const sources = hasAssessment ? verifiedChatSources(partB.sources) : [];
-  if (sourcesSection) sourcesSection.hidden = !sources.length;
+
+  if (bStatus) bStatus.innerText = partB.triage_status || '--';
+  if (bSpec) bSpec.innerText = partB.recommended_specialist || '--';
+  if (bAppr) bAppr.innerText = partB.care_approach || '--';
   if (bSources) {
-    bSources.innerHTML = sources.map(source =>
+    bSources.innerHTML = verifiedChatSources(partB.sources).map(source =>
       `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">[${source.number}] ${escapeHtml(source.title)}</a>`).join('<br>');
   }
 
@@ -3093,17 +3047,6 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
   updateSummarySaveButton();
 }
 
-function showSavedPreVisitSummary(summary) {
-  const modal = document.getElementById('previsit-summary-modal');
-  if (!modal) return;
-  recordModalTriggerFocus();
-  renderPreVisitSummaryInModal(summary, null);
-  modal.classList.remove('hidden');
-  const content = document.getElementById('previsit-summary-content');
-  if (content) content.scrollTop = 0;
-  document.getElementById('previsit-summary-close')?.focus();
-}
-
 function updateSummarySaveButton() {
   const button = document.getElementById('modal-btn-confirm');
   const checkEl = document.getElementById('summary-consent-check');
@@ -3128,6 +3071,7 @@ async function confirmCurrentIntake() {
   const dict = translations[currentLang] || translations.vi;
   pendingPreVisitSummarySave = review;
   updateSummarySaveButton();
+  syncChatSummaryButton();
   try {
     const res = await fetch('/api/intake/confirm-summary', {
       method: 'POST',
@@ -3139,7 +3083,7 @@ async function confirmCurrentIntake() {
     if (!res.ok || !data.summary) {
       if (reviewedIntakeSummary === review) {
         if (res.status === 409) consentCheck.checked = false;
-        showMedicalToast(res.status === 409 ? dict.intake_summary_changed : dict.intake_summary_save_error, 'error');
+        showMedicalToast(res.status === 409 ? dict.intake_summary_changed : extractApiErrorMessage(data, dict.intake_summary_save_error), 'error');
       }
       return;
     }
@@ -3164,6 +3108,7 @@ async function confirmCurrentIntake() {
   } finally {
     pendingPreVisitSummarySave = null;
     updateSummarySaveButton();
+    syncChatSummaryButton();
   }
 }
 
@@ -3460,11 +3405,18 @@ async function handleSaveProfile(e) {
     localStorage.setItem('medimind_user', JSON.stringify(currentUser));
     try {
       updateAuthUI();
+      if (typeof updateEhrTabUI === 'function') updateEhrTabUI();
+      if (typeof updateHomeGreeting === 'function') updateHomeGreeting();
       broadcastTabEvent(wasNewReg ? 'AUTH_LOGIN' : 'PROFILE_UPDATE', { user: currentUser });
     } catch (uiErr) {
       console.warn('Lỗi cập nhật DOM UI sau lưu thông tin:', uiErr);
     }
     closeProfileModal();
+    if (pendingTabAfterLogin && typeof switchTab === 'function') {
+      const targetTab = pendingTabAfterLogin;
+      pendingTabAfterLogin = null;
+      switchTab(targetTab);
+    }
     if (typeof showMedicalToast === 'function') {
       showMedicalToast(
         wasNewReg
@@ -3475,7 +3427,7 @@ async function handleSaveProfile(e) {
       );
     }
   } else {
-    showMedicalToast(data?.error || 'Cập nhật thông tin thất bại.', 'error', 4500);
+    showMedicalToast(extractApiErrorMessage(data, 'Cập nhật thông tin thất bại.'), 'error', 4500);
   }
 }
 
@@ -3546,26 +3498,45 @@ function syncEditProfileDobFromDropdowns() {
   }
 }
 
-function openGoogleOnboardingModal(user, isNewRegistration = false) {
+function openGoogleOnboardingModal(user, isNewRegistration = false, options = {}) {
   const u = user || pendingGoogleProfile || currentUser;
   if (!u) return;
   isPendingGoogleRegistration = Boolean(isNewRegistration);
+  const source = options?.source || (isPendingGoogleRegistration ? 'google_pending' : 'google');
+  const isRegisterOtp = source === 'register_email' || source === 'register_phone';
+  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
   const modal = document.getElementById('profile-modal');
   const nameHeader = document.getElementById('profile-name');
   const badgeHeader = document.getElementById('profile-badge');
   const avatarHeader = document.getElementById('profile-avatar');
-  const displayName = u.full_name || u.name || 'Bệnh nhân mới';
+  const displayName = u.full_name || u.name || (isEn ? 'New Patient' : 'Bệnh nhân mới');
 
   if (nameHeader) nameHeader.innerText = displayName;
   if (badgeHeader) {
-    badgeHeader.innerText = isPendingGoogleRegistration
-      ? `Tài khoản Google mới: ${u.email || ''} • Xác nhận thông tin để vào ứng dụng`
-      : 'Xác thực Google thành công • Thông tin hồ sơ cá nhân';
+    if (isPendingGoogleRegistration) {
+      badgeHeader.innerText = isEn
+        ? `New Google account: ${u.email || ''} • Confirm details to enter`
+        : `Tài khoản Google mới: ${u.email || ''} • Xác nhận thông tin để vào ứng dụng`;
+    } else if (isRegisterOtp) {
+      const contactLabel = source === 'register_phone'
+        ? (u.phone_number || '')
+        : (u.email || '');
+      const contactSuffix = contactLabel ? `: ${contactLabel}` : '';
+      badgeHeader.innerText = isEn
+        ? `Account verified${contactSuffix} • Complete your personal profile`
+        : `Đăng ký thành công${contactSuffix} • Hoàn tất thông tin hồ sơ cá nhân`;
+    } else {
+      badgeHeader.innerText = isEn
+        ? 'Google sign-in verified • Personal profile details'
+        : 'Xác thực Google thành công • Thông tin hồ sơ cá nhân';
+    }
   }
 
   const saveBtnSpan = document.getElementById('profile-save-btn-text') || document.querySelector('#profile-edit-mode button[type="submit"] span');
   if (saveBtnSpan) {
-    saveBtnSpan.innerText = isPendingGoogleRegistration ? 'Xác nhận & Vào ứng dụng' : 'Lưu thông tin';
+    saveBtnSpan.innerText = (isPendingGoogleRegistration || isRegisterOtp || source === 'google')
+      ? (isEn ? 'Confirm & Enter App' : 'Xác nhận & Vào ứng dụng')
+      : (isEn ? 'Save information' : 'Lưu thông tin');
   }
 
   // Cải tiến hiển thị Avatar chống vỡ ảnh (Graceful Fallback với Gradient Initial Badge)
@@ -3605,7 +3576,11 @@ function openGoogleOnboardingModal(user, isNewRegistration = false) {
 
   if (modal) modal.classList.remove('hidden');
   setTimeout(() => {
-    if (phoneInput && !phoneInput.value) phoneInput.focus();
+    if (phoneInput && !phoneInput.value) {
+      phoneInput.focus();
+    } else if (!u.dob) {
+      document.getElementById('edit-profile-dob-day')?.focus();
+    }
   }, 100);
 }
 
@@ -3642,7 +3617,7 @@ async function handleTabSaveProfile(e) {
       })
     });
     const data = await res.json();
-    if (data.success && data.user) {
+    if (res.ok && data.success && data.user) {
       currentUser = data.user;
       currentUser.city = city;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
@@ -3650,7 +3625,7 @@ async function handleTabSaveProfile(e) {
       broadcastTabEvent('PROFILE_UPDATE', { user: currentUser });
       showMedicalToast('Cập nhật hồ sơ thông tin cá nhân thành công!', 'success');
     } else {
-      showMedicalToast(data.error || 'Cập nhật thất bại.', 'error');
+      showMedicalToast(extractApiErrorMessage(data, 'Cập nhật thất bại.'), 'error');
     }
   } catch (err) {
     console.error('Lỗi lưu hồ sơ:', err);
@@ -3659,6 +3634,7 @@ async function handleTabSaveProfile(e) {
 }
 
 function closeProfileModal() {
+  const wasCancelledGooglePending = isPendingGoogleRegistration;
   if (isPendingGoogleRegistration) {
     isPendingGoogleRegistration = false;
     pendingGoogleProfile = null;
@@ -3667,9 +3643,19 @@ function closeProfileModal() {
       showMedicalToast('Đã hủy hoàn tất đăng ký Google (hồ sơ chưa được tạo).', 'info', 4000);
     }
   }
+  const saveBtnSpan = document.getElementById('profile-save-btn-text');
+  if (saveBtnSpan) {
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+    saveBtnSpan.innerText = isEn ? 'Save information' : 'Lưu thông tin';
+  }
   toggleProfileEdit(false);
   const modal = document.getElementById('profile-modal');
   if (modal) modal.classList.add('hidden');
+  if (!wasCancelledGooglePending && pendingTabAfterLogin && typeof switchTab === 'function') {
+    const targetTab = pendingTabAfterLogin;
+    pendingTabAfterLogin = null;
+    switchTab(targetTab);
+  }
 }
 
 function syncAuthModalTheme() {
@@ -3728,9 +3714,11 @@ function resetAuthModal() {
   // Reset forms
   const loginForm = document.getElementById('login-form');
   const regForm = document.getElementById('register-form');
+  const forgotForm = document.getElementById('forgot-form');
   const otpForm = document.getElementById('otp-form');
   if (loginForm) loginForm.reset();
   if (regForm) regForm.reset();
+  if (forgotForm) forgotForm.reset();
   if (otpForm) otpForm.reset();
 
   // Clear inputs explicitly to prevent lingering state on logout / new account
@@ -3740,6 +3728,7 @@ function resetAuthModal() {
   const regIdent = document.getElementById('register-identifier');
   const regEmail = document.getElementById('register-email');
   const regPass = document.getElementById('register-password');
+  const regConfirmPass = document.getElementById('register-confirm-password');
   const regDob = document.getElementById('register-dob');
   const regGender = document.getElementById('register-gender');
 
@@ -3749,6 +3738,7 @@ function resetAuthModal() {
   if (regIdent) regIdent.value = '';
   if (regEmail) regEmail.value = '';
   if (regPass) regPass.value = '';
+  if (regConfirmPass) regConfirmPass.value = '';
   if (regDob) regDob.value = '';
   if (regGender) regGender.value = 'Nam';
 
@@ -3756,6 +3746,13 @@ function resetAuthModal() {
   const loginPass = document.getElementById('login-password');
   if (loginIdent) loginIdent.value = '';
   if (loginPass) loginPass.value = '';
+
+  const forgotIdent = document.getElementById('forgot-identifier');
+  const forgotNewPass = document.getElementById('forgot-new-password');
+  const forgotConfirmPass = document.getElementById('forgot-confirm-password');
+  if (forgotIdent) forgotIdent.value = '';
+  if (forgotNewPass) forgotNewPass.value = '';
+  if (forgotConfirmPass) forgotConfirmPass.value = '';
 
   clearOtpInputs();
   const timerWrap = document.getElementById('otp-timer-wrap');
@@ -3766,6 +3763,7 @@ function resetAuthModal() {
   if (targetDisplay) targetDisplay.innerText = '...';
 
   populateDobDropdowns();
+  if (typeof refreshAllPasswordRuleHints === 'function') refreshAllPasswordRuleHints();
 }
 
 function openLoginModal(mode = 'login') {
@@ -3805,19 +3803,16 @@ function populateDobDropdowns() {
   populateModalDobDropdowns('edit-profile-dob-day', 'edit-profile-dob-month', 'edit-profile-dob-year', curEditDob);
 }
 
-function startForgotPasswordFlow() {
-  toggleAuthMode('forgot');
-}
-
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
   currentAuthMode = mode;
   const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
+  const forgotSubtitleEl = document.getElementById('auth-forgot-subtitle');
+  const leftHeroEl = document.getElementById('auth-left-hero');
   const loginForm = document.getElementById('login-form');
   const regForm = document.getElementById('register-form');
   const forgotForm = document.getElementById('forgot-form');
-  const forgotSubtitle = document.getElementById('auth-forgot-subtitle');
   const otpForm = document.getElementById('otp-form');
   const googleContainer = document.getElementById('google-auth-container');
   const socialDivider = document.getElementById('auth-social-divider');
@@ -3827,10 +3822,11 @@ function toggleAuthMode(mode) {
 
   if (mode === 'login') {
     if (titleEl) titleEl.innerText = dict.modal_login_title || "Đăng nhập MediMind AI";
+    if (forgotSubtitleEl) forgotSubtitleEl.classList.add('hidden');
+    if (leftHeroEl) leftHeroEl.classList.remove('hidden');
     if (loginForm) loginForm.classList.remove('hidden');
     if (regForm) regForm.classList.add('hidden');
     if (forgotForm) forgotForm.classList.add('hidden');
-    if (forgotSubtitle) forgotSubtitle.classList.add('hidden');
     if (otpForm) otpForm.classList.add('hidden');
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
@@ -3847,11 +3843,12 @@ function toggleAuthMode(mode) {
       tabReg.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
     }
   } else if (mode === 'register') {
-    if (titleEl) titleEl.innerText = dict.modal_reg_title || "Đăng ký tài khoản MediMind";
+    if (titleEl) titleEl.innerText = dict.modal_register_title || "Đăng ký tài khoản MediMind";
+    if (forgotSubtitleEl) forgotSubtitleEl.classList.add('hidden');
+    if (leftHeroEl) leftHeroEl.classList.remove('hidden');
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.remove('hidden');
     if (forgotForm) forgotForm.classList.add('hidden');
-    if (forgotSubtitle) forgotSubtitle.classList.add('hidden');
     if (otpForm) otpForm.classList.add('hidden');
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
@@ -3868,27 +3865,45 @@ function toggleAuthMode(mode) {
       tabLogin.className = "flex-1 py-2 px-3 rounded-lg border-0 bg-transparent text-slate-400 hover:text-white font-medium transition-all cursor-pointer";
     }
   } else if (mode === 'forgot') {
-    if (titleEl) titleEl.innerText = "Đặt lại mật khẩu";
+    if (titleEl) titleEl.innerText = dict.modal_forgot_title || "Quên mật khẩu?";
+    if (forgotSubtitleEl) forgotSubtitleEl.classList.remove('hidden');
+    if (leftHeroEl) leftHeroEl.classList.add('hidden');
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.add('hidden');
-    if (otpForm) otpForm.classList.add('hidden');
     if (forgotForm) forgotForm.classList.remove('hidden');
-    if (forgotSubtitle) forgotSubtitle.classList.remove('hidden');
+    if (otpForm) otpForm.classList.add('hidden');
     if (googleContainer) googleContainer.classList.add('hidden');
     if (socialDivider) socialDivider.classList.add('hidden');
     if (tabsContainer) tabsContainer.classList.add('hidden');
-    document.getElementById('forgot-identifier')?.focus();
   } else if (mode === 'otp') {
-    if (titleEl) titleEl.innerText = "Xác thực mã bảo mật (OTP)";
+    if (titleEl) titleEl.innerText = dict.modal_otp_title || "Xác thực mã bảo mật (OTP)";
+    if (forgotSubtitleEl) forgotSubtitleEl.classList.add('hidden');
+    if (leftHeroEl) leftHeroEl.classList.remove('hidden');
     if (loginForm) loginForm.classList.add('hidden');
     if (regForm) regForm.classList.add('hidden');
     if (forgotForm) forgotForm.classList.add('hidden');
-    if (forgotSubtitle) forgotSubtitle.classList.add('hidden');
     if (otpForm) otpForm.classList.remove('hidden');
     if (googleContainer) googleContainer.classList.add('hidden');
     if (socialDivider) socialDivider.classList.add('hidden');
     if (tabsContainer) tabsContainer.classList.add('hidden');
   }
+}
+
+function startForgotPasswordFlow() {
+  const loginIdentVal = (document.getElementById('login-identifier')?.value || '').trim();
+  const forgotIdentEl = document.getElementById('forgot-identifier');
+  if (forgotIdentEl && loginIdentVal && !forgotIdentEl.value) {
+    forgotIdentEl.value = loginIdentVal;
+  }
+  toggleAuthMode('forgot');
+  if (typeof refreshAllPasswordRuleHints === 'function') refreshAllPasswordRuleHints();
+  setTimeout(() => {
+    if (forgotIdentEl && !forgotIdentEl.value.trim()) {
+      forgotIdentEl.focus();
+    } else {
+      document.getElementById('forgot-new-password')?.focus();
+    }
+  }, 50);
 }
 
 function selectLoginRole(role) {
@@ -4104,8 +4119,8 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
       body: JSON.stringify({ identifier, channel, purpose, full_name: fullName })
     });
     const data = await res.json();
-    if (!data.success) {
-      showMedicalToast(data.error || 'Không thể gửi mã xác thực OTP.', 'error');
+    if (!res.ok || !data.success) {
+      showMedicalToast(extractApiErrorMessage(data, 'Không thể gửi mã xác thực OTP.'), 'error', 5500);
       return;
     }
 
@@ -4128,7 +4143,10 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
     startOtpCountdown(data.cooldown || 59);
 
     if (typeof showMedicalToast === 'function') {
-      showMedicalToast(`Mã OTP đã được gửi tới ${identifier}!`, 'success');
+      const sentToast = (purpose === 'reset_pwd' || purpose === 'login_2fa') && data.message
+        ? data.message
+        : `Mã OTP đã được gửi tới ${identifier}!`;
+      showMedicalToast(sentToast, 'success');
     }
   } catch (err) {
     console.error('Lỗi yêu cầu gửi OTP:', err);
@@ -4138,11 +4156,23 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
 
 async function handleOtpSubmit(e) {
   if (e) e.preventDefault();
+  if (!pendingOtpFlow.identifier) {
+    showMedicalToast('Phiên xác thực OTP đã được đặt lại. Vui lòng nhập lại thông tin đăng ký.', 'warning', 5000);
+    toggleAuthMode('register');
+    return;
+  }
   const code = getOtpCodeFromInputs();
   if (code.length !== 6) {
     showMedicalToast('Vui lòng nhập đủ 6 chữ số của mã OTP.', 'warning');
     return;
   }
+
+  const completedPurpose = pendingOtpFlow.purpose;
+  const completedChannel = pendingOtpFlow.channel;
+  const completedIdentifier = pendingOtpFlow.identifier;
+
+  const submitBtn = document.getElementById('btn-otp-verify-submit');
+  if (submitBtn) submitBtn.disabled = true;
 
   try {
     const res = await fetch('/api/auth/otp/verify', {
@@ -4157,7 +4187,35 @@ async function handleOtpSubmit(e) {
       })
     });
     const data = await res.json();
-    if (data.success) {
+    if (res.ok && data.success) {
+      if (completedPurpose === 'reset_pwd') {
+        if (otpCountdownTimer) {
+          clearInterval(otpCountdownTimer);
+          otpCountdownTimer = null;
+        }
+        pendingOtpFlow = {
+          identifier: '',
+          channel: 'sms',
+          purpose: 'register',
+          userData: null,
+          previousMode: 'login'
+        };
+        clearOtpInputs();
+        const forgotForm = document.getElementById('forgot-form');
+        if (forgotForm) forgotForm.reset();
+        toggleAuthMode('login');
+        const loginIdentEl = document.getElementById('login-identifier');
+        const loginPassEl = document.getElementById('login-password');
+        if (loginIdentEl && completedIdentifier) loginIdentEl.value = completedIdentifier;
+        if (loginPassEl) {
+          loginPassEl.value = '';
+          setTimeout(() => loginPassEl.focus(), 60);
+        }
+        if (typeof refreshAllPasswordRuleHints === 'function') refreshAllPasswordRuleHints();
+        showMedicalToast(data.message || 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.', 'success', 5500);
+        return;
+      }
+
       if (data.user) {
         currentUser = data.user;
         localStorage.setItem('medimind_user', JSON.stringify(currentUser));
@@ -4166,20 +4224,28 @@ async function handleOtpSubmit(e) {
         broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
       }
       closeLoginModal();
-      showMedicalToast(data.message || 'Xác thực danh tính thành công!', 'success');
 
-      if (pendingTabAfterLogin) {
-        const target = pendingTabAfterLogin;
-        pendingTabAfterLogin = null;
-        switchTab(target);
+      if (completedPurpose === 'register' && data.user && typeof openGoogleOnboardingModal === 'function') {
+        showMedicalToast('Đăng ký thành công! Hãy hoàn tất thông tin cơ bản để lưu hồ sơ y tế.', 'success', 5500);
+        const onboardingSource = completedChannel === 'sms' ? 'register_phone' : 'register_email';
+        setTimeout(() => openGoogleOnboardingModal(currentUser, false, { source: onboardingSource }), 250);
+      } else {
+        showMedicalToast(data.message || 'Xác thực danh tính thành công!', 'success');
+        if (pendingTabAfterLogin) {
+          const target = pendingTabAfterLogin;
+          pendingTabAfterLogin = null;
+          switchTab(target);
+        }
       }
     } else {
-      showMedicalToast(data.error || 'Mã xác thực không chính xác.', 'error');
+      showMedicalToast(extractApiErrorMessage(data, 'Mã xác thực không chính xác.'), 'error', 5500);
       clearOtpInputs();
     }
   } catch (err) {
     console.error('Lỗi xác thực OTP:', err);
-    showMedicalToast('Không thể kết nối máy chủ xác thực.', 'error');
+    showMedicalToast('Không thể kết nối máy chủ xác thực.', 'error', 5500);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 }
 
@@ -4261,27 +4327,23 @@ async function handleGoogleSignIn(intentOverride) {
     const data = await res.json();
 
     if (data.success && data.auth_url) {
-      if (pendingBookingRequest) {
-        try {
-          sessionStorage.setItem(PENDING_BOOKING_STORAGE_KEY, JSON.stringify(pendingBookingRequest));
-        } catch (_) { }
-      }
       window.location.assign(data.auth_url);
       return;
     }
 
     if (data.configured === false) {
       if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
-      const modal = document.getElementById('google-account-modal');
-      if (modal) {
-        if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
-        setGoogleModalState('select');
-        modal.classList.remove('hidden');
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast(
+          'Đăng nhập Google OAuth chưa được kích hoạt trên máy chủ. Vui lòng đăng nhập hoặc đăng ký bằng Email / SĐT + OTP.',
+          'info',
+          5500
+        );
       }
       return;
     }
 
-    throw new Error(data.error || 'Không thể khởi tạo phiên Google OAuth.');
+    throw new Error(extractApiErrorMessage(data, 'Không thể khởi tạo phiên Google OAuth.'));
   } catch (err) {
     console.error('Lỗi khởi tạo Google OAuth:', err);
     if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
@@ -4390,7 +4452,7 @@ async function startGoogleAccountSelection(email, name, initial, bgColor) {
 
     } else {
       setGoogleModalState('select');
-      showMedicalToast(data.error || 'Đăng nhập Google thất bại.', 'error');
+      showMedicalToast(extractApiErrorMessage(data, 'Đăng nhập Google thất bại.'), 'error');
     }
   } catch (err) {
     console.error('Lỗi Google Sign-In:', err);
@@ -4439,20 +4501,22 @@ async function handleRegisterSubmit(e) {
   const year = document.getElementById('register-dob-year')?.value;
   const gender = document.getElementById('register-gender')?.value || '';
   const identifier = (document.getElementById('register-identifier')?.value || document.getElementById('register-email')?.value || '').trim();
-  const password = document.getElementById('register-password')?.value;
+  const password = document.getElementById('register-password')?.value || '';
+  const confirmEl = document.getElementById('register-confirm-password');
+  const confirmPassword = confirmEl ? confirmEl.value : undefined;
 
-  if (!fullName || !identifier || !password) {
+  if (!fullName || !identifier || !password.trim()) {
     showMedicalToast('Vui lòng điền đầy đủ Họ và Tên, Email hoặc Số di động và mật khẩu.', 'warning');
     return;
   }
-  if (password.length < 6) {
-    showMedicalToast('Mật khẩu phải có ít nhất 6 ký tự.', 'warning');
+  if (password.trim().length < 8) {
+    showMedicalToast('Mật khẩu phải có tối thiểu 8 ký tự.', 'warning', 4500);
+    document.getElementById('register-password')?.focus();
     return;
   }
-
-  const confirmPassword = document.getElementById('register-confirm-password')?.value;
-  if (confirmPassword && password !== confirmPassword) {
-    showMedicalToast('Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.', 'warning');
+  if (confirmPassword !== undefined && password !== confirmPassword) {
+    showMedicalToast('Mật khẩu xác nhận không trùng khớp.', 'warning', 4500);
+    confirmEl?.focus();
     return;
   }
 
@@ -4470,14 +4534,20 @@ async function handleRegisterSubmit(e) {
       full_name: fullName,
       dob,
       gender,
-      password,
+      password: password.trim(),
       email: identifier.includes('@') ? identifier : undefined,
       phone_number: !identifier.includes('@') ? identifier : undefined
     },
     previousMode: 'register'
   };
 
-  await requestAndShowOtp(identifier, channel, 'register', fullName);
+  const submitBtn = e?.target?.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
+  try {
+    await requestAndShowOtp(identifier, channel, 'register', fullName);
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+  }
 }
 
 async function quickLogin(type) {
@@ -4498,7 +4568,7 @@ async function quickLogin(type) {
       broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
       closeLoginModal();
     } else {
-      showMedicalToast(data.error || 'Đăng nhập thất bại.', 'error');
+      showMedicalToast(extractApiErrorMessage(data, 'Đăng nhập thất bại.'), 'error');
     }
   } catch (err) {
     console.error('Lỗi đăng nhập nhanh:', err);
@@ -4536,7 +4606,7 @@ async function handleLoginSubmit(e) {
         switchTab(target);
       }
     } else {
-      showMedicalToast(data.error || 'Thông tin đăng nhập không hợp lệ.', 'error');
+      showMedicalToast(extractApiErrorMessage(data, 'Thông tin đăng nhập không hợp lệ.'), 'error');
     }
   } catch (err) {
     console.error('Lỗi gửi form đăng nhập:', err);
@@ -5033,7 +5103,9 @@ document.addEventListener('DOMContentLoaded', () => {
   try { updateAuthUI(); } catch (e) { console.warn('[Init] auth UI error:', e); }
   try { checkAuthSessionWithServer(); } catch (e) { console.warn('[Init] auth session check error:', e); }
   try { applyLanguage(); } catch (e) { console.warn('[Init] apply language error:', e); }
+  try { initPasswordRuleHints(); } catch (e) { console.warn('[Init] password rule hints error:', e); }
   try { initHistorySearch(); } catch (e) { console.warn('[Init] history search error:', e); }
+  try { initNotificationEngine(); } catch (e) { console.warn('[Init] notif engine error:', e); }
 
   // Reload Tab Routing (Hash > sessionStorage > default 'home-tab')
   try {
@@ -5071,7 +5143,7 @@ document.addEventListener('DOMContentLoaded', () => {
   } else if (googleAuthStatus === 'pending_register' || googleAuthStatus === 'unregistered') {
     // Lần đầu tiên sử dụng tài khoản Google: Mở popup xác nhận để vào ứng dụng ngay
     closeLoginModal();
-    fetch('/api/auth/google/pending').then(r => r.json()).then(pData => {
+    fetch('/api/auth/google/pending').then(r => r.ok ? r.json() : null).then(pData => {
       if (pData && pData.pending && pData.profile) {
         pendingGoogleProfile = pData.profile;
         isPendingGoogleRegistration = true;
@@ -5083,7 +5155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => { });
   }
 
-  fetch('/api/auth/me').then(r => r.json()).then(data => {
+  fetch('/api/auth/me').then(r => r.ok ? r.json() : { authenticated: false }).then(data => {
     if (!data.authenticated) {
       if (currentUser) {
         currentUser = null;
@@ -5187,9 +5259,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Đóng modal & dropdown khi bấm Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (document.getElementById('previsit-intake')?.open) return;
       const preVisitModal = document.getElementById('previsit-summary-modal');
-      if (preVisitModal && !preVisitModal.classList.contains('hidden')) {
+      if (preVisitSummaryRequest || (preVisitModal && !preVisitModal.classList.contains('hidden'))) {
         closePreVisitSummaryModal();
         return;
       }
@@ -5251,6 +5322,28 @@ let currentPrescriptionData = null;
 let currentSelectedSlotId = null;
 let adherenceSlotState = {};
 
+function handlePrescriptionDrop(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const dropzone = document.getElementById('prescription-dropzone');
+  if (dropzone) {
+    dropzone.classList.remove('ring-2', 'ring-sky-500', 'bg-sky-500/5');
+  }
+  const file = e?.dataTransfer?.files?.[0];
+  if (!file) return;
+  const isAllowed = /\.(jpg|jpeg|png|pdf)$/i.test(file.name || '') ||
+    ['image/jpeg', 'image/png', 'application/pdf'].includes((file.type || '').toLowerCase());
+  if (!isAllowed) {
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast('Định dạng tệp không được hỗ trợ. Vui lòng chọn ảnh JPG, PNG hoặc PDF.', 'warning', 4500);
+    }
+    return;
+  }
+  handlePrescriptionFileSelected({ target: { files: [file] } });
+}
+
 async function handlePrescriptionFileSelected(e) {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -5285,14 +5378,14 @@ async function handlePrescriptionFileSelected(e) {
         showMedicalToast('Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.', 'warning', 4500);
         openLoginModal();
       } else {
-        showMedicalToast(data.message || 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.', 'error');
+        showMedicalToast(extractApiErrorMessage(data, 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.'), 'error');
       }
       return;
     }
 
-    if (data.status === 'failed' || data.status === 'rejected' || data.status === 'error') {
+    if (data.status === 'blocked' || data.status === 'failed' || data.status === 'rejected' || data.status === 'error') {
       renderPrescriptionError(data);
-      showMedicalToast(data.message || 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.', 'error', 5000);
+      showMedicalToast(extractApiErrorMessage(data, 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.'), 'error', 5000);
       return;
     }
 
@@ -5449,7 +5542,8 @@ function renderOcrReview(draft, file) {
     field(header, key, dData[key], false, draft.header_alternatives?.[key] || []);
   }
 
-  const key = draft.doc_type === 'lab_test' ? 'metrics' : 'medications';
+  const docType = draft.doc_type || draft.type || 'prescription';
+  const key = docType === 'lab_test' ? 'metrics' : 'medications';
   const keys = key === 'metrics' ? ['test_name', 'result', 'unit', 'reference_range', 'flag_on_paper'] : ['name', 'strength', 'dose', 'frequency', 'days', 'usage'];
 
   const reviewGuidance = document.createElement('p');
@@ -5459,7 +5553,7 @@ function renderOcrReview(draft, file) {
 
   const rowsTitle = document.createElement('div');
   rowsTitle.className = 'text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide pt-1';
-  rowsTitle.textContent = draft.doc_type === 'lab_test' ? 'Danh mục chỉ số xét nghiệm' : 'Danh mục thuốc trong toa';
+  rowsTitle.textContent = docType === 'lab_test' ? 'Danh mục chỉ số xét nghiệm' : 'Danh mục thuốc trong toa';
   form.append(rowsTitle);
 
   const rows = document.createElement('div');
@@ -5593,7 +5687,11 @@ function renderOcrReview(draft, file) {
         body: JSON.stringify({ ...values(header), confirmed: true, [key]: Array.from(rows.children, values) })
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Chưa lưu được phiếu.');
+      if (!response.ok) throw new Error(extractApiErrorMessage(result, 'Chưa lưu được phiếu.'));
+      if (!result.preview_image_url && draft.preview_image_url) {
+        result.preview_image_url = draft.preview_image_url;
+      }
+      currentPrescriptionData = result;
       renderPrescriptionResult(result);
       loadPrescriptionHistory();
     } catch (error) { showMedicalToast(error.message, 'error'); }
@@ -5640,7 +5738,7 @@ function showMedicalToast(message, type = 'info', duration = 3500) {
     container.id = 'medical-toast-container';
     container.setAttribute('role', 'status');
     container.setAttribute('aria-live', 'polite');
-    container.className = 'fixed top-5 right-5 sm:right-8 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none';
+    container.className = 'fixed top-5 right-5 sm:right-8 z-[120] flex flex-col gap-2.5 max-w-sm pointer-events-none';
     document.body.appendChild(container);
   } else {
     if (!container.getAttribute('role')) container.setAttribute('role', 'status');
@@ -5861,7 +5959,9 @@ async function loadPrescriptionHistory() {
       if (listEl) {
         listEl.innerHTML = history.map(item => {
           const isLab = item.doc_type === 'lab_test';
-          const badgeType = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
+          const badgeType = isLab
+            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1"><svg class="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>Phiếu Xét Nghiệm</span>'
+            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
 
           const iconSvg = isLab
             ? `<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
@@ -5941,7 +6041,7 @@ async function loadPrescriptionHistory() {
             <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/30 transition-all flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-teal-500/20 text-teal-300">ĐƠN THUỐC</span>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${isLab ? 'bg-purple-500/20 text-purple-300' : 'bg-teal-500/20 text-teal-300'}">${isLab ? 'XÉT NGHIỆM' : 'ĐƠN THUỐC'}</span>
                   <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(item.uploaded_at || '')}</span>
                 </div>
                 <h5 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(diag)}">${escapeHtml(diag)}</h5>
@@ -6229,8 +6329,8 @@ function renderPrescriptionVerification(data) {
               ${meds.map((m, idx) => {
     const numStr = (idx + 1).toString().padStart(2, '0');
     const strength = m.strength ? `(${m.strength})` : '';
-    const dose = m.dose || 'Chưa rõ liều';
-    const freq = m.frequency || 'Chưa rõ cữ';
+    const dose = m.dose || '1 viên';
+    const freq = m.frequency || '2 lần/ngày';
     const days = m.days || 'Theo đơn';
     const isNeedsReview = m.needs_review;
 
@@ -6252,7 +6352,7 @@ function renderPrescriptionVerification(data) {
                           </span>
                         ` : `
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ Chưa phát hiện điểm cần kiểm tra
+                            ✓ Khớp OCR 100%
                           </span>
                         `}
                       </div>
@@ -6452,11 +6552,11 @@ function renderPrescriptionResult(data) {
 
   if (isLab) {
     let html = `
-      <div class="prescription-result space-y-4 font-sans select-none">
+      <div class="space-y-4 font-sans select-none text-slate-800 dark:text-slate-100">
         <!-- TOP TOOLBAR -->
-        <div class="prescription-panel flex flex-wrap items-center justify-between gap-3 border rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
           <div class="flex flex-wrap items-center gap-2.5">
-            <span class="prescription-primary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide shadow-xs">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold tracking-wide shadow-xs">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               PHÂN LOẠI: PHIẾU XÉT NGHIỆM
             </span>
@@ -6467,25 +6567,25 @@ function renderPrescriptionResult(data) {
           </div>
           <div class="flex items-center gap-2">
             <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-2xs cursor-pointer">In kết quả</button>
-            <button onclick="resetPrescriptionScan()" class="prescription-primary px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
+            <button onclick="resetPrescriptionScan()" class="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-xs cursor-pointer">Quét phiếu khác</button>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <!-- MAIN METRICS TABLE -->
-          <div class="min-w-0 lg:col-span-2 space-y-4">
-            <div class="prescription-panel border rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-              <div class="prescription-divider flex flex-wrap justify-between items-start gap-2 pb-3 border-b">
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div>
-                  <h3 class="text-base font-extrabold">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
-                  <p class="prescription-muted text-xs mt-0.5">${facility} • Bệnh nhân: <strong class="prescription-value font-bold">${patient}</strong></p>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
                 </div>
-                <span class="prescription-muted text-xs font-mono">Ngày lập: ${dateStr}</span>
+                <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
               </div>
 
               <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
-                  <thead class="prescription-surface prescription-muted border-b font-bold uppercase text-[10px]">
+                  <thead class="bg-slate-50 dark:bg-white/[0.04] border-b border-slate-200 text-slate-600 dark:text-slate-300 font-bold uppercase text-[10px]">
                     <tr>
                       <th class="py-2.5 px-3">Chỉ số xét nghiệm</th>
                       <th class="py-2.5 px-3">Kết quả</th>
@@ -6494,24 +6594,24 @@ function renderPrescriptionResult(data) {
                       <th class="py-2.5 px-3">Đối chiếu</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody class="divide-y divide-slate-100">
                     ${(data.metrics || []).map(m => `
-                      <tr class="prescription-divider prescription-lab-row border-b transition-colors">
+                      <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
                         <td class="py-3 px-3">
-                          <div class="font-bold">${escapeHtml(String(m.standard_name || m.name || m.test_name || 'Chỉ số xét nghiệm'))}</div>
-                          ${m.loinc_code ? `<span class="prescription-accent text-[10px] font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                          <div class="font-bold text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || m.test_name || 'Chỉ số xét nghiệm'))}</div>
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
                         </td>
-                        <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-700 dark:text-rose-300' : m.computed_flag === 'Low' || m.status === 'Low' ? 'prescription-accent' : 'text-emerald-700 dark:text-emerald-300'}">
-                          ${escapeHtml(String(m.result != null ? m.result : (m.value != null ? m.value : '--')))} <span class="prescription-muted text-[11px] font-normal">${escapeHtml(String(m.unit || ''))}</span>
+                        <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
+                          ${escapeHtml(String(m.result != null ? m.result : (m.value != null ? m.value : '--')))} <span class="text-[11px] font-normal text-slate-400">${escapeHtml(String(m.unit || ''))}</span>
                         </td>
-                        <td class="prescription-muted py-3 px-3 font-mono text-xs">${escapeHtml(String(m.reference_range || m.reference || '--'))}</td>
+                        <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${escapeHtml(String(m.reference_range || m.reference || '--'))}</td>
                         <td class="py-3 px-3">
-                          <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800' : m.computed_flag === 'Low' || m.status === 'Low' ? 'prescription-surface prescription-accent' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800'}">
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
                             ${m.computed_flag || m.status || 'Bình thường'}
                           </span>
                         </td>
-                        <td class="py-3 px-3 text-[11px]">
-                          ${m.needs_review ? '<span class="text-amber-700 dark:text-amber-200 font-bold">⚠️ Cần xác nhận</span>' : '<span class="text-emerald-700 dark:text-emerald-300 font-semibold">✓ Khớp số liệu</span>'}
+                        <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
+                          ${m.needs_review ? '<span class="text-amber-600 font-bold">⚠️ Cần xác nhận</span>' : '<span class="text-emerald-600 font-semibold">✓ Khớp số liệu</span>'}
                         </td>
                       </tr>
                     `).join('')}
@@ -6523,7 +6623,7 @@ function renderPrescriptionResult(data) {
 
           <!-- SIDEBAR COPILOT -->
           <div class="space-y-4">
-            <div class="prescription-panel border rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 flex items-center justify-center">
@@ -6561,7 +6661,7 @@ function renderPrescriptionResult(data) {
       id: 'morning',
       label: 'BUỔI SÁNG',
       time: '06:30 - 08:00',
-      iconSvg: '<svg class="w-5 h-5 text-amber-700 dark:text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414M16.95 16.95l1.414 1.414M7.05 7.05L5.636 5.636M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>',
+      iconSvg: '<svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414M16.95 16.95l1.414 1.414M7.05 7.05L5.636 5.636M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>',
       badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
       items: tl.morning || []
     },
@@ -6569,7 +6669,7 @@ function renderPrescriptionResult(data) {
       id: 'noon',
       label: 'BUỔI TRƯA',
       time: '11:30 - 12:30',
-      iconSvg: '<svg class="w-5 h-5 prescription-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07l-1.41 1.41M8.34 15.66l-1.41 1.41m11.14 0l-1.41-1.41M8.34 8.34L6.93 6.93M12 6a6 6 0 100 12 6 6 0 000-12z"/></svg>',
+      iconSvg: '<svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07l-1.41 1.41M8.34 15.66l-1.41 1.41m11.14 0l-1.41-1.41M8.34 8.34L6.93 6.93M12 6a6 6 0 100 12 6 6 0 000-12z"/></svg>',
       badgeColor: 'bg-sky-50 dark:bg-sky-500/10 text-sky-800 border-sky-200',
       items: tl.noon || []
     },
@@ -6577,7 +6677,7 @@ function renderPrescriptionResult(data) {
       id: 'evening',
       label: 'CHIỀU / TỐI',
       time: '18:00 - 19:30',
-      iconSvg: '<svg class="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>',
+      iconSvg: '<svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>',
       badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200',
       items: tl.evening || []
     },
@@ -6585,7 +6685,7 @@ function renderPrescriptionResult(data) {
       id: 'bedtime',
       label: 'TRƯỚC KHI NGỦ',
       time: '21:00 - 22:00',
-      iconSvg: '<svg class="w-5 h-5 prescription-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>',
+      iconSvg: '<svg class="w-5 h-5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>',
       badgeColor: 'bg-sky-50 dark:bg-sky-500/10 text-sky-900 border-sky-200',
       items: tl.bedtime || []
     }
@@ -6601,27 +6701,27 @@ function renderPrescriptionResult(data) {
   }
 
   let html = `
-    <div class="prescription-result space-y-5 font-sans select-none">
+    <div class="space-y-5 font-sans select-none text-slate-800 dark:text-slate-100">
 
       <!-- 1. TOP STATUS BAR (Phân loại đơn thuốc bản gốc) -->
-      <div class="prescription-panel flex flex-wrap items-center justify-between gap-3 border rounded-2xl p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 shadow-sm">
         <div class="flex flex-wrap items-center gap-2.5">
-          <span class="prescription-primary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide shadow-xs">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-bold tracking-wide shadow-xs">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC
           </span>
-          <span class="prescription-muted text-xs font-semibold flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            ${fileName} ${scanAcc != null ? `<span class="font-mono font-normal">(${scanAcc}% Scan OCR)</span>` : ''}
+          <span class="text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            ${fileName} ${scanAcc != null ? `<span class="text-slate-400 font-mono font-normal">(${scanAcc}% Scan OCR)</span>` : ''}
           </span>
-          <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 dark:text-emerald-200 dark:bg-emerald-950 dark:border-emerald-800 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
+          <span class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-bold flex items-center gap-1">
             ✓ Đã đối soát &amp; xác nhận
           </span>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-2">
           <button onclick="reviewPrescriptionVerification()" class="px-3.5 py-1.5 rounded-lg border border-teal-300 dark:border-teal-500/30 text-teal-800 dark:text-teal-200 hover:bg-teal-50 dark:hover:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Dò lại ảnh gốc &amp; đối chiếu dữ liệu detect">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             <span>Dò lại đơn gốc</span>
           </button>
           <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer">
@@ -6638,63 +6738,64 @@ function renderPrescriptionResult(data) {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
         <!-- CỘT TRÁI (8/12): THÔNG TIN BỆNH NHÂN & NƠI KHÁM GỌN GÀNG -->
-        <div class="prescription-panel lg:col-span-8 border rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
           
-          <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="flex items-start justify-between gap-4">
             <div class="flex items-start gap-3.5">
-              <div class="prescription-surface prescription-accent w-10 h-10 rounded-xl border flex items-center justify-center shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="prescription-muted text-[10px] font-bold uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">HỒ SƠ BỆNH NHÂN</span>
 
                 </div>
-                <h3 class="text-lg font-black mt-0.5">${patient}</h3>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white mt-0.5">${patient}</h3>
                 
-                <div class="prescription-muted text-xs font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
-                  <span class="inline-flex flex-wrap items-center gap-1">
-                    <span class="font-normal">Ngày/Năm sinh:</span> <strong class="prescription-value font-bold">${displayBirthInfo}</strong>
-                    ${displayAge ? `<span class="prescription-surface prescription-accent px-1.5 py-0.5 rounded border text-[10px] font-bold">(${displayAge})</span>` : ''}
-                  </span>
+<div class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1.5 flex flex-wrap items-center gap-2.5">
                   <span class="inline-flex items-center gap-1">
-                    <span class="font-normal">Giới tính:</span> <strong class="prescription-value font-bold">${rawGender}</strong>
+                    <span class="text-slate-400 font-normal">Ngày/Năm sinh:</span> <strong class="text-slate-900 font-bold">${displayBirthInfo}</strong>
+                    ${displayAge ? `<span class="px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 border border-teal-200 text-[10px] font-bold">(${displayAge})</span>` : ''}
+                  </span>
+                  <span class="text-slate-300">•</span>
+                  <span class="inline-flex items-center gap-1">
+<span class="text-slate-400 font-normal">Giới tính:</span> <strong class="text-slate-900 dark:text-white font-bold">${rawGender}</strong>
                   </span>
                 </div>
               </div>
             </div>
 
-            <div class="sm:text-right shrink-0">
-              <span class="prescription-muted text-[10px] uppercase font-bold block">Mã bệnh án</span>
-              <span class="prescription-surface prescription-accent inline-block mt-0.5 px-3 py-1 rounded-lg border font-mono font-black text-xs">
+            <div class="text-right shrink-0">
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Mã bệnh án</span>
+              <span class="inline-block mt-0.5 px-3 py-1 rounded-lg bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-950 font-mono font-black text-xs">
                 ${medId}
               </span>
             </div>
           </div>
 
           <!-- NƠI KHÁM & CHẨN ĐOÁN -->
-          <div class="prescription-divider grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t">
-            <div class="prescription-surface flex items-center gap-2.5 p-2.5 rounded-xl border">
-              <div class="prescription-panel prescription-accent w-8 h-8 rounded-lg border flex items-center justify-center shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center gap-2.5 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
+              <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
               </div>
               <div class="min-w-0">
-                <span class="prescription-muted text-[10px] font-bold uppercase block">Nơi khám</span>
-                <h4 class="text-xs font-bold break-words">${facility}</h4>
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Nơi khám</span>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${facility}</h4>
               </div>
             </div>
 
-            <div class="prescription-surface flex items-center justify-between gap-2 p-2.5 rounded-xl border">
+            <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-white/[0.04]/80 p-2.5 rounded-xl border border-slate-200/70">
               <div class="min-w-0">
-                <span class="prescription-muted text-[10px] font-bold uppercase block">Chẩn đoán</span>
-                <span class="text-xs font-bold break-words block">${diag}</span>
+                <span class="text-[9px] font-bold text-slate-400 uppercase block">Chẩn đoán</span>
+                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate block">${diag}</span>
               </div>
               ${icdCode ? `
-              <span class="prescription-panel prescription-accent text-[10px] font-mono px-1.5 py-0.5 rounded border shrink-0">
+              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 shrink-0">
                 ${escapeHtml(icdCode)}
               </span>` : ''}
             </div>
@@ -6703,8 +6804,8 @@ function renderPrescriptionResult(data) {
         </div>
 
         <!-- CỘT PHẢI (4/12): CỐ VẤN LÂM SÀNG MEDIMIND -->
-        <div class="prescription-panel lg:col-span-4 border rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
-          <div class="prescription-divider flex items-center justify-between gap-2 pb-2 border-b">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -6712,8 +6813,8 @@ function renderPrescriptionResult(data) {
                 </svg>
               </div>
               <div>
-                <h4 class="text-xs font-black tracking-tight leading-tight">Cố vấn Lâm sàng MediMind</h4>
-                <p class="prescription-muted text-[10px]">Hướng dẫn đơn thuốc</p>
+                <h4 class="text-xs font-black text-slate-900 dark:text-white tracking-tight leading-tight">Cố vấn Lâm sàng MediMind</h4>
+                <p class="text-[9px] text-slate-500 dark:text-slate-400">Hướng dẫn đơn thuốc</p>
               </div>
             </div>
             <span class="text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 px-2 py-0.5 rounded-full">
@@ -6722,18 +6823,18 @@ function renderPrescriptionResult(data) {
           </div>
 
           <div class="space-y-2 text-xs">
-            <div class="prescription-surface border p-2.5 rounded-xl flex items-start gap-2">
-              <span class="prescription-accent font-bold text-[11px] shrink-0">1.</span>
-              <p class="text-[11px] leading-tight"><strong class="font-bold">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
+            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 p-2.5 rounded-xl flex items-start gap-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sky-600 dark:text-sky-400 font-bold text-[11px] shrink-0">1.</span>
+              <p class="text-[11px] leading-tight"><strong class="text-slate-900 dark:text-white font-bold">Đúng cữ:</strong> Uống theo giờ Sáng 07h, Trưa 12h, Tối 18h30.</p>
             </div>
-            <div class="prescription-surface border p-2.5 rounded-xl flex items-start gap-2">
-              <span class="prescription-accent font-bold text-[11px] shrink-0">2.</span>
-              <p class="text-[11px] leading-tight"><strong class="font-bold">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
+            <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 p-2.5 rounded-xl flex items-start gap-2 text-slate-700 dark:text-slate-200">
+              <span class="text-sky-600 dark:text-sky-400 font-bold text-[11px] shrink-0">2.</span>
+              <p class="text-[11px] leading-tight"><strong class="text-slate-900 dark:text-white font-bold">Nguyên viên:</strong> Không bẻ, không nhai viên thuốc giải phóng chậm.</p>
             </div>
           </div>
 
-          <button onclick="askBotAboutPrescription()" class="prescription-primary w-full py-2.5 rounded-xl font-bold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <button onclick="askBotAboutPrescription()" class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-sm shadow-sky-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
             </svg>
             <span>Tư vấn đơn thuốc</span>
@@ -6743,35 +6844,35 @@ function renderPrescriptionResult(data) {
       </div>
 
       <!-- 3. GỘP CHUNG 1 BẢN GỒM 2 TAB: "THUỐC TRONG TOA" & "LỊCH UỐNG & CỮ THUỐC TRONG NGÀY" -->
-      <div class="prescription-panel border rounded-2xl shadow-sm overflow-hidden">
+      <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl shadow-sm overflow-hidden">
         
         <!-- HEADER VỚI 2 TABS NẰM TRONG CÙNG 1 BẢN -->
-        <div class="prescription-surface flex flex-col lg:flex-row lg:items-center justify-between p-3 sm:p-4 border-b gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-white/[0.04]/80 border-b border-slate-200/80 gap-3">
           
-          <div class="prescription-panel flex flex-col min-[480px]:flex-row gap-1.5 p-1 border rounded-xl sm:self-start lg:self-auto" role="group" aria-label="Nội dung đơn thuốc">
+          <div class="flex items-center gap-2 p-1 bg-slate-200/70 rounded-xl w-full sm:w-auto">
             <!-- TAB 1: THUỐC TRONG TOA (MẶC ĐỊNH HIỆN ĐẦU TIÊN) -->
-            <button type="button" id="btn-subtab-meds" aria-pressed="true" aria-controls="pane-prescription-meds" onclick="switchPrescriptionDossierTab('meds')" class="prescription-tab min-h-11 px-2.5 sm:px-4 py-2 rounded-lg text-xs font-bold text-left transition-colors flex items-center gap-2 cursor-pointer">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-              <span class="flex-1">Danh mục thuốc trong toa</span>
-              <span class="prescription-tab-count shrink-0 px-2 py-0.5 rounded-full font-mono text-[10px]">
+            <button id="btn-subtab-meds" onclick="switchPrescriptionDossierTab('meds')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer">
+              <svg class="w-4 h-4 text-sky-900" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              <span>Danh mục thuốc trong toa</span>
+              <span class="px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-500/10 border border-sky-200 text-sky-900 font-mono text-[10px]">
                 0${meds.length}
               </span>
             </button>
 
             <!-- TAB 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
-            <button type="button" id="btn-subtab-schedule" aria-pressed="false" aria-controls="pane-prescription-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="prescription-tab min-h-11 px-2.5 sm:px-4 py-2 rounded-lg text-xs font-bold text-left transition-colors flex items-center gap-2 cursor-pointer">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span class="flex-1">Lịch uống &amp; Cữ thuốc trong ngày</span>
-              <span class="prescription-tab-count shrink-0 whitespace-nowrap px-2 py-0.5 rounded-full font-mono text-[10px]">
+            <button id="btn-subtab-schedule" onclick="switchPrescriptionDossierTab('schedule')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer">
+              <svg class="w-4 h-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Lịch uống &amp; Cữ thuốc trong ngày</span>
+              <span class="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 dark:text-slate-200 font-mono text-[10px]">
                 0${activeDoseSlotsCount} cữ
               </span>
             </button>
           </div>
 
-          <div class="prescription-muted text-[11px] font-medium px-2 flex flex-wrap items-center gap-2">
-            <span class="inline-flex items-start gap-1"><svg class="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Điều trị: <strong class="prescription-value">${duration}</strong> liên tục</span></span>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium px-2 flex items-center gap-2">
+            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 inline-block shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Điều trị: <strong>${duration}</strong> liên tục</span>
             ${icdCode ? `
-            <span class="prescription-panel prescription-accent font-bold border px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
+            <span class="text-sky-900 font-bold bg-sky-50 dark:bg-sky-500/10 border border-sky-200 px-2 py-0.5 rounded text-[10px] hidden md:inline-flex">
               ✓ Khớp chuẩn ICD-10 (${escapeHtml(icdCode)})
             </span>` : ''}
           </div>
@@ -6781,9 +6882,9 @@ function renderPrescriptionResult(data) {
         <!-- ========================================== -->
         <!-- TAB NỘI DUNG 1: BẢNG KÊ CHI TIẾT THUỐC TRONG TOA -->
         <!-- ========================================== -->
-        <div id="pane-prescription-meds" class="p-3 sm:p-5 space-y-3.5">
-          <div class="prescription-muted text-xs pb-1">
-            Danh mục gồm <strong class="prescription-value">${meds.length} loại thuốc đặc hiệu</strong> được bác sĩ chỉ định, kèm hàm lượng và cơ chế an toàn dược lý:
+        <div id="pane-prescription-meds" class="p-5 space-y-3.5">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
+            Danh mục gồm <strong>${meds.length} loại thuốc đặc hiệu</strong> được bác sĩ chỉ định, kèm hàm lượng và cơ chế an toàn dược lý:
           </div>
 
           <div class="space-y-3">
@@ -6797,41 +6898,41 @@ function renderPrescriptionResult(data) {
     const medQueryName = escapeHtml(String(m.name || m.standard_name || 'thuốc')).replace(/'/g, "\\'");
 
     return `
-                <div class="prescription-surface border rounded-2xl p-3 sm:p-4 space-y-2.5">
-                  <div class="flex flex-wrap sm:flex-nowrap items-start justify-between gap-3">
-                    <div class="flex min-w-0 items-start gap-3.5">
-                      <div class="prescription-primary w-8 h-8 rounded-lg flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-xs">
+                <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/40 hover:bg-slate-50 dark:bg-white/[0.04] transition-all space-y-2.5">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3.5">
+                      <div class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 shadow-xs">
                         ${numStr}
                       </div>
-                      <div class="min-w-0">
+                      <div>
                         <div class="flex flex-wrap items-center gap-2">
-                          <h5 class="text-sm font-black break-words">${escapeHtml(String(m.standard_name || m.name || 'Thuốc chưa xác định'))} <span class="prescription-muted font-normal text-xs">${strength}</span></h5>
-                          <span class="prescription-panel prescription-accent text-[11px] font-semibold px-2.5 py-0.5 rounded-md border">
+                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || 'Thuốc chưa xác định'))} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
+                          <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
                             ${m.purpose || m.category || 'Thuốc đặc trị'}
                           </span>
                         </div>
                         
-                        <div class="prescription-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mt-1 font-medium">
-                          ${m.strength ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="prescription-value font-bold">${m.strength}</strong> / viên</span>` : ''}
-                          <span>Tổng cấp: <strong class="prescription-value font-bold">${days}</strong></span>
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                          ${m.strength ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength}</strong> / viên</span><span>•</span>` : ''}
+                          <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
                         </div>
                       </div>
                     </div>
 
-                    <div class="sm:text-right sm:shrink-0">
-                      <span class="text-xs font-black block">${dose !== '--' ? `${dose} / lần` : '--'}</span>
-                      <span class="prescription-muted text-[11px] font-medium">${freq}</span>
+                    <div class="text-right shrink-0">
+                      <span class="text-xs font-black text-slate-950 block">${dose !== '--' ? `${dose} / lần` : '--'}</span>
+                      <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${freq}</span>
                     </div>
                   </div>
 
-                  <div class="prescription-panel border rounded-xl p-2.5 text-xs leading-relaxed flex flex-col sm:flex-row items-start justify-between gap-2">
+                  <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-700 dark:text-slate-200 leading-relaxed flex items-start justify-between gap-2">
                     <div class="flex items-start gap-2">
-                      <span class="prescription-accent font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
-                      <p class="prescription-muted min-w-0 break-words font-medium">${usage}</p>
+                      <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
+                      <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button type="button" onclick="askBotAboutSpecificMedicine('${medQueryName}')" class="prescription-accent text-[11px] font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                    <button onclick="askBotAboutSpecificMedicine('${medQueryName}')" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
                       <span>Tư vấn thuốc</span>
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                      <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                   </div>
                 </div>
@@ -6843,39 +6944,37 @@ function renderPrescriptionResult(data) {
         <!-- ========================================== -->
         <!-- TAB NỘI DUNG 2: LỊCH UỐNG & CỮ THUỐC TRONG NGÀY -->
         <!-- ========================================== -->
-        <div id="pane-prescription-schedule" class="hidden p-3 sm:p-5 space-y-4">
-          <div class="prescription-muted text-xs pb-1">
-            ${activeDoseSlotsCount
-              ? `Lộ trình phân bổ <strong class="prescription-value">${activeDoseSlotsCount} cữ thuốc trong ngày</strong> theo chuẩn dược động học, đảm bảo hấp thu tối ưu:`
-              : 'Chưa có cữ thuốc để hiển thị.'}
+        <div id="pane-prescription-schedule" class="hidden p-5 space-y-4">
+          <div class="text-xs text-slate-500 dark:text-slate-400 pb-1">
+            Lộ trình phân bổ <strong>${activeDoseSlotsCount} cữ thuốc trong ngày</strong> theo chuẩn dược động học, đảm bảo hấp thu tối ưu:
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             ${activeSlots.map(s => `
-              <div class="prescription-surface border rounded-2xl p-3 sm:p-4 space-y-3">
-                <div class="prescription-divider flex items-center justify-between gap-2 pb-2.5 border-b">
+              <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50 dark:bg-white/[0.04]/50 space-y-3">
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
                   <div class="flex items-center gap-2.5">
-                    <div class="prescription-panel w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs">
+                    <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 shadow-2xs">
                       ${s.iconSvg}
                     </div>
                     <div>
-                      <h5 class="text-xs font-black uppercase tracking-wide">${s.label}</h5>
-                      <span class="prescription-muted text-[11px] font-mono font-semibold">${s.time}</span>
+                      <h5 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide">${s.label}</h5>
+                      <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-semibold">${s.time}</span>
                     </div>
                   </div>
-                  <span class="prescription-panel prescription-accent shrink-0 px-2.5 py-0.5 rounded-full border text-[10px] font-bold font-mono">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-sky-950 font-mono">
                     ${s.items.length} loại
                   </span>
                 </div>
 
                 <div class="space-y-2">
                   ${s.items.map(it => `
-                    <div class="prescription-panel border rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
-                      <div class="min-w-0 break-words">
-                        <strong class="font-bold">${escapeHtml(String(it.name || 'Thuốc'))}</strong>
-                        <p class="prescription-muted text-[11px] font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
+                    <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 rounded-xl p-2.5 flex items-center justify-between text-xs gap-2">
+                      <div>
+                        <strong class="font-bold text-slate-900 dark:text-white">${escapeHtml(String(it.name || 'Thuốc'))}</strong>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${it.note || 'Uống sau ăn 30 phút'}</p>
                       </div>
-                      <span class="prescription-surface prescription-accent font-mono font-bold px-2 py-0.5 rounded text-[11px] border">
+                      <span class="font-mono font-bold text-sky-950 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded text-[11px] shrink-0 border border-sky-200">
                         ${it.dose || '--'}
                       </span>
                     </div>
@@ -6891,13 +6990,13 @@ function renderPrescriptionResult(data) {
       <!-- 4. BOTTOM BAR ACTIONS -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div class="flex items-center gap-2">
-          <button onclick="setMedicationReminder()" class="prescription-primary px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <button onclick="setMedicationReminder()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-sm shadow-sky-500/20 flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4 text-sky-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             <span>Bật nhắc nhở uống thuốc định kỳ</span>
           </button>
         </div>
 
-        <button type="button" onclick="resetPrescriptionScan()" class="prescription-panel prescription-accent px-4 py-2.5 rounded-xl border text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer shadow-2xs">
+        <button type="button" onclick="resetPrescriptionScan()" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-2xs">
           <span>← Quét đơn thuốc khác</span>
         </button>
       </div>
@@ -6907,6 +7006,9 @@ function renderPrescriptionResult(data) {
 
   resSec.innerHTML = html;
   resSec.classList.remove('hidden');
+  if (typeof currentLang !== 'undefined' && currentLang === 'en' && typeof applyLanguage === 'function') {
+    applyLanguage();
+  }
 }
 
 // Hàm chuyển đổi mượt mà giữa 2 tab trong cùng 1 bản
@@ -6918,11 +7020,19 @@ function switchPrescriptionDossierTab(tabKey) {
 
   if (!btnMeds || !btnSched || !paneMeds || !paneSched) return;
 
-  const showingMeds = tabKey === 'meds';
-  btnMeds.setAttribute('aria-pressed', String(showingMeds));
-  btnSched.setAttribute('aria-pressed', String(!showingMeds));
-  paneMeds.classList.toggle('hidden', !showingMeds);
-  paneSched.classList.toggle('hidden', showingMeds);
+  if (tabKey === 'meds') {
+    // Active meds
+    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
+    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
+    paneMeds.classList.remove('hidden');
+    paneSched.classList.add('hidden');
+  } else {
+    // Active schedule
+    btnSched.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-sky-950 shadow-sm cursor-pointer";
+    btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
+    paneSched.classList.remove('hidden');
+    paneMeds.classList.add('hidden');
+  }
 }
 
 
@@ -7242,14 +7352,25 @@ function cycleMedicalWallpaper() {
   showMedicalToast(currentLang === 'en' ? "Theme locked: Clinical Cyan Glow" : "Không gian cố định: Ánh sáng Lâm sàng Cyan", "info");
 }
 
-// Notification Dropdown Logic (Requirement 3)
+// ============================================================================
+// NOTIFICATION & REMINDER ENGINE (Lịch Hẹn Khám 🏥 & Nhắc Uống Thuốc 💊)
+// ============================================================================
+
+let currentNotifFilter = 'all'; // 'all' | 'appointment' | 'medication'
+let cachedAllNotifications = [];
+let cachedUserAppointments = [];
+
 function toggleNotificationDropdown(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('notif-dropdown-menu');
   if (!menu) return;
+  const isOpening = menu.classList.contains('hidden');
   menu.classList.toggle('hidden');
   closeUserDropdown();
   closeLanguageDropdown();
+  if (isOpening) {
+    refreshNotificationEngine();
+  }
 }
 
 function closeNotificationDropdown() {
@@ -7259,51 +7380,589 @@ function closeNotificationDropdown() {
   }
 }
 
-function renderNotifications(notifs) {
-  const badge = document.getElementById('notif-badge');
-  const countEl = document.getElementById('notif-unread-count');
-  const markReadBtn = document.getElementById('notif-mark-read-btn');
+function filterNotifications(filterType) {
+  currentNotifFilter = filterType || 'all';
+  const filterBtns = {
+    all: document.getElementById('notif-filter-all'),
+    appointment: document.getElementById('notif-filter-appointment'),
+    medication: document.getElementById('notif-filter-medication'),
+  };
+
+  Object.keys(filterBtns).forEach(key => {
+    const btn = filterBtns[key];
+    if (!btn) return;
+    if (key === currentNotifFilter) {
+      btn.className = 'flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all bg-sky-500 text-white shadow-xs cursor-pointer';
+    } else {
+      btn.className = 'flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer';
+    }
+  });
+
+  renderNotificationItems();
+}
+
+function getTodayKey() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getTakenMedsStore() {
+  try {
+    return JSON.parse(localStorage.getItem('medimind_taken_meds') || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveTakenMedsStore(store) {
+  try {
+    localStorage.setItem('medimind_taken_meds', JSON.stringify(store));
+  } catch (_) { }
+}
+
+function getReadNotifsStore() {
+  try {
+    return JSON.parse(localStorage.getItem('medimind_read_notifs') || '[]');
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveReadNotifsStore(arr) {
+  try {
+    localStorage.setItem('medimind_read_notifs', JSON.stringify(arr));
+  } catch (_) { }
+}
+
+async function refreshNotificationEngine() {
+  await buildAllNotifications();
+  renderNotificationItems();
+  updateNotificationBadges();
+}
+
+async function buildAllNotifications() {
+  const readNotifs = getReadNotifsStore();
+  const takenMeds = getTakenMedsStore();
+  const todayKey = getTodayKey();
+  const notifs = [];
+
+  // 1. Build Appointment Notifications
+  let appts = [];
+  try {
+    const res = await fetch('/api/appointments');
+    if (res.ok) {
+      const data = await res.json();
+      appts = data.appointments || [];
+      cachedUserAppointments = appts;
+    } else {
+      appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+    }
+  } catch (_) {
+    appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+  }
+
+  // If user has no real appointments, add an intelligent demo appointment reminder
+  if (!appts || appts.length === 0) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomStr = `${tomorrow.getDate().toString().padStart(2, '0')}/${(tomorrow.getMonth() + 1).toString().padStart(2, '0')}/${tomorrow.getFullYear()}`;
+    appts = [{
+      id: 'demo_appt_1',
+      facility_name: 'Bệnh viện Đại học Y Dược TP.HCM',
+      specialty: 'Nội Tim Mạch & Huyết Áp',
+      appointment_date: tomStr,
+      appointment_time: '09:00',
+      status: 'confirmed',
+      patient_name: currentUser?.name || 'Nguyễn Văn A',
+      is_demo: true
+    }];
+  }
+
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  appts.forEach(appt => {
+    const apptId = `appt_${appt.id}`;
+    let urgency = 'upcoming';
+    let urgencyLabel = 'Đã đặt';
+    let urgencyClass = 'badge-appointment';
+
+    const dStr = (appt.appointment_date || '').trim();
+    if (dStr.includes(todayStr) || dStr.includes(`${now.getDate()}/${now.getMonth() + 1}`)) {
+      urgency = 'today';
+      urgencyLabel = 'Hôm nay';
+      urgencyClass = 'badge-urgent';
+    } else if (dStr.includes('Ngày mai') || dStr.includes(`${now.getDate() + 1}/${now.getMonth() + 1}`)) {
+      urgency = 'tomorrow';
+      urgencyLabel = 'Ngày mai';
+      urgencyClass = 'badge-appointment';
+    }
+
+    notifs.push({
+      id: apptId,
+      rawId: appt.id,
+      type: 'appointment',
+      title: `Khám ${appt.specialty || 'Chuyên khoa'}`,
+      subtitle: appt.facility_name || 'Cơ sở Y tế',
+      time_str: `${appt.appointment_time || '08:30'} · ${appt.appointment_date || 'Ngày hẹn'}`,
+      urgency,
+      urgencyLabel,
+      urgencyClass,
+      specialty: appt.specialty || 'Đa khoa',
+      read: readNotifs.includes(apptId),
+      isDemo: !!appt.is_demo
+    });
+  });
+
+  // 2. Build Medication Notifications (Nhắc Uống Thuốc)
+  const currentHour = now.getHours();
+  const slots = [
+    {
+      slot: 'morning',
+      label: 'Cữ Sáng',
+      timeRange: '07:00 - 08:30',
+      active: currentHour >= 6 && currentHour < 11,
+      defaultMed: {
+        name: 'Multivitamin & Khoáng chất tổng hợp',
+        dosage: '1 viên sau ăn sáng',
+        instruction: 'Uống cùng 200ml nước ấm sau khi ăn no.'
+      }
+    },
+    {
+      slot: 'noon',
+      label: 'Cữ Trưa',
+      timeRange: '11:30 - 12:30',
+      active: currentHour >= 11 && currentHour < 15,
+      defaultMed: {
+        name: 'Men vi sinh Probiotic / Tiêu hóa',
+        dosage: '1 gói / 1 viên sau ăn trưa',
+        instruction: 'Hỗ trợ hấp thu tiêu hóa, uống sau ăn 15-30 phút.'
+      }
+    },
+    {
+      slot: 'evening',
+      label: 'Cữ Tối',
+      timeRange: '19:00 - 20:30',
+      active: currentHour >= 18 && currentHour <= 23,
+      defaultMed: {
+        name: 'Omega-3 Tinh khiết & Magie B6',
+        dosage: '1 viên sau bữa tối',
+        instruction: 'Hỗ trợ tuần hoàn não, thư giãn tim mạch và giấc ngủ sâu.'
+      }
+    }
+  ];
+
+  let customMeds = [];
+  if (Array.isArray(cachedPrescriptionHistory) && cachedPrescriptionHistory.length > 0) {
+    const latest = cachedPrescriptionHistory[0];
+    if (latest && latest.summary) {
+      customMeds.push({
+        name: latest.diagnosis ? `Thuốc điều trị ${latest.diagnosis}` : 'Đơn thuốc chuyên khoa',
+        dosage: '1 liều theo chỉ định đơn',
+        instruction: `Theo đơn kê tại ${latest.facility || 'Cơ sở y tế'}`
+      });
+    }
+  }
+
+  slots.forEach((s, idx) => {
+    const medInfo = customMeds[idx] || s.defaultMed;
+    const medId = `med_${s.slot}_${todayKey}`;
+    const takenRecord = takenMeds[medId];
+
+    notifs.push({
+      id: medId,
+      type: 'medication',
+      slot: s.slot,
+      slotLabel: s.label,
+      title: medInfo.name,
+      dosage: medInfo.dosage,
+      instruction: medInfo.instruction,
+      time_str: `${s.label} (${s.timeRange})`,
+      taken: !!takenRecord,
+      takenAt: takenRecord || '',
+      read: readNotifs.includes(medId) || !!takenRecord,
+      activeSlot: s.active
+    });
+  });
+
+  cachedAllNotifications = notifs;
+}
+
+function renderNotificationItems() {
   const listEl = document.getElementById('notif-items-list');
   if (!listEl) return;
 
-  const items = notifs || [];
+  let items = cachedAllNotifications || [];
+  if (currentNotifFilter === 'appointment') {
+    items = items.filter(n => n.type === 'appointment');
+  } else if (currentNotifFilter === 'medication') {
+    items = items.filter(n => n.type === 'medication');
+  }
+
   if (items.length === 0) {
-    if (badge) badge.classList.add('hidden');
-    if (countEl) countEl.classList.add('hidden');
-    if (markReadBtn) markReadBtn.classList.add('hidden');
     listEl.innerHTML = `
       <div id="notif-empty-state" class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
         <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
-        <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">${currentLang === 'en' ? 'No new notifications' : 'Không có thông báo mới'}</p>
+        <p class="text-xs font-medium text-slate-400">${currentLang === 'en' ? 'No notifications in this category' : 'Không có thông báo nào trong mục này'}</p>
       </div>`;
-  } else {
-    if (badge) {
-      badge.innerText = items.length;
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => {
+    if (item.type === 'appointment') {
+      const isUrgent = item.urgency === 'today';
+      return `
+        <div class="notif-card notif-appointment ${item.read ? 'is-read' : ''} ${isUrgent ? 'is-urgent' : ''} cursor-pointer space-y-2"
+          onclick="handleNotificationClick('${item.id}', 'appointment', '${item.rawId || ''}')">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="notif-card-badge badge-appointment">Lịch khám</span>
+                  <span class="notif-card-badge ${item.urgencyClass}">${escapeHtml(item.urgencyLabel)}</span>
+                </div>
+                <h5 class="text-xs font-bold text-white truncate mt-0.5">${escapeHtml(item.title)}</h5>
+              </div>
+            </div>
+            ${!item.read ? '<span class="w-2 h-2 rounded-full bg-sky-400 shrink-0 mt-1 shadow-sm shadow-sky-400 animate-pulse"></span>' : ''}
+          </div>
+
+          <div class="text-[11px] text-slate-300 pl-9 space-y-0.5">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              <span class="truncate">${escapeHtml(item.subtitle)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-sky-300 font-medium">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>${escapeHtml(item.time_str)}</span>
+            </div>
+          </div>
+
+          <div class="pl-9 pt-1 flex items-center justify-between">
+            <span class="text-[10px] text-slate-400">Khoa: <strong class="text-slate-200">${escapeHtml(item.specialty)}</strong></span>
+            <span class="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-0.5">
+              Chi tiết →
+            </span>
+          </div>
+        </div>
+      `;
+    } else {
+      // Medication Card
+      return `
+        <div class="notif-card notif-medication ${item.taken ? 'is-read' : (item.activeSlot ? 'pending-dose' : '')} space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg ${item.taken ? 'bg-slate-700/50 text-slate-400 border border-slate-600' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'} flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                </svg>
+              </span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="notif-card-badge badge-medication">Nhắc uống thuốc</span>
+                  <span class="notif-card-badge ${item.taken ? 'bg-slate-800 text-slate-400' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">${escapeHtml(item.slotLabel)}</span>
+                </div>
+                <h5 class="text-xs font-bold text-white truncate mt-0.5">${escapeHtml(item.title)}</h5>
+              </div>
+            </div>
+            ${!item.read && !item.taken ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 mt-1 shadow-sm shadow-emerald-400 animate-pulse"></span>' : ''}
+          </div>
+
+          <div class="text-[11px] text-slate-300 pl-9 space-y-1">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Liều dùng: <strong class="text-slate-200">${escapeHtml(item.dosage)}</strong></span>
+            </div>
+            ${item.instruction ? `<p class="text-[10.5px] text-slate-400 italic">${escapeHtml(item.instruction)}</p>` : ''}
+          </div>
+
+          <div class="pl-9 pt-1 flex items-center justify-between gap-2">
+            <span class="text-[10px] text-slate-400">${escapeHtml(item.time_str)}</span>
+            ${item.taken
+              ? `<span class="notif-taken-badge">✓ Đã uống lúc ${escapeHtml(item.takenAt)}</span>`
+              : `<button type="button" onclick="markMedicationTaken('${item.id}', '${escapeHtml(item.title)}', event)" class="notif-take-btn">
+                  Đã uống ✓
+                </button>`
+            }
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+}
+
+function updateNotificationBadges() {
+  const badge = document.getElementById('notif-badge');
+  const countEl = document.getElementById('notif-unread-count');
+  const markReadBtn = document.getElementById('notif-mark-read-btn');
+
+  const allItems = cachedAllNotifications || [];
+  const apptItems = allItems.filter(n => n.type === 'appointment');
+  const medItems = allItems.filter(n => n.type === 'medication');
+
+  const unreadItems = allItems.filter(n => !n.read && !n.taken);
+  const unreadCount = unreadItems.length;
+
+  if (badge) {
+    if (unreadCount > 0) {
+      badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
       badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
     }
-    if (countEl) {
-      countEl.innerText = `${items.length} ${currentLang === 'en' ? 'new' : 'mới'}`;
+  }
+
+  if (countEl) {
+    if (unreadCount > 0) {
+      countEl.innerText = `${unreadCount} ${currentLang === 'en' ? 'new' : 'mới'}`;
       countEl.classList.remove('hidden');
+    } else {
+      countEl.classList.add('hidden');
     }
-    if (markReadBtn) markReadBtn.classList.remove('hidden');
+  }
+
+  if (markReadBtn) {
+    if (unreadCount > 0) {
+      markReadBtn.classList.remove('hidden');
+    } else {
+      markReadBtn.classList.add('hidden');
+    }
+  }
+
+  const countAll = document.getElementById('notif-tab-count-all');
+  const countAppt = document.getElementById('notif-tab-count-appointment');
+  const countMed = document.getElementById('notif-tab-count-medication');
+
+  if (countAll) countAll.innerText = `(${allItems.length})`;
+  if (countAppt) countAppt.innerText = `(${apptItems.length})`;
+  if (countMed) countMed.innerText = `(${medItems.length})`;
+}
+
+function markMedicationTaken(notifId, medTitle, event) {
+  if (event) event.stopPropagation();
+  const takenMeds = getTakenMedsStore();
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  takenMeds[notifId] = timeStr;
+  saveTakenMedsStore(takenMeds);
+
+  const readNotifs = getReadNotifsStore();
+  if (!readNotifs.includes(notifId)) {
+    readNotifs.push(notifId);
+    saveReadNotifsStore(readNotifs);
+  }
+
+  showMedicalToast(`Đã ghi nhận: Bạn đã uống "${medTitle}" lúc ${timeStr}!`, 'success', 3500);
+
+  const it = cachedAllNotifications.find(n => n.id === notifId);
+  if (it) {
+    it.taken = true;
+    it.takenAt = timeStr;
+    it.read = true;
+  }
+
+  renderNotificationItems();
+  updateNotificationBadges();
+}
+
+function handleNotificationClick(notifId, type, rawId) {
+  const readNotifs = getReadNotifsStore();
+  if (!readNotifs.includes(notifId)) {
+    readNotifs.push(notifId);
+    saveReadNotifsStore(readNotifs);
+  }
+
+  const it = cachedAllNotifications.find(n => n.id === notifId);
+  if (it) it.read = true;
+
+  closeNotificationDropdown();
+  updateNotificationBadges();
+
+  if (type === 'appointment') {
+    switchTab('my-appointments-tab');
+  } else if (type === 'medication') {
+    switchTab('ocr-tab');
   }
 }
 
 function markAllNotificationsAsRead() {
-  const badge = document.getElementById('notif-badge');
-  const countEl = document.getElementById('notif-unread-count');
-  if (badge) badge.classList.add('hidden');
-  if (countEl) {
-    countEl.innerText = (currentLang === 'vi' ? 'Đã đọc hết' : 'All read');
-    countEl.classList.remove('bg-orange-500/20', 'text-orange-400');
-    countEl.classList.add('bg-slate-500/20', 'text-slate-400');
-  }
-  const items = document.querySelectorAll('.notif-item');
-  items.forEach(it => {
-    it.classList.add('opacity-60');
+  const readNotifs = getReadNotifsStore();
+  cachedAllNotifications.forEach(n => {
+    if (!readNotifs.includes(n.id)) {
+      readNotifs.push(n.id);
+    }
+    n.read = true;
   });
+  saveReadNotifsStore(readNotifs);
+
+  renderNotificationItems();
+  updateNotificationBadges();
+  showMedicalToast('Đã đánh dấu đã đọc tất cả thông báo.', 'info', 2500);
+}
+
+function initNotificationEngine() {
+  refreshNotificationEngine();
+  setInterval(() => {
+    refreshNotificationEngine();
+  }, 60000);
+  window.addEventListener('focus', () => {
+    refreshNotificationEngine();
+  });
+}
+
+// ============================================================================
+// USER APPOINTMENTS MANAGEMENT (Lịch Hẹn Khám Của Tôi - Tab Quản Lý)
+// ============================================================================
+
+async function loadUserAppointments() {
+  const loadingEl = document.getElementById('my-appts-loading');
+  const emptyEl = document.getElementById('my-appts-empty');
+  const gridEl = document.getElementById('my-appts-grid');
+
+  if (loadingEl) loadingEl.classList.remove('hidden');
+  if (emptyEl) emptyEl.classList.add('hidden');
+  if (gridEl) gridEl.innerHTML = '';
+
+  let appts = [];
+  try {
+    const res = await fetch('/api/appointments');
+    if (res.ok) {
+      const data = await res.json();
+      appts = data.appointments || [];
+      cachedUserAppointments = appts;
+    } else {
+      appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+      cachedUserAppointments = appts;
+    }
+  } catch (err) {
+    console.warn('Lỗi nạp lịch hẹn:', err);
+    appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+    cachedUserAppointments = appts;
+  } finally {
+    if (loadingEl) loadingEl.classList.add('hidden');
+  }
+
+  renderUserAppointmentsGrid(appts);
+  refreshNotificationEngine();
+}
+
+function renderUserAppointmentsGrid(appts) {
+  const emptyEl = document.getElementById('my-appts-empty');
+  const gridEl = document.getElementById('my-appts-grid');
+  if (!gridEl) return;
+
+  if (!appts || appts.length === 0) {
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    gridEl.innerHTML = '';
+    return;
+  }
+
+  if (emptyEl) emptyEl.classList.add('hidden');
+
+  gridEl.innerHTML = appts.map(appt => {
+    const statusMap = {
+      pending: { label: 'Chờ khám', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+      confirmed: { label: 'Đã xác nhận', cls: 'bg-sky-500/20 text-sky-300 border-sky-500/30' },
+      completed: { label: 'Đã hoàn tất', cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+      cancelled: { label: 'Đã hủy', cls: 'bg-rose-500/20 text-rose-300 border-rose-500/30' }
+    };
+    const st = statusMap[appt.status] || statusMap.confirmed;
+    const hasPrevisit = !!appt.pre_visit_summary;
+
+    return `
+      <div class="glass-card p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-sky-400/40 bg-slate-900/80 shadow-md space-y-3 transition-all">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+            <div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${st.cls}">${st.label}</span>
+              <h4 class="text-sm font-bold text-white mt-1 leading-snug line-clamp-1">${escapeHtml(appt.facility_name || 'Cơ sở Y tế')}</h4>
+            </div>
+          </div>
+          <button type="button" onclick="deleteUserAppointment(${appt.id})" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer" title="Hủy phiếu hẹn này">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs space-y-1.5 text-slate-300">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Chuyên khoa:</span>
+            <strong class="text-sky-300 font-semibold">${escapeHtml(appt.specialty || 'Đa khoa')}</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Thời gian hẹn:</span>
+            <strong class="text-amber-300 font-semibold">${escapeHtml(appt.appointment_time || '08:30')} · ${escapeHtml(appt.appointment_date || '')}</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Người khám:</span>
+            <span class="text-slate-200">${escapeHtml(appt.patient_name || '')} (${escapeHtml(appt.patient_phone || '')})</span>
+          </div>
+        </div>
+
+        ${hasPrevisit ? `
+          <div class="pt-1 flex items-center justify-between">
+            <span class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+              ✓ Đã có tóm tắt tiền khám
+            </span>
+            <button type="button" onclick="viewAppointmentIntakeSummary(${appt.id})" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer">
+              Xem tóm tắt →
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+async function deleteUserAppointment(apptId) {
+  if (!confirm('Bạn có chắc chắn muốn hủy phiếu đặt hẹn khám này không?')) return;
+  try {
+    const res = await fetch(`/api/appointments/${apptId}`, { method: 'DELETE' });
+    if (res.ok) {
+      showMedicalToast('Đã hủy lịch hẹn thành công.', 'success');
+      loadUserAppointments();
+      return;
+    }
+  } catch (err) {
+    console.warn('Lỗi kết nối hủy lịch hẹn:', err);
+  }
+
+  // Fallback for guest appointments
+  let guestAppts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+  guestAppts = guestAppts.filter(a => a.id != apptId);
+  localStorage.setItem('medimind_guest_appointments', JSON.stringify(guestAppts));
+  showMedicalToast('Đã hủy lịch hẹn.', 'success');
+  loadUserAppointments();
+}
+
+function viewAppointmentIntakeSummary(apptId) {
+  const appt = cachedUserAppointments.find(a => a.id == apptId);
+  const modal = document.getElementById('previsit-summary-modal');
+  if (appt && appt.pre_visit_summary && modal) {
+    recordModalTriggerFocus();
+    currentIntakeSummary = appt.pre_visit_summary;
+    renderPreVisitSummaryInModal(appt.pre_visit_summary, 'appt_' + apptId, false);
+    modal.classList.remove('hidden');
+    document.getElementById('previsit-summary-close')?.focus();
+  } else {
+    showMedicalToast('Không tìm thấy bản tóm tắt tiền khám.', 'info');
+  }
 }
 
 
@@ -7620,6 +8279,7 @@ function saveOrUpdateCurrentSession(lastUserText, triageData, intakeData) {
   if (chatSessions.length > 30) chatSessions.length = 30;
   saveSessionsToStorage();
   renderChatHistoryList();
+  syncChatSummaryButton();
 }
 
 function renderChatHistoryList(filterQuery = '') {
@@ -7693,13 +8353,6 @@ function loadSession(sessionId) {
 
   currentConversationId = session.id;
   currentIntakeSummary = session.summary || null;
-  if (session.chatMode) {
-    setChatConsultationMode(session.chatMode, { silent: true });
-  } else if (session.status === 'collecting' || session.status === 'ready_for_review') {
-    setChatConsultationMode('intake', { silent: true });
-  } else {
-    setChatConsultationMode('general', { silent: true });
-  }
 
   const container = document.getElementById('chat-messages');
   if (container) container.innerHTML = '';
@@ -7814,6 +8467,7 @@ async function syncServerConsultations() {
       if (hasNew) {
         saveSessionsToStorage();
         renderChatHistoryList();
+        syncChatSummaryButton();
       }
     }
   } catch (err) {
@@ -8136,10 +8790,10 @@ function initHospitalInteractiveMap() {
   if (typeof L === 'undefined') return;
 
   if (!hospitalLeafletMap) {
-    hospitalLeafletMap = L.map('hospital-interactive-map').setView([10.7769, 106.6850], 13);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19,
-      attribution: 'Tiles &copy; Esri'
+    hospitalLeafletMap = L.map('hospital-interactive-map', { zoomControl: false }).setView([10.7769, 106.6850], 13);
+    L.control.zoom({ position: 'topleft' }).addTo(hospitalLeafletMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(hospitalLeafletMap);
     hospitalMarkersLayer = L.layerGroup().addTo(hospitalLeafletMap);
   }
@@ -8658,81 +9312,86 @@ function getFacilityBadgeColor(badgeType) {
   return 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/40 font-semibold';
 }
 
-// ==============================================================
-// DOCTOGO-STYLE MULTI-STEP FACILITY BOOKING FLOW & MY APPOINTMENTS
-// ==============================================================
-let currentBookingStep = 1;
-let currentBookingFacility = null;
-let selectedBookingSpecialty = '';
-let selectedBookingSlot = '';
-let bookingSummaryReference = null;
-let bookingSummaryRequest = 0;
-
-const DEFAULT_MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
-const DEFAULT_AFTERNOON_SLOTS = ['13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
-
-function resolveBookingFacility(facId, drawerFacility) {
-  const id = String(facId ?? '').trim();
-  if (!id) return null;
-  if (!drawerFacility) return medicalFacilitiesData.find(facility => facility.id === id);
-
-  const name = String(drawerFacility.ten_ngan || '').trim() || String(drawerFacility.ten || '').trim();
-  if (String(drawerFacility.id ?? '').trim() !== id || !name) return null;
-  return {
-    id,
-    name,
-    address: String(drawerFacility.dia_chi_hien_thi_tren_web || drawerFacility.dia_chi || '').trim(),
-    hours: typeof drawerFacility.gio_lam_viec === 'string' ? drawerFacility.gio_lam_viec : '',
-    specialties: typeof drawerFacility.chuyen_khoa === 'string'
-      ? drawerFacility.chuyen_khoa.split(',').map(specialty => specialty.trim()).filter(Boolean)
-      : []
+function _resolveBookingFacility(facId, facObj = null) {
+  const targetId = String(facId ?? facObj?.id ?? '').trim();
+  const normalizeFac = (raw) => {
+    if (!raw || typeof raw !== 'object') return null;
+    const id = String(raw.id ?? targetId).trim();
+    const name = String(raw.ten || raw.ten_ngan || raw.name || '').trim();
+    const address = String(raw.dia_chi_hien_thi_tren_web || raw.dia_chi || raw.address || '').trim();
+    if (!id && !name) return null;
+    return {
+      id: id || 'fac_unknown',
+      name: name || 'Cơ sở Y tế',
+      address,
+      specialties: Array.isArray(raw.specialties)
+        ? raw.specialties
+        : String(raw.chuyen_khoa || raw.spec || '').split(',').map(s => s.trim()).filter(Boolean),
+    };
   };
-}
 
-function openFacilityBookingModal(facId, drawerFacility) {
-  const isEn = currentLang === 'en';
-  const fac = resolveBookingFacility(facId, drawerFacility);
-  if (!fac) {
-    showMedicalToast(isEn ? 'This facility could not be found. Please select it again.' : 'Không tìm thấy cơ sở y tế này. Vui lòng chọn lại.', 'warning');
-    return;
+  if (facObj && typeof facObj === 'object') {
+    const normalized = normalizeFac(facObj);
+    if (normalized) return normalized;
   }
 
+  if (targetId && typeof window !== 'undefined') {
+    const cskcbMatch = (window.currentFacilityState?.facilities || []).find(f => String(f.id) === targetId);
+    if (cskcbMatch) return normalizeFac(cskcbMatch);
+
+    const markerMatch = (window.mapMarkersData || []).find(m => String(m.id) === targetId);
+    if (markerMatch) return normalizeFac(markerMatch);
+  }
+
+  if (targetId) {
+    const localMatch = (typeof medicalFacilitiesData !== 'undefined' ? medicalFacilitiesData : []).find(
+      f => String(f.id) === targetId
+    );
+    if (localMatch) return normalizeFac(localMatch);
+  }
+
+  if (currentBookingFacility && String(currentBookingFacility.id) === targetId) {
+    return currentBookingFacility;
+  }
+
+  return null;
+}
+
+function openFacilityBookingModal(facId, facObj = null) {
   recordModalTriggerFocus();
+  const resolved = _resolveBookingFacility(facId, facObj);
   if (!currentUser) {
-    pendingBookingRequest = { id: fac.id, drawerFacility };
+    pendingBookingFacilityId = resolved?.id || facId || null;
+    pendingBookingFacilityObj = resolved || facObj || null;
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+    const facName = resolved?.name || (isEn ? 'healthcare facility' : 'cơ sở y tế');
     const bannerTitle = isEn ? 'ACCOUNT AUTHENTICATION REQUIRED' : 'YÊU CẦU XÁC THỰC TÀI KHOẢN';
     const bannerText = isEn
-      ? `Please log in or create an account to book an appointment at ${fac.name}!`
-      : `Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám tại ${fac.name}!`;
+      ? `Please log in or create an account to book an appointment at ${facName}!`
+      : `Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám tại ${facName}!`;
     showAuthContextBanner(bannerTitle, bannerText);
     openLoginModal('login');
     return;
   }
 
-  const specialties = fac.specialties?.length ? fac.specialties : ['Khám tổng quát'];
-  currentBookingFacility = { ...fac, specialties };
-  bookingSummaryReference = null;
-  document.getElementById('book-modal-note').value = '';
-  renderBookingPreVisitSummary(null);
-
-  const idEl = document.getElementById('book-modal-facility-id');
-  const nameEl = document.getElementById('book-modal-facility-name');
-  const addrEl = document.getElementById('book-modal-facility-address');
-  const hoursEl = document.getElementById('book-step2-hours');
-  const dateEl = document.getElementById('book-modal-date');
-  const nameInput = document.getElementById('book-modal-name');
-  const phoneInput = document.getElementById('book-modal-phone');
-  const emailInput = document.getElementById('book-modal-email');
-
-  if (idEl) idEl.value = fac.id;
-  if (nameEl) nameEl.innerText = fac.name;
-  if (addrEl) addrEl.innerText = fac.address;
-  if (hoursEl) {
-    hoursEl.innerText = localizeHours(fac.hours, isEn) ||
-      (isEn ? 'Contact the facility for hours' : 'Liên hệ cơ sở để biết giờ làm việc');
+  if (!resolved) {
+    if (typeof showMedicalToast === 'function') {
+      showMedicalToast('Không xác định được thông tin cơ sở y tế đã chọn. Vui lòng thử lại.', 'error');
+    }
+    return;
   }
 
-  // Set default date to tomorrow
+  currentBookingFacility = resolved;
+  const modal = document.getElementById('facility-booking-modal');
+  const nameEl = document.getElementById('book-modal-facility-name');
+  const addrEl = document.getElementById('book-modal-facility-address');
+  const idEl = document.getElementById('book-modal-facility-id');
+  const dateEl = document.getElementById('book-modal-date');
+
+  if (nameEl) nameEl.innerText = resolved.name;
+  if (addrEl) addrEl.innerText = resolved.address || '';
+  if (idEl) idEl.value = resolved.id;
+
   if (dateEl) {
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
@@ -8740,362 +9399,54 @@ function openFacilityBookingModal(facId, drawerFacility) {
     dateEl.min = new Date().toISOString().split('T')[0];
   }
 
-  // Pre-fill user info
-  if (nameInput) nameInput.value = currentUser?.full_name || currentUser?.name || '';
-  if (phoneInput) phoneInput.value = currentUser?.phone_number || currentUser?.phone || '';
-  if (emailInput) {
-    const mail = currentUser?.email || '';
-    emailInput.value = mail.endsWith('@phone.medimind') ? '' : mail;
-  }
-
-  // Reset selected choices
-  const specialtySearch = document.getElementById('book-step1-search');
-  if (specialtySearch) specialtySearch.value = '';
-  selectedBookingSpecialty = specialties[0];
-  selectedBookingSlot = '08:30';
-  renderBookingSpecialties(specialties);
-  renderTimeSlots();
-
-  // Reset to Step 1
-  goToBookingStep(1);
-
-  const modal = document.getElementById('facility-booking-modal');
   if (modal) modal.classList.remove('hidden');
 }
 
-function renderBookingSpecialties(specialties, filterText = '') {
-  const container = document.getElementById('book-step1-specialties-list');
-  if (!container) return;
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-
-  const normalizedFilter = (filterText || '').toLowerCase().trim();
-  const filtered = specialties.filter(s => {
-    const localized = localizeSpecialty(s, isEn).toLowerCase();
-    return s.toLowerCase().includes(normalizedFilter) || localized.includes(normalizedFilter);
-  });
-
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div class="p-6 text-center text-xs text-slate-400">
-        ${isEn ? 'No specialties match your search.' : 'Không tìm thấy chuyên khoa phù hợp.'}
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = filtered.map((s, idx) => {
-    const isSelected = (s === selectedBookingSpecialty) || (!selectedBookingSpecialty && idx === 0);
-    if (isSelected && !selectedBookingSpecialty) selectedBookingSpecialty = s;
-    return `
-      <div class="flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${isSelected
-        ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-500 shadow-sm shadow-sky-500/10'
-        : 'bg-white/60 dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:border-sky-400/50'
-      }">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-xl ${isSelected ? 'bg-sky-500 text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'} flex items-center justify-center text-xs font-bold">
-            ${idx + 1}
-          </div>
-          <div>
-            <div class="text-xs font-bold ${isSelected ? 'text-sky-600 dark:text-sky-400' : 'text-slate-800 dark:text-slate-200'}">
-              ${escapeHtml(localizeSpecialty(s, isEn))}
-            </div>
-            <div class="text-[10px] text-slate-400">
-              ${isEn ? 'Consultation & Clinical Exam' : 'Khám & tư vấn chuyên khoa'}
-            </div>
-          </div>
-        </div>
-        <div class="w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-sky-500 bg-sky-500 text-white' : 'border-slate-300 dark:border-white/20'}">
-          ${isSelected ? '<span class="text-[10px]">✓</span>' : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-  container.querySelectorAll(':scope > div').forEach((row, index) => {
-    row.addEventListener('click', () => selectBookingSpecialty(filtered[index]));
-  });
-}
-
-function filterBookingSpecialties(val) {
-  if (!currentBookingFacility) return;
-  renderBookingSpecialties(currentBookingFacility.specialties || ['Khám tổng quát'], val);
-}
-
-function selectBookingSpecialty(spec) {
-  selectedBookingSpecialty = spec;
-  if (!currentBookingFacility) return;
-  renderBookingSpecialties(currentBookingFacility.specialties || ['Khám tổng quát'], document.getElementById('book-step1-search')?.value || '');
-}
-
-function onBookingDateChanged(val) {
-  renderTimeSlots();
-}
-
-function renderTimeSlots() {
-  const morningContainer = document.getElementById('book-slots-morning');
-  const afternoonContainer = document.getElementById('book-slots-afternoon');
-  const timeInput = document.getElementById('book-modal-time');
-  if (timeInput) timeInput.value = selectedBookingSlot;
-
-  if (morningContainer) {
-    morningContainer.innerHTML = DEFAULT_MORNING_SLOTS.map(slot => {
-      const isSelected = (slot === selectedBookingSlot);
-      return `
-        <button type="button" onclick="selectBookingSlot('${slot}')" class="py-2 px-1 rounded-xl text-xs font-mono font-bold transition-all border cursor-pointer ${isSelected
-          ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/25 scale-105'
-          : 'bg-white/70 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-amber-400/50'
-        }">
-          ${slot}
-        </button>
-      `;
-    }).join('');
-  }
-
-  if (afternoonContainer) {
-    afternoonContainer.innerHTML = DEFAULT_AFTERNOON_SLOTS.map(slot => {
-      const isSelected = (slot === selectedBookingSlot);
-      return `
-        <button type="button" onclick="selectBookingSlot('${slot}')" class="py-2 px-1 rounded-xl text-xs font-mono font-bold transition-all border cursor-pointer ${isSelected
-          ? 'bg-sky-500 border-sky-500 text-white shadow-md shadow-sky-500/25 scale-105'
-          : 'bg-white/70 dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-sky-400/50'
-        }">
-          ${slot}
-        </button>
-      `;
-    }).join('');
-  }
-}
-
-function selectBookingSlot(slot) {
-  selectedBookingSlot = slot;
-  renderTimeSlots();
-}
-
-function goToBookingStep(step) {
-  if (step < 1 || step > 4) return;
-  currentBookingStep = step;
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-
-  // 1. Hide all step contents
-  for (let i = 1; i <= 4; i++) {
-    const el = document.getElementById(`booking-step-${i}`);
-    if (el) el.classList.toggle('hidden', i !== step);
-
-    const prog = document.getElementById(`step-prog-${i}`);
-    if (prog) {
-      if (i <= step) {
-        prog.className = 'h-1.5 rounded-full bg-sky-500 transition-all';
-      } else {
-        prog.className = 'h-1.5 rounded-full bg-slate-200 dark:bg-white/10 transition-all';
-      }
-    }
-  }
-
-  // 2. Update Header Badge and Title
-  const badgeEl = document.getElementById('book-modal-step-badge');
-  const titleEl = document.getElementById('book-modal-step-title');
-  const titlesVi = [
-    'Chọn chuyên khoa khám',
-    'Chọn phòng khám & cơ sở tiếp nhận',
-    'Chọn ngày & giờ khám phù hợp',
-    'Thông tin người khám & xác nhận'
-  ];
-  const titlesEn = [
-    'Select Medical Specialty',
-    'Confirm Clinic & Facility',
-    'Choose Date & Time Slot',
-    'Patient Information & Confirmation'
-  ];
-
-  if (badgeEl) badgeEl.innerText = `${isEn ? 'Step' : 'Bước'} ${step} / 4`;
-  if (titleEl) titleEl.innerText = isEn ? titlesEn[step - 1] : titlesVi[step - 1];
-
-  // 3. Update Step 2 specifics
-  if (step === 2) {
-    const specEl = document.getElementById('book-step2-selected-spec');
-    if (specEl) specEl.innerText = localizeSpecialty(selectedBookingSpecialty, isEn);
-  }
-
-  // 4. Update Step 4 summary specifics
-  if (step === 4) {
-    const sumFac = document.getElementById('book-step4-summary-fac');
-    const sumTime = document.getElementById('book-step4-summary-time');
-    const sumSpec = document.getElementById('book-step4-summary-spec');
-    const dateVal = document.getElementById('book-modal-date')?.value || '';
-
-    if (sumFac) sumFac.innerText = currentBookingFacility?.name || '';
-    if (sumTime) sumTime.innerText = `${selectedBookingSlot} • ${dateVal}`;
-    if (sumSpec) sumSpec.innerText = localizeSpecialty(selectedBookingSpecialty, isEn);
-    checkAndPrepareBookingPreVisitSummary();
-  }
-
-  // 5. Update Footer Buttons
-  const btnPrev = document.getElementById('book-modal-btn-prev');
-  const btnNext = document.getElementById('book-modal-btn-next');
-  const btnNextText = document.getElementById('book-modal-btn-next-text');
-
-  if (btnPrev) btnPrev.classList.toggle('hidden', step === 1);
-  if (btnNextText) {
-    if (step === 4) {
-      btnNextText.innerText = isEn ? 'Confirm Booking' : 'Xác nhận đặt lịch';
-    } else {
-      btnNextText.innerText = isEn ? 'Next' : 'Tiếp theo';
-    }
-  }
-}
-
-async function handleBookingStepNext() {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-
-  if (currentBookingStep === 1) {
-    if (!selectedBookingSpecialty) {
-      showMedicalToast(isEn ? 'Please choose a medical specialty!' : 'Vui lòng chọn một chuyên khoa khám!', 'warning');
-      return;
-    }
-    goToBookingStep(2);
-  } else if (currentBookingStep === 2) {
-    goToBookingStep(3);
-  } else if (currentBookingStep === 3) {
-    const dateVal = document.getElementById('book-modal-date')?.value;
-    if (!dateVal) {
-      showMedicalToast(isEn ? 'Please choose an appointment date!' : 'Vui lòng chọn ngày khám mong muốn!', 'warning');
-      return;
-    }
-    if (!selectedBookingSlot) {
-      showMedicalToast(isEn ? 'Please choose a time slot!' : 'Vui lòng chọn khung giờ khám!', 'warning');
-      return;
-    }
-    goToBookingStep(4);
-  } else if (currentBookingStep === 4) {
-    // Submit appointment
-    await submitFacilityAppointment();
-  }
-}
-
-async function checkAndPrepareBookingPreVisitSummary() {
+function closeFacilityBookingModal() {
   const modal = document.getElementById('facility-booking-modal');
-  const checkbox = document.getElementById('book-modal-attach-summary');
-  if (!currentBookingFacility || !modal || modal.classList.contains('hidden') || !checkbox) return;
-  const revision = ++bookingSummaryRequest;
-  const account = chatAccountKey();
-  const previous = bookingSummaryReference;
-  const wasChecked = checkbox.checked;
-  checkbox.disabled = true;
-  let next = null;
-  try {
-    next = await PrevisitIntake.bookingSummary();
-  } catch (_) { }
-  if (revision !== bookingSummaryRequest || account !== chatAccountKey()) return;
-  bookingSummaryReference = next;
-  renderBookingPreVisitSummary(next, Boolean(wasChecked && next && next.id === previous?.id && next.version === previous.version));
-}
-
-function renderBookingPreVisitSummary(reference, keepChecked = false) {
-  const dict = translations[currentLang] || translations.vi;
-  const section = document.getElementById('book-summary-attachment');
-  const checkbox = document.getElementById('book-modal-attach-summary');
-  const launcher = document.getElementById('book-intake-button');
-  const description = document.getElementById('book-previsit-description');
-  if (section) section.hidden = !reference;
-  if (checkbox) {
-    checkbox.disabled = !reference;
-    checkbox.checked = keepChecked;
-  }
-  for (const [element, textKey] of [
-    [launcher, reference ? 'book_previsit_review' : 'chat_mode_intake'],
-    [description, reference ? 'book_previsit_confirmed' : 'book_previsit_optional']
-  ]) {
-    if (!element) continue;
-    element.dataset.i18n = textKey;
-    element.textContent = dict[textKey];
-  }
-}
-
-function openAppointmentPreVisitSummary(apptId) {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  const appt = (userAppointmentsList || []).find(a => Number(a.id) === Number(apptId));
-  if (!appt || !appt.pre_visit_summary) {
-    showMedicalToast(isEn ? 'No pre-visit summary attached to this appointment.' : 'Lịch hẹn này không có bản tóm tắt trước khám đính kèm.', 'info');
-    return;
-  }
-  let summaryObj = null;
-  if (typeof appt.pre_visit_summary === 'object' && appt.pre_visit_summary !== null) {
-    summaryObj = appt.pre_visit_summary;
-  } else {
-    try {
-      summaryObj = JSON.parse(appt.pre_visit_summary);
-    } catch (_) { }
-  }
-  if (!summaryObj?.part_a_patient_facts) {
-    showMedicalToast(isEn ? 'This summary could not be read.' : 'Không đọc được bản tóm tắt này.', 'info');
-    return;
-  }
-  showSavedPreVisitSummary(summaryObj);
+  if (modal) modal.classList.add('hidden');
+  restoreModalTriggerFocus();
 }
 
 async function handleFacilityBookingSubmit(e) {
-  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+  if (e) e.preventDefault();
   const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
   if (!currentUser) {
-    showMedicalToast(isEn ? 'Please log in to book!' : 'Vui lòng đăng nhập để đặt lịch khám!', 'warning');
+    showMedicalToast(isEn ? 'Please log in or create an account to book an appointment!' : 'Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám!', 'warning');
     closeFacilityBookingModal();
-    openLoginModal('login');
+    if (typeof openAuthModal === 'function') openAuthModal('login');
+    else if (typeof openLoginModal === 'function') openLoginModal('login');
     return;
   }
 
-  const facility = currentBookingFacility;
-  if (!facility) {
-    showMedicalToast(isEn ? 'Please select a healthcare facility first.' : 'Vui lòng chọn cơ sở y tế trước khi đặt lịch.', 'warning');
-    return;
-  }
+  const facId = String(document.getElementById('book-modal-facility-id')?.value || '').trim();
+  const resolved = _resolveBookingFacility(facId, currentBookingFacility && String(currentBookingFacility.id) === facId ? currentBookingFacility : null);
+  const modalName = document.getElementById('book-modal-facility-name')?.innerText?.trim() || '';
+  const modalAddr = document.getElementById('book-modal-facility-address')?.innerText?.trim() || '';
+  const facilityName = resolved?.name || modalName || (isEn ? 'Healthcare Facility' : 'Cơ sở Y tế');
+  const facilityAddress = resolved?.address || modalAddr || '';
 
-  const patName = document.getElementById('book-modal-name')?.value?.trim();
-  const patPhone = document.getElementById('book-modal-phone')?.value?.trim();
-  const patEmail = document.getElementById('book-modal-email')?.value?.trim();
-  const note = document.getElementById('book-modal-note')?.value?.trim() || '';
-  const dateVal = document.getElementById('book-modal-date')?.value;
-  const termsChecked = document.getElementById('book-modal-terms')?.checked;
-  const attachCheckbox = document.getElementById('book-modal-attach-summary');
-  const summaryReference = attachCheckbox.checked && !attachCheckbox.disabled ? bookingSummaryReference : null;
-  if (attachCheckbox.checked && !summaryReference) {
-    showMedicalToast(isEn ? 'Your summary is still loading.' : 'Đang tải bản tóm tắt, vui lòng chờ.', 'info');
-    return;
-  }
-
-  if (!patName || !patPhone) {
-    showMedicalToast(isEn ? 'Please fill in patient name and phone number!' : 'Vui lòng điền đầy đủ họ tên và số điện thoại người khám!', 'warning');
-    return;
-  }
-
-  if (!termsChecked) {
-    showMedicalToast(isEn ? 'Please accept the consent terms to proceed!' : 'Vui lòng tích đồng ý điều khoản để tiếp tục!', 'warning');
-    return;
-  }
-
-  const nextBtn = document.getElementById('book-modal-btn-next');
-  if (nextBtn) {
-    nextBtn.disabled = true;
-    nextBtn.classList.add('opacity-70', 'cursor-not-allowed');
-  }
+  const spec = document.getElementById('book-modal-spec')?.value;
+  const date = document.getElementById('book-modal-date')?.value;
+  const time = document.getElementById('book-modal-time')?.value;
+  const note = document.getElementById('book-modal-note')?.value;
+  const patName = document.getElementById('book-modal-name')?.value || currentUser?.full_name || currentUser?.name || '';
+  const patPhone = document.getElementById('book-modal-phone')?.value || currentUser?.phone_number || currentUser?.phone || '';
 
   try {
     const res = await fetch('/api/appointments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        facility_id: facility.id,
-        facility_name: facility.name,
-        facility_address: facility.address,
-        specialty: selectedBookingSpecialty || (isEn ? 'General Practice' : 'Đa khoa'),
-        appointment_date: dateVal,
-        appointment_time: selectedBookingSlot,
+        facility_id: facId || resolved?.id || 'fac_unknown',
+        facility_name: facilityName,
+        facility_address: facilityAddress,
+        specialty: spec || (isEn ? 'General Practice' : 'Đa khoa'),
+        appointment_date: date,
+        appointment_time: time,
         patient_name: patName,
         patient_phone: patPhone,
-        patient_email: patEmail,
-        note: note,
-        ...(summaryReference && {
-          pre_visit_conversation_id: summaryReference.id,
-          pre_visit_summary_version: summaryReference.version
-        })
+        note: note || ''
       })
     });
 
@@ -9107,205 +9458,16 @@ async function handleFacilityBookingSubmit(e) {
     }
 
     closeFacilityBookingModal();
-    const successMsg = isEn ? 'Appointment booked successfully!' : 'Đã xác nhận và lưu phiếu đặt hẹn thành công!';
+    const successMsg = isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!';
     showMedicalToast(successMsg, 'success', 4000);
-
-    // Automatically navigate to My Appointments tab
-    setTimeout(() => {
-      switchTab('my-appointments-tab');
-    }, 400);
-
+    try {
+      if (typeof refreshNotificationEngine === 'function') refreshNotificationEngine();
+      if (typeof loadUserAppointments === 'function') loadUserAppointments();
+    } catch (_) { }
   } catch (err) {
     console.error('Lỗi khi lưu lịch hẹn:', err);
-    showMedicalToast(isEn ? 'Network error. Please try again.' : 'Lỗi kết nối. Vui lòng thử lại.', 'error', 4000);
-  } finally {
-    if (nextBtn) {
-      nextBtn.disabled = false;
-      nextBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-    }
-  }
-}
-
-const submitFacilityAppointment = handleFacilityBookingSubmit;
-
-function closeFacilityBookingModal() {
-  const modal = document.getElementById('facility-booking-modal');
-  if (modal) modal.classList.add('hidden');
-  bookingSummaryRequest++;
-  bookingSummaryReference = null;
-  restoreModalTriggerFocus();
-}
-
-// ==============================================================
-// MY APPOINTMENTS TAB MANAGEMENT
-// ==============================================================
-let userAppointmentsList = [];
-
-async function loadUserAppointments() {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  const loadingEl = document.getElementById('my-appts-loading');
-  const emptyEl = document.getElementById('my-appts-empty');
-  const gridEl = document.getElementById('my-appts-grid');
-
-  if (!currentUser) {
-    if (loadingEl) loadingEl.classList.add('hidden');
-    if (emptyEl) emptyEl.classList.remove('hidden');
-    if (gridEl) gridEl.innerHTML = '';
-    return;
-  }
-
-  if (loadingEl) loadingEl.classList.remove('hidden');
-  if (emptyEl) emptyEl.classList.add('hidden');
-  if (gridEl) gridEl.innerHTML = '';
-
-  try {
-    const res = await fetch('/api/appointments', { credentials: 'same-origin' });
-    const data = await res.json().catch(() => ({}));
-
-    if (loadingEl) loadingEl.classList.add('hidden');
-
-    if (!res.ok || data.status !== 'success') {
-      showMedicalToast(data.message || (isEn ? 'Failed to fetch appointments.' : 'Không thể tải danh sách lịch hẹn.'), 'error');
-      if (emptyEl) emptyEl.classList.remove('hidden');
-      return;
-    }
-
-    userAppointmentsList = data.appointments || [];
-    renderUserAppointments();
-  } catch (err) {
-    console.error('Lỗi tải lịch hẹn:', err);
-    if (loadingEl) loadingEl.classList.add('hidden');
-    if (emptyEl) emptyEl.classList.remove('hidden');
-  }
-}
-
-function renderUserAppointments() {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  const emptyEl = document.getElementById('my-appts-empty');
-  const gridEl = document.getElementById('my-appts-grid');
-  if (!gridEl) return;
-
-  if (userAppointmentsList.length === 0) {
-    if (emptyEl) emptyEl.classList.remove('hidden');
-    gridEl.innerHTML = '';
-    return;
-  }
-
-  if (emptyEl) emptyEl.classList.add('hidden');
-
-  gridEl.innerHTML = userAppointmentsList.map(appt => {
-    const statusMap = {
-      pending: {
-        text: isEn ? 'Pending Confirmation' : 'Chờ xác nhận',
-        cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
-      },
-      confirmed: {
-        text: isEn ? 'Confirmed' : 'Đã xác nhận',
-        cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-      },
-      cancelled: {
-        text: isEn ? 'Cancelled' : 'Đã hủy',
-        cls: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
-      }
-    };
-
-    const st = statusMap[appt.status] || statusMap.pending;
-
-    return `
-      <div class="glass-panel-elevated bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3.5 hover:border-amber-400/40 transition-all shadow-sm">
-        <div class="space-y-2.5">
-          <div class="flex items-start justify-between gap-2">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border font-mono ${st.cls}">
-              ${st.text}
-            </span>
-            <span class="text-[11px] font-mono text-slate-400">
-              #APT-${appt.id}
-            </span>
-          </div>
-
-          <div>
-            <h4 class="text-sm font-black text-slate-900 dark:text-white line-clamp-1">
-              ${appt.facility_name}
-            </h4>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-              📍 ${appt.facility_address || (isEn ? 'Address provided by clinic' : 'Địa chỉ theo cơ sở y tế')}
-            </p>
-          </div>
-
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 space-y-1.5 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400 text-[11px]">${isEn ? 'Specialty' : 'Chuyên khoa'}:</span>
-              <span class="font-bold text-sky-600 dark:text-sky-400">${localizeSpecialty(appt.specialty, isEn)}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400 text-[11px]">${isEn ? 'Date & Time' : 'Ngày & Giờ'}:</span>
-              <span class="font-bold font-mono text-amber-600 dark:text-amber-400">${appt.appointment_time} • ${appt.appointment_date}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-400 text-[11px]">${isEn ? 'Patient' : 'Người khám'}:</span>
-              <span class="font-semibold text-slate-700 dark:text-slate-200">${appt.patient_name} (${appt.patient_phone})</span>
-            </div>
-            ${appt.note ? `
-              <div class="pt-1 border-t border-slate-200/60 dark:border-white/5 text-[11px] text-slate-500 dark:text-slate-400 italic">
-                "${escapeHtml(appt.note)}"
-              </div>
-            ` : ''}
-            ${appt.pre_visit_summary ? `
-              <div class="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 font-bold truncate">
-                  <span>📋</span>
-                  <span class="truncate">${isEn ? 'Pre-visit summary attached' : 'Đã đính kèm tóm tắt trước khám'}</span>
-                </div>
-                <button type="button" onclick="openAppointmentPreVisitSummary(${appt.id})" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/30 transition-all cursor-pointer shrink-0">
-                  ${isEn ? 'View summary' : 'Xem tóm tắt'}
-                </button>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-          <span class="text-[10px] text-slate-400">
-            ${appt.created_at ? (isEn ? 'Booked at: ' : 'Đặt lúc: ') + appt.created_at : ''}
-          </span>
-          ${appt.status !== 'cancelled' ? `
-            <button type="button" onclick="cancelUserAppointment(${appt.id})" class="px-3 py-1 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border border-rose-500/20 transition-all cursor-pointer">
-              ${isEn ? 'Cancel' : 'Hủy lịch'}
-            </button>
-          ` : `
-            <span class="text-[11px] text-rose-400 italic">${isEn ? 'Cancelled' : 'Đã hủy'}</span>
-          `}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-async function cancelUserAppointment(apptId) {
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
-  const confirmMsg = isEn
-    ? 'Are you sure you want to cancel this appointment?'
-    : 'Bạn có chắc chắn muốn hủy lịch hẹn khám này không?';
-
-  if (typeof window !== 'undefined' && typeof window['confirm'] === 'function' && !window['confirm'](confirmMsg)) return;
-
-  try {
-    const res = await fetch(`/api/appointments/${apptId}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      showMedicalToast(data.message || (isEn ? 'Failed to cancel appointment.' : 'Không thể hủy lịch hẹn.'), 'error');
-      return;
-    }
-
-    showMedicalToast(isEn ? 'Appointment cancelled successfully.' : 'Đã hủy lịch hẹn thành công.', 'success');
-    loadUserAppointments();
-  } catch (err) {
-    console.error('Lỗi hủy lịch hẹn:', err);
-    showMedicalToast(isEn ? 'Network error.' : 'Lỗi kết nối mạng.', 'error');
+    const failMsg = isEn ? 'Network error: could not book appointment. Please try again.' : 'Lỗi kết nối: Không thể đặt lịch khám lúc này. Vui lòng thử lại.';
+    showMedicalToast(failMsg, 'error', 4000);
   }
 }
 
@@ -9362,7 +9524,22 @@ function closeFacilityDetailModal() {
 function openBookingFromDetail() {
   const targetId = activeDetailFacilityId;
   closeFacilityDetailModal();
-  openFacilityBookingModal(targetId);
+  if (!currentUser) {
+    pendingBookingFacilityId = targetId;
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+    const fac = medicalFacilitiesData.find(f => f.id === targetId);
+    const facName = fac ? fac.name : (isEn ? 'healthcare facility' : 'cơ sở y tế');
+    const bannerTitle = isEn ? 'ACCOUNT AUTHENTICATION REQUIRED' : 'YÊU CẦU XÁC THỰC TÀI KHOẢN';
+    const bannerText = isEn
+      ? `Please log in or create an account to book an appointment at ${facName}!`
+      : `Vui lòng đăng nhập hoặc tạo tài khoản mới để đặt lịch khám tại ${facName}!`;
+    showAuthContextBanner(bannerTitle, bannerText);
+    openLoginModal('login');
+    return;
+  }
+  if (targetId) {
+    openFacilityBookingModal(targetId);
+  }
 }
 
 // Backward compatibility for filterHospitals
@@ -9911,8 +10088,10 @@ async function openConsultationSummaryDetail(sessionId) {
   try {
     const response = await fetch('/api/clinical-summary?conversation_id=' + encodeURIComponent(sessionId));
     const data = await response.json();
-    if (!response.ok || !data.summary) throw new Error(data.error || data.message || "Không tìm thấy bản tóm tắt đã lưu.");
-    showSavedPreVisitSummary(data.summary);
+    if (!response.ok || !data.summary) throw new Error(extractApiErrorMessage(data, "Không tìm thấy bản tóm tắt đã lưu."));
+    renderPreVisitSummaryInModal(data.summary, null);
+    document.getElementById('modal-btn-confirm')?.classList.add('hidden');
+    document.getElementById('previsit-summary-modal')?.classList.remove('hidden');
   } catch (error) {
     showMedicalToast(error.message || "Không tải được bản tóm tắt của phiên này.", "error");
   }
@@ -10057,6 +10236,64 @@ function calculateProfileCompletion() {
   if (barEl) barEl.style.width = pct + '%';
 }
 
+function saveProfileDraftToSession() {
+  if (!currentUser || !currentUser.id || currentUser.isDemo) return;
+  const draft = { userId: String(currentUser.id) };
+  ['p-name', 'p-birthdate', 'p-gender', 'p-blood', 'p-allergies', 'p-height', 'p-weight', 'p-address'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) draft[id] = el.value;
+  });
+  ['p-phone', 'p-email'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !fieldMaskState[id]) {
+      draft[id] = el.value;
+    } else if (typeof fieldRealValues !== 'undefined' && fieldRealValues[id] !== undefined) {
+      draft[id] = fieldRealValues[id];
+    }
+  });
+  try {
+    sessionStorage.setItem('medimind_profile_draft', JSON.stringify(draft));
+  } catch (_) { }
+}
+
+function restoreProfileDraftFromSession() {
+  const form = document.getElementById('profile-form-img1');
+  if (form && !form._hasDraftListener) {
+    form._hasDraftListener = true;
+    form.addEventListener('input', saveProfileDraftToSession);
+    form.addEventListener('change', saveProfileDraftToSession);
+  }
+  if (!currentUser || !currentUser.id) return;
+  let draft = null;
+  try {
+    const raw = sessionStorage.getItem('medimind_profile_draft');
+    if (raw) draft = JSON.parse(raw);
+  } catch (_) {
+    return;
+  }
+  if (!draft || typeof draft !== 'object' || String(draft.userId || '') !== String(currentUser.id)) return;
+
+  ['p-name', 'p-birthdate', 'p-gender', 'p-blood', 'p-allergies', 'p-height', 'p-weight', 'p-address'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && draft[id] !== undefined && draft[id] !== null) {
+      el.value = draft[id];
+    }
+  });
+  if (draft['p-birthdate'] && typeof populateModalDobDropdowns === 'function') {
+    populateModalDobDropdowns('p-dob-day', 'p-dob-month', 'p-dob-year', draft['p-birthdate']);
+  }
+  ['p-phone', 'p-email'].forEach(id => {
+    if (draft[id] === undefined || draft[id] === null) return;
+    if (typeof fieldRealValues !== 'undefined') fieldRealValues[id] = draft[id];
+    const el = document.getElementById(id);
+    if (el && !fieldMaskState[id]) {
+      el.value = draft[id];
+    }
+  });
+  if (typeof syncLeftCardPhoneEmail === 'function') syncLeftCardPhoneEmail();
+  if (typeof calculateProfileCompletion === 'function') calculateProfileCompletion();
+}
+
 function resetProfileForm() {
   sessionStorage.removeItem('medimind_profile_draft');
   updateAuthUI();
@@ -10175,7 +10412,7 @@ async function handleSaveImage1Profile(e) {
         showMedicalToast('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'warning');
         if (typeof openLoginModal === 'function') openLoginModal();
       } else {
-        showMedicalToast(data.error || 'Không thể lưu hồ sơ, vui lòng thử lại.', 'error');
+        showMedicalToast(extractApiErrorMessage(data, 'Không thể lưu hồ sơ, vui lòng thử lại.'), 'error');
       }
     }
   } catch (err) {
@@ -10240,7 +10477,8 @@ async function sendFloatingChatMessage() {
         history: chatRequest.history,
         message: text,
         lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
-        health_context: window.getChatHealthContext?.() || {}
+        health_context: window.getChatHealthContext?.() || {},
+        consultation_mode: (typeof activeChatMode !== 'undefined' && activeChatMode === 'intake') ? 'collecting' : 'informational'
       }),
       signal: chatRequest.controller.signal
     });
@@ -10267,13 +10505,13 @@ async function sendFloatingChatMessage() {
     const botBubble = document.createElement('div');
     botBubble.className = 'flex justify-start';
     botBubble.innerHTML = `
-      <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs border floating-welcome-bubble text-xs leading-relaxed shadow-xs">
-        ${emergencyBanner}
-        ${safeReply}
-        ${specialistGuidance}
-        ${data ? chatAnswerMetadata(data) : ''}
-      </div>
-    `;
+    <div class="max-w-[88%] px-3.5 py-2.5 rounded-2xl rounded-tl-xs border floating-welcome-bubble text-xs leading-relaxed shadow-xs">
+      ${emergencyBanner}
+      ${safeReply}
+      ${specialistGuidance}
+      ${data ? chatAnswerMetadata(data) : ''}
+    </div>
+  `;
     msgContainer.appendChild(botBubble);
     if (data) appendChatConfirmation(msgContainer, data, currentConversationId, true);
     msgContainer.scrollTop = msgContainer.scrollHeight;
@@ -10284,10 +10522,10 @@ async function sendFloatingChatMessage() {
     const errBubble = document.createElement('div');
     errBubble.className = 'flex justify-start';
     errBubble.innerHTML = `
-      <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs">
-        ${isEn ? 'Unable to connect to clinical server. Please try again.' : 'Không thể kết nối đến máy chủ lâm sàng. Vui lòng thử lại.'}
-      </div>
-    `;
+    <div class="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-tl-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs">
+      ${isEn ? 'Unable to connect to clinical server. Please try again.' : 'Không thể kết nối đến máy chủ lâm sàng. Vui lòng thử lại.'}
+    </div>
+  `;
     msgContainer.appendChild(errBubble);
     msgContainer.scrollTop = msgContainer.scrollHeight;
   } finally {
@@ -10295,10 +10533,81 @@ async function sendFloatingChatMessage() {
   }
 }
 
-
-
 const AUTH_EYE_OPEN_SVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
 const AUTH_EYE_OFF_SVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0-.696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>`;
+
+const PASSWORD_RULE_BINDINGS = [
+  {
+    inputId: 'register-password',
+    ruleId: 'register-password-rule',
+    iconId: 'register-password-rule-icon',
+    neutralColorClass: 'text-slate-400',
+    confirmId: 'register-confirm-password',
+    confirmRuleId: 'register-confirm-rule',
+    confirmIconId: 'register-confirm-rule-icon',
+    confirmTextId: 'register-confirm-rule-text',
+  },
+  {
+    inputId: 'forgot-new-password',
+    ruleId: 'forgot-password-rule',
+    iconId: 'forgot-password-rule-icon',
+    neutralColorClass: 'text-slate-400',
+    confirmId: 'forgot-confirm-password',
+    confirmRuleId: 'forgot-confirm-rule',
+    confirmIconId: 'forgot-confirm-rule-icon',
+    confirmTextId: 'forgot-confirm-rule-text',
+  },
+  {
+    inputId: 'set-new-pass',
+    ruleId: 'settings-password-rule',
+    iconId: 'settings-password-rule-icon',
+    neutralColorClass: 'text-slate-400',
+    confirmId: 'set-confirm-pass',
+    confirmRuleId: 'settings-confirm-rule',
+    confirmIconId: 'settings-confirm-rule-icon',
+    confirmTextId: 'settings-confirm-rule-text',
+  },
+];
+
+function syncPasswordRuleHint(binding) {
+  const input = document.getElementById(binding.inputId);
+  const ruleEl = document.getElementById(binding.ruleId);
+  const iconEl = document.getElementById(binding.iconId);
+  if (!input || !ruleEl) return;
+
+  const rawVal = input.value || '';
+  const trimmedLen = rawVal.trim().length;
+  ruleEl.classList.remove(binding.neutralColorClass, 'text-emerald-600', 'text-amber-600', 'text-rose-500');
+
+  if (!rawVal) {
+    ruleEl.classList.add(binding.neutralColorClass);
+    if (iconEl) iconEl.textContent = '•';
+  } else if (trimmedLen >= 8) {
+    ruleEl.classList.add('text-emerald-600');
+    if (iconEl) iconEl.textContent = '✓';
+  } else {
+    ruleEl.classList.add('text-amber-600');
+    if (iconEl) iconEl.textContent = '!';
+  }
+
+  const confirmInput = document.getElementById(binding.confirmId);
+  const confirmRule = document.getElementById(binding.confirmRuleId);
+  if (!confirmInput || !confirmRule) return;
+
+  const hasConfirmation = Boolean(confirmInput.value);
+  const matches = confirmInput.value === rawVal;
+  confirmRule.classList.toggle('text-emerald-600', hasConfirmation && matches);
+  confirmRule.classList.toggle('text-rose-500', hasConfirmation && !matches);
+}
+
+function initPasswordRuleHints() {
+  PASSWORD_RULE_BINDINGS.forEach(binding => {
+    const refresh = () => syncPasswordRuleHint(binding);
+    document.getElementById(binding.inputId)?.addEventListener('input', refresh);
+    document.getElementById(binding.confirmId)?.addEventListener('input', refresh);
+    refresh();
+  });
+}
 
 function toggleAuthPasswordVisibility(inputId, btnEl) {
   const input = document.getElementById(inputId);

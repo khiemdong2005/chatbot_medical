@@ -7,7 +7,7 @@ const PrevisitIntake = (() => {
   let state = null;
   let source = 'chat';
   let opener;
-  let busy = false;
+  let busy = '';
   let notice = '';
   let retry = null;
   let editor = null;
@@ -88,6 +88,11 @@ const PrevisitIntake = (() => {
     const previousView = view;
     view = showingHistory ? 'history' : reviewing ? 'review' : emergency ? 'urgent' : 'chat';
     const saving = tr('Đang cập nhật…', 'Updating…');
+    for (const control of ['notice', 'new', 'next', 'skip', 'edit-save', 'finish']) {
+      const loading = busy === control;
+      el(control).toggleAttribute('data-mm-loading', loading);
+      if (control !== 'notice') el(control).setAttribute('aria-busy', String(loading));
+    }
     el('title').textContent = reviewing ? tr('Tóm tắt trước khám', 'Pre-visit summary')
       : showingHistory ? tr('Cuộc trò chuyện', 'Conversation') : tr('Hỏi bệnh trước khám', 'Pre-visit questions');
     el('close').setAttribute('aria-label', tr('Đóng', 'Close'));
@@ -96,7 +101,8 @@ const PrevisitIntake = (() => {
         : tr('Kiểm tra thông tin trước khi xác nhận', 'Review before confirming'))
       : tr('Chuẩn bị thông tin cho buổi khám', 'Prepare for your appointment');
 
-    const displayNotice = notice || (emergency ? state.answer : '') || (!state && busy ? saving : '');
+    const displayNotice = notice || (emergency ? state.answer : '') ||
+      (busy === 'notice' ? tr('Đang tải phiên hỏi bệnh…', 'Loading your intake…') : '');
     el('notice').textContent = displayNotice;
     el('notice').hidden = !displayNotice;
     el('notice').dataset.tone = emergency || notice ? 'alert' : '';
@@ -112,9 +118,9 @@ const PrevisitIntake = (() => {
     el('answer').placeholder = inputLabel + '…';
     el('answer').readOnly = busy;
     el('skip').hidden = !showingQuestion || !state.can_skip;
-    el('skip').textContent = tr('Bỏ qua câu này', 'Skip this question');
+    el('skip').textContent = busy === 'skip' ? saving : tr('Bỏ qua câu này', 'Skip this question');
     el('skip').disabled = busy;
-    el('next').textContent = busy && showingQuestion ? tr('Đang gửi…', 'Sending…') : tr('Gửi', 'Send');
+    el('next').textContent = busy === 'next' ? tr('Đang gửi…', 'Sending…') : tr('Gửi', 'Send');
     updateSendButton();
     el('peek').hidden = !showingQuestion || !canReview || Boolean(state?.needs_red_flag_confirmation);
     el('peek').disabled = busy;
@@ -137,16 +143,16 @@ const PrevisitIntake = (() => {
     el('view-history').textContent = tr('Xem cuộc trò chuyện', 'View conversation');
     el('view-history').disabled = busy;
     el('edit-cancel').textContent = tr('Huỷ', 'Cancel');
-    el('edit-save').textContent = busy ? saving : tr('Lưu chỉnh sửa', 'Save changes');
+    el('edit-save').textContent = busy === 'edit-save' ? saving : tr('Lưu chỉnh sửa', 'Save changes');
     el('edit-value').readOnly = busy;
     el('edit-save').disabled = busy;
     el('edit-cancel').disabled = busy;
     el('new').hidden = !confirmed;
     el('new').disabled = busy;
-    el('new').textContent = tr('Phiên mới', 'New intake');
+    el('new').textContent = busy === 'new' ? tr('Đang tạo phiên…', 'Creating intake…') : tr('Phiên mới', 'New intake');
     const finish = el('finish');
     finish.disabled = busy;
-    finish.textContent = busy ? saving : confirmed
+    finish.textContent = busy === 'finish' ? saving : confirmed
       ? (source === 'booking' ? tr('Quay lại đặt lịch', 'Back to booking') : tr('Đặt lịch khám', 'Book an appointment'))
       : state.next_question ? tr('Tiếp tục trả lời', 'Continue answering')
         : !currentUser ? tr('Đăng nhập để xác nhận', 'Sign in to confirm')
@@ -268,10 +274,10 @@ const PrevisitIntake = (() => {
     list.append(row);
   }
 
-  async function update(action) {
+  async function update(control, action) {
     if (busy) return;
     const account = chatAccountKey();
-    busy = true;
+    busy = control;
     notice = '';
     retry = null;
     render();
@@ -280,13 +286,13 @@ const PrevisitIntake = (() => {
     } catch (error) {
       if (account === chatAccountKey()) notice = error.message || fallbackError();
     } finally {
-      busy = false;
+      busy = '';
       render();
     }
   }
 
   async function loadSession(id, { handoff = false, fresh = false } = {}) {
-    await update(async account => {
+    await update(fresh && state?.summary?.is_confirmed ? 'new' : 'notice', async account => {
       let data;
       try {
         data = await request('session', { conversation_id: id });
@@ -350,7 +356,7 @@ const PrevisitIntake = (() => {
       el('answer').focus();
       return;
     }
-    await update(async account => {
+    await update(skip ? 'skip' : 'next', async account => {
       const data = await write('message', { message, skip });
       if (account !== chatAccountKey()) return;
       state = data;
@@ -397,7 +403,7 @@ const PrevisitIntake = (() => {
     } else if (Array.isArray(editor.value)) {
       value = value.split(',').map(item => item.trim()).filter(Boolean);
     }
-    await update(async account => {
+    await update('edit-save', async account => {
       const data = await write('update-fact', { field, value });
       if (account !== chatAccountKey()) return;
       state = data;
@@ -430,7 +436,7 @@ const PrevisitIntake = (() => {
       openLoginModal('login');
       return;
     }
-    await update(async account => {
+    await update('finish', async account => {
       const id = state.conversation_id;
       try {
         const data = await request('confirm-summary', {

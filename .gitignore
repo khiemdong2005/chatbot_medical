@@ -46,6 +46,7 @@ uploads/*
 
 # AI Agent config
 .gemini/
+.worktrees/
 /antigravity-setup/
 /skills-lock.json
 

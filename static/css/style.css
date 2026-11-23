@@ -753,6 +753,23 @@ body:not(.light-glass) #profile-modal select option {
   outline: none !important;
 }
 
+#login-modal .auth-4e-input:-webkit-autofill,
+#login-modal .auth-4e-input:-webkit-autofill:hover,
+#login-modal .auth-4e-input:-webkit-autofill:focus,
+#login-modal .auth-4e-input:-webkit-autofill:active,
+.auth-4e-input:-webkit-autofill,
+.auth-4e-input:-webkit-autofill:hover,
+.auth-4e-input:-webkit-autofill:focus,
+.auth-4e-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #091a32 inset !important;
+  box-shadow: 0 0 0 1000px #091a32 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
 #login-modal.auth-4exam-shell .auth-4e-google-btn {
   height: 48px;
   border-radius: 14px !important;
