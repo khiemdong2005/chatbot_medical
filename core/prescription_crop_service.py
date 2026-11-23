@@ -39,11 +39,42 @@ def detect_medication_bounds(
     y_min: Optional[int] = None
     y_max: Optional[int] = None
 
-    # Chiến lược 1: Dùng rows và _prescription_body_bounds
+    # Prefer the explicit diagnosis-to-total anchors so handwritten notes and
+    # signature/footer areas are outside the image sent to medication OCR.
     if rows:
         try:
+            diagnosis_rows = [r for r in rows if re.search(
+                r"\bchan\s*doan\b", _ascii_fold(r.get("text", "")))]
+            total_rows = [r for r in rows if re.search(
+                r"\bcong\s*khoan\s*[:|.]?\s*\d+\b", _ascii_fold(r.get("text", "")))]
+            if diagnosis_rows and total_rows:
+                y_min = int(diagnosis_rows[-1].get("y_min", 0))
+                y_max = int(total_rows[0].get("y_max", 0))
+
+            # If text anchors are missing, use only numbered rows as the crop
+            # bounds; do not widen the OCR region to the entire page.
+            if y_min is None or y_max is None or y_max <= y_min + 30:
+                numbered = [r for r in rows if re.match(
+                    r"^\s*\d+\s*[.)]\s*\S+", str(r.get("text", ""))
+                ) or ((r.get("items") or []) and re.fullmatch(
+                    r"\d+\s*[.)]?", str((r.get("items") or [{}])[0].get("text", "")).strip()
+                ) and len(r.get("items", [])) > 1)]
+                if numbered:
+                    first_idx = rows.index(numbered[0])
+                    last_idx = rows.index(numbered[-1])
+                    footer_idx = next((i for i in range(last_idx + 1, len(rows))
+                                       if re.search(
+                                           r"\b(?:cong\s*khoan|loi\s*dan|tai\s*kham|bac\s*si)\b",
+                                           _ascii_fold(rows[i].get("text", "")),
+                                       )), len(rows))
+                    block_rows = rows[first_idx:footer_idx]
+                    y_min = min(int(r.get("y_min", 0)) for r in block_rows)
+                    y_max = max(int(r.get("y_max", 0)) for r in block_rows)
+
+            # Retain the existing structural bounds as a fallback when both
+            # diagnosis and item numbering are readable.
             start_idx, end_idx = _prescription_body_bounds(rows)
-            if start_idx is not None and start_idx < end_idx and start_idx < len(rows):
+            if (y_min is None or y_max is None or y_max <= y_min + 30) and start_idx is not None and start_idx < end_idx and start_idx < len(rows):
                 body = rows[start_idx:end_idx]
                 if body:
                     y_min = min(int(r.get("y_min", 0)) for r in body)
@@ -53,22 +84,10 @@ def detect_medication_bounds(
 
     # Chiến lược 2: Quét lines theo từ khóa mở đầu và kết thúc
     if (y_min is None or y_max is None or y_max <= y_min + 30) and lines:
-        header_patterns = re.compile(
-            r"\b(?:tên\s*thuốc|ten\s*thuoc|hoạt\s*chất|hoat\s*chat|hàm\s*lượng|ham\s*luong|"
-            r"biệt\s*dược|biet\s*duoc|thuốc\s*điều\s*trị|thuoc\s*dieu\s*tri|chỉ\s*định\s*dùng\s*thuốc|"
-            r"chỉ\s*định\s*thuốc|danh\s*mục\s*thuốc|don\s*thuoc|toa\s*thuoc|rx|r\/x|stt)\b",
-            re.IGNORECASE
-        )
-        med_row_patterns = re.compile(
-            r"^\s*[1-9]\d*[\.\)\/\-]\s*\S|"
-            r"\b(?:\d+\s*(?:mg|mcg|ml|g|iu)\b|uống|sáng\b|chiều\b|viên\b|gói\b|ống\b|lọ\b|chai\b)",
-            re.IGNORECASE
-        )
+        header_patterns = re.compile(r"\bchẩn\s*đoán\b|\bchan\s*doan\b", re.IGNORECASE)
+        med_row_patterns = re.compile(r"^\s*\d+\s*[.)]\s*\S+", re.IGNORECASE)
         footer_patterns = re.compile(
-            r"\b(?:cộng\s*khoản|cong\s*khoan|tổng\s*số\s*khoản|tong\s*so\s*khoan|"
-            r"lời\s*dặn|loi\s*dan|dặn\s*dò|dan\s*do|hẹn\s*khám|hen\s*kham|tái\s*khám|tai\s*kham|"
-            r"khám\s*lại|kham\s*lai|bác\s*sĩ|bac\s*si|bác\s*sỹ|bac\s*sy|chữ\s*ký|chu\s*ky|"
-            r"người\s*kê\s*đơn|nguoi\s*ke\s*don|người\s*khám|nguoi\s*kham)\b",
+            r"\b(?:cộng\s*khoản|cong\s*khoan)\s*[:|.]?\s*\d+\b",
             re.IGNORECASE
         )
 
@@ -97,7 +116,7 @@ def detect_medication_bounds(
         if y_min is not None:
             # Chọn footer xuất hiện sau y_min
             valid_ends = [ey for ey in detected_ends if ey > y_min + 30]
-            if valid_ends:
+            if detected_starts and valid_ends:
                 y_max = min(valid_ends)
             elif med_lines_y:
                 valid_meds_max = [item[1] for item in med_lines_y if item[1] > y_min]
