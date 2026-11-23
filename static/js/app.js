@@ -67,136 +67,18 @@ function getDefaultAvatarByGender(gender) {
   return '/static/images/avatar_male.png';
 }
 
-function isDefaultPlaceholderAvatar(url) {
-  if (!url || typeof url !== 'string') return true;
-  const clean = url.trim().toLowerCase();
-  if (!clean) return true;
-  return (
-    clean.includes('/static/images/avatar_male.png') ||
-    clean.includes('/static/images/avatar_female.png') ||
-    clean.includes('/static/images/avatar_other.png') ||
-    clean.includes('user_avatar.png') ||
-    clean.endsWith('.svg')
-  );
-}
-
-function getUserRealAvatarUrl(user) {
-  if (!user || typeof user !== 'object') return '';
-  const candidates = [
-    user.hasCustomAvatar ? user.avatar : '',
-    user.avatar_url,
-    user.avatar
-  ];
-  for (const cand of candidates) {
-    if (typeof cand === 'string') {
-      const trimmed = cand.trim();
-      if (trimmed && !isDefaultPlaceholderAvatar(trimmed)) {
-        return trimmed;
-      }
-    }
-  }
-  return '';
-}
-
-function getUserAvatarInitial(user) {
-  const nm = ((user && (user.full_name || user.name)) || 'K').toString().trim();
-  if (!nm) return 'K';
-  const parts = nm.split(/\s+/);
-  const lastWord = parts[parts.length - 1] || '';
-  return lastWord ? lastWord.charAt(0).toUpperCase() : 'K';
-}
-
-function handleHeaderAvatarError() {
-  const containerEl = document.getElementById('user-avatar-container');
-  const initialEl = document.getElementById('user-avatar-initial');
-  const topAvatarImg = document.getElementById('user-avatar-img');
-  if (topAvatarImg) {
-    topAvatarImg.classList.add('hidden');
-  }
-  if (initialEl) {
-    initialEl.classList.remove('hidden');
-    initialEl.classList.add('flex');
-  }
-  if (containerEl) {
-    containerEl.classList.remove('bg-transparent');
-    containerEl.classList.add('bg-[#e05638]');
-  }
-}
-
-function syncHeaderAvatar(user) {
-  const containerEl = document.getElementById('user-avatar-container');
-  const initialEl = document.getElementById('user-avatar-initial');
-  const topAvatarImg = document.getElementById('user-avatar-img');
-
-  if (initialEl) {
-    initialEl.innerText = getUserAvatarInitial(user);
-  }
-
-  const realAvatar = getUserRealAvatarUrl(user);
-  if (realAvatar && topAvatarImg) {
-    if (topAvatarImg.getAttribute('src') !== realAvatar) {
-      topAvatarImg.src = realAvatar;
-    }
-    topAvatarImg.classList.remove('hidden');
-    if (initialEl) {
-      initialEl.classList.add('hidden');
-      initialEl.classList.remove('flex');
-    }
-    if (containerEl) {
-      containerEl.classList.remove('bg-[#e05638]');
-      containerEl.classList.add('bg-transparent');
-    }
-  } else {
-    if (topAvatarImg) {
-      topAvatarImg.classList.add('hidden');
-      topAvatarImg.removeAttribute('src');
-    }
-    if (initialEl) {
-      initialEl.classList.remove('hidden');
-      initialEl.classList.add('flex');
-    }
-    if (containerEl) {
-      containerEl.classList.remove('bg-transparent');
-      containerEl.classList.add('bg-[#e05638]');
-    }
-  }
-}
-
-function mergeServerUserWithLocal(prevUser, serverUser) {
-  if (!serverUser || typeof serverUser !== 'object') return prevUser || null;
-  const sameUser = Boolean(prevUser && prevUser.id && serverUser.id && String(prevUser.id) === String(serverUser.id));
-  const merged = {
-    ...(sameUser ? prevUser : {}),
-    ...serverUser
-  };
-  const serverAvatar = getUserRealAvatarUrl(serverUser);
-  if (serverAvatar) {
-    merged.avatar_url = serverAvatar;
-    merged.avatar = serverAvatar;
-    merged.hasCustomAvatar = true;
-  } else if (sameUser && prevUser?.hasCustomAvatar && !isDefaultPlaceholderAvatar(prevUser.avatar)) {
-    merged.avatar_url = prevUser.avatar_url || '';
-    merged.avatar = prevUser.avatar;
-    merged.hasCustomAvatar = true;
-  } else {
-    merged.avatar_url = '';
-    merged.avatar = getDefaultAvatarByGender(merged.gender || 'Nam');
-    merged.hasCustomAvatar = false;
-  }
-  return merged;
-}
-
 function handleProfileGenderChange(newGender) {
   if (!currentUser) return;
-  // If user hasn't uploaded a custom photo, sync profile preview with chosen gender
-  if (!getUserRealAvatarUrl(currentUser)) {
+  // If user hasn't uploaded a custom photo, sync avatar with chosen gender
+  if (!currentUser.hasCustomAvatar) {
     const newAvatar = getDefaultAvatarByGender(newGender);
     currentUser.avatar = newAvatar;
     const avatarDisplay = document.getElementById('profile-avatar-display');
+    const topAvatarImg = document.getElementById('user-avatar-img');
     if (avatarDisplay) avatarDisplay.src = newAvatar;
+    if (topAvatarImg) topAvatarImg.src = newAvatar;
     localStorage.setItem('medimind_user', JSON.stringify(currentUser));
   }
-  syncHeaderAvatar(currentUser);
 }
 
 
@@ -498,15 +380,9 @@ const DEFAULT_USER_PROFILE = {
 
 // Default visitor: NO USER LOGGED IN unless explicit valid user exists in localStorage
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
-if (currentUser) {
-  const storedRealAvatar = getUserRealAvatarUrl(currentUser);
-  if (storedRealAvatar) {
-    currentUser.avatar = storedRealAvatar;
-    currentUser.hasCustomAvatar = true;
-  } else {
-    currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
-    currentUser.hasCustomAvatar = false;
-  }
+if (currentUser && (!currentUser.hasCustomAvatar || currentUser.avatar?.includes('user_avatar.png') || currentUser.avatar?.includes('.svg'))) {
+  currentUser.avatar = getDefaultAvatarByGender(currentUser.gender || 'Nam');
+  currentUser.hasCustomAvatar = false;
   localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 }
 
@@ -542,8 +418,8 @@ async function checkAuthSessionWithServer() {
     if (res.ok) {
       const data = await res.json();
       if (data.authenticated && data.user) {
-        currentUser = mergeServerUserWithLocal(currentUser, {
-          ...data.user,
+        currentUser = {
+          id: data.user.id,
           name: data.user.full_name || data.user.name || 'Người dùng',
           full_name: data.user.full_name || data.user.name,
           role: data.user.role || 'patient',
@@ -552,8 +428,9 @@ async function checkAuthSessionWithServer() {
           phone_number: data.user.phone_number || '',
           email: data.user.email || '',
           address: data.user.address || '',
-          bhyt: data.user.bhyt || ''
-        });
+          bhyt: data.user.bhyt || '',
+          avatar: data.user.avatar || getDefaultAvatarByGender(data.user.gender || 'Nam')
+        };
         localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       } else {
         // Server coi người dùng là khách -> Làm sạch tài khoản trên trình duyệt (trừ khi cố ý xem demo)
@@ -636,7 +513,7 @@ const translations = {
     home_c1_title: "Trò chuyện cùng AI",
     home_c1_desc: "Giải đáp các thắc mắc sức khỏe thường gặp bằng ngôn ngữ dễ hiểu.",
     home_c2_tag: "DINH DƯỠNG THEO THỂ TRẠNG",
-    home_c2_title: "Dinh dưỡng & Pha chế",
+    home_c2_title: "Bàn pha chế dinh dưỡng",
     home_c2_desc: "Khám phá nguyên liệu nên dùng, món cần tránh và công thức phù hợp với thể trạng.",
     home_c3_tag: "ĐỒNG HÀNH CÙNG BẠN",
     home_c3_title: "Lịch hẹn sắp tới",
@@ -737,7 +614,7 @@ const translations = {
     nav_chat: "Trợ lý sức khỏe",
     nav_ocr: "Đọc đơn thuốc lâm sàng",
     nav_booking: "Cơ sở y tế",
-    nav_doctor: "Dinh dưỡng & Pha chế",
+    nav_doctor: "Pha chế dinh dưỡng",
     nav_admin: "Hạ tầng hệ thống",
     nav_login: "Đăng nhập",
     nav_start: "Bắt đầu ngay",
@@ -745,7 +622,7 @@ const translations = {
     dock_chat: "Trợ lý sức khỏe",
     dock_ocr: "Đọc đơn thuốc lâm sàng",
     dock_booking: "Cơ sở y tế & Bệnh viện",
-    dock_doctor: "Dinh dưỡng & Pha chế",
+    dock_doctor: "Pha chế dinh dưỡng",
     dock_wallpaper: "Đổi không gian y tế",
     dock_theme: "Chế độ Sáng / Tối",
     dock_reset: "Cuộc trò chuyện mới",
@@ -1050,7 +927,7 @@ const translations = {
     home_c1_title: "AI Health Chat",
     home_c1_desc: "Get preliminary answers to common health concerns in clear, accessible language.",
     home_c2_tag: "PERSONAL NUTRITION",
-    home_c2_title: "Nutrition & Beverages",
+    home_c2_title: "Nutrition Studio",
     home_c2_desc: "Explore helpful ingredients, foods to avoid, and recipes matched to your health condition.",
     home_c3_tag: "WITH YOU ALWAYS",
     home_c3_title: "Upcoming Visits",
@@ -1151,7 +1028,7 @@ const translations = {
     nav_chat: "Health Assistant",
     nav_ocr: "Clinical Prescriptions",
     nav_booking: "Hospitals & Clinics",
-    nav_doctor: "Nutrition & Beverages",
+    nav_doctor: "Nutrition Studio",
     nav_admin: "System Infrastructure",
     nav_login: "Sign In",
     nav_start: "Get Started",
@@ -1159,7 +1036,7 @@ const translations = {
     dock_chat: "Health Assistant",
     dock_ocr: "Clinical Prescriptions",
     dock_booking: "Hospitals & Clinics",
-    dock_doctor: "Nutrition & Beverages",
+    dock_doctor: "Nutrition Studio",
     dock_wallpaper: "Change Theme Space",
     dock_theme: "Light / Dark Mode",
     dock_reset: "New Conversation",
@@ -1556,7 +1433,6 @@ const STATIC_VI_EN_TEXT = {
   "BƯỚC 2 / 3": "STEP 2 / 3",
   "GỢI Ý CỦA BẠN": "YOUR SUGGESTIONS",
   "Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.": "Open a dish for ingredients, steps and estimated energy.",
-  "Mở thức uống để xem nguyên liệu, cách làm và năng lượng tham khảo": "Open a drink for ingredients, steps and estimated energy.",
   "Mâm cơm 1 bữa": "One-meal set",
   "Món đơn lẻ": "Individual dishes",
   "Nên hạn chế / cần tránh": "Foods to limit or avoid",
@@ -1634,7 +1510,7 @@ const STATIC_VI_EN_TEXT = {
   "Tài khoản / SĐT:": "Account / Phone:",
   "Mã số hồ sơ y tế:": "Medical record ID:",
   "Cập nhật thông tin": "Edit profile",
-  "Dinh dưỡng & Pha chế →": "Nutrition & Beverages →",
+  "Pha chế dinh dưỡng →": "Nutrition Studio →",
   "Đóng": "Close",
   "Ngày": "Day",
   "Tháng": "Month",
@@ -1761,10 +1637,6 @@ const STATIC_VI_EN_TEXT = {
   "Bạn chưa có đơn thuốc nào được lưu trữ. Hãy tải ảnh lên ở trên để bắt đầu theo dõi sức khỏe.": "No prescriptions saved yet. Upload an image above to start tracking your health.",
   "Ảnh Đơn Thuốc Gốc (Phóng To)": "Original Prescription (Enlarged)",
   "Gợi ý món ăn": "Suggested Dishes",
-  "Gợi ý thức uống": "Suggested Drinks",
-  "← Xem thức uống khác": "← View other drinks",
-  "MediMind đã chọn lọc các món ăn an toàn và phù hợp nhất với yêu cầu và hồ sơ sức khỏe của bạn.": "MediMind has selected the safest and most suitable dishes for your request and health profile.",
-  "MediMind đã chọn lọc các thức uống an toàn và phù hợp nhất với yêu cầu và hồ sơ sức khỏe của bạn.": "MediMind has selected the safest and most suitable drinks for your request and health profile.",
   "Lọc bữa:": "Filter by meal:",
   "Tất cả các món": "All dishes",
   "☀️ Bữa sáng": "☀️ Breakfast",
@@ -2162,14 +2034,14 @@ function showFloatingDecorations() {
 
 
 // ==============================================================
-// CLIENT-SIDE ROUTING & BROWSER HISTORY API SYNC (SPA Router)
+// CLIENT-SIDE ROUTING & DEEP LINKING (Tab State Persistence)
 // ==============================================================
 const TAB_HASH_MAP = {
   'home-tab': 'home',
   'chat-tab': 'chat',
   'ocr-tab': 'ocr',
-  'booking-tab': 'facilities',
-  'doctor-tab': 'nutrition',
+  'booking-tab': 'booking',
+  'doctor-tab': 'doctor',
   'profile-tab': 'profile',
   'settings-tab': 'settings'
 };
@@ -2177,170 +2049,57 @@ const HASH_TAB_MAP = {
   'home': 'home-tab',
   'chat': 'chat-tab',
   'ocr': 'ocr-tab',
-  'facilities': 'booking-tab',
   'booking': 'booking-tab',
-  'nutrition': 'doctor-tab',
+  'facilities': 'booking-tab',
   'doctor': 'doctor-tab',
   'profile': 'profile-tab',
   'settings': 'settings-tab'
 };
 
-const OCR_SUBVIEWS = new Set(['upload', 'verify', 'result', 'schedule']);
-const NUTRITION_SUBVIEWS = new Set(['search', 'type', 'results', 'detail']);
-
-let currentRouteState = { tab: 'home-tab', subView: null };
-let currentOcrSubView = 'upload';
-let currentNutritionSubView = 'search';
-let lastPrescriptionDataSnapshot = null;
-let hasInitializedRouter = false;
-
-function normalizeTabId(tabName) {
-  const raw = String(tabName || '').trim().replace(/^#/, '');
-  if (!raw) return 'home-tab';
-  const slug = raw.split('/')[0].toLowerCase();
-  if (HASH_TAB_MAP[slug]) return HASH_TAB_MAP[slug];
-  if (TAB_HASH_MAP[raw]) return raw;
-  const candidate = slug.endsWith('-tab') ? slug : `${slug}-tab`;
-  return TAB_HASH_MAP[candidate] ? candidate : 'home-tab';
-}
-
-function normalizeSubView(tabId, subView) {
-  const clean = subView ? String(subView).trim().toLowerCase() : '';
-  if (tabId === 'ocr-tab') {
-    return OCR_SUBVIEWS.has(clean) ? clean : 'upload';
+function resolveInitialTab() {
+  const hash = window.location.hash.replace('#', '').trim();
+  if (hash && HASH_TAB_MAP[hash]) {
+    const target = HASH_TAB_MAP[hash];
+    if (target === 'profile-tab' && !currentUser) return 'home-tab';
+    return target;
   }
-  if (tabId === 'doctor-tab') {
-    return NUTRITION_SUBVIEWS.has(clean) ? clean : 'search';
-  }
-  return null;
-}
-
-function buildRouteHash(tabId, subView) {
-  const slug = TAB_HASH_MAP[tabId] || tabId.replace('-tab', '');
-  const normSub = normalizeSubView(tabId, subView);
-  if (!normSub) return `#${slug}`;
-  if (tabId === 'ocr-tab' && normSub === 'upload') return `#${slug}`;
-  if (tabId === 'doctor-tab' && normSub === 'search') return `#${slug}`;
-  return `#${slug}/${normSub}`;
-}
-
-function parseRouteHash(rawHash) {
-  const cleaned = String(rawHash || '').replace(/^#/, '').trim();
-  if (!cleaned) return null;
-  const [rawSlug, rawSub] = cleaned.split('/').map(s => s.trim().toLowerCase());
-  const tabId = HASH_TAB_MAP[rawSlug];
-  if (!tabId) return null;
-  return {
-    tab: tabId,
-    subView: normalizeSubView(tabId, rawSub || null)
-  };
-}
-
-function resolveInitialRoute() {
-  const parsed = parseRouteHash(window.location.hash);
-  if (parsed) {
-    if (parsed.tab === 'profile-tab' && !currentUser) return { tab: 'home-tab', subView: null };
-    return parsed;
-  }
-  let savedTab = null;
-  try {
-    savedTab = sessionStorage.getItem('medimind_active_tab');
-  } catch (_) {}
+  const savedTab = sessionStorage.getItem('medimind_active_tab');
   if (savedTab && document.getElementById(savedTab)) {
-    if (savedTab === 'profile-tab' && !currentUser) return { tab: 'home-tab', subView: null };
-    const normTab = normalizeTabId(savedTab);
-    return { tab: normTab, subView: normalizeSubView(normTab, null) };
+    if (savedTab === 'profile-tab' && !currentUser) return 'home-tab';
+    return savedTab;
   }
-  return { tab: 'home-tab', subView: null };
+  return 'home-tab';
 }
-
-function syncBrowserHistory(tabId, subView, mode = 'push') {
-  const normSub = normalizeSubView(tabId, subView);
-  const targetHash = buildRouteHash(tabId, normSub);
-  const nextState = { tab: tabId, subView: normSub };
-
-  try {
-    if (mode === 'push') {
-      const curState = window.history.state;
-      const sameState = Boolean(
-        curState &&
-        curState.tab === nextState.tab &&
-        (curState.subView || null) === (nextState.subView || null)
-      );
-      if (sameState && window.location.hash === targetHash) return;
-      window.history.pushState(nextState, '', targetHash);
-    } else if (mode === 'replace') {
-      window.history.replaceState(nextState, '', window.location.pathname + targetHash);
-    }
-  } catch (e) {
-    try {
-      if (window.location.hash !== targetHash) window.location.hash = targetHash;
-    } catch (_) {}
-  }
-}
-
-window.addEventListener('popstate', (event) => {
-  const stateRoute = (event.state && event.state.tab)
-    ? (() => {
-        const tabId = normalizeTabId(event.state.tab);
-        return { tab: tabId, subView: normalizeSubView(tabId, event.state.subView) };
-      })()
-    : null;
-  const route = stateRoute || parseRouteHash(window.location.hash) || { tab: 'home-tab', subView: null };
-  navigateTo(route.tab, route.subView, false);
-});
 
 window.addEventListener('hashchange', () => {
-  const expectedHash = buildRouteHash(currentRouteState.tab, currentRouteState.subView);
-  if (window.location.hash === expectedHash) return;
-  const route = parseRouteHash(window.location.hash);
-  if (route) {
-    navigateTo(route.tab, route.subView, false);
-    syncBrowserHistory(currentRouteState.tab, currentRouteState.subView, 'replace');
+  const hash = window.location.hash.replace('#', '').trim();
+  if (hash && HASH_TAB_MAP[hash]) {
+    switchTab(HASH_TAB_MAP[hash], false);
   }
 });
 
-function syncSubViewHistory(tabId, subView, pushHistory = true) {
-  const normTab = normalizeTabId(tabId);
-  const normSub = normalizeSubView(normTab, subView);
-  if (normTab === 'ocr-tab') currentOcrSubView = normSub || 'upload';
-  if (normTab === 'doctor-tab') currentNutritionSubView = normSub || 'search';
-
-  if (currentRouteState.tab !== normTab) {
-    return navigateTo(normTab, normSub, pushHistory);
+window.addEventListener('popstate', () => {
+  const hash = window.location.hash.replace('#', '').trim();
+  if (hash && HASH_TAB_MAP[hash]) {
+    switchTab(HASH_TAB_MAP[hash], false);
   }
-  currentRouteState = { tab: normTab, subView: normSub };
-  if (pushHistory === true) {
-    syncBrowserHistory(normTab, normSub, 'push');
-  } else if (pushHistory === 'replace') {
-    syncBrowserHistory(normTab, normSub, 'replace');
-  }
-  return true;
-}
+});
 
-function navigateTo(tabName, subView = null, pushHistory = true) {
-  const tabId = normalizeTabId(tabName);
-
+function switchTab(tabId, updateHistory = true) {
   // Yêu cầu đăng nhập khi vào các tab bảo mật
   const protectedTabs = ['profile-tab', 'admin-tab'];
   if (protectedTabs.includes(tabId) && !currentUser) {
     pendingTabAfterLogin = tabId;
-    if (typeof openLoginModal === 'function') openLoginModal();
-    if (!pushHistory && hasInitializedRouter) {
-      syncBrowserHistory(currentRouteState.tab, currentRouteState.subView, 'replace');
-    }
-    return false;
+    openLoginModal();
+    return;
   }
-  if (tabId !== 'chat-tab' && ((typeof preVisitSummaryRequest !== 'undefined' && preVisitSummaryRequest) || (typeof reviewedIntakeSummary !== 'undefined' && reviewedIntakeSummary?.id))) {
-    if (typeof closePreVisitSummaryModal === 'function') closePreVisitSummaryModal();
+  if (tabId !== 'chat-tab' && (preVisitSummaryRequest || reviewedIntakeSummary?.id)) {
+    closePreVisitSummaryModal();
   }
-
-  const previousTab = currentRouteState.tab;
-  const tabChanged = !hasInitializedRouter || previousTab !== tabId;
 
   // 1. Ẩn tất cả tab-content
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-
+  
   // 2. Cập nhật thanh điều hướng Top Navbar
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.remove('glass-pill-cyan-active', 'bg-white/20', 'text-white', 'font-bold', 'border', 'border-white/25', 'shadow-[0_0_15px_rgba(255,255,255,0.2)]');
@@ -2357,12 +2116,10 @@ function navigateTo(tabName, subView = null, pushHistory = true) {
   // 4. Kích hoạt DOM tab đích & pill sáng
   const activeTab = document.getElementById(tabId);
   if (activeTab) activeTab.classList.add('active');
-  if (document.body && document.body.classList) {
-    document.body.classList.toggle('chat-scene-active', tabId === 'chat-tab' && !!activeTab);
-  }
-  if (tabId === 'chat-tab' && tabChanged) {
-    if (typeof syncChatSceneState === 'function') syncChatSceneState();
-    if (typeof window.scrollTo === 'function') window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+  document.body.classList.toggle('chat-scene-active', tabId === 'chat-tab' && !!activeTab);
+  if (tabId === 'chat-tab') {
+    syncChatSceneState();
+    window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
   }
 
   const activeNav = document.getElementById('nav-' + tabId);
@@ -2382,65 +2139,45 @@ function navigateTo(tabName, subView = null, pushHistory = true) {
     sessionStorage.setItem('medimind_active_tab', tabId);
   } catch (_) {}
 
-  // 6. Khôi phục / đồng bộ sub-view cho các tab nhiều bước (OCR / Nutrition)
-  let effectiveSubView = normalizeSubView(tabId, subView);
-  if (tabId === 'ocr-tab') {
-    const requestedOcr = subView ? normalizeSubView('ocr-tab', subView) : currentOcrSubView;
-    effectiveSubView = (typeof applyOcrSubView === 'function') ? applyOcrSubView(requestedOcr) : requestedOcr;
-    currentOcrSubView = effectiveSubView;
-  } else if (tabId === 'doctor-tab') {
-    const requestedNutrition = subView ? normalizeSubView('doctor-tab', subView) : currentNutritionSubView;
-    try {
-      if (typeof initNutritionStudio === 'function') initNutritionStudio(requestedNutrition);
-      effectiveSubView = (typeof window.applyNutritionSubView === 'function')
-        ? window.applyNutritionSubView(requestedNutrition)
-        : requestedNutrition;
-    } catch (nfErr) {
-      console.error('[Router] Lỗi đồng bộ sub-view Nutrition:', nfErr);
-      effectiveSubView = 'search';
-    }
-    currentNutritionSubView = effectiveSubView;
-  }
-
-  currentRouteState = { tab: tabId, subView: effectiveSubView };
-  hasInitializedRouter = true;
-
-  // 7. Đồng bộ Browser History API (pushState / replaceState)
-  if (pushHistory === true) {
-    syncBrowserHistory(tabId, effectiveSubView, 'push');
-  } else if (pushHistory === 'replace') {
-    syncBrowserHistory(tabId, effectiveSubView, 'replace');
-  }
-
-  // 8. Khởi tạo dữ liệu chuyên biệt từng tab trong try/catch (bảo vệ tuyệt đối hệ thống routing)
-  try {
-    if (tabChanged) {
-      if (tabId === 'booking-tab') {
-        if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
-        setTimeout(() => {
-          if (typeof initHospitalInteractiveMap === 'function') initHospitalInteractiveMap();
-          if (typeof hospitalLeafletMap !== 'undefined' && hospitalLeafletMap) {
-            hospitalLeafletMap.invalidateSize();
-          }
-          if (typeof gMap !== 'undefined' && gMap && window.google) {
-            google.maps.event.trigger(gMap, 'resize');
-          }
-          if (typeof leafletMap !== 'undefined' && leafletMap) {
-            leafletMap.invalidateSize();
-          }
-        }, 150);
-      } else if (tabId === 'ocr-tab') {
-        if (typeof loadScanFiles === 'function') loadScanFiles();
-        if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
+  // 6. Cập nhật URL Hash sâu mà không nhảy trang (Deep Linking)
+  if (updateHistory) {
+    const slug = TAB_HASH_MAP[tabId] || tabId.replace('-tab', '');
+    if (window.location.hash !== `#${slug}`) {
+      try {
+        history.replaceState(null, '', `#${slug}`);
+      } catch (e) {
+        window.location.hash = slug;
       }
-    } else if (tabId === 'ocr-tab' && effectiveSubView === 'upload') {
+    }
+  }
+
+  // 7. Khởi tạo dữ liệu chuyên biệt từng tab trong try/catch (bảo vệ tuyệt đối hệ thống routing)
+  try {
+    if (tabId === 'booking-tab') {
+      if (typeof renderMedicalFacilities === 'function') renderMedicalFacilities();
+      setTimeout(() => {
+        if (typeof initHospitalInteractiveMap === 'function') initHospitalInteractiveMap();
+        if (typeof hospitalLeafletMap !== 'undefined' && hospitalLeafletMap) {
+          hospitalLeafletMap.invalidateSize();
+        }
+        if (typeof gMap !== 'undefined' && gMap && window.google) {
+          google.maps.event.trigger(gMap, 'resize');
+        }
+        if (typeof leafletMap !== 'undefined' && leafletMap) {
+          leafletMap.invalidateSize();
+        }
+      }, 150);
+    } else if (tabId === 'doctor-tab') {
+      if (typeof initNutritionStudio === 'function') initNutritionStudio();
+    } else if (tabId === 'ocr-tab') {
+      if (typeof loadScanFiles === 'function') loadScanFiles();
       if (typeof loadPrescriptionHistory === 'function') loadPrescriptionHistory();
     }
   } catch (tabInitErr) {
     console.error(`[Router] Lỗi khởi tạo tab ${tabId}:`, tabInitErr);
   }
 
-  // 9. Quản lý Chatbot Nổi góc dưới khi chuyển sang các tab khác
+  // 8. Quản lý Chatbot Nổi góc dưới khi chuyển sang các tab khác
   const floatingRoot = document.getElementById('floating-chatbot-root') || document.getElementById('floating-chat-container');
   if (floatingRoot) {
     if (tabId === 'chat-tab') {
@@ -2455,20 +2192,7 @@ function navigateTo(tabName, subView = null, pushHistory = true) {
       }
     }
   }
-
-  return true;
 }
-
-function switchTab(tabId, updateHistory = true) {
-  return navigateTo(tabId, null, updateHistory);
-}
-
-window.navigateTo = navigateTo;
-window.switchTab = switchTab;
-window.syncSubViewHistory = syncSubViewHistory;
-window.resolveInitialTab = function () {
-  return resolveInitialRoute().tab;
-};
 
 function insertPrompt(text) {
   const input = document.getElementById('user-input');
@@ -3605,7 +3329,10 @@ async function handleSaveProfile(e) {
     const wasNewReg = isPendingGoogleRegistration;
     isPendingGoogleRegistration = false;
     pendingGoogleProfile = null;
-    currentUser = mergeServerUserWithLocal(currentUser, data.user);
+    currentUser = { ...(currentUser || {}), ...data.user };
+    if (!currentUser.hasCustomAvatar) {
+      currentUser.avatar = currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || gender);
+    }
     localStorage.setItem('medimind_user', JSON.stringify(currentUser));
     try {
       updateAuthUI();
@@ -3792,7 +3519,7 @@ async function handleTabSaveProfile(e) {
     });
     const data = await res.json();
     if (data.success && data.user) {
-      currentUser = mergeServerUserWithLocal(currentUser, data.user);
+      currentUser = data.user;
       currentUser.city = city;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       updateAuthUI();
@@ -4103,8 +3830,13 @@ function handleCrossTabMessage(data) {
     if (typeof resetChat === 'function') resetChat();
     sessionStorage.removeItem('medimind_active_tab');
     sessionStorage.removeItem('medimind_profile_draft');
+    try {
+      history.replaceState(null, '', window.location.pathname);
+    } catch (e) {
+      window.location.hash = '';
+    }
     updateAuthUI();
-    navigateTo('home-tab', null, 'replace');
+    if (typeof switchTab === 'function') switchTab('home-tab');
   }
 }
 
@@ -4706,7 +4438,7 @@ async function handleLogout() {
   }
   updateAuthUI();
   broadcastTabEvent('AUTH_LOGOUT', null);
-  navigateTo('home-tab', null, 'replace');
+  switchTab('home-tab');
 }
 
 
@@ -4765,7 +4497,7 @@ function updateAuthUI() {
   const ehrEmpty = document.getElementById('ehr-content-empty');
   const ehrFilled = document.getElementById('ehr-content-filled');
 
-  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? 'Dinh dưỡng & Pha chế' : 'Nutrition & Beverages');
+  if (navDoctorTab) navDoctorTab.innerText = (currentLang === 'vi' ? 'Pha chế dinh dưỡng' : 'Nutrition Studio');
   if (ocrSyncBtnText) ocrSyncBtnText.innerText = (currentLang === 'vi' ? 'Xem Hồ sơ của tôi →' : 'View My Record →');
 
   if (currentUser) {
@@ -4783,7 +4515,13 @@ function updateAuthUI() {
     if (roleEl) roleEl.innerText = subInfo;
     if (avatarEl) avatarEl.innerText = currentUser.badge || 'BN';
 
-    syncHeaderAvatar(currentUser);
+    const initialEl = document.getElementById('user-avatar-initial');
+    if (initialEl) {
+      const nm = (currentUser.name || currentUser.full_name || 'K').trim();
+      const parts = nm.split(' ');
+      const lastWord = parts[parts.length - 1];
+      initialEl.innerText = (lastWord && lastWord[0]) ? lastWord[0].toUpperCase() : 'K';
+    }
 
     syncCurrentPatientProfile();
     if (ehrTitle) ehrTitle.innerText = (currentLang === 'vi' ? 'Hồ sơ bệnh án' : 'Medical Records');
@@ -4898,20 +4636,17 @@ function updateAuthUI() {
       }
     });
 
-    const activeProfilePhoto = getUserRealAvatarUrl(currentUser);
-    const avatarUrl = activeProfilePhoto || getDefaultAvatarByGender(currentUser.gender || 'Nam');
+    const activeProfilePhoto = (currentUser.hasCustomAvatar && currentUser.avatar) ? currentUser.avatar : currentUser.avatar_url;
     if (activeProfilePhoto) {
-      currentUser.avatar = activeProfilePhoto;
-      currentUser.hasCustomAvatar = true;
+      if (dispAvatar) {
+        dispAvatar.src = activeProfilePhoto;
+        dispAvatar.classList.remove('hidden');
+      }
+      if (fallbackAvatar) fallbackAvatar.classList.add('hidden');
     } else {
-      currentUser.avatar = avatarUrl;
-      currentUser.hasCustomAvatar = false;
+      if (dispAvatar) dispAvatar.classList.add('hidden');
+      if (fallbackAvatar) fallbackAvatar.classList.remove('hidden');
     }
-    if (dispAvatar) {
-      dispAvatar.src = avatarUrl;
-      dispAvatar.classList.remove('hidden');
-    }
-    if (fallbackAvatar) fallbackAvatar.classList.add('hidden');
 
     syncLeftCardPhoneEmail();
     updateProfileCompletion();
@@ -4926,7 +4661,19 @@ function updateAuthUI() {
       setTheme.value = 'dark';
     }
 
-    syncHeaderAvatar(currentUser);
+    // Facebook Style Avatar Sync
+    const avatarUrl = (currentUser.hasCustomAvatar && currentUser.avatar) 
+      ? currentUser.avatar 
+      : (currentUser.avatar_url || getDefaultAvatarByGender(currentUser.gender || 'Nam'));
+    
+    if (!currentUser.hasCustomAvatar) {
+      currentUser.avatar = avatarUrl;
+    }
+    
+    const topAvatar = document.getElementById('user-avatar-img');
+    // dispAvatar reused
+    if (topAvatar) topAvatar.src = avatarUrl;
+    if (dispAvatar) dispAvatar.src = avatarUrl;
     if (tabDob) tabDob.value = currentUser.dob || '';
     if (tabGender) tabGender.value = currentUser.gender || 'Nam';
     if (tabPhone) tabPhone.value = currentUser.phone_number || '';
@@ -4961,7 +4708,6 @@ function updateAuthUI() {
   } else {
     if (unlogged) unlogged.classList.remove('hidden');
     if (logged) logged.classList.add('hidden');
-    syncHeaderAvatar(null);
     const guestCardName = document.getElementById('profile-card-name');
     const guestCardPhone = document.getElementById('profile-card-phone');
     const guestCardEmail = document.getElementById('profile-card-email');
@@ -5155,11 +4901,12 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initHistorySearch(); } catch (e) { console.warn('[Init] history search error:', e); }
   
   // Reload Tab Routing (Hash > sessionStorage > default 'home-tab')
-  let initialRoute = { tab: 'home-tab', subView: null };
   try {
-    initialRoute = resolveInitialRoute();
+    const initialTab = resolveInitialTab();
+    switchTab(initialTab, false);
   } catch (routingErr) {
-    console.error('[Init] Error resolving initial route:', routingErr);
+    console.error('[Init] Error switching initial tab:', routingErr);
+    switchTab('home-tab', false);
   }
   const urlParams = new URLSearchParams(window.location.search);
   const googleAuthStatus = urlParams.get('google_auth');
@@ -5171,20 +4918,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (googleAuthStatus) {
     try {
-      const cleanUrl = window.location.pathname + buildRouteHash(initialRoute.tab, initialRoute.subView);
-      window.history.replaceState(
-        { tab: initialRoute.tab, subView: initialRoute.subView || null },
-        document.title,
-        cleanUrl
-      );
+      const cleanUrl = window.location.pathname + (window.location.hash || '');
+      window.history.replaceState({}, document.title, cleanUrl);
     } catch (_) {}
-  }
-
-  try {
-    navigateTo(initialRoute.tab, initialRoute.subView, 'replace');
-  } catch (routingErr) {
-    console.error('[Init] Error switching initial tab:', routingErr);
-    navigateTo('home-tab', null, 'replace');
   }
 
   if (googleAuthStatus === 'error') {
@@ -5223,7 +4959,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else if (data.user) {
       const previousUserId = currentUser?.id;
-      currentUser = mergeServerUserWithLocal(currentUser, data.user);
+      currentUser = { ...(currentUser || {}), ...data.user };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
       if (googleAuthStatus === 'success' || String(previousUserId || '') !== String(currentUser.id || '')) {
         startFreshChatForCurrentUser();
@@ -5917,44 +5653,7 @@ function showPrescriptionLoading(show, stepText, substepText) {
   }
 }
 
-function applyOcrSubView(subView) {
-  const inputSec = document.getElementById('prescription-input-section');
-  const histSec = document.getElementById('prescription-history-section');
-  const loadSec = document.getElementById('prescription-loading-section');
-  const verifySec = document.getElementById('prescription-verify-section');
-  const resSec = document.getElementById('prescription-result-section');
-
-  if (subView === 'verify') {
-    const data = currentPrescriptionData || lastPrescriptionDataSnapshot;
-    if (data) {
-      renderPrescriptionVerification(data, { pushHistory: false });
-      currentOcrSubView = 'verify';
-      return 'verify';
-    }
-    subView = 'upload';
-  } else if (subView === 'result' || subView === 'schedule') {
-    const data = currentPrescriptionData || lastPrescriptionDataSnapshot;
-    if (data) {
-      renderPrescriptionResult(data, {
-        pushHistory: false,
-        dossierTab: subView === 'schedule' ? 'schedule' : 'meds'
-      });
-      currentOcrSubView = subView;
-      return subView;
-    }
-    subView = 'upload';
-  }
-
-  if (loadSec) loadSec.classList.add('hidden');
-  if (verifySec) verifySec.classList.add('hidden');
-  if (resSec) resSec.classList.add('hidden');
-  if (inputSec) inputSec.classList.remove('hidden');
-  if (histSec) histSec.classList.remove('hidden');
-  currentOcrSubView = 'upload';
-  return 'upload';
-}
-
-function resetPrescriptionScan(pushHistory = true) {
+function resetPrescriptionScan() {
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
@@ -5962,10 +5661,6 @@ function resetPrescriptionScan(pushHistory = true) {
   const resSec = document.getElementById('prescription-result-section');
   const preview = document.getElementById('file-chosen-preview');
   const fileInput = document.getElementById('prescription-file-input');
-
-  if (currentPrescriptionData) {
-    lastPrescriptionDataSnapshot = currentPrescriptionData;
-  }
 
   if (fileInput) fileInput.value = '';
   if (preview) preview.classList.add('hidden');
@@ -5982,11 +5677,7 @@ function resetPrescriptionScan(pushHistory = true) {
   if (histSec) histSec.classList.remove('hidden');
   adherenceSlotState = {};
   currentPrescriptionData = null;
-  currentOcrSubView = 'upload';
   loadPrescriptionHistory();
-  if (pushHistory) {
-    syncSubViewHistory('ocr-tab', 'upload', true);
-  }
   inputSec?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -6000,33 +5691,31 @@ async function loadPrescriptionHistory() {
   const emptyEl = document.getElementById('prescription-history-empty');
   const countBadge = document.getElementById('history-count-badge');
   const ehrPrescriptionList = document.getElementById('ehr-prescription-list');
-  const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
 
-  if (typeof currentUser !== 'undefined' && currentUser && currentUser.isDemo) {
-    if (listEl) listEl.innerHTML = `<p class="text-xs text-slate-400 p-4 text-center">${isEn ? 'Please sign in to view your prescription history.' : 'Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.'}</p>`;
-    if (countBadge) countBadge.innerText = isEn ? '0 records' : '0 hồ sơ';
-    if (emptyEl) emptyEl.classList.add('hidden');
+  if (!currentUser || currentUser.isDemo) {
+    if (listEl) listEl.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.</p>';
+    if (countBadge) countBadge.innerText = '0 hồ sơ';
+    if (emptyEl) emptyEl.classList.remove('hidden');
     return;
   }
 
   try {
-    const res = await fetch('/api/ocr/get_history', { credentials: 'same-origin' });
+    const res = await fetch('/api/prescription/history');
     if (!res.ok) {
       if (res.status === 401) {
+        const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
         if (listEl) listEl.innerHTML = `<p class="text-xs text-slate-400 p-4 text-center">${isEn ? 'Please sign in to view your prescription history.' : 'Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.'}</p>`;
         if (ehrPrescriptionList) ehrPrescriptionList.innerHTML = `<p class="text-slate-400 text-[11px] italic">${isEn ? 'Please sign in to view saved prescriptions.' : 'Vui lòng đăng nhập để xem đơn thuốc.'}</p>`;
-        if (countBadge) countBadge.innerText = isEn ? '0 records' : '0 hồ sơ';
-        if (emptyEl) emptyEl.classList.add('hidden');
+        if (countBadge) countBadge.innerText = '0 hồ sơ';
       }
       return;
     }
 
     const data = await res.json();
-    const history = Array.isArray(data.history) ? data.history : [];
-    const totalCount = Number.isFinite(Number(data.total)) ? Number(data.total) : history.length;
+    const history = data.history || [];
     cachedPrescriptionHistory = history;
 
-    if (countBadge) countBadge.innerText = isEn ? `${totalCount} records` : `${totalCount} hồ sơ`;
+    if (countBadge) countBadge.innerText = (typeof currentLang !== 'undefined' && currentLang === 'en') ? `${history.length} records` : `${history.length} hồ sơ`;
 
     // 1. Cập nhật trong tab OCR (Đọc đơn thuốc & xét nghiệm)
     if (history.length === 0) {
@@ -6036,10 +5725,7 @@ async function loadPrescriptionHistory() {
       if (emptyEl) emptyEl.classList.add('hidden');
       if (listEl) {
         listEl.innerHTML = history.map(item => {
-          const isLab = item.doc_type === 'lab_test';
-          const badgeType = isLab
-            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1"><svg class="w-3 h-3 text-purple-600 dark:text-purple-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>Phiếu Xét Nghiệm</span>'
-            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
+          const badgeType = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
 
           const iconSvg = isLab
             ? `<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
@@ -6047,11 +5733,9 @@ async function loadPrescriptionHistory() {
 
           const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Theo dõi & Điều trị theo chỉ định';
           const facility = item.facility && item.facility !== 'Cơ sở Y tế' ? item.facility : 'Cơ sở Y tế';
-          const patientDisplay = sanitizePrescriptionAdminField(item.patient_name, ['bệnh nhân', 'benh nhan', 'người bệnh', 'nguoi benh']);
-          const displayTime = item.created_at || item.uploaded_at || 'Vừa xong';
 
           return `
-            <div onclick="viewPrescriptionHistoryItem(${item.id})" role="button" tabindex="0" data-history-id="${item.id}" class="prescription-history-card glass-card p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-sky-400/50 hover:shadow-md bg-white dark:bg-slate-900/90 shadow-xs transition-all space-y-2.5 cursor-pointer">
+            <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-sky-400/50 bg-white dark:bg-slate-900/90 shadow-xs transition-all space-y-2.5">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-start gap-3">
                   <div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800'} border flex items-center justify-center shrink-0 mt-0.5">
@@ -6062,7 +5746,7 @@ async function loadPrescriptionHistory() {
                       ${badgeType}
                       <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
                         <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        ${escapeHtml(displayTime)}
+                        ${escapeHtml(item.uploaded_at || 'Vừa xong')}
                       </span>
                       <span class="text-[10px] text-slate-400 font-mono">#MED-${item.id}</span>
                     </div>
@@ -6078,7 +5762,7 @@ async function loadPrescriptionHistory() {
                         ${escapeHtml(facility)}
                       </span>
                       ${item.doctor ? `<span class="text-slate-400">• BS: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(item.doctor)}</strong></span>` : ''}
-                      ${patientDisplay ? `<span class="text-slate-400">• BN: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(patientDisplay)}</strong></span>` : ''}
+                      ${item.patient_name ? `<span class="text-slate-400">• BN: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(item.patient_name)}</strong></span>` : ''}
                     </div>
 
                     ${item.summary ? `
@@ -6093,7 +5777,7 @@ async function loadPrescriptionHistory() {
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0">
-                  <button type="button" onclick="event.stopPropagation(); viewPrescriptionHistoryItem(${item.id})" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                  <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>Xem lại đơn</span>
                   </button>
@@ -6111,23 +5795,23 @@ async function loadPrescriptionHistory() {
     // 2. Cập nhật trong tab Doctor (Hồ sơ của tôi)
     if (ehrPrescriptionList) {
       if (history.length === 0) {
+        const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
         ehrPrescriptionList.innerHTML = `<p class="text-slate-400 text-[11px] italic">${isEn ? 'No prescriptions saved yet. You can import a new prescription anytime.' : 'Chưa có đơn thuốc nào được lưu. Bạn có thể import đơn thuốc mới bất kỳ lúc nào.'}</p>`;
       } else {
         ehrPrescriptionList.innerHTML = history.slice(0, 5).map(item => {
           const isLab = item.doc_type === 'lab_test';
           const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Đơn thuốc khám bệnh';
-          const displayTime = item.created_at || item.uploaded_at || '';
           return `
-            <div onclick="viewPrescriptionHistoryItem(${item.id})" class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/30 transition-all flex items-center justify-between gap-2 cursor-pointer">
+            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/30 transition-all flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded ${isLab ? 'bg-purple-500/20 text-purple-300' : 'bg-teal-500/20 text-teal-300'}">${isLab ? 'XÉT NGHIỆM' : 'ĐƠN THUỐC'}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(displayTime)}</span>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-teal-500/20 text-teal-300">ĐƠN THUỐC</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(item.uploaded_at || '')}</span>
                 </div>
                 <h5 class="text-xs font-bold text-slate-100 truncate mt-0.5" title="${escapeHtml(diag)}">${escapeHtml(diag)}</h5>
                 <p class="text-[10px] text-slate-400 truncate">${escapeHtml(item.facility || 'Cơ sở Y tế')}${item.summary ? ` • ${escapeHtml(item.summary)}` : ''}</p>
               </div>
-              <button type="button" onclick="event.stopPropagation(); viewPrescriptionHistoryItem(${item.id})" class="px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-400/30 text-[11px] font-bold shrink-0 transition-colors cursor-pointer">
+              <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-400/30 text-[11px] font-bold shrink-0 transition-colors cursor-pointer">
                 Xem lại →
               </button>
             </div>
@@ -6141,54 +5825,41 @@ async function loadPrescriptionHistory() {
   }
 }
 
-async function viewPrescriptionHistoryItem(historyId) {
+async function viewPrescriptionHistoryItem(docId) {
   try {
-    const cachedItem = Array.isArray(cachedPrescriptionHistory)
-      ? cachedPrescriptionHistory.find(h => Number(h.id) === Number(historyId) || Number(h.history_id) === Number(historyId))
-      : null;
+    showPrescriptionLoading(true, "Đang nạp lại dữ liệu đơn thuốc từ hồ sơ cá nhân...", "Khôi phục danh mục thuốc, cữ uống và hướng dẫn điều trị...");
+    const res = await fetch(`/api/prescription/history/${docId}`);
+    const resJson = await res.json();
+    showPrescriptionLoading(false);
 
-    let loadedData = null;
-    if (cachedItem && cachedItem.JSON_drugs && typeof cachedItem.JSON_drugs === 'object' && Object.keys(cachedItem.JSON_drugs).length > 0) {
-      loadedData = { ...cachedItem.JSON_drugs };
+    if (resJson.status === 'success' && resJson.data) {
+      // Ẩn upload section và history section để người dùng xem kết quả
+      const inputSec = document.getElementById('prescription-input-section');
+      const histSec = document.getElementById('prescription-history-section');
+      const verifySec = document.getElementById('prescription-verify-section');
+      if (inputSec) inputSec.classList.add('hidden');
+      if (histSec) histSec.classList.add('hidden');
+      if (verifySec) verifySec.classList.add('hidden');
+
+      // Chuyển tab sang ocr-tab nếu đang ở tab khác
+      switchTab('ocr-tab');
+
+      currentPrescriptionData = resJson.data;
+      if (resJson.data.preview_image_url) {
+        currentUploadedFileUrl = resJson.data.preview_image_url;
+      }
+
+      // Render kết quả chi tiết
+      renderPrescriptionResult(resJson.data);
+      showMedicalToast(`Đang hiển thị đơn thuốc lưu trữ: ${resJson.data.diagnosis || 'Đơn thuốc'}`, 'info', 4000);
+
+      // Cuộn lên kết quả
+      const resSec = document.getElementById('prescription-result-section');
+      if (resSec) {
+        resSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } else {
-      showPrescriptionLoading(true, "Đang nạp lại dữ liệu đơn thuốc từ hồ sơ cá nhân...", "Khôi phục danh mục thuốc, cữ uống và hướng dẫn điều trị...");
-      const res = await fetch(`/api/ocr/get_history/${historyId}`, { credentials: 'same-origin' });
-      const resJson = await res.json();
-      showPrescriptionLoading(false);
-      if (res.ok && resJson.status === 'success' && resJson.data) {
-        loadedData = resJson.data;
-      } else {
-        showMedicalToast(resJson.message || 'Không thể đọc dữ liệu chi tiết của đơn thuốc này.', 'warning');
-        return;
-      }
-    }
-
-    loadedData.history_id = loadedData.history_id || historyId;
-    if (cachedItem) {
-      if (!loadedData.document_id && cachedItem.document_id) loadedData.document_id = cachedItem.document_id;
-      if (!loadedData.preview_image_url && (cachedItem.preview_image_url || cachedItem.image_url)) {
-        loadedData.preview_image_url = cachedItem.preview_image_url || cachedItem.image_url;
-      }
-      if (!loadedData.image_url && cachedItem.image_url) loadedData.image_url = cachedItem.image_url;
-    }
-
-    const inputSec = document.getElementById('prescription-input-section');
-    const histSec = document.getElementById('prescription-history-section');
-    const verifySec = document.getElementById('prescription-verify-section');
-    if (inputSec) inputSec.classList.add('hidden');
-    if (histSec) histSec.classList.add('hidden');
-    if (verifySec) verifySec.classList.add('hidden');
-
-    currentPrescriptionData = loadedData;
-    lastPrescriptionDataSnapshot = loadedData;
-    currentUploadedFileUrl = loadedData.preview_image_url || loadedData.image_url || '';
-
-    navigateTo('ocr-tab', 'result', true);
-    showMedicalToast(`Đang hiển thị đơn thuốc lưu trữ: ${loadedData.diagnosis || 'Đơn thuốc'}`, 'info', 4000);
-
-    const resSec = document.getElementById('prescription-result-section');
-    if (resSec) {
-      resSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showMedicalToast(resJson.message || 'Không thể đọc dữ liệu chi tiết của đơn thuốc này.', 'warning');
     }
   } catch (err) {
     console.error('Lỗi khi xem lại đơn thuốc:', err);
@@ -6197,14 +5868,14 @@ async function viewPrescriptionHistoryItem(historyId) {
   }
 }
 
-async function deletePrescriptionHistoryItem(historyId, e) {
+async function deletePrescriptionHistoryItem(docId, e) {
   if (e) e.stopPropagation();
   if (!confirm(currentLang === 'en' ? 'Delete this prescription record from your history?' : 'Bạn có chắc chắn muốn xóa bản ghi đơn thuốc này khỏi lịch sử hồ sơ của mình không?')) return;
 
   try {
-    const res = await fetch(`/api/ocr/history/${historyId}`, { method: 'DELETE', credentials: 'same-origin' });
+    const res = await fetch(`/api/prescription/history/${docId}`, { method: 'DELETE' });
     const data = await res.json();
-    if (res.ok && data.status === 'success') {
+    if (data.status === 'success') {
       showMedicalToast('Đã xóa thành công đơn thuốc khỏi lịch sử hồ sơ.', 'success', 3000);
       await loadPrescriptionHistory();
     } else {
@@ -6237,58 +5908,8 @@ function detectSmartDoseSlot(slots) {
 // 🔎 MÀN HÌNH DÒ LẠI & ĐỐI CHIẾU DỮ LIỆU DETECT ĐƠN THUỐC (VERIFICATION STEP)
 // ==============================================================================
 
-function sanitizePrescriptionAdminField(rawValue, extraPlaceholders = []) {
-  if (rawValue === null || rawValue === undefined) return '';
-  const text = rawValue.toString().trim();
-  if (!text) return '';
-  const fold = (s) => s
-    .toString()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const folded = fold(text);
-  if (!folded) return '';
-  const placeholders = new Set([
-    'khong ro',
-    'khong xac dinh',
-    'chua xac dinh',
-    'chua ro',
-    'null',
-    'none',
-    'n a',
-    'na',
-    'unknown',
-    'redacted',
-    ...extraPlaceholders.map(fold).filter(Boolean),
-  ]);
-  if (placeholders.has(folded)) return '';
-  return text;
-}
-
-function normalizePrescriptionGender(rawGender) {
-  const text = sanitizePrescriptionAdminField(rawGender);
-  if (!text) return '';
-  const folded = text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/gi, 'd')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!folded) return '';
-  if (/\b(nu|female|woman|girl)\b/.test(folded) || folded === 'f') return 'Nữ';
-  if (/\b(nam|male|man|boy)\b/.test(folded) || folded === 'm') return 'Nam';
-  return '';
-}
-
-function renderPrescriptionVerification(data, options = {}) {
+function renderPrescriptionVerification(data) {
   currentPrescriptionData = data;
-  lastPrescriptionDataSnapshot = data;
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
@@ -6314,13 +5935,11 @@ function renderPrescriptionVerification(data, options = {}) {
 
   const diag = data.diagnosis || 'Theo dõi & Điều trị theo chỉ định';
   const doctor = data.doctor || 'BS. Chuyên khoa';
-  const patient = sanitizePrescriptionAdminField(data.patient_name, ['bệnh nhân', 'benh nhan', 'người bệnh', 'nguoi benh']);
+  const patient = data.patient_name || 'Bệnh nhân';
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
-  const rawDob = sanitizePrescriptionAdminField(data.dob || data.birth_date || data.data?.dob);
-  const rawAge = sanitizePrescriptionAdminField(data.age || data.data?.age);
-  const normalizedGender = normalizePrescriptionGender(
-    data.gender || data.patient_gender || data.sex || data.data?.gender || data.data?.patient_gender || data.data?.sex
-  );
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const rawAge = (data.age || data.data?.age || '').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
 
   let displayBirthInfo = '';
@@ -6422,7 +6041,7 @@ function renderPrescriptionVerification(data, options = {}) {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Họ và tên bệnh nhân:</label>
-                <input id="verify-patient-name" type="text" value="${escapeHtml(patient)}" placeholder="Chưa có thông tin — nhập họ và tên bệnh nhân" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <input id="verify-patient-name" type="text" value="${escapeHtml(patient)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
 
               <div>
@@ -6436,9 +6055,8 @@ function renderPrescriptionVerification(data, options = {}) {
               <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Giới tính:</label>
                 <select id="verify-patient-gender" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none cursor-pointer">
-                  <option value="" disabled ${normalizedGender === '' ? 'selected' : ''}>Chưa xác định</option>
-                  <option value="Nam" ${normalizedGender === 'Nam' ? 'selected' : ''}>Nam</option>
-                  <option value="Nữ" ${normalizedGender === 'Nữ' ? 'selected' : ''}>Nữ</option>
+                  <option value="Nữ" ${rawGender === 'Nữ' ? 'selected' : ''}>Nữ</option>
+                  <option value="Nam" ${rawGender === 'Nam' ? 'selected' : ''}>Nam</option>
                 </select>
               </div>
 
@@ -6475,7 +6093,7 @@ function renderPrescriptionVerification(data, options = {}) {
               ${meds.map((m, idx) => {
                 const numStr = (idx + 1).toString().padStart(2, '0');
                 const strength = m.strength ? `(${m.strength})` : '';
-                const dose = m.dose || '1 Viên';
+                const dose = m.dose || '1 viên';
                 const freq = m.frequency || '2 lần/ngày';
                 const days = m.days || 'Theo đơn';
                 const isNeedsReview = m.needs_review;
@@ -6506,7 +6124,7 @@ function renderPrescriptionVerification(data, options = {}) {
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 pt-1">
                       <div>
-                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> <strong>${escapeHtml(dose)}</strong> • ${escapeHtml(freq)}
+                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> <strong>${escapeHtml(dose)} / lần</strong> • ${escapeHtml(freq)}
                       </div>
                       <div>
                         <span class="text-slate-400">Tổng cấp:</span> <strong>${escapeHtml(days)}</strong>
@@ -6534,7 +6152,7 @@ function renderPrescriptionVerification(data, options = {}) {
             </div>
 
             <div class="flex flex-col sm:flex-row items-center gap-3 pt-1">
-              <button id="btn-confirm-and-proceed" type="button" class="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-teal-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]">
+              <button id="btn-confirm-and-proceed" onclick="confirmAndProceedPrescription()" class="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-teal-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 <span>XÁC NHẬN ĐÚNG ➔ XEM LỊCH UỐNG &amp; HƯỚNG DẪN</span>
               </button>
@@ -6552,26 +6170,12 @@ function renderPrescriptionVerification(data, options = {}) {
   `;
 
   verifySec.innerHTML = verifyHtml;
-  const verifyGenderSelect = document.getElementById('verify-patient-gender');
-  if (verifyGenderSelect) {
-    verifyGenderSelect.value = normalizedGender;
-  }
-  const confirmProceedBtn = document.getElementById('btn-confirm-and-proceed');
-  if (confirmProceedBtn && typeof confirmProceedBtn.addEventListener === 'function') {
-    confirmProceedBtn.addEventListener('click', confirmAndProceedPrescription);
-  }
   verifySec.classList.remove('hidden');
-  currentOcrSubView = 'verify';
-  if (options.pushHistory !== false) {
-    syncSubViewHistory('ocr-tab', 'verify', true);
-  }
   verifySec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function confirmAndProceedPrescription() {
   if (!currentPrescriptionData) return;
-  const confirmBtn = document.getElementById('btn-confirm-and-proceed');
-  if (confirmBtn?.dataset.saving === '1') return;
 
   const patName = document.getElementById('verify-patient-name')?.value?.trim();
   const dobVal = document.getElementById('verify-patient-dob')?.value?.trim();
@@ -6580,7 +6184,7 @@ async function confirmAndProceedPrescription() {
   const docVal = document.getElementById('verify-doctor')?.value?.trim();
   const diagVal = document.getElementById('verify-diagnosis')?.value?.trim();
 
-  currentPrescriptionData.patient_name = patName || '';
+  if (patName) currentPrescriptionData.patient_name = patName;
   if (dobVal) {
     const ageNumMatch = dobVal.match(/^(\d{1,3})(?:\s*tuổi)?$/i);
     if (ageNumMatch && parseInt(ageNumMatch[1], 10) < 130) {
@@ -6589,80 +6193,36 @@ async function confirmAndProceedPrescription() {
     } else {
       currentPrescriptionData.dob = dobVal;
     }
-  } else {
-    currentPrescriptionData.dob = '';
-    currentPrescriptionData.age = '';
   }
-  currentPrescriptionData.gender = genderVal || '';
-  if (facVal !== undefined) currentPrescriptionData.facility = facVal;
-  if (docVal !== undefined) currentPrescriptionData.doctor = docVal;
-  if (diagVal !== undefined) currentPrescriptionData.diagnosis = diagVal;
+  if (genderVal) currentPrescriptionData.gender = genderVal;
+  if (facVal) currentPrescriptionData.facility = facVal;
+  if (docVal) currentPrescriptionData.doctor = docVal;
+  if (diagVal) currentPrescriptionData.diagnosis = diagVal;
 
-  const candidateImage = currentPrescriptionData.preview_image_url || currentPrescriptionData.image_url || currentUploadedFileUrl || '';
-  currentPrescriptionData.image_url = (candidateImage && !candidateImage.startsWith('blob:') && !candidateImage.startsWith('data:')) ? candidateImage : '';
-
-  let savedToDb = false;
-  let unauthenticatedSave = false;
-  if (confirmBtn) {
-    confirmBtn.dataset.saving = '1';
-    confirmBtn.disabled = true;
-  }
-
+  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument
   try {
-    const saveRes = await fetch('/api/ocr/save_history', {
+    fetch('/api/prescription/confirm', {
       method: 'POST',
-      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentPrescriptionData)
-    });
-    const saveJson = await saveRes.json().catch(() => ({}));
-    if (saveRes.ok && saveJson.status === 'success') {
-      savedToDb = true;
-      if (saveJson.data && typeof saveJson.data === 'object') {
-        currentPrescriptionData = { ...currentPrescriptionData, ...saveJson.data };
-        lastPrescriptionDataSnapshot = currentPrescriptionData;
-      }
-      if (saveJson.history_id) {
-        currentPrescriptionData.history_id = saveJson.history_id;
-      }
-      if (saveJson.document_id && !currentPrescriptionData.document_id) {
-        currentPrescriptionData.document_id = saveJson.document_id;
-      }
-    } else if (saveRes.status === 401) {
-      unauthenticatedSave = true;
-    } else {
-      console.warn('Lưu lịch sử đơn thuốc không thành công:', saveJson);
-    }
+    }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
   } catch (err) {
-    console.warn('Lỗi gửi xác nhận lưu lịch sử:', err);
-  } finally {
-    if (confirmBtn) {
-      delete confirmBtn.dataset.saving;
-      confirmBtn.disabled = false;
-    }
+    console.warn('Lỗi gửi xác nhận:', err);
   }
 
-  // Ẩn màn hình dò lại và chuyển sang Bước 2 (Xem lịch uống)
+  // Ẩn màn hình dò lại
   const verifySec = document.getElementById('prescription-verify-section');
   if (verifySec) verifySec.classList.add('hidden');
 
-  renderPrescriptionResult(currentPrescriptionData, { pushHistory: true, dossierTab: 'meds' });
-  await loadPrescriptionHistory();
-
-  if (unauthenticatedSave) {
-    showMedicalToast('Đã xác nhận hiển thị lịch uống (đăng nhập để lưu vào Lịch sử đơn thuốc).', 'warning', 4500);
-  } else if (savedToDb) {
-    showMedicalToast('✅ Đã lưu đơn thuốc vào lịch sử và xác nhận thành công! Đang hiển thị lịch uống 4 cữ.', 'success', 4000);
-  } else {
-    showMedicalToast('✅ Đã xác nhận đơn thuốc! Đang hiển thị hướng dẫn lâm sàng & lịch uống 4 cữ.', 'success', 4000);
-  }
+  // Chuyển sang giao diện kết quả lâm sàng
+  renderPrescriptionResult(currentPrescriptionData);
+  loadPrescriptionHistory();
+  showMedicalToast('✅ Đã xác nhận đơn thuốc thành công! Đang hiển thị hướng dẫn lâm sàng & lịch uống 4 cữ.', 'success', 4000);
 }
 
 function reviewPrescriptionVerification() {
-  const data = currentPrescriptionData || lastPrescriptionDataSnapshot;
-  if (data) {
-    currentPrescriptionData = data;
-    navigateTo('ocr-tab', 'verify', true);
+  if (currentPrescriptionData) {
+    renderPrescriptionVerification(currentPrescriptionData);
   }
 }
 
@@ -6700,9 +6260,8 @@ function closePrescriptionLightbox() {
 // ==============================================================================
 // NEXT-GEN MEDICAL DASHBOARD: USER-CENTRIC, DYNAMIC & FLUID
 // ==============================================================================
-function renderPrescriptionResult(data, options = {}) {
+function renderPrescriptionResult(data) {
   currentPrescriptionData = data;
-  lastPrescriptionDataSnapshot = data;
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
   if (inputSec) inputSec.classList.add('hidden');
@@ -6714,16 +6273,13 @@ function renderPrescriptionResult(data, options = {}) {
   const isLab = data.type === 'lab_test' || data.doc_type === 'lab_test';
   const diag = escapeHtml(String(data.diagnosis || 'Chăm sóc & Điều trị'));
   const doctor = escapeHtml(String(data.doctor || 'BS. Chuyên khoa'));
-  const cleanPatientName = sanitizePrescriptionAdminField(data.patient_name, ['bệnh nhân', 'benh nhan', 'người bệnh', 'nguoi benh']);
-  const patient = escapeHtml(cleanPatientName || 'Chưa xác định');
+  const patient = escapeHtml(String(data.patient_name || 'Bệnh nhân'));
   const facility = escapeHtml(String(data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế'));
   const dateStr = escapeHtml(String(data.date || 'Hôm nay'));
   const duration = data.duration ? escapeHtml(String(data.duration)) : 'Theo chỉ định';
-  const rawDob = sanitizePrescriptionAdminField(data.dob || data.birth_date || data.data?.dob);
-  const rawAge = sanitizePrescriptionAdminField(data.age || data.data?.age);
-  const rawGender = escapeHtml(normalizePrescriptionGender(
-    data.gender || data.patient_gender || data.sex || data.data?.gender || data.data?.patient_gender || data.data?.sex
-  ) || 'Chưa xác định');
+  const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
+  const rawAge = (data.age || data.data?.age || '').toString().trim();
+  const rawGender = escapeHtml((data.gender || data.data?.gender || 'Nam').toString().trim());
   const currentYear = new Date().getFullYear();
 
   // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
@@ -7128,7 +6684,7 @@ function renderPrescriptionResult(data, options = {}) {
                     </div>
 
                     <div class="text-right shrink-0">
-                      <span class="text-xs font-black text-slate-950 block">${dose}</span>
+                      <span class="text-xs font-black text-slate-950 block">${dose !== '--' ? `${dose} / lần` : '--'}</span>
                       <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${freq}</span>
                     </div>
                   </div>
@@ -7214,24 +6770,10 @@ function renderPrescriptionResult(data, options = {}) {
 
   resSec.innerHTML = html;
   resSec.classList.remove('hidden');
-  const verifySecEl = document.getElementById('prescription-verify-section');
-  const loadSecEl = document.getElementById('prescription-loading-section');
-  if (verifySecEl) verifySecEl.classList.add('hidden');
-  if (loadSecEl) loadSecEl.classList.add('hidden');
-
-  const dossierTab = options.dossierTab === 'schedule' ? 'schedule' : 'meds';
-  if (dossierTab === 'schedule') {
-    switchPrescriptionDossierTab('schedule', false);
-  }
-  const targetOcrSub = dossierTab === 'schedule' ? 'schedule' : 'result';
-  currentOcrSubView = targetOcrSub;
-  if (options.pushHistory !== false) {
-    syncSubViewHistory('ocr-tab', targetOcrSub, true);
-  }
 }
 
 // Hàm chuyển đổi mượt mà giữa 2 tab trong cùng 1 bản
-function switchPrescriptionDossierTab(tabKey, pushHistory = true) {
+function switchPrescriptionDossierTab(tabKey) {
   const btnMeds = document.getElementById('btn-subtab-meds');
   const btnSched = document.getElementById('btn-subtab-schedule');
   const paneMeds = document.getElementById('pane-prescription-meds');
@@ -7251,10 +6793,6 @@ function switchPrescriptionDossierTab(tabKey, pushHistory = true) {
     btnMeds.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white hover:bg-white/50 cursor-pointer";
     paneSched.classList.remove('hidden');
     paneMeds.classList.add('hidden');
-  }
-  currentOcrSubView = tabKey === 'schedule' ? 'schedule' : 'result';
-  if (pushHistory) {
-    syncSubViewHistory('ocr-tab', currentOcrSubView, true);
   }
 }
 
@@ -8153,8 +7691,8 @@ async function syncServerConsultations() {
 // Specialized Task-Based Navigation & Filters
 // ==========================================
 function openNewPrescriptionUpload() {
-  resetPrescriptionScan(false);
-  navigateTo('ocr-tab', 'upload', true);
+  switchTab('ocr-tab');
+  resetPrescriptionScan();
 }
 
 // ==========================================
@@ -9850,70 +9388,24 @@ function closeMedicalRecordDetail() {
 // ==========================================
 // Image 1 Personal Information Logic
 // ==========================================
-async function handleProfileAvatarUpload(e) {
+function handleProfileAvatarUpload(e) {
   const file = e.target?.files?.[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = function(evt) {
     const dataUrl = evt.target.result;
     const avatarDisplay = document.getElementById('profile-avatar-display');
-    const fallbackAvatar = document.getElementById('profile-avatar-fallback');
-    if (avatarDisplay) {
-      avatarDisplay.src = dataUrl;
-      avatarDisplay.classList.remove('hidden');
-    }
-    if (fallbackAvatar) fallbackAvatar.classList.add('hidden');
+    const topAvatarImg = document.getElementById('user-avatar-img');
+    if (avatarDisplay) avatarDisplay.src = dataUrl;
+    if (topAvatarImg) topAvatarImg.src = dataUrl;
     if (currentUser) {
       currentUser.hasCustomAvatar = true;
       currentUser.avatar = dataUrl;
-      currentUser.avatar_url = currentUser.avatar_url || dataUrl;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      syncHeaderAvatar(currentUser);
-    } else {
-      syncHeaderAvatar({ name: 'K', hasCustomAvatar: true, avatar: dataUrl });
     }
+    showMedicalToast('Đã cập nhật ảnh đại diện thành công!', 'success');
   };
   reader.readAsDataURL(file);
-
-  if (currentUser && !currentUser.isDemo) {
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await fetch('/api/auth/avatar', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (res.ok && data.success && data.avatar_url) {
-        currentUser = mergeServerUserWithLocal(currentUser, {
-          ...(data.user || currentUser),
-          avatar_url: data.avatar_url,
-          avatar: data.avatar || data.avatar_url
-        });
-        const avatarDisplay = document.getElementById('profile-avatar-display');
-        if (avatarDisplay) {
-          avatarDisplay.src = data.avatar_url;
-          avatarDisplay.classList.remove('hidden');
-        }
-        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-        syncHeaderAvatar(currentUser);
-        if (typeof broadcastTabEvent === 'function') {
-          broadcastTabEvent('PROFILE_UPDATE', { user: currentUser });
-        }
-        showMedicalToast('Đã cập nhật ảnh đại diện thành công!', 'success');
-        return;
-      }
-      showMedicalToast(data.error || 'Đã hiển thị ảnh xem trước, nhưng chưa lưu được lên máy chủ.', 'warning');
-      return;
-    } catch (err) {
-      console.warn('Lỗi tải ảnh đại diện lên server:', err);
-      showMedicalToast('Đã hiển thị ảnh xem trước cục bộ (chưa đồng bộ lên máy chủ).', 'warning');
-      return;
-    }
-  }
-
-  showMedicalToast('Đã cập nhật ảnh đại diện thành công!', 'success');
 }
 
 // ==============================================================
@@ -10030,7 +9522,8 @@ async function handleSaveImage1Profile(e) {
 
     const data = await res.json();
     if (res.ok && data.success) {
-      currentUser = mergeServerUserWithLocal(currentUser, {
+      currentUser = {
+        ...currentUser,
         ...(data.user || {}),
         name: name || currentUser.name,
         full_name: name || currentUser.full_name,
@@ -10044,7 +9537,7 @@ async function handleSaveImage1Profile(e) {
         allergies: allergies,
         height: height,
         weight: weight
-      });
+      };
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
 
       syncLeftCardPhoneEmail();

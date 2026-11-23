@@ -95,7 +95,7 @@ CONTEXTS = {
     "gout": {
         "label": "Bệnh gút / tăng acid uric",
         "aliases": ("gut", "gout", "benh gut", "benh gout", "acid uric", "acid uric cao", "viem khop gut", "tang acid uric"),
-        "guidance": [_guidance("gout", "Với bệnh Gút / tăng acid uric, bắt buộc loại trừ nội tạng, thịt đỏ (bò, heo), thịt gia cầm (gà, vịt), hải sản/cá giàu purin, các loại đậu và rượu bia; uống đủ nước và ưu tiên rau xanh, củ quả, trứng và thức uống giàu vitamin C ít purin (cần tây, dưa leo, anh đào/cherry, trà xanh nhạt).")],
+        "guidance": [_guidance("gout", "Với gút, tránh nội tạng; hạn chế khẩu phần thịt đỏ và hải sản giàu purin, hạn chế rượu bia. Rau củ, kể cả rau có purin, không cần kiêng chỉ vì purin.")],
     },
     "diabetes": {
         "label": "Tiểu đường / đường huyết cao",
@@ -145,11 +145,9 @@ AVOIDANCE = {
         _avoid("Bạc hà và món có bạc hà", "Có thể là yếu tố kích thích trào ngược ở một số người; đối chiếu với triệu chứng cá nhân.", "reflux"),
     ],
     "gout": [
-        _avoid("Nội tạng động vật", "Gan, cật, phèo, mề và tim là nhóm rất giàu purin, làm tăng nhanh acid uric.", "gout", "avoid"),
-        _avoid("Thịt đỏ (bò, heo) và thịt gia cầm (gà, vịt, chim cút)", "Thịt gia cầm và thịt đỏ chứa hàm lượng purin cao, dễ kích hoạt cơn đau khớp Gút.", "gout", "avoid"),
-        _avoid("Hải sản và các loại cá giàu purin", "Tôm, cua, ghẹ, hàu, sò, cá trích, cá thu... giàu purin cần loại trừ khi kiểm soát Gút.", "gout", "avoid"),
-        _avoid("Các loại đậu hạt & chế phẩm từ đậu", "Đậu xanh, đậu nành, đậu đen, đậu đỏ, đậu phụ/đậu hũ chứa purin thực vật cần tránh trong thực đơn Gút.", "gout", "avoid"),
-        _avoid("Rượu, bia", "Làm giảm đào thải acid uric qua thận, đặc biệt nguy hiểm khi Gút chưa ổn định.", "gout", "avoid"),
+        _avoid("Nội tạng động vật", "Gan, cật và tim là nhóm rất giàu purin.", "gout", "avoid"),
+        _avoid("Thịt đỏ và hải sản giàu purin", "Hạn chế khẩu phần và tần suất theo hướng dẫn cá nhân.", "gout"),
+        _avoid("Rượu, bia", "Hạn chế, đặc biệt trong giai đoạn gút chưa được kiểm soát.", "gout"),
     ],
     "diabetes": [
         _avoid("Đường tinh luyện, mật ong, sữa đặc có đường", "Hạn chế đường thêm và xét tổng carbohydrate theo khẩu phần.", "diabetes"),
@@ -172,55 +170,39 @@ AVOIDANCE = {
 }
 
 
-def _meta(ingredients, allergens=(), gluten_uncertain=False, soft=False, liquid=False, fat_unknown=False,
-          purine_high=False, sugar_high=False, sodium_high=False,
-          purine_moderate_legume=False, gout_friendly=False, caffeine=False, acidic=False):
+def _meta(ingredients, allergens=(), gluten_uncertain=False, soft=False, liquid=False, fat_unknown=False, purine_high=False, sugar_high=False, sodium_high=False):
     return {"ingredients": frozenset(_normal(x) for x in ingredients),
             "allergens": frozenset(allergens), "gluten_uncertain": gluten_uncertain,
             "soft": soft, "liquid": liquid, "fat_unknown": fat_unknown,
-            "caffeine": caffeine, "alcohol": False, "acidic": acidic,
+            "caffeine": False, "alcohol": False, "acidic": False,
             "spicy": False, "mint": False, "fried": False,
-            "purine_high": purine_high, "sugar_high": sugar_high, "sodium_high": sodium_high,
-            "purine_moderate_legume": purine_moderate_legume, "gout_friendly": gout_friendly}
+            "purine_high": purine_high, "sugar_high": sugar_high, "sodium_high": sodium_high}
 
 
 # Every listed recipe has been inspected. Unknown/modified recipes are not
 # automatically classified from their title or from an LLM's assertion.
 METADATA = {
-    "fl_steamed_fish": _meta(["Cá diêu hồng", "Gừng", "Nước lọc"], allergens=("fish", "seafood"), soft=True, purine_high=True),
-    "fl_chicken_vegetables": _meta(["Thịt ức gà", "Bông cải xanh", "Cà rốt", "Nước lọc"], soft=True, purine_high=True),
-    "fl_tofu_tomato": _meta(["Đậu hũ non", "Cà chua", "Nước lọc"], allergens=("soy",), soft=True, purine_moderate_legume=True),
-    "fl_winter_melon_soup": _meta(["Bí xanh", "Nấm rơm", "Nước lọc"], soft=True, liquid=True, gout_friendly=True),
-    "fl_steamed_greens": _meta(["Cải thìa", "Nước lọc"], soft=True, gout_friendly=True),
-    "fl_oat_vegetable_porridge": _meta(["Yến mạch", "Cà rốt", "Cải bó xôi", "Nước lọc"], gluten_uncertain=True, soft=True, gout_friendly=True),
-    "fl_brown_rice_chicken": _meta(["Gạo lứt", "Thịt ức gà", "Cải thìa", "Nước lọc"], purine_high=True),
+    "fl_steamed_fish": _meta(["Cá diêu hồng", "Gừng", "Nước lọc"], allergens=("fish", "seafood"), soft=True),
+    "fl_chicken_vegetables": _meta(["Thịt ức gà", "Bông cải xanh", "Cà rốt", "Nước lọc"], soft=True),
+    "fl_tofu_tomato": _meta(["Đậu hũ non", "Cà chua", "Nước lọc"], allergens=("soy",), soft=True),
+    "fl_winter_melon_soup": _meta(["Bí xanh", "Nấm rơm", "Nước lọc"], soft=True, liquid=True),
+    "fl_steamed_greens": _meta(["Cải thìa", "Nước lọc"], soft=True),
+    "fl_oat_vegetable_porridge": _meta(["Yến mạch", "Cà rốt", "Cải bó xôi", "Nước lọc"], gluten_uncertain=True, soft=True),
+    "fl_brown_rice_chicken": _meta(["Gạo lứt", "Thịt ức gà", "Cải thìa", "Nước lọc"]),
     "oat_porridge": _meta(["Yến mạch", "Chuối chín", "Nước lọc"], gluten_uncertain=True, soft=True),
-    "pumpkin_soup": _meta(["Bí đỏ", "Khoai tây", "Nước lọc"], soft=True, gout_friendly=True),
-    "rice_carrot": _meta(["Gạo tẻ", "Cà rốt", "Nước lọc"], soft=True, gout_friendly=True),
-    "soft_egg": _meta(["Trứng gà", "Nước ấm"], allergens=("egg",), soft=True, gout_friendly=True),
+    "pumpkin_soup": _meta(["Bí đỏ", "Khoai tây", "Nước lọc"], soft=True),
+    "rice_carrot": _meta(["Gạo tẻ", "Cà rốt", "Nước lọc"], soft=True),
+    "soft_egg": _meta(["Trứng gà", "Nước ấm"], allergens=("egg",), soft=True),
     "sweet_potato": _meta(["Khoai lang", "Nước lọc"], soft=True),
-    "chicken_congee": _meta(["Gạo tẻ", "Thịt ức gà", "Nước lọc"], soft=True, purine_high=True),
-    "tofu_pumpkin": _meta(["Đậu hũ non", "Bí đỏ", "Nước lọc"], allergens=("soy",), soft=True, purine_moderate_legume=True),
-    "warm_water": _meta(["Nước uống"], liquid=True, gout_friendly=True),
+    "chicken_congee": _meta(["Gạo tẻ", "Thịt ức gà", "Nước lọc"], soft=True),
+    "tofu_pumpkin": _meta(["Đậu hũ non", "Bí đỏ", "Nước lọc"], allergens=("soy",), soft=True),
+    "warm_water": _meta(["Nước uống"], liquid=True),
     "warm_milk": _meta(["Sữa tươi không đường"], allergens=("milk",), liquid=True, fat_unknown=True),
     "oat_drink": _meta(["Yến mạch", "Nước lọc"], gluten_uncertain=True, liquid=True),
-    "cucumber_water": _meta(["Dưa leo", "Nước uống"], liquid=True, gout_friendly=True),
-    "warm_soy": _meta(["Sữa đậu nành không đường đã nấu chín"], allergens=("soy",), liquid=True, purine_moderate_legume=True),
-    "pear_water": _meta(["Lê", "Nước lọc"], liquid=True, gout_friendly=True),
+    "cucumber_water": _meta(["Dưa leo", "Nước uống"], liquid=True),
+    "warm_soy": _meta(["Sữa đậu nành không đường đã nấu chín"], allergens=("soy",), liquid=True),
+    "pear_water": _meta(["Lê", "Nước lọc"], liquid=True),
     "barley_water": _meta(["Lúa mạch khô", "Nước lọc"], allergens=("gluten",), liquid=True),
-    "gout_celery_juice": _meta(["Cần tây", "Táo xanh", "Nước lọc"], liquid=True, gout_friendly=True),
-    "gout_cucumber_lemon": _meta(["Dưa leo", "Chanh tươi", "Nước lọc"], liquid=True, acidic=True, gout_friendly=True),
-    "gout_cherry_juice": _meta(["Quả anh đào (Cherry)", "Nước lọc"], liquid=True, gout_friendly=True),
-    "gout_light_green_tea": _meta(["Lá trà xanh tươi", "Nước nóng"], liquid=True, caffeine=True, gout_friendly=True),
-    "gout_orange_carrot": _meta(["Cam tươi", "Cà rốt", "Nước lọc"], liquid=True, acidic=True, gout_friendly=True),
-    "gout_egg_tomato": _meta(["Trứng gà", "Cà chua", "Hành lá", "Dầu thực vật"], allergens=("egg",), soft=True, gout_friendly=True),
-    "gout_steamed_egg_veggies": _meta(["Trứng gà", "Cà rốt", "Nước ấm"], allergens=("egg",), soft=True, gout_friendly=True),
-    "gout_braised_eggplant": _meta(["Cà tím", "Nấm hương", "Hành lá", "Nước lọc"], soft=True, gout_friendly=True),
-    "gout_winter_melon_soup": _meta(["Bí đao", "Cà rốt", "Hành lá", "Nước lọc"], soft=True, liquid=True, gout_friendly=True),
-    "gout_cabbage_tomato_soup": _meta(["Bắp cải", "Cà chua", "Nước lọc"], soft=True, liquid=True, gout_friendly=True),
-    "gout_boiled_greens": _meta(["Cải thìa", "Bông cải xanh", "Nước lọc"], soft=True, gout_friendly=True),
-    "gout_oat_pumpkin_congee": _meta(["Yến mạch", "Bí đỏ", "Nước lọc"], gluten_uncertain=True, soft=True, gout_friendly=True),
-    "gout_rice_egg_veggies": _meta(["Gạo lứt", "Trứng gà", "Dưa leo", "Cải thìa"], allergens=("egg",), gout_friendly=True),
 }
 
 ALLERGEN_NAMES = {"egg": "trứng", "milk": "sữa động vật", "soy": "đậu nành", "gluten": "gluten",
@@ -386,45 +368,6 @@ def _is_unmapped_disease(query: str, contexts: List[str]) -> bool:
     return bool(_DISEASE_KEYWORDS.search(norm))
 
 
-def has_gout_forbidden_ingredients(recipe: Dict[str, Any]) -> bool:
-    """Defense-in-depth hard filter blocking poultry, red meat, organs, seafood/fish, legumes, and alcohol."""
-    if not isinstance(recipe, dict):
-        return False
-    title = str(recipe.get("title", "")).lower()
-    ingredients = " ; ".join(
-        str(item.get("name", "")).lower()
-        for item in (recipe.get("ingredients") or [])
-        if isinstance(item, dict)
-    )
-    raw = f"{title} ; {ingredients}"
-    safe_raw = re.sub(
-        r"trứng\s+(?:gà|vịt|cút|ngỗng|bắc\s+thảo|muối)\b(?!\s*lộn)"
-        r"|hột\s+(?:gà|vịt|cút)\b(?!\s*lộn)"
-        r"|nấm\s+đùi\s+gà|hoa\s+đậu\s+biếc|bánh\s+bò|ốc\s+chó|hạt\s+óc\s+chó"
-        r"|nước\s+mắm(?:\s+chay)?|hạt\s+nêm\s+chay"
-        r"|(?:cá|bò|gà|thịt|sườn|giò|chả|mắm)\s+chay"
-        r"|thịt\s+(?:dừa|quả|trái|bơ|nhãn|vải|sầu\s+riêng|cùi|gấc|mít)",
-        " ",
-        raw,
-    )
-    if re.search(
-        r"\b(?:gà|vịt|ngan|ngỗng|chim\s+cút|bồ\s+câu|gia\s+cầm|cút\s+lộn|vịt\s+lộn"
-        r"|cá|chả\s+cá|khô\s+cá|tôm|tép|cua|ghẹ|mực|bạch\s+tuộc|hàu|sò|ốc|nghêu|ngao|hến|hải\s+sản|hải\s+sâm|bào\s+ngư|lươn|sứa"
-        r"|bò|heo|lợn|dê|cừu|bê|thịt|sườn|ba\s+rọi|ba\s+chỉ|giò|chả\s+lụa|xá\s+xíu|pate|pa\s+tê|lạp\s+xưởng|xúc\s+xích|nem\s+chua|dồi"
-        r"|nội\s+tạng|gan|cật|phèo|mề|bao\s+tử|dạ\s+dày|tiết|huyết|phá\s+lấu"
-        r"|đậu|tàu\s+hũ|tào\s+phớ|lạc|rượu|bia)\b",
-        safe_raw,
-    ):
-        return True
-    norm = _normal(safe_raw)
-    return bool(re.search(
-        r"\b(?:chicken|duck|turkey|poultry|quail|goose|beef|pork|lamb|mutton|veal|bacon|ham|sausage"
-        r"|seafood|shellfish|fish|salmon|tuna|cod|trout|mackerel|sardine|shrimp|prawn|crab|lobster|squid|octopus|clam|oyster|mussel|scallop|eel"
-        r"|liver|kidney|organ|bean|beans|lentil|lentils|chickpea|soy|soya|tofu|peanut|peanuts|pea|peas|mung|alcohol|wine|beer)\b",
-        norm,
-    ))
-
-
 def _condition_exclusion(meta, contexts):
     """First pass: exclude recipe features outside supported condition guidance."""
     for ctx in contexts:
@@ -438,8 +381,8 @@ def _condition_exclusion(meta, contexts):
             return "Có caffeine hoặc rượu, không ưu tiên gần giờ ngủ."
         if ctx == "reflux" and any(meta.get(key) for key in ("acidic", "spicy", "mint", "fried", "caffeine", "alcohol", "fat_unknown")):
             return "Có yếu tố kích thích hoặc chưa rõ hàm lượng béo cần kiểm tra thêm khi trào ngược."
-        if ctx == "gout" and (meta.get("purine_high") or meta.get("purine_moderate_legume") or meta.get("alcohol")):
-            return "Món chứa nguyên liệu cần loại trừ cho người bệnh Gút / tăng acid uric (thịt gà/gia cầm, thịt bò/thịt đỏ, nội tạng, hải sản/cá, các loại đậu hoặc cồn)."
+        if ctx == "gout" and (meta.get("purine_high") or meta.get("alcohol")):
+            return "Món có nội tạng, thịt đỏ, hải sản giàu purin hoặc cồn nên không được ưu tiên trong gợi ý cho người bị gút."
         if ctx == "diabetes" and meta.get("sugar_high"):
             return "Có đường hoặc chất tạo ngọt thêm, cần kiểm soát đối với người tiểu đường."
         if ctx == "hypertension" and (meta.get("sodium_high") or meta.get("alcohol")):
@@ -452,8 +395,7 @@ def _condition_exclusion(meta, contexts):
 
 
 def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], profile_allergies=None,
-                                 fatty_liver_recipes=None, gout_drink_recipes=None,
-                                 gout_food_recipes=None) -> Dict[str, Any]:
+                                 fatty_liver_recipes=None) -> Dict[str, Any]:
     """Return copied candidates and attributable rules; never certify suitability.
 
     Supports single conditions as well as multiple co-morbidities.
@@ -466,10 +408,6 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
         # Imported dishes lack reviewed amounts of saturated fat and added
         # sugar. Keep this condition's automatic suggestions to authored recipes.
         recipes = list(fatty_liver_recipes)
-    elif "gout" in contexts and (gout_drink_recipes or gout_food_recipes):
-        existing_ids = {str(r.get("id", "")) for r in recipes}
-        extra = [r for r in (gout_drink_recipes or []) + (gout_food_recipes or []) if str(r.get("id", "")) not in existing_ids]
-        recipes = [r for r in recipes] + [deepcopy(r) for r in extra]
     profile_codes, profile_unresolved = _profile_food_allergies(profile_allergies)
     allergies |= profile_codes
     unsupported.extend(profile_unresolved)
@@ -526,8 +464,6 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
             # Preserve the requested order: condition rules, then profile/query
             # food allergies, then optional eating preferences.
             reason = _condition_exclusion(meta, contexts)
-            if not reason and "gout" in contexts and has_gout_forbidden_ingredients(recipe):
-                reason = "Món chứa nguyên liệu cần loại trừ cho người bệnh Gút / tăng acid uric (thịt gà/gia cầm, thịt bò/thịt đỏ, nội tạng, hải sản/cá, các loại đậu hoặc cồn)."
             if not reason:
                 hits = allergies & (meta["allergens"] | _ingredient_allergens(recipe))
                 if hits:
@@ -546,9 +482,7 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
             excluded.append({"id": recipe.get("id"), "title": recipe.get("title", ""), "reason": reason})
             continue
         if verified:
-            recipe["rule_tags"] = [
-                key for key in ("soft", "liquid", "gout_friendly", "purine_moderate_legume") if meta.get(key)
-            ]
+            recipe["rule_tags"] = [key for key in ("soft", "liquid") if meta[key]]
             recipe["declared_allergens"] = sorted(meta["allergens"] | _ingredient_allergens(recipe))
             if meta.get("automatic"):
                 recipe["metadata_review"] = "automated_text_scan"

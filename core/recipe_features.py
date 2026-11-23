@@ -207,41 +207,23 @@ def analyze_imported_recipe(recipe):
     animal_raw = _has(r"eggs?|beef|pork|lamb|chicken|turkey|fish|salmon|tuna|shrimp|seafood", ingredients) or (vietnamese and _has(r"trung|thit|ga|vit|tom|ca|hai\s+san|muc|cua|ngheu|ngao|hen", vi_animal_scan))
     cooking_step = _has(r"cook|cooked|cooking|bake|baked|baking|boil|boiled|boiling|simmer|simmered|steam|steamed|roast|roasted|fry|fried|grill|grilled|poach|poached|microwave|heat|heated|nau|hap|luoc|ham|ninh|chien|xao|ran|nuong|om|dun|chung|rang|chao\s+chin", steps) or (vietnamese and _has(r"kho", raw_steps))
     raw_ingredients = " ; ".join(raw_texts)
-    raw_combined = raw_title + " ; " + raw_ingredients
-    gout_safe_raw = re.sub(
-        r"trứng\s+(?:gà|vịt|cút|ngỗng|bắc\s+thảo|muối)\b(?!\s*lộn)"
-        r"|hột\s+(?:gà|vịt|cút)\b(?!\s*lộn)"
-        r"|nấm\s+đùi\s+gà|hoa\s+đậu\s+biếc|bánh\s+bò|ốc\s+chó|hạt\s+óc\s+chó"
-        r"|nước\s+mắm(?:\s+chay)?|hạt\s+nêm\s+chay"
-        r"|(?:cá|bò|gà|thịt|sườn|giò|chả|mắm)\s+chay"
-        r"|thịt\s+(?:dừa|quả|trái|bơ|nhãn|vải|sầu\s+riêng|cùi|gấc|mít)",
-        " ",
-        raw_combined,
-    )
     vi_oc_scan = re.sub(r"\boc\s+cho\b", "", ingredients)
     labels_oc_scan = re.sub(r"\boc\s+cho\b", "", labels)
     purine_high = alcohol or _has(
         r"oysters?|mussels?|clams?|scallops?|shrimp|prawns?|crabs?|lobsters?|squid|octopus|anchov(?:y|ies)|sardines?|herring|mackerel|tuna"
-        r"|liver|kidney|heart|brain|sweetbread|organ\s+meat|beef|pork|lamb|mutton|veal|bacon|ham|sausage"
-        r"|chicken|duck|turkey|poultry|quail|goose|seafood|shellfish|fish|salmon|cod|trout|eel",
-        ingredients + " ; " + labels,
+        r"|liver|kidney|heart|brain|sweetbread|organ\s+meat|beef|lamb|mutton|veal",
+        ingredients
     ) or (vietnamese and (
-        _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|bach\s+tuoc|ca\s+(?:trich|moi|thu|nuc|ngu|com|hoi|loc|basa|dieu\s+hong|ro|chep|tre)|hai\s+san|luon", ingredients)
+        _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|bach\s+tuoc|ca\s+(?:trich|moi|thu|nuc|ngu|com)|hai\s+san", ingredients)
         or _has(r"oc", vi_oc_scan)
         or _has(r"gan|pheo|bao\s+tu|tiet|huyet|noi\s+tang|pha\s+lau|doi\s+heo", ingredients)
         or _has(r"qua\s+tim|tim\s+(?:heo|lon|bo|ga|vit|dong\s+vat)", ingredients)
         or _has(r"cat\s+(?:heo|lon|bo)|than\s+(?:heo|lon|bo)", ingredients) or bool(re.search(r"\bcật\b", raw_ingredients))
         or _has(r"long\s+(?:heo|lon|bo|ga|vit|non|gia)", ingredients) or bool(re.search(r"\blòng(?!\s+(?:đỏ|trắng))\b", raw_ingredients))
-        or _has(r"thit\s+(?:bo|be|de|cuu|heo|lon|nac|bam|xay|ga|vit|ngan)|uc\s+ga|dui\s+ga|canh\s+ga|chan\s+ga|ba\s+(?:roi|chi)|suon\s+(?:heo|lon|non|bo)|xuong\s+(?:heo|lon|ong)|gio\s+heo|mong\s+gio|chan\s+gio|gio\s+song|cha\s+lua|gio\s+lua|thit\s+nguoi|xuc\s+xich|duoi\s+(?:heo|lon|bo)|luoi\s+(?:heo|lon|bo)|xi\s+quach|xa\s+xiu|lap\s+xuong", ingredients)
+        or _has(r"thit\s+(?:bo|be|de|cuu|heo|lon|nac|bam|xay)|ba\s+(?:roi|chi)|suon\s+(?:heo|lon|non)|xuong\s+(?:heo|lon|ong)|gio\s+heo|mong\s+gio|chan\s+gio|gio\s+song|cha\s+lua|gio\s+lua|thit\s+nguoi|xuc\s+xich|duoi\s+(?:heo|lon|bo)|luoi\s+(?:heo|lon|bo)|xi\s+quach", ingredients)
     )) or (vietnamese and (
-        _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|thit\s+(?:bo|heo|lon|ga|vit)|uc\s+ga|dui\s+ga|gio\s+heo|mong\s+gio|chan\s+gio|duoi\s+(?:heo|lon|bo)|luoi\s+(?:heo|lon|bo)|xi\s+quach", labels)
+        _has(r"hau|so|ngheu|ngao|hen|tom|cua|muc|thit\s+(?:bo|heo|lon)|gio\s+heo|mong\s+gio|chan\s+gio|duoi\s+(?:heo|lon|bo)|luoi\s+(?:heo|lon|bo)|xi\s+quach", labels)
         or _has(r"oc", labels_oc_scan)
-    )) or bool(re.search(
-        r"\b(?:gà|vịt|ngan|ngỗng|chim\s+cút|bồ\s+câu|gia\s+cầm|cút\s+lộn|vịt\s+lộn"
-        r"|cá|chả\s+cá|khô\s+cá|tôm|tép|cua|ghẹ|mực|bạch\s+tuộc|hàu|sò|ốc|nghêu|ngao|hến|hải\s+sản|hải\s+sâm|bào\s+ngư|lươn|sứa"
-        r"|bò|heo|lợn|dê|cừu|bê|thịt|sườn|ba\s+rọi|ba\s+chỉ|giò|chả\s+lụa|xá\s+xíu|pate|pa\s+tê|lạp\s+xưởng|xúc\s+xích|nem\s+chua|dồi"
-        r"|nội\s+tạng|gan|cật|phèo|mề|bao\s+tử|dạ\s+dày|tiết|huyết|phá\s+lấu)\b",
-        gout_safe_raw,
     ))
     sugar_high = _has(
         r"sugar|cane\s+sugar|corn\s+syrup|honey|molasses|caramel|jam|marmalade|candy|condensed\s+milk"
@@ -260,24 +242,6 @@ def analyze_imported_recipe(recipe):
         r"mam\s+(?:tom|tep|ca|ruoc|nem)|ca\s+kho|kho\s+muc|thit\s+(?:xong\s+khoi|nguoi)|xuc\s+xich|lap\s+xuong|dua\s+muoi|dua\s+chua|ca\s+muoi|cured|bacon|ham|sausage|pickles?",
         ingredients
     )
-    purine_moderate_legume = _has(
-        r"beans?|lentils?|chickpeas?|peas?|soy|soya|tofu|peanuts?"
-        r"|dau\s+(?:xanh|nanh|den|do|phong|ha\s+lan|trang|ngu|hu|phu|tuong|que|co\s+ve|rong|bap|van|ga)"
-        r"|tau\s+hu|tao\s+pho|sua\s+dau|hat\s+dau|mung",
-        ingredients + " ; " + labels,
-    ) or bool(re.search(r"\b(?:đậu|tàu\s+hũ|tào\s+phớ|lạc)\b", gout_safe_raw))
-    gout_friendly = (
-        not purine_high
-        and not alcohol
-        and not purine_moderate_legume
-        and _has(
-            r"celery|cucumber|green\s+tea|cherries?|orange|lemon|lime|grapefruit|apples?|pears?|pineapple"
-            r"|can\s+tay|dua\s+leo|dua\s+chuot|anh\s+dao|tra\s+xanh|bi\s+dao|bi\s+xanh|cam|buoi|chanh"
-            r"|tao|le|oi|thom|khom|kiwi|dau\s+tay|thanh\s+long|ca\s+rot|bong\s+cai\s+xanh"
-            r"|rau\s+ma|rau\s+bap|rau\s+ngo|dua\s+(?:hau|luoi|gang|thom)",
-            ingredients + " ; " + labels,
-        )
-    )
     unsafe = not shape_valid or not steps.strip() or medicinal or raw_hazard or fermented_drink or (animal_raw and not cooking_step)
     return {
         "ingredients": frozenset(texts), "allergens": frozenset(allergens),
@@ -286,7 +250,6 @@ def analyze_imported_recipe(recipe):
         "soft": soft, "liquid": liquid, "caffeine": caffeine, "alcohol": alcohol,
         "acidic": acidic, "spicy": spicy, "mint": mint, "fried": fried,
         "fat_unknown": fat_unknown, "purine_high": purine_high,
-        "purine_moderate_legume": purine_moderate_legume, "gout_friendly": gout_friendly,
         "sugar_high": sugar_high, "saturated_fat_source": saturated_fat_source,
         "sodium_high": sodium_high,
         "unsafe_preparation": unsafe, "nutrients_unknown": True,

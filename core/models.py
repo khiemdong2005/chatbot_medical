@@ -87,7 +87,6 @@ class User(db.Model):
             "gender": self.gender or "",
             "address": self.address or "",
             "bhyt": self.bhyt or "",
-            "avatar": self.avatar_url or "",
             "avatar_url": self.avatar_url or "",
             "joined_date": self.created_at.strftime("%d/%m/%Y") if self.created_at else ""
         }
@@ -155,70 +154,6 @@ class MedicalDocument(db.Model):
             "created_at_iso": self.created_at.isoformat() if self.created_at else "",
             "owner_id": self.owner_id
         }
-
-
-class PrescriptionHistory(db.Model):
-    """Lịch sử đơn thuốc OCR đã xác nhận và chỉnh sửa của từng người dùng."""
-    __tablename__ = "prescription_history"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    document_id = db.Column(db.Integer, db.ForeignKey("medical_documents.id"), nullable=True, index=True)
-    image_url = db.Column(db.String(500), nullable=True)
-    patient_name = db.Column(db.String(255), nullable=True)
-    diagnosis = db.Column(db.Text, nullable=True)
-    facility = db.Column(db.String(255), nullable=True)
-    doctor = db.Column(db.String(255), nullable=True)
-    summary = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, index=True)
-    json_drugs = db.Column("JSON_drugs", db.Text, nullable=False, default="{}")
-
-    user = db.relationship("User", backref=db.backref("prescription_histories", lazy=True, cascade="all, delete-orphan"))
-
-    @property
-    def JSON_drugs(self) -> str:
-        return self.json_drugs
-
-    @JSON_drugs.setter
-    def JSON_drugs(self, value: str) -> None:
-        self.json_drugs = value
-
-    def to_dict(self, include_payload: bool = True) -> dict:
-        import json
-
-        payload = {}
-        try:
-            parsed = json.loads(self.json_drugs or "{}")
-            if isinstance(parsed, dict):
-                payload = parsed
-        except Exception:
-            payload = {}
-
-        meds = payload.get("medications") if isinstance(payload.get("medications"), list) else []
-        doc_type = payload.get("doc_type") or payload.get("type") or "prescription"
-        result = {
-            "id": self.id,
-            "history_id": self.id,
-            "document_id": self.document_id,
-            "user_id": self.user_id,
-            "image_url": self.image_url or "",
-            "preview_image_url": self.image_url or "",
-            "patient_name": self.patient_name or "",
-            "diagnosis": self.diagnosis or "",
-            "facility": self.facility or "Cơ sở Y tế",
-            "doctor": self.doctor or "",
-            "summary": self.summary or "",
-            "doc_type": doc_type,
-            "medications_count": len(meds),
-            "uploaded_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else "",
-            "created_at": self.created_at.strftime("%H:%M %d/%m/%Y") if self.created_at else "",
-            "created_at_iso": self.created_at.isoformat() if self.created_at else "",
-            "has_parsed_data": bool(payload),
-        }
-        if include_payload:
-            result["JSON_drugs"] = payload
-            result["json_drugs"] = payload
-        return result
 
 
 class ClinicalConsultation(db.Model):
