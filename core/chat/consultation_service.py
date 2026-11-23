@@ -4,6 +4,7 @@ Dịch vụ quản lý các phiên tư vấn lâm sàng (Clinical Consultations)
 """
 import json
 import logging
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 from core.models import ClinicalConsultation, User
 from core.db_utils import app_db_context, commit_or_rollback
@@ -94,7 +95,7 @@ def get_clinical_summary(
 
         user = sess.get(User, user_id)
         patient_name = user.full_name if user else "Bệnh nhân"
-        patient_id = f"BN-2026-{user_id:04d}"
+        patient_id = f"BN-{datetime.now().year}-{user_id:04d}"
 
         try:
             summary_data = json.loads(record.confirmed_summary)

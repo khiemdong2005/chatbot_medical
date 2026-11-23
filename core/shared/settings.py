@@ -26,6 +26,35 @@ def _mask_secret(val: Optional[str]) -> str:
     return f"{s[:3]}...{s[-4:]}"
 
 
+_PLACEHOLDER_EXACT_VALUES = frozenset({
+    "placeholder",
+    "changeme",
+    "replace_me",
+    "none",
+    "null",
+    "your_email@gmail.com",
+})
+
+
+def is_configured_secret(value: Optional[str]) -> bool:
+    """
+    Trả về True khi và chỉ khi giá trị cấu hình là chuỗi thực sự (không rỗng
+    và không phải chuỗi placeholder mẫu từ .env.example như your_* / *_here / <...>).
+    """
+    clean = (value or "").strip()
+    if not clean:
+        return False
+    lowered = clean.lower()
+    if (
+        lowered.startswith("your_")
+        or lowered.endswith("_here")
+        or (lowered.startswith("<") and lowered.endswith(">"))
+        or lowered in _PLACEHOLDER_EXACT_VALUES
+    ):
+        return False
+    return True
+
+
 class GeminiSettings(BaseModel):
     """Cấu hình cho Google Gemini AI API."""
     api_key: Optional[str] = Field(default=None)
@@ -378,7 +407,7 @@ class Settings(BaseSettings):
         3. Local dev thiếu SECRET_KEY -> dùng stable fallback xác định (không xoay session ngẫu nhiên) + log warning.
         """
         key = (self.security.secret_key or os.getenv("SECRET_KEY") or "").strip()
-        if key:
+        if is_configured_secret(key):
             return key
 
         is_prod = self.server.is_production or os.getenv("FLASK_ENV") == "production" or os.getenv("ENV") == "production"

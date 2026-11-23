@@ -354,35 +354,13 @@ function handleProvinceChange() {
 const chatHistory = [];
 let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
-const DEFAULT_USER_PROFILE = {
-  id: 84291908,
-  clinical_id: "84291908",
-  name: "Nguyễn Văn An",
-  full_name: "Nguyễn Văn An",
-  dob: "04/10/2005",
-  gender: "Nam",
-  phone_number: "0347047101",
-  email: "benhnhan.an@gmail.com",
-  role: "patient",
-  badge: "BN",
-  cccd: "",
-  issue_date: "",
-  bhyt: "",
-  facility: "",
-  valid_from: "",
-  valid_to: "",
-  issue_place: "",
-  nationality: "VN",
-  ethnicity: "",
-  religion: "",
-  province: "",
-  ward: "",
-  address: "",
-  joined: "11/09/2026",
-  hasCustomAvatar: false,
-  notifications: [],
-  avatar: "/static/images/avatar_male.png"
-};
+
+function formatPatientCode(userId) {
+  const numericId = Number(userId);
+  if (!Number.isFinite(numericId) || numericId <= 0) return '—';
+  const year = new Date().getFullYear();
+  return `#BN-${year}-${String(numericId).padStart(4, '0')}`;
+}
 
 // Default visitor: NO USER LOGGED IN unless explicit valid user exists in localStorage
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
@@ -456,29 +434,6 @@ async function checkAuthSessionWithServer() {
     renderChatHistoryList();
   }
   updateAuthUI();
-}
-
-// Hàm kích hoạt hồ sơ mẫu khi người dùng chủ động chọn "Xem demo"
-function loadDemoPatientProfile() {
-  currentUser = {
-    id: 8429,
-    clinical_id: "84291908",
-    name: 'Nguyễn Thành Khiêm',
-    full_name: 'Nguyễn Thành Khiêm',
-    badge: 'BN',
-    role: 'Bệnh nhân (Mẫu trải nghiệm)',
-    personal_info: 'Nam • 24/10/1997 • 0971221306',
-    phone: '0971221306',
-    phone_number: '0971221306',
-    dob: '1997-10-24',
-    gender: 'Nam',
-    blood_type: 'O+',
-    isDemo: true,
-    avatar: getDefaultAvatarByGender('Nam')
-  };
-  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-  updateAuthUI();
-  showMedicalToast('Đã mở hồ sơ bệnh nhân mẫu (Chế độ trải nghiệm)', 'info');
 }
 // ==========================================
 // Bilingual i18n Dictionary (VI / EN)
@@ -1619,21 +1574,9 @@ const STATIC_VI_EN_TEXT = {
   "Bệnh viện đa khoa quốc tế hàng đầu tại TP.HCM đạt chứng chỉ vàng JCI về an toàn và chất lượng điều trị.": "Leading international general hospital in Ho Chi Minh City holding JCI Gold Seal accreditation for patient safety and clinical care.",
   "Chỉ đường": "Directions",
   "Đặt lịch khám ngay": "Book Appointment Now",
-  // Google Identity Modal
+  // Google Auth & Common UI
   "Tiếp tục với Google": "Continue with Google",
-  "Chọn tài khoản": "Choose an account",
-  "Để tiếp tục đến": "to continue to",
-  "Mô phỏng trải nghiệm Google Identity": "Simulated Google Identity Sign-In",
-  "Sử dụng một tài khoản khác": "Use another account",
-  "Quay lại danh sách tài khoản": "Back to account list",
-  "Bạn quên địa chỉ email ư?": "Forgot email?",
-  "Không phải máy tính của bạn? Hãy sử dụng chế độ Khách để đăng nhập một cách riêng tư.": "Not your computer? Use Guest mode to sign in privately.",
-  "Tạo tài khoản": "Create account",
-  "Tiếp theo": "Next",
-  "Đang đăng nhập vào MediMind AI...": "Signing in to MediMind AI...",
-  "Đang đồng bộ hồ sơ y tế và phân quyền bảo mật cục bộ": "Synchronizing health profile and session security",
   "Đăng nhập thành công!": "Signed in successfully!",
-  "Xác thực Google Identity Services hoàn tất": "Google Identity authentication complete",
   "Người dùng": "User",
   "Tự động chuyển đến không gian làm việc trong giây lát...": "Redirecting to your workspace shortly...",
   "Tiếng Việt": "English",
@@ -3282,9 +3225,12 @@ function simulateUploadLab() {
 
 function escapeHtml(string) {
   if (string === null || string === undefined) return '';
-  const div = document.createElement('div');
-  div.textContent = String(string);
-  return div.innerHTML || div.textContent || String(string);
+  return String(string)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function sanitizeUrl(rawUrl) {
@@ -3686,7 +3632,6 @@ function syncAuthModalTheme() {
   const divLineLeft = document.getElementById('auth-divider-line-left');
   const divLineRight = document.getElementById('auth-divider-line-right');
   const btnGoogle = document.getElementById('btn-google-signin');
-  const googleCard = document.getElementById('google-account-card');
 
   if (!card) return;
 
@@ -3705,12 +3650,8 @@ function syncAuthModalTheme() {
   if (divLineLeft) divLineLeft.className = "flex-1 h-px bg-white/15";
   if (divLineRight) divLineRight.className = "flex-1 h-px bg-white/15";
   if (btnGoogle) {
-    const span = btnGoogle.querySelector('span');
+    const span = btnGoogle.querySelector('span[data-i18n="btn_google_signin"]');
     if (span) span.className = "font-semibold text-white";
-  }
-  if (googleCard) {
-    googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
-    googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
   }
   if (typeof toggleAuthMode === 'function') {
     toggleAuthMode(currentAuthMode);
@@ -3851,7 +3792,8 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
+    if (typeof resetGoogleSignInButton === 'function') resetGoogleSignInButton();
+    const googleSpan = document.querySelector('#btn-google-signin span[data-i18n="btn_google_signin"]');
     if (googleSpan) {
       googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
@@ -3873,7 +3815,8 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
+    if (typeof resetGoogleSignInButton === 'function') resetGoogleSignInButton();
+    const googleSpan = document.querySelector('#btn-google-signin span[data-i18n="btn_google_signin"]');
     if (googleSpan) {
       googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
@@ -4306,10 +4249,8 @@ async function startOtpLoginFlow() {
 
 
 // ==============================================================
-// GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN (5-STATE MACHINE)
+// GOOGLE OAUTH 2.0 SIGN-IN (FAIL-CLOSED SERVER AUTHORIZATION CODE FLOW)
 // ==============================================================
-let currentGoogleState = 'select'; // 'select' | 'custom' | 'loading' | 'success'
-
 function detectInAppWebView() {
   const ua = (window.navigator && window.navigator.userAgent) || '';
   if (/Zalo/i.test(ua)) return 'Zalo';
@@ -4319,6 +4260,20 @@ function detectInAppWebView() {
   if (/MicroMessenger/i.test(ua)) return 'WeChat';
   return null;
 }
+
+function resetGoogleSignInButton() {
+  const btn = document.getElementById('btn-google-signin');
+  if (!btn) return;
+  btn.disabled = false;
+  if (btn.dataset && btn.dataset.originalHtml) {
+    btn.innerHTML = btn.dataset.originalHtml;
+    btn.dataset.loading = '';
+  }
+}
+
+window.addEventListener('pageshow', () => {
+  resetGoogleSignInButton();
+});
 
 async function handleGoogleSignIn(intentOverride) {
   const inAppName = detectInAppWebView();
@@ -4330,11 +4285,14 @@ async function handleGoogleSignIn(intentOverride) {
 
   const intent = intentOverride || 'continue';
   const btn = document.getElementById('btn-google-signin');
-  const originalHtml = btn ? btn.innerHTML : '';
-
   if (btn) {
+    if (!btn.dataset) btn.dataset = {};
+    if (!btn.dataset.originalHtml && !btn.innerHTML.includes('animate-spin')) {
+      btn.dataset.originalHtml = btn.innerHTML;
+    }
+    btn.dataset.loading = 'true';
     btn.disabled = true;
-    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
+    btn.innerHTML = `<span aria-hidden="true" data-google-spinner="true" class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
   }
 
   try {
@@ -4346,19 +4304,18 @@ async function handleGoogleSignIn(intentOverride) {
     clearTimeout(timer);
     const data = await res.json();
 
-    if (data.success && data.auth_url) {
+    if (res.ok && data.success && data.auth_url) {
       window.location.assign(data.auth_url);
       return;
     }
 
-    if (data.configured === false) {
-      if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    if (data.configured === false || res.status === 503) {
+      resetGoogleSignInButton();
+      const unconfiguredMsg = currentLang === 'en'
+        ? 'Google Sign-In is not configured on this server (missing valid GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env). Please sign in with Email or Phone.'
+        : 'Đăng nhập bằng Google chưa được cấu hình trên máy chủ (thiếu GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET hợp lệ trong .env). Vui lòng đăng nhập bằng Email hoặc Số điện thoại.';
       if (typeof showMedicalToast === 'function') {
-        showMedicalToast(
-          'Đăng nhập Google OAuth chưa được kích hoạt trên máy chủ. Vui lòng đăng nhập hoặc đăng ký bằng Email / SĐT + OTP.',
-          'info',
-          5500
-        );
+        showMedicalToast(unconfiguredMsg, 'warning', 6000);
       }
       return;
     }
@@ -4366,150 +4323,17 @@ async function handleGoogleSignIn(intentOverride) {
     throw new Error(extractApiErrorMessage(data, 'Không thể khởi tạo phiên Google OAuth.'));
   } catch (err) {
     console.error('Lỗi khởi tạo Google OAuth:', err);
-    if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    resetGoogleSignInButton();
     if (typeof showMedicalToast === 'function') {
-      showMedicalToast('Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.', 'error', 4500);
+      const msg = (err && err.name !== 'AbortError' && err.message && err.message !== 'Failed to fetch')
+        ? err.message
+        : (currentLang === 'en'
+          ? 'Sign-in server is temporarily unreachable. Please try again.'
+          : 'Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.');
+      showMedicalToast(msg, 'error', 4500);
     }
   }
 }
-
-function closeGoogleAccountModal() {
-  restoreModalTriggerFocus();
-  // Trạng thái 4 – Hủy đăng nhập: Đóng popup, quay lại modal đăng nhập ban đầu mà không đổi dữ liệu
-  const modal = document.getElementById('google-account-modal');
-  if (modal) modal.classList.add('hidden');
-  setGoogleModalState('select');
-}
-
-function setGoogleModalState(state) {
-  currentGoogleState = state;
-  const stateSelect = document.getElementById('google-state-select');
-  const stateCustom = document.getElementById('google-state-custom');
-  const stateLoading = document.getElementById('google-state-loading');
-  const stateSuccess = document.getElementById('google-state-success');
-  const heading = document.getElementById('google-modal-heading');
-  const subheading = document.getElementById('google-modal-subheading');
-
-  if (stateSelect) stateSelect.classList.toggle('hidden', state !== 'select');
-  if (stateCustom) stateCustom.classList.toggle('hidden', state !== 'custom');
-  if (stateLoading) stateLoading.classList.toggle('hidden', state !== 'loading');
-  if (stateSuccess) stateSuccess.classList.toggle('hidden', state !== 'success');
-
-  if (heading && subheading) {
-    if (state === 'select') {
-      heading.textContent = 'Chọn tài khoản';
-      subheading.innerHTML = 'Để tiếp tục đến <span class="text-white font-medium">MediMind AI</span>';
-    } else if (state === 'custom') {
-      heading.textContent = 'Đăng nhập';
-      subheading.innerHTML = 'Sử dụng Tài khoản Google của bạn';
-      const input = document.getElementById('google-custom-email-input');
-      if (input) setTimeout(() => input.focus(), 60);
-    } else if (state === 'loading') {
-      heading.textContent = 'Đang xác thực...';
-      subheading.innerHTML = 'Đang bảo mật phiên kết nối';
-    } else if (state === 'success') {
-      heading.textContent = 'Hoàn tất!';
-      subheading.innerHTML = 'Chào mừng bạn đến với MediMind AI';
-    }
-  }
-}
-
-async function startGoogleAccountSelection(email, name, initial, bgColor) {
-  // Cập nhật thông tin lên State 3 trước để sẵn sàng hiển thị
-  const avatarEl = document.getElementById('google-success-avatar');
-  const nameEl = document.getElementById('google-success-name');
-  const emailEl = document.getElementById('google-success-email');
-
-  if (avatarEl) {
-    avatarEl.textContent = initial || name.charAt(0).toUpperCase();
-    avatarEl.style.backgroundColor = bgColor || '#0284c7';
-  }
-  if (nameEl) nameEl.textContent = name;
-  if (emailEl) emailEl.textContent = email;
-
-  // Trạng thái 2 – Đang đăng nhập (Loading animation & pulse)
-  setGoogleModalState('loading');
-
-  try {
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${(bgColor || '#0284c7').replace('#', '')}&color=fff&size=128`;
-
-    const [res] = await Promise.all([
-      fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, avatar_url: avatarUrl })
-      }),
-      new Promise(resolve => setTimeout(resolve, 750)) // Smooth animation pause
-    ]);
-
-    const data = await res.json();
-    if (data.success && data.user) {
-      // Trạng thái 3 – Đăng nhập thành công (Demo checkmark & selected user display)
-      setGoogleModalState('success');
-
-      // Tự động chuyển đến giao diện Dashboard mẫu sau hiệu ứng hoàn tất
-      setTimeout(() => {
-        currentUser = data.user;
-        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-        startFreshChatForCurrentUser();
-        updateAuthUI();
-        closeGoogleAccountModal();
-        closeLoginModal();
-        broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-
-        if (typeof showMedicalToast === 'function') {
-          showMedicalToast(`Đăng nhập thành công với Google (${currentUser.email})!`, 'success');
-        }
-
-        if (pendingTabAfterLogin) {
-          const target = pendingTabAfterLogin;
-          pendingTabAfterLogin = null;
-          switchTab(target);
-        } else {
-          switchTab('home-tab');
-        }
-      }, 1200);
-
-    } else {
-      setGoogleModalState('select');
-      showMedicalToast(extractApiErrorMessage(data, 'Đăng nhập Google thất bại.'), 'error');
-    }
-  } catch (err) {
-    console.error('Lỗi Google Sign-In:', err);
-    setGoogleModalState('select');
-    showMedicalToast('Không thể kết nối máy chủ Google OAuth.', 'error');
-  }
-}
-
-function submitCustomGoogleAccount() {
-  const input = document.getElementById('google-custom-email-input');
-  let raw = (input?.value || '').trim();
-  if (!raw) {
-    input?.focus();
-    return;
-  }
-  let email = raw;
-  if (!email.includes('@')) {
-    email += '@gmail.com';
-  }
-  const prefix = email.split('@')[0];
-  const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Google User';
-  const initial = name.charAt(0).toUpperCase();
-  startGoogleAccountSelection(email, name, initial, '#0284c7');
-}
-
-// Bắt phím Escape và Enter cho Google Account Modal
-window.addEventListener('keydown', (e) => {
-  const modal = document.getElementById('google-account-modal');
-  if (modal && !modal.classList.contains('hidden')) {
-    if (e.key === 'Escape' && currentGoogleState !== 'loading') {
-      closeGoogleAccountModal();
-    }
-    if (e.key === 'Enter' && currentGoogleState === 'custom') {
-      submitCustomGoogleAccount();
-    }
-  }
-});
 
 async function handleRegisterSubmit(e) {
   e.preventDefault();
@@ -4567,32 +4391,6 @@ async function handleRegisterSubmit(e) {
     await requestAndShowOtp(identifier, channel, 'register', fullName);
   } finally {
     if (submitBtn) submitBtn.disabled = false;
-  }
-}
-
-async function quickLogin(type) {
-  const identifier = 'benhnhan.an@gmail.com';
-  const password = 'MatKhau123@';
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password, role: 'patient' })
-    });
-    const data = await res.json();
-    if (data.success && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      startFreshChatForCurrentUser();
-      updateAuthUI();
-      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-      closeLoginModal();
-    } else {
-      showMedicalToast(extractApiErrorMessage(data, 'Đăng nhập thất bại.'), 'error');
-    }
-  } catch (err) {
-    console.error('Lỗi đăng nhập nhanh:', err);
-    showMedicalToast('Không thể kết nối máy chủ xác thực.', 'error');
   }
 }
 
@@ -4753,7 +4551,8 @@ function updateAuthUI() {
     if (ehrSubtitle) ehrSubtitle.innerText = (currentLang === 'vi' ? 'Theo dõi lịch sử khám và điều trị' : 'Track examination and treatment history');
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
     const ptCodePrefix = currentLang === 'en' ? 'Patient ID' : 'Mã BN';
-    if (ehrPatientId) ehrPatientId.innerText = ptCodePrefix + ': #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
+    const formattedPtCode = formatPatientCode(currentUser.id);
+    if (ehrPatientId) ehrPatientId.innerText = ptCodePrefix + ': ' + formattedPtCode + ' • ' + subInfo;
     if (ehrAvatarBadge) ehrAvatarBadge.innerText = currentUser.badge || 'BN';
 
     const rightPanelName = document.getElementById('right-panel-patient-name');
@@ -4761,7 +4560,7 @@ function updateAuthUI() {
     const rightPanelAvatar = document.getElementById('right-panel-avatar');
     const rightPanelBhyt = document.getElementById('right-panel-bhyt');
     if (rightPanelName) rightPanelName.innerText = currentUser.name;
-    if (rightPanelId) rightPanelId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 4).padStart(4, '0');
+    if (rightPanelId) rightPanelId.innerText = `${ptCodePrefix}: ${formattedPtCode}`;
     if (rightPanelAvatar) {
       const initials = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
       rightPanelAvatar.innerText = initials;
@@ -4788,7 +4587,7 @@ function updateAuthUI() {
     const tabCity = document.getElementById('tab-profile-city');
     const tabAddress = document.getElementById('tab-profile-address');
 
-    if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
+    if (tabBannerId) tabBannerId.innerText = `${ptCodePrefix}: ${formattedPtCode}`;
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
     // Sync Essential Profile fields
@@ -5152,7 +4951,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (googleAuthStatus === 'error') {
     let errMsg = 'Đăng nhập Google không thành công. Vui lòng thử lại.';
-    if (googleErrorReason === 'access_denied') {
+    if (googleErrorReason === 'unconfigured') {
+      errMsg = currentLang === 'en'
+        ? 'Google Sign-In is not configured on this server. Please sign in with Email or Phone.'
+        : 'Đăng nhập bằng Google chưa được cấu hình trên máy chủ. Vui lòng đăng nhập bằng Email hoặc Số điện thoại.';
+    } else if (googleErrorReason === 'access_denied') {
       errMsg = 'Đã hủy đăng nhập Google (hoặc email này chưa được thêm vào mục Audience -> Test users trên Google Cloud).';
     } else if (googleErrorReason === 'redirect_uri_mismatch') {
       errMsg = 'Lỗi cấu hình Redirect URI trên Google Cloud Console.';
@@ -5938,9 +5741,11 @@ async function loadPrescriptionHistory() {
   const ehrPrescriptionList = document.getElementById('ehr-prescription-list');
 
   if (!currentUser || currentUser.isDemo) {
+    cachedPrescriptionHistory = [];
     if (listEl) listEl.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.</p>';
     if (countBadge) countBadge.innerText = '0 hồ sơ';
     if (emptyEl) emptyEl.classList.remove('hidden');
+    if (typeof refreshNotificationEngine === 'function') refreshNotificationEngine();
     return;
   }
 
@@ -5958,6 +5763,8 @@ async function loadPrescriptionHistory() {
 
     const data = await res.json();
     const history = data.history || [];
+    cachedPrescriptionHistory = history;
+    if (typeof refreshNotificationEngine === 'function') refreshNotificationEngine();
 
     if (countBadge) countBadge.innerText = (typeof currentLang !== 'undefined' && currentLang === 'en') ? `${history.length} records` : `${history.length} hồ sơ`;
 
@@ -6440,15 +6247,17 @@ async function confirmAndProceedPrescription() {
   if (docVal) currentPrescriptionData.doctor = docVal;
   if (diagVal) currentPrescriptionData.diagnosis = diagVal;
 
-  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument
-  try {
-    fetch('/api/prescription/confirm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentPrescriptionData)
-    }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
-  } catch (err) {
-    console.warn('Lỗi gửi xác nhận:', err);
+  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument (chỉ khi đã đăng nhập & có document_id)
+  if (currentUser && currentPrescriptionData.document_id) {
+    try {
+      fetch('/api/prescription/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentPrescriptionData)
+      }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
+    } catch (err) {
+      console.warn('Lỗi gửi xác nhận:', err);
+    }
   }
 
   // Ẩn màn hình dò lại
@@ -6548,7 +6357,7 @@ function renderPrescriptionResult(data) {
             <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
               <div class="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div>
-                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${escapeHtml(String(data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'))}</h3>
                   <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
                 </div>
                 <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
@@ -6570,7 +6379,7 @@ function renderPrescriptionResult(data) {
                       <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
                         <td class="py-3 px-3">
                           <div class="font-bold text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || m.test_name || 'Chỉ số xét nghiệm'))}</div>
-                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${escapeHtml(String(m.loinc_code))}</span>` : ''}
                         </td>
                         <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
                           ${escapeHtml(String(m.result != null ? m.result : (m.value != null ? m.value : '--')))} <span class="text-[11px] font-normal text-slate-400">${escapeHtml(String(m.unit || ''))}</span>
@@ -6578,7 +6387,7 @@ function renderPrescriptionResult(data) {
                         <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${escapeHtml(String(m.reference_range || m.reference || '--'))}</td>
                         <td class="py-3 px-3">
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
-                            ${m.computed_flag || m.status || 'Bình thường'}
+                            ${escapeHtml(String(m.computed_flag || m.status || 'Bình thường'))}
                           </span>
                         </td>
                         <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
@@ -6608,7 +6417,7 @@ function renderPrescriptionResult(data) {
                 <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">Active</span>
               </div>
               <div class="text-xs text-slate-700 dark:text-slate-200 space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
-                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
+                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${escapeHtml(String(data.interpretation)).replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
               </div>
             </div>
           </div>
@@ -6780,12 +6589,12 @@ function renderPrescriptionResult(data) {
                         <div class="flex flex-wrap items-center gap-2">
                           <h5 class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || 'Thuốc chưa xác định'))} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
                           <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                            ${m.purpose || m.category || 'Thuốc đặc trị'}
+                            ${escapeHtml(String(m.purpose || m.category || 'Thuốc đặc trị'))}
                           </span>
                         </div>
                         
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                          ${m.strength ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength}</strong> / viên</span><span>•</span>` : ''}
+                          ${m.strength ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${escapeHtml(String(m.strength))}</strong> / viên</span><span>•</span>` : ''}
                           <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
                         </div>
                       </div>
@@ -6802,7 +6611,7 @@ function renderPrescriptionResult(data) {
                       <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
                       <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button type="button" data-medicine="${medQueryAttribute}" onclick="askBotAboutSpecificMedicine(this.dataset.medicine)" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                    <button type="button" data-action="ask-medicine" data-medicine-name="${medQueryAttribute}" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
                       <span>Tư vấn thuốc</span>
                       <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
@@ -7207,6 +7016,7 @@ function cycleMedicalWallpaper() {
 
 let currentNotifFilter = 'all'; // 'all' | 'appointment' | 'medication'
 let cachedAllNotifications = [];
+let cachedPrescriptionHistory = [];
 let cachedUserAppointments = [];
 let appointmentExpiryTimer;
 
@@ -7314,15 +7124,18 @@ async function buildAllNotifications() {
   const todayKey = getTodayKey();
   const notifs = [];
 
-  // 1. Build Appointment Notifications
+  // 1. Build Appointment Notifications (real appointments only — never inject fake demo rows)
   let appts = [];
   if (currentUser && !currentUser.isDemo) {
     try {
       const res = await fetch('/api/appointments');
       if (res.ok) {
         const data = await res.json();
-        appts = data.appointments || [];
+        appts = Array.isArray(data.appointments) ? data.appointments : [];
         cachedUserAppointments = appts;
+      } else if (res.status === 401 || res.status === 403) {
+        cachedUserAppointments = [];
+        appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
       } else {
         appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
       }
@@ -7334,41 +7147,11 @@ async function buildAllNotifications() {
     appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
   }
 
-  // If user has no real appointments, add an intelligent demo appointment reminder (unless dismissed)
-  if (!appts || appts.length === 0) {
-    if (!readNotifs.includes('appt_999901') && !readNotifs.includes('appt_demo_appt_1')) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomStr = `${tomorrow.getDate().toString().padStart(2, '0')}/${(tomorrow.getMonth() + 1).toString().padStart(2, '0')}/${tomorrow.getFullYear()}`;
-      const demoAppt = {
-        id: 999901,
-        facility_name: 'Bệnh viện Đại học Y Dược TP.HCM',
-        specialty: 'Nội Tim Mạch & Huyết Áp',
-        appointment_date: tomStr,
-        appointment_time: '09:00',
-        status: 'confirmed',
-        patient_name: currentUser?.name || 'Khách khám trải nghiệm',
-        patient_phone: '0901234567',
-        is_demo: true,
-        pre_visit_summary: {
-          id: 'demo_intake_1',
-          part_a_patient_facts: {
-            chief_complaint: 'Tái khám định kỳ tăng huyết áp & kiểm tra tim mạch',
-            onset: '1 tuần trước',
-            symptoms: ['Hồi hộp nhẹ', 'Huyết áp dao động'],
-            vital_signs: { blood_pressure: '135/85 mmHg', heart_rate: '78 bpm' }
-          }
-        }
-      };
-      appts = [demoAppt];
-      cachedUserAppointments = [demoAppt];
-    }
-  }
-
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-  appts.forEach(appt => {
+  (Array.isArray(appts) ? appts : []).forEach(appt => {
+    if (!appt || appt.is_demo) return;
     const apptId = `appt_${appt.id}`;
     let urgency = 'upcoming';
     let urgencyLabel = 'Đã đặt';
@@ -7397,80 +7180,84 @@ async function buildAllNotifications() {
       urgencyClass,
       specialty: appt.specialty || 'Đa khoa',
       read: readNotifs.includes(apptId),
-      isDemo: !!appt.is_demo
+      isDemo: false
     });
   });
 
-  // 2. Build Medication Notifications (Nhắc Uống Thuốc)
+  // 2. Build Medication Notifications (Nhắc Uống Thuốc — chỉ tạo từ đơn thuốc thật đã lưu)
   const currentHour = now.getHours();
   const slots = [
-    {
-      slot: 'morning',
-      label: 'Cữ Sáng',
-      timeRange: '07:00 - 08:30',
-      active: currentHour >= 6 && currentHour < 11,
-      defaultMed: {
-        name: 'Multivitamin & Khoáng chất tổng hợp',
-        dosage: '1 viên sau ăn sáng',
-        instruction: 'Uống cùng 200ml nước ấm sau khi ăn no.'
-      }
-    },
-    {
-      slot: 'noon',
-      label: 'Cữ Trưa',
-      timeRange: '11:30 - 12:30',
-      active: currentHour >= 11 && currentHour < 15,
-      defaultMed: {
-        name: 'Men vi sinh Probiotic / Tiêu hóa',
-        dosage: '1 gói / 1 viên sau ăn trưa',
-        instruction: 'Hỗ trợ hấp thu tiêu hóa, uống sau ăn 15-30 phút.'
-      }
-    },
-    {
-      slot: 'evening',
-      label: 'Cữ Tối',
-      timeRange: '19:00 - 20:30',
-      active: currentHour >= 18 && currentHour <= 23,
-      defaultMed: {
-        name: 'Omega-3 Tinh khiết & Magie B6',
-        dosage: '1 viên sau bữa tối',
-        instruction: 'Hỗ trợ tuần hoàn não, thư giãn tim mạch và giấc ngủ sâu.'
-      }
-    }
+    { slot: 'morning', label: 'Cữ Sáng', timeRange: '07:00 - 08:30', active: currentHour >= 6 && currentHour < 11 },
+    { slot: 'noon', label: 'Cữ Trưa', timeRange: '11:30 - 12:30', active: currentHour >= 11 && currentHour < 15 },
+    { slot: 'evening', label: 'Cữ Tối', timeRange: '19:00 - 20:30', active: currentHour >= 18 && currentHour <= 23 }
   ];
 
-  let customMeds = [];
-  if (Array.isArray(cachedPrescriptionHistory) && cachedPrescriptionHistory.length > 0) {
-    const latest = cachedPrescriptionHistory[0];
-    if (latest && latest.summary) {
-      customMeds.push({
-        name: latest.diagnosis ? `Thuốc điều trị ${latest.diagnosis}` : 'Đơn thuốc chuyên khoa',
+  const realPrescriptions = Array.isArray(cachedPrescriptionHistory)
+    ? cachedPrescriptionHistory.filter(item => item && item.doc_type !== 'lab_test' && !item.is_demo)
+    : [];
+
+  if (realPrescriptions.length > 0) {
+    const latest = realPrescriptions[0];
+    const timeline = (latest && typeof latest.timeline === 'object' && latest.timeline) ? latest.timeline : null;
+
+    let addedFromTimeline = false;
+    if (timeline) {
+      slots.forEach(s => {
+        const slotMeds = Array.isArray(timeline[s.slot]) ? timeline[s.slot] : [];
+        if (slotMeds.length === 0) return;
+        addedFromTimeline = true;
+        const firstMed = slotMeds[0];
+        const medName = typeof firstMed === 'string'
+          ? firstMed
+          : (firstMed.name || firstMed.medication || latest.diagnosis || 'Đơn thuốc chuyên khoa');
+        const medDosage = (typeof firstMed === 'object' && firstMed.dose)
+          ? firstMed.dose
+          : 'Theo chỉ định đơn thuốc';
+        const medInstr = (typeof firstMed === 'object' && (firstMed.usage || firstMed.instruction))
+          ? (firstMed.usage || firstMed.instruction)
+          : `Theo đơn kê tại ${latest.facility || 'Cơ sở y tế'}`;
+
+        const medId = `med_${s.slot}_${todayKey}`;
+        const takenRecord = takenMeds[medId];
+        notifs.push({
+          id: medId,
+          type: 'medication',
+          slot: s.slot,
+          slotLabel: s.label,
+          title: medName,
+          dosage: medDosage,
+          instruction: medInstr,
+          time_str: `${s.label} (${s.timeRange})`,
+          taken: !!takenRecord,
+          takenAt: takenRecord || '',
+          read: readNotifs.includes(medId) || !!takenRecord,
+          activeSlot: s.active,
+          isDemo: false
+        });
+      });
+    }
+
+    if (!addedFromTimeline && (latest.summary || latest.diagnosis)) {
+      const activeSlot = slots.find(s => s.active) || slots[0];
+      const medId = `med_${activeSlot.slot}_${todayKey}`;
+      const takenRecord = takenMeds[medId];
+      notifs.push({
+        id: medId,
+        type: 'medication',
+        slot: activeSlot.slot,
+        slotLabel: activeSlot.label,
+        title: latest.diagnosis ? `Thuốc điều trị ${latest.diagnosis}` : 'Đơn thuốc chuyên khoa',
         dosage: '1 liều theo chỉ định đơn',
-        instruction: `Theo đơn kê tại ${latest.facility || 'Cơ sở y tế'}`
+        instruction: `Theo đơn kê tại ${latest.facility || 'Cơ sở y tế'}`,
+        time_str: `${activeSlot.label} (${activeSlot.timeRange})`,
+        taken: !!takenRecord,
+        takenAt: takenRecord || '',
+        read: readNotifs.includes(medId) || !!takenRecord,
+        activeSlot: activeSlot.active,
+        isDemo: false
       });
     }
   }
-
-  slots.forEach((s, idx) => {
-    const medInfo = customMeds[idx] || s.defaultMed;
-    const medId = `med_${s.slot}_${todayKey}`;
-    const takenRecord = takenMeds[medId];
-
-    notifs.push({
-      id: medId,
-      type: 'medication',
-      slot: s.slot,
-      slotLabel: s.label,
-      title: medInfo.name,
-      dosage: medInfo.dosage,
-      instruction: medInfo.instruction,
-      time_str: `${s.label} (${s.timeRange})`,
-      taken: !!takenRecord,
-      takenAt: takenRecord || '',
-      read: readNotifs.includes(medId) || !!takenRecord,
-      activeSlot: s.active
-    });
-  });
 
   cachedAllNotifications = notifs;
 }
@@ -7502,7 +7289,7 @@ function renderNotificationItems() {
       const isUrgent = item.urgency === 'today';
       return `
         <div class="notif-card notif-appointment ${item.read ? 'is-read' : ''} ${isUrgent ? 'is-urgent' : ''} cursor-pointer space-y-2"
-          onclick="handleNotificationClick('${item.id}', 'appointment', '${item.rawId || ''}')">
+          data-action="notif-appointment" data-notif-id="${escapeHtml(item.id)}" data-raw-id="${escapeHtml(item.rawId || '')}">
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
@@ -7574,7 +7361,7 @@ function renderNotificationItems() {
             <span class="text-[10px] text-slate-400">${escapeHtml(item.time_str)}</span>
             ${item.taken
               ? `<span class="notif-taken-badge">✓ Đã uống lúc ${escapeHtml(item.takenAt)}</span>`
-              : `<button type="button" onclick="markMedicationTaken('${item.id}', '${escapeHtml(item.title)}', event)" class="notif-take-btn">
+              : `<button type="button" data-action="mark-med-taken" data-notif-id="${escapeHtml(item.id)}" data-med-title="${escapeHtml(item.title)}" class="notif-take-btn">
                   Đã uống ✓
                 </button>`
             }
@@ -7583,6 +7370,37 @@ function renderNotificationItems() {
       `;
     }
   }).join('');
+}
+
+// Delegated event listener replacing inline onclick string interpolation (C-01 XSS remediation)
+if (typeof document !== 'undefined' && !window.__medimindSafeActionDelegationBound) {
+  window.__medimindSafeActionDelegationBound = true;
+  document.addEventListener('click', (event) => {
+    const medTakenBtn = event.target.closest('[data-action="mark-med-taken"]');
+    if (medTakenBtn) {
+      markMedicationTaken(
+        medTakenBtn.dataset.notifId || '',
+        medTakenBtn.dataset.medTitle || '',
+        event
+      );
+      return;
+    }
+
+    const askMedBtn = event.target.closest('[data-action="ask-medicine"]');
+    if (askMedBtn) {
+      askBotAboutSpecificMedicine(askMedBtn.dataset.medicineName || 'thuốc');
+      return;
+    }
+
+    const notifApptCard = event.target.closest('[data-action="notif-appointment"]');
+    if (notifApptCard) {
+      handleNotificationClick(
+        notifApptCard.dataset.notifId || '',
+        'appointment',
+        notifApptCard.dataset.rawId || ''
+      );
+    }
+  });
 }
 
 function updateNotificationBadges() {

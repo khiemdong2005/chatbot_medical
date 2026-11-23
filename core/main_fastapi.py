@@ -36,7 +36,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.concurrency import run_in_threadpool
 # VULN-11: starlette.middleware.wsgi.WSGIMiddleware is deprecated in Starlette ≥ 0.21.
@@ -267,12 +267,28 @@ class ChatMessageRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse, summary="Giao diện Web Trợ lý Sức khỏe MediMind")
 async def get_index(request: Request):
     """Phục vụ toàn bộ giao diện Web."""
-    google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+    from core.settings import is_configured_secret
+
+    raw_maps_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+    google_maps_api_key = raw_maps_key if is_configured_secret(raw_maps_key) else ""
     return templates.TemplateResponse(
         request,
         "index.html",
         context={"request": request, "google_maps_api_key": google_maps_api_key},
     )
+
+
+_SECURITY_TXT_BODY = (
+    "Contact: mailto:security@medimind.local\n"
+    "Expires: 2027-12-31T23:59:59.000Z\n"
+    "Preferred-Languages: vi, en\n"
+)
+
+
+@app.get("/.well-known/security.txt", include_in_schema=False)
+async def security_txt_endpoint():
+    """Chính sách tiếp nhận báo cáo lỗ hổng bảo mật chuẩn RFC 9116."""
+    return PlainTextResponse(content=_SECURITY_TXT_BODY, media_type="text/plain; charset=utf-8")
 
 
 def extract_request_identity(request: Request) -> tuple[Optional[int], Optional[str], bool]:
@@ -291,7 +307,13 @@ def extract_request_identity(request: Request) -> tuple[Optional[int], Optional[
         try:
             serializer = flask_app_instance.session_interface.get_signing_serializer(flask_app_instance)
             if serializer:
-                data = serializer.loads(raw_cookie)
+                lifetime = getattr(flask_app_instance, "permanent_session_lifetime", None)
+                max_age = (
+                    int(lifetime.total_seconds())
+                    if hasattr(lifetime, "total_seconds")
+                    else int(lifetime or 7200)
+                )
+                data = serializer.loads(raw_cookie, max_age=max_age)
                 if isinstance(data, dict):
                     user_id = data.get("user_id")
                     guest_token = data.get("guest_token")

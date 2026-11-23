@@ -11,7 +11,7 @@ from core.api_errors import ErrorCode, flask_api_error
 from core.db_utils import commit_or_rollback
 from core.models import User, db
 from core.otp_service import otp_manager
-from core.settings import settings
+from core.settings import settings, is_configured_secret
 
 logger = logging.getLogger("MediMindApp")
 
@@ -47,6 +47,12 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
 
         from core.rate_limit_service import rate_limit_service
         client_ip = get_request_client_ip()
+        if not rate_limit_service.check_login_ip_rate_limit(client_ip, max_attempts=30, window_seconds=900):
+            return flask_api_error(
+                ErrorCode.RATE_LIMITED,
+                "Địa chỉ IP tạm khóa 15 phút do phát hiện quá nhiều yêu cầu đăng nhập liên tiếp. Vui lòng thử lại sau.",
+                status_code=429
+            )
         if not rate_limit_service.check_login_rate_limit(client_ip, raw_identifier, max_attempts=5, window_seconds=300):
             return flask_api_error(
                 ErrorCode.RATE_LIMITED,
@@ -350,6 +356,16 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         if not identifier:
             return jsonify({"success": False, "error": "Vui lòng nhập Email hoặc Số điện thoại."}), 400
 
+        # SECURITY (H-04): Giới hạn tần suất gửi OTP theo địa chỉ IP chống SMS/Email Bombing
+        from core.rate_limit_service import rate_limit_service
+        client_ip = get_request_client_ip()
+        if not rate_limit_service.check_otp_send_ip_rate_limit(client_ip, max_requests=5, window_seconds=900):
+            return flask_api_error(
+                ErrorCode.RATE_LIMITED,
+                "Bạn đã yêu cầu gửi mã OTP quá nhiều lần từ địa chỉ IP này. Vui lòng thử lại sau 15 phút.",
+                status_code=429
+            )
+
         # Tự động nhận diện kênh gửi nếu client không truyền channel
         if not channel:
             channel = "email" if "@" in identifier else "sms"
@@ -625,6 +641,8 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         import hmac
         import time
 
+        if not app.secret_key:
+            raise RuntimeError("SECRET_KEY chưa được cấu hình cho Google OAuth state.")
         clean_intent = "register" if intent == "register" else "login"
         payload = json.dumps({
             "n": secrets.token_urlsafe(12),
@@ -632,7 +650,7 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
             "t": int(time.time())
         }, separators=(",", ":")).encode("utf-8")
         b64_payload = base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
-        secret = (app.secret_key or "medimind-oauth-secret").encode("utf-8")
+        secret = str(app.secret_key).encode("utf-8")
         sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).hexdigest()
         return f"{b64_payload}.{sig}"
 
@@ -642,11 +660,11 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         import hmac
         import time
 
-        if not state_token or "." not in state_token:
+        if not state_token or "." not in state_token or not app.secret_key:
             return None
         try:
             b64_payload, sig = state_token.rsplit(".", 1)
-            secret = (app.secret_key or "medimind-oauth-secret").encode("utf-8")
+            secret = str(app.secret_key).encode("utf-8")
             expected_sig = hmac.new(secret, b64_payload.encode("ascii"), hashlib.sha256).hexdigest()
             if not hmac.compare_digest(sig, expected_sig):
                 return None
@@ -676,12 +694,12 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         client_secret = (os.getenv("GOOGLE_CLIENT_SECRET") or "").strip()
         redirect_uri = (os.getenv("GOOGLE_REDIRECT_URI") or url_for("auth_google_callback", _external=True)).strip()
 
-        if not client_id or not client_secret:
+        if not is_configured_secret(client_id) or not is_configured_secret(client_secret):
             if request.args.get("format") == "json":
                 return jsonify({
                     "success": False,
                     "configured": False,
-                    "error": "Chưa cấu hình GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET trong .env."
+                    "error": "Đăng nhập bằng Google chưa được cấu hình trên máy chủ (thiếu GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET hợp lệ trong .env)."
                 }), 503
             return redirect("/?google_auth=error&error_reason=unconfigured")
 
@@ -740,6 +758,10 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
         client_secret = (os.getenv("GOOGLE_CLIENT_SECRET") or "").strip()
         redirect_uri = (os.getenv("GOOGLE_REDIRECT_URI") or url_for("auth_google_callback", _external=True)).strip()
+
+        if not is_configured_secret(client_id) or not is_configured_secret(client_secret):
+            logger.warning("Google OAuth callback từ chối: GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET chưa cấu hình hợp lệ.")
+            return redirect("/?google_auth=error&error_reason=unconfigured")
 
         token_payload = urllib.parse.urlencode({
             "code": code,
@@ -909,8 +931,8 @@ def register_auth_routes(app, *, get_request_client_ip, valid_birth_date, find_l
         from google.auth.transport import requests as google_requests
 
         client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
-        if not client_id:
-            logger.warning("Google OAuth từ chối xác thực: GOOGLE_CLIENT_ID chưa được cấu hình.")
+        if not is_configured_secret(client_id):
+            logger.warning("Google OAuth từ chối xác thực: GOOGLE_CLIENT_ID chưa được cấu hình hợp lệ.")
             return flask_api_error(
                 ErrorCode.AI_UNAVAILABLE,
                 "Dịch vụ xác thực Google chưa được cấu hình trên máy chủ.",
