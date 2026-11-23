@@ -73,22 +73,35 @@ class _OpenRouterHTTPError(Exception):
 
 class _OpenRouterResponse:
     """Mimics google-genai GenerateContentResponse with .text attribute."""
-    def __init__(self, text: str, raw: Optional[Dict[str, Any]] = None):
+    def __init__(self, text: str, raw: Optional[Dict[str, Any]] = None, model: Optional[str] = None):
         self.text = text
         self.raw = raw or {}
+        self.model = model
+
+
+GROQ_FALLBACK_MODELS = ("qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b")
 
 
 class _OpenRouterModels:
-    """Mimics client.models.generate_content(...) via OpenRouter Chat Completions API."""
-    ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+    """Mimics client.models.generate_content(...) via OpenAI-compatible Chat Completions API (Groq / OpenRouter)."""
+    ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
 
-    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False):
-        self._api_key = api_key
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False, provider: str = "openrouter"):
+        self._api_key = (api_key or "").strip()
         self._timeout = max(10.0, float(timeout_seconds))
         self._chat = chat
+        self._provider = (provider or "openrouter").strip().lower()
 
     def _endpoint(self) -> str:
-        base = (os.getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1").rstrip("/")
+        if self._provider == "groq":
+            base = (os.getenv("GROQ_BASE_URL") or "https://api.groq.com/openai/v1").strip().rstrip("/")
+            parsed = urlsplit(base)
+            if (parsed.scheme != "https" or parsed.netloc != "api.groq.com"
+                    or parsed.path != "/openai/v1" or parsed.query or parsed.fragment):
+                raise _OpenRouterHTTPError(400, "Invalid Groq base URL")
+            return f"{base}/chat/completions"
+
+        base = (os.getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1").strip().rstrip("/")
         parsed = urlsplit(base)
         if (parsed.scheme != "https" or parsed.netloc != "openrouter.ai"
                 or parsed.path != "/api/v1" or parsed.query or parsed.fragment):
@@ -127,15 +140,19 @@ class _OpenRouterModels:
         return parts
 
     def _post_completion(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "MediMind-Clinical-AI/2.5",
+        }
+        if self._provider != "groq":
+            headers["HTTP-Referer"] = "https://medimind.local"
+            headers["X-Title"] = "MediMind Clinical AI"
+        provider_label = "Groq" if self._provider == "groq" else "OpenRouter"
         req = urllib.request.Request(
             self._endpoint(),
             data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {self._api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://medimind.local",
-                "X-Title": "MediMind Clinical AI",
-            },
+            headers=headers,
             method="POST"
         )
         try:
@@ -144,9 +161,9 @@ class _OpenRouterModels:
         except urllib.error.HTTPError as he:
             # Provider error bodies can echo request content. Never retain them
             # in exceptions, retry logs, or API responses.
-            raise _OpenRouterHTTPError(he.code, f"OpenRouter HTTP {he.code}") from None
+            raise _OpenRouterHTTPError(he.code, f"{provider_label} HTTP {he.code}") from None
         except urllib.error.URLError as ue:
-            raise TimeoutError(f"OpenRouter connection error: {ue.reason}") from None
+            raise TimeoutError(f"{provider_label} connection error: {ue.reason}") from None
 
     def generate_content(self, model: str, contents: Any, config: Optional[Any] = None) -> _OpenRouterResponse:
         def get_config(key: str) -> Any:
@@ -178,7 +195,10 @@ class _OpenRouterModels:
             payload["temperature"] = float(temperature)
         if max_tokens is not None and int(max_tokens) >= 2048:
             payload["max_tokens"] = int(max_tokens)
-        if self._chat:
+        if self._provider == "groq":
+            if want_json:
+                payload["response_format"] = {"type": "json_object"}
+        elif self._chat:
             routing: Dict[str, Any] = {}
             if os.getenv("OPENROUTER_CHAT_DATA_COLLECTION", "").strip().lower() == "deny":
                 routing["data_collection"] = "deny"
@@ -197,16 +217,41 @@ class _OpenRouterModels:
                 payload["provider"] = routing
         elif want_json:
             payload["response_format"] = {"type": "json_object"}
-        if isinstance(reasoning_enabled, bool):
-            payload["reasoning"] = {"enabled": reasoning_enabled}
+        if self._provider != "groq":
+            if isinstance(reasoning_enabled, bool):
+                payload["reasoning"] = {"enabled": reasoning_enabled}
+            elif "nemotron" in (model or "").lower():
+                payload["reasoning"] = {"enabled": False}
+
+        def _send_with_compat(req_payload: Dict[str, Any]) -> Dict[str, Any]:
+            try:
+                return self._post_completion(req_payload)
+            except _OpenRouterHTTPError as err:
+                # Preserve the legacy compatibility retry for workflows outside strict OpenRouter chat.
+                if (self._provider == "groq" or not self._chat) and err.status_code == 400 and "response_format" in req_payload:
+                    req_payload.pop("response_format", None)
+                    return self._post_completion(req_payload)
+                raise
 
         try:
-            resp_json = self._post_completion(payload)
+            resp_json = _send_with_compat(payload)
         except _OpenRouterHTTPError as e:
-            # Preserve the legacy compatibility retry for workflows outside chat.
-            if not self._chat and e.status_code == 400 and "response_format" in payload:
-                payload.pop("response_format", None)
-                resp_json = self._post_completion(payload)
+            if self._provider == "groq" and e.status_code in (404, 413, 429):
+                last_err = e
+                resp_json = None
+                for fallback_model in GROQ_FALLBACK_MODELS:
+                    if fallback_model == payload.get("model"):
+                        continue
+                    payload["model"] = fallback_model
+                    try:
+                        resp_json = _send_with_compat(payload)
+                        break
+                    except _OpenRouterHTTPError as fb_err:
+                        last_err = fb_err
+                        if fb_err.status_code not in (404, 413, 429):
+                            raise
+                if resp_json is None:
+                    raise last_err
             else:
                 raise
 
@@ -230,13 +275,14 @@ class _OpenRouterModels:
                               if isinstance(part, dict) and isinstance(part.get("text"), str))
         if not isinstance(content, str):
             content = ""
-        return _OpenRouterResponse(text=content, raw=resp_json)
+        return _OpenRouterResponse(text=content, raw=resp_json, model=payload.get("model"))
 
 
 class _OpenRouterClient:
-    """Drop-in replacement for genai.Client exposing .models.generate_content()."""
-    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False):
-        self.models = _OpenRouterModels(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat)
+    """Drop-in replacement for genai.Client exposing .models.generate_content() (Groq / OpenRouter)."""
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False, provider: str = "openrouter"):
+        self.provider = (provider or "openrouter").strip().lower()
+        self.models = _OpenRouterModels(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat, provider=self.provider)
 
 
 class LLMProviderError(Exception):
@@ -271,10 +317,27 @@ class LLMProvider:
     # 1. API KEY RESOLUTION & VALIDATION
     # ==========================================================================
 
+    def is_groq_active(self) -> bool:
+        """Kiểm tra xem hệ thống có đang cấu hình chạy Groq API hay không."""
+        provider = os.getenv("AI_PROVIDER", "").strip().lower()
+        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        if provider == "groq":
+            return bool(groq_key)
+        if not provider and groq_key:
+            return True
+        return False
+
     def is_openrouter_active(self) -> bool:
         """Kiểm tra xem hệ thống có đang cấu hình chạy OpenRouter hay không."""
+        if self.is_groq_active():
+            return False
         provider = os.getenv("AI_PROVIDER", "").strip().lower()
-        openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+        openrouter_key = (
+            os.getenv("OPENROUTER_API_KEY", "").strip()
+            or os.getenv("OPENROUTER_CHAT_API_KEY", "").strip()
+            or os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
+            or os.getenv("OPENROUTER_NUTRITION_API_KEY", "").strip()
+        )
         return provider == "openrouter" and bool(openrouter_key)
 
     def resolve_api_key(
@@ -284,8 +347,9 @@ class LLMProvider:
     ) -> str:
         """
         Xác định API Key theo Profile một cách an toàn:
-        - Nếu AI_PROVIDER=openrouter -> ưu tiên OPENROUTER_API_KEY (bỏ qua key Gemini cũ nếu caller truyền nhầm).
         - Nếu có explicit_key -> ưu tiên số 1.
+        - Nếu AI_PROVIDER=groq (hoặc mặc định có GROQ_API_KEY) -> dùng GROQ_API_KEY.
+        - Nếu AI_PROVIDER=openrouter -> ưu tiên key OpenRouter theo profile rồi tới OPENROUTER_API_KEY.
         - Profile 'nutrition' -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
         - Profile 'chat' -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
         - Mặc định -> GEMINI_API_KEY -> GOOGLE_API_KEY.
@@ -293,10 +357,29 @@ class LLMProvider:
         if explicit_key and isinstance(explicit_key, str) and explicit_key.strip():
             return explicit_key.strip()
 
-        if self.is_openrouter_active():
-            return os.getenv("OPENROUTER_API_KEY", "").strip()
+        if self.is_groq_active():
+            return os.getenv("GROQ_API_KEY", "").strip()
 
         prof = (profile or "").lower()
+        if self.is_openrouter_active():
+            if prof in ("chat", "chat_generation"):
+                k = os.getenv("OPENROUTER_CHAT_API_KEY", "").strip()
+                if k:
+                    return k
+            elif prof in ("ocr", "prescription", "interpretation"):
+                k = os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
+                if k:
+                    return k
+            elif prof in ("nutrition", "nutrition_ai"):
+                k = os.getenv("OPENROUTER_NUTRITION_API_KEY", "").strip()
+                if k:
+                    return k
+            return (
+                os.getenv("OPENROUTER_API_KEY", "").strip()
+                or os.getenv("OPENROUTER_CHAT_API_KEY", "").strip()
+                or os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
+                or os.getenv("OPENROUTER_NUTRITION_API_KEY", "").strip()
+            )
         if prof in ("nutrition", "nutrition_ai"):
             key = os.getenv("GEMINI_NUTRITION_API_KEY") or settings.gemini.nutrition_api_key or ""
             if key:
@@ -340,11 +423,23 @@ class LLMProvider:
         Khởi tạo hoặc tái sử dụng AI Client (OpenRouter hoặc Gemini) một cách lười (Lazy) và an toàn đa luồng.
         Không thực hiện bất kỳ lệnh gọi mạng nào lúc khởi tạo.
         """
-        use_openrouter = provider == "openrouter" or (
-            provider is None and isinstance(api_key, str) and api_key.startswith("sk-or-"))
-        chat = use_openrouter and (profile or "").lower() in ("chat", "chat_generation")
+        key_clean = (api_key or "").strip()
+        env_groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        use_groq = provider == "groq" or (
+            provider is None and (
+                key_clean.startswith("gsk_")
+                or (self.is_groq_active() and bool(env_groq_key) and key_clean == env_groq_key)
+            )
+        )
+        use_openrouter = (not use_groq) and (
+            provider == "openrouter" or (
+                provider is None and key_clean.startswith("sk-or-")
+            )
+        )
+        chat = (use_groq or use_openrouter) and (profile or "").lower() in ("chat", "chat_generation")
         timeout_ms = max(10000, int(timeout_seconds * 1000))
-        cache_key = f"{'or' if use_openrouter else 'gm'}_{hash(api_key)}_{timeout_ms}"
+        prefix = "gq" if use_groq else ("or" if use_openrouter else "gm")
+        cache_key = f"{prefix}_{hash(key_clean)}_{timeout_ms}"
         if chat:
             cache_key += "_chat"
 
@@ -352,8 +447,13 @@ class LLMProvider:
             if cache_key in self._clients:
                 return self._clients[cache_key]
 
+            if use_groq:
+                client = _OpenRouterClient(api_key=key_clean, timeout_seconds=timeout_seconds, chat=chat, provider="groq")
+                self._clients[cache_key] = client
+                return client
+
             if use_openrouter:
-                client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat)
+                client = _OpenRouterClient(api_key=key_clean, timeout_seconds=timeout_seconds, chat=chat, provider="openrouter")
                 self._clients[cache_key] = client
                 return client
 
@@ -433,6 +533,20 @@ class LLMProvider:
     def get_default_model(self, operation: str) -> str:
         """Lấy model mặc định cho từng tác vụ."""
         op = operation.lower()
+        if self.is_groq_active():
+            default_groq = (os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
+            if "chat" in op:
+                return (os.getenv("GROQ_CHAT_MODEL") or default_groq).strip()
+            if "expansion" in op:
+                return (os.getenv("GROQ_EXPANSION_MODEL") or default_groq).strip()
+            if "nutrition" in op:
+                return (os.getenv("GROQ_NUTRITION_MODEL") or default_groq).strip()
+            if "ocr" in op or "prescription" in op:
+                return (os.getenv("GROQ_OCR_MODEL") or default_groq).strip()
+            if "interpretation" in op:
+                return (os.getenv("GROQ_INTERPRETATION_MODEL") or default_groq).strip()
+            return default_groq
+
         if self.is_openrouter_active():
             if "chat" in op:
                 return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
@@ -486,7 +600,9 @@ class LLMProvider:
         - Ghi Log bảo mật Zero-PHI
         """
         req_id = request_id or uuid.uuid4().hex[:8]
-        if provider == "openrouter":
+        if provider == "groq":
+            effective_key = (api_key or os.getenv("GROQ_API_KEY") or "").strip()
+        elif provider == "openrouter":
             # An absent OpenRouter key must never resolve to a legacy Gemini key.
             effective_key = (api_key or os.getenv("OPENROUTER_API_KEY") or "").strip()
         else:
@@ -690,7 +806,7 @@ class LLMProvider:
         config_kwargs: Dict[str, Any] = {}
         if json_mode:
             config_kwargs["response_mime_type"] = "application/json"
-        if schema and provider != "openrouter":
+        if schema and provider not in ("openrouter", "groq"):
             config_kwargs["response_json_schema"] = schema
         if system_instruction:
             config_kwargs["system_instruction"] = system_instruction
@@ -701,8 +817,8 @@ class LLMProvider:
         if provider == "openrouter" and reasoning_enabled is not None:
             config_kwargs["reasoning_enabled"] = reasoning_enabled
 
-        if provider == "openrouter":
-            # Many free models do not accept structured-output parameters.
+        if provider in ("openrouter", "groq"):
+            # Many OpenAI-compatible endpoints do not accept Gemini SDK structured-output parameters.
             # The caller's prompt describes the schema; validation remains local.
             config = config_kwargs
         else:
@@ -718,7 +834,7 @@ class LLMProvider:
             raw = res.text or "" if res else ""
             if not isinstance(raw, str):
                 raw = ""
-            cleaned = raw.strip()
+            cleaned = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL | re.IGNORECASE).strip()
             if cleaned.startswith("```"):
                 cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
                 cleaned = re.sub(r"\s*```$", "", cleaned).strip()

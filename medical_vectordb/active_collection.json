@@ -1,25 +1,17 @@
 {
-  "active_collection": "medical_knowledge_expanded_v4_20261115_005612",
-  "created_at": "2026-11-15T00:56:13.006132",
-  "activated_at": "2026-11-14T23:35:37.853093+00:00",
+  "active_collection": "medical_knowledge_20261123_110515",
+  "created_at": "2026-11-23T11:07:27.008696",
+  "updated_at": "2026-11-23T11:07:27.008714",
   "document_count": 725,
-  "chunk_count": 725,
   "source_file_count": 364,
   "embedding_model": "all-MiniLM-L6-v2",
   "embedding_dimension": 384,
   "chunking_version": "v2_sentence_contextual",
-  "bilingual_metadata_version": "v2_symmetric_bilingual",
-  "bm25_df_policy": "no_df_cutoff",
-  "frozen_config": {
-    "no_df_cutoff": true,
-    "symmetric_bilingual_metadata": true,
-    "source_diversity": false
-  },
   "chunk_config": {
     "max_chars": 2000,
     "overlap_chars": 200,
     "min_chunk_chars": 200,
     "hard_max_chars": 2200
   },
-  "version": "20261115_005612"
+  "version": "20261123_110515"
 }

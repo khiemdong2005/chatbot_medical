@@ -2,9 +2,96 @@ import os
 import json
 import re
 import logging
+import unicodedata
 from typing import Dict, Any, Optional
 
+from core.prompts import (
+    PRESCRIPTION_OCR_FEW_SHOT_RULES,
+    PRESCRIPTION_OCR_HANDWRITTEN_RULE,
+    PRESCRIPTION_OCR_REDACTED_RULE,
+    PRESCRIPTION_OCR_SYSTEM_PROMPT,
+)
+
 logger = logging.getLogger("GeminiSchemaService")
+
+
+_VIETNAMESE_UNIT_MAP = {
+    "vien": "Viên",
+    "viên": "Viên",
+    "goi": "Gói",
+    "gói": "Gói",
+    "ong": "Ống",
+    "ống": "Ống",
+    "chai": "Chai",
+    "tuyp": "Tuýp",
+    "tuýp": "Tuýp",
+    "lo": "Lọ",
+    "lọ": "Lọ",
+    "hop": "Hộp",
+    "hộp": "Hộp",
+}
+
+
+def _normalize_vietnamese_units(text: str) -> str:
+    """Chuẩn hóa đơn vị tính tiếng Việt có dấu sau số lượng hoặc phân số liều dùng."""
+    if not text:
+        return ""
+
+    def _replace(match: re.Match) -> str:
+        qty = re.sub(r"\s*/\s*", "/", match.group(1).strip())
+        unit_key = match.group(2).casefold()
+        return f"{qty} {_VIETNAMESE_UNIT_MAP.get(unit_key, match.group(2))}"
+
+    return re.sub(
+        r"(?i)\b(\d+(?:\s*/\s*\d+|[.,]\d+)?)\s*(viên|vien|gói|goi|ống|ong|chai|tuýp|tuyp|lọ|lo|hộp|hop)\b",
+        _replace,
+        str(text).strip(),
+    )
+
+
+_REDACTED_ADMIN_PLACEHOLDERS = {
+    "benh nhan",
+    "nguoi benh",
+    "ho ten",
+    "ho va ten",
+    "ten benh nhan",
+    "khong ro",
+    "khong xac dinh",
+    "chua xac dinh",
+    "chua ro",
+    "null",
+    "none",
+    "n a",
+    "na",
+    "unknown",
+    "redacted",
+}
+
+
+def _fold_admin_text(text: str) -> str:
+    """Fold Vietnamese diacritics and punctuation to compare redacted placeholders uniformly."""
+    decomposed = unicodedata.normalize("NFD", text.casefold().replace("đ", "d"))
+    stripped = "".join(ch for ch in decomposed if unicodedata.category(ch) != "Mn")
+    return re.sub(r"[^a-z0-9]+", " ", stripped).strip()
+
+
+def _sanitize_redacted_admin_field(value: Any, *, is_gender: bool = False) -> str:
+    """Convert missing, null, or placeholder administrative values into an empty string."""
+    if value is None:
+        return ""
+    raw = str(value).strip()
+    if not raw:
+        return ""
+    folded = _fold_admin_text(raw)
+    if not folded or folded in _REDACTED_ADMIN_PLACEHOLDERS:
+        return ""
+    if is_gender:
+        if re.fullmatch(r"(?:nu|female|woman|girl|f)", folded):
+            return "Nữ"
+        if re.fullmatch(r"(?:nam|male|man|boy|m)", folded):
+            return "Nam"
+        return ""
+    return raw
 
 
 def _get_image_mime_type(file_path: str) -> str:
@@ -91,8 +178,11 @@ Hãy chép từng hàng thuốc theo đúng thứ tự trên ảnh.
 Quy tắc:
 - Chỉ ghi chữ nhìn thấy trên ảnh; không đoán dựa vào kiến thức y khoa.
 - Tách tên biệt dược in đậm và hoạt chất trong ngoặc.
-- Không thay tên biệt dược bằng tên hoạt chất.
+- Không thay tên biệt dược bằng tên hoạt chất; trường "name" phải giữ ĐẦY ĐỦ tên thương mại, hàm lượng và tên hoạt chất trong ngoặc.
 - Không tự thêm số lượng, buổi uống hoặc cách dùng.
+- {PRESCRIPTION_OCR_HANDWRITTEN_RULE} Khi có nét viết tay sửa đổi, ưu tiên ghi giá trị theo chữ viết tay vào các trường dose, quantity_as_printed, schedule_as_printed và usage_as_printed.
+- {PRESCRIPTION_OCR_FEW_SHOT_RULES}
+- {PRESCRIPTION_OCR_REDACTED_RULE}
 - Nếu chữ không rõ, để trống trường đó và ghi tên trường vào uncertain_fields.
 - Chỉ trả về JSON, không thêm Markdown.
 
@@ -110,11 +200,14 @@ Dạng JSON:
   "medications": [
     {{
       "stt": 1,
+      "name": "",
       "brand_name_as_printed": "",
       "ingredients_as_printed": "",
+      "dose": "",
       "quantity_as_printed": "",
       "schedule_as_printed": "",
       "usage_as_printed": "",
+      "purpose": "",
       "uncertain_fields": []
     }}
   ]
@@ -128,6 +221,7 @@ Dạng JSON:
         res = llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
+            system_instruction=PRESCRIPTION_OCR_SYSTEM_PROMPT,
             api_key=api_key,
             operation="prescription_ocr"
         )
@@ -143,13 +237,26 @@ Dạng JSON:
                     continue
                 brand_name = str(item.get("brand_name_as_printed") or item.get("brand_name") or "").strip()
                 active_ingredient = str(item.get("ingredients_as_printed") or item.get("active_ingredient") or "").strip()
-                name = str(item.get("name") or brand_name or active_ingredient).strip()
+                explicit_name = str(item.get("name") or "").strip()
+                clean_ing = active_ingredient.strip("() ").strip()
+                if explicit_name:
+                    name = explicit_name
+                elif brand_name and clean_ing and clean_ing.lower() not in brand_name.lower():
+                    name = f"{brand_name} ({clean_ing})"
+                else:
+                    name = brand_name or active_ingredient
                 if not name:
                     continue
 
-                quantity = str(item.get("quantity_as_printed") or item.get("quantity") or item.get("days") or "").strip()
-                schedule = str(item.get("schedule_as_printed") or item.get("schedule") or item.get("frequency") or "").strip()
-                usage = str(item.get("usage_as_printed") or item.get("usage") or item.get("instructions") or "").strip()
+                quantity = _normalize_vietnamese_units(
+                    item.get("quantity_as_printed") or item.get("quantity") or item.get("days") or ""
+                )
+                schedule = _normalize_vietnamese_units(
+                    item.get("schedule_as_printed") or item.get("schedule") or item.get("frequency") or ""
+                )
+                usage = _normalize_vietnamese_units(
+                    item.get("usage_as_printed") or item.get("usage") or item.get("instructions") or ""
+                )
                 uncertain = item.get("uncertain_fields") or []
                 needs_review = bool(item.get("needs_review") or uncertain)
 
@@ -163,10 +270,14 @@ Dạng JSON:
                     if m_str:
                         strength = m_str.group(1).strip()
 
-                dose = str(item.get("dose") or "").strip()
+                dose = _normalize_vietnamese_units(item.get("dose") or "")
                 if not dose:
-                    m_dose = re.search(r"(\d+\s*(?:viên|vien|gói|goi|ống|ong|lọ|lo|chai|hộp|hop))", f"{usage} {schedule}", re.IGNORECASE)
-                    dose = m_dose.group(1).strip() if m_dose else "1"
+                    m_dose = re.search(
+                        r"(\d+(?:\s*/\s*\d+|[.,]\d+)?\s*(?:viên|vien|gói|goi|ống|ong|lọ|lo|chai|tuýp|tuyp|hộp|hop|ml|giọt|giot))",
+                        f"{usage} {schedule}",
+                        re.IGNORECASE,
+                    )
+                    dose = _normalize_vietnamese_units(m_dose.group(1).strip()) if m_dose else "1"
 
                 normalized_meds.append({
                     "stt": item.get("stt"),
@@ -187,6 +298,12 @@ Dạng JSON:
                     "uncertain_fields": uncertain
                 })
             res["medications"] = normalized_meds
+
+        for admin_key in ("patient_name", "dob", "age"):
+            if admin_key in res:
+                res[admin_key] = _sanitize_redacted_admin_field(res.get(admin_key))
+        if "gender" in res:
+            res["gender"] = _sanitize_redacted_admin_field(res.get("gender"), is_gender=True)
 
         return res
 

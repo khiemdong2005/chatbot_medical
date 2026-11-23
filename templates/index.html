@@ -200,7 +200,7 @@
   <aside
     class="fixed left-1 sm:left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 sm:gap-3 py-2.5 sm:py-4 px-1 sm:px-2 rounded-full glass-dock shadow-2xl">
 
-    <button onclick="switchTab('home-tab')" id="dock-home-tab"
+    <button onclick="navigateTo('home-tab')" id="dock-home-tab"
       class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all bg-white text-slate-950 shadow-[0_0_20px_rgba(255,255,255,0.45)] cursor-pointer">
       <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
@@ -211,7 +211,7 @@
         chủ</span>
     </button>
 
-    <button onclick="switchTab('chat-tab')" id="dock-chat-tab"
+    <button onclick="navigateTo('chat-tab')" id="dock-chat-tab"
       class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
 
       <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@
 
 
 
-    <button onclick="switchTab('ocr-tab')" id="dock-ocr-tab"
+    <button onclick="navigateTo('ocr-tab')" id="dock-ocr-tab"
       class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
 
       <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@
 
 
 
-    <button onclick="switchTab('booking-tab')" id="dock-booking-tab"
+    <button onclick="navigateTo('booking-tab')" id="dock-booking-tab"
       class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
 
       <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -259,7 +259,7 @@
 
 
 
-    <button onclick="switchTab('doctor-tab')" id="dock-doctor-tab"
+    <button onclick="navigateTo('doctor-tab')" id="dock-doctor-tab"
       class="dock-btn group relative w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-white hover:bg-white/10 cursor-pointer">
 
       <svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -269,8 +269,7 @@
       </svg>
 
       <span data-i18n="dock_doctor"
-        class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Thử
-        thách sống khỏe</span>
+        class="dock-tooltip absolute left-14 px-3 py-1.5 rounded-xl text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-2xl backdrop-blur-md">Dinh dưỡng &amp; Pha chế</span>
 
     </button>
 
@@ -304,7 +303,7 @@
 
     <!-- Brand Logo with Glowing Pulse Beacon -->
 
-    <div class="flex items-center space-x-2 sm:space-x-3 cursor-pointer min-w-0" onclick="switchTab('home-tab')">
+    <div class="flex items-center space-x-2 sm:space-x-3 cursor-pointer min-w-0" onclick="navigateTo('home-tab')">
 
       <div
         class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/30 border border-white/20 shrink-0">
@@ -341,24 +340,23 @@
 
     <nav class="hidden lg:flex items-center glass-dock p-1.5 rounded-full gap-1 shrink-0">
 
-      <button onclick="switchTab('home-tab')" id="nav-home-tab" data-i18n="nav_home"
+      <button onclick="navigateTo('home-tab')" id="nav-home-tab" data-i18n="nav_home"
         class="nav-btn px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all glass-pill-cyan-active cursor-pointer">Trang
         chủ</button>
-      <button onclick="switchTab('chat-tab')" id="nav-chat-tab" data-i18n="nav_chat"
+      <button onclick="navigateTo('chat-tab')" id="nav-chat-tab" data-i18n="nav_chat"
         class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Trợ
         lý sức khỏe</button>
 
-      <button onclick="switchTab('ocr-tab')" id="nav-ocr-tab" data-i18n="nav_ocr"
+      <button onclick="navigateTo('ocr-tab')" id="nav-ocr-tab" data-i18n="nav_ocr"
         class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Đọc
         đơn thuốc lâm sàng</button>
 
-      <button onclick="switchTab('booking-tab')" id="nav-booking-tab" data-i18n="nav_booking"
+      <button onclick="navigateTo('booking-tab')" id="nav-booking-tab" data-i18n="nav_booking"
         class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Cơ
         sở y tế</button>
 
-      <button onclick="switchTab('doctor-tab')" id="nav-doctor-tab" data-i18n="nav_doctor"
-        class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Pha
-        chế dinh dưỡng</button>
+      <button onclick="navigateTo('doctor-tab')" id="nav-doctor-tab" data-i18n="nav_doctor"
+        class="nav-btn px-4 py-1.5 rounded-full text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 whitespace-nowrap transition-all cursor-pointer">Dinh dưỡng &amp; Pha chế</button>
 
     </nav>
 
@@ -519,12 +517,29 @@
           class="flex items-center space-x-1.5 cursor-pointer p-0.5 rounded-full hover:ring-2 hover:ring-white/20 transition-all"
           onclick="toggleUserDropdown(event)">
 
-          <div id="user-avatar-container" class="w-9 h-9 rounded-full overflow-hidden border-2 border-white/20 bg-[#e05638] flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md">
+          {% set _nav_user = current_user if current_user else None %}
+          {% set _nav_avatar = (_nav_user.avatar or _nav_user.avatar_url or '') if _nav_user else '' %}
+          {% set _nav_name = ((_nav_user.full_name or _nav_user.name or 'K') if _nav_user else 'K').strip() %}
+          {% set _nav_initial = (_nav_name.split()[-1][0] | upper) if _nav_name else 'K' %}
+          <div id="user-avatar-container"
+            class="w-9 h-9 rounded-full overflow-hidden border-2 border-white/20 {{ 'bg-transparent' if _nav_avatar else 'bg-[#e05638]' }} flex items-center justify-center text-white font-black text-sm shrink-0 shadow-md"
+            style="width: 36px; height: 36px; border-radius: 50%;">
 
-            <span id="user-avatar-initial">K</span>
+            {% if _nav_avatar %}
+            <img id="user-avatar-img" src="{{ _nav_avatar }}" alt="Avatar" referrerpolicy="no-referrer"
+              onerror="handleHeaderAvatarError()"
+              class="w-full h-full object-cover rounded-full"
+              style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
 
-            <img id="user-avatar-img" src="/static/images/avatar_male.png" alt="Avatar"
-              class="w-full h-full object-cover hidden">
+            <div id="user-avatar-initial" class="hidden w-full h-full items-center justify-center">{{ _nav_initial }}</div>
+            {% else %}
+            <img id="user-avatar-img" src="" alt="Avatar" referrerpolicy="no-referrer"
+              onerror="handleHeaderAvatarError()"
+              class="w-full h-full object-cover rounded-full hidden"
+              style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+
+            <div id="user-avatar-initial" class="flex w-full h-full items-center justify-center">{{ _nav_initial }}</div>
+            {% endif %}
 
           </div>
 
@@ -544,7 +559,7 @@
         <div id="user-dropdown-menu"
           class="hidden absolute right-0 top-full mt-2 w-44 bg-[#0e1626] border border-white/10 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1 backdrop-blur-xl">
 
-          <button type="button" onclick="closeUserDropdown(); switchTab('profile-tab');"
+          <button type="button" onclick="closeUserDropdown(); navigateTo('profile-tab');"
             class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-3 text-slate-200 font-medium transition-colors cursor-pointer">
 
             <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
@@ -560,7 +575,7 @@
 
 
 
-          <button type="button" onclick="closeUserDropdown(); switchTab('settings-tab');"
+          <button type="button" onclick="closeUserDropdown(); navigateTo('settings-tab');"
             class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/10 flex items-center space-x-3 text-slate-200 font-medium transition-colors cursor-pointer">
 
             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -658,7 +673,7 @@
             <!-- CTA Action Buttons -->
             <div class="flex flex-wrap items-center gap-3.5 pt-2">
               <!-- Primary: Trò chuyện với trợ lý > -->
-              <button onclick="switchTab('chat-tab')"
+              <button onclick="navigateTo('chat-tab')"
                 class="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-xs sm:text-sm shadow-xl shadow-sky-600/35 flex items-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
                   viewBox="0 0 24 24">
@@ -673,7 +688,7 @@
               </button>
 
               <!-- Secondary: Thử thách sống khỏe -->
-              <button onclick="switchTab('doctor-tab')"
+              <button onclick="navigateTo('doctor-tab')"
                 class="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
                 <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -836,7 +851,7 @@
               Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi
               ngày.
             </p>
-            <button onclick="switchTab('doctor-tab')"
+            <button onclick="navigateTo('doctor-tab')"
               class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer">
               <span data-i18n="home_disc_more">Khám phá tất cả</span>
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -852,7 +867,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 pt-2">
 
           <!-- Card 1: Trò chuyện cùng AI (Sky Theme) -->
-          <div onclick="switchTab('chat-tab')"
+          <div onclick="navigateTo('chat-tab')"
             class="home-discovery-card rounded-2xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden">
             <!-- Background watermark -->
             <div class="absolute -right-3 -bottom-3 text-sky-400/5 group-hover:text-sky-400/10 transition-colors pointer-events-none select-none">
@@ -878,8 +893,8 @@
             </div>
           </div>
 
-          <!-- Card 2: Bàn pha chế dinh dưỡng (Emerald Theme) -->
-          <div onclick="switchTab('doctor-tab')"
+          <!-- Card 2: Dinh dưỡng & Pha chế (Emerald Theme) -->
+          <div onclick="navigateTo('doctor-tab')"
             class="home-discovery-card rounded-2xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden">
             <!-- Background watermark -->
             <div class="absolute -right-3 -bottom-3 text-emerald-400/5 group-hover:text-emerald-400/10 transition-colors pointer-events-none select-none">
@@ -901,14 +916,14 @@
                 class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 block mb-1.5">DINH DƯỠNG THEO THỂ TRẠNG</span>
               <h3 data-i18n="home_c2_title"
                 class="text-white font-black text-xl mb-2 group-hover:text-emerald-300 transition-colors">
-                Bàn pha chế dinh dưỡng</h3>
+                Dinh dưỡng &amp; Pha chế</h3>
               <p data-i18n="home_c2_desc" class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                 Khám phá nguyên liệu nên dùng, món cần tránh và công thức phù hợp với thể trạng.</p>
             </div>
           </div>
 
           <!-- Card 3: Lịch hẹn sắp tới (Amber Theme) -->
-          <div onclick="switchTab('booking-tab')"
+          <div onclick="navigateTo('booking-tab')"
             class="home-discovery-card rounded-2xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden">
             <!-- Background watermark -->
             <div class="absolute -right-3 -bottom-3 text-amber-400/5 group-hover:text-amber-400/10 transition-colors pointer-events-none select-none">
@@ -1585,7 +1600,7 @@
 
           </button>
 
-          <button onclick="switchTab('home-tab')"
+          <button onclick="navigateTo('home-tab')"
             class="text-xs font-bold text-slate-300 hover:text-white transition-colors flex items-center space-x-1.5 px-4 py-2 rounded-xl glass-pill cursor-pointer">
 
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1892,16 +1907,23 @@
       </section>
 
     <section id="nf-results" class="nf-stage nf-wide" hidden>
-      <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
-      <p class="nf-overline">GỢI Ý CỦA BẠN</p>
-      <h1 id="nf-results-title">Gợi ý món ăn</h1>
-      <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
-            aria-hidden="true">
-            <path fill-rule="evenodd"
-              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-              clip-rule="evenodd" />
-          </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
-      <p class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
+      <div class="nf-results-topbar">
+        <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
+        <p class="nf-overline">GỢI Ý CỦA BẠN</p>
+      </div>
+      <div class="nf-results-header-row">
+        <h1 id="nf-results-title" class="nf-results-heading">
+          <span id="nf-results-icon" class="nf-results-icon nf-type-food" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7"/><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span id="nf-results-title-text">Gợi ý món ăn</span>
+        </h1>
+        <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
+              aria-hidden="true">
+              <path fill-rule="evenodd"
+                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                clip-rule="evenodd" />
+            </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
+      </div>
+      <p id="nf-results-subtitle" class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
       <div id="nf-context" class="nf-context" hidden></div>
       <p id="nf-notice" class="nf-notice" hidden></p>
       <div id="nf-clarification" class="nf-clarification" hidden>
@@ -3429,10 +3451,10 @@
 
           </button>
 
-          <button type="button" onclick="switchTab('doctor-tab'); closeProfileModal();"
+          <button type="button" onclick="navigateTo('doctor-tab'); closeProfileModal();"
             class="py-2.5 px-3 rounded-xl glass-pill text-emerald-300 border border-emerald-400/30 font-bold text-xs transition-all cursor-pointer">
 
-            Pha chế dinh dưỡng →
+            Dinh dưỡng &amp; Pha chế →
 
           </button>
 
