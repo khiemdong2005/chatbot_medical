@@ -99,9 +99,15 @@ class NutritionGroqGoutUITests(unittest.TestCase):
                         text = '<think>reasoning trace</think>```json\n{"status": "parsed"}\n```'
                     return R()
 
-        with patch.object(provider, "resolve_api_key", return_value="gsk_test_only_1234567890"), \
+        with patch.dict(os.environ, {"GROQ_API_KEY": "gsk_test_only_1234567890"}, clear=False), \
+             patch.object(provider, "resolve_api_key", return_value="gsk_test_only_1234567890"), \
              patch.object(provider, "get_client", return_value=ThinkClient()):
-            parsed = provider.generate_json(contents="{}", model="qwen/qwen3.8-27b", provider="groq")
+            parsed = provider.generate_json(
+                contents="{}",
+                model="qwen/qwen3.8-27b",
+                provider="groq",
+                api_key="gsk_test_only_1234567890",
+            )
         self.assertEqual(parsed, {"status": "parsed"})
 
     def test_validate_selection_trims_excess_items_while_rejecting_invalid_ids(self):
