@@ -35,6 +35,31 @@ def test_true_emergency_signs_triggered():
         assert len(res["symptoms"]) > 0
 
 
+def test_english_uncertain_red_flag_is_confirmed_before_escalation():
+    first = assess_emergency_risk("I'm not sure if I have chest pain.", lang="en")
+    assert first["is_emergency"] is False
+    assert first["clarification"].endswith("chest pain right now?")
+    assert assess_emergency_risk("yes", lang="en", previous_question=first["clarification"])["is_emergency"] is True
+
+
+@pytest.mark.parametrize("lang, message, expected", [
+    ("vi", "Tôi đau khi nuốt nhưng vẫn uống được nước.", False),
+    ("vi", "Tôi không thể nuốt được nước bọt.", True),
+    ("vi", "Nếu không nuốt được nước bọt thì sao?", False),
+    ("en", "It hurts to swallow, but I can drink water.", False),
+    ("en", "I can't swallow my saliva.", True),
+])
+def test_inability_to_swallow_is_distinct_from_pain_on_swallowing(lang, message, expected):
+    assert assess_emergency_risk(message, lang=lang)["is_emergency"] is expected
+
+
+def test_denial_of_swallowing_ability_uses_the_previous_question():
+    previous = "Bạn còn nuốt được nước bọt không?"
+    assert assess_emergency_risk("Không", previous_question=previous)["is_emergency"] is True
+    assert assess_emergency_risk("Có", previous_question=previous)["is_emergency"] is False
+    assert assess_emergency_risk("Không", previous_question="Bạn có đau khi nuốt không?")["is_emergency"] is False
+
+
 def test_antibiotic_guardrails_intervene_and_redact():
     """Kiểm thử 6c: Can thiệp và thay thế nội dung vi phạm kê đơn kháng sinh."""
     prohibited_prescriptions = [
@@ -183,9 +208,10 @@ def test_fallback_emergency_escalation_on_llm_failure(monkeypatch):
         gemini_service=FailingMockGemini()
     )
     assert res_en["is_emergency"] is True
-    assert res_en["risk_score"] == 90
-    assert "CLINICAL EMERGENCY ALERT" in res_en["answer"]
-    assert "DO NOT WAIT FOR AI SERVICE RECOVERY" in res_en["answer"]
+    assert res_en["risk_score"] is None
+    assert res_en["risk_level"].startswith("High Risk")
+    assert "HIGH-RISK WARNING" in res_en["answer"]
+    assert "Do not wait for the AI service" in res_en["answer"]
     assert res_en["degraded"] is True
 
     # Reset call count for Vietnamese test
@@ -196,9 +222,10 @@ def test_fallback_emergency_escalation_on_llm_failure(monkeypatch):
         gemini_service=FailingMockGemini()
     )
     assert res_vi["is_emergency"] is True
-    assert res_vi["risk_score"] == 90
-    assert "CẢNH BÁO LÂM SÀNG KHẨN CẤP" in res_vi["answer"]
-    assert "TUYỆT ĐỐI KHÔNG CHỜ ĐỢI AI PHỤC HỒI" in res_vi["answer"]
+    assert res_vi["risk_score"] is None
+    assert res_vi["risk_level"].startswith("Nguy cơ cao")
+    assert "CẢNH BÁO NGUY CƠ CAO" in res_vi["answer"]
+    assert "Không chờ AI trả lời lại" in res_vi["answer"]
     assert res_vi["degraded"] is True
 
 

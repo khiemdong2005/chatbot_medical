@@ -110,6 +110,19 @@ def test_expansion_respects_explicit_vietnamese_diacritics(tmp_path):
     assert 'headache' in rag.expand_query('Tôi bị dau dau')
 
 
+def test_vietnamese_gout_query_uses_the_matching_reference(tmp_path, monkeypatch):
+    rag = local_rag(tmp_path)
+    monkeypatch.setattr("core.rag_service.query_expansion_service.enabled", False)
+    rag.collection.add(
+        ids=["gout", "digestion"],
+        embeddings=[[0.0, 1.0], [1.0, 0.0]],
+        documents=["Gout guidance on joint pain.", "Gut and digestive health."],
+        metadatas=[{"title": "Gout"}, {"title": "Digestive Health"}],
+    )
+    assert rag.retrieve_context("Bệnh gút là gì?", lang="vi")[0]["title"] == "Gout"
+    assert rag.retrieve_context("gut health", lang="en")[0]["title"] == "Digestive Health"
+
+
 def test_default_local_lookup_never_calls_embedding_query(tmp_path, monkeypatch):
     monkeypatch.delenv("RAG_VECTOR_SEARCH_ENABLED", raising=False)
     rag = local_rag(tmp_path)

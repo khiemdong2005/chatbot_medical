@@ -61,7 +61,7 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
                 peri = cv2.arcLength(c, True)
                 approx = cv2.approxPolyDP(c, 0.02 * peri, True)
                 area = cv2.contourArea(c)
-                if len(approx) == 4 and cv2.isContourConvex(approx) and (w * h * 0.55) <= area <= (w * h * 0.95):
+                if len(approx) == 4 and cv2.isContourConvex(approx) and (w * h * 0.30) <= area <= (w * h * 0.98):
                     doc_contour = approx
                     break
 
@@ -98,6 +98,13 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
             perspective_corrected = True
     except Exception as e:
         print(f"[PERSPECTIVE LOG] Bỏ qua căn chỉnh viền tự động: {e}")
+
+    # 2b. Upscale nhỏ lên tối thiểu 1600px ngang để OCR hiệu quả hơn trên ảnh chụp nghiêng
+    if w < 1600:
+        scale_up = 1600 / w
+        new_w, new_h = int(w * scale_up), int(h * scale_up)
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+        h, w = img.shape[:2]
 
     # 3. Tính góc xoay nghiêng theo dòng văn bản ngang (HoughLinesP) — tránh lỗi xoay lệch tài liệu thẳng của minAreaRect
     deskew_angle = 0.0
@@ -140,6 +147,13 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
             limg = cv2.merge((cl, a, b))
             img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
             clahe_applied = True
+        except Exception:
+            pass
+
+    # 4b. Giảm nhiễu nhẹ sau CLAHE hoặc perspective correction để cải thiện OCR
+    if need_clahe or perspective_corrected:
+        try:
+            img = cv2.fastNlMeansDenoisingColored(img, None, 5, 5, 7, 21)
         except Exception:
             pass
 

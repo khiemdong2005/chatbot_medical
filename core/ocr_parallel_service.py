@@ -206,6 +206,95 @@ def _recover_small_prescription_details(reader, image_path: str, results: list) 
     except Exception:
         return results
 
+
+def _read_prescription_variants(reader, image_path: str, results: list) -> list:
+    """Add text found by contrast/threshold/upscale passes without dropping weak detections."""
+    try:
+        import cv2
+        import numpy as np
+
+        with open(image_path, "rb") as image_file:
+            image = cv2.imdecode(np.frombuffer(image_file.read(), dtype=np.uint8), cv2.IMREAD_COLOR)
+        if image is None:
+            return results
+        height, width = image.shape[:2]
+        if max(height, width) > 2400:
+            return results
+
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
+        adaptive = cv2.adaptiveThreshold(
+            clahe, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 11,
+        )
+        scale = min(2.0, 1800 / max(height, width))
+        if scale > 1.05:
+            clahe = cv2.resize(clahe, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+            adaptive = cv2.resize(adaptive, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+
+        combined = list(results)
+        for variant in (clahe, adaptive):
+            try:
+                candidates = reader.readtext(variant)
+            except Exception:
+                continue
+            for box, text, confidence in candidates:
+                mapped = [[float(point[0]) / scale, float(point[1]) / scale] for point in box]
+                candidate_text = re.sub(r"\s+", " ", str(text)).strip().casefold()
+                if not candidate_text:
+                    continue
+                center = (sum(p[0] for p in mapped) / len(mapped), sum(p[1] for p in mapped) / len(mapped))
+                duplicate = False
+                for old_box, old_text, _old_conf in combined:
+                    old_norm = re.sub(r"\s+", " ", str(old_text)).strip().casefold()
+                    if old_norm != candidate_text or not old_box:
+                        continue
+                    old_center = (sum(p[0] for p in old_box) / len(old_box), sum(p[1] for p in old_box) / len(old_box))
+                    if abs(center[0] - old_center[0]) <= max(12, width * 0.02) and abs(center[1] - old_center[1]) <= max(10, height * 0.015):
+                        duplicate = True
+                        break
+                if not duplicate:
+                    combined.append((mapped, text, confidence))
+        return combined
+    except Exception:
+        return results
+
+
+def _dedupe_ocr_results(results: list, iou_threshold: float = 0.30) -> list:
+    """NMS duplicate, near-identical OCR boxes while retaining distinct low-confidence text."""
+    import difflib
+
+    def bounds(item):
+        box = item[0] or []
+        if not box:
+            return (0.0, 0.0, 0.0, 0.0)
+        return (min(point[0] for point in box), min(point[1] for point in box),
+                max(point[0] for point in box), max(point[1] for point in box))
+
+    def normalized(text):
+        return re.sub(r"[^a-z0-9]+", "", str(text).casefold())
+
+    kept = []
+    for candidate in sorted(results, key=lambda item: float(item[2] or 0), reverse=True):
+        left, top, right, bottom = bounds(candidate)
+        candidate_text = normalized(candidate[1])
+        duplicate = False
+        for current in kept:
+            other = normalized(current[1])
+            if not candidate_text or not other:
+                continue
+            text_similarity = difflib.SequenceMatcher(None, candidate_text, other).ratio()
+            if text_similarity < 0.80:
+                continue
+            x1, y1, x2, y2 = bounds(current)
+            intersection = max(0, min(right, x2) - max(left, x1)) * max(0, min(bottom, y2) - max(top, y1))
+            union = max(0, right-left) * max(0, bottom-top) + max(0, x2-x1) * max(0, y2-y1) - intersection
+            if union and intersection / union > iou_threshold:
+                duplicate = True
+                break
+        if not duplicate:
+            kept.append(candidate)
+    return kept
+
 def extract_ocr_parallel(image_path: str, doc_type: str = "auto") -> Dict[str, Any]:
     """
     [2.A] OCR Engine: Trích xuất text + bbox + confidence.
@@ -221,18 +310,20 @@ def extract_ocr_parallel(image_path: str, doc_type: str = "auto") -> Dict[str, A
     except Exception as e:
         return {"success": False, "error": str(e), "lines": [], "rows": [], "raw_text": ""}
 
-    results, orientation_deg, reading_results = _retry_page_orientation(reader, image_path, results)
+    rough_text = " ".join(str(item[1]) for item in results)
+    is_prescription = doc_type == "prescription" or (
+        doc_type == "auto" and bool(re.search(r"(?:đơn|don)[\s|]{0,8}(?:thuốc|thuoc)", rough_text, re.IGNORECASE))
+    )
+    if is_prescription:
+        orientation_deg, reading_results = 0, results
+    else:
+        results, orientation_deg, reading_results = _retry_page_orientation(reader, image_path, results)
     if not results:
         duration = round(time.time() - start_t, 2)
         return {"success": True, "lines": [], "rows": [], "raw_text": "", "duration": duration}
 
-    rough_text = " ".join(str(item[1]) for item in results)
-    is_prescription = doc_type == "prescription" or (
-        doc_type == "auto"
-        and bool(re.search(r"(?:đơn|don)[\s|]{0,8}(?:thuốc|thuoc)", rough_text, re.IGNORECASE))
-    )
-    if is_prescription and orientation_deg == 0:
-        results = _recover_small_prescription_details(reader, image_path, results)
+    if is_prescription:
+        results = _dedupe_ocr_results(results)
         reading_results = results
     duration = round(time.time() - start_t, 2)
 
@@ -259,6 +350,8 @@ def extract_ocr_parallel(image_path: str, doc_type: str = "auto") -> Dict[str, A
 
     # Sắp xếp các đoạn nhận diện theo tọa độ hình học từ trên xuống dưới
     lines.sort(key=lambda item: item["y_center"])
+    for line_index, line in enumerate(lines):
+        line["line_index"] = line_index
 
     rows = _group_ocr_rows(lines)
 

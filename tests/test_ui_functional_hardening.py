@@ -11,7 +11,7 @@ Kiểm thử tự động cho toàn bộ các hạng mục Functional Hardening 
   6. API error detail normalization (extractApiErrorMessage without [object Object])
   7. Safe null guards in modal and summary rendering
   8. Prevention of false-success in appointment booking
-  9. Emergency direct-call CTA (tel:115)
+  9. Emergency warning without a direct-call CTA
   10. Degraded state consistency in triage panel
 ================================================================================
 """
@@ -212,7 +212,6 @@ def test_multilingual_safety_and_triage_strings():
     js_test = """
     const requiredKeys = [
       'safety_emergency_title',
-      'safety_emergency_cta',
       'safety_high_risk_title',
       'safety_medium_risk_title',
       'safety_low_risk_title',
@@ -227,9 +226,6 @@ def test_multilingual_safety_and_triage_strings():
       if (!translations.vi[key]) throw new Error('Missing translations.vi.' + key);
       if (!translations.en[key]) throw new Error('Missing translations.en.' + key);
     }
-
-    if (translations.vi.safety_emergency_cta !== 'Gọi 115') throw new Error('translations.vi.safety_emergency_cta mismatch');
-    if (translations.en.safety_emergency_cta !== 'Call 115') throw new Error('translations.en.safety_emergency_cta mismatch');
 
     console.log('SUCCESS');
     """
@@ -332,25 +328,25 @@ def test_appointment_booking_error_handling(app_js_content):
 
 
 # ==============================================================================
-# 9. TEST EMERGENCY DIRECT-CALL CTA
+# 9. TEST EMERGENCY WARNING BANNER
 # ==============================================================================
 
-def test_emergency_direct_call_cta():
-    """Kiểm tra renderEmergencyBanner tạo CTA <a href="tel:115"> khi isEmergency=true, ẩn hoàn toàn khi false."""
+def test_emergency_warning_without_direct_call_cta():
+    """Cảnh báo mức độ khẩn xuất hiện mà không tạo nút gọi điện."""
     js_test = """
     // 1. Emergency VI
     const viBanner = renderEmergencyBanner(true, false, false);
-    if (!viBanner.includes('href="tel:115"')) throw new Error('Missing tel:115 link in VI banner: ' + viBanner);
-    if (!viBanner.includes('Gọi 115')) throw new Error('Missing CTA text in VI banner: ' + viBanner);
+    if (!viBanner.includes('CẢNH BÁO NGUY CƠ CAO')) throw new Error('Missing VI warning: ' + viBanner);
+    if (viBanner.includes('tel:115') || viBanner.includes('GỌI 115')) throw new Error('Unexpected call CTA in VI banner: ' + viBanner);
 
     // 2. Emergency EN
     const enBanner = renderEmergencyBanner(true, true, false);
-    if (!enBanner.includes('href="tel:115"')) throw new Error('Missing tel:115 link in EN banner: ' + enBanner);
-    if (!enBanner.includes('Call 115')) throw new Error('Missing CTA text in EN banner: ' + enBanner);
+    if (!enBanner.includes('HIGH-RISK WARNING')) throw new Error('Missing EN warning: ' + enBanner);
+    if (enBanner.includes('tel:115') || enBanner.includes('CALL 115')) throw new Error('Unexpected call CTA in EN banner: ' + enBanner);
 
     // 3. Compact banner
     const compactBanner = renderEmergencyBanner(true, false, true);
-    if (!compactBanner.includes('href="tel:115"')) throw new Error('Missing tel:115 link in compact banner');
+    if (!compactBanner.includes('CẢNH BÁO NGUY CƠ CAO') || compactBanner.includes('tel:115')) throw new Error('Compact warning incorrect');
 
     // 4. Non-emergency
     const nonEmergency = renderEmergencyBanner(false, false, false);

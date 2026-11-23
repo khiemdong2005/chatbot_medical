@@ -132,9 +132,6 @@ body.chat-scene-active.light-glass #chat-tab button[onclick^="insertQuickPrompt"
 }
 body.chat-scene-active.light-glass #chat-tab #user-input { color: #f4f9fd !important; }
 body.chat-scene-active.light-glass #chat-tab #user-input::placeholder { color: #aebfd0 !important; }
-body.chat-scene-active.light-glass #chat-tab .chat-patient-label {
-  color: #d8e9f5 !important;
-}
 body.chat-scene-active.light-glass #chat-tab .chat-scene-input button[title="Đính kèm ảnh lâm sàng"],
 body.chat-scene-active.light-glass #chat-tab .chat-scene-input button[title="Đính kèm ảnh lâm sàng"] svg {
   color: #bfd2e2 !important;

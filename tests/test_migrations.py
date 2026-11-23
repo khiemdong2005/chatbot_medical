@@ -19,6 +19,8 @@ def test_migrations_are_versioned_and_tracked():
                 role VARCHAR(20) DEFAULT 'patient'
             );
         """))
+        conn.execute(text("CREATE TABLE medical_appointments (id INTEGER PRIMARY KEY, note TEXT)"))
+        conn.execute(text("INSERT INTO medical_appointments (id, note) VALUES (1, 'Existing appointment')"))
 
     # Chạy migrations lần 1
     run_migrations(engine)
@@ -39,6 +41,9 @@ def test_migrations_are_versioned_and_tracked():
         user_cols = {col["name"] for col in inspector.get_columns("users")}
         for col_name in ["dob", "gender", "address", "bhyt"]:
             assert col_name in user_cols, f"Cột {col_name} chưa được thêm vào bảng users!"
+        assert conn.execute(text("SELECT note, pre_visit_summary FROM medical_appointments")).one() == (
+            "Existing appointment", None
+        )
 
     # Chạy migrations lần 2 (Idempotency) -> Phải an toàn, không báo lỗi, không áp dụng trùng
     run_migrations(engine)

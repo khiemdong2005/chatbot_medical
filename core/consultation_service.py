@@ -21,7 +21,8 @@ def get_user_consultations(user_id: int, limit: int = 20) -> List[Dict[str, Any]
             .limit(limit)
             .all()
         )
-        return [c.to_dict() for c in consultations]
+        return [{**consultation.to_dict(), "summary_available": bool(consultation.conversation_id)}
+                for consultation in consultations]
 
 
 def delete_user_consultation(

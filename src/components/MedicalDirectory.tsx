@@ -29,7 +29,7 @@ export interface Hospital {
   specialties: string[];
   workingHours: string;
   category: 'general' | 'international' | 'specialized' | 'lab';
-  region: 'hcm' | 'hn' | 'dn';
+  region: 'hcm' | 'hn';
   mapUrl?: string;
 }
 
@@ -157,7 +157,6 @@ export const MedicalDirectory: React.FC = () => {
   const regions = [
     { id: 'hcm', label: 'TP. HCM' },
     { id: 'hn', label: 'Hà Nội' },
-    { id: 'dn', label: 'Đà Nẵng' },
   ];
 
   const specialtyTags = [
@@ -278,7 +277,7 @@ export const MedicalDirectory: React.FC = () => {
                 return (
                   <button
                     key={region.id}
-                    onClick={() => setSelectedRegion(region.id as 'hcm' | 'hn' | 'dn')}
+                    onClick={() => setSelectedRegion(region.id as 'hcm' | 'hn')}
                     className={`py-2 px-2.5 rounded-full text-xs font-semibold transition-all text-center ${
                       isActive
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'

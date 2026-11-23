@@ -470,8 +470,14 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
                     reason = "Có thành phần cần tránh: " + ", ".join(ALLERGEN_NAMES[x] for x in sorted(hits)) + "."
                 elif "gluten" in allergies and meta["gluten_uncertain"]:
                     reason = "Chưa xác minh nguyên liệu yến mạch không nhiễm gluten."
-            if not reason and any(meta.get(PREFERENCES[code][2]) for code in preferences):
-                reason = "Món chưa phù hợp với yêu cầu ăn uống bạn đã nhập."
+            if not reason:
+                for code in preferences:
+                    if code == "not_fried" and (meta.get("fried") or meta.get("saturated_fat_source")):
+                        reason = "Món có cách chiên rán hoặc chứa nguồn béo bão hòa/dầu mỡ; chưa phù hợp với yêu cầu ít dầu mỡ."
+                        break
+                    elif meta.get(PREFERENCES[code][2]):
+                        reason = "Món chưa phù hợp với yêu cầu ăn uống bạn đã nhập."
+                        break
         if reason:
             excluded.append({"id": recipe.get("id"), "title": recipe.get("title", ""), "reason": reason})
             continue

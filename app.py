@@ -43,7 +43,7 @@ from core.chat_service import process_clinical_chat, execute_chat_workflow
 from core.health_context import validate_chat_request
 from core.gemini_service import GeminiMedicalService
 from core.prescription_service import get_preset_data
-from core.intake_service import intake_service
+from core.intake_service import StaleIntakeVersionError, intake_service
 from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
 from core.reconciliation_service import is_plausible_medication_name
 from core.api_errors import flask_api_error, ErrorCode
@@ -105,6 +105,14 @@ def find_login_user(identifier):
         (User.phone_number == identifier) | (User.phone_number == phone) |
         (User.email == f"{phone}@phone.medimind")
     ).first()
+
+
+def _start_authenticated_session(user):
+    guest_token = session.get("guest_token") if not session.get("user_id") else None
+    session.clear()
+    session["user_id"] = user.id
+    if guest_token:
+        session["guest_token"] = guest_token
 
 
 def create_app(test_config=None):
@@ -256,8 +264,7 @@ def create_app(test_config=None):
 
         # Khởi tạo phiên làm việc (Session) & Chống Session Fixation
         session.permanent = True
-        session.clear()
-        session["user_id"] = user.id
+        _start_authenticated_session(user)
         session["user_role"] = user.role
 
         return jsonify({
@@ -334,6 +341,7 @@ def create_app(test_config=None):
             email=email,
             full_name=full_name,
             role=role,
+            account_status="active",
             phone_number=phone_number,
             dob=dob,
             gender=gender,
@@ -347,8 +355,7 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
         session.permanent = True
-        session.clear()
-        session["user_id"] = new_user.id
+        _start_authenticated_session(new_user)
         session["user_role"] = new_user.role
 
         return jsonify({
@@ -508,8 +515,9 @@ def create_app(test_config=None):
     @app.route("/api/auth/otp/send", methods=["POST"])
     def auth_send_otp():
         """
-        Gửi mã xác thực OTP 6 số qua Gmail hoặc SMS Twilio / SpeedSMS.
+        Gửi mã xác thực OTP 6 số qua Gmail hoặc SMS SpeedSMS (Nội địa Việt Nam).
         Rate-limit: cooldown 60s, TTL 5 phút, CSPRNG.
+        Đã loại bỏ cổng Twilio và chặn gửi OTP tới các số điện thoại quốc tế.
         """
         data = request.get_json(silent=True) or {}
         identifier = (data.get("identifier") or data.get("email") or data.get("phone") or "").strip()
@@ -528,6 +536,13 @@ def create_app(test_config=None):
             if "@" not in identifier:
                 return jsonify({"success": False, "error": "Địa chỉ email không hợp lệ."}), 400
         else:
+            from core.sms_service import sms_service
+            norm_vn = sms_service.normalize_phone(identifier)
+            if not norm_vn:
+                return jsonify({
+                    "success": False,
+                    "error": "Chỉ hỗ trợ gửi mã OTP tới số điện thoại di động nội địa Việt Nam (đầu số 03, 05, 07, 08, 09 hoặc +84). Đã chặn gửi OTP quốc tế."
+                }), 400
             clean_phone = "".join(filter(str.isdigit, identifier))
             if len(clean_phone) < 9 or len(clean_phone) > 11:
                 return jsonify({"success": False, "error": "Số điện thoại không hợp lệ (9-11 chữ số)."}), 400
@@ -649,6 +664,7 @@ def create_app(test_config=None):
                 email=email,
                 full_name=full_name,
                 role="patient",
+                account_status="active",
                 phone_number=phone_number,
                 dob=dob,
                 gender=gender
@@ -1053,8 +1069,7 @@ def create_app(test_config=None):
 
         # Khởi tạo Session & Chống Session Fixation
         session.permanent = True
-        session.clear()
-        session["user_id"] = user.id
+        _start_authenticated_session(user)
         session["user_role"] = user.role
 
         return jsonify({
@@ -1152,14 +1167,24 @@ def create_app(test_config=None):
     def intake_get_or_create_session():
         """Khởi tạo hoặc tải lại phiên hỏi bệnh lâm sàng có cấu trúc."""
         data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"error": "Nội dung yêu cầu phải là đối tượng JSON."}), 400
         conversation_id = data.get("conversation_id")
 
         user_id, guest_token = _get_request_identity()
         try:
+            if data.get("flow") == "previsit":
+                validated = validate_chat_request(data)
+                return jsonify({"success": True, **intake_service.open_previsit(
+                    validated["conversation_id"], user_id=user_id, guest_token=guest_token, lang=validated["lang"]
+                )})
             s = intake_service.get_or_create_session(conversation_id, user_id=user_id, guest_token=guest_token)
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
-
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên hỏi bệnh."}), 404
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
 
         return jsonify({
             "success": True,
@@ -1200,6 +1225,35 @@ def create_app(test_config=None):
           - Cập nhật Tóm tắt trước khám 2 phần (Phần A & Phần B)
         """
         data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"error": "Nội dung yêu cầu phải là đối tượng JSON."}), 400
+        if data.get("flow") == "previsit":
+            user_id, guest_token = _get_request_identity()
+            try:
+                validated = validate_chat_request(data)
+                skip = data.get("skip") is True
+                if not (validated["message"] or skip):
+                    raise ValueError("Vui lòng nhập câu trả lời.")
+                return jsonify(intake_service.process_message(
+                    conversation_id=validated["conversation_id"],
+                    message="" if skip else validated["message"],
+                    user_id=user_id,
+                    guest_token=guest_token,
+                    lang=validated["lang"],
+                    previsit=True,
+                    skip=skip,
+                    expected_version=data.get("expected_version"),
+                ))
+            except PermissionError as error:
+                return jsonify({"error": str(error)}), 403
+            except KeyError:
+                return jsonify({"error": "Không tìm thấy phiên hỏi bệnh."}), 404
+            except StaleIntakeVersionError as error:
+                return jsonify({"error": str(error)}), 409
+            except ValueError as error:
+                return jsonify({"error": str(error)}), 400
+            except RuntimeError:
+                return jsonify({"error": "Chưa lưu được câu trả lời. Vui lòng thử lại."}), 503
         conversation_id = data.get("conversation_id")
         user_message = (data.get("message") or "").strip()
         image_str = data.get("image")
@@ -1233,6 +1287,8 @@ def create_app(test_config=None):
     def intake_update_fact():
         """Chỉnh sửa 1 dữ kiện lâm sàng (tăng version và yêu cầu xác nhận lại)."""
         data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"error": "Nội dung yêu cầu phải là đối tượng JSON."}), 400
         conversation_id = data.get("conversation_id")
         field = data.get("field")
         value = data.get("value")
@@ -1243,15 +1299,30 @@ def create_app(test_config=None):
 
         user_id, guest_token = _get_request_identity()
         try:
+            previsit = data.get("flow") == "previsit"
+            lang = validate_chat_request(data)["lang"] if previsit else "vi"
             res = intake_service.update_fact(
                 conversation_id,
                 field,
                 value,
                 user_id=user_id,
-                guest_token=guest_token
+                guest_token=guest_token,
+                previsit=previsit,
+                lang=lang,
+                expected_version=data.get("expected_version"),
             )
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên hỏi bệnh."}), 404
+        except StaleIntakeVersionError as error:
+            return jsonify({"error": str(error)}), 409
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+        except RuntimeError:
+            if not previsit:
+                raise
+            return jsonify({"error": "Chưa lưu được chỉnh sửa. Vui lòng thử lại."}), 503
 
 
         return jsonify(res)
@@ -1270,6 +1341,8 @@ def create_app(test_config=None):
             draft = intake_service.get_summary(conversation_id, user_id=user_id, guest_token=guest_token)
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên tư vấn để lưu."}), 404
         if not user_id:
             return jsonify({"error": "Vui lòng đăng nhập để lưu vào hồ sơ."}), 401
         if data.get("save_to_record") is not True:
@@ -1278,28 +1351,22 @@ def create_app(test_config=None):
                 or data.get("reviewed_facts") != draft.get("part_a_patient_facts")):
             return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
         if draft.get("ready_to_finalize") is False:
-            return jsonify({"error": "Phiếu đang là bản nháp. Hãy bổ sung vị trí đau, thời gian và tính chất hoặc mức độ đau."}), 422
-        res = intake_service.confirm_summary(conversation_id, user_id=user_id, guest_token=guest_token)
+            return jsonify({"error": "Bản tóm tắt còn thiếu dữ kiện cần thiết. Hãy bổ sung phần đã đánh dấu trước khi lưu."}), 422
+        try:
+            res = intake_service.confirm_summary(
+                conversation_id, user_id=user_id, guest_token=guest_token,
+                reviewed_version=data.get("version"), reviewed_facts=data.get("reviewed_facts"), save_to_record=True,
+            )
+        except KeyError:
+            return jsonify({"error": "Không tìm thấy phiên tư vấn để lưu."}), 404
+        except StaleIntakeVersionError as error:
+            return jsonify({"error": str(error)}), 409
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 422
+        except PermissionError as error:
+            return jsonify({"error": str(error)}), 403
         if not res.get("success"):
             return jsonify(res), 500
-        snapshot = res["summary"]
-        if snapshot["version"] != data["version"] or snapshot["part_a_patient_facts"] != data["reviewed_facts"]:
-            return jsonify({"error": "Bản nháp đã thay đổi. Hãy xem lại trước khi lưu."}), 409
-        facts = snapshot["part_a_patient_facts"]
-        assessment = snapshot["part_b_system_assessment"]
-        row = ClinicalConsultation.query.filter_by(user_id=user_id, conversation_id=conversation_id).first()
-        if row is None:
-            row = ClinicalConsultation(user_id=user_id, conversation_id=conversation_id)
-            db.session.add(row)
-        row.message = facts["chief_complaint"]
-        row.answer = assessment["care_approach"]
-        row.symptoms = json.dumps(facts["symptoms_present"], ensure_ascii=False)
-        row.specialist = assessment["recommended_specialist"]
-        row.risk_level = assessment["triage_status"]
-        row.is_emergency = assessment["triage_badge"] == "emergency"
-        row.confirmed_summary = json.dumps(snapshot, ensure_ascii=False)
-        row.turns_json = None
-        commit_or_rollback()
         return jsonify(res)
 
     @app.route("/api/intake/summary/<conversation_id>", methods=["GET"])
@@ -1315,8 +1382,15 @@ def create_app(test_config=None):
             )
         except PermissionError as pe:
             return jsonify({"error": str(pe)}), 403
-
-
+        except KeyError:
+            archived = None
+            if user_id:
+                from core.consultation_service import get_clinical_summary
+                _, saved, _ = get_clinical_summary(user_id, conversation_id=conversation_id)
+                archived = saved.get("summary")
+            if isinstance(archived, dict) and archived.get("part_a_patient_facts"):
+                return jsonify({"conversation_id": conversation_id, "summary": archived, "archived": True})
+            return jsonify({"error": "Không tìm thấy bản tóm tắt của phiên này."}), 404
         return jsonify({
             "conversation_id": conversation_id,
             "summary": summary
@@ -1933,6 +2007,7 @@ def create_app(test_config=None):
         - loai_hinh: loại hình cơ sở (Phòng khám, Bệnh viện,...)
         - chuyen_khoa: chuyên khoa (Tai Mũi Họng, Nội tổng hợp,...)
         - quan_huyen: quận huyện (Quận 10, Quận 1,...)
+        - tinh_tp / region: khu vực tỉnh thành (hcm, hanoi,...)
         """
         page = max(1, request.args.get("page", 1, type=int))
         limit = min(50, max(1, request.args.get("limit", 12, type=int)))
@@ -1940,6 +2015,7 @@ def create_app(test_config=None):
         loai_hinh = request.args.get("loai_hinh", "").strip()
         chuyen_khoa = request.args.get("chuyen_khoa", "").strip()
         quan_huyen = request.args.get("quan_huyen", "").strip()
+        tinh_tp = request.args.get("tinh_tp", "").strip() or request.args.get("region", "").strip()
 
         result = service_get_facilities(
             page=page,
@@ -1947,19 +2023,22 @@ def create_app(test_config=None):
             search=search,
             loai_hinh=loai_hinh,
             chuyen_khoa=chuyen_khoa,
-            quan_huyen=quan_huyen
+            quan_huyen=quan_huyen,
+            tinh_tp=tinh_tp
         )
         return jsonify(result)
 
     @app.route("/api/facilities/filters", methods=["GET"])
     def get_facilities_filters():
         """Trả về thống kê số lượng loại hình, chuyên khoa và quận huyện thực tế."""
-        return jsonify(service_get_facilities_filters())
+        tinh_tp = request.args.get("tinh_tp", "").strip() or request.args.get("region", "").strip()
+        return jsonify(service_get_facilities_filters(tinh_tp=tinh_tp))
 
     @app.route("/api/facilities/map-markers", methods=["GET"])
     def get_facilities_map_markers():
         """Trả về dữ liệu tinh gọn của tất cả cơ sở có tọa độ để vẽ markers lên bản đồ."""
-        return jsonify(service_get_facilities_map_markers())
+        tinh_tp = request.args.get("tinh_tp", "").strip() or request.args.get("region", "").strip()
+        return jsonify(service_get_facilities_map_markers(tinh_tp=tinh_tp))
 
     @app.route("/api/config/maps", methods=["GET"])
     def get_maps_config():
@@ -1975,6 +2054,9 @@ def create_app(test_config=None):
     @app.route("/")
     def index():
         """Trang chủ ứng dụng y tế MediMind."""
+        # Establish the guest cookie before a chat request and a draft read can overlap.
+        if not session.get("user_id"):
+            _get_request_identity()
         google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
         return render_template("index.html", google_maps_api_key=google_maps_api_key)
 
