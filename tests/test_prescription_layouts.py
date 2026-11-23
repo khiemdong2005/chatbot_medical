@@ -1,7 +1,9 @@
 """Prescription OCR layouts observed in table scans and noisy phone photos."""
 
+import pytest
+
 from core.reconciliation_service import (
-    _merge_medication_rows, extract_schema_from_ocr,
+    _merge_medication_rows, _prescription_body_bounds, extract_schema_from_ocr,
     is_plausible_medication_name, reconcile_parallel_results,
 )
 
@@ -16,6 +18,79 @@ def _row(*items, y=None, xs=None):
 def _ocr(rows):
     return {"rows": rows, "lines": [cell for row in rows for cell in row["items"]],
             "raw_text": "\n".join(row["text"] for row in rows)}
+
+
+@pytest.mark.parametrize("last_row", [
+    _row("2", "Metformin 500mg", "14 Viên", "Hẹn tái khám ngày 01/10"),
+    _row("2. Metformin 500mg 14 Viên Hẹn tái khám ngày 01/10"),
+])
+def test_medicine_row_is_kept_when_footer_shares_its_ocr_row(last_row):
+    rows = [
+        _row("ĐƠN THUỐC"),
+        _row("STT", "Tên thuốc", "SL"),
+        _row("1", "Amlodipine 5mg", "7 Viên"),
+        last_row,
+        _row("Cộng khoản: 2"),
+    ]
+    data = reconcile_parallel_results(_ocr(rows), {}, "prescription")
+
+    assert _prescription_body_bounds(rows) == (2, 4)
+    assert [(med["name"], med["strength"], med["days"].casefold()) for med in data["medications"]] == [
+        ("Amlodipine", "5mg", "7 viên"), ("Metformin", "500mg", "14 viên"),
+    ]
+    assert all("tái khám" not in med["usage"] for med in data["medications"])
+
+
+def test_standalone_footer_ends_medication_table_even_with_quantity():
+    rows = [
+        _row("STT", "Tên thuốc", "SL"),
+        _row("1. Amlodipine 5mg", "7 Viên"),
+        _row("Lời dặn: Kiểm tra lại sau khi dùng 7 viên"),
+    ]
+    assert _prescription_body_bounds(rows) == (1, 2)
+
+
+@pytest.mark.parametrize(("rows", "model_stt", "expected_recovery"), [
+    ([_row("2", "Paracetamoi (acetaminophen) (Tatanol [5O0mgl)")], 2, True),
+    ([_row("2", "Paracetamoi (acetaminophen) (Tatanol [5O0mgl)")], None, True),
+    ([_row("2", "Paracetamoi (acetaminophen) (Tatanol [5O0mgl)")], 3, False),
+    ([_row("2", "Paracetamox (acetaminophen) (Tatanol [5O0mgl)")], 2, False),
+    ([_row("Paracetamoi (acetaminophen) (Tatanol [5O0mgl)")], 2, False),
+    ([_row("2", "Paracetamoi (acetaminophen) (Tatanol [5O0mgl)"),
+      _row("3", "Paracetamoi (acetaminophen) (Tatanol [5O0mgl)")], 2, False),
+])
+def test_vision_can_recover_a_unique_numbered_row_with_one_ocr_glyph_error(rows, model_stt, expected_recovery):
+    first = [_row("ĐƠN THUỐC"), _row("STT", "Tên thuốc", "SL"),
+             _row("1", "Amlodipine 5mg", "7 Viên")]
+    ocr = _ocr(first + rows + [_row("Cộng khoản; 2")])
+    vision = {"medications": [{"name": "Amlodipine", "stt": 1},
+                              {"name": "Paracetamol", "stt": model_stt}]}
+
+    result = reconcile_parallel_results(ocr, vision, "prescription")
+
+    medicines = [med for med in result["medications"] if med["name"] == "Paracetamol"]
+    if expected_recovery:
+        assert [med["name"] for med in result["medications"]] == ["Amlodipine", "Paracetamol"]
+        assert medicines[0]["needs_review"] is True
+        assert medicines[0]["raw_ocr_name"].startswith("Paracetamoi")
+        assert medicines[0]["anchor_evidence_text"] == rows[0]["text"]
+    else:
+        assert not medicines
+
+
+def test_vision_brand_and_ingredient_can_recover_a_numbered_row():
+    ocr = _ocr([
+        _row("STT", "Tên thuốc", "SL"),
+        _row("1", "Amlodipine 5mg", "7 Viên"),
+        _row("2", "Paracetamoi (acetaminophen) (Tatanol [5O0mgl)"),
+    ])
+    vision = {"medications": [{"name": "Amlodipine"},
+                              {"name": "Tatanol", "active_ingredient": "Paracetamol", "stt": 2}]}
+
+    result = reconcile_parallel_results(ocr, vision, "prescription")
+
+    assert [med["name"] for med in result["medications"]] == ["Amlodipine", "Tatanol"]
+    assert result["medications"][1]["needs_review"] is True
 
 
 def test_quantity_clustering_with_heading_still_yields_one_real_drug():

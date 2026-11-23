@@ -403,6 +403,34 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
     return merged_rows
 
 
+_PRESCRIPTION_FOOTER = re.compile(
+    r"\b(?:c[ộo]ng\s*kho[ảa]n|t[ổo]ng\s*(?:c[ộo]ng|s[ốo]\s*kho[ảa]n)|"
+    r"b[áa]c\s*s[ĩi]\s*[đd]i[ềe]u\s*tr[ịi]|l[ờo]i\s*d[ặa]n|"
+    r"(?:h[ẹe]n\s*)?t[áa]i\s*kh[áa]m|ng[àa]y\s*h[ẹe]n)\b",
+    re.IGNORECASE,
+)
+
+
+def _strip_prescription_footer(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Keep medication cells when a footer was clustered into the same OCR row."""
+    row_text = row.get("text") or ""
+    if not _PRESCRIPTION_FOOTER.search(row_text):
+        return row
+    items = row.get("items") or []
+    cells = [item.get("text") or "" for item in items] if items else row_text.split("|")
+    kept = []
+    kept_items = []
+    for index, cell in enumerate(cells):
+        text = _PRESCRIPTION_FOOTER.split(cell, maxsplit=1)[0].strip(" |:;-")
+        if text:
+            kept.append(text)
+            if items:
+                kept_items.append({**items[index], "text": text})
+    clean = {**row, "text": " | ".join(kept), "items": kept_items}
+    clean.pop("union_bbox", None)
+    return clean
+
+
 def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
     """Locate the medicine table using section labels, without trusting row numbers alone."""
     start = None
@@ -416,11 +444,17 @@ def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
                 start = index
             else:
                 start = index + 1
-        if start is not None and index >= start and re.search(
-            r"\b(?:cong\s*khoan|tong\s*cong|bac\s*si\s*dieu\s*tri|"
-            r"loi\s*dan|tai\s*kham|hen\s*tai\s*kham|ngay\s*hen)\b", folded,
-        ):
-            end = index
+        if start is not None and index >= start and _PRESCRIPTION_FOOTER.search(row.get("text") or ""):
+            clean_row = _strip_prescription_footer(row)
+            end = index + bool(_medicine_heading_rows([clean_row]))
+            # A medication's directions can appear on the line below its name.
+            if end > index:
+                for following in rows[end:]:
+                    clean_following = _strip_prescription_footer(following)
+                    if not re.match(r"^(?:uong|sang|trua|chieu|toi|moi\s*lan|cach\s*dung)\b",
+                                    _ascii_fold(clean_following.get("text", ""))):
+                        break
+                    end += 1
             break
     if start is None:
         start = next((index for index, row in enumerate(rows)
@@ -436,11 +470,13 @@ def _medicine_heading_rows(rows: List[Dict[str, Any]]) -> List[tuple]:
         cells = [str(item.get("text", "")).strip() for item in items if item.get("text")]
         if not cells:
             cells = [part.strip() for part in str(row.get("text", "")).split("|") if part.strip()]
-        if cells and re.fullmatch(r"[1-9]\d*[.)]?", cells[0]):
+        ordinal = bool(cells and re.fullmatch(r"[1-9]\d*[.,/)\-]?", cells[0]))
+        if ordinal:
             cells = cells[1:]
         if not cells:
             continue
-        first = re.sub(r"^\s*[1-9]\d*[.)]\s*", "", cells[0]).strip()
+        first = re.sub(r"^\s*[1-9]\d*[.,/)\-]\s*", "", cells[0]).strip()
+        ordinal = ordinal or first != cells[0]
         folded = _ascii_fold(first).replace("_", " ")
         if re.match(r"^(?:uong|sang|trua|chieu|toi|cach|lieu|ngay|hen|tai|"
                     r"cahdur|cichduro|cakdur|casadung|cdch\s*dirg)\b", folded):
@@ -452,7 +488,6 @@ def _medicine_heading_rows(rows: List[Dict[str, Any]]) -> List[tuple]:
         strength = bool(re.search(r"\b\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu)\b", text, re.IGNORECASE))
         quantity = bool(re.search(r"\b\d+\s*(?:vi[eê]n|vien|goi|g[oó]i|ong|[oố]ng|chai|lo|l[oọ])\b",
                                   text, re.IGNORECASE))
-        ordinal = bool(re.match(r"^\s*[1-9]\d*[.)]\s*\S", text))
         if product_code or (strength and (quantity or ordinal)) or (ordinal and quantity):
             headings.append((index, row))
     return headings
@@ -471,6 +506,28 @@ def _row_anchor_box(row: Dict[str, Any]) -> List[List[float]]:
             [float(x_max), float(y_max)], [float(x_min), float(y_max)]]
 
 
+def _numbered_medication_heading(row: Dict[str, Any]) -> tuple[str, str]:
+    """Read the printed ordinal and the leading name cell, even with damaged brackets."""
+    cells = [item.get("text", "").strip() for item in (row.get("items") or []) if item.get("text")]
+    if not cells:
+        cells = [cell.strip() for cell in row.get("text", "").split("|")]
+    match = re.fullmatch(r"([1-9][0-9]{0,2})[.,/)\-]?", cells[0])
+    if match and len(cells) > 1:
+        return match[1], cells[1]
+    match = re.match(r"^([1-9][0-9]{0,2})[.,/)\-]\s*(\S.+)$", cells[0])
+    return (match[1], match[2]) if match else ("", "")
+
+
+def _matches_ocr_name_typo(ocr_name: str, model_name: str) -> bool:
+    """Require a single visually similar glyph in a sufficiently long name."""
+    if len(ocr_name) < 8 or len(ocr_name) != len(model_name):
+        return False
+    differences = [(left, right) for left, right in zip(ocr_name, model_name) if left != right]
+    return len(differences) == 1 and any(
+        set(differences[0]) <= set(glyphs) for glyphs in ("il1", "o0", "s5", "b8", "z2")
+    )
+
+
 def _prescription_medications_from_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     """Read drug names only inside the prescription body, never from its header/footer."""
     start, end = _prescription_body_bounds(rows)
@@ -480,7 +537,7 @@ def _prescription_medications_from_rows(rows: List[Dict[str, Any]]) -> List[Dict
     has_table_heading = any(re.search(r"\b(?:stt|ten\s*thuoc)\b", _ascii_fold(row.get("text", "")))
                             for row in rows[:start])
     groups: List[Dict[str, Any]] = []
-    for row in rows[start:end]:
+    for row in map(_strip_prescription_footer, rows[start:end]):
         row_items = row.get("items", [])
         if row_items and all(item.get("x_min") is not None for item in row_items):
             row_items = sorted(row_items, key=lambda item: item["x_min"])
@@ -1622,20 +1679,23 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     # 7. Danh mục thuốc (prescription)
     if doc_type == "prescription":
         body_start, body_end = _prescription_body_bounds(rows)
-        body_rows = rows[body_start:body_end]
+        body_rows = list(map(_strip_prescription_footer, rows[body_start:body_end]))
         has_numbered_meds = any(
             re.match(r"^\s*[1-9]\d*[\.\,\/\)\-\|](?:\s|\||[A-Za-zÀ-ỹ])", r.get("text", "").strip())
             or (r.get("items") and re.fullmatch(r"[1-9]\d*[.,/)\-]?", str(r["items"][0].get("text", "")).strip()))
             for r in body_rows
         )
 
-        all_lines = [r.get("text", "").strip() for r in rows if r.get("text", "").strip()]
+        # Preserve broad OCR fallback for damaged table headers, while reusing
+        # cleaned text for the rows that are positively inside the table.
+        fallback_rows = rows[:body_start] + body_rows + rows[body_end:]
+        all_lines = [r.get("text", "").strip() for r in fallback_rows if r.get("text", "").strip()]
         if not all_lines and raw_text:
             all_lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()]
 
         block_meds = parse_clinical_prescription_blocks(all_lines)
         base_meds = _parse_numbered_medications(body_rows) if has_numbered_meds else _prescription_medications_from_rows(rows)
-        robust_meds = _extract_medications_robust(rows, raw_text)
+        robust_meds = _extract_medications_robust(fallback_rows, raw_text)
 
         if len(block_meds) > len(base_meds):
             combined = list(block_meds)
@@ -1868,7 +1928,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
         if body_start >= body_end:
             body_start, body_end = 0, len(all_rows)
         outside_rows = ocr_data.get("rows", [])[:body_start] + ocr_data.get("rows", [])[body_end:]
-        body_rows = all_rows[body_start:body_end]
+        body_rows = list(map(_strip_prescription_footer, all_rows[body_start:body_end]))
         supported_meds = []
         header_values = {
             _normalized_entity(value)
@@ -1907,6 +1967,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
 
             occupied = {position for med in meds
                         if (position := body_position(med.get("name"))) is not None}
+            unmatched = []
             for model_med in supported_meds:
                 model_name = _normalized_entity(model_med.get("name"))
                 if not model_name or any(
@@ -1917,7 +1978,10 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 ):
                     continue
                 position = body_position(model_med.get("name"))
-                if position is None or position in occupied:
+                if position is None:
+                    unmatched.append(model_med)
+                    continue
+                if position in occupied:
                     continue
                 evidence_row = body_rows[position]
                 name_text = str(model_med.get("name", "")).strip()
@@ -1933,12 +1997,54 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 ))
                 if not (name_text[:1].isupper() and heading_fold.startswith(_clean_str(name_text))
                         and heading_shape):
+                    unmatched.append(model_med)
                     continue
                 insert_at = next((index for index, existing in enumerate(meds)
                                   if (existing_position := body_position(existing.get("name"))) is not None
                                   and existing_position > position), len(meds))
                 meds.insert(insert_at, dict(model_med))
                 occupied.add(position)
+
+            if unmatched:
+                headings = [_numbered_medication_heading(row) for row in body_rows]
+                proposals = {}
+                for model_med in unmatched:
+                    ordinal = str(model_med.get("stt") or "").strip()
+                    model_name = _extract_core_name(model_med["name"])
+                    ingredient = _extract_core_name(model_med.get("active_ingredient"))
+                    candidates = [
+                        position for position, (number, heading) in enumerate(headings)
+                        if number and (
+                            _matches_ocr_name_typo(_extract_core_name(heading), model_name)
+                            or (len(model_name) >= 5 and len(ingredient) >= 8
+                                and model_name in re.findall(r"[a-z0-9]+", _ascii_fold(heading))
+                                and (ingredient == _extract_core_name(heading)
+                                     or _matches_ocr_name_typo(_extract_core_name(heading), ingredient)))
+                        )
+                    ]
+                    if len(candidates) != 1:
+                        continue
+                    position = candidates[0]
+                    number, heading = headings[position]
+                    if (position in occupied or (ordinal and ordinal != number)
+                            or sum(other_number == number for other_number, _ in headings) != 1):
+                        continue
+                    proposals.setdefault(position, []).append(model_med)
+
+                for position, candidates in sorted(proposals.items()):
+                    if len(candidates) != 1:
+                        continue
+                    evidence = body_rows[position]
+                    insert_at = next((index for index, existing in enumerate(meds)
+                                      if (existing_position := body_position(existing.get("name"))) is not None
+                                      and existing_position > position), len(meds))
+                    meds.insert(insert_at, {
+                        **candidates[0],
+                        "needs_review": True,
+                        "raw_ocr_name": headings[position][1],
+                        "anchor_evidence_text": evidence["text"],
+                        "anchor_box": _row_anchor_box(evidence),
+                    })
         elif not ocr_fallback.get("medications") and supported_meds:
             meds = list(supported_meds)
         reconciled["medications"] = meds

@@ -1,6 +1,7 @@
 import io
 import pytest
 from pathlib import Path
+from PIL import Image
 from core.models import db, MedicalDocument
 from core.storage_service import (
     process_secure_upload,
@@ -25,6 +26,22 @@ def test_filename_traversal_is_blocked(temp_dirs):
     assert saved_path.is_relative_to(uploads_dir)
     assert "passwd" not in saved_path.name
     assert is_safe_path(saved_path, uploads_dir) is True
+
+
+def test_real_png_with_unicode_filename_is_accepted(tmp_path):
+    file_obj = io.BytesIO()
+    Image.new("RGB", (16, 16), "white").save(file_obj, format="PNG")
+    file_obj.seek(0)
+    file_obj.filename = "処方箋.PNG"
+
+    success, meta, err = process_secure_upload(file_obj, str(tmp_path))
+
+    assert success, err
+    assert meta["original_filename"] == file_obj.filename
+    assert meta["mime_type"] == "image/png"
+    saved_path = Path(meta["absolute_path"])
+    assert saved_path.suffix == ".png"
+    assert saved_path.read_bytes() == file_obj.getvalue()
 
 
 def test_invalid_file_extension_rejected(temp_dirs):
