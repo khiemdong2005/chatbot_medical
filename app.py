@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 # Tải cấu hình môi trường (.env)
 load_dotenv()
-from core.settings import settings
+from core.settings import settings, is_configured_secret
 
 # Nạp cơ sở dữ liệu và các mô hình
 from core.models import db, User, MedicalDocument, ClinicalConsultation, init_db
@@ -236,9 +236,7 @@ def create_app(test_config=None):
     # periodically in the .env file and restart the application.
     _openrouter_key = os.getenv("OPENROUTER_API_KEY", "").strip()
     _is_placeholder_key = (
-        not _openrouter_key
-        or _openrouter_key.startswith("YOUR_")
-        or _openrouter_key in ("your_openrouter_api_key_here",)
+        not is_configured_secret(_openrouter_key)
         or len(_openrouter_key) < 10
     )
     if not is_testing:
@@ -299,8 +297,21 @@ def create_app(test_config=None):
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)
     # ==============================================================
 
+    @app.get("/.well-known/security.txt")
+    def security_txt():
+        """Chính sách tiếp nhận báo cáo lỗ hổng bảo mật chuẩn RFC 9116."""
+        from flask import Response
+        body = (
+            "Contact: mailto:security@medimind.local\n"
+            "Expires: 2027-12-31T23:59:59.000Z\n"
+            "Preferred-Languages: vi, en\n"
+        )
+        return Response(body, status=200, mimetype="text/plain; charset=utf-8")
+
     @app.get("/openapi.json")
     def api_spec():
+        if settings.server.is_production:
+            return jsonify({"error": "Not Found"}), 404
         import re
 
         paths = {}
@@ -324,6 +335,8 @@ def create_app(test_config=None):
 
     @app.get("/docs")
     def api_docs():
+        if settings.server.is_production:
+            return jsonify({"error": "Not Found"}), 404
         return render_template("api_docs.html", paths=api_spec().get_json()["paths"])
 
 
@@ -340,7 +353,8 @@ def create_app(test_config=None):
     @app.route("/")
     def index():
         """Trang chủ ứng dụng y tế MediMind."""
-        google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+        raw_maps_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+        google_maps_api_key = raw_maps_key if is_configured_secret(raw_maps_key) else ""
         return render_template("index.html", google_maps_api_key=google_maps_api_key)
 
     @app.route("/health")

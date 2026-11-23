@@ -354,35 +354,13 @@ function handleProvinceChange() {
 const chatHistory = [];
 let currentLang = localStorage.getItem('medimind_lang') || 'vi';
 let currentRole = 'patient';
-const DEFAULT_USER_PROFILE = {
-  id: 84291908,
-  clinical_id: "84291908",
-  name: "Nguyễn Văn An",
-  full_name: "Nguyễn Văn An",
-  dob: "04/10/2005",
-  gender: "Nam",
-  phone_number: "0347047101",
-  email: "benhnhan.an@gmail.com",
-  role: "patient",
-  badge: "BN",
-  cccd: "",
-  issue_date: "",
-  bhyt: "",
-  facility: "",
-  valid_from: "",
-  valid_to: "",
-  issue_place: "",
-  nationality: "VN",
-  ethnicity: "",
-  religion: "",
-  province: "",
-  ward: "",
-  address: "",
-  joined: "11/09/2026",
-  hasCustomAvatar: false,
-  notifications: [],
-  avatar: "/static/images/avatar_male.png"
-};
+
+function formatPatientCode(userId) {
+  const numericId = Number(userId);
+  if (!Number.isFinite(numericId) || numericId <= 0) return '—';
+  const year = new Date().getFullYear();
+  return `#BN-${year}-${String(numericId).padStart(4, '0')}`;
+}
 
 // Default visitor: NO USER LOGGED IN unless explicit valid user exists in localStorage
 let currentUser = JSON.parse(localStorage.getItem('medimind_user') || 'null');
@@ -457,29 +435,6 @@ async function checkAuthSessionWithServer() {
   }
   updateAuthUI();
 }
-
-// Hàm kích hoạt hồ sơ mẫu khi người dùng chủ động chọn "Xem demo"
-function loadDemoPatientProfile() {
-  currentUser = {
-    id: 8429,
-    clinical_id: "84291908",
-    name: 'Nguyễn Thành Khiêm',
-    full_name: 'Nguyễn Thành Khiêm',
-    badge: 'BN',
-    role: 'Bệnh nhân (Mẫu trải nghiệm)',
-    personal_info: 'Nam • 24/10/1997 • 0971221306',
-    phone: '0971221306',
-    phone_number: '0971221306',
-    dob: '1997-10-24',
-    gender: 'Nam',
-    blood_type: 'O+',
-    isDemo: true,
-    avatar: getDefaultAvatarByGender('Nam')
-  };
-  localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-  updateAuthUI();
-  showMedicalToast('Đã mở hồ sơ bệnh nhân mẫu (Chế độ trải nghiệm)', 'info');
-}
 // ==========================================
 // Bilingual i18n Dictionary (VI / EN)
 // ==========================================
@@ -536,9 +491,6 @@ const translations = {
     home_feat4_desc: "Tra cứu lịch sử khám, chỉ số sinh tồn và tái khám của từng bệnh nhân.",
     notif_empty: "Không có thông báo mới",
     notif_mark_read: "Đánh dấu đã đọc tất cả",
-    notif_filter_all: "Tất cả",
-    notif_filter_appointment: "Lịch khám",
-    notif_filter_medication: "Đơn thuốc",
     notif_unread_count: "4 mới",
     notif_all_read: "Đã đọc hết",
     notif_1_title: "Đơn thuốc đã phân tích",
@@ -716,8 +668,7 @@ const translations = {
     history_demo_btn: "Xem thử ca tư vấn mẫu",
     history_security: "Bảo mật dữ liệu cá nhân",
     history_encrypted: "Lịch sử trò chuyện cá nhân",
-    assistant_header_title: "Trợ lý sức khỏe MediMind",
-    chat_export_pdf: "Xuất PDF hội thoại",
+    assistant_header_title: "Trợ lý y tế MediMind",
     assistant_header_subtitle: "Đang trực tuyến • Tham khảo MedlinePlus và Dược thư",
     assistant_btn_summary: "Hồ sơ & Tóm tắt",
     assistant_greeting_title: "Trợ lý y tế MediMind",
@@ -751,8 +702,7 @@ const translations = {
     quick_prompt_text_2: "Tôi bị đau thắt ngực dữ dội, vã mồ hôi và khó thở lan ra cánh tay trái",
     quick_prompt_text_3: "Sau khi bóc tách đơn thuốc, tôi cần uống thuốc trước hay sau bữa ăn?",
     quick_prompt_text_4: "Tôi bị đau thượng vị cồn cào sau khi ăn thì nên đăng ký khám chuyên khoa nào?",
-    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau tức ngực, sốt)...",
-    chat_answer_notice: "Trợ lý MediMind có thể trả lời sai. Vui lòng kiểm chứng thông tin trước khi áp dụng.",
+    chat_input_placeholder: "Mô tả triệu chứng (ví dụ: đau tức ngực, sốt) hoặc gửi ảnh đơn thuốc...",
     hospital_title: "Cơ Sở Y Tế & Bệnh Viện",
     hospital_location_est: "Khu vực: TP.HCM (Khoảng cách ước tính)",
     hospital_subtitle: "Tra cứu vị trí bệnh viện tuyến đầu • Khoảng cách tính từ trung tâm TP.HCM hoặc bấm để dùng GPS",
@@ -805,11 +755,10 @@ const translations = {
     profile_lbl_address: "Địa chỉ nơi cư trú",
     profile_btn_save: "Lưu thông tin",
     profile_btn_back: "Quay lại trang chủ",
-    footer_disclaimer_link: "Lưu ý y tế",
+    footer_disclaimer_link: "Tuyên bố Miễn trừ Trách nhiệm Y tế",
     footer_version: "Phiên bản 2.5 • Nền tảng Trợ lý Sức khỏe Số",
-    footer_disclaimer_title: "Lưu ý y tế",
-    footer_disclaimer_lead: "Thông tin chỉ dùng để tham khảo.",
-    footer_disclaimer_text: "MediMind AI phục vụ học tập và nghiên cứu. Hãy hỏi bác sĩ trước khi quyết định điều trị. Khi có dấu hiệu cấp cứu, hãy tìm trợ giúp y tế ngay.",
+    footer_disclaimer_title: "Tuyên bố Miễn trừ Trách nhiệm Y tế",
+    footer_disclaimer_text: "Nền tảng MediMind AI được phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra quyết định sức khỏe. Trong tình huống nguy cấp, cần được đánh giá khẩn cấp tại cơ sở y tế.",
     toast_space_prefix: "Đã chuyển không gian: ",
     toast_glass_light: "Đã bật giao diện Sáng lâm sàng",
     toast_glass_dark: "Đã bật giao diện Kính tối",
@@ -953,9 +902,6 @@ const translations = {
     home_feat4_desc: "Access your clinical summaries, vital signs, and scheduled visits anytime.",
     notif_empty: "No new notifications",
     notif_mark_read: "Mark all as read",
-    notif_filter_all: "All",
-    notif_filter_appointment: "Appointments",
-    notif_filter_medication: "Prescriptions",
     notif_unread_count: "4 new",
     notif_all_read: "All read",
     notif_1_title: "Prescription Analyzed",
@@ -1133,8 +1079,7 @@ const translations = {
     history_demo_btn: "View Sample Consultation",
     history_security: "Personal Data Privacy",
     history_encrypted: "Personal chat history",
-    assistant_header_title: "MediMind Health Assistant",
-    chat_export_pdf: "Export Chat PDF",
+    assistant_header_title: "MediMind Medical Assistant",
     assistant_header_subtitle: "Online • MedlinePlus & Pharmacopoeia Reference",
     assistant_btn_summary: "Record & Summary",
     assistant_greeting_title: "MediMind Medical Assistant",
@@ -1168,8 +1113,7 @@ const translations = {
     quick_prompt_text_2: "I have intense crushing chest pain, sweating, and shortness of breath radiating to left arm",
     quick_prompt_text_3: "Should I take this medication before or after meals?",
     quick_prompt_text_4: "I feel burning epigastric pain after eating, which specialty should I consult?",
-    chat_input_placeholder: "Describe symptoms (e.g. chest pain, fever)...",
-    chat_answer_notice: "MediMind can make mistakes. Please verify information before acting on it.",
+    chat_input_placeholder: "Describe symptoms (e.g. chest pain, fever) or send prescription photo...",
     hospital_title: "Medical Facilities & Hospitals",
     hospital_location_est: "Region: Ho Chi Minh City (Estimated Distance)",
     hospital_subtitle: "Find top referral hospitals • Distance calculated from city center or tap for GPS",
@@ -1225,8 +1169,7 @@ const translations = {
     footer_disclaimer_link: "Medical Disclaimer",
     footer_version: "Version 2.5 • Digital Health Assistant Platform",
     footer_disclaimer_title: "Medical Disclaimer",
-    footer_disclaimer_lead: "For reference only.",
-    footer_disclaimer_text: "MediMind AI is for education and research. Consult a doctor before making treatment decisions. In an emergency, seek medical help immediately.",
+    footer_disclaimer_text: "MediMind AI is developed for educational, technical demonstration, and clinical support research purposes. The inferences, scores, and referenced guidelines do not constitute formal clinical diagnoses or medical advice. Always consult licensed medical professionals or healthcare facilities for medical conditions. In an emergency, seek urgent medical care.",
     toast_space_prefix: "Switched theme: ",
     toast_glass_light: "Activated: Clinical Light Theme",
     toast_glass_dark: "Activated: Spatial Dark Theme",
@@ -1418,11 +1361,16 @@ const STATIC_VI_EN_TEXT = {
   "Đang đối chiếu OCR và phân tích đơn thuốc...": "Running OCR verification and analyzing prescription...",
   "Tự động sắp xếp lịch uống sáng, trưa, tối và tra cứu tương tác thuốc": "Automatically structuring morning, noon, and evening doses and checking drug references",
   // Nutrition Flow
-  "Hôm nay bạn muốn ăn gì?": "What would you like to eat today?",
-  "Mô tả món bạn muốn ăn, tình trạng sức khỏe hoặc nguyên liệu cần tránh.": "Describe what you’d like to eat, a health condition, or an ingredient to avoid.",
+  "MEDIMIND · GỢI Ý DINH DƯỠNG": "MEDIMIND · NUTRITION STUDIO",
+  "Hôm nay bạn muốn ăn gì cho phù hợp?": "What would you like to eat today?",
+  "Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ đưa ra công thức tham khảo theo mô tả và hồ sơ của bạn.": "Enter a condition, symptom or eating preference. MediMind will show reference recipes based on your search and saved profile.",
   "Tình trạng sức khỏe và nhu cầu ăn uống": "Health condition and eating preference",
-  "Tìm món": "Find recipes",
-  "Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.": "Check the ingredients and serving sizes before eating.",
+  "Thử tìm:": "Try:",
+  "Gút · ít dầu mỡ": "Gout · less oil",
+  "Ít đường · không cay": "Less sugar · mild food",
+  "Trào ngược · không cay": "Reflux · mild food",
+  "Gan nhiễm mỡ": "Fatty liver",
+  "MediMind lọc công thức tham khảo; AI có thể hỗ trợ xếp hạng. Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.": "MediMind filters reference recipes; AI may help rank them. Check ingredients and portions before eating.",
   "Hôm nay bạn cảm thấy thế nào?": "How are you feeling today?",
   "Nhập tâm trạng hoặc tình trạng sức khỏe để xem các công thức tham khảo.": "Enter your mood or health condition to explore tailored recipes.",
   "Tâm trạng hoặc tình trạng sức khỏe": "Mood or health condition",
@@ -1626,21 +1574,9 @@ const STATIC_VI_EN_TEXT = {
   "Bệnh viện đa khoa quốc tế hàng đầu tại TP.HCM đạt chứng chỉ vàng JCI về an toàn và chất lượng điều trị.": "Leading international general hospital in Ho Chi Minh City holding JCI Gold Seal accreditation for patient safety and clinical care.",
   "Chỉ đường": "Directions",
   "Đặt lịch khám ngay": "Book Appointment Now",
-  // Google Identity Modal
+  // Google Auth & Common UI
   "Tiếp tục với Google": "Continue with Google",
-  "Chọn tài khoản": "Choose an account",
-  "Để tiếp tục đến": "to continue to",
-  "Mô phỏng trải nghiệm Google Identity": "Simulated Google Identity Sign-In",
-  "Sử dụng một tài khoản khác": "Use another account",
-  "Quay lại danh sách tài khoản": "Back to account list",
-  "Bạn quên địa chỉ email ư?": "Forgot email?",
-  "Không phải máy tính của bạn? Hãy sử dụng chế độ Khách để đăng nhập một cách riêng tư.": "Not your computer? Use Guest mode to sign in privately.",
-  "Tạo tài khoản": "Create account",
-  "Tiếp theo": "Next",
-  "Đang đăng nhập vào MediMind AI...": "Signing in to MediMind AI...",
-  "Đang đồng bộ hồ sơ y tế và phân quyền bảo mật cục bộ": "Synchronizing health profile and session security",
   "Đăng nhập thành công!": "Signed in successfully!",
-  "Xác thực Google Identity Services hoàn tất": "Google Identity authentication complete",
   "Người dùng": "User",
   "Tự động chuyển đến không gian làm việc trong giây lát...": "Redirecting to your workspace shortly...",
   "Tiếng Việt": "English",
@@ -1700,7 +1636,7 @@ const STATIC_VI_EN_TEXT = {
   "Ví dụ: 58.5": "Example: 58.5",
   "Ví dụ: Nguyễn Văn A": "Example: Nguyen Van A",
   "Ví dụ: Penicillin, Hải sản, Aspirin...": "Example: Penicillin, seafood, Aspirin...",
-  "Ví dụ: bữa tối ít dầu mỡ": "Example: a light dinner",
+  "Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…": "Example: gout, low sugar, mild food, light dinner…",
   "Ví dụ: Đau họng, sốt nhẹ 2 ngày, hồi hộp khi làm việc...": "Example: Sore throat, mild fever for 2 days, palpitations at work...",
   "Xác nhận mật khẩu mới": "Confirm new password",
   // Button tooltips and accessibility labels.
@@ -2265,8 +2201,6 @@ function syncChatSceneState(hasMessages) {
   const populated = hasMessages ?? Boolean(document.getElementById('chat-messages')?.children.length);
   tab.classList.toggle('chat-has-messages', populated);
   tab.classList.toggle('chat-empty', !populated);
-  const pdfButton = document.getElementById('chat-pdf-button');
-  if (pdfButton) pdfButton.disabled = !populated;
   syncChatSummaryButton();
 }
 
@@ -2613,6 +2547,27 @@ async function sendChatMessage() {
     renderChatHistoryList();
   }
 
+  let activeChatMode = 'general';
+
+  function setChatConsultationMode(mode) {
+    activeChatMode = (mode === 'intake') ? 'intake' : 'general';
+    const generalBtn = document.getElementById('chat-mode-general-btn');
+    const intakeBtn = document.getElementById('chat-mode-intake-btn');
+    const statusText = document.getElementById('chat-mode-status-text');
+    const isEn = typeof currentLang !== 'undefined' && currentLang === 'en';
+
+    if (generalBtn) generalBtn.classList.toggle('active', activeChatMode === 'general');
+    if (intakeBtn) intakeBtn.classList.toggle('active', activeChatMode === 'intake');
+
+    if (statusText) {
+      if (activeChatMode === 'intake') {
+        statusText.innerText = isEn ? 'Clinical Intake Mode • Pre-visit triage' : 'Chế độ Thăm khám lâm sàng • Bác sĩ trấn an & tóm tắt trước khám';
+      } else {
+        statusText.innerText = isEn ? 'General Q&A Mode • Concise & accurate' : 'Chế độ Hỏi đáp y tế • Trả lời ngắn gọn & chính xác';
+      }
+    }
+  }
+
   // 2. Typing Indicator
   const typingId = 'typing-' + Date.now();
   const typingHtml = `
@@ -2644,7 +2599,7 @@ async function sendChatMessage() {
         image: currentImage,
         lang: currentLang,
         health_context: window.getChatHealthContext?.() || {},
-        consultation_mode: 'informational'
+        consultation_mode: activeChatMode === 'intake' ? 'collecting' : 'informational'
       }),
       signal: chatRequest.controller.signal
     });
@@ -3270,9 +3225,12 @@ function simulateUploadLab() {
 
 function escapeHtml(string) {
   if (string === null || string === undefined) return '';
-  const div = document.createElement('div');
-  div.textContent = String(string);
-  return div.innerHTML || div.textContent || String(string);
+  return String(string)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function sanitizeUrl(rawUrl) {
@@ -3674,7 +3632,6 @@ function syncAuthModalTheme() {
   const divLineLeft = document.getElementById('auth-divider-line-left');
   const divLineRight = document.getElementById('auth-divider-line-right');
   const btnGoogle = document.getElementById('btn-google-signin');
-  const googleCard = document.getElementById('google-account-card');
 
   if (!card) return;
 
@@ -3693,12 +3650,8 @@ function syncAuthModalTheme() {
   if (divLineLeft) divLineLeft.className = "flex-1 h-px bg-white/15";
   if (divLineRight) divLineRight.className = "flex-1 h-px bg-white/15";
   if (btnGoogle) {
-    const span = btnGoogle.querySelector('span');
+    const span = btnGoogle.querySelector('span[data-i18n="btn_google_signin"]');
     if (span) span.className = "font-semibold text-white";
-  }
-  if (googleCard) {
-    googleCard.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
-    googleCard.classList.add('bg-slate-900', 'text-white', 'border-white/15');
   }
   if (typeof toggleAuthMode === 'function') {
     toggleAuthMode(currentAuthMode);
@@ -3839,7 +3792,8 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
+    if (typeof resetGoogleSignInButton === 'function') resetGoogleSignInButton();
+    const googleSpan = document.querySelector('#btn-google-signin span[data-i18n="btn_google_signin"]');
     if (googleSpan) {
       googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
@@ -3861,7 +3815,8 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
+    if (typeof resetGoogleSignInButton === 'function') resetGoogleSignInButton();
+    const googleSpan = document.querySelector('#btn-google-signin span[data-i18n="btn_google_signin"]');
     if (googleSpan) {
       googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
@@ -4294,10 +4249,8 @@ async function startOtpLoginFlow() {
 
 
 // ==============================================================
-// GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN (5-STATE MACHINE)
+// GOOGLE OAUTH 2.0 SIGN-IN (FAIL-CLOSED SERVER AUTHORIZATION CODE FLOW)
 // ==============================================================
-let currentGoogleState = 'select'; // 'select' | 'custom' | 'loading' | 'success'
-
 function detectInAppWebView() {
   const ua = (window.navigator && window.navigator.userAgent) || '';
   if (/Zalo/i.test(ua)) return 'Zalo';
@@ -4307,6 +4260,20 @@ function detectInAppWebView() {
   if (/MicroMessenger/i.test(ua)) return 'WeChat';
   return null;
 }
+
+function resetGoogleSignInButton() {
+  const btn = document.getElementById('btn-google-signin');
+  if (!btn) return;
+  btn.disabled = false;
+  if (btn.dataset && btn.dataset.originalHtml) {
+    btn.innerHTML = btn.dataset.originalHtml;
+    btn.dataset.loading = '';
+  }
+}
+
+window.addEventListener('pageshow', () => {
+  resetGoogleSignInButton();
+});
 
 async function handleGoogleSignIn(intentOverride) {
   const inAppName = detectInAppWebView();
@@ -4318,11 +4285,14 @@ async function handleGoogleSignIn(intentOverride) {
 
   const intent = intentOverride || 'continue';
   const btn = document.getElementById('btn-google-signin');
-  const originalHtml = btn ? btn.innerHTML : '';
-
   if (btn) {
+    if (!btn.dataset) btn.dataset = {};
+    if (!btn.dataset.originalHtml && !btn.innerHTML.includes('animate-spin')) {
+      btn.dataset.originalHtml = btn.innerHTML;
+    }
+    btn.dataset.loading = 'true';
     btn.disabled = true;
-    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
+    btn.innerHTML = `<span aria-hidden="true" data-google-spinner="true" class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
   }
 
   try {
@@ -4334,19 +4304,18 @@ async function handleGoogleSignIn(intentOverride) {
     clearTimeout(timer);
     const data = await res.json();
 
-    if (data.success && data.auth_url) {
+    if (res.ok && data.success && data.auth_url) {
       window.location.assign(data.auth_url);
       return;
     }
 
-    if (data.configured === false) {
-      if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    if (data.configured === false || res.status === 503) {
+      resetGoogleSignInButton();
+      const unconfiguredMsg = currentLang === 'en'
+        ? 'Google Sign-In is not configured on this server (missing valid GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env). Please sign in with Email or Phone.'
+        : 'Đăng nhập bằng Google chưa được cấu hình trên máy chủ (thiếu GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET hợp lệ trong .env). Vui lòng đăng nhập bằng Email hoặc Số điện thoại.';
       if (typeof showMedicalToast === 'function') {
-        showMedicalToast(
-          'Đăng nhập Google OAuth chưa được kích hoạt trên máy chủ. Vui lòng đăng nhập hoặc đăng ký bằng Email / SĐT + OTP.',
-          'info',
-          5500
-        );
+        showMedicalToast(unconfiguredMsg, 'warning', 6000);
       }
       return;
     }
@@ -4354,150 +4323,17 @@ async function handleGoogleSignIn(intentOverride) {
     throw new Error(extractApiErrorMessage(data, 'Không thể khởi tạo phiên Google OAuth.'));
   } catch (err) {
     console.error('Lỗi khởi tạo Google OAuth:', err);
-    if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    resetGoogleSignInButton();
     if (typeof showMedicalToast === 'function') {
-      showMedicalToast('Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.', 'error', 4500);
+      const msg = (err && err.name !== 'AbortError' && err.message && err.message !== 'Failed to fetch')
+        ? err.message
+        : (currentLang === 'en'
+          ? 'Sign-in server is temporarily unreachable. Please try again.'
+          : 'Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.');
+      showMedicalToast(msg, 'error', 4500);
     }
   }
 }
-
-function closeGoogleAccountModal() {
-  restoreModalTriggerFocus();
-  // Trạng thái 4 – Hủy đăng nhập: Đóng popup, quay lại modal đăng nhập ban đầu mà không đổi dữ liệu
-  const modal = document.getElementById('google-account-modal');
-  if (modal) modal.classList.add('hidden');
-  setGoogleModalState('select');
-}
-
-function setGoogleModalState(state) {
-  currentGoogleState = state;
-  const stateSelect = document.getElementById('google-state-select');
-  const stateCustom = document.getElementById('google-state-custom');
-  const stateLoading = document.getElementById('google-state-loading');
-  const stateSuccess = document.getElementById('google-state-success');
-  const heading = document.getElementById('google-modal-heading');
-  const subheading = document.getElementById('google-modal-subheading');
-
-  if (stateSelect) stateSelect.classList.toggle('hidden', state !== 'select');
-  if (stateCustom) stateCustom.classList.toggle('hidden', state !== 'custom');
-  if (stateLoading) stateLoading.classList.toggle('hidden', state !== 'loading');
-  if (stateSuccess) stateSuccess.classList.toggle('hidden', state !== 'success');
-
-  if (heading && subheading) {
-    if (state === 'select') {
-      heading.textContent = 'Chọn tài khoản';
-      subheading.innerHTML = 'Để tiếp tục đến <span class="text-white font-medium">MediMind AI</span>';
-    } else if (state === 'custom') {
-      heading.textContent = 'Đăng nhập';
-      subheading.innerHTML = 'Sử dụng Tài khoản Google của bạn';
-      const input = document.getElementById('google-custom-email-input');
-      if (input) setTimeout(() => input.focus(), 60);
-    } else if (state === 'loading') {
-      heading.textContent = 'Đang xác thực...';
-      subheading.innerHTML = 'Đang bảo mật phiên kết nối';
-    } else if (state === 'success') {
-      heading.textContent = 'Hoàn tất!';
-      subheading.innerHTML = 'Chào mừng bạn đến với MediMind AI';
-    }
-  }
-}
-
-async function startGoogleAccountSelection(email, name, initial, bgColor) {
-  // Cập nhật thông tin lên State 3 trước để sẵn sàng hiển thị
-  const avatarEl = document.getElementById('google-success-avatar');
-  const nameEl = document.getElementById('google-success-name');
-  const emailEl = document.getElementById('google-success-email');
-
-  if (avatarEl) {
-    avatarEl.textContent = initial || name.charAt(0).toUpperCase();
-    avatarEl.style.backgroundColor = bgColor || '#0284c7';
-  }
-  if (nameEl) nameEl.textContent = name;
-  if (emailEl) emailEl.textContent = email;
-
-  // Trạng thái 2 – Đang đăng nhập (Loading animation & pulse)
-  setGoogleModalState('loading');
-
-  try {
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${(bgColor || '#0284c7').replace('#', '')}&color=fff&size=128`;
-
-    const [res] = await Promise.all([
-      fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, avatar_url: avatarUrl })
-      }),
-      new Promise(resolve => setTimeout(resolve, 750)) // Smooth animation pause
-    ]);
-
-    const data = await res.json();
-    if (data.success && data.user) {
-      // Trạng thái 3 – Đăng nhập thành công (Demo checkmark & selected user display)
-      setGoogleModalState('success');
-
-      // Tự động chuyển đến giao diện Dashboard mẫu sau hiệu ứng hoàn tất
-      setTimeout(() => {
-        currentUser = data.user;
-        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-        startFreshChatForCurrentUser();
-        updateAuthUI();
-        closeGoogleAccountModal();
-        closeLoginModal();
-        broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-
-        if (typeof showMedicalToast === 'function') {
-          showMedicalToast(`Đăng nhập thành công với Google (${currentUser.email})!`, 'success');
-        }
-
-        if (pendingTabAfterLogin) {
-          const target = pendingTabAfterLogin;
-          pendingTabAfterLogin = null;
-          switchTab(target);
-        } else {
-          switchTab('home-tab');
-        }
-      }, 1200);
-
-    } else {
-      setGoogleModalState('select');
-      showMedicalToast(extractApiErrorMessage(data, 'Đăng nhập Google thất bại.'), 'error');
-    }
-  } catch (err) {
-    console.error('Lỗi Google Sign-In:', err);
-    setGoogleModalState('select');
-    showMedicalToast('Không thể kết nối máy chủ Google OAuth.', 'error');
-  }
-}
-
-function submitCustomGoogleAccount() {
-  const input = document.getElementById('google-custom-email-input');
-  let raw = (input?.value || '').trim();
-  if (!raw) {
-    input?.focus();
-    return;
-  }
-  let email = raw;
-  if (!email.includes('@')) {
-    email += '@gmail.com';
-  }
-  const prefix = email.split('@')[0];
-  const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Google User';
-  const initial = name.charAt(0).toUpperCase();
-  startGoogleAccountSelection(email, name, initial, '#0284c7');
-}
-
-// Bắt phím Escape và Enter cho Google Account Modal
-window.addEventListener('keydown', (e) => {
-  const modal = document.getElementById('google-account-modal');
-  if (modal && !modal.classList.contains('hidden')) {
-    if (e.key === 'Escape' && currentGoogleState !== 'loading') {
-      closeGoogleAccountModal();
-    }
-    if (e.key === 'Enter' && currentGoogleState === 'custom') {
-      submitCustomGoogleAccount();
-    }
-  }
-});
 
 async function handleRegisterSubmit(e) {
   e.preventDefault();
@@ -4555,32 +4391,6 @@ async function handleRegisterSubmit(e) {
     await requestAndShowOtp(identifier, channel, 'register', fullName);
   } finally {
     if (submitBtn) submitBtn.disabled = false;
-  }
-}
-
-async function quickLogin(type) {
-  const identifier = 'benhnhan.an@gmail.com';
-  const password = 'MatKhau123@';
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password, role: 'patient' })
-    });
-    const data = await res.json();
-    if (data.success && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      startFreshChatForCurrentUser();
-      updateAuthUI();
-      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-      closeLoginModal();
-    } else {
-      showMedicalToast(extractApiErrorMessage(data, 'Đăng nhập thất bại.'), 'error');
-    }
-  } catch (err) {
-    console.error('Lỗi đăng nhập nhanh:', err);
-    showMedicalToast('Không thể kết nối máy chủ xác thực.', 'error');
   }
 }
 
@@ -4693,7 +4503,6 @@ function updateProfileCompletion() {
 }
 
 function updateAuthUI() {
-  if (notificationInitialized && notificationAccount() !== notificationOwner) refreshNotificationEngine();
   const unlogged = document.getElementById('auth-unlogged');
   const logged = document.getElementById('auth-logged');
   const nameEl = document.getElementById('user-display-name');
@@ -4742,7 +4551,8 @@ function updateAuthUI() {
     if (ehrSubtitle) ehrSubtitle.innerText = (currentLang === 'vi' ? 'Theo dõi lịch sử khám và điều trị' : 'Track examination and treatment history');
     if (ehrPatientName) ehrPatientName.innerText = currentUser.name;
     const ptCodePrefix = currentLang === 'en' ? 'Patient ID' : 'Mã BN';
-    if (ehrPatientId) ehrPatientId.innerText = ptCodePrefix + ': #BN-2026-' + String(currentUser.id || 8429).padStart(4, '0') + ' • ' + subInfo;
+    const formattedPtCode = formatPatientCode(currentUser.id);
+    if (ehrPatientId) ehrPatientId.innerText = ptCodePrefix + ': ' + formattedPtCode + ' • ' + subInfo;
     if (ehrAvatarBadge) ehrAvatarBadge.innerText = currentUser.badge || 'BN';
 
     const rightPanelName = document.getElementById('right-panel-patient-name');
@@ -4750,7 +4560,7 @@ function updateAuthUI() {
     const rightPanelAvatar = document.getElementById('right-panel-avatar');
     const rightPanelBhyt = document.getElementById('right-panel-bhyt');
     if (rightPanelName) rightPanelName.innerText = currentUser.name;
-    if (rightPanelId) rightPanelId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 4).padStart(4, '0');
+    if (rightPanelId) rightPanelId.innerText = `${ptCodePrefix}: ${formattedPtCode}`;
     if (rightPanelAvatar) {
       const initials = currentUser.badge || (currentUser.name ? currentUser.name.split(' ').map(w => w[0]).slice(-2).join('').toUpperCase() : 'BN');
       rightPanelAvatar.innerText = initials;
@@ -4777,7 +4587,7 @@ function updateAuthUI() {
     const tabCity = document.getElementById('tab-profile-city');
     const tabAddress = document.getElementById('tab-profile-address');
 
-    if (tabBannerId) tabBannerId.innerText = (currentLang === 'en' ? 'Patient ID: #BN-2026-' : 'Mã BN: #BN-2026-') + String(currentUser.id || 8429).padStart(4, '0');
+    if (tabBannerId) tabBannerId.innerText = `${ptCodePrefix}: ${formattedPtCode}`;
     if (tabBannerName) tabBannerName.innerText = (currentLang === 'en' ? 'Full Name: ' : 'Họ tên: ') + currentUser.name;
     if (tabName) tabName.value = currentUser.name || '';
     // Sync Essential Profile fields
@@ -5141,7 +4951,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (googleAuthStatus === 'error') {
     let errMsg = 'Đăng nhập Google không thành công. Vui lòng thử lại.';
-    if (googleErrorReason === 'access_denied') {
+    if (googleErrorReason === 'unconfigured') {
+      errMsg = currentLang === 'en'
+        ? 'Google Sign-In is not configured on this server. Please sign in with Email or Phone.'
+        : 'Đăng nhập bằng Google chưa được cấu hình trên máy chủ. Vui lòng đăng nhập bằng Email hoặc Số điện thoại.';
+    } else if (googleErrorReason === 'access_denied') {
       errMsg = 'Đã hủy đăng nhập Google (hoặc email này chưa được thêm vào mục Audience -> Test users trên Google Cloud).';
     } else if (googleErrorReason === 'redirect_uri_mismatch') {
       errMsg = 'Lỗi cấu hình Redirect URI trên Google Cloud Console.';
@@ -5268,12 +5082,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Đóng modal & dropdown khi bấm Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      const notificationBell = document.getElementById('notif-btn');
-      if (notificationBell?.getAttribute('aria-expanded') === 'true') {
-        closeNotificationDropdown();
-        notificationBell.focus();
-        return;
-      }
       const preVisitModal = document.getElementById('previsit-summary-modal');
       if (preVisitSummaryRequest || (preVisitModal && !preVisitModal.classList.contains('hidden'))) {
         closePreVisitSummaryModal();
@@ -5933,9 +5741,11 @@ async function loadPrescriptionHistory() {
   const ehrPrescriptionList = document.getElementById('ehr-prescription-list');
 
   if (!currentUser || currentUser.isDemo) {
+    cachedPrescriptionHistory = [];
     if (listEl) listEl.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">Vui lòng đăng nhập để xem lịch sử đơn thuốc của bạn.</p>';
     if (countBadge) countBadge.innerText = '0 hồ sơ';
     if (emptyEl) emptyEl.classList.remove('hidden');
+    if (typeof refreshNotificationEngine === 'function') refreshNotificationEngine();
     return;
   }
 
@@ -5953,6 +5763,8 @@ async function loadPrescriptionHistory() {
 
     const data = await res.json();
     const history = data.history || [];
+    cachedPrescriptionHistory = history;
+    if (typeof refreshNotificationEngine === 'function') refreshNotificationEngine();
 
     if (countBadge) countBadge.innerText = (typeof currentLang !== 'undefined' && currentLang === 'en') ? `${history.length} records` : `${history.length} hồ sơ`;
 
@@ -6435,15 +6247,17 @@ async function confirmAndProceedPrescription() {
   if (docVal) currentPrescriptionData.doctor = docVal;
   if (diagVal) currentPrescriptionData.diagnosis = diagVal;
 
-  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument
-  try {
-    fetch('/api/prescription/confirm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentPrescriptionData)
-    }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
-  } catch (err) {
-    console.warn('Lỗi gửi xác nhận:', err);
+  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument (chỉ khi đã đăng nhập & có document_id)
+  if (currentUser && currentPrescriptionData.document_id) {
+    try {
+      fetch('/api/prescription/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentPrescriptionData)
+      }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
+    } catch (err) {
+      console.warn('Lỗi gửi xác nhận:', err);
+    }
   }
 
   // Ẩn màn hình dò lại
@@ -6543,7 +6357,7 @@ function renderPrescriptionResult(data) {
             <div class="bg-white dark:bg-slate-900/90 border border-sky-100 dark:border-white/10 rounded-2xl p-5 shadow-sm space-y-4">
               <div class="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div>
-                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'}</h3>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${escapeHtml(String(data.doc_title || 'Phiếu Xét Nghiệm Y Khoa'))}</h3>
                   <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${facility} • Bệnh nhân: <strong class="text-sky-950 font-bold">${patient}</strong></p>
                 </div>
                 <span class="text-xs font-mono text-slate-400">Ngày lập: ${dateStr}</span>
@@ -6565,7 +6379,7 @@ function renderPrescriptionResult(data) {
                       <tr class="hover:bg-slate-50 dark:bg-white/[0.04]/80 transition-colors">
                         <td class="py-3 px-3">
                           <div class="font-bold text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || m.test_name || 'Chỉ số xét nghiệm'))}</div>
-                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${m.loinc_code}</span>` : ''}
+                          ${m.loinc_code ? `<span class="text-[10px] text-sky-600 font-mono font-medium">LOINC: ${escapeHtml(String(m.loinc_code))}</span>` : ''}
                         </td>
                         <td class="py-3 px-3 font-mono font-black text-sm ${m.computed_flag === 'High' || m.status === 'High' ? 'text-rose-600' : m.computed_flag === 'Low' || m.status === 'Low' ? 'text-sky-600' : 'text-emerald-700'}">
                           ${escapeHtml(String(m.result != null ? m.result : (m.value != null ? m.value : '--')))} <span class="text-[11px] font-normal text-slate-400">${escapeHtml(String(m.unit || ''))}</span>
@@ -6573,7 +6387,7 @@ function renderPrescriptionResult(data) {
                         <td class="py-3 px-3 font-mono text-slate-500 dark:text-slate-400 text-xs">${escapeHtml(String(m.reference_range || m.reference || '--'))}</td>
                         <td class="py-3 px-3">
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.computed_flag === 'High' || m.status === 'High' ? 'bg-rose-50 text-rose-700 border border-rose-200' : m.computed_flag === 'Low' || m.status === 'Low' ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 border border-sky-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
-                            ${m.computed_flag || m.status || 'Bình thường'}
+                            ${escapeHtml(String(m.computed_flag || m.status || 'Bình thường'))}
                           </span>
                         </td>
                         <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
@@ -6603,7 +6417,7 @@ function renderPrescriptionResult(data) {
                 <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">Active</span>
               </div>
               <div class="text-xs text-slate-700 dark:text-slate-200 space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 leading-relaxed">
-                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${data.interpretation.replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
+                ${data.interpretation ? `<div class="prose prose-xs text-slate-700 dark:text-slate-200">${escapeHtml(String(data.interpretation)).replace(/\n/g, '<br>')}</div>` : 'Kết quả đã được xác minh đối chiếu qua thuật toán an toàn.'}
               </div>
             </div>
           </div>
@@ -6775,12 +6589,12 @@ function renderPrescriptionResult(data) {
                         <div class="flex flex-wrap items-center gap-2">
                           <h5 class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || 'Thuốc chưa xác định'))} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
                           <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                            ${m.purpose || m.category || 'Thuốc đặc trị'}
+                            ${escapeHtml(String(m.purpose || m.category || 'Thuốc đặc trị'))}
                           </span>
                         </div>
                         
                         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                          ${m.strength ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${m.strength}</strong> / viên</span><span>•</span>` : ''}
+                          ${m.strength ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg><strong class="text-slate-800 dark:text-slate-100 font-bold">${escapeHtml(String(m.strength))}</strong> / viên</span><span>•</span>` : ''}
                           <span>Tổng cấp: <strong class="text-slate-800 dark:text-slate-100 font-bold">${days}</strong></span>
                         </div>
                       </div>
@@ -6797,7 +6611,7 @@ function renderPrescriptionResult(data) {
                       <span class="text-sky-700 font-bold shrink-0 flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Lưu ý:</span>
                       <p class="font-medium text-slate-600 dark:text-slate-300">${usage}</p>
                     </div>
-                    <button type="button" data-medicine="${medQueryAttribute}" onclick="askBotAboutSpecificMedicine(this.dataset.medicine)" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
+                    <button type="button" data-action="ask-medicine" data-medicine-name="${medQueryAttribute}" class="text-[11px] text-sky-600 hover:text-sky-800 font-bold shrink-0 cursor-pointer flex items-center gap-1">
                       <span>Tư vấn thuốc</span>
                       <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
@@ -7200,68 +7014,11 @@ function cycleMedicalWallpaper() {
 // NOTIFICATION & REMINDER ENGINE (Lịch Hẹn Khám 🏥 & Nhắc Uống Thuốc 💊)
 // ============================================================================
 
-let currentNotifFilter = 'all';
+let currentNotifFilter = 'all'; // 'all' | 'appointment' | 'medication'
 let cachedAllNotifications = [];
+let cachedPrescriptionHistory = [];
 let cachedUserAppointments = [];
 let appointmentExpiryTimer;
-let notificationOwner = null;
-let latestNotificationRefresh = 0;
-let notificationInitialized = false;
-let notificationExpiryTimer;
-let sessionNotificationState = {};
-
-function notificationAccount() {
-  return currentUser?.id && !currentUser.isDemo ? String(currentUser.id) : null;
-}
-
-function toggleNotificationDropdown(event) {
-  event?.stopPropagation();
-  const menu = document.getElementById('notif-dropdown-menu');
-  if (!menu) return;
-  if (!menu.classList.contains('hidden')) {
-    closeNotificationDropdown();
-    return;
-  }
-  closeUserDropdown();
-  closeLanguageDropdown();
-  menu.classList.remove('hidden');
-  document.getElementById('notif-btn')?.setAttribute('aria-expanded', 'true');
-  refreshNotificationEngine();
-}
-
-function closeNotificationDropdown() {
-  document.getElementById('notif-dropdown-menu')?.classList.add('hidden');
-  document.getElementById('notif-btn')?.setAttribute('aria-expanded', 'false');
-}
-
-function filterNotifications(filterType) {
-  currentNotifFilter = filterType;
-  for (const type of ['all', 'appointment', 'medication']) {
-    document.getElementById('notif-filter-' + type)
-      ?.setAttribute('aria-pressed', String(type === filterType));
-  }
-  renderNotifications();
-}
-
-function getNotificationState() {
-  if (!notificationOwner) return {};
-  let stored = sessionNotificationState;
-  try {
-    stored = { ...JSON.parse(localStorage.getItem('medimind_notifications:' + notificationOwner) || '{}'),
-      ...sessionNotificationState };
-  } catch (_) { }
-  const now = Date.now();
-  return Object.fromEntries(Object.entries(stored || {}).filter(([, value]) => value?.expiresAt > now));
-}
-
-function saveNotificationState(state) {
-  if (!notificationOwner) return;
-  sessionNotificationState = state;
-  try {
-    localStorage.setItem('medimind_notifications:' + notificationOwner, JSON.stringify(state));
-    sessionNotificationState = {};
-  } catch (_) { }
-}
 
 function notificationAppointmentTime(appointment, useEndOfSlot = false) {
   const date = String(appointment.appointment_date || '').trim();
@@ -7278,198 +7035,486 @@ function notificationAppointmentTime(appointment, useEndOfSlot = false) {
     ? dateTime : null;
 }
 
-function buildAppointmentNotifications(records, now) {
-  return records.flatMap(record => {
-    if (record.id == null || record.is_demo || ['cancelled', 'canceled', 'completed'].includes(record.status)) return [];
-    const dateTime = notificationAppointmentTime(record);
-    if (!dateTime || dateTime <= now) return [];
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    const dayCode = dateTime.toDateString() === now.toDateString() ? 'today'
-      : (dateTime.toDateString() === tomorrow.toDateString() ? 'tomorrow' : '');
-    return [{
-      id: 'appt_' + record.id,
-      rawId: record.id,
-      type: 'appointment',
-      specialty: record.specialty || '',
-      facility: record.facility_name || '',
-      time: [record.appointment_time, record.appointment_date].filter(Boolean).join(' · '),
-      dayCode,
-      expiresAt: dateTime.getTime(),
-      sortTime: dateTime.getTime(),
-    }];
-  }).sort((left, right) => left.sortTime - right.sortTime);
-}
-
-function buildPrescriptionNotifications(records, now) {
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
-  return records.flatMap(record => {
-    if (record.id == null || record.doc_type !== 'prescription' || !record.has_parsed_data) return [];
-    const timestamp = String(record.created_at_iso || '');
-    if (!timestamp) return [];
-    // The document API returns UTC timestamps, including older values without a zone suffix.
-    const savedAt = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(timestamp) ? timestamp : timestamp + 'Z');
-    if (savedAt > now || savedAt.toDateString() !== now.toDateString()) return [];
-    return [{
-      id: 'rx_' + record.id,
-      rawId: record.id,
-      type: 'medication',
-      title: record.summary || '',
-      facility: record.facility || '',
-      expiresAt: endOfDay,
-      sortTime: savedAt.getTime(),
-    }];
-  }).sort((left, right) => right.sortTime - left.sortTime);
-}
-
-async function fetchNotificationRecords(url, field) {
-  try {
-    const response = await fetch(url, { cache: 'no-store' });
-    if (response.status === 401 || response.status === 403) return [];
-    if (!response.ok) return null;
-    const data = await response.json();
-    return Array.isArray(data[field]) ? data[field] : null;
-  } catch (_) {
-    return null;
+function toggleNotificationDropdown(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (!menu) return;
+  const isOpening = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden');
+  closeUserDropdown();
+  closeLanguageDropdown();
+  if (isOpening) {
+    refreshNotificationEngine();
   }
+}
+
+function closeNotificationDropdown() {
+  const menu = document.getElementById('notif-dropdown-menu');
+  if (menu && !menu.classList.contains('hidden')) {
+    menu.classList.add('hidden');
+  }
+}
+
+function filterNotifications(filterType) {
+  currentNotifFilter = filterType || 'all';
+  const filterBtns = {
+    all: document.getElementById('notif-filter-all'),
+    appointment: document.getElementById('notif-filter-appointment'),
+    medication: document.getElementById('notif-filter-medication'),
+  };
+
+  Object.keys(filterBtns).forEach(key => {
+    const btn = filterBtns[key];
+    if (!btn) return;
+    if (key === currentNotifFilter) {
+      btn.className = 'flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all bg-sky-500 text-white shadow-xs cursor-pointer';
+    } else {
+      btn.className = 'flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer';
+    }
+  });
+
+  renderNotificationItems();
+}
+
+function getTodayKey() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getTakenMedsStore() {
+  try {
+    return JSON.parse(localStorage.getItem('medimind_taken_meds') || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveTakenMedsStore(store) {
+  try {
+    localStorage.setItem('medimind_taken_meds', JSON.stringify(store));
+  } catch (_) { }
+}
+
+function getReadNotifsStore() {
+  try {
+    return JSON.parse(localStorage.getItem('medimind_read_notifs') || '[]');
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveReadNotifsStore(arr) {
+  try {
+    localStorage.setItem('medimind_read_notifs', JSON.stringify(arr));
+  } catch (_) { }
 }
 
 async function refreshNotificationEngine() {
-  const owner = notificationAccount();
-  const refreshId = ++latestNotificationRefresh;
-  if (owner !== notificationOwner) {
-    notificationOwner = owner;
-    cachedAllNotifications = [];
-    sessionNotificationState = {};
-  }
-  renderNotifications();
-  if (!owner) return;
-
-  const [appointments, prescriptions] = await Promise.all([
-    fetchNotificationRecords('/api/appointments', 'appointments'),
-    fetchNotificationRecords('/api/prescription/history', 'history'),
-  ]);
-  if (refreshId !== latestNotificationRefresh || owner !== notificationAccount()) return;
-
-  const now = new Date();
-  const items = [
-    ...(appointments === null ? cachedAllNotifications.filter(item => item.type === 'appointment') : buildAppointmentNotifications(appointments, now)),
-    ...(prescriptions === null ? cachedAllNotifications.filter(item => item.type === 'medication') : buildPrescriptionNotifications(prescriptions, now)),
-  ];
-  cachedAllNotifications = [...new Map(items.map(item => [item.id, item])).values()];
-  renderNotifications();
+  await buildAllNotifications();
+  renderNotificationItems();
+  updateNotificationBadges();
 }
 
-function renderNotifications() {
-  const list = document.getElementById('notif-items-list');
-  if (!list) return;
-  const isEn = currentLang === 'en';
-  const state = getNotificationState();
-  const now = Date.now();
-  cachedAllNotifications = cachedAllNotifications.filter(item => item.expiresAt > now);
-  const all = cachedAllNotifications.filter(item => !state[item.id]?.dismissed);
-  clearTimeout(notificationExpiryTimer);
-  if (all.length) {
-    const nextExpiry = Math.min(...all.map(item => item.expiresAt));
-    notificationExpiryTimer = setTimeout(renderNotifications, Math.min(nextExpiry - now, 2147483647));
-  }
-  const unread = all.filter(item => !state[item.id]?.read);
-  const items = all.filter(item => currentNotifFilter === 'all' || item.type === currentNotifFilter);
+async function buildAllNotifications() {
+  const readNotifs = getReadNotifsStore();
+  const takenMeds = getTakenMedsStore();
+  const todayKey = getTodayKey();
+  const notifs = [];
 
-  for (const type of ['all', 'appointment', 'medication']) {
-    const count = document.getElementById('notif-tab-count-' + type);
-    if (count) count.textContent = '(' + all.filter(item => type === 'all' || item.type === type).length + ')';
+  // 1. Build Appointment Notifications (real appointments only — never inject fake demo rows)
+  let appts = [];
+  try {
+    const res = await fetch('/api/appointments');
+    if (res.ok) {
+      const data = await res.json();
+      appts = Array.isArray(data.appointments) ? data.appointments : [];
+      cachedUserAppointments = appts;
+    } else if (res.status === 401 || res.status === 403) {
+      cachedUserAppointments = [];
+      appts = JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+    } else {
+      appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
+    }
+  } catch (_) {
+    appts = cachedUserAppointments.length ? cachedUserAppointments : JSON.parse(localStorage.getItem('medimind_guest_appointments') || '[]');
   }
+
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  (Array.isArray(appts) ? appts : []).forEach(appt => {
+    if (!appt || appt.is_demo) return;
+    const apptId = `appt_${appt.id}`;
+    let urgency = 'upcoming';
+    let urgencyLabel = 'Đã đặt';
+    let urgencyClass = 'badge-appointment';
+
+    const dStr = (appt.appointment_date || '').trim();
+    if (dStr.includes(todayStr) || dStr.includes(`${now.getDate()}/${now.getMonth() + 1}`)) {
+      urgency = 'today';
+      urgencyLabel = 'Hôm nay';
+      urgencyClass = 'badge-urgent';
+    } else if (dStr.includes('Ngày mai') || dStr.includes(`${now.getDate() + 1}/${now.getMonth() + 1}`)) {
+      urgency = 'tomorrow';
+      urgencyLabel = 'Ngày mai';
+      urgencyClass = 'badge-appointment';
+    }
+
+    notifs.push({
+      id: apptId,
+      rawId: appt.id,
+      type: 'appointment',
+      title: `Khám ${appt.specialty || 'Chuyên khoa'}`,
+      subtitle: appt.facility_name || 'Cơ sở Y tế',
+      time_str: `${appt.appointment_time || '08:30'} · ${appt.appointment_date || 'Ngày hẹn'}`,
+      urgency,
+      urgencyLabel,
+      urgencyClass,
+      specialty: appt.specialty || 'Đa khoa',
+      read: readNotifs.includes(apptId),
+      isDemo: false
+    });
+  });
+
+  // 2. Build Medication Notifications (Nhắc Uống Thuốc — chỉ tạo từ đơn thuốc thật đã lưu)
+  const currentHour = now.getHours();
+  const slots = [
+    { slot: 'morning', label: 'Cữ Sáng', timeRange: '07:00 - 08:30', active: currentHour >= 6 && currentHour < 11 },
+    { slot: 'noon', label: 'Cữ Trưa', timeRange: '11:30 - 12:30', active: currentHour >= 11 && currentHour < 15 },
+    { slot: 'evening', label: 'Cữ Tối', timeRange: '19:00 - 20:30', active: currentHour >= 18 && currentHour <= 23 }
+  ];
+
+  const realPrescriptions = Array.isArray(cachedPrescriptionHistory)
+    ? cachedPrescriptionHistory.filter(item => item && item.doc_type !== 'lab_test' && !item.is_demo)
+    : [];
+
+  if (realPrescriptions.length > 0) {
+    const latest = realPrescriptions[0];
+    const timeline = (latest && typeof latest.timeline === 'object' && latest.timeline) ? latest.timeline : null;
+
+    let addedFromTimeline = false;
+    if (timeline) {
+      slots.forEach(s => {
+        const slotMeds = Array.isArray(timeline[s.slot]) ? timeline[s.slot] : [];
+        if (slotMeds.length === 0) return;
+        addedFromTimeline = true;
+        const firstMed = slotMeds[0];
+        const medName = typeof firstMed === 'string'
+          ? firstMed
+          : (firstMed.name || firstMed.medication || latest.diagnosis || 'Đơn thuốc chuyên khoa');
+        const medDosage = (typeof firstMed === 'object' && firstMed.dose)
+          ? firstMed.dose
+          : 'Theo chỉ định đơn thuốc';
+        const medInstr = (typeof firstMed === 'object' && (firstMed.usage || firstMed.instruction))
+          ? (firstMed.usage || firstMed.instruction)
+          : `Theo đơn kê tại ${latest.facility || 'Cơ sở y tế'}`;
+
+        const medId = `med_${s.slot}_${todayKey}`;
+        const takenRecord = takenMeds[medId];
+        notifs.push({
+          id: medId,
+          type: 'medication',
+          slot: s.slot,
+          slotLabel: s.label,
+          title: medName,
+          dosage: medDosage,
+          instruction: medInstr,
+          time_str: `${s.label} (${s.timeRange})`,
+          taken: !!takenRecord,
+          takenAt: takenRecord || '',
+          read: readNotifs.includes(medId) || !!takenRecord,
+          activeSlot: s.active,
+          isDemo: false
+        });
+      });
+    }
+
+    if (!addedFromTimeline && (latest.summary || latest.diagnosis)) {
+      const activeSlot = slots.find(s => s.active) || slots[0];
+      const medId = `med_${activeSlot.slot}_${todayKey}`;
+      const takenRecord = takenMeds[medId];
+      notifs.push({
+        id: medId,
+        type: 'medication',
+        slot: activeSlot.slot,
+        slotLabel: activeSlot.label,
+        title: latest.diagnosis ? `Thuốc điều trị ${latest.diagnosis}` : 'Đơn thuốc chuyên khoa',
+        dosage: '1 liều theo chỉ định đơn',
+        instruction: `Theo đơn kê tại ${latest.facility || 'Cơ sở y tế'}`,
+        time_str: `${activeSlot.label} (${activeSlot.timeRange})`,
+        taken: !!takenRecord,
+        takenAt: takenRecord || '',
+        read: readNotifs.includes(medId) || !!takenRecord,
+        activeSlot: activeSlot.active,
+        isDemo: false
+      });
+    }
+  }
+
+  cachedAllNotifications = notifs;
+}
+
+function renderNotificationItems() {
+  const listEl = document.getElementById('notif-items-list');
+  if (!listEl) return;
+
+  let items = cachedAllNotifications || [];
+  if (currentNotifFilter === 'appointment') {
+    items = items.filter(n => n.type === 'appointment');
+  } else if (currentNotifFilter === 'medication') {
+    items = items.filter(n => n.type === 'medication');
+  }
+
+  if (items.length === 0) {
+    listEl.innerHTML = `
+      <div id="notif-empty-state" class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
+        <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+        <p class="text-xs font-medium text-slate-400">${currentLang === 'en' ? 'No notifications in this category' : 'Không có thông báo nào trong mục này'}</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => {
+    if (item.type === 'appointment') {
+      const isUrgent = item.urgency === 'today';
+      return `
+        <div class="notif-card notif-appointment ${item.read ? 'is-read' : ''} ${isUrgent ? 'is-urgent' : ''} cursor-pointer space-y-2"
+          data-action="notif-appointment" data-notif-id="${escapeHtml(item.id)}" data-raw-id="${escapeHtml(item.rawId || '')}">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="notif-card-badge badge-appointment">Lịch khám</span>
+                  <span class="notif-card-badge ${item.urgencyClass}">${escapeHtml(item.urgencyLabel)}</span>
+                </div>
+                <h5 class="text-xs font-bold text-white truncate mt-0.5">${escapeHtml(item.title)}</h5>
+              </div>
+            </div>
+            ${!item.read ? '<span class="w-2 h-2 rounded-full bg-sky-400 shrink-0 mt-1 shadow-sm shadow-sky-400 animate-pulse"></span>' : ''}
+          </div>
+
+          <div class="text-[11px] text-slate-300 pl-9 space-y-0.5">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              <span class="truncate">${escapeHtml(item.subtitle)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-sky-300 font-medium">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>${escapeHtml(item.time_str)}</span>
+            </div>
+          </div>
+
+          <div class="pl-9 pt-1 flex items-center justify-between">
+            <span class="text-[10px] text-slate-400">Khoa: <strong class="text-slate-200">${escapeHtml(item.specialty)}</strong></span>
+            <span class="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-0.5">
+              Chi tiết →
+            </span>
+          </div>
+        </div>
+      `;
+    } else {
+      // Medication Card
+      return `
+        <div class="notif-card notif-medication ${item.taken ? 'is-read' : (item.activeSlot ? 'pending-dose' : '')} space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg ${item.taken ? 'bg-slate-700/50 text-slate-400 border border-slate-600' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'} flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                </svg>
+              </span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="notif-card-badge badge-medication">Nhắc uống thuốc</span>
+                  <span class="notif-card-badge ${item.taken ? 'bg-slate-800 text-slate-400' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}">${escapeHtml(item.slotLabel)}</span>
+                </div>
+                <h5 class="text-xs font-bold text-white truncate mt-0.5">${escapeHtml(item.title)}</h5>
+              </div>
+            </div>
+            ${!item.read && !item.taken ? '<span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 mt-1 shadow-sm shadow-emerald-400 animate-pulse"></span>' : ''}
+          </div>
+
+          <div class="text-[11px] text-slate-300 pl-9 space-y-1">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Liều dùng: <strong class="text-slate-200">${escapeHtml(item.dosage)}</strong></span>
+            </div>
+            ${item.instruction ? `<p class="text-[10.5px] text-slate-400 italic">${escapeHtml(item.instruction)}</p>` : ''}
+          </div>
+
+          <div class="pl-9 pt-1 flex items-center justify-between gap-2">
+            <span class="text-[10px] text-slate-400">${escapeHtml(item.time_str)}</span>
+            ${item.taken
+              ? `<span class="notif-taken-badge">✓ Đã uống lúc ${escapeHtml(item.takenAt)}</span>`
+              : `<button type="button" data-action="mark-med-taken" data-notif-id="${escapeHtml(item.id)}" data-med-title="${escapeHtml(item.title)}" class="notif-take-btn">
+                  Đã uống ✓
+                </button>`
+            }
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+}
+
+// Delegated event listener replacing inline onclick string interpolation (C-01 XSS remediation)
+if (typeof document !== 'undefined' && !window.__medimindSafeActionDelegationBound) {
+  window.__medimindSafeActionDelegationBound = true;
+  document.addEventListener('click', (event) => {
+    const medTakenBtn = event.target.closest('[data-action="mark-med-taken"]');
+    if (medTakenBtn) {
+      markMedicationTaken(
+        medTakenBtn.dataset.notifId || '',
+        medTakenBtn.dataset.medTitle || '',
+        event
+      );
+      return;
+    }
+
+    const askMedBtn = event.target.closest('[data-action="ask-medicine"]');
+    if (askMedBtn) {
+      askBotAboutSpecificMedicine(askMedBtn.dataset.medicineName || 'thuốc');
+      return;
+    }
+
+    const notifApptCard = event.target.closest('[data-action="notif-appointment"]');
+    if (notifApptCard) {
+      handleNotificationClick(
+        notifApptCard.dataset.notifId || '',
+        'appointment',
+        notifApptCard.dataset.rawId || ''
+      );
+    }
+  });
+}
+
+function updateNotificationBadges() {
   const badge = document.getElementById('notif-badge');
   const countEl = document.getElementById('notif-unread-count');
-  const markRead = document.getElementById('notif-mark-read-btn');
-  for (const element of [badge, countEl, markRead]) element?.classList.toggle('hidden', !unread.length);
-  if (badge) badge.textContent = unread.length > 9 ? '9+' : unread.length;
-  if (countEl) countEl.textContent = unread.length + (isEn ? ' new' : ' mới');
+  const markReadBtn = document.getElementById('notif-mark-read-btn');
 
-  const calendar = '<path d="M8 3v4m8-4v4M4 10h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/>';
-  const prescription = '<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7Zm0 0v7h7M8 13h8m-8 4h8"/>';
-  const focused = list.contains(document.activeElement) ? document.activeElement : null;
-  const focusedId = focused?.closest('[data-notif-id]')?.dataset.notifId;
-  list.innerHTML = items.length ? items.map(item => {
-    const isAppointment = item.type === 'appointment';
-    const read = state[item.id]?.read;
-    const category = isAppointment ? (isEn ? 'Appointment' : 'Lịch khám') : (isEn ? 'Prescription' : 'Đơn thuốc');
-    const title = isAppointment
-      ? (item.specialty ? (isEn ? item.specialty : 'Khám ' + item.specialty) : category)
-      : (isEn ? 'Saved prescription' : 'Đơn thuốc đã lưu');
-    const day = item.dayCode === 'today' ? (isEn ? 'Today' : 'Hôm nay')
-      : (item.dayCode === 'tomorrow' ? (isEn ? 'Tomorrow' : 'Ngày mai') : '');
-    const dismissLabel = isEn ? 'Dismiss notification' : 'Xóa thông báo';
-    return `
-      <article class="notif-card notif-${item.type}${read ? ' is-read' : ''}" data-notif-id="${escapeHtml(item.id)}">
-        <div class="notif-card-symbol" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${isAppointment ? calendar : prescription}</svg>
-        </div>
-        <div class="notif-card-content">
-          <div class="notif-card-labels">
-            <span class="notif-card-badge badge-${item.type}">${category}</span>
-            ${day ? `<span class="notif-card-badge badge-urgent">${day}</span>` : ''}
-          </div>
-          <h3>${escapeHtml(title)}</h3>
-          ${item.facility ? `<p>${escapeHtml(item.facility)}</p>` : ''}
-          ${item.time || item.title ? `<p>${escapeHtml(item.time || item.title)}</p>` : ''}
-          <button type="button" class="notif-details" data-notif-action="details">${isEn ? 'Details' : 'Chi tiết'} →</button>
-        </div>
-        <div class="notif-card-controls">
-          ${!read ? `<span class="notif-dot" role="img" aria-label="${isEn ? 'Unread' : 'Chưa đọc'}"></span>` : ''}
-          <button type="button" class="notif-dismiss" data-notif-action="dismiss" aria-label="${dismissLabel}" title="${dismissLabel}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16m-10 4v6m4-6v6M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
-          </button>
-        </div>
-      </article>`;
-  }).join('') : `<p class="notif-empty">${isEn ? 'No notifications in this category' : 'Không có thông báo trong mục này'}</p>`;
-  if (focusedId) {
-    const card = [...list.querySelectorAll('[data-notif-id]')].find(element => element.dataset.notifId === focusedId);
-    const control = [...(card?.querySelectorAll('[data-notif-action]') || [])]
-      .find(element => element.dataset.notifAction === focused.dataset.notifAction);
-    (control || document.getElementById('notif-filter-' + currentNotifFilter))?.focus({ preventScroll: true });
+  const allItems = cachedAllNotifications || [];
+  const apptItems = allItems.filter(n => n.type === 'appointment');
+  const medItems = allItems.filter(n => n.type === 'medication');
+
+  const unreadItems = allItems.filter(n => !n.read && !n.taken);
+  const unreadCount = unreadItems.length;
+
+  if (badge) {
+    if (unreadCount > 0) {
+      badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  if (countEl) {
+    if (unreadCount > 0) {
+      countEl.innerText = `${unreadCount} ${currentLang === 'en' ? 'new' : 'mới'}`;
+      countEl.classList.remove('hidden');
+    } else {
+      countEl.classList.add('hidden');
+    }
+  }
+
+  if (markReadBtn) {
+    if (unreadCount > 0) {
+      markReadBtn.classList.remove('hidden');
+    } else {
+      markReadBtn.classList.add('hidden');
+    }
+  }
+
+  const countAll = document.getElementById('notif-tab-count-all');
+  const countAppt = document.getElementById('notif-tab-count-appointment');
+  const countMed = document.getElementById('notif-tab-count-medication');
+
+  if (countAll) countAll.innerText = `(${allItems.length})`;
+  if (countAppt) countAppt.innerText = `(${apptItems.length})`;
+  if (countMed) countMed.innerText = `(${medItems.length})`;
+}
+
+function markMedicationTaken(notifId, medTitle, event) {
+  if (event) event.stopPropagation();
+  const takenMeds = getTakenMedsStore();
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  takenMeds[notifId] = timeStr;
+  saveTakenMedsStore(takenMeds);
+
+  const readNotifs = getReadNotifsStore();
+  if (!readNotifs.includes(notifId)) {
+    readNotifs.push(notifId);
+    saveReadNotifsStore(readNotifs);
+  }
+
+  showMedicalToast(`Đã ghi nhận: Bạn đã uống "${medTitle}" lúc ${timeStr}!`, 'success', 3500);
+
+  const it = cachedAllNotifications.find(n => n.id === notifId);
+  if (it) {
+    it.taken = true;
+    it.takenAt = timeStr;
+    it.read = true;
+  }
+
+  renderNotificationItems();
+  updateNotificationBadges();
+}
+
+function handleNotificationClick(notifId, type, rawId) {
+  const readNotifs = getReadNotifsStore();
+  if (!readNotifs.includes(notifId)) {
+    readNotifs.push(notifId);
+    saveReadNotifsStore(readNotifs);
+  }
+
+  const it = cachedAllNotifications.find(n => n.id === notifId);
+  if (it) it.read = true;
+
+  closeNotificationDropdown();
+  updateNotificationBadges();
+
+  if (type === 'appointment') {
+    switchTab('my-appointments-tab');
+  } else if (type === 'medication') {
+    switchTab('ocr-tab');
   }
 }
 
 function markAllNotificationsAsRead() {
-  if (notificationOwner !== notificationAccount()) return;
-  const state = getNotificationState();
-  for (const item of cachedAllNotifications) {
-    state[item.id] = { ...state[item.id], read: true, expiresAt: item.expiresAt };
-  }
-  saveNotificationState(state);
-  renderNotifications();
+  const readNotifs = getReadNotifsStore();
+  cachedAllNotifications.forEach(n => {
+    if (!readNotifs.includes(n.id)) {
+      readNotifs.push(n.id);
+    }
+    n.read = true;
+  });
+  saveReadNotifsStore(readNotifs);
+
+  renderNotificationItems();
+  updateNotificationBadges();
+  showMedicalToast('Đã đánh dấu đã đọc tất cả thông báo.', 'info', 2500);
 }
 
 function initNotificationEngine() {
-  notificationInitialized = true;
-  document.getElementById('notif-items-list')?.addEventListener('click', event => {
-    const control = event.target.closest('[data-notif-action]');
-    const id = control?.closest('[data-notif-id]')?.dataset.notifId;
-    const item = cachedAllNotifications.find(entry => entry.id === id);
-    if (!item || item.expiresAt <= Date.now() || notificationOwner !== notificationAccount()) return;
-    const state = getNotificationState();
-    const dismissed = control.dataset.notifAction === 'dismiss';
-    state[id] = { read: true, dismissed, expiresAt: item.expiresAt };
-    saveNotificationState(state);
-    renderNotifications();
-    if (dismissed) {
-      const next = document.querySelector('#notif-items-list [data-notif-action="dismiss"]');
-      (next || document.getElementById('notif-filter-' + currentNotifFilter))?.focus();
-    } else {
-      closeNotificationDropdown();
-      if (item.type === 'appointment') switchTab('my-appointments-tab');
-      else viewPrescriptionHistoryItem(item.rawId);
-    }
-  });
-  window.addEventListener('focus', refreshNotificationEngine);
-  window.addEventListener('medimind:langchange', renderNotifications);
-  window.addEventListener('storage', event => {
-    if (event.key === 'medimind_notifications:' + notificationOwner) renderNotifications();
-  });
-  setInterval(refreshNotificationEngine, 60000);
   refreshNotificationEngine();
+  setInterval(() => {
+    refreshNotificationEngine();
+  }, 60000);
+  window.addEventListener('focus', () => {
+    refreshNotificationEngine();
+  });
 }
 
 // ============================================================================
@@ -7609,7 +7654,6 @@ function renderUserAppointmentsGrid(appts) {
 }
 
 async function deleteUserAppointment(apptId) {
-  if (!confirm('Bạn có chắc chắn muốn hủy phiếu đặt hẹn khám này không?')) return;
   if (currentUser && !currentUser.isDemo && typeof apptId === 'number' && apptId < 900000) {
     try {
       const res = await fetch(`/api/appointments/${apptId}`, { method: 'DELETE' });
@@ -7628,6 +7672,13 @@ async function deleteUserAppointment(apptId) {
   guestAppts = guestAppts.filter(a => a.id != apptId);
   localStorage.setItem('medimind_guest_appointments', JSON.stringify(guestAppts));
   cachedUserAppointments = (cachedUserAppointments || []).filter(a => a.id != apptId);
+
+  // Mark appt in readNotifs so it doesn't reappear in notifications
+  const readNotifs = getReadNotifsStore();
+  if (!readNotifs.includes(`appt_${apptId}`)) {
+    readNotifs.push(`appt_${apptId}`);
+    saveReadNotifsStore(readNotifs);
+  }
 
   showMedicalToast('Đã hủy lịch hẹn.', 'success');
   loadUserAppointments();
@@ -10391,7 +10442,7 @@ async function sendFloatingChatMessage() {
         message: text,
         lang: typeof currentLang !== 'undefined' ? currentLang : 'vi',
         health_context: window.getChatHealthContext?.() || {},
-        consultation_mode: 'informational'
+        consultation_mode: (typeof activeChatMode !== 'undefined' && activeChatMode === 'intake') ? 'collecting' : 'informational'
       }),
       signal: chatRequest.controller.signal
     });

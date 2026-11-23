@@ -128,6 +128,7 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
     from core.llm_provider import llm_provider
+    from core.settings import is_configured_secret
     use_groq = llm_provider.is_groq_active()
     if use_groq:
         key = (os.getenv("GROQ_API_KEY") or "").strip()
@@ -139,7 +140,7 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
         model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
         active_provider = "openrouter"
         want_json_mode = False
-    if not key or key.startswith("YOUR_") or len(key) <= 10:
+    if not is_configured_secret(key) or len(key) <= 10:
         raise NutritionAIError("not_configured")
     if not model or not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
         raise NutritionAIError("configuration")

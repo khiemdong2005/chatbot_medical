@@ -15,7 +15,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.settings import get_settings
+from core.settings import get_settings, is_configured_secret
 
 
 def check_configuration():
@@ -24,11 +24,11 @@ def check_configuration():
     has_required_missing = False
 
     # 1. SECRET_KEY
-    if settings.security.secret_key:
+    if is_configured_secret(settings.security.secret_key):
         results.append(("SECRET_KEY", "OK (PRESENT)", "Khóa mật mã phiên đã được cấu hình rõ ràng."))
     else:
         if settings.server.is_production:
-            results.append(("SECRET_KEY", "MISSING REQUIRED", "Bắt buộc phải có SECRET_KEY trong môi trường Production."))
+            results.append(("SECRET_KEY", "MISSING REQUIRED", "Bắt buộc phải có SECRET_KEY hợp lệ trong môi trường Production."))
             has_required_missing = True
         else:
             results.append(("SECRET_KEY", "MISSING OPTIONAL (DEV FALLBACK)", "Đang dùng fallback cố định cho môi trường Dev."))
@@ -47,7 +47,7 @@ def check_configuration():
     gemini_key = settings.gemini.api_key
     if gemini_key:
         clean_key = gemini_key.strip()
-        if clean_key.startswith("YOUR_") or clean_key == "your_google_gemini_api_key_here":
+        if not is_configured_secret(clean_key):
             results.append(("GEMINI_API_KEY", "INVALID", "Khóa là template placeholder chưa điền."))
         elif len(clean_key) < 10:
             results.append(("GEMINI_API_KEY", "INVALID", "Định dạng khóa quá ngắn."))
@@ -57,19 +57,24 @@ def check_configuration():
         results.append(("GEMINI_API_KEY", "MISSING OPTIONAL", "Chưa cấu hình. Ứng dụng khởi động ở chế độ Offline/Degraded Fallback."))
 
     # 4. GOOGLE OAUTH
-    if settings.security.google_client_id and settings.security.google_client_secret:
+    g_client_id = (settings.security.google_client_id or "").strip()
+    g_client_secret = (settings.security.google_client_secret or "").strip()
+    has_g_any = bool(g_client_id or g_client_secret)
+    if is_configured_secret(g_client_id) and is_configured_secret(g_client_secret):
         results.append(("GOOGLE_OAUTH", "OK (PRESENT)", "Đã cấu hình đăng nhập Google Single Sign-On."))
+    elif has_g_any:
+        results.append(("GOOGLE_OAUTH", "MISSING OPTIONAL (PLACEHOLDER)", "Đang chứa giá trị mẫu hoặc cấu hình chưa đủ (đăng nhập Google bị tắt an toàn)."))
     else:
         results.append(("GOOGLE_OAUTH", "MISSING OPTIONAL", "Đăng nhập Google không khả dụng (chỉ dùng email/mật khẩu/OTP)."))
 
     # 5. SMS PROVIDER (Twilio / SpeedSMS)
-    if (settings.messaging.twilio_account_sid and settings.messaging.twilio_auth_token) or settings.messaging.speedsms_auth_token:
+    if (is_configured_secret(settings.messaging.twilio_account_sid) and is_configured_secret(settings.messaging.twilio_auth_token)) or is_configured_secret(settings.messaging.speedsms_auth_token):
         results.append(("SMS_GATEWAY", "OK (PRESENT)", "Đã cấu hình cổng SMS gửi mã OTP."))
     else:
         results.append(("SMS_GATEWAY", "MISSING OPTIONAL", "Chưa cấu hình SMS (OTP chuyển sang log/email/terminal)."))
 
     # 6. SMTP EMAIL
-    if settings.messaging.smtp_server and settings.messaging.smtp_username:
+    if settings.messaging.smtp_server and is_configured_secret(settings.messaging.smtp_username) and is_configured_secret(settings.messaging.smtp_password):
         results.append(("SMTP_EMAIL", "OK (PRESENT)", f"Máy chủ gửi email {settings.messaging.smtp_server}:{settings.messaging.smtp_port}."))
     else:
         results.append(("SMTP_EMAIL", "MISSING OPTIONAL", "Chưa cấu hình SMTP email."))

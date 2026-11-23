@@ -25,7 +25,19 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv()
 
-GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
+from core.settings import is_configured_secret
+
+
+def _resolve_gemini_ocr_key() -> str:
+    """Đọc động khóa Gemini cho OCR và loại bỏ các giá trị placeholder mẫu."""
+    for candidate in (os.getenv("GEMINI_API_KEY"), os.getenv("GOOGLE_API_KEY")):
+        clean = (candidate or "").strip()
+        if is_configured_secret(clean):
+            return clean
+    return ""
+
+
+GEMINI_API_KEY = _resolve_gemini_ocr_key()
 
 from core.ocr_extractor import extract_prescription_text
 
@@ -113,7 +125,7 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
             ocr_api_key = llm_provider.resolve_api_key(profile="ocr")
         else:
             candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-            ocr_api_key = GEMINI_API_KEY
+            ocr_api_key = _resolve_gemini_ocr_key()
         data = llm_provider.generate_json(
             contents=contents_payload,
             candidate_models=candidate_models,
@@ -180,7 +192,7 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
             ocr_api_key = llm_provider.resolve_api_key(profile="ocr")
         else:
             candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-            ocr_api_key = GEMINI_API_KEY
+            ocr_api_key = _resolve_gemini_ocr_key()
         contents = [
             types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
             prompt

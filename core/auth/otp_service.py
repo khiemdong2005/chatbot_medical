@@ -18,26 +18,33 @@ from core.sms_service import sms_service
 logger = logging.getLogger("MediMindOTP")
 
 
+_PROCESS_OTP_FALLBACK_KEY = secrets.token_hex(32)
+
+
 def _get_otp_hmac_secret() -> bytes:
     """
     Lấy secret key để tính HMAC của mã OTP.
-    Ưu tiên: OTP_HMAC_SECRET env var → Flask SECRET_KEY → process-level fallback.
+    Ưu tiên: OTP_HMAC_SECRET env var → Flask SECRET_KEY → SECRET_KEY env → per-process random fallback.
     """
     import os
+    from core.settings import is_configured_secret
+
     secret = os.getenv("OTP_HMAC_SECRET", "").strip()
-    if secret:
+    if is_configured_secret(secret):
         return secret.encode("utf-8")
     # Fallback: dùng Flask SECRET_KEY nếu có
     try:
         from flask import current_app
         sk = current_app.secret_key
-        if sk:
+        if sk and (isinstance(sk, bytes) or is_configured_secret(str(sk))):
             return sk.encode("utf-8") if isinstance(sk, str) else sk
     except RuntimeError:
         pass
-    # Last resort: stable per-process fallback (acceptable for dev; prod should set OTP_HMAC_SECRET)
-    _fallback = os.getenv("SECRET_KEY", "medimind-otp-fallback-dev-key-not-for-prod")
-    return _fallback.encode("utf-8")
+    env_secret = os.getenv("SECRET_KEY", "").strip()
+    if is_configured_secret(env_secret):
+        return env_secret.encode("utf-8")
+    # Last resort: per-process random key (không dùng chuỗi tĩnh hardcode)
+    return _PROCESS_OTP_FALLBACK_KEY.encode("utf-8")
 
 
 def _compute_otp_hmac(otp_code: str, key: str) -> str:
