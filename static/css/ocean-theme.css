@@ -948,7 +948,6 @@ body #booking-tab #hospitalsView main>div.flex-1,
 /* 6.5 Bộ chuyển đổi chế độ xem (Mode Switcher) */
 #doctor-tab [hidden],
 #doctor-tab .nf-mode-switcher[hidden],
-#doctor-tab .nf-meal-filters[hidden],
 #doctor-tab .nf-full-meal-wrap[hidden],
 #doctor-tab .nf-cards[hidden] {
   display: none !important;
@@ -1321,21 +1320,6 @@ body #booking-tab #hospitalsView main>div.flex-1,
   background: transparent !important;
 }
 
-#doctor-tab .nf-examples button {
-  background: var(--ocean-sheer-card) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #94a3b8 !important;
-  border-radius: 9999px !important;
-  padding: 5px 14px !important;
-  transition: all 0.2s ease !important;
-}
-
-#doctor-tab .nf-examples button:hover {
-  background: var(--ocean-sheer-card) !important;
-  border-color: rgba(56, 189, 248, 0.4) !important;
-  color: #38bdf8 !important;
-}
-
 /* 7. TOÀN BỘ CÁC THẺ CARD / PANEL CHUNG (.glass-panel, .glass-panel-elevated) */
 .glass-panel,
 .glass-panel-elevated,
@@ -1612,27 +1596,134 @@ select:autofill {
 }
 
 /* MediMind Smart Bell Notifications */
+#notif-dropdown-menu {
+  --notif-text: #f2f6ff;
+  --notif-muted: #b5c6dc;
+  --notif-link: #80d8ff;
+  --notif-border: #34516f;
+  --notif-surface: #102238;
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(31rem, calc(100vw - 24px));
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid var(--notif-border);
+  border-radius: 20px;
+  background: #0d1e32;
+  color: var(--notif-text);
+  box-shadow: 0 18px 40px #06132680;
+}
+
+body.light-glass #notif-dropdown-menu {
+  --notif-text: #132c43;
+  --notif-muted: #4a6177;
+  --notif-link: #075985;
+  --notif-border: #c1d7e7;
+  --notif-surface: #f1f8fd;
+}
+
+.notif-panel-heading,
+.notif-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notif-panel-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--notif-border);
+}
+
+#notif-title {
+  font-size: 19px;
+  font-weight: 750;
+}
+
+#notif-filter-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--notif-border);
+}
+
+#notif-filter-tabs button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 4px;
+  border-radius: 10px;
+  color: var(--notif-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#notif-filter-tabs button[aria-pressed="true"] { background: #0576c0; color: #fff; }
+#notif-filter-tabs button:not([aria-pressed="true"]):hover { background: var(--notif-surface); }
+#notif-filter-tabs svg { flex: none; width: 16px; }
+#notif-items-list { display: grid; gap: 9px; max-height: min(58dvh, 540px); overflow-y: auto; }
+.notif-empty { padding: 24px 4px; font-size: 13px; text-align: center; color: var(--notif-muted); }
+
 .notif-card {
   position: relative;
-  background: rgba(14, 25, 45, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  background: var(--notif-surface);
+  border: 1px solid var(--notif-border);
   border-radius: 14px;
   padding: 12px;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.notif-card:hover {
-  background: rgba(19, 35, 62, 0.9);
-  border-color: rgba(56, 189, 248, 0.35);
-  transform: translateY(-1px);
+.notif-card.is-read { border-color: color-mix(in srgb, var(--notif-border) 65%, transparent); }
+
+.notif-card-symbol {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #0e82b625;
+  color: #37bff6;
 }
 
-.notif-card.is-read {
-  opacity: 0.65;
+.notif-medication .notif-card-symbol { background: #12876c25; color: #58d8a7; }
+.notif-card-symbol svg { width: 21px; }
+.notif-card-labels { display: flex; flex-wrap: wrap; gap: 4px; }
+.notif-card h3 { font-size: 14px; font-weight: 750; overflow-wrap: anywhere; margin: 3px 0; }
+.notif-card p { font-size: 12px; color: var(--notif-muted); overflow-wrap: anywhere; }
+.notif-card-controls { display: grid; justify-items: center; align-content: start; gap: 3px; }
+.notif-dot { width: 8px; height: 8px; margin-top: 4px; border-radius: 50%; background: #38bdf8; }
+.notif-medication .notif-dot { background: #34d399; }
+.notif-mark-read, .notif-details {
+  color: var(--notif-link);
+  font-size: 12px;
+  font-weight: 650;
+  padding: 5px 0;
+  cursor: pointer;
 }
+.notif-mark-read:hover, .notif-details:hover { text-decoration: underline; }
+.notif-dismiss {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--notif-muted);
+  cursor: pointer;
+}
+.notif-dismiss:hover { background: #f43f5e22; color: var(--notif-text); }
+.notif-dismiss svg { width: 17px; }
+#notif-dropdown-menu button:focus-visible { outline: 2px solid var(--notif-link); outline-offset: 1px; }
 
-.notif-card.is-read:hover {
-  opacity: 0.95;
+@media (max-width: 400px) {
+  #notif-filter-tabs svg { display: none; }
 }
 
 .notif-card-badge {
@@ -1663,37 +1754,5 @@ select:autofill {
   background: rgba(245, 158, 11, 0.2);
   color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.4);
-}
-
-.notif-take-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-  transition: all 0.18s ease;
-  cursor: pointer;
-  border: none;
-}
-
-.notif-take-btn:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
-}
-
-.notif-taken-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 3px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 600;
 }
 

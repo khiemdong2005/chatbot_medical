@@ -99,7 +99,8 @@ CONTEXTS = {
     },
     "diabetes": {
         "label": "Tiểu đường / đường huyết cao",
-        "aliases": ("tieu duong", "dai thao duong", "duong huyet cao", "diabetes", "duong cao", "benh tieu duong", "benh dai thao duong"),
+        "aliases": ("tieu duong", "dai thao duong", "duong huyet cao", "diabetes", "duong cao", "benh tieu duong", "benh dai thao duong",
+                    "tieu duong type 2", "dai thao duong type 2", "tieu duong tuyp 2", "dai thao duong tuyp 2", "type 2 diabetes"),
         "guidance": [_guidance("diabetes", "Người có đái tháo đường cần lưu ý tổng carbohydrate và khẩu phần, hạn chế đường thêm như đường cát, mật ong, sữa đặc và nước ngọt; ăn đa dạng, cân đối.")],
     },
     "hypertension": {
@@ -394,6 +395,85 @@ def _condition_exclusion(meta, contexts):
     return None
 
 
+def _recipe_check_facts(recipe):
+    meta = METADATA.get(str(recipe.get("id", "")))
+    if meta is None and recipe.get("imported"):
+        meta = _imported_metadata(recipe)
+    ingredients = recipe.get("ingredients")
+    names = [_normal(item.get("name", "")) for item in ingredients if isinstance(item, dict)] if isinstance(ingredients, list) else []
+    verified = bool(meta and names and len(names) == len(ingredients) and frozenset(names) == meta["ingredients"])
+    allergens = meta["allergens"] | _ingredient_allergens(recipe) if verified else set()
+    return meta, verified, allergens
+
+
+def _recipe_exclusion_reason(recipe, facts, contexts, allergies, preferences, unsupported=()):
+    """Apply the common ingredient screen using facts from the source recipe."""
+    meta, verified, ingredient_allergens = facts
+    reason = None
+    if unsupported:
+        reason = "Chưa kiểm tra được chất cần tránh đã nêu."
+    elif recipe.get("extraction_warnings"):
+        reason = "Công thức gốc hoặc phần trích xuất còn thiếu thông tin; chưa dùng để tự động gợi ý."
+    elif meta and meta.get("unsafe_preparation"):
+        reason = "Công thức có thành phần/cách chuẩn bị chưa phù hợp để tự động gợi ý trong ứng dụng này."
+    elif allergies and meta and meta.get("allergen_uncertain"):
+        reason = "Công thức nhập có nguyên liệu hoặc sản phẩm chưa xác minh đủ thành phần dị ứng."
+    elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach", "fatty_liver") for ctx in contexts)):
+        reason = "Chưa có metadata nguyên liệu/đặc tính được rà soát cho công thức này."
+    elif verified:
+        # Preserve the requested order: condition rules, then profile/query
+        # food allergies, then optional eating preferences.
+        reason = _condition_exclusion(meta, contexts)
+        if not reason:
+            hits = allergies & ingredient_allergens
+            if hits:
+                reason = "Có thành phần cần tránh: " + ", ".join(ALLERGEN_NAMES[x] for x in sorted(hits)) + "."
+            elif "gluten" in allergies and meta["gluten_uncertain"]:
+                reason = "Chưa xác minh nguyên liệu yến mạch không nhiễm gluten."
+        if not reason:
+            for code in preferences:
+                if code == "not_fried" and (meta.get("fried") or meta.get("saturated_fat_source")):
+                    reason = "Món có cách chiên rán hoặc chứa nguồn béo bão hòa/dầu mỡ; chưa phù hợp với yêu cầu ít dầu mỡ."
+                    break
+                elif meta.get(PREFERENCES[code][2]):
+                    reason = "Món chưa phù hợp với yêu cầu ăn uống bạn đã nhập."
+                    break
+    return reason
+
+
+class SharedRecipeFilter:
+    """Index ingredient exclusions from source recipes, without caching user queries."""
+
+    def __init__(self, indexed_recipes):
+        checks = {
+            **{("condition", code): ([code], set(), []) for code in CONTEXTS},
+            **{("allergy", code): ([], {code}, []) for code in ALLERGEN_NAMES},
+            **{("preference", code): ([], set(), [code]) for code in PREFERENCES},
+        }
+        self._blocked = {key: set() for key in checks}
+        self._always_blocked = set()
+        for source in indexed_recipes:
+            recipe = {**source, "imported": True}
+            facts = _recipe_check_facts(recipe)
+            if _recipe_exclusion_reason(recipe, facts, [], set(), []):
+                self._always_blocked.add(recipe["id"])
+                continue
+            for key, (contexts, allergies, preferences) in checks.items():
+                if _recipe_exclusion_reason(recipe, facts, contexts, allergies, preferences):
+                    self._blocked[key].add(recipe["id"])
+
+    def excluded_ids(self, condition, profile_allergies=None):
+        condition_query, preferences = _query_preferences(condition)
+        contexts, allergies, _ = _parse_input(condition_query)
+        profile_codes, _ = _profile_food_allergies(profile_allergies)
+        # The meal resolver handles ambiguity and explicit food exclusions.
+        blocked = set(self._always_blocked)
+        for kind, codes in (("condition", contexts), ("allergy", allergies | profile_codes), ("preference", preferences)):
+            for code in codes:
+                blocked.update(self._blocked[kind, code])
+        return blocked
+
+
 def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], profile_allergies=None,
                                  fatty_liver_recipes=None) -> Dict[str, Any]:
     """Return copied candidates and attributable rules; never certify suitability.
@@ -443,47 +523,15 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
     candidates, excluded = [], []
     for original in recipes:
         recipe = deepcopy(original)
-        meta = METADATA.get(str(recipe.get("id", "")))
-        if meta is None and recipe.get("imported"):
-            meta = _imported_metadata(recipe)
-        ingredients = recipe.get("ingredients")
-        names = [_normal(item.get("name", "")) for item in ingredients if isinstance(item, dict)] if isinstance(ingredients, list) else []
-        verified = bool(meta and names and len(names) == len(ingredients) and frozenset(names) == meta["ingredients"])
-        reason = None
-        if unsupported:
-            reason = "Chưa kiểm tra được chất cần tránh đã nêu."
-        elif recipe.get("extraction_warnings"):
-            reason = "Công thức gốc hoặc phần trích xuất còn thiếu thông tin; chưa dùng để tự động gợi ý."
-        elif meta and meta.get("unsafe_preparation"):
-            reason = "Công thức có thành phần/cách chuẩn bị chưa phù hợp để tự động gợi ý trong ứng dụng này."
-        elif allergies and meta and meta.get("allergen_uncertain"):
-            reason = "Công thức nhập có nguyên liệu hoặc sản phẩm chưa xác minh đủ thành phần dị ứng."
-        elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach", "fatty_liver") for ctx in contexts)):
-            reason = "Chưa có metadata nguyên liệu/đặc tính được rà soát cho công thức này."
-        elif verified:
-            # Preserve the requested order: condition rules, then profile/query
-            # food allergies, then optional eating preferences.
-            reason = _condition_exclusion(meta, contexts)
-            if not reason:
-                hits = allergies & (meta["allergens"] | _ingredient_allergens(recipe))
-                if hits:
-                    reason = "Có thành phần cần tránh: " + ", ".join(ALLERGEN_NAMES[x] for x in sorted(hits)) + "."
-                elif "gluten" in allergies and meta["gluten_uncertain"]:
-                    reason = "Chưa xác minh nguyên liệu yến mạch không nhiễm gluten."
-            if not reason:
-                for code in preferences:
-                    if code == "not_fried" and (meta.get("fried") or meta.get("saturated_fat_source")):
-                        reason = "Món có cách chiên rán hoặc chứa nguồn béo bão hòa/dầu mỡ; chưa phù hợp với yêu cầu ít dầu mỡ."
-                        break
-                    elif meta.get(PREFERENCES[code][2]):
-                        reason = "Món chưa phù hợp với yêu cầu ăn uống bạn đã nhập."
-                        break
+        facts = _recipe_check_facts(recipe)
+        meta, verified, ingredient_allergens = facts
+        reason = _recipe_exclusion_reason(recipe, facts, contexts, allergies, preferences, unsupported)
         if reason:
             excluded.append({"id": recipe.get("id"), "title": recipe.get("title", ""), "reason": reason})
             continue
         if verified:
             recipe["rule_tags"] = [key for key in ("soft", "liquid") if meta[key]]
-            recipe["declared_allergens"] = sorted(meta["allergens"] | _ingredient_allergens(recipe))
+            recipe["declared_allergens"] = sorted(ingredient_allergens)
             if meta.get("automatic"):
                 recipe["metadata_review"] = "automated_text_scan"
                 recipe["metadata_note"] = "Nhãn nguyên liệu được quét tự động từ công thức gốc; chưa được xác minh y khoa hoặc xác nhận an toàn dị ứng."

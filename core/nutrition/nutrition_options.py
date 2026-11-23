@@ -68,6 +68,16 @@ FOOD.extend([
         ["Không dùng nếu bạn dị ứng đậu nành."])
 ])
 
+STEAMED_GREENS = _recipe(
+    "fl_steamed_greens", "Rau cải hấp", "🥬", "Rau hấp đơn giản", "12 phút",
+    "Rau cải bổ sung chất xơ trong bữa ăn.",
+    [_i("Cải thìa", 150, "g", "🥬"), _i("Nước lọc", 150, "ml", "💧")],
+    ["Rửa sạch và cắt cải thìa thành miếng vừa ăn.",
+     "Hấp rau đến khi chín vừa.",
+     "Dùng cùng món chính và nêm nhẹ theo hướng dẫn cá nhân."],
+    ["Điều chỉnh lượng muối theo hướng dẫn cá nhân."],
+)
+
 FATTY_LIVER_FOOD = [
     _recipe("fl_steamed_fish", "Cá hấp gừng", "🐟", "Cá hấp không chiên", "25 phút",
         "Cá cung cấp đạm.",
@@ -101,13 +111,7 @@ FATTY_LIVER_FOOD = [
          "Nấu bí xanh với nước đến khi gần mềm, thêm nấm.",
          "Nấu chín nấm, nêm nhẹ rồi dùng khi còn ấm."],
         ["Điều chỉnh lượng muối và khẩu phần theo hướng dẫn cá nhân."]),
-    _recipe("fl_steamed_greens", "Rau cải hấp", "🥬", "Rau hấp đơn giản", "12 phút",
-        "Rau cải bổ sung chất xơ trong bữa ăn.",
-        [_i("Cải thìa", 150, "g", "🥬"), _i("Nước lọc", 150, "ml", "💧")],
-        ["Rửa sạch và cắt cải thìa thành miếng vừa ăn.",
-         "Hấp rau đến khi chín vừa.",
-         "Dùng cùng món chính và nêm nhẹ theo hướng dẫn cá nhân."],
-        ["Điều chỉnh lượng muối theo hướng dẫn cá nhân."]),
+    STEAMED_GREENS,
     _recipe("fl_oat_vegetable_porridge", "Cháo yến mạch rau củ", "🥣", "Cháo yến mạch không thêm đường", "20 phút",
         "Yến mạch và rau củ cung cấp chất xơ.",
         [_i("Yến mạch", 45, "g", "🌾"), _i("Cà rốt", 50, "g", "🥕"),
@@ -514,6 +518,7 @@ def _meal_calories(meal, prepared):
         if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0:
             values.append(value)
     meal["total_calories"] = round(sum(values), 1) if values else None
+    meal["calorie_covered_dishes"] = len(values)
     meal["calorie_note"] = (f"Ước tính theo dữ liệu nguồn cho {len(values)}/{len(meal.get('dishes', []))} món; "
                             "chưa tính phần tinh bột ăn kèm. Không chia theo số người trong công thức.")
 

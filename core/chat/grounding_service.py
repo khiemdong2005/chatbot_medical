@@ -88,11 +88,12 @@ LAB_ALIAS_MAP = {
 }
 
 def normalize_drug_entity(raw_name: str) -> Dict[str, Any]:
-    """Fuzzy matching tên thuốc với danh mục thuốc VN."""
+    """Fuzzy matching tên thuốc với danh mục thuốc VN (Tích hợp Master Catalog 2.200+ thuốc)."""
     raw_lower = raw_name.lower().strip()
     best_match = None
     best_score = 0.0
 
+    # 1. Tra cứu nhanh trong nhóm thông dụng ưu tiên (Cache lớp 1)
     for drug in VN_DRUG_DATABASE:
         score = difflib.SequenceMatcher(None, raw_lower, drug["name"].lower()).ratio()
         if score > best_score:
@@ -107,6 +108,28 @@ def normalize_drug_entity(raw_name: str) -> Dict[str, Any]:
                 best_score = ascore
                 best_match = drug
 
+    if best_match and best_score >= 0.80:
+        return {
+            "is_matched": True,
+            "standard_name": best_match["name"],
+            "active_ingredient": best_match["active_ingredient"],
+            "category": best_match["category"],
+            "purpose": best_match.get("purpose", best_match["category"]),
+            "match_confidence": round(best_score, 2),
+            "status": "grounded"
+        }
+
+    # 2. Tra cứu diện rộng qua DrugLexiconService (Inverted 3-Gram Index & Thông tư 20/2022/TT-BYT)
+    try:
+        from core.ocr.drug_lexicon_service import get_drug_lexicon
+        lexicon = get_drug_lexicon()
+        lex_res = lexicon.search(raw_name, min_score=0.65)
+        if lex_res and lex_res.get("is_matched") and lex_res.get("match_confidence", 0) > best_score:
+            return lex_res
+    except Exception:
+        pass
+
+    # 3. Fallback nếu điểm cache lớp 1 đạt ngưỡng chấp nhận (0.65 - 0.79)
     if best_match and best_score >= 0.65:
         return {
             "is_matched": True,
@@ -117,6 +140,7 @@ def normalize_drug_entity(raw_name: str) -> Dict[str, Any]:
             "match_confidence": round(best_score, 2),
             "status": "grounded"
         }
+
     return {
         "is_matched": False,
         "standard_name": raw_name,

@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 from google.genai import types
 
+from core.gemini_service import GeminiMedicalService
 from core.llm_provider import LLMProvider, _OpenRouterHTTPError
 
 
@@ -15,6 +16,15 @@ SCHEMA = {
     "required": ["accepted"],
     "additionalProperties": False,
 }
+
+
+def test_chat_vision_override_does_not_change_text_model(monkeypatch):
+    monkeypatch.setenv("AI_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_CHAT_VISION_MODEL", "google/gemini-2.5-flash")
+    service = GeminiMedicalService(api_key="sk-or-test", model="nvidia/nemotron-3.5-super-vl:free")
+
+    assert service._resolve_runtime_model(has_image=True) == "google/gemini-2.5-flash"
+    assert service._resolve_runtime_model(has_image=False) == "nvidia/nemotron-3.5-super-vl:free"
 
 
 @pytest.fixture

@@ -95,6 +95,10 @@ def test_scenario_05_gerd(client):
     data = res.get_json()
     assert data["status"] == "success"
     assert len(data["family_combos"]) >= 1
+    vegetables = {combo["components"]["vegetable"]["recipe_id"] for combo in data["family_combos"]}
+    assert "fl_steamed_greens" in vegetables
+    for combo in data["family_combos"]:
+        assert all(dish["recipe_id"] != "vifoodrec_2901" for dish in combo["components"].values())
 
 
 def test_scenario_06_shrimp_allergy(client):
@@ -107,6 +111,34 @@ def test_scenario_06_shrimp_allergy(client):
         for comp in combo["components"].values():
             assert "tôm" not in comp["title"].lower()
             assert "téptrán" not in comp["title"].lower()
+
+
+@pytest.mark.parametrize("request_body", [
+    {"condition": "gợi ý bữa tối, dị ứng hải sản"},
+    {"condition": "gợi ý bữa tối", "allergies": ["hải sản"]},
+])
+def test_seafood_allergy_expands_to_all_indexed_groups(client, request_body):
+    from core.nutrition.meal_engine_service import MealEngineService
+
+    response = client.post("/api/nutrition/meals", json=request_body)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "success"
+    assert data["family_combos"] and data["standalone_meals"]
+    ids = {dish["recipe_id"] for dish in data["standalone_meals"]}
+    ids.update(dish["recipe_id"] for combo in data["family_combos"] for dish in combo["components"].values())
+    index = MealEngineService.get_instance().index
+    for code in ("shrimp", "crab", "squid_octopus", "mollusk", "fish"):
+        assert not (ids & index.get_ids_by_allergen_status(code, "known_present"))
+        assert not (ids & index.get_ids_by_allergen_status(code, "unknown"))
+
+
+def test_options_return_both_views_for_seafood_allergy(client):
+    response = client.post("/api/nutrition/options", json={"condition": "dị ứng hải sản", "recipe_type": "food"})
+    assert response.status_code == 200
+    data = response.get_json()["data"]
+    assert not data["needs_clarification"]
+    assert data["recipes"] and data["meal_combos"]
 
 
 def test_scenario_07_egg_allergy(client):
@@ -218,16 +250,72 @@ def test_scenario_16_impossible_constraints(client):
     assert len(data["family_combos"]) == 0 or len(data["family_combos"]) <= 6
 
 
-def test_scenario_17_backward_compat_options(client):
+@pytest.mark.parametrize("condition", ["gan nhiễm mỡ", "gút"])
+def test_scenario_17_backward_compat_options(client, condition):
     """17. Endpoint /api/nutrition/options tương thích ngược."""
-    res = client.post("/api/nutrition/options", json={"condition": "gan nhiễm mỡ", "recipe_type": "food"})
+    res = client.post("/api/nutrition/options", json={"condition": condition, "recipe_type": "food"})
     assert res.status_code == 200
     data = res.get_json()
     assert data["success"] is True
     d = data["data"]
     assert "meal_combos" in d
-    assert "recipes" in d
+    assert d["recipes"]
     assert len(d["meal_combos"]) == 6
+    assert d["full_meal_set"] == d["meal_combos"][0]
+    assert any(combo["total_calories"] is not None for combo in d["meal_combos"])
+    for combo in d["meal_combos"]:
+        values = [dish["recipe"]["calories"] for dish in combo["dishes"]
+                  if type(dish["recipe"]["calories"]) in (int, float)]
+        assert combo["calorie_covered_dishes"] == len(values)
+        assert combo["total_calories"] == (round(sum(values), 1) if values else None)
+
+
+@pytest.mark.parametrize("condition", ["gút, dị ứng tôm", "gút và đái tháo đường type 2, dị ứng tôm"])
+def test_shared_ingredient_filter_applies_to_both_views(client, condition):
+    from core.nutrition.meal_engine_service import MealEngineService
+    from core.nutrition.nutrition_rules import prepare_nutrition_candidates
+
+    response = client.post("/api/nutrition/options", json={"condition": condition, "recipe_type": "food"})
+    assert response.status_code == 200
+    data = response.get_json()["data"]
+    assert data["recipes"] and data["meal_combos"]
+    returned_ids = {recipe["id"] for recipe in data["recipes"]}
+    returned_ids.update(dish["recipe"]["id"] for meal in data["meal_combos"] for dish in meal["dishes"])
+    index = MealEngineService.get_instance().index
+    original_recipes = [{**index.get_recipe_by_id(recipe_id), "imported": True} for recipe_id in returned_ids]
+    assert not prepare_nutrition_candidates(condition, original_recipes)["excluded"]
+
+
+@pytest.mark.parametrize("condition", ["bệnh thận mạn", "gút, dị ứng thực phẩm không rõ"])
+def test_nutrition_options_do_not_show_either_view_when_safety_blocks(client, condition):
+    response = client.post("/api/nutrition/options", json={"condition": condition, "recipe_type": "food"})
+    assert response.status_code == 200
+    data = response.get_json()["data"]
+    assert data["needs_clarification"]
+    assert not data["recipes"] and not data.get("meal_combos")
+
+
+def test_meal_calories_report_partial_coverage(client, monkeypatch):
+    from core.nutrition.meal_engine_service import MealEngineService
+
+    original = MealEngineService.get_recipe_details
+
+    def details_without_staple_energy(service, recipe_id):
+        details = original(service, recipe_id)
+        if recipe_id.startswith("canonical_staple_"):
+            details["calories"] = None
+        return details
+
+    monkeypatch.setattr(MealEngineService, "get_recipe_details", details_without_staple_energy)
+    response = client.post("/api/nutrition/options", json={"condition": "gút", "recipe_type": "food"})
+    assert response.status_code == 200
+    meals = response.get_json()["data"]["meal_combos"]
+    partial_meals = [meal for meal in meals if meal["calorie_covered_dishes"] < len(meal["dishes"])]
+    assert partial_meals
+    for meal in partial_meals:
+        values = [dish["recipe"]["calories"] for dish in meal["dishes"] if dish["recipe"]["calories"] is not None]
+        assert 0 < len(values) == meal["calorie_covered_dishes"] < len(meal["dishes"])
+        assert meal["total_calories"] == round(sum(values), 1)
 
 
 def test_scenario_18_refresh_rotation(client):

@@ -29,7 +29,7 @@ const assert = require('assert');
 let currentLang = 'en';
 const textNode = {{ nodeValue: '  Gợi ý món ăn  ', parentElement: {{ closest: () => null }} }};
 const userMessage = {{ nodeValue: 'Gợi ý món ăn', parentElement: {{ closest: () => ({{ id: 'chat-messages' }}) }} }};
-const attrs = {{ placeholder: 'Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…' }};
+const attrs = {{ placeholder: 'Ví dụ: bữa tối ít dầu mỡ' }};
 const input = {{
   closest: () => null,
   hasAttribute: key => Object.hasOwn(attrs, key),
@@ -46,11 +46,11 @@ global.document = {{
 translateStaticDom();
 assert.strictEqual(textNode.nodeValue, '  Suggested Dishes  ');
 assert.strictEqual(userMessage.nodeValue, 'Gợi ý món ăn');
-assert.strictEqual(attrs.placeholder, 'Example: gout, low sugar, mild food, light dinner…');
+assert.strictEqual(attrs.placeholder, 'Example: a light dinner');
 currentLang = 'vi';
 translateStaticDom();
 assert.strictEqual(textNode.nodeValue, '  Gợi ý món ăn  ');
-assert.strictEqual(attrs.placeholder, 'Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…');
+assert.strictEqual(attrs.placeholder, 'Ví dụ: bữa tối ít dầu mỡ');
 """
     run_node(script)
 

@@ -55,8 +55,8 @@ def validate_chat_request(data):
             raise ValueError("Mỗi lượt lịch sử phải là tin nhắn người dùng hoặc trợ lý hợp lệ.")
         clean_history.append({"role": turn["role"], "content": turn["content"]})
     image = data.get("image")
-    if image is not None and not isinstance(image, str):
-        raise ValueError("Ảnh đính kèm không hợp lệ.")
+    if image is not None and image != "":
+        raise ValueError("Chatbot chỉ hỗ trợ tin nhắn văn bản.")
     lang = data.get("lang", "vi")
     if lang not in ("vi", "en"):
         raise ValueError("Ngôn ngữ chưa được hỗ trợ.")

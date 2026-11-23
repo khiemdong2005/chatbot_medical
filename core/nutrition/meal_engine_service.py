@@ -18,6 +18,7 @@ phân hệ Dinh dưỡng Lâm sàng & Khuyến nghị Bữa ăn Động (Phases 
 
 import json
 import logging
+import math
 import os
 import time
 from typing import Any, Dict, List, Optional, Set
@@ -27,6 +28,7 @@ from core.nutrition.clinical_constraints import CandidatePools, ResolvedConstrai
 from core.nutrition.constraint_filter import ConstraintFilter
 from core.nutrition.constraint_resolver import ConstraintResolver
 from core.nutrition.final_meal_validator import FinalMealValidator
+from core.nutrition.nutrition_rules import SharedRecipeFilter
 from core.nutrition.meal_composition import (
     DynamicMealComposer,
     FamilyMealCombo,
@@ -65,6 +67,9 @@ class MealEngineService:
         self.ranker = CandidateRanker(index=self.index)
         self.composer = DynamicMealComposer(index=self.index)
         self.validator = FinalMealValidator(index=self.index)
+        self.recipe_filter = SharedRecipeFilter(
+            self.index.get_recipe_by_id(recipe_id) for recipe_id in self.index.all_recipe_ids
+        )
         self._catalog_recipes: Dict[str, Dict[str, Any]] = {}
         self._load_catalog_cache()
 
@@ -95,7 +100,7 @@ class MealEngineService:
 
     def get_recipe_details(self, recipe_id: str) -> Dict[str, Any]:
         """Lấy chi tiết món ăn kèm hình ảnh, thời gian nấu và nguyên liệu."""
-        raw = self._catalog_recipes.get(recipe_id) or {}
+        raw = self._catalog_recipes.get(recipe_id) or self.index.get_recipe_by_id(recipe_id) or {}
         meta = self.index.get_metadata_by_id(recipe_id) or {}
 
         title = raw.get("title") or meta.get("title") or recipe_id
@@ -185,6 +190,9 @@ class MealEngineService:
         # ---------------------------------------------------------------------
         # 2. Phase 3: Clinical Filtering
         # ---------------------------------------------------------------------
+        resolved.hard_excluded_recipe_ids.update(
+            self.recipe_filter.excluded_ids(condition, profile_dict.get("allergies"))
+        )
         pools: CandidatePools = ConstraintFilter.filter_candidates(resolved, index=self.index)
 
         # ---------------------------------------------------------------------
@@ -308,6 +316,11 @@ class MealEngineService:
                 {"role": "soup", "role_label": "Món canh", "recipe": self._to_legacy_recipe(soup)},
                 {"role": "side", "role_label": "Món rau thanh đạm", "recipe": self._to_legacy_recipe(veg)},
             ]
+            calorie_values = []
+            for dish in dishes:
+                value = dish["recipe"].get("calories")
+                if type(value) in (int, float) and math.isfinite(value) and value >= 0:
+                    calorie_values.append(value)
             combo_obj = {
                 "name": f"Mâm cơm #{i + 1}",
                 "badge": f"Điểm: {int(c['meal_score'] * 100)}/100",
@@ -317,6 +330,12 @@ class MealEngineService:
                 "rationale": "Mâm cơm 4 món chuẩn vị: Tinh bột + Món đạm + Món canh + Món rau xanh tươi.",
                 "staple_text": staple.get("title", "Cơm / Bánh phở"),
                 "dishes": dishes,
+                "total_calories": round(sum(calorie_values), 1) if calorie_values else None,
+                "calorie_covered_dishes": len(calorie_values),
+                "calorie_note": (
+                    f"Ước tính theo dữ liệu nguồn cho {len(calorie_values)}/{len(dishes)} món. "
+                    "Chưa quy đổi theo suất ăn; chưa tính các món ngoài mâm."
+                ),
             }
             legacy_meal_combos.append(combo_obj)
             if i == 0:

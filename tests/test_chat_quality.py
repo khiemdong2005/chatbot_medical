@@ -254,6 +254,33 @@ class ChatQualityTests(unittest.TestCase):
         self.assertNotIn("500", result["answer"])
         self.assertIn("dịch vụ AI", result["answer"])
 
+    @patch("core.chat_service.medical_rag_service.retrieve_context")
+    def test_image_findings_drive_retrieval_and_unverified_sources_are_omitted(self, retrieval):
+        document = {"content": "Unrelated source"}
+        retrieval.return_value = [document]
+        observation = {
+            "answer": "Nốt có thể là mụn cóc nếu bề mặt ráp, nhưng ảnh chưa cho thấy rõ chi tiết đó.",
+            "visual_findings": ["Nốt nhỏ trên ngón tay"],
+            "retrieval_topics": ["mụn cóc"],
+            "follow_up_question": "Khi sờ, bề mặt nốt nhẵn hay ráp?",
+            "grounding_status": "insufficient",
+        }
+        generate = MagicMock(side_effect=[
+            observation,
+            {"answer": "Chưa tìm được nguồn phù hợp.", "grounding_status": "insufficient"},
+        ])
+        result = process_clinical_chat(
+            "đây là bệnh gì", image_bytes=b"synthetic-image",
+            gemini_service=SimpleNamespace(generate_clinical_response=generate),
+            consultation_mode="informational",
+        )
+
+        self.assertEqual(generate.call_args_list[0].kwargs["rag_docs"], [])
+        retrieval.assert_called_once_with("Nốt nhỏ trên ngón tay. mụn cóc đây là bệnh gì", top_k=2, lang="vi")
+        self.assertEqual(generate.call_args_list[1].kwargs["rag_docs"], [document])
+        self.assertEqual(result["answer"], f'{observation["answer"]}\n\n{observation["follow_up_question"]}')
+        self.assertEqual(result["sources"], [])
+
     @patch("core.chat_service.medical_rag_service.retrieve_context", return_value=[])
     def test_optional_intake_hint_cannot_suppress_urgent_model_guidance(self, retrieval):
         urgent = "Cần được đánh giá khẩn cấp tại cơ sở y tế."

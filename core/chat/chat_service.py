@@ -293,27 +293,26 @@ def process_clinical_chat(
     # -------------------------------------------------------------
     # TẦNG 2: TRUY VẤN TRI THỨC Y KHOA RAG TỪ CHROMADB
     # -------------------------------------------------------------
-    rag_docs = []
-    # A pending intake question depends on what the patient has reported, not on a reference article.
-    if not follow_up:
+    def retrieve_documents(query):
         try:
             retrieval_start = time.perf_counter()
-            retrieval_facts = {} if consultation_mode == "informational" else intake_facts
-            rag_docs = medical_rag_service.retrieve_context(
-                retrieval_query(user_message, retrieval_facts),
-                top_k=2,
-                lang=lang
-            )
+            documents = medical_rag_service.retrieve_context(query, top_k=2, lang=lang)
             retrieval_ms = (time.perf_counter() - retrieval_start) * 1000.0
             metrics_collector.record_latency("retrieval_latency_ms", retrieval_ms)
-            if rag_docs:
+            if documents:
                 metrics_collector.increment("retrieval_success_total")
             else:
                 metrics_collector.increment("retrieval_miss_total")
-            metrics_collector.log_event("retrieval", req_id, retrieval_ms, "SUCCESS" if rag_docs else "EMPTY")
+            metrics_collector.log_event("retrieval", req_id, retrieval_ms, "SUCCESS" if documents else "EMPTY")
+            return documents
         except Exception as e:
             metrics_collector.increment("retrieval_miss_total")
             logger.warning("[REQ-%s] Retrieval unavailable (%s).", req_id, type(e).__name__)
+            return []
+
+    retrieval_facts = {} if consultation_mode == "informational" else intake_facts
+    query = retrieval_query(user_message, retrieval_facts)
+    rag_docs = retrieve_documents(query) if not follow_up and not has_image else []
 
     # -------------------------------------------------------------
     # TẦNG 3: BỘ NÃO SUY LUẬN AI (Gemini) + FALLBACK DỰ PHÒNG NỘI BỘ
@@ -322,11 +321,11 @@ def process_clinical_chat(
     ai_error_code = None
     gemini_result = None
 
-    try:
-        gemini_result = gemini_service.generate_clinical_response(
+    def generate_response(documents):
+        return gemini_service.generate_clinical_response(
             user_message,
             history,
-            rag_docs=rag_docs,
+            rag_docs=documents,
             image_bytes=image_bytes,
             image_mime_type=image_mime_type,
             lang=lang,
@@ -336,9 +335,40 @@ def process_clinical_chat(
             health_context=health_context,
             consultation_mode=consultation_mode
         )
+
+    try:
+        gemini_result = generate_response(rag_docs)
     except Exception as err:
         logger.warning("[REQ-%s] Gemini service unavailable (%s).", req_id, type(err).__name__)
         gemini_result = None
+
+    if has_image and not follow_up and gemini_result and not gemini_result.get("is_emergency"):
+        findings = gemini_result.get("visual_findings")
+        if isinstance(findings, list):
+            observations = "; ".join(
+                item.strip()[:160] for item in findings[:5] if isinstance(item, str) and item.strip()
+            )
+            if observations:
+                topics = gemini_result.get("retrieval_topics")
+                topic_query = ""
+                if consultation_mode == "informational" and isinstance(topics, list):
+                    topic_query = " ".join(
+                        item.strip()[:80] for item in topics[:2] if isinstance(item, str)
+                    ).strip()
+                image_docs = retrieve_documents(" ".join(part for part in (
+                    f"{observations}.", topic_query, query,
+                ) if part))
+                if image_docs:
+                    try:
+                        enriched = generate_response(image_docs)
+                        if enriched and enriched.get("answer") and (
+                            enriched.get("grounding_status") == "verified" or enriched.get("is_emergency")
+                        ):
+                            if consultation_mode == "informational" and not enriched.get("follow_up_question"):
+                                enriched["follow_up_question"] = gemini_result.get("follow_up_question", "")
+                            gemini_result, rag_docs = enriched, image_docs
+                    except Exception as err:
+                        logger.warning("[REQ-%s] Image evidence response unavailable (%s).", req_id, type(err).__name__)
 
     if gemini_result and isinstance(gemini_result, dict) and gemini_result.get("answer"):
         triage_result = gemini_result
@@ -399,12 +429,15 @@ def process_clinical_chat(
     grounding_status = triage_result.get("grounding_status")
     if not triage_result.get("is_emergency"):
         proposed_question = normalize_follow_up_question(triage_result.get("follow_up_question"), lang)
+        image_qa = has_image and consultation_mode == "informational"
         model_question = (enforce_question_limit(proposed_question, 1, history=history, facts=facts)
-                          if consultation_mode == "collecting" else "")
+                          if consultation_mode == "collecting" or image_qa else "")
         safety_question = follow_up and question_topic(follow_up) in {"dyspnea", "chest_pain", "swallowing_ability"}
         next_question = follow_up if safety_question else model_question or follow_up
 
-        if not degraded and grounding_status == "verified" and model_question and not follow_up:
+        if not degraded and model_question and not follow_up and (grounding_status == "verified" or image_qa):
+            if image_qa:
+                raw_answer = enforce_question_limit(raw_answer, 0)
             raw_answer = f"{raw_answer}\n\n{model_question}"
         elif next_question and not degraded:
             raw_answer = next_question
@@ -415,6 +448,8 @@ def process_clinical_chat(
             )
         if consultation_mode == "collecting":
             raw_answer = enforce_question_limit(raw_answer, 1, history=history, facts=facts)
+        elif consultation_mode == "final":
+            raw_answer = enforce_question_limit(raw_answer, 0)
         if not raw_answer:
             raw_answer = ("Mình chưa đủ dữ kiện để trả lời chắc chắn."
                           if lang == "vi" else "I don't have enough information for a reliable answer.")

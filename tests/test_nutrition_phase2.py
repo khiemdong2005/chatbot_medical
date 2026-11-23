@@ -1,7 +1,7 @@
 """Unit tests for Phase 2: In-Memory Inverted Index.
 
 Validates:
-- Logical catalog join integrity (2,471 items)
+- Logical catalog join integrity
 - Index construction & frozenset immutability
 - Primary, secondary, and combo role retrieval
 - Standalone dish leakage prevention invariant
@@ -48,10 +48,10 @@ def index_fixture():
 
 
 def test_dataset_join_integrity(index_fixture: InMemoryInvertedIndex):
-    """Verify ViFoodRec (2,462) + Canonical Staples (9) = 2,471 records with 0 orphans and 0 duplicates."""
-    assert len(index_fixture.recipe_by_id) == 2471
-    assert len(index_fixture.metadata_by_id) == 2471
-    assert len(index_fixture.all_recipe_ids) == 2471
+    """Verify the imported and authored recipes all have unique metadata records."""
+    assert len(index_fixture.recipe_by_id) == 2472
+    assert len(index_fixture.metadata_by_id) == 2472
+    assert len(index_fixture.all_recipe_ids) == 2472
 
     # Verify no orphan IDs
     assert set(index_fixture.recipe_by_id.keys()) == set(index_fixture.metadata_by_id.keys())
@@ -86,7 +86,7 @@ def test_index_immutability(index_fixture: InMemoryInvertedIndex):
 def test_primary_and_secondary_role_retrieval(index_fixture: InMemoryInvertedIndex):
     """Verify role retrieval maps all 9 roles and matches total count."""
     primary_counts = {role: len(index_fixture.get_ids_by_primary_role(role)) for role in ALL_MEAL_ROLES}
-    assert sum(primary_counts.values()) == 2471
+    assert sum(primary_counts.values()) == 2472
 
     assert primary_counts["main_dish"] == 1406
     assert primary_counts["standalone"] == 397
@@ -96,7 +96,7 @@ def test_primary_and_secondary_role_retrieval(index_fixture: InMemoryInvertedInd
     assert primary_counts["dessert"] == 82
     assert primary_counts["snack"] == 62
     assert primary_counts["other"] == 25
-    assert primary_counts["staple"] == 10  # 9 canonical + 1 ViFoodRec
+    assert primary_counts["staple"] == 11  # 9 canonical + 2 ViFoodRec
 
 
 def test_combo_role_retrieval_and_invariants(index_fixture: InMemoryInvertedIndex):
@@ -107,6 +107,8 @@ def test_combo_role_retrieval_and_invariants(index_fixture: InMemoryInvertedInde
     assert len(index_fixture.get_ids_by_combo_role("soup")) == 202
     assert len(index_fixture.get_ids_by_combo_role("vegetable")) == 190
     assert len(index_fixture.get_ids_by_combo_role("staple")) == 10
+    assert "canonical_staple_khoai_lang_luoc" in index_fixture.get_ids_by_combo_role("staple")
+    assert all("vifoodrec_2901" not in ids for ids in index_fixture.combo_role_index.values())
 
     # 2. Standalone dishes NEVER appear in combo_role_index
     standalone_ids = index_fixture.get_ids_by_primary_role("standalone")
@@ -196,8 +198,8 @@ def test_manual_review_exclusion(index_fixture: InMemoryInvertedIndex):
     all_with_review = index_fixture.filter_candidate_ids(exclude_manual_review=False)
     all_without_review = index_fixture.filter_candidate_ids(exclude_manual_review=True)
 
-    assert len(all_with_review) == 2471
-    assert len(all_without_review) == 2471 - 25
+    assert len(all_with_review) == 2472
+    assert len(all_without_review) == 2472 - 25
     assert len(set(all_without_review) & index_fixture.manual_review_ids) == 0
 
 

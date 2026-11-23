@@ -167,8 +167,7 @@
 }
 #doctor-tab #nf-results .nf-meal-energy {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 24px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   align-items: stretch !important;
   margin: 0 0 18px !important;
   padding: 21px 26px !important;
@@ -182,15 +181,6 @@
 #doctor-tab #nf-results .nf-meal-energy-total > div { display: grid; gap: 2px; }
 #doctor-tab #nf-results .nf-meal-energy span { color: #143b67 !important; font-size: 13px !important; }
 #doctor-tab #nf-results .nf-meal-energy strong { color: #0755a0 !important; font-size: clamp(30px,4vw,44px) !important; line-height: 1.1; text-shadow: none !important; }
-#doctor-tab #nf-results .nf-meal-energy-note {
-  display: flex;
-  align-items: center;
-  gap: 17px;
-  padding-left: 32px;
-  border-left: 1px solid #398dcc;
-}
-#doctor-tab #nf-results .nf-meal-energy-note > span { font-size: 32px !important; }
-#doctor-tab #nf-results .nf-meal-energy-note small { flex-basis: auto !important; color: #173966 !important; font-size: 12px !important; line-height: 1.55; }
 #doctor-tab #nf-results .nf-meal-hero-rationale {
   margin: 0 !important;
   padding: 17px 22px !important;
@@ -271,8 +261,7 @@
   #doctor-tab #nf-results .nf-mode-btn { flex: 1; justify-content: center; padding: 11px 7px !important; font-size: 12px !important; }
   #doctor-tab #nf-results .nf-meal-hero { padding: 20px !important; border-radius: 23px !important; }
   #doctor-tab #nf-results .nf-meal-hero-badge { align-items: flex-start !important; }
-  #doctor-tab #nf-results .nf-meal-energy { grid-template-columns: 1fr !important; padding: 18px !important; }
-  #doctor-tab #nf-results .nf-meal-energy-note { padding: 15px 0 0; border-left: 0; border-top: 1px solid #398dcc; }
+  #doctor-tab #nf-results .nf-meal-energy { padding: 18px !important; }
   #doctor-tab #nf-results .nf-meal-dish-card { grid-template-columns: 1fr !important; }
   #doctor-tab #nf-results .nf-meal-dish-art { height: 220px !important; min-height: 0; }
   #doctor-tab #nf-results .nf-meal-dish-art img { min-height: 0; height: 100% !important; }

@@ -34,14 +34,14 @@
   </script>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.5">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=15">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=17">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=10">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=10">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=9">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=6">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=12">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=7">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=7">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=15">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=21">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/previsit-intake.css') }}?v=6">
 
   <!-- Leaflet CSS & JS for Interactive Hospital Map -->
@@ -293,7 +293,7 @@
 
 
 
-    <button type="button" onclick="resetChatFromControl(this)"
+    <button type="button" onclick="resetChat()"
       class="chat-reset-control chat-reset-icon dock-btn group relative w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all text-white/60 hover:text-sky-300 hover:bg-white/10 cursor-pointer">
 
       <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -446,7 +446,7 @@
       <div class="relative header-notification-wrap">
         <button type="button" id="notif-btn" onclick="toggleNotificationDropdown(event)"
           class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full glass-pill hover:bg-white/15 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center"
-          title="Thông báo" aria-label="Thông báo">
+          title="Thông báo" aria-label="Thông báo" aria-controls="notif-dropdown-menu" aria-expanded="false">
           <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-200" fill="none" stroke="currentColor" stroke-width="2"
             viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -457,39 +457,37 @@
         </button>
 
         <!-- Notification Dropdown Menu -->
-        <div id="notif-dropdown-menu"
-          class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0e1626]/95 border border-white/10 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2.5 backdrop-blur-2xl">
-          <div class="flex items-center justify-between pb-2 border-b border-white/10 px-1">
-            <div class="flex items-center space-x-2">
-              <span class="font-bold text-sm text-white" id="notif-title" data-i18n="notif_title">Thông báo</span>
+        <div id="notif-dropdown-menu" class="hidden" role="region" aria-labelledby="notif-title">
+          <div class="notif-panel-heading">
+            <div class="notif-panel-title">
+              <h2 id="notif-title" data-i18n="notif_title">Thông báo</h2>
               <span id="notif-unread-count"
                 class="hidden px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">0</span>
             </div>
             <button type="button" onclick="markAllNotificationsAsRead()"
-              class="hidden text-[11px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline"
+              class="hidden notif-mark-read"
               id="notif-mark-read-btn" data-i18n="notif_mark_read">
               Đánh dấu đã đọc tất cả
             </button>
           </div>
 
           <!-- Notification Filter Tabs (Lịch khám & Nhắc uống thuốc) -->
-          <div class="flex items-center gap-1 p-1 bg-white/5 rounded-xl border border-white/5 text-[11px]" id="notif-filter-tabs">
-            <button type="button" onclick="filterNotifications('all')" id="notif-filter-all"
-              class="flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all bg-sky-500 text-white shadow-xs cursor-pointer">
-              Tất cả <span id="notif-tab-count-all" class="opacity-80 text-[10px] ml-0.5 font-bold"></span>
+          <div id="notif-filter-tabs">
+            <button type="button" onclick="filterNotifications('all')" id="notif-filter-all" aria-pressed="true">
+              <span data-i18n="notif_filter_all">Tất cả</span><span id="notif-tab-count-all"></span>
             </button>
-            <button type="button" onclick="filterNotifications('appointment')" id="notif-filter-appointment"
-              class="flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer">
-              🏥 Lịch khám <span id="notif-tab-count-appointment" class="opacity-80 text-[10px] ml-0.5 font-bold"></span>
+            <button type="button" onclick="filterNotifications('appointment')" id="notif-filter-appointment" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v4m8-4v4M4 10h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/></svg>
+              <span data-i18n="notif_filter_appointment">Lịch khám</span><span id="notif-tab-count-appointment"></span>
             </button>
-            <button type="button" onclick="filterNotifications('medication')" id="notif-filter-medication"
-              class="flex-1 py-1 px-1.5 rounded-lg font-medium text-center transition-all text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer">
-              💊 Uống thuốc <span id="notif-tab-count-medication" class="opacity-80 text-[10px] ml-0.5 font-bold"></span>
+            <button type="button" onclick="filterNotifications('medication')" id="notif-filter-medication" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5a5 5 0 0 1 7 7l-8 8a5 5 0 0 1-7-7Zm-4 4 7 7"/></svg>
+              <span data-i18n="notif_filter_medication">Đơn thuốc</span><span id="notif-tab-count-medication"></span>
             </button>
           </div>
 
           <!-- Notifications List Container -->
-          <div id="notif-items-list" class="space-y-2 max-h-84 overflow-y-auto pr-1">
+          <div id="notif-items-list">
             <div id="notif-empty-state"
               class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
               <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor"
@@ -870,6 +868,50 @@
     </div>
     <div id="chat-tab" class="tab-content chat-empty flex-1 grid grid-cols-1 gap-0">
 
+      <div class="chat-scene-topline">
+        <div class="chat-scene-header">
+          <svg class="chat-brand-pulse" viewBox="0 0 48 40" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 22h9l3-4 4 8 5-23 5 35 5-21 3 5h10" />
+          </svg>
+          <h3 data-i18n="assistant_header_title">Trợ lý sức khỏe MediMind</h3>
+        </div>
+
+        <div class="chat-scene-actions">
+          <button type="button" id="chat-mode-general-btn" aria-pressed="true"
+            onclick="document.getElementById('user-input').focus()" class="chat-header-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 3h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H9l-5 4v-4a2 2 0 0 1-2-2V6a3 3 0 0 1 3-3Zm15 5a3 3 0 0 1 2 3v8l-3-2M7 10h.01m4 0h.01m4 0h.01" />
+            </svg>
+            <span data-i18n="chat_mode_general">Hỏi đáp y tế</span>
+          </button>
+          <button type="button" aria-haspopup="dialog" aria-controls="previsit-intake"
+            onclick="PrevisitIntake.open()" class="chat-header-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="8" y="2" width="8" height="4" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m0 7h8m-8 5h8" />
+            </svg>
+            <span data-i18n="intake_btn_summary">Tóm tắt trước khám</span>
+          </button>
+          <button type="button" id="chat-pdf-button" class="chat-header-button" onclick="exportChatPdf()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7Zm0 0v7h7M8 13h8m-8 4h8" />
+            </svg>
+            <span data-i18n="chat_export_pdf">Xuất PDF hội thoại</span>
+          </button>
+          <button type="button" class="chat-header-button" onclick="switchTab('home-tab')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 12H4m7 7-7-7 7-7" />
+            </svg>
+            <span data-i18n="nav_home">Trang chủ</span>
+          </button>
+        </div>
+      </div>
+
       <!-- ============================================================== -->
       <!-- LEFT COLUMN (4/12): LỊCH SỬ TƯ VẤN                             -->
       <!-- ============================================================== -->
@@ -896,7 +938,7 @@
               <p data-i18n="history_subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Các phiên sàng
                 lọc và phân tích triệu chứng</p>
             </div>
-            <button type="button" id="chat-new-button" onclick="resetChatFromControl(this)"
+            <button type="button" id="chat-new-button" onclick="resetChat()"
               class="chat-reset-control w-full text-xs font-bold py-2.5 px-4 rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center space-x-2 transition-all shadow-md shadow-sky-600/30 cursor-pointer"
               title="Cuộc trò chuyện mới">
               <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -957,60 +999,6 @@
       <section
         class="chat-conversation-shell bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col">
 
-        <!-- Header: Avatar + MediMind Title + Subtitle -->
-        <div class="chat-scene-topline">
-          <div
-            class="chat-scene-header flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
-            <div class="flex items-center space-x-3.5">
-              <!-- Avatar Badge with Sky-Blue Theme -->
-              <div
-                class="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/30 shrink-0 border border-sky-400/30">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 data-i18n="assistant_header_title"
-                  class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Trợ lý y tế MediMind</h3>
-                <p id="chat-mode-subtitle"
-                  class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 font-normal">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span id="chat-mode-status-text">Chế độ Hỏi đáp y tế • Trả lời ngắn gọn &amp; chính xác</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="chat-scene-actions flex flex-wrap items-center justify-between gap-2.5">
-            <div class="chat-mode-toggle">
-              <button type="button" id="chat-mode-general-btn" aria-pressed="true"
-                onclick="setChatConsultationMode('general', { silent: true })" class="chat-mode-tab active">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <span data-i18n="chat_mode_general">Hỏi đáp y tế</span>
-              </button>
-              <button type="button" id="chat-mode-intake-btn" aria-haspopup="dialog"
-                aria-controls="previsit-intake" onclick="PrevisitIntake.open()" class="chat-mode-tab">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                <span data-i18n="chat_mode_intake">Hỏi bệnh trước khám</span>
-              </button>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <button type="button" onclick="exportChatPdf()"
-                class="chat-scene-export chat-pdf-button px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">Xuất
-                PDF hội thoại</button>
-            </div>
-          </div>
-        </div>
-
           <div id="chat-empty-state" class="chat-empty-state" aria-live="polite">
             <span class="chat-empty-kicker">MEDIMIND CLINICAL AI</span>
             <h2 data-i18n="chat_welcome_title">Hôm nay mình có thể giúp gì cho bạn?</h2>
@@ -1070,47 +1058,12 @@
 
 
 
-            <!-- Image Preview Container -->
-            <div id="chat-image-preview-container"
-              class="hidden mb-2 p-2 bg-slate-50 dark:bg-slate-800 border border-sky-400/50 rounded-2xl flex items-center justify-between transition-all">
-              <div class="flex items-center space-x-2.5 overflow-hidden">
-
-                <img id="chat-image-preview-thumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Ảnh tổn thương"
-                  class="w-10 h-10 rounded-xl object-cover border border-sky-300 shrink-0">
-
-                <div class="truncate">
-                  <div class="text-[11px] font-bold text-slate-900 dark:text-white truncate"
-                    id="chat-image-preview-name">
-                    anh_ton_thuong.jpg</div>
-                  <div class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">Ảnh lâm sàng sẵn sàng đối chiếu
-                  </div>
-                </div>
-
-              </div>
-              <button type="button" onclick="clearChatImagePreview()"
-                class="p-1.5 text-slate-400 hover:text-rose-500 rounded-full hover:bg-white/10 transition-colors shrink-0">✕</button>
-            </div>
-
             <!-- Capsule Input Bar matching screenshot -->
             <div
               class="chat-scene-input flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-full p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
-              <input type="file" id="chat-image-input" aria-label="Tải ảnh lên đoạn chat" accept="image/*"
-                class="hidden" onchange="handleChatImageSelected(event)">
-
-              <button type="button" onclick="document.getElementById('chat-image-input').click()"
-                title="Đính kèm ảnh lâm sàng"
-                class="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 rounded-full transition-colors shrink-0 cursor-pointer">
-                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </button>
-
               <input id="user-input" aria-label="Nội dung câu hỏi y tế" type="text"
                 data-i18n-placeholder="chat_input_placeholder"
-                placeholder="Mô tả triệu chứng (ví dụ: đau tức ngực, sốt) hoặc gửi ảnh đơn thuốc..."
+                placeholder="Mô tả triệu chứng (ví dụ: đau tức ngực, sốt)..."
                 class="flex-1 bg-transparent text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 border-0 focus:outline-none px-2 font-normal"
                 onkeydown="if(event.key==='Enter') sendChatMessage()">
 
@@ -1126,9 +1079,8 @@
 
             </div>
 
-            <!-- Footer Disclaimer matching screenshot -->
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center font-normal">
-              Thông tin chỉ mang tính tham khảo, không thay thế chẩn đoán của bác sĩ.
+            <p class="chat-answer-notice" data-i18n="chat_answer_notice">
+              Trợ lý MediMind có thể trả lời sai. Vui lòng kiểm chứng thông tin trước khi áp dụng.
             </p>
           </div>
 
@@ -1872,20 +1824,8 @@
 
     <div id="doctor-tab" class="tab-content nutrition-flow w-full flex-1">
       <section id="nf-search" aria-labelledby="nf-search-title">
-        <p class="nf-overline">
-          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 19C2 9 10 6 21 3c0 12-6 17-14 15M3 22l12-12" />
-          </svg>
-          MEDIMIND · GỢI Ý DINH DƯỠNG
-        </p>
-        <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì cho phù hợp?<svg class="nf-title-leaf" viewBox="0 0 24 24"
-            aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-            stroke-linejoin="round">
-            <path d="M5 19C2 9 10 6 21 3c0 12-6 17-14 15M3 22l12-12" />
-          </svg></h1>
-        <p class="nf-subtitle">Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ đưa ra công thức tham khảo
-          theo mô tả và hồ sơ của bạn.</p>
+        <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì?</h1>
+        <p class="nf-subtitle">Mô tả món bạn muốn ăn, tình trạng sức khỏe hoặc nguyên liệu cần tránh.</p>
         <form id="nf-search-form" class="nf-search-box">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
@@ -1893,18 +1833,10 @@
           </svg>
           <label class="sr-only" for="nf-query">Tình trạng sức khỏe và nhu cầu ăn uống</label>
           <input id="nf-query" type="search" autocomplete="off"
-            placeholder="Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…" maxlength="500" required>
-          <button type="submit" aria-label="Tìm gợi ý">→</button>
+            placeholder="Ví dụ: bữa tối ít dầu mỡ" maxlength="500" required>
+          <button type="submit">Tìm món</button>
         </form>
-        <div class="nf-examples" aria-label="Gợi ý tìm kiếm">
-          <span>Thử tìm:</span>
-          <button type="button" data-nf-example="Gút, ít dầu mỡ">Gút · ít dầu mỡ</button>
-          <button type="button" data-nf-example="Ít đường, không cay">Ít đường · không cay</button>
-          <button type="button" data-nf-example="Trào ngược dạ dày, không cay">Trào ngược · không cay</button>
-          <button type="button" data-nf-example="Gan nhiễm mỡ">Gan nhiễm mỡ</button>
-        </div>
-        <p class="nf-search-hint">MediMind lọc công thức tham khảo; AI có thể hỗ trợ xếp hạng. Hãy kiểm tra nguyên liệu
-          và khẩu phần trước khi dùng.</p>
+        <p class="nf-search-hint">Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
       </section>
       <section id="nf-type" class="nf-stage" hidden>
         <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
@@ -1967,20 +1899,11 @@
           </button>
         </div>
 
-        <!-- Bộ lọc theo bữa ăn (cho chế độ món đơn lẻ) -->
-        <div id="nf-meal-filters" class="nf-meal-filters" hidden>
-          <span class="nf-filter-title">Lọc bữa:</span>
-          <button type="button" class="nf-meal-pill active" data-nf-meal="all">Tất cả các món</button>
-          <button type="button" class="nf-meal-pill" data-nf-meal="breakfast">☀️ Bữa sáng</button>
-          <button type="button" class="nf-meal-pill" data-nf-meal="lunch">🍱 Bữa trưa</button>
-          <button type="button" class="nf-meal-pill" data-nf-meal="dinner">🌙 Bữa tối</button>
-          <button type="button" class="nf-meal-pill" data-nf-meal="snack">🍵 Bữa phụ / Trước ngủ</button>
-        </div>
-
         <!-- Khối hiển thị 1 Bữa ăn đủ món (Mâm cơm cân bằng) -->
         <div id="nf-full-meal-wrap" class="nf-full-meal-wrap" hidden></div>
 
         <div id="nf-status" class="nf-status" role="status" aria-live="polite"></div>
+        <button id="nf-retry" type="button" class="nf-back" hidden>Thử lại</button>
         <div id="nf-cards" class="nf-cards"></div>
         <button id="nf-load-more" type="button" class="nf-load-more" hidden>Xem thêm gợi ý từ kho →</button>
         <details id="nf-avoidance" class="nf-limit-panel nf-limit-disclosure" hidden>
@@ -2864,8 +2787,7 @@
       <div class="flex items-center space-x-4 text-[11px] text-slate-500">
 
         <button type="button" onclick="openDisclaimerModal()" data-i18n="footer_disclaimer_link"
-          class="hover:text-[#0284C7] underline font-semibold transition-colors">Tuyên bố Miễn trừ Trách nhiệm Y
-          tế</button>
+          class="hover:text-[#0284C7] underline font-semibold transition-colors">Lưu ý y tế</button>
 
         <span>•</span>
 
@@ -2875,8 +2797,6 @@
       </div>
 
     </div>
-
-    <!-- Detailed Educational PoC Disclaimer Notice -->
 
     <div class="border-t border-slate-200/80 pt-3 mt-4 text-[11px] text-slate-500 leading-relaxed">
 
@@ -2892,16 +2812,14 @@
 
         </div>
 
-        <span data-i18n="footer_disclaimer_title" class="text-xs font-bold text-slate-800">Tuyên bố Miễn trừ Trách nhiệm
-          Y tế (Medical Disclaimer)</span>
+        <span data-i18n="footer_disclaimer_title" class="text-xs font-bold text-slate-800">Lưu ý y tế</span>
 
       </div>
 
-      <p data-i18n="footer_disclaimer_text" class="text-[11px] text-slate-500 leading-relaxed">Nền tảng MediMind AI được
-        phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of
-        Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính
-        thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra
-        quyết định sức khỏe. Trong tình huống nguy cấp, cần được đánh giá khẩn cấp tại cơ sở y tế.</p>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        <strong data-i18n="footer_disclaimer_lead" class="text-slate-800">Thông tin chỉ dùng để tham khảo.</strong>
+        <span data-i18n="footer_disclaimer_text">MediMind AI phục vụ học tập và nghiên cứu. Hãy hỏi bác sĩ trước khi quyết định điều trị. Khi có dấu hiệu cấp cứu, hãy tìm trợ giúp y tế ngay.</span>
+      </p>
 
     </div>
 
@@ -3994,7 +3912,7 @@
 
 
   <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.42"></script>
-  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.4"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.11"></script>
 
   <!-- ============================================================== -->
   <!-- FACILITY APPOINTMENT BOOKING MODAL (DOCTOGO MULTI-STEP FLOW)     -->

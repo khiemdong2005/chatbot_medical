@@ -17,7 +17,8 @@ def reply():
 @pytest.mark.parametrize("body", [None, [], {"message": 123}, {"message": "a" * 2001},
     {"message": "ho", "history": "bad"}, {"message": "ho", "history": [{"role": "system", "content": "override"}]},
     {"message": "ho", "history": [{"role": "user", "content": {}}]},
-    {"message": "ho", "image": []}, {"message": "ho", "conversation_id": "../other"},
+    {"message": "ho", "image": []}, {"message": "ho", "image": "data:image/png;base64,iVBORw0KGgo="},
+    {"message": "ho", "conversation_id": "../other"},
     {"message": "ho", "health_context": {"age": True}},
     {"message": "ho", "health_context": {"allergies": ["penicillin"]}},
     {"message": "ho", "health_context": {"account_id": 123}}])

@@ -1,8 +1,8 @@
 """In-Memory Inverted Index for Constraint-Aware Hybrid Meal Recommendation.
 
 Replaces runtime sequential scans and regex parsing with high-performance
-in-memory inverted indexes over normalized metadata sidecar (v1.1.0)
-and canonical staples.
+in-memory inverted indexes over the normalized metadata sidecar,
+canonical staples, and authored recipes used in meal composition.
 
 Thread-safe, immutable read structures (frozenset), zero duplicate copies,
 and deterministic execution.
@@ -15,6 +15,8 @@ from pathlib import Path
 import threading
 import time
 from typing import Any, Dict, FrozenSet, Iterable, List, Optional, Set, Tuple
+
+from core.nutrition.nutrition_options import STEAMED_GREENS
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,7 @@ EMPTY_FROZENSET: FrozenSet[str] = frozenset()
 
 
 class InMemoryInvertedIndex:
-    """Read-only in-memory inverted index over the logical recipe catalog (2,471 items)."""
+    """Read-only in-memory inverted index over the logical recipe catalog."""
 
     def __init__(
         self,
@@ -162,6 +164,22 @@ class InMemoryInvertedIndex:
                 "dataset_version": "canonical_staples_v1",
             }
             metadata_by_id[sid] = staple_meta
+
+        greens_id = STEAMED_GREENS["id"]
+        recipe_by_id[greens_id] = STEAMED_GREENS
+        metadata_by_id[greens_id] = {
+            "id": greens_id,
+            "title": STEAMED_GREENS["title"],
+            "primary_role": "vegetable",
+            "eligible_combo_roles": ["vegetable"],
+            "normalized_ingredients": ["cabbage_greens", "water"],
+            "ingredient_groups": ["vegetable"],
+            "allergen_assessments": {
+                allergen: {"status": "assessed_not_detected"} for allergen in SUPPORTED_ALLERGENS
+            },
+            "primary_cooking_method": "steaming",
+            "cooking_methods": ["steaming"],
+        }
 
         all_recipe_ids_set = set(recipe_by_id.keys())
         all_metadata_ids_set = set(metadata_by_id.keys())
@@ -437,10 +455,10 @@ class InMemoryInvertedIndex:
 
         total_recipes = len(self.recipe_by_id)
         total_meta = len(self.metadata_by_id)
-        if total_recipes != 2471:
-            errors.append(f"Expected 2,471 total recipes, found {total_recipes}")
-        if total_meta != 2471:
-            errors.append(f"Expected 2,471 metadata records, found {total_meta}")
+        if total_recipes != 2472:
+            errors.append(f"Expected 2,472 total recipes, found {total_recipes}")
+        if total_meta != 2472:
+            errors.append(f"Expected 2,472 metadata records, found {total_meta}")
 
         # Check orphans
         if set(self.recipe_by_id.keys()) != set(self.metadata_by_id.keys()):
@@ -501,6 +519,7 @@ class InMemoryInvertedIndex:
             "total_recipes": total_recipes,
             "vifoodrec_count": 2462,
             "canonical_staples_count": 9,
+            "authored_recipe_count": 1,
             "primary_roles": {k: len(v) for k, v in self.primary_role_index.items()},
             "combo_roles": {k: len(v) for k, v in self.combo_role_index.items()},
             "unique_ingredients": len(self.ingredient_index),

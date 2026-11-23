@@ -396,8 +396,8 @@
     ],
     "license": "CC-BY-4.0",
     "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
-    "image_link": "/static/images/recipes/canonical_staple_bun_tuoi.jpg",
-    "source_image_url": "/static/images/recipes/canonical_staple_bun_tuoi.jpg"
+    "image_link": "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg"
   },
   {
     "id": "canonical_staple_banh_pho_tuoi",
@@ -661,8 +661,8 @@
     ],
     "license": "CC-BY-4.0",
     "license_note": "Dữ liệu thành phần dinh dưỡng tham chiếu y tế cộng đồng",
-    "image_link": "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg",
-    "source_image_url": "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg"
+    "image_link": "/static/images/recipes/canonical_staple_khoai_lang_steamed.jpg",
+    "source_image_url": "/static/images/recipes/canonical_staple_khoai_lang_steamed.jpg"
   },
   {
     "id": "canonical_staple_khoai_tay_luoc",

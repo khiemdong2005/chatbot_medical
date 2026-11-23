@@ -10,7 +10,6 @@ from core.db_utils import commit_or_rollback
 from core.health_context import validate_chat_request
 from core.intake_service import StaleIntakeVersionError, intake_service
 from core.models import ClinicalConsultation, db
-from core.storage_service import decode_and_validate_base64_image
 
 logger = logging.getLogger("MediMindApp")
 
@@ -35,7 +34,6 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
             return jsonify({"error": str(error)}), 400
         user_message = data["message"]
         history = data["history"]
-        image_str = data["image"]
         lang = data["lang"]
         conversation_id = data["conversation_id"]
         user_id = session.get("user_id")
@@ -43,8 +41,8 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
             session["guest_token"] = f"gst_{uuid.uuid4().hex[:12]}"
         guest_token = session.get("guest_token")
 
-        if not user_message and not image_str:
-            return jsonify({"error": "Vui lòng nhập nội dung tin nhắn hoặc tải ảnh."}), 400
+        if not user_message:
+            return jsonify({"error": "Vui lòng nhập nội dung tin nhắn."}), 400
 
         client_ip = get_request_client_ip()
         from core.security_patch import get_rate_limit_identity, check_chat_rate_limit
@@ -59,21 +57,10 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
         if not _rls.check_chat_ip_rate_limit(client_ip, max_requests=60, window_seconds=60, enforce=not app.config.get("TESTING")):
             return jsonify({"error": "Quá nhiều yêu cầu từ địa chỉ IP này. Vui lòng thử lại sau."}), 429
 
-        image_bytes = None
-        image_mime_type = "image/jpeg"
-        if image_str:
-            img_bytes, mime, err = decode_and_validate_base64_image(image_str)
-            if err:
-                return jsonify({"error": f"Tệp ảnh không hợp lệ: {err}"}), 400
-            image_bytes = img_bytes
-            image_mime_type = mime
-
         try:
             res = execute_chat_workflow(
                 message=user_message,
                 history=history,
-                image_bytes=image_bytes,
-                image_mime_type=image_mime_type,
                 lang=lang,
                 conversation_id=conversation_id,
                 health_context=data["health_context"],
@@ -200,24 +187,16 @@ def register_chat_routes(app, *, gemini_service, get_request_client_ip):
                 return jsonify({"error": "Chưa lưu được câu trả lời. Vui lòng thử lại."}), 503
         conversation_id = data.get("conversation_id")
         user_message = (data.get("message") or "").strip()
-        image_str = data.get("image")
-
-        if not user_message and not image_str:
-            return jsonify({"error": "Vui lòng nhập nội dung mô tả hoặc đính kèm ảnh."}), 400
-
-        image_bytes = None
-        if image_str:
-            img_bytes, mime, err = decode_and_validate_base64_image(image_str)
-            if not err:
-                image_bytes = img_bytes
-
+        if data.get("image") is not None and data.get("image") != "":
+            return jsonify({"error": "Chatbot chỉ hỗ trợ tin nhắn văn bản."}), 400
+        if not user_message:
+            return jsonify({"error": "Vui lòng nhập nội dung mô tả."}), 400
 
         user_id, guest_token = _get_request_identity()
         try:
             result = intake_service.process_message(
                 conversation_id=conversation_id,
                 message=user_message,
-                image_bytes=image_bytes,
                 user_id=user_id,
                 guest_token=guest_token
             )

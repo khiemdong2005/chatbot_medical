@@ -281,6 +281,11 @@ STANDALONE_PATTERNS = [
 ]
 
 MANUAL_OVERRIDES = {
+    "vifoodrec_2901": {
+        "primary_role": "staple", "secondary_roles": [],
+        "eligible_combo_roles": [],
+        "reason": "Khoai lang luộc đã có bản khẩu phần tham chiếu trong danh mục tinh bột"
+    },
     # Non-standalone despite matching keywords:
     "vifoodrec_1949": {
         "primary_role": "staple", "secondary_roles": [],

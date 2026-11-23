@@ -192047,14 +192047,12 @@
   {
     "id": "vifoodrec_2901",
     "title": "Cách Luộc Khoai Lang Không Cần Nước",
-    "meal_role": "vegetable",
-    "primary_role": "vegetable",
+    "meal_role": "staple",
+    "primary_role": "staple",
     "secondary_roles": [],
-    "eligible_combo_roles": [
-      "vegetable"
-    ],
-    "classification_confidence": 0.95,
-    "classification_source": "pure_vegetable_dish",
+    "eligible_combo_roles": [],
+    "classification_confidence": 1.0,
+    "classification_source": "manual_override: Khoai lang luộc đã có bản khẩu phần tham chiếu trong danh mục tinh bột",
     "review_required": false,
     "normalized_ingredients": [
       "sweet_potato"

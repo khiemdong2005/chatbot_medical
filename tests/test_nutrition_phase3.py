@@ -45,7 +45,7 @@ def test_general_healthy_eating(index_fixture: InMemoryInvertedIndex):
 
     pools = ConstraintFilter.filter_candidates(resolved, index=index_fixture)
     assert pools.safety_status == "SAFE"
-    assert pools.execution_metrics["surviving_count"] == 2446  # 2471 - 25 manual review items
+    assert pools.execution_metrics["surviving_count"] == 2447  # 2472 - 25 manual review items
     assert len(pools.combo_candidates["main_dish"]) == 1406
     assert len(pools.combo_candidates["staple"]) == 10
 
@@ -158,7 +158,7 @@ def test_single_and_multiple_allergy_filtering(index_fixture: InMemoryInvertedIn
     assert res_shrimp.hard_excluded_allergens == {"shrimp"}
     pools_shrimp = ConstraintFilter.filter_candidates(res_shrimp, index=index_fixture)
     assert pools_shrimp.safety_status == "SAFE"
-    assert pools_shrimp.execution_metrics["surviving_count"] == 1963
+    assert pools_shrimp.execution_metrics["surviving_count"] == 1964
 
     # Multiple allergies
     res_multi = ConstraintResolver.resolve_constraints(

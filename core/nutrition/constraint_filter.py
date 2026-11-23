@@ -62,7 +62,7 @@ class ConstraintFilter:
         index: Optional[InMemoryInvertedIndex] = None,
         recipe_type: str = "food",
     ) -> CandidatePools:
-        """Filter the logical catalog (2,471 items) into segregated candidate pools."""
+        """Filter the logical catalog into separate candidate pools by meal role."""
         t_start = time.perf_counter()
         idx = index or get_metadata_index()
 

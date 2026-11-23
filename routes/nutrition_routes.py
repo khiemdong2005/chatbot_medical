@@ -131,11 +131,15 @@ def register_nutrition_routes(app):
                     exclude_recipe_ids=exclude_ids,
                     profile=profile,
                 )
-                if meal_res.get("status") == "success":
+                if meal_res.get("status") == "refusal":
+                    legacy_data.update(meal_res)
+                    legacy_data.update(has_more=False, clarification_question=meal_res.get("notice", ""))
+                elif meal_res.get("status") == "success":
                     legacy_data["family_combos"] = meal_res.get("family_combos", [])
                     legacy_data["standalone_meals"] = meal_res.get("standalone_meals", [])
                     if meal_res.get("meal_combos"):
-                        legacy_data["meal_combos"] = meal_res.get("meal_combos")
+                        legacy_data["meal_combos"] = meal_res["meal_combos"]
+                        legacy_data["full_meal_set"] = legacy_data["meal_combos"][0]
                     legacy_data["safety_status"] = meal_res.get("safety_status")
                     legacy_data["engine_metadata"] = meal_res.get("metadata")
             except Exception as e:

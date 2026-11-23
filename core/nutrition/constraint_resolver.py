@@ -45,13 +45,23 @@ ALLERGEN_ALIASES_VI: Dict[str, str] = {
     "muc": "squid_octopus", "bach tuoc": "squid_octopus", "squid": "squid_octopus", "octopus": "squid_octopus",
     "ca": "fish", "nuoc mam": "fish",
     "ngheu": "mollusk", "so": "mollusk", "oc": "mollusk", "hau": "mollusk", "hen": "mollusk",
-    "dau hao": "mollusk", "shellfish": "mollusk",
+    "dau hao": "mollusk",
     "dau phong": "peanut", "lac": "peanut", "groundnut": "peanut",
     "me": "sesame", "vung": "sesame",
     "trung": "egg", "trung ga": "egg", "trung vit": "egg", "mayonnaise": "egg",
     "sua": "cow_milk", "sua bo": "cow_milk", "sua tuoi": "cow_milk", "pho mai": "cow_milk", "bo": "cow_milk",
     "dau nanh": "soy", "dau hu": "soy", "tau hu": "soy", "nuoc tuong": "soy", "xi dau": "soy",
     "bot mi": "wheat_gluten", "banh mi": "wheat_gluten", "mi soi": "wheat_gluten", "wheat": "wheat_gluten"
+}
+
+# Expand broad allergy declarations into groups that the catalog tracks
+# individually. The index filters both known and uncertain matches.
+_SHELLFISH_ALLERGENS = frozenset({"shrimp", "crab", "squid_octopus", "mollusk"})
+ALLERGEN_GROUPS = {
+    "hai san": _SHELLFISH_ALLERGENS | {"fish"},
+    "seafood": _SHELLFISH_ALLERGENS | {"fish"},
+    "hai san co vo": _SHELLFISH_ALLERGENS,
+    "shellfish": _SHELLFISH_ALLERGENS,
 }
 
 # Known unsupported allergens that require immediate fail-closed handling
@@ -300,7 +310,9 @@ class ConstraintResolver:
             norm_a = _normal(a_str)
             if norm_a in ("khong", "khong co", "none"):
                 continue
-            if norm_a in ALLERGEN_ALIASES_VI:
+            if norm_a in ALLERGEN_GROUPS:
+                parsed_allergies.update(ALLERGEN_GROUPS[norm_a])
+            elif norm_a in ALLERGEN_ALIASES_VI:
                 parsed_allergies.add(ALLERGEN_ALIASES_VI[norm_a])
             elif norm_a in UNSUPPORTED_ALLERGEN_ALIASES:
                 unsupported_found.append(UNSUPPORTED_ALLERGEN_ALIASES[norm_a])
@@ -588,12 +600,16 @@ class ConstraintResolver:
 
             # Check allergy patterns ("dị ứng tôm và cua", "bị dị ứng đậu phộng")
             allergy_match = re.search(r"\b(?:di\s+ung|bi\s+di\s+ung)\s+(.+)", clause)
-            if allergy_match:
+            if allergy_match and not re.search(
+                r"\b(?:khong|chua)(?:\s+(?:he|co|bi|con))*\s*$", clause[:allergy_match.start()]
+            ):
                 target_str = allergy_match.group(1).strip()
                 sub_items = re.split(r"\s+(?:va|hoac|voi)\s+|,", target_str)
                 for item in sub_items:
                     item_clean = item.strip()
-                    if item_clean in ALLERGEN_ALIASES_VI:
+                    if item_clean in ALLERGEN_GROUPS:
+                        allergies.update(ALLERGEN_GROUPS[item_clean])
+                    elif item_clean in ALLERGEN_ALIASES_VI:
                         allergies.add(ALLERGEN_ALIASES_VI[item_clean])
                     elif item_clean in UNSUPPORTED_ALLERGEN_ALIASES:
                         unsupported.append(UNSUPPORTED_ALLERGEN_ALIASES[item_clean])

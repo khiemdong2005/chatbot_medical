@@ -96,11 +96,10 @@ def test_monotonicity_mixed_hard_constraints(index_fixture: InMemoryInvertedInde
     assert diab_shrimp_pool.issubset(diab_pool)
     assert diab_shrimp_nofry_pool.issubset(diab_shrimp_pool)
 
-    # Specific counts: 2446 -> 2364 -> 1881 -> 1270
-    assert len(base_pool) == 2446
-    assert len(diab_pool) == 2364
-    assert len(diab_shrimp_pool) == 1881
-    assert len(diab_shrimp_nofry_pool) == 1270
+    assert len(base_pool) == 2447
+    assert len(diab_pool) == 2365
+    assert len(diab_shrimp_pool) == 1882
+    assert len(diab_shrimp_nofry_pool) == 1271
 
 
 # -----------------------------------------------------------------------------
@@ -124,7 +123,7 @@ def test_hard_constraint_commutativity(index_fixture: InMemoryInvertedIndex):
     pool_ba = ConstraintFilter.filter_candidates(res_ba, index=index_fixture).unique_candidate_ids
 
     assert pool_ab == pool_ba, "Candidate set must be identical regardless of constraint order"
-    assert len(pool_ab) == 1351
+    assert len(pool_ab) == 1352
 
 
 # -----------------------------------------------------------------------------

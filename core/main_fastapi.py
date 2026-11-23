@@ -59,7 +59,6 @@ from core.api_errors import fastapi_api_error, status_code_to_error_code, ErrorC
 
 from core.chat_service import process_clinical_chat, execute_chat_workflow
 from core.health_context import validate_chat_request
-from core.storage_service import decode_and_validate_base64_image
 from core.gemini_service import GeminiMedicalService
 from core.observability import metrics_collector, record_http_metrics
 from core.rag_service import medical_rag_service
@@ -228,7 +227,8 @@ class ChatMessageRequest(BaseModel):
     )
     image: Optional[str] = Field(
         default=None,
-        description="Dữ liệu ảnh chụp tổn thương dạng Base64 Data URL (data:image/jpeg;base64,...)"
+        deprecated=True,
+        description="Trường cũ. Chatbot chỉ hỗ trợ tin nhắn văn bản."
     )
     lang: Optional[str] = Field(
         default="vi",
@@ -318,7 +318,7 @@ def extract_request_identity(request: Request) -> tuple[Optional[int], Optional[
 # 2. HỆ THỐNG TƯ VẤN Y TẾ & CHATBOT LÂM SÀNG (OFFLOAD WORKER THREADPOOL)
 # ==============================================================================
 
-@app.post("/api/chat", summary="Tư vấn Triệu chứng Y tế (RAG + Gemini Vision + Double Guardrails)", tags=["1. Tư vấn Lâm sàng (Chatbot)"])
+@app.post("/api/chat", summary="Tư vấn Triệu chứng Y tế (RAG + Double Guardrails)", tags=["1. Tư vấn Lâm sàng (Chatbot)"])
 async def chat_endpoint(request: Request, req: ChatMessageRequest):
     """
     Sử dụng chung dịch vụ process_clinical_chat và offload sang thread pool để không block asyncio loop:
@@ -332,18 +332,8 @@ async def chat_endpoint(request: Request, req: ChatMessageRequest):
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     user_message = payload["message"]
-    if not user_message and not req.image:
-        raise HTTPException(status_code=400, detail="Vui lòng nhập nội dung tin nhắn hoặc tải ảnh.")
-
-    # Giải mã ảnh an toàn nếu có
-    image_bytes = None
-    image_mime_type = "image/jpeg"
-    if req.image:
-        img_bytes, mime, err = decode_and_validate_base64_image(req.image)
-        if err:
-            raise HTTPException(status_code=400, detail=f"Tệp ảnh không hợp lệ: {err}")
-        image_bytes = img_bytes
-        image_mime_type = mime
+    if not user_message:
+        raise HTTPException(status_code=400, detail="Vui lòng nhập nội dung tin nhắn.")
 
     user_id, guest_token, is_new_guest = extract_request_identity(request)
     client_ip = get_trusted_client_ip(
@@ -365,8 +355,6 @@ async def chat_endpoint(request: Request, req: ChatMessageRequest):
             execute_chat_workflow,
             message=user_message,
             history=payload["history"],
-            image_bytes=image_bytes,
-            image_mime_type=image_mime_type,
             lang=payload.get("lang") or "vi",
             conversation_id=payload.get("conversation_id"),
             health_context=payload.get("health_context"),
