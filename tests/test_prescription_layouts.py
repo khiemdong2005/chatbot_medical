@@ -57,6 +57,47 @@ def test_quantity_is_joined_by_right_column_y_not_dosing_number():
     assert parsed[0]["frequency"] == "3 lần/ngày"
 
 
+def test_split_ordinal_cell_keeps_medicine_on_same_row():
+    rows = [
+        _row("Chẩn đoán: đau bụng", y=100, xs=[100]),
+        {"text": "2 | SILKRON | 3 tube", "y_center": 140,
+         "items": [
+             {"text": "2", "x_min": 40, "x_max": 55, "confidence": 0.9, "line_index": 1},
+             {"text": "SILKRON", "x_min": 90, "x_max": 250, "confidence": 0.8, "line_index": 2},
+             {"text": "3 tube", "x_min": 1350, "x_max": 1430, "confidence": 0.98, "line_index": 3},
+         ]},
+        _row("Cộng khoản: 1", y=200, xs=[100]),
+    ]
+
+    parsed = extract_schema_from_ocr(_ocr(rows), "prescription")["medications"]
+
+    assert len(parsed) == 1
+    assert parsed[0]["name"] == "SILKRON"
+    assert parsed[0]["quantity"] == "3 tuýp"
+
+
+def test_ordinal_in_own_ocr_row_is_joined_to_following_drug_heading():
+    rows = [
+        _row("Chẩn đoán: đau bụng", y=100, xs=[100]),
+        {"text": "6", "y_center": 140,
+         "items": [{"text": "6", "x_min": 40, "x_max": 55, "confidence": 0.9, "line_index": 1}]},
+        {"text": "DIGLUMISAN (L-Arginine Hydrochloride 1000mg) | 63 Ống", "y_center": 140,
+         "items": [
+             {"text": "DIGLUMISAN (L-Arginine Hydrochloride 1000mg)", "x_min": 90, "x_max": 700,
+              "confidence": 0.9, "line_index": 2},
+             {"text": "63 Ống", "x_min": 1350, "x_max": 1430, "confidence": 0.98, "line_index": 3},
+         ]},
+        _row("Cộng khoản: 1", y=200, xs=[100]),
+    ]
+
+    parsed = extract_schema_from_ocr(_ocr(rows), "prescription")["medications"]
+
+    assert len(parsed) == 1
+    assert parsed[0]["source_ordinal"] == 6
+    assert parsed[0]["name"] == "DIGLUMISAN"
+    assert parsed[0]["quantity"] == "63 ống"
+
+
 def test_noisy_table_drops_rows_without_a_readable_contiguous_drug_name():
     rows = [
         _row("ĐON THUÓC"),

@@ -39,6 +39,24 @@ def test_invalid_file_extension_rejected(temp_dirs):
         assert "không được hỗ trợ" in err
 
 
+def test_supported_image_with_mismatched_extension_uses_actual_format(temp_dirs):
+    from PIL import Image
+
+    image_bytes = io.BytesIO()
+    Image.new("RGB", (12, 12), "white").save(image_bytes, format="JPEG")
+    image_bytes.seek(0)
+    image_bytes.filename = "prescription.png"
+
+    success, meta, err = process_secure_upload(
+        image_bytes, str(temp_dirs["uploads"]), detect_image_format=True
+    )
+
+    assert success is True, err
+    assert meta["file_type"] == "JPG"
+    assert meta["storage_filename"].endswith(".jpg")
+    assert meta["mime_type"] == "image/jpeg"
+
+
 def test_oversized_file_rejected(temp_dirs):
     """Kiểm thử 3c: Từ chối tệp quá dung lượng tối đa (10MB)."""
     uploads_dir = temp_dirs["uploads"]

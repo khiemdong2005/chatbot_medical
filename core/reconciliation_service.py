@@ -846,6 +846,11 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
     ordinal_cell = re.compile(r"^\s*[1-9GgIlOoSb]\s*[.):]?\s*$")
     blocks: List[Dict[str, Any]] = []
     current = None
+    pending_ordinal = None
+    pending_ordinal_row = None
+    quantity_re = re.compile(
+        r"\b(\d{1,3})\s*(vien|goi|chai|ong|lo|hop|vi|tuyp|tube)\b", re.IGNORECASE,
+    )
     right_edge = max((float(item.get("x_max", item.get("x_min", 0)) or 0)
                       for row in rows for item in row.get("items", [])), default=0.0)
 
@@ -863,20 +868,57 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
 
         candidate = row_text
         if cells and ordinal_cell.fullmatch(cells[0]) and len(cells) > 1:
-            candidate = f"{cells[0]} {' '.join(cells[1:])}"
+            # EasyOCR often splits the printed ordinal into its own cell and
+            # drops the trailing dot. Restore the separator before parsing.
+            candidate = f"{cells[0].strip().rstrip('.)')} . {' '.join(cells[1:])}"
         ordinal_number = _parse_medication_ordinal(candidate)
         ordinal_match = re.match(r"^\s*([1-9GgIlOoSb])\s*[.):]\s*(\S.*)$", candidate)
         if ordinal_number is not None and ordinal_match:
             if current:
                 blocks.append(current)
             current = {"ordinal": ordinal_number, "heading": ordinal_match.group(2).strip(), "rows": [row]}
+            pending_ordinal = None
+            pending_ordinal_row = None
             continue
 
         if cells and ordinal_cell.fullmatch(cells[0]) and len(cells) == 1:
             if current:
                 blocks.append(current)
-                current = None
+            current = None
+            ordinal_char = re.search(r"[1-9GgIlOoSb]", cells[0]).group(0)
+            mapped_ordinal = {"G": "6", "g": "6", "b": "6", "I": "1", "l": "1",
+                              "O": "0", "o": "0", "S": "5", "s": "5"}.get(
+                                  ordinal_char, ordinal_char
+                              )
+            pending_ordinal = int(mapped_ordinal) if mapped_ordinal.isdigit() and mapped_ordinal != "0" else None
+            pending_ordinal_row = row if pending_ordinal else None
             continue
+
+        # Sometimes the ordinal and drug name are separated into two OCR rows
+        # despite sharing one printed line. Rejoin only when the next row looks
+        # like a drug name, never when it is a dose/instruction/quantity row.
+        if pending_ordinal is not None:
+            instruction_row = bool(re.match(
+                r"^\s*(?:ng[aàa]?y|u[oố]ng|m[oỗ]i\s*l[aầ]n|s[aá]ng|tr[uư]a|ch[iề]u|t[oố]i|"
+                r"c[aá]ch\s*d[uù]ng|l[oờ]i\s*d[aặ]n|c[oộ]ng\s*kho[aả]n)\b",
+                _ascii_fold(row_text), re.IGNORECASE,
+            ))
+            candidate_cells = [cell for cell in cells if not quantity_re.fullmatch(_ascii_fold(cell))
+                               and not re.fullmatch(r"\d{1,3}", cell.strip())]
+            heading_candidate = " ".join(candidate_cells).strip()
+            if (not instruction_row and is_plausible_medication_name(heading_candidate)
+                    and re.search(r"[A-Za-zÀ-ỹ]{4,}", heading_candidate)):
+                current = {
+                    "ordinal": pending_ordinal,
+                    "heading": heading_candidate,
+                    "rows": [pending_ordinal_row, row],
+                    "heading_row": row,
+                }
+                pending_ordinal = None
+                pending_ordinal_row = None
+                continue
+            pending_ordinal = None
+            pending_ordinal_row = None
         # Recover one missing ordinal only when the prescription's printed
         # total proves another item is expected and this row has a right-column
         # quantity plus a drug-like heading (not a dosing continuation).
@@ -904,13 +946,10 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
         blocks.append(current)
 
     meds: List[Dict[str, Any]] = []
-    quantity_re = re.compile(
-        r"\b(\d{1,3})\s*(vien|goi|chai|ong|lo|hop|vi|tuyp)\b", re.IGNORECASE,
-    )
     strength_re = re.compile(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu))\b", re.IGNORECASE)
 
     for block in blocks:
-        first_row = block["rows"][0]
+        first_row = block.get("heading_row", block["rows"][0])
         name_cells = [str(item.get("text", "") or "").strip()
                       for item in first_row.get("items", []) if item.get("text")]
         if not name_cells:

@@ -1545,7 +1545,9 @@ def create_app(test_config=None):
                 return jsonify({"status": "error", "message": "Chưa chọn tệp hợp lệ."}), 400
 
             upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
-            success, meta, err = process_secure_upload(file, upload_folder)
+            success, meta, err = process_secure_upload(
+                file, upload_folder, detect_image_format=True
+            )
             if not success:
                 return jsonify({"status": "failed", "needs_review": True, "message": err}), 400
 
