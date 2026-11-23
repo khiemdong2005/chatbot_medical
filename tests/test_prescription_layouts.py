@@ -18,7 +18,7 @@ def _ocr(rows):
             "raw_text": "\n".join(row["text"] for row in rows)}
 
 
-def test_quantity_clustering_with_heading_still_yields_one_real_drug():
+def test_unnumbered_quantity_heading_does_not_create_a_drug():
     rows = [
         _row("ĐƠN THUỐC", y=70, xs=[300]),
         _row("Chẩn đoán: Gút", y=250, xs=[200]),
@@ -31,12 +31,33 @@ def test_quantity_clustering_with_heading_still_yields_one_real_drug():
         "medications": [{"name": "ĐƠN THUỐC"}, {"name": "MIO."}, {"name": "STT"}],
     }, "prescription")
 
-    assert [item["name"] for item in result["medications"]] == ["Febuxostat"]
-    assert result["medications"][0]["days"] == "21 viên"
-    assert result["medications"][0]["strength"] == ""
+    assert result["medications"] == []
 
 
-def test_noisy_table_keeps_unnumbered_drug_rows_between_numbered_rows():
+def test_quantity_is_joined_by_right_column_y_not_dosing_number():
+    rows = [
+        _row("Chẩn đoán: đau bụng", y=100, xs=[100]),
+        {"text": "1. ARTHUR | 63 Viên", "y_center": 140,
+         "items": [
+             {"text": "1.", "x_min": 40, "x_max": 55, "confidence": 0.9, "line_index": 1},
+             {"text": "ARTHUR", "x_min": 90, "x_max": 250, "confidence": 0.95, "line_index": 2},
+             {"text": "63 Viên", "x_min": 1350, "x_max": 1430, "confidence": 0.98, "line_index": 3},
+         ]},
+        {"text": "Ngày uống 3 lần, mỗi lần 1 Viên", "y_center": 165,
+         "items": [{"text": "Ngày uống 3 lần, mỗi lần 1 Viên", "x_min": 90, "x_max": 450,
+                    "confidence": 0.93, "line_index": 4}]},
+        _row("Cộng khoản: 1", y=200, xs=[100]),
+    ]
+    parsed = extract_schema_from_ocr(_ocr(rows), "prescription")["medications"]
+
+    assert len(parsed) == 1
+    assert parsed[0]["name"] == "ARTHUR"
+    assert parsed[0]["quantity"] == "63 viên"
+    assert parsed[0]["dose"] == "1 viên"
+    assert parsed[0]["frequency"] == "3 lần/ngày"
+
+
+def test_noisy_table_drops_rows_without_a_readable_contiguous_drug_name():
     rows = [
         _row("ĐON THUÓC"),
         _row("Chn 8oun", "WCIK IOA", "IVDD"),
@@ -57,18 +78,16 @@ def test_noisy_table_keeps_unnumbered_drug_rows_between_numbered_rows():
     ]
     medications = extract_schema_from_ocr(_ocr(rows))["medications"]
 
-    assert len(medications) == 7
-    assert [med["name"].split()[0].lower() for med in medications] == [
-        "scotols(", "dxk", "dai", "rhcumatin", "ginkobil", "jex", "can"
-    ]
-    assert medications[0]["days"] == "60 Viên"
+    assert [med["source_ordinal"] for med in medications] == [7]
+    assert "Dxk" not in " ".join(med["name"] for med in medications)
+    assert "Ginkobil" not in " ".join(med["name"] for med in medications)
     reconciled = reconcile_parallel_results(_ocr(rows),
                                            {"medications": [{"name": med["name"]} for med in medications]},
                                            "prescription")
     assert [med["name"] for med in reconciled["medications"]] == [med["name"] for med in medications]
 
 
-def test_model_recovers_ocr_parser_miss_only_with_medicine_body_evidence():
+def test_model_cannot_promote_unnumbered_body_text_to_a_medicine():
     rows = [_row("ĐƠN THUỐC"), _row("Chẩn đoán: đau bụng"),
             _row("1. Paracetamol 500mg", "20 Viên"),
             _row("Amoxicillin 250mg", "10 Viên"),
@@ -91,7 +110,8 @@ def test_model_recovers_ocr_parser_miss_only_with_medicine_body_evidence():
                             {"name": "Aspirin"}, {"name": "STT"}],
         }, "prescription")
 
-    assert [med["name"] for med in result["medications"]] == ["Paracetamol", "Amoxicillin"]
+    assert [med["name"] for med in result["medications"]] == ["Paracetamol"]
+    assert result["count_warning"] == "Có thể thiếu thuốc, vui lòng đối chiếu ảnh gốc"
 
 
 def test_numbered_quantity_in_following_row_is_not_a_second_drug():
