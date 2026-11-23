@@ -31,20 +31,17 @@ load_dotenv()
 from core.settings import settings
 
 # Nạp cơ sở dữ liệu và các mô hình
-from core.models import db, User, MedicalDocument, PrescriptionHistory, ClinicalConsultation, MedicalAppointment, init_db
+from core.models import db, User, MedicalDocument, ClinicalConsultation, MedicalAppointment, init_db
 from core.db_utils import commit_or_rollback
 from core.otp_service import otp_manager
 from core.storage_service import (
     process_secure_upload,
     decode_and_validate_base64_image,
-    inspect_upload_safety,
     is_safe_path
 )
 from core.chat_service import process_clinical_chat, execute_chat_workflow
 from core.health_context import validate_chat_request
 from core.gemini_service import GeminiMedicalService
-from core.gemini_schema_service import _sanitize_redacted_admin_field
-from core.grounding_service import parse_frequency_to_schedule
 from core.prescription_service import get_preset_data
 from core.intake_service import StaleIntakeVersionError, intake_service
 from core.pipeline_orchestrator import HEADER_FIELDS, REVIEW_FIELDS, finalize_reviewed_document, process_medical_document_pipeline
@@ -218,18 +215,6 @@ def create_app(test_config=None):
 
     # Khởi tạo cơ sở dữ liệu an toàn theo đúng URI đã cấu hình
     init_db(app)
-
-    @app.context_processor
-    def inject_current_user():
-        """Tiêm thông tin người dùng hiện tại vào toàn bộ Jinja2 templates dùng chung header."""
-        user_id = session.get("user_id")
-        if not user_id:
-            return {"current_user": None, "user": None}
-        current = db.session.get(User, user_id)
-        if not current:
-            return {"current_user": None, "user": None}
-        user_data = current.to_dict()
-        return {"current_user": user_data, "user": user_data}
 
     # Khởi tạo dịch vụ trí tuệ nhân tạo Gemini
     gemini_service = GeminiMedicalService()
@@ -473,66 +458,6 @@ def create_app(test_config=None):
             "success": True,
             "message": "Cập nhật thông tin cá nhân thành công!",
             "user": user.to_dict()
-        })
-
-
-    @app.route("/api/auth/avatar", methods=["POST"])
-    def auth_upload_avatar():
-        """Tải lên và lưu bền vững ảnh đại diện của người dùng đang đăng nhập."""
-        user_id = session.get("user_id")
-        if not user_id:
-            return jsonify({"success": False, "error": "Vui lòng đăng nhập để cập nhật ảnh đại diện."}), 401
-
-        user = db.session.get(User, user_id)
-        if not user:
-            session.clear()
-            return jsonify({"success": False, "error": "Không tìm thấy thông tin tài khoản."}), 404
-
-        file = request.files.get("file") or request.files.get("avatar")
-        if not file or not file.filename:
-            return jsonify({"success": False, "error": "Chưa chọn tệp ảnh đại diện hợp lệ."}), 400
-
-        ext = os.path.basename(file.filename).rsplit(".", 1)[-1].lower() if "." in file.filename else ""
-        if ext not in {"jpg", "jpeg", "png", "webp"}:
-            return jsonify({"success": False, "error": "Chỉ hỗ trợ ảnh JPG, JPEG, PNG hoặc WEBP."}), 400
-
-        upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
-        if ext == "webp":
-            file_bytes = file.read()
-            if len(file_bytes) == 0 or len(file_bytes) > 10 * 1024 * 1024:
-                return jsonify({"success": False, "error": "Dung lượng ảnh đại diện không hợp lệ (tối đa 10MB)."}), 400
-            if not (file_bytes[:4] == b"RIFF" and file_bytes[8:12] == b"WEBP"):
-                return jsonify({"success": False, "error": "Nội dung tệp không khớp định dạng .webp."}), 400
-            is_safe, safety_err = inspect_upload_safety(file_bytes, "webp")
-            if not is_safe:
-                return jsonify({"success": False, "error": safety_err or "Ảnh tải lên không đạt kiểm tra an toàn."}), 400
-            storage_filename = f"{uuid.uuid4().hex}.webp"
-            base_folder_path = Path(upload_folder).resolve()
-            base_folder_path.mkdir(parents=True, exist_ok=True)
-            dest_path = base_folder_path / storage_filename
-            if not is_safe_path(dest_path, base_folder_path):
-                return jsonify({"success": False, "error": "Đường dẫn lưu trữ không an toàn."}), 400
-            with open(dest_path, "wb") as f:
-                f.write(file_bytes)
-        else:
-            success, meta, err_msg = process_secure_upload(file, upload_folder)
-            if not success:
-                return jsonify({"success": False, "error": err_msg or "Không thể lưu ảnh đại diện."}), 400
-            storage_filename = meta["storage_filename"]
-
-        user.avatar_url = f"/uploads/{storage_filename}"
-        try:
-            commit_or_rollback()
-        except Exception as e:
-            logger.error(f"Lỗi lưu ảnh đại diện: {e}")
-            return jsonify({"success": False, "error": "Không thể lưu ảnh đại diện vào hồ sơ."}), 500
-
-        return jsonify({
-            "success": True,
-            "message": "Đã cập nhật ảnh đại diện thành công!",
-            "avatar_url": user.avatar_url,
-            "avatar": user.avatar_url,
-            "user": user.to_dict(),
         })
 
 
@@ -1578,7 +1503,6 @@ def create_app(test_config=None):
             except Exception as e:
                 logger.warning(f"Lỗi xóa file vật lý: {e}")
 
-        PrescriptionHistory.query.filter_by(document_id=doc.id, user_id=user_id).delete()
         db.session.delete(doc)
         try:
             commit_or_rollback()
@@ -1713,141 +1637,6 @@ def create_app(test_config=None):
     # QUẢN LÝ LỊCH SỬ ĐƠN THUỐC ĐÃ IMPORT
     # ==============================================================
 
-    def _summarize_prescription_meds(meds):
-        if not isinstance(meds, list):
-            return ""
-        med_names = [
-            str(m.get("standard_name") or m.get("name") or "").strip()
-            for m in meds[:3]
-            if isinstance(m, dict) and (m.get("standard_name") or m.get("name"))
-        ]
-        summary_text = f"{len(meds)} loại thuốc"
-        if med_names:
-            summary_text += f": {', '.join(med_names)}"
-            if len(meds) > 3:
-                summary_text += f" và {len(meds) - 3} thuốc khác"
-        return summary_text
-
-    def _ensure_prescription_timeline(payload):
-        meds = payload.get("medications")
-        if not isinstance(meds, list) or not meds:
-            return payload.get("timeline") if isinstance(payload.get("timeline"), dict) else {}
-
-        existing = payload.get("timeline")
-        slots = ("morning", "noon", "evening", "bedtime", "external")
-        if isinstance(existing, dict) and any(isinstance(existing.get(slot), list) and existing.get(slot) for slot in slots):
-            return existing
-
-        built = {slot: [] for slot in slots}
-        for med in meds:
-            if not isinstance(med, dict):
-                continue
-            med_name = str(med.get("standard_name") or med.get("name") or "").strip()
-            if not med_name:
-                continue
-            raw_dose = str(med.get("dose") or med.get("dosage") or "").strip()
-            has_dose = bool(raw_dose)
-            m_dose = raw_dose if has_dose else "Chưa rõ liều (Cần đối chiếu đơn)"
-            needs_rev = bool(med.get("needs_review")) or not has_dose
-            sched = med.get("schedule") if isinstance(med.get("schedule"), dict) else None
-            if not sched or not any(isinstance(v, dict) and v.get("active") for v in sched.values()):
-                sched = parse_frequency_to_schedule(
-                    str(med.get("frequency") or med.get("cu") or ""),
-                    str(med.get("usage") or med.get("instructions") or med.get("purpose") or ""),
-                )
-            for slot in slots:
-                slot_info = sched.get(slot) if isinstance(sched, dict) else None
-                if isinstance(slot_info, dict) and slot_info.get("active"):
-                    built[slot].append({
-                        "name": med_name,
-                        "dose": m_dose,
-                        "note": slot_info.get("note") or "Theo chỉ dẫn của bác sĩ/dược sĩ",
-                        "needs_review": needs_rev,
-                    })
-        return built
-
-    def _coerce_optional_int(value):
-        if isinstance(value, bool):
-            return None
-        if isinstance(value, int):
-            return value
-        s = str(value or "").strip()
-        return int(s) if s.isdigit() else None
-
-    def _upsert_prescription_history(user_id, raw_payload, doc=None, history_id=None):
-        payload = dict(raw_payload) if isinstance(raw_payload, dict) else {}
-        resolved_doc_id = doc.id if doc else _coerce_optional_int(payload.get("document_id"))
-        resolved_hist_id = history_id if history_id is not None else _coerce_optional_int(payload.get("history_id"))
-
-        if doc is None and resolved_doc_id is not None:
-            doc = MedicalDocument.query.filter_by(id=resolved_doc_id, owner_id=user_id).first()
-            resolved_doc_id = doc.id if doc else None
-
-        payload["patient_name"] = _sanitize_redacted_admin_field(payload.get("patient_name"))
-        payload["dob"] = _sanitize_redacted_admin_field(payload.get("dob") or payload.get("birth_date"))
-        payload["age"] = _sanitize_redacted_admin_field(payload.get("age"))
-        payload["gender"] = _sanitize_redacted_admin_field(payload.get("gender"), is_gender=True)
-
-        diagnosis = str(payload.get("diagnosis") or "").strip()
-        facility = str(payload.get("facility") or "").strip()
-        doctor = str(payload.get("doctor") or "").strip()
-        doc_type = str(payload.get("doc_type") or payload.get("type") or "prescription").strip() or "prescription"
-        if doc_type not in ("prescription", "lab_test"):
-            doc_type = "prescription"
-        payload["doc_type"] = doc_type
-        payload["type"] = doc_type
-
-        raw_img = str(payload.get("image_url") or payload.get("preview_image_url") or "").strip()
-        if raw_img.startswith("blob:") or raw_img.startswith("data:"):
-            raw_img = ""
-        if not raw_img and doc and doc.storage_filename:
-            raw_img = f"/uploads/{doc.storage_filename}"
-
-        meds = payload.get("medications") if isinstance(payload.get("medications"), list) else []
-        payload["timeline"] = _ensure_prescription_timeline(payload)
-        summary_text = _summarize_prescription_meds(meds)
-
-        record = None
-        if resolved_hist_id is not None:
-            record = PrescriptionHistory.query.filter_by(id=resolved_hist_id, user_id=user_id).first()
-        if record is None and resolved_doc_id is not None:
-            record = PrescriptionHistory.query.filter_by(document_id=resolved_doc_id, user_id=user_id).order_by(PrescriptionHistory.id.desc()).first()
-        if record is None:
-            record = PrescriptionHistory(user_id=user_id)
-            db.session.add(record)
-
-        record.document_id = resolved_doc_id
-        record.image_url = raw_img
-        record.patient_name = payload["patient_name"]
-        record.diagnosis = diagnosis
-        record.facility = facility
-        record.doctor = doctor
-        record.summary = summary_text
-        record.json_drugs = json.dumps(payload, ensure_ascii=False)
-        db.session.flush()
-
-        payload["history_id"] = record.id
-        if resolved_doc_id is not None:
-            payload["document_id"] = resolved_doc_id
-        payload["image_url"] = raw_img
-        payload["preview_image_url"] = raw_img
-        record.json_drugs = json.dumps(payload, ensure_ascii=False)
-
-        if doc is not None:
-            if doc.doc_type == "ocr_draft":
-                doc.doc_type = doc_type
-            doc.patient_name = payload["patient_name"]
-            if diagnosis:
-                doc.diagnosis = diagnosis
-            if facility:
-                doc.facility = facility
-            if doctor:
-                doc.doctor = doctor
-            doc.summary = summary_text
-            doc.parsed_data = record.json_drugs
-
-        return record, payload
-
     @app.post("/api/prescription/<int:doc_id>/confirm")
     def confirm_reviewed_document(doc_id):
         owner = session.get("user_id")
@@ -1897,116 +1686,8 @@ def create_app(test_config=None):
         if not changed:
             db.session.rollback()
             return jsonify({"message": "Tài liệu đã được xác nhận."}), 409
-        doc = db.session.get(MedicalDocument, doc.id)
-        _, saved_payload = _upsert_prescription_history(owner, result, doc=doc)
         commit_or_rollback()
-        return jsonify(saved_payload)
-
-    @app.route("/api/ocr/save_history", methods=["POST"])
-    def save_ocr_history():
-        """Lưu toàn bộ kết quả OCR đã xác nhận/chỉnh sửa vào bảng PrescriptionHistory."""
-        user_id = session.get("user_id")
-        if not user_id:
-            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để lưu lịch sử đơn thuốc."}), 401
-
-        data = request.get_json(silent=True)
-        if not isinstance(data, dict):
-            return jsonify({"status": "error", "message": "Dữ liệu đơn thuốc không hợp lệ."}), 400
-
-        doc_id = _coerce_optional_int(data.get("document_id"))
-        history_id = _coerce_optional_int(data.get("history_id"))
-        doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first() if doc_id is not None else None
-
-        try:
-            record, saved_payload = _upsert_prescription_history(user_id, data, doc=doc, history_id=history_id)
-            commit_or_rollback()
-        except Exception as err:
-            logger.warning(f"Lỗi lưu PrescriptionHistory: {err}")
-            return jsonify({"status": "error", "message": "Không thể lưu đơn thuốc vào cơ sở dữ liệu."}), 500
-
-        return jsonify({
-            "status": "success",
-            "message": "Đã lưu đơn thuốc vào lịch sử thành công.",
-            "id": record.id,
-            "history_id": record.id,
-            "document_id": record.document_id,
-            "record": record.to_dict(include_payload=True),
-            "data": saved_payload,
-        })
-
-    @app.route("/api/ocr/get_history", methods=["GET"])
-    def get_ocr_history():
-        """Lấy danh sách đơn thuốc đã lưu của người dùng hiện tại, sắp xếp mới nhất trước."""
-        user_id = session.get("user_id")
-        if not user_id:
-            return jsonify({
-                "status": "error",
-                "message": "Vui lòng đăng nhập để xem lịch sử đơn thuốc.",
-                "history": [],
-                "total": 0,
-            }), 401
-
-        rows = (
-            PrescriptionHistory.query.filter_by(user_id=user_id)
-            .order_by(PrescriptionHistory.created_at.desc(), PrescriptionHistory.id.desc())
-            .all()
-        )
-        history = [row.to_dict(include_payload=True) for row in rows]
-        return jsonify({"status": "success", "history": history, "total": len(history)})
-
-    @app.route("/api/ocr/get_history/<int:history_id>", methods=["GET"])
-    def get_ocr_history_detail(history_id):
-        """Lấy chi tiết JSON đơn thuốc theo ID thuộc quyền sở hữu của user hiện tại."""
-        user_id = session.get("user_id")
-        if not user_id:
-            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem chi tiết đơn thuốc."}), 401
-
-        record = PrescriptionHistory.query.filter_by(id=history_id, user_id=user_id).first()
-        if not record:
-            return jsonify({"status": "error", "message": "Không tìm thấy hồ sơ hoặc bạn không có quyền xem."}), 404
-
-        record_dict = record.to_dict(include_payload=True)
-        payload = dict(record_dict.get("JSON_drugs") or {})
-        payload["history_id"] = record.id
-        if record.document_id and not payload.get("document_id"):
-            payload["document_id"] = record.document_id
-        if record.image_url:
-            payload["image_url"] = record.image_url
-            payload["preview_image_url"] = record.image_url
-        payload["uploaded_at"] = record_dict["uploaded_at"]
-        return jsonify({"status": "success", "record": record_dict, "data": payload})
-
-    @app.route("/api/ocr/history/<int:history_id>", methods=["DELETE"])
-    def delete_ocr_history_item(history_id):
-        """Xóa một bản ghi lịch sử OCR thuộc quyền sở hữu của user hiện tại."""
-        user_id = session.get("user_id")
-        if not user_id:
-            return jsonify({"status": "error", "message": "Vui lòng đăng nhập để thực hiện thao tác."}), 401
-
-        record = PrescriptionHistory.query.filter_by(id=history_id, user_id=user_id).first()
-        if not record:
-            return jsonify({"status": "error", "message": "Hồ sơ không tồn tại hoặc bạn không có quyền xóa."}), 404
-
-        linked_doc_id = record.document_id
-        db.session.delete(record)
-        if linked_doc_id is not None:
-            doc = MedicalDocument.query.filter_by(id=linked_doc_id, owner_id=user_id).first()
-            if doc:
-                upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
-                file_disk_path = Path(upload_folder) / doc.storage_filename
-                if is_safe_path(file_disk_path, Path(upload_folder)) and file_disk_path.exists():
-                    try:
-                        os.remove(file_disk_path)
-                    except Exception as e:
-                        logger.warning(f"Lỗi xóa file vật lý: {e}")
-                PrescriptionHistory.query.filter_by(document_id=doc.id, user_id=user_id).delete()
-                db.session.delete(doc)
-
-        try:
-            commit_or_rollback()
-        except Exception:
-            return jsonify({"status": "error", "message": "Không thể xóa đơn thuốc khỏi cơ sở dữ liệu."}), 500
-        return jsonify({"status": "success", "message": "Đã xóa đơn thuốc khỏi lịch sử thành công."})
+        return jsonify(result)
 
     @app.route("/api/prescription/history", methods=["GET"])
     def get_prescription_history():
@@ -2060,19 +1741,38 @@ def create_app(test_config=None):
     def confirm_prescription():
         """
         Lưu dữ liệu đơn thuốc sau khi người dùng đã dò lại và xác nhận chính xác.
-        Đồng bộ vào bảng PrescriptionHistory và MedicalDocument (nếu có).
+        Cho phép cập nhật thông tin đã chỉnh sửa (nếu có) vào MedicalDocument.
         """
         user_id = session.get("user_id")
         data = request.get_json(silent=True) or {}
-        doc_id = _coerce_optional_int(data.get("document_id"))
-        history_id = _coerce_optional_int(data.get("history_id"))
+        doc_id = data.get("document_id")
 
-        if user_id and isinstance(data, dict):
+        if doc_id and user_id:
             try:
-                doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first() if doc_id is not None else None
-                _, saved_payload = _upsert_prescription_history(user_id, data, doc=doc, history_id=history_id)
-                commit_or_rollback()
-                data = saved_payload
+                doc = MedicalDocument.query.filter_by(id=doc_id, owner_id=user_id).first()
+                if doc:
+                    if doc.doc_type == "ocr_draft":
+                        doc.doc_type = "prescription"
+                    if data.get("patient_name"):
+                        doc.patient_name = data["patient_name"]
+                    if data.get("diagnosis"):
+                        doc.diagnosis = data["diagnosis"]
+                    if data.get("facility"):
+                        doc.facility = data["facility"]
+                    if data.get("doctor"):
+                        doc.doctor = data["doctor"]
+
+                    meds = data.get("medications", [])
+                    med_names = [m.get("standard_name") or m.get("name") for m in meds[:3] if m.get("name")]
+                    sum_text = f"{len(meds)} loại thuốc"
+                    if med_names:
+                        sum_text += f": {', '.join(med_names)}"
+                        if len(meds) > 3:
+                            sum_text += f" và {len(meds) - 3} thuốc khác"
+
+                    doc.summary = sum_text
+                    doc.parsed_data = json.dumps(data, ensure_ascii=False)
+                    db.session.commit()
             except Exception as e:
                 db.session.rollback()
                 logger.warning(f"Lỗi cập nhật xác nhận đơn thuốc: {e}")
@@ -2111,7 +1811,6 @@ def create_app(test_config=None):
             except Exception as e:
                 logger.warning(f"Lỗi xóa file vật lý: {e}")
 
-        PrescriptionHistory.query.filter_by(document_id=doc.id, user_id=user_id).delete()
         db.session.delete(doc)
         try:
             commit_or_rollback()

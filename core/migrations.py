@@ -81,7 +81,6 @@ MIGRATIONS = [
     ("2026_11_08_consultation_sessions", "Group chat turns by session", None),
     ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None),
     ("2026_11_22_appointment_pre_visit_summary", "Store confirmed pre-visit summaries on appointments", None),
-    ("2026_11_23_prescription_history_table", "Tạo bảng prescription_history và đồng bộ các đơn thuốc đã xác nhận trước đó", None),
 ]
 
 
@@ -135,9 +134,8 @@ def run_migrations(engine):
                         if "avatar_url" not in existing_cols:
                             conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
                 elif version == "2026_01_05_medical_documents_clinical_fields":
-                    current_schema = inspect(conn)
-                    if current_schema.has_table("medical_documents"):
-                        existing_cols = {col["name"] for col in current_schema.get_columns("medical_documents")}
+                    if "medical_documents" in inspector.get_table_names():
+                        existing_cols = {col["name"] for col in inspector.get_columns("medical_documents")}
                         doc_columns_to_add = [
                             ("doc_type", "VARCHAR(50) DEFAULT 'prescription'"),
                             ("diagnosis", "TEXT"),
@@ -176,82 +174,6 @@ def run_migrations(engine):
                         columns = {c["name"] for c in current_schema.get_columns("medical_appointments")}
                         if "pre_visit_summary" not in columns:
                             conn.execute(text("ALTER TABLE medical_appointments ADD COLUMN pre_visit_summary JSON"))
-                elif version == "2026_11_23_prescription_history_table":
-                    dialect_name = getattr(engine.dialect, "name", "sqlite")
-                    id_col = "SERIAL PRIMARY KEY" if dialect_name == "postgresql" else "INTEGER PRIMARY KEY AUTOINCREMENT"
-                    conn.execute(text(f"""
-                        CREATE TABLE IF NOT EXISTS prescription_history (
-                            id {id_col},
-                            user_id INTEGER NOT NULL,
-                            document_id INTEGER,
-                            image_url VARCHAR(500),
-                            patient_name VARCHAR(255),
-                            diagnosis TEXT,
-                            facility VARCHAR(255),
-                            doctor VARCHAR(255),
-                            summary TEXT,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            JSON_drugs TEXT NOT NULL DEFAULT '{{}}',
-                            FOREIGN KEY (user_id) REFERENCES users (id)
-                        );
-                    """))
-                    conn.execute(text(
-                        "CREATE INDEX IF NOT EXISTS ix_prescription_history_user_created "
-                        "ON prescription_history (user_id, created_at);"
-                    ))
-                    current_schema = inspect(conn)
-                    if current_schema.has_table("medical_documents"):
-                        doc_cols = {col["name"] for col in current_schema.get_columns("medical_documents")}
-                        required_backfill_cols = {
-                            "id", "owner_id", "storage_filename", "doc_type",
-                            "patient_name", "diagnosis", "facility", "doctor",
-                            "summary", "parsed_data", "created_at",
-                        }
-                        if required_backfill_cols.issubset(doc_cols):
-                            rows = conn.execute(text("""
-                                SELECT id, owner_id, storage_filename, patient_name, diagnosis,
-                                       facility, doctor, summary, parsed_data, created_at
-                                FROM medical_documents
-                                WHERE doc_type != 'ocr_draft'
-                                  AND parsed_data IS NOT NULL
-                                  AND TRIM(parsed_data) != ''
-                                  AND id NOT IN (
-                                      SELECT document_id FROM prescription_history
-                                      WHERE document_id IS NOT NULL
-                                  )
-                                ORDER BY created_at ASC, id ASC
-                            """)).fetchall()
-                        else:
-                            rows = []
-                        for r in rows:
-                            storage_filename = str(r[2] or "").strip()
-                            img_url = f"/uploads/{storage_filename}" if storage_filename else ""
-                            pname = str(r[3] or "").strip()
-                            if pname.casefold() in {"bệnh nhân", "benh nhan"}:
-                                pname = ""
-                            conn.execute(
-                                text("""
-                                    INSERT INTO prescription_history (
-                                        user_id, document_id, image_url, patient_name,
-                                        diagnosis, facility, doctor, summary, created_at, JSON_drugs
-                                    ) VALUES (
-                                        :user_id, :document_id, :image_url, :patient_name,
-                                        :diagnosis, :facility, :doctor, :summary, :created_at, :json_drugs
-                                    )
-                                """),
-                                {
-                                    "user_id": r[1],
-                                    "document_id": r[0],
-                                    "image_url": img_url,
-                                    "patient_name": pname,
-                                    "diagnosis": str(r[4] or "").strip(),
-                                    "facility": str(r[5] or "").strip(),
-                                    "doctor": str(r[6] or "").strip(),
-                                    "summary": str(r[7] or "").strip(),
-                                    "created_at": r[9] or datetime.utcnow(),
-                                    "json_drugs": str(r[8] or "{}"),
-                                },
-                            )
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     for stmt in sql.strip().split(";"):

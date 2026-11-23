@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
 from core.ocr_parallel_service import extract_ocr_parallel
-from core.gemini_schema_service import extract_with_gemini_schema, _sanitize_redacted_admin_field
+from core.gemini_schema_service import extract_with_gemini_schema
 from core.reconciliation_service import reconcile_parallel_results, extract_schema_from_ocr
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
@@ -463,10 +463,10 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         "facility": reconciled.get("facility", "Bệnh viện"),
         "department": reconciled.get("department", "Khoa Khám bệnh"),
         "doctor": reconciled.get("doctor", "Bác sĩ chuyên khoa"),
-        "patient_name": _sanitize_redacted_admin_field(reconciled.get("patient_name")),
-        "dob": _sanitize_redacted_admin_field(reconciled.get("dob") or reconciled.get("birth_date")),
-        "age": _sanitize_redacted_admin_field(reconciled.get("age")),
-        "gender": _sanitize_redacted_admin_field(reconciled.get("gender"), is_gender=True),
+        "patient_name": reconciled.get("patient_name", "Bệnh nhân"),
+        "dob": reconciled.get("dob") or reconciled.get("birth_date") or "",
+        "age": reconciled.get("age", ""),
+        "gender": reconciled.get("gender", ""),
         "diagnosis": reconciled.get("diagnosis", "Theo dõi điều trị"),
         "date": reconciled.get("date", "Hôm nay"),
         "duration": inferred_duration,

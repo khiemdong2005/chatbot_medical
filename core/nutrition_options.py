@@ -214,385 +214,6 @@ DRINK.extend([
         ["Lúa mạch chứa gluten; tránh dùng nếu bạn cần kiêng gluten."])
 ])
 
-_DRINK_BASE_CALORIES = {
-    "warm_water": (0, 0),
-    "warm_milk": (120, 0),
-    "oat_drink": (95, 1),
-    "cucumber_water": (15, 0),
-    "warm_soy": (85, 2),
-    "pear_water": (60, 10),
-    "barley_water": (65, 1),
-}
-for _drink_item in DRINK:
-    _cal_val, _sug_val = _DRINK_BASE_CALORIES.get(_drink_item["id"], (80, 0))
-    _drink_item["recipe_type"] = "drink"
-    _drink_item["calories"] = _cal_val
-    _drink_item["sugar"] = _sug_val
-    _drink_item["servings"] = "1 ly (250ml)"
-    _drink_item["calories_basis"] = "per_serving"
-
-GOUT_DRINKS = [
-    {
-        **_recipe(
-            "gout_celery_juice",
-            "Nước ép cần tây táo xanh",
-            "🥬",
-            "Ít purin, giàu vitamin C · hỗ trợ bù nước",
-            "8 phút",
-            "Cần tây và táo xanh hầu như không chứa nhân purin, giúp bổ sung nước và vitamin C nhẹ nhàng.",
-            [_i("Cần tây", 80, "g", "🥬"), _i("Táo xanh", 80, "g", "🍏"), _i("Nước lọc", 150, "ml", "💧")],
-            ["Rửa sạch cần tây và táo xanh, cắt khúc vừa máy ép.",
-             "Ép lấy nước (hoặc xay cùng 150ml nước lọc rồi lọc bỏ bã).",
-             "Không thêm đường tinh luyện; dùng tươi ngay sau khi pha."],
-            ["Kiểm tra khẩu phần trái cây nếu bạn đồng thời cần kiểm soát đường huyết."]
-        ),
-        "recipe_type": "drink", "calories": 55, "sugar": 6,
-        "servings": "1 ly (250ml)", "calories_basis": "per_serving",
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Celery & green apple juice",
-            "subtitle": "Low-purine, vitamin-C-rich hydration",
-            "benefit": "Celery and green apple are naturally low in purines and add light hydration and vitamin C.",
-            "ingredients": ["Celery", "Green apple", "Water"],
-            "steps": ["Wash the celery and green apple thoroughly and chop.",
-                      "Juice together or blend with water and strain.",
-                      "Serve fresh without added refined sugar."],
-            "avoid": ["Monitor fruit portions if you also manage blood sugar."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_cucumber_lemon",
-            "Nước ép dưa leo chanh tươi ít đường",
-            "🥒",
-            "Thanh mát, lợi tiểu · không đường thêm",
-            "6 phút",
-            "Dưa leo giàu nước kết hợp chanh tươi bổ sung vitamin C và hỗ trợ đào thải dịch.",
-            [_i("Dưa leo", 120, "g", "🥒"), _i("Chanh tươi", 10, "ml", "🍋"), _i("Nước lọc", 200, "ml", "💧")],
-            ["Rửa sạch dưa leo (giữ hoặc gọt vỏ tùy ý), thái lát.",
-             "Xay nhuyễn cùng 200ml nước lọc rồi lọc qua rây.",
-             "Thêm nước cốt chanh tươi, khuấy đều và uống mát."],
-            ["Tránh nếu bạn đang đau dạ dày cấp hoặc nhạy cảm với vị chua của chanh."]
-        ),
-        "recipe_type": "drink", "calories": 45, "sugar": 3,
-        "servings": "1 ly (250ml)", "calories_basis": "per_serving",
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Light cucumber & fresh lemon juice",
-            "subtitle": "Hydrating, refreshing · no added sugar",
-            "benefit": "Cucumber provides hydration while fresh lemon adds vitamin C without extra sugar.",
-            "ingredients": ["Cucumber", "Fresh lemon", "Water"],
-            "steps": ["Wash and slice the cucumber.",
-                      "Blend with 200ml filtered water and strain through a sieve.",
-                      "Stir in fresh lemon juice and serve cool."],
-            "avoid": ["Avoid if you have active gastritis or acid reflux sensitivity."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_cherry_juice",
-            "Nước ép anh đào (Cherry) không đường",
-            "🍒",
-            "Giàu vitamin C & polyphenol tự nhiên",
-            "8 phút",
-            "Quả anh đào (cherry) chứa ít purin và giàu vitamin C cùng chất chống oxy hóa thực vật.",
-            [_i("Quả anh đào (Cherry)", 120, "g", "🍒"), _i("Nước lọc", 180, "ml", "💧")],
-            ["Rửa sạch quả anh đào, bỏ cuống và tách hạt.",
-             "Xay nhuyễn với 180ml nước lọc.",
-             "Lọc lấy nước ép hoặc uống cả phần xác mịn; không thêm đường."],
-            ["Không thêm đường hay siro ngọt để tránh tăng tải fructose không cần thiết."]
-        ),
-        "recipe_type": "drink", "calories": 85, "sugar": 12,
-        "servings": "1 ly (250ml)", "calories_basis": "per_serving",
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Unsweetened tart cherry drink",
-            "subtitle": "Low-purine fruit · natural vitamin C",
-            "benefit": "Cherries are naturally low in purines and provide vitamin C and plant polyphenols.",
-            "ingredients": ["Cherries", "Water"],
-            "steps": ["Wash, stem, and pit the cherries.",
-                      "Blend smoothly with 180ml filtered water.",
-                      "Strain if desired and drink without added sugar."],
-            "avoid": ["Do not add sugar or sweet syrups to keep fructose intake modest."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_light_green_tea",
-            "Trà xanh nhạt pha loãng",
-            "🍵",
-            "Thức uống thảo mộc thanh nhẹ, lợi tiểu",
-            "7 phút",
-            "Trà xanh pha loãng giúp bổ sung nước và chất chống oxy hóa mà gần như không nạp purin.",
-            [_i("Lá trà xanh tươi", 5, "g", "🍵"), _i("Nước nóng", 250, "ml", "💧")],
-            ["Rửa sạch lá trà xanh, vò nhẹ.",
-             "Tráng nhanh qua nước nóng rồi hãm với 250ml nước nóng 80°C khoảng 3 phút.",
-             "Chắt lấy nước trà nhạt để uống trong ngày; tránh uống quá đặc hoặc gần giờ ngủ."],
-            ["Tránh dùng vào buổi tối muộn nếu bạn nhạy cảm với caffeine hoặc dễ mất ngủ."]
-        ),
-        "recipe_type": "drink", "calories": 15, "sugar": 0,
-        "servings": "1 ly (250ml)", "calories_basis": "per_serving",
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Lightly brewed green tea",
-            "subtitle": "Mild diuretic hydration · zero sugar",
-            "benefit": "Dilute green tea supports daily hydration without purine load or added sugars.",
-            "ingredients": ["Fresh green tea leaves", "Hot water"],
-            "steps": ["Rinse fresh green tea leaves gently.",
-                      "Steep briefly in 250ml hot water (about 80°C) for 3 minutes.",
-                      "Pour out a light infusion and avoid drinking close to bedtime."],
-            "avoid": ["Avoid late at night if you are sensitive to caffeine or insomnia."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_orange_carrot",
-            "Nước ép cam cà rốt không đường",
-            "🍊",
-            "Bổ sung vitamin C & beta-carotene tự nhiên",
-            "10 phút",
-            "Cam tươi giàu vitamin C kết hợp cà rốt ít purin, tạo thức uống cân bằng tự nhiên.",
-            [_i("Cam tươi", 100, "g", "🍊"), _i("Cà rốt", 70, "g", "🥕"), _i("Nước lọc", 120, "ml", "💧")],
-            ["Gọt vỏ cam, bỏ hạt; rửa sạch, gọt vỏ cà rốt.",
-             "Ép cà rốt với cam tươi, pha thêm 120ml nước lọc để giảm độ đậm.",
-             "Khuấy đều và dùng không thêm đường."],
-            ["Hạn chế nếu bạn đang bị trào ngược dạ dày hoặc viêm loét dạ dày nhạy cảm với cam."]
-        ),
-        "recipe_type": "drink", "calories": 95, "sugar": 14,
-        "servings": "1 ly (250ml)", "calories_basis": "per_serving",
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Unsweetened orange & carrot juice",
-            "subtitle": "Vitamin C & low-purine vegetable blend",
-            "benefit": "Fresh orange provides vitamin C alongside low-purine carrot hydration.",
-            "ingredients": ["Fresh orange", "Carrot", "Water"],
-            "steps": ["Peel and seed the orange; wash and peel the carrot.",
-                      "Juice both together and dilute with 120ml filtered water.",
-                      "Stir well and serve without added sugar."],
-            "avoid": ["Limit if you have active acid reflux or gastritis triggered by citrus."],
-        }},
-    },
-]
-
-GOUT_FOODS = [
-    {
-        **_recipe(
-            "gout_egg_tomato",
-            "Trứng gà bác cà chua ít dầu",
-            "🍳",
-            "Đạm ít purin từ trứng · loại trừ thịt, hải sản, đậu",
-            "12 phút",
-            "Trứng gà cung cấp protein ít nhân purin thay thế thịt và hải sản cho người bệnh Gút.",
-            [_i("Trứng gà", 2, "quả", "🥚"), _i("Cà chua", 100, "g", "🍅"), _i("Hành lá", 10, "g", "🌿"), _i("Dầu thực vật", 5, "ml", "🫒")],
-            ["Rửa sạch cà chua, bỏ hạt và thái múi cau hoặc băm nhỏ; đánh tan trứng gà.",
-             "Xào nhẹ cà chua với chút dầu thực vật và ít nước đến khi mềm.",
-             "Cho trứng vào đảo nhẹ lửa vừa đến khi chín tới, thêm hành lá rồi dùng nóng."],
-            ["Tránh dùng nếu bạn dị ứng trứng; giữ lượng dầu ít khi chế biến."]
-        ),
-        "recipe_type": "food", "dish_role": "main", "calories": 210, "sugar": 3,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Lightly cooked eggs with tomato",
-            "subtitle": "Low-purine protein · free of poultry, red meat, seafood & beans",
-            "benefit": "Eggs provide a very low-purine protein alternative for gout management.",
-            "ingredients": ["Chicken eggs", "Tomato", "Scallion", "Vegetable oil"],
-            "steps": ["Wash and chop the tomatoes; beat the eggs lightly.",
-                      "Simmer tomatoes gently with a touch of oil and water until soft.",
-                      "Fold in the eggs until cooked through, top with scallions, and serve warm."],
-            "avoid": ["Avoid if allergic to eggs."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_steamed_egg_veggies",
-            "Trứng hấp cà rốt rau củ",
-            "🥚",
-            "Món chính hấp nhẹ, không dầu chiên · ít purin",
-            "15 phút",
-            "Trứng hấp cùng cà rốt giúp bổ sung đạm và vitamin mà không làm tăng acid uric.",
-            [_i("Trứng gà", 2, "quả", "🥚"), _i("Cà rốt", 50, "g", "🥕"), _i("Nước ấm", 100, "ml", "💧")],
-            ["Cà rốt gọt vỏ, thái hạt lựu rất nhỏ và trụng chín sơ.",
-             "Đánh tan trứng với 100ml nước ấm, rây mịn rồi trộn cà rốt.",
-             "Hấp cách thủy lửa nhỏ 10 phút đến khi trứng chín mềm hoàn toàn."],
-            ["Tránh dùng nếu bạn dị ứng trứng."]
-        ),
-        "recipe_type": "food", "dish_role": "main", "calories": 195, "sugar": 2,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Steamed egg custard with carrot",
-            "subtitle": "Steamed low-purine main · no frying",
-            "benefit": "Steamed eggs and carrots deliver gentle protein without high-purine meats.",
-            "ingredients": ["Chicken eggs", "Carrot", "Warm water"],
-            "steps": ["Finely dice and parboil the carrot.",
-                      "Whisk eggs with warm water, strain, and stir in carrots.",
-                      "Steam gently for 10 minutes until set."],
-            "avoid": ["Avoid if allergic to eggs."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_braised_eggplant",
-            "Cà tím kho tiêu xanh ít dầu",
-            "🍆",
-            "Món mặn thanh đạm từ rau củ & nấm · ít purin",
-            "18 phút",
-            "Cà tím và nấm nấu nhạt cung cấp chất xơ, không chứa đạm động vật hay đậu hạt giàu purin.",
-            [_i("Cà tím", 180, "g", "🍆"), _i("Nấm hương", 40, "g", "🍄"), _i("Hành lá", 10, "g", "🌿"), _i("Nước lọc", 100, "ml", "💧")],
-            ["Cà tím rửa sạch cắt khúc ngâm nước muối loãng rồi vớt ráo; nấm hương ngâm mềm.",
-             "Kho cà tím và nấm với 100ml nước lọc, nêm nhạt vừa ăn.",
-             "Đun nhỏ lửa đến khi cà chín mềm thấm vị, rắc hành lá."],
-            ["Nêm nhạt muối và ít gia vị cay nóng nếu đang có bệnh nền kèm theo."]
-        ),
-        "recipe_type": "food", "dish_role": "main", "calories": 155, "sugar": 3,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Light braised eggplant with shiitake",
-            "subtitle": "Plant-based low-purine main · oil-light preparation",
-            "benefit": "Eggplant adds fiber with minimal purine load and no meats, seafood, or beans.",
-            "ingredients": ["Eggplant", "Shiitake mushrooms", "Scallion", "Water"],
-            "steps": ["Cut eggplant, soak briefly in lightly salted water, drain; soften mushrooms.",
-                      "Braise eggplant and mushrooms gently in 100ml water with light seasoning.",
-                      "Simmer until tender and garnish with scallions."],
-            "avoid": ["Season lightly with salt and spice."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_winter_melon_soup",
-            "Canh bí đao cà rốt thanh mát",
-            "🥣",
-            "Canh rau củ thanh nhẹ, lợi tiểu · an toàn cho Gút",
-            "15 phút",
-            "Bí đao giàu nước giúp thanh nhiệt, lợi tiểu nhẹ và hỗ trợ đào thải acid uric.",
-            [_i("Bí đao", 150, "g", "🥒"), _i("Cà rốt", 50, "g", "🥕"), _i("Hành lá", 10, "g", "🌿"), _i("Nước lọc", 350, "ml", "💧")],
-            ["Bí đao và cà rốt gọt vỏ, rửa sạch, thái lát vừa ăn.",
-             "Đun sôi 350ml nước lọc, cho cà rốt vào nấu 5 phút rồi thêm bí đao.",
-             "Nấu chín mềm, nêm nhạt và rắc hành lá trước khi dùng ấm."],
-            ["Không nêm hạt nêm từ thịt hay xương hầm cho thực đơn Gút."]
-        ),
-        "recipe_type": "food", "dish_role": "soup", "calories": 75, "sugar": 3,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Light winter melon & carrot soup",
-            "subtitle": "Hydrating, low-purine vegetable soup",
-            "benefit": "Winter melon and carrot add water and fiber to help support hydration in gout.",
-            "ingredients": ["Winter melon", "Carrot", "Scallion", "Water"],
-            "steps": ["Peel and slice winter melon and carrot.",
-                      "Boil water, cook carrot 5 minutes, then add winter melon.",
-                      "Simmer until tender, season lightly, and top with scallions."],
-            "avoid": ["Do not use meat- or bone-based broths."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_cabbage_tomato_soup",
-            "Canh bắp cải cà chua thanh nhẹ",
-            "🥬",
-            "Rau xanh giàu vitamin C, ít purin · hỗ trợ Gút",
-            "15 phút",
-            "Bắp cải và cà chua bổ sung vitamin C và chất xơ thực vật giúp trung hòa kiềm nhẹ nước tiểu.",
-            [_i("Bắp cải", 120, "g", "🥬"), _i("Cà chua", 80, "g", "🍅"), _i("Nước lọc", 350, "ml", "💧")],
-            ["Cà chua cắt múi cau; bắp cải rửa sạch, thái sợi vừa ăn.",
-             "Nấu cà chua với 350ml nước lọc đến khi mềm ra màu đẹp.",
-             "Thả bắp cải vào nấu chín tới 3 phút, nêm nhạt và dùng ấm."],
-            ["Giảm lượng cà chua nếu bạn đang bị trào ngược hoặc đau dạ dày cấp."]
-        ),
-        "recipe_type": "food", "dish_role": "soup", "calories": 85, "sugar": 4,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Cabbage & tomato vegetable soup",
-            "subtitle": "Vitamin-C-rich low-purine soup",
-            "benefit": "Cabbage and tomato supply vitamin C and hydration with negligible purines.",
-            "ingredients": ["Cabbage", "Tomato", "Water"],
-            "steps": ["Slice tomatoes; wash and shred cabbage.",
-                      "Simmer tomatoes in 350ml water until softened.",
-                      "Add cabbage, cook 3 minutes, season lightly, and serve warm."],
-            "avoid": ["Reduce tomato if you also have active reflux or gastritis."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_boiled_greens",
-            "Cải thìa & bông cải xanh luộc",
-            "🥦",
-            "Rau xanh ít purin, giàu vitamin C · không dầu mỡ",
-            "10 phút",
-            "Rau cải xanh chứa vitamin C và chất xơ giúp hỗ trợ giảm tích tụ acid uric an toàn.",
-            [_i("Cải thìa", 100, "g", "🥬"), _i("Bông cải xanh", 100, "g", "🥦"), _i("Nước lọc", 250, "ml", "💧")],
-            ["Rửa sạch cải thìa và tách bông cải xanh thành miếng vừa ăn.",
-             "Đun sôi 250ml nước lọc, cho rau vào luộc chín vừa giữ màu xanh.",
-             "Vớt ra đĩa, có thể chấm cùng nước tương nhạt (nếu không kiêng) hoặc dùng trực tiếp."],
-            ["Không chấm cùng mắm mặn hoặc sốt từ hải sản."]
-        ),
-        "recipe_type": "food", "dish_role": "side", "calories": 65, "sugar": 2,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Boiled bok choy & broccoli greens",
-            "subtitle": "Oil-free vitamin C vegetables · safe for gout",
-            "benefit": "Bok choy and broccoli provide fiber and vitamin C without purine burden.",
-            "ingredients": ["Bok choy", "Broccoli", "Water"],
-            "steps": ["Wash bok choy and cut broccoli into florets.",
-                      "Boil in 250ml water until tender-crisp.",
-                      "Drain and serve fresh without meat or seafood sauces."],
-            "avoid": ["Avoid high-purine seafood dipping sauces."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_oat_pumpkin_congee",
-            "Cháo yến mạch bí đỏ ít purin",
-            "🥣",
-            "Bữa ăn trọn vị nhẹ nhàng, không thịt/đậu · tốt cho Gút",
-            "18 phút",
-            "Yến mạch và bí đỏ cung cấp năng lượng sạch, chất xơ hòa tan và beta-carotene mà không tạo purin.",
-            [_i("Yến mạch", 45, "g", "🌾"), _i("Bí đỏ", 100, "g", "🎃"), _i("Nước lọc", 400, "ml", "💧")],
-            ["Bí đỏ gọt vỏ, cắt hạt lựu nhỏ, hấp hoặc nấu mềm cùng 400ml nước.",
-             "Cho yến mạch vào khuấy đều lửa nhỏ khoảng 8-10 phút.",
-             "Nêm cực nhạt, múc ra bát dùng ấm."],
-            ["Tránh dùng nếu bạn dị ứng hoặc cần kiêng hoàn toàn gluten."]
-        ),
-        "recipe_type": "food", "dish_role": "staple", "calories": 245, "sugar": 4,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Low-purine oat & pumpkin porridge",
-            "subtitle": "Complete plant-based bowl · free of meat & beans",
-            "benefit": "Oats and pumpkin provide steady energy and fiber without animal or legume purines.",
-            "ingredients": ["Oats", "Pumpkin", "Water"],
-            "steps": ["Dice pumpkin and simmer in 400ml water until soft.",
-                      "Stir in oats and cook gently for 8-10 minutes.",
-                      "Season very lightly and serve warm."],
-            "avoid": ["Avoid if strictly avoiding gluten."],
-        }},
-    },
-    {
-        **_recipe(
-            "gout_rice_egg_veggies",
-            "Cơm gạo lứt trứng ốp la rau củ",
-            "🍚",
-            "Món trọn vị ít purin · thay thế đạm thịt/cá/đậu",
-            "25 phút",
-            "Gạo lứt nguyên cám kết hợp trứng gà và dưa leo tạo bữa ăn đủ năng lượng, kiểm soát acid uric.",
-            [_i("Gạo lứt", 70, "g", "🍚"), _i("Trứng gà", 1, "quả", "🥚"), _i("Dưa leo", 80, "g", "🥒"), _i("Cải thìa", 80, "g", "🥬")],
-            ["Nấu chín cơm gạo lứt; cải thìa luộc chín, dưa leo rửa sạch thái lát.",
-             "Ốp la 1 quả trứng gà trên chảo chống dính với lượng dầu tối thiểu.",
-             "Dùng cơm gạo lứt kèm trứng và rau củ luộc."],
-            ["Tránh dùng nếu dị ứng trứng; điều chỉnh lượng cơm theo nhu cầu đường huyết."]
-        ),
-        "recipe_type": "food", "dish_role": "staple", "calories": 360, "sugar": 2,
-        "source_provider": "MediMind · công thức tham khảo",
-        "translations": {"en": {
-            "title": "Brown rice with pan-cooked egg & greens",
-            "subtitle": "Balanced low-purine single-plate meal",
-            "benefit": "Whole-grain brown rice paired with egg and fresh greens provides safe gout nutrition.",
-            "ingredients": ["Brown rice", "Chicken egg", "Cucumber", "Bok choy"],
-            "steps": ["Cook brown rice; steam or boil bok choy and slice cucumber.",
-                      "Lightly cook one egg in a nonstick pan with minimal oil.",
-                      "Plate together and serve warm."],
-            "avoid": ["Avoid if allergic to eggs; adjust rice portion for blood sugar goals."],
-        }},
-    },
-]
-
 
 def _get_general_options(condition: str, recipe_type: str) -> Dict[str, Any]:
     """Danh mục chung theo loại món; tình trạng chỉ bổ sung ghi chú, không lọc món."""
@@ -630,7 +251,7 @@ _MEAL_LABELS = {
     "breakfast": "Bữa sáng",
     "lunch": "Bữa trưa",
     "dinner": "Bữa tối",
-    "snack": "Bữa phụ"
+    "snack": "Bữa phụ / Trước ngủ"
 }
 
 _ROLE_LABELS = {
@@ -642,84 +263,8 @@ _ROLE_LABELS = {
 }
 
 
-def _resolve_meal_slot(condition: str = "", now_hour: Optional[int] = None) -> tuple[str, str]:
-    """Resolve meal tag from explicit query intent first, otherwise real system hour."""
-    norm = " ".join(
-        "".join(c for c in unicodedata.normalize("NFD", str(condition or "").lower())
-                if unicodedata.category(c) != "Mn").replace("đ", "d").split()
-    )
-    if re.search(r"\b(?:bua\s+sang|an\s+sang|buoi\s+sang|sang\s+nay|breakfast)\b", norm):
-        return "breakfast", "Bữa sáng"
-    if re.search(r"\b(?:bua\s+trua|an\s+trua|buoi\s+trua|trua\s+nay|lunch)\b", norm):
-        return "lunch", "Bữa trưa"
-    if re.search(r"\b(?:bua\s+toi|an\s+toi|buoi\s+toi|toi\s+nay|dinner)\b", norm):
-        return "dinner", "Bữa tối"
-    if re.search(r"\b(?:bua\s+phu|bua\s+xe|an\s+nhe|truoc\s+ngu|snack)\b", norm):
-        return "snack", "Bữa phụ"
-
-    hour = datetime.now().hour if now_hour is None else int(now_hour) % 24
-    if 5 <= hour < 11:
-        return "breakfast", "Bữa sáng"
-    if 11 <= hour < 15:
-        return "lunch", "Bữa trưa"
-    if 15 <= hour < 17:
-        return "snack", "Bữa phụ"
-    if 17 <= hour < 22:
-        return "dinner", "Bữa tối"
-    return "snack", "Bữa nhẹ"
-
-
-def _ingredient_snippet(recipe: Dict[str, Any], max_items: int = 3) -> str:
-    names = []
-    for item in (recipe.get("ingredients") or []):
-        if isinstance(item, dict) and item.get("name"):
-            cleaned = re.sub(r"\s+\d+(?:[.,/]\d+)?\s*(?:gr?|kg|ml|lít|trái|quả|củ|muỗng.*|nhánh|bông|túi|gói|bịch|hộp|hũ|chén|ly|lát|bó|cọng|cây|cái|tép).*$", "", str(item["name"]).strip(), flags=re.IGNORECASE)
-            cleaned = re.sub(r"^\d+(?:[.,/]\d+)?\s*(?:gr?|kg|ml|lít|trái|quả|hủ|củ|tép|nhánh)\s+", "", cleaned.strip(), flags=re.IGNORECASE)
-            if cleaned and cleaned.lower() not in ("nước lọc", "nước ấm", "nước nóng", "nước uống", "nước", "đá viên"):
-                names.append(cleaned)
-        if len(names) >= max_items:
-            break
-    return ", ".join(names) if names else str(recipe.get("title") or "nguyên liệu thanh đạm").strip()
-
-
-def _clinical_fallback_reason(recipe: Dict[str, Any], condition: str, contexts: Optional[List[str]] = None) -> str:
-    """Produce a clinical disease-specific explanation using actual recipe ingredients."""
-    ctxs = list(contexts or [])
-    ing_text = _ingredient_snippet(recipe)
-    is_drink = recipe.get("recipe_type") == "drink"
-    if "gout" in ctxs:
-        if is_drink:
-            return f"Thức uống từ {ing_text} ít nhân purin, giàu vitamin C và hỗ trợ bù nước lợi tiểu giúp đào thải acid uric an toàn cho người bệnh Gút."
-        return f"Sử dụng {ing_text} ít purin, đã loại trừ thịt gà, thịt bò, nội tạng, hải sản và các loại đậu để hỗ trợ kiểm soát acid uric an toàn cho người bệnh Gút."
-    if "diabetes" in ctxs:
-        return f"Kết hợp {ing_text} hạn chế đường tinh luyện, giàu chất xơ tự nhiên giúp kiểm soát đường huyết ổn định hơn."
-    if "hypertension" in ctxs:
-        return f"Sử dụng {ing_text} ít natri, hạn chế muối mặn nhằm giảm áp lực thành mạch và hỗ trợ kiểm soát huyết áp."
-    if "stomach" in ctxs or "reflux" in ctxs:
-        return f"Chế biến dịu nhẹ từ {ing_text}, tránh vị cay chua và dầu mỡ kích thích, giúp bảo vệ niêm mạc dạ dày."
-    if "fatty_liver" in ctxs:
-        return f"Dùng {ing_text} ít chất béo bão hòa và hạn chế đường đơn, hỗ trợ giảm tích tụ mỡ tại gan."
-    if "mouth" in ctxs:
-        return f"Kết cấu dịu từ {ing_text}, ít gia vị cay nóng hoặc chua gắt để tránh làm rát vùng niêm mạc miệng."
-    if "fever" in ctxs:
-        return f"Cung cấp nước và dưỡng chất nhẹ từ {ing_text}, giúp bù dịch và dễ hấp thu khi đang sốt."
-    if "sleep" in ctxs:
-        return f"Lựa chọn thanh nhẹ từ {ing_text} không chứa caffeine, phù hợp cho bữa tối êm bụng và hỗ trợ giấc ngủ."
-    if "cough" in ctxs:
-        return f"Thành phần {ing_text} giúp bổ sung dịch ấm/mát dịu cổ họng mà không gây kích ứng đường thở."
-    if is_drink:
-        return f"Thức uống từ {ing_text} đã được sàng lọc an toàn theo tình trạng “{condition}” và hồ sơ dị ứng."
-    return f"Món kết hợp {ing_text} chế biến cân bằng, đã sàng lọc an toàn theo yêu cầu “{condition}”."
-
-
-_GENERIC_REASON_RE = re.compile(
-    r"món có kết cấu mềm và đã qua bộ lọc|đã qua bộ lọc nguyên liệu theo mô tả|thức uống đã qua bộ lọc nguyên liệu|món canh súp/dạng nước dễ dùng|công thức đã qua bộ lọc nguyên liệu|món có kết cấu mềm trong kho|một công thức qua bộ lọc nguyên liệu",
-    re.IGNORECASE,
-)
-
-
-def _enrich_recipe(recipe: Dict[str, Any], condition: str, contexts: Optional[List[str]] = None) -> None:
-    """Add display labels and enforce clinical, non-generic explanation."""
+def _enrich_recipe(recipe: Dict[str, Any], condition: str) -> None:
+    """Add display labels and a modest explanation without inventing benefits."""
     from core.recipe_catalog import classify_dish_role, classify_meal_times, is_standalone_one_dish
 
     role = recipe.get("dish_role")
@@ -734,7 +279,7 @@ def _enrich_recipe(recipe: Dict[str, Any], condition: str, contexts: Optional[Li
     recipe["possible_meals"] = possible_meals
     meal_time = recipe.get("meal_time")
     if meal_time not in _MEAL_LABELS:
-        meal_time = possible_meals[0] if possible_meals else _resolve_meal_slot(condition)[0]
+        meal_time = possible_meals[0] if possible_meals else "dinner"
         recipe["meal_time"] = meal_time
     recipe["meal_label"] = _MEAL_LABELS.get(meal_time, "Bữa ăn")
 
@@ -742,27 +287,25 @@ def _enrich_recipe(recipe: Dict[str, Any], condition: str, contexts: Optional[Li
     # source table. The numeric source values remain available separately.
     recipe["key_nutrients"] = ""
     reason = str(recipe.get("recommendation_reason") or "").strip()
-    if not reason or reason.lower() == "none" or _GENERIC_REASON_RE.search(reason):
-        reason = _clinical_fallback_reason(recipe, condition, contexts)
+    if not reason or reason.lower() == "none":
+        tags = recipe.get("rule_tags") or []
+        if "soft" in tags:
+            reason = "Món có kết cấu mềm và đã qua bộ lọc nguyên liệu theo mô tả bạn nhập."
+        elif "liquid" in tags:
+            if recipe.get("recipe_type") == "drink":
+                reason = "Thức uống đã qua bộ lọc nguyên liệu theo mô tả bạn nhập."
+            else:
+                reason = "Món canh súp/dạng nước dễ dùng, đã qua bộ lọc nguyên liệu theo mô tả bạn nhập."
+        else:
+            reason = "Công thức đã qua bộ lọc nguyên liệu theo mô tả bạn nhập; kiểm tra khẩu phần và cách nêm trước khi dùng."
     recipe["recommendation_reason"] = reason
-    if recipe.get("purine_warning"):
-        existing_caution = str(recipe.get("ai_caution") or "").strip()
-        warn_text = str(recipe["purine_warning"]).strip()
-        if warn_text and warn_text not in existing_caution:
-            recipe["ai_caution"] = f"{existing_caution} {warn_text}".strip() if existing_caution else warn_text
 
 
 def _is_valid_main(r: Dict) -> bool:
     if not r:
         return False
     title = str(r.get("title", "")).lower()
-    if any(k in title for k in [
-        "canh ", "canh:", "súp", "sup", "cháo", "chao", "lẩu", "bún", "phở", "hủ tiếu",
-        "mì ", "miến", "bánh canh", "nui", "chè ", "trà ", "sữa ", "bánh mì baguette",
-        "nước mắm", "gia vị", "nước chấm", "bánh tro", "bánh ít", "bánh ngọt", "bánh rán",
-        "bánh xếp", "bánh chưng", "bánh tét", "dưa món", "ngô chiên", "khoai tây chiên",
-        "ruốc", "mứt", "caramel", "pudding"
-    ]):
+    if any(k in title for k in ["canh ", "canh:", "súp", "sup", "cháo", "chao", "lẩu", "bún", "phở", "hủ tiếu", "mì ", "miến", "bánh canh", "nui", "chè ", "trà ", "sữa ", "bánh mì baguette", "nước mắm", "gia vị", "nước chấm", "bánh tro", "bánh ít", "bánh ngọt", "caramel", "pudding"]):
         return False
     from core.recipe_catalog import classify_dish_role
     role = r.get("dish_role") or classify_dish_role(r)
@@ -856,8 +399,6 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
         if c["id"] not in all_pool:
             all_pool[c["id"]] = c
 
-    slot_time, slot_label = _resolve_meal_slot(condition)
-
     if ai_fms and ai_fms.get("main_recipe_id") in all_pool and ai_fms.get("soup_recipe_id") in all_pool:
         candidate_main = all_pool[ai_fms["main_recipe_id"]]
         candidate_soup = all_pool[ai_fms["soup_recipe_id"]]
@@ -881,10 +422,10 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
                 ]
                 return {
                     "title": ai_fms.get("title", "Mâm cơm gợi ý cho 1 bữa"),
-                    "meal_time": slot_time,
-                    "meal_label": slot_label,
-                    "rationale": ai_fms.get("rationale", "Các món được phối hợp ít purin, an toàn theo tình trạng sức khỏe và hồ sơ dị ứng của bạn."),
-                    "staple_text": ai_fms.get("staple_text") or "Cơm gạo lứt hoặc cơm trắng dẻo mềm",
+                    "meal_time": ai_fms.get("meal_time", "dinner"),
+                    "meal_label": _MEAL_LABELS.get(ai_fms.get("meal_time", "dinner"), "Bữa tối"),
+                    "rationale": ai_fms.get("rationale", "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng."),
+                    "staple_text": ai_fms.get("staple_text") or "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
                     "dishes": dishes
                 }
 
@@ -909,10 +450,10 @@ def _build_full_meal_set(condition: str, recipes: List[Dict], candidates: List[D
                 ]
                 return {
                     "title": "Mâm cơm gợi ý cho 1 bữa",
-                    "meal_time": slot_time,
-                    "meal_label": slot_label,
-                    "rationale": "Các món được ghép hài hòa và đã qua bộ lọc an toàn theo tình trạng sức khỏe của bạn.",
-                    "staple_text": "Cơm gạo lứt hoặc cơm trắng dẻo mềm",
+                    "meal_time": "dinner",
+                    "meal_label": "Bữa tối",
+                    "rationale": "Các món được ghép từ những công thức qua bộ lọc nguyên liệu; cần kiểm tra khẩu phần và cách nêm trước khi dùng.",
+                    "staple_text": "Cơm gạo lứt hạt sen hoặc cơm trắng dẻo mềm",
                     "dishes": dishes
                 }
 
@@ -961,14 +502,8 @@ def _meal_calories(meal, prepared):
     constraints.extend(prepared.get("query_preferences", []))
     constraint_text = " theo " + ", ".join(constraints) if constraints else " theo mô tả bạn nhập"
     allergy_text = "; đã loại món có nguyên liệu khớp dị ứng khai báo" if prepared.get("allergies") else ""
-    if "gout" in (prepared.get("contexts") or []):
-        meal["rationale"] = (
-            f"Phối hợp {composition} từ nhóm trứng, rau xanh và củ quả ít nhân purin; "
-            f"đã loại trừ thịt gà/gia cầm, thịt bò/thịt đỏ, nội tạng, hải sản/cá và các loại đậu{allergy_text}."
-        )
-    else:
-        meal["rationale"] = (f"Ghép {composition} từ các công thức an toàn{constraint_text}{allergy_text}. "
-                             "Cần kiểm tra cách nêm và khẩu phần thực tế trước khi dùng.")
+    meal["rationale"] = (f"Ghép {composition} từ các công thức qua bộ lọc nguyên liệu{constraint_text}{allergy_text}. "
+                         "Cần kiểm tra cách nêm và khẩu phần thực tế trước khi dùng.")
     # Free-text staples from a model have no catalog ingredients to screen
     # against food allergies, so never name an unscreened food here.
     meal["staple_text"] = "Chọn loại tinh bột bạn dùng được theo khẩu phần cá nhân; phần này chưa có công thức trong mâm."
@@ -992,9 +527,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
     result = _get_general_options(condition, recipe_type)
     profile = profile if isinstance(profile, dict) else {}
     prepared = prepare_nutrition_candidates(condition, result["recipes"], profile.get("allergies"),
-                                            fatty_liver_recipes=FATTY_LIVER_FOOD if recipe_type == "food" else None,
-                                            gout_drink_recipes=GOUT_DRINKS if recipe_type == "drink" else None,
-                                            gout_food_recipes=GOUT_FOODS if recipe_type == "food" else None)
+                                            fatty_liver_recipes=FATTY_LIVER_FOOD if recipe_type == "food" else None)
     result["profile_context"] = _profile_context(profile, dob, prepared)
     result["query_preferences"] = prepared.get("query_preferences", [])
     if prepared.get("is_unmapped_disease"):
@@ -1012,14 +545,6 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                                      sort_by_sugar="no_added_sugar" in prepared.get("preference_codes", []))
     if recipe_type == "food" and "fatty_liver" in prepared["contexts"]:
         curated_ids = {recipe["id"] for recipe in FATTY_LIVER_FOOD}
-        curated = [recipe for recipe in remaining if recipe["id"] in curated_ids]
-        candidates = (curated + [recipe for recipe in candidates if recipe["id"] not in curated_ids])[:32]
-    elif recipe_type == "food" and "gout" in prepared["contexts"]:
-        curated_ids = {recipe["id"] for recipe in GOUT_FOODS}
-        curated = [recipe for recipe in remaining if recipe["id"] in curated_ids]
-        candidates = (curated + [recipe for recipe in candidates if recipe["id"] not in curated_ids])[:32]
-    elif recipe_type == "drink" and "gout" in prepared["contexts"]:
-        curated_ids = {recipe["id"] for recipe in GOUT_DRINKS}
         curated = [recipe for recipe in remaining if recipe["id"] in curated_ids]
         candidates = (curated + [recipe for recipe in candidates if recipe["id"] not in curated_ids])[:32]
     if "no_added_sugar" in prepared.get("preference_codes", []):
@@ -1102,7 +627,13 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                 preview = []
                 for recipe in candidates[:5]:
                     item = deepcopy(recipe)
-                    item["recommendation_reason"] = _clinical_fallback_reason(item, condition, prepared.get("contexts"))
+                    tags = item.get("rule_tags", [])
+                    item["recommendation_reason"] = (
+                        "Thức uống trong kho công thức để tham khảo khi cần bổ sung dịch; dùng lượng phù hợp với hướng dẫn cá nhân."
+                        if "liquid" in tags else
+                        "Món có kết cấu mềm trong kho công thức; có thể tham khảo nếu muốn ăn và dùng được các nguyên liệu."
+                        if "soft" in tags else
+                        "Một công thức qua bộ lọc nguyên liệu để bạn tham khảo theo sở thích.")
                     item.update(ai_caution="Đây là lựa chọn tham khảo của hệ thống, chưa được AI xếp hạng theo thông tin cá nhân.",
                                 source_ids=[], selection_origin="guided_catalog")
                     preview.append(item)
@@ -1114,8 +645,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
             else:
                 result["notice"] = "Cần thêm thông tin trước khi gợi ý món."
         else:
-            item_word = "thức uống" if recipe_type == "drink" else "món ăn"
-            result["notice"] = f"MediMind đã chọn lọc các {item_word} an toàn và phù hợp nhất với yêu cầu và hồ sơ sức khỏe của bạn."
+            result["notice"] = f'AI đã chọn {len(selection["recipes"])} công thức từ {len(candidates)} ứng viên liên quan trong {len(eligible)} công thức qua bộ lọc. Đây là gợi ý tham khảo, không phải chế độ ăn điều trị.'
             if not prepared["recognized"]:
                 result["notice"] += " Chưa có bộ quy tắc riêng cho nội dung bạn nhập."
     except NutritionAIError as error:
@@ -1124,20 +654,19 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                       selection_explanation="Danh sách tham khảo được lấy từ kho công thức và lọc bằng Python theo yêu cầu của bạn. AI chưa xếp hạng các món này.",
                       notice="AI tạm thời chưa thể xếp hạng món ăn. Hệ thống đang hiển thị các gợi ý tham khảo đã được lọc theo yêu cầu của bạn.")
 
-    contexts = prepared.get("contexts", [])
     # Enrich every recipe with meal_time, dish_role, key_nutrients, and clinical explanation
     for r in result.get("recipes", []):
-        if "fatty_liver" in contexts:
+        if "fatty_liver" in prepared["contexts"]:
             r["recommendation_reason"] = ("Công thức qua bộ lọc nguyên liệu tham khảo cho gan nhiễm mỡ; "
                                           "chưa xác nhận phù hợp với khẩu phần hoặc bệnh nền của bạn.")
-        _enrich_recipe(r, condition, contexts)
+        _enrich_recipe(r, condition)
 
     # Build full meal set if in food mode and recipes exist (require at least 2 recipes or explicit AI meal set)
     if recipe_type == "food" and result.get("recipes") and (ai_fms or len(result["recipes"]) >= 2):
         full_meal = _build_full_meal_set(condition, result["recipes"], candidates, ai_fms)
         if full_meal:
             for d in full_meal["dishes"]:
-                _enrich_recipe(d["recipe"], condition, contexts)
+                _enrich_recipe(d["recipe"], condition)
             _meal_calories(full_meal, prepared)
             result["full_meal_set"] = full_meal
 
@@ -1174,7 +703,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                         cand_copy = deepcopy(cand)
                         cand_copy["meal_time"] = target_meal
                         cand_copy["meal_label"] = _MEAL_LABELS.get(target_meal, "Bữa ăn")
-                        _enrich_recipe(cand_copy, condition, contexts)
+                        _enrich_recipe(cand_copy, condition)
                         singles.append(cand_copy)
                         selected_ids.add(cand["id"])
                         selected_titles.add(title_key(cand))
@@ -1186,7 +715,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                     break
                 if cand["id"] not in selected_ids and title_key(cand) not in selected_titles:
                     cand_copy = deepcopy(cand)
-                    _enrich_recipe(cand_copy, condition, contexts)
+                    _enrich_recipe(cand_copy, condition)
                     singles.append(cand_copy)
                     selected_ids.add(cand["id"])
                     selected_titles.add(title_key(cand))
@@ -1201,7 +730,7 @@ def get_nutrition_options(condition: str, recipe_type: str, exclude_recipe_ids=N
                     for cand in candidates + eligible:
                         if cand["id"] not in fms_ids and title_key(cand) not in fms_titles and cand["id"] not in selected_ids:
                             cand_copy = deepcopy(cand)
-                            _enrich_recipe(cand_copy, condition, contexts)
+                            _enrich_recipe(cand_copy, condition)
                             singles.append(cand_copy)
                             selected_ids.add(cand["id"])
                             if len(singles) >= 3:

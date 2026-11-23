@@ -150,17 +150,12 @@ def match_grounded_points(points, references):
             continue
         text, quote = text.strip(), quote.strip()
         source = references.get(source_id)
-        if not source or not 1 <= len(text) <= 360 or not 12 <= len(quote) <= 600:
+        if not source or not 1 <= len(text) <= 260 or not 12 <= len(quote) <= 500:
             continue
         if re.search(r"https?://|\[[0-9]+\]|\?", text, flags=re.IGNORECASE):
             continue
-        norm_source = _normalize_excerpt(source["content"][:6000])
-        if _normalize_excerpt(quote) not in norm_source:
-            segments = [seg.strip() for seg in re.split(r"\.\.\.+|…+", quote) if len(seg.strip()) >= 12]
-            if len(segments) >= 1 and all(_normalize_excerpt(seg) in norm_source for seg in segments):
-                quote = max(segments, key=len)
-            else:
-                continue
+        if _normalize_excerpt(quote) not in _normalize_excerpt(source["content"][:6000]):
+            continue
         matched.append({"text": text, "source_id": source_id, "quote": quote})
     return matched
 
@@ -242,7 +237,7 @@ class GeminiMedicalService:
         self.api_key = (api_key or self.llm_provider.resolve_api_key(profile="chat")).strip()
         if model:
             self.model = model.strip()
-        elif self.llm_provider.is_groq_active() or self.llm_provider.is_openrouter_active():
+        elif self.llm_provider.is_openrouter_active():
             self.model = self.llm_provider.get_default_model("chat")
         else:
             self.model = (os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL")
@@ -361,39 +356,10 @@ class GeminiMedicalService:
             "informational": "Answer the specific health question directly. Do not ask a follow-up.",
         }.get(consultation_mode, "Answer what the current evidence supports. Use a follow-up only when needed.")
 
-        dialogue_history = sanitize_history(history)
-        last_turn_is_assistant = bool(dialogue_history) and dialogue_history[-1]["role"] == "assistant"
-        screening_reply = (
-            consultation_mode == "collecting" and last_turn_is_assistant
-            and (len(user_message.split()) <= 7 or "?" in dialogue_history[-1]["content"])
-        )
-        screening_block = ""
-        if screening_reply:
-            screening_block = (
-                "\nSCREENING REPLY: the current message answers the assistant's previous screening question "
-                "(for example yes/no/'có'/'không'/'hông', a duration, a temperature). It is NOT a request for "
-                "medical knowledge. Read it together with history and previous_question, record it as a symptom "
-                "fact (present or denied), and continue the intake: use response_kind=clarify and put ONE new short "
-                "neutral question about a different missing detail in follow_up_question. Never answer with a "
-                "'no reference found' refusal; leave grounded_points empty when no reference applies.\n"
-            )
-        # Standalone knowledge questions (informational mode) stay strictly grounded in references.
-        off_topic_block = (
-            "\nOUTPUT CONTRACT (ALWAYS): whatever the user typed, you MUST return exactly one JSON object that matches "
-            "the schema below. Never refuse, never return plain text, an empty string or an apology outside the JSON. "
-            "If the current message is not a health symptom or medical question (for example an e-mail address, a "
-            "phone number, a bare greeting, random characters or an unrelated question), still output the full JSON "
-            "with response_kind=clarify, grounded_points=[], is_emergency=false, visual_findings=[], specialist=\"\" "
-            "and follow_up_question=\"Bạn có thể mô tả triệu chứng sức khỏe bạn đang gặp không?\" "
-            "(\"Can you describe the health symptoms you are experiencing?\" when the UI language is English), "
-            "so the user is asked to describe a medical symptom.\n"
-        )
         instruction_prompt = (
             f"{VIETNAMESE_MEDICAL_SYSTEM_PROMPT}\n"
             f"{rag_context_block}\n"
             f"{hint_block}"
-            f"{screening_block}"
-            f"{off_topic_block}"
             f"{lang_directive}"
             f"Current consultation mode overrides generic formatting rules: {mode_directive} "
             "Do not greet again or repeat a care checklist. "
@@ -421,6 +387,7 @@ class GeminiMedicalService:
             "DO NOT WRAP IN MARKDOWN CODE BLOCKS. RETURN RAW JSON ONLY."
         )
 
+        dialogue_history = sanitize_history(history)
         session_facts = sanitize_intake_facts(intake_facts)
         reported_health_context = sanitize_health_context(health_context)
         clinical_context = {}
@@ -486,19 +453,11 @@ class GeminiMedicalService:
                     metrics_collector.increment("ai_timeout_count")
 
             def _do_generate():
-                # Free OpenRouter models sometimes return an empty body for off-topic input.
-                # Re-ask once; a second empty body is handled by the default JSON below.
-                resp = None
-                for empty_attempt in (1, 2):
-                    resp = self.client.models.generate_content(
-                        model=self.model,
-                        contents=req_contents,
-                        config=config
-                    )
-                    if (getattr(resp, "text", None) or "").strip():
-                        break
-                    print(f"⚠️ [LLM] Empty completion (attempt {empty_attempt}/2) req_id={req_id}", flush=True)
-                return resp
+                return self.client.models.generate_content(
+                    model=self.model,
+                    contents=req_contents,
+                    config=config
+                )
 
             policy = getattr(self, "retry_policy", None) or RetryPolicy()
 
@@ -513,17 +472,6 @@ class GeminiMedicalService:
 
             latency = time.time() - start_time
             raw_text = res.text or "" if res else ""
-            # Debug aid requested for schema failures: show exactly what the model returned.
-            print("RAW LLM OUTPUT:", repr(raw_text[:3000]), flush=True)
-
-            if not raw_text.strip():
-                # Never let an empty body break the schema: build a valid default result instead.
-                metrics_collector.increment("ai_success_count")
-                metrics_collector.record_latency("generation_latency_ms", latency * 1000.0)
-                metrics_collector.log_event("generation", req_id, latency * 1000.0, "EMPTY_OUTPUT_DEFAULT", retry_count=retries_count)
-                logger.warning("[REQ-%s] Clinical AI returned empty output; using default unrecognized-input JSON.", req_id)
-                return self._unrecognized_input_result(lang)
-
             parsed = self._validate_and_parse_json(raw_text)
 
             if parsed is None:
@@ -542,7 +490,7 @@ class GeminiMedicalService:
 
             parsed = self._ground_clinical_result(
                 parsed, references, user_message, clinical_hint, consultation_mode, lang, has_image,
-                clinical_context, screening_reply=screening_reply
+                clinical_context
             )
 
             logger.info("[REQ-%s] Gemini completed in %.2fs (attempts=%d).", req_id, latency, retries_count + 1)
@@ -572,14 +520,6 @@ class GeminiMedicalService:
             metrics_collector.log_event("generation", req_id, latency * 1000.0, "FALLBACK", error_class=cls.value, retry_count=retries_count)
             status = getattr(e, "status_code", None)
             http_status = f"HTTP {status}" if type(status) is int and 400 <= status <= 599 else "no HTTP status"
-            import traceback
-            tb_lines = "".join(traceback.format_tb(e.__traceback__))
-            print(
-                f"❌ [OpenRouter/Clinical AI Error] req_id={req_id} | class={cls.value} | "
-                f"type={type(e).__name__} | status={http_status} | elapsed={latency:.2f}s\n"
-                f"Traceback:\n{tb_lines}",
-                flush=True
-            )
             logger.warning("[REQ-%s] Clinical AI unavailable (%s: %s, %s), elapsed %.2fs.",
                            req_id, cls.value, type(e).__name__, http_status, latency)
             return None
@@ -624,93 +564,19 @@ class GeminiMedicalService:
             },
         }, ensure_ascii=False)
         try:
-            from core.llm_provider import _OpenRouterClient, _OpenRouterHTTPError
-            if isinstance(self.client, _OpenRouterClient):
-                if getattr(self.client, "provider", "openrouter") == "groq":
-                    verify_model = (os.getenv("GROQ_CHAT_VERIFY_MODEL") or self.model).strip()
-                else:
-                    verify_model = (os.getenv("OPENROUTER_CHAT_VERIFY_MODEL") or self.model).strip()
-            else:
-                verify_model = self.model
-
-            def _do_verify():
-                res = self.client.models.generate_content(model=verify_model, contents=payload, config=config)
-                if isinstance(self.client, _OpenRouterClient) and not (getattr(res, "text", None) or "").strip():
-                    raise _OpenRouterHTTPError(502, "OpenRouter empty verifier completion")
-                return res
-
-            if isinstance(self.client, _OpenRouterClient):
-                verify_policy = RetryPolicy(max_attempts=2, base_delay=0.5, max_delay=2.0, jitter=True)
-                result = execute_with_retry(_do_verify, policy=verify_policy, stage="gemini_verification")
-            else:
-                result = _do_verify()
-
+            result = self.client.models.generate_content(model=self.model, contents=payload, config=config)
             verdict = _parse_json_object(result.text)
             accepted = verdict.get("accepted") if verdict else None
             if not isinstance(accepted, list) or any(type(index) is not int or not 1 <= index <= len(points)
                                                      for index in accepted):
                 return None
         except Exception as err:
-            import traceback
-            status = getattr(err, "status_code", None)
-            http_status = f"HTTP {status}" if type(status) is int and 400 <= status <= 599 else "no HTTP status"
-            tb_lines = "".join(traceback.format_tb(err.__traceback__))
-            print(
-                f"❌ [OpenRouter Verifier Error] type={type(err).__name__} | status={http_status}\n"
-                f"Traceback:\n{tb_lines}",
-                flush=True
-            )
-            logger.warning("Clinical evidence verification unavailable (%s, %s).", type(err).__name__, http_status)
+            logger.warning("Clinical evidence verification unavailable (%s).", type(err).__name__)
             return None
         return [point for index, point in enumerate(points, start=1) if index in accepted]
 
-    @staticmethod
-    def _unrecognized_input_result(lang):
-        """Valid default result when the model gives nothing usable (off-topic input, empty body)."""
-        is_en = lang == "en"
-        return {
-            "response_kind": "clarify",
-            "answer": ("Sorry, I couldn't identify any medical symptom in what you just typed. Please describe the "
-                       "symptoms you are experiencing (for example where it hurts, how long it has lasted, whether "
-                       "you have a fever)."
-                       if is_en else
-                       "Xin lỗi, tôi không nhận diện được triệu chứng từ thông tin bạn vừa nhập. Vui lòng mô tả "
-                       "triệu chứng sức khỏe bạn đang gặp (ví dụ: đau ở đâu, kéo dài bao lâu, có kèm sốt hay không)."),
-            "follow_up_question": "",
-            "risk_level": "Insufficient information" if is_en else "Chưa đủ thông tin",
-            "risk_score": None,
-            "symptoms": [], "specialist": "", "visual_findings": [], "differential_diagnosis": [],
-            "home_care_tips": [], "sources": [], "verified_source_ids": [],
-            "is_emergency": False, "degraded": False,
-            "grounding_status": "unrecognized_input",
-        }
-
-    @staticmethod
-    def _screening_acknowledgement(clinical_context, is_en):
-        """Server-authored acknowledgement of a screening answer; no diagnosis, no refusal."""
-        report = (clinical_context or {}).get("patient_report") or {}
-        present = [s for s in report.get("present_symptoms", []) if isinstance(s, str)][:4]
-        denied = [s for s in report.get("denied_symptoms", []) if isinstance(s, str)][:4]
-        if is_en:
-            parts = ["I've noted your answer."]
-            if present:
-                parts.append("Symptoms you reported: " + ", ".join(present) + ".")
-            if denied:
-                parts.append("Symptoms you said you do not have: " + ", ".join(denied) + ".")
-            parts.append("I don't have a reference that supports a more specific assessment yet. Feel free to share "
-                         "any other symptoms, and see a clinician if things get worse or last longer.")
-        else:
-            parts = ["Mình đã ghi nhận câu trả lời của bạn."]
-            if present:
-                parts.append("Triệu chứng bạn đã nêu: " + ", ".join(present) + ".")
-            if denied:
-                parts.append("Triệu chứng bạn cho biết không có: " + ", ".join(denied) + ".")
-            parts.append("Hiện chưa có tài liệu đủ sát để đưa ra nhận định cụ thể hơn. Bạn cứ chia sẻ thêm các "
-                         "triệu chứng khác nếu có, và nên đến cơ sở y tế nếu tình trạng nặng lên hoặc kéo dài.")
-        return " ".join(parts)
-
     def _ground_clinical_result(self, parsed, references, user_message, clinical_hint, mode, lang, has_image,
-                                clinical_context, screening_reply=False):
+                                clinical_context):
         """Build display text from verified evidence or server-authored safety messages."""
         is_en = lang == "en"
         specialist = parsed.get("specialist", "")
@@ -759,11 +625,6 @@ class GeminiMedicalService:
                 parsed["specialist"] = specialist
         elif follow_up:
             parsed.update(answer=follow_up, grounding_status="clarification")
-        elif screening_reply and verified is not None:
-            # A yes/no style answer to our own screening question is patient data, not a knowledge
-            # question: acknowledge it and let the intake flow continue instead of refusing.
-            parsed.update(answer=self._screening_acknowledgement(clinical_context, is_en),
-                          grounding_status="acknowledged")
         elif verified is None:
             parsed.update(
                 answer=("I couldn't verify the references for this answer right now. Please try again."
@@ -772,12 +633,6 @@ class GeminiMedicalService:
                 degraded=True,
             )
         else:
-            report = (clinical_context or {}).get("patient_report") or {}
-            if (mode == "collecting" and not has_image and not report.get("present_symptoms")
-                    and parsed.get("response_kind") == "clarify"):
-                # Nothing medical was reported and no reference applies (e.g. an e-mail address or small talk).
-                parsed.update(self._unrecognized_input_result(lang))
-                return parsed
             parsed.update(
                 answer=("I don't have a reference that supports a reliable answer to this question."
                         if is_en else "Mình chưa tìm được tài liệu đủ sát để trả lời câu hỏi này một cách chắc chắn."),
