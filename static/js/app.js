@@ -5115,10 +5115,38 @@ let currentUploadedFileUrl = '';
 let currentPrescriptionData = null;
 let currentSelectedSlotId = null;
 let adherenceSlotState = {};
+let prescriptionScanRequestId = 0;
+let prescriptionScanController = null;
+let prescriptionLightboxZoom = 1;
+let prescriptionLightboxPan = { x: 0, y: 0 };
+
+function beginPrescriptionScan(fileName) {
+  prescriptionScanController?.abort();
+  const requestId = ++prescriptionScanRequestId;
+  prescriptionScanController = new AbortController();
+  currentPrescriptionData = null;
+  adherenceSlotState = {};
+  console.debug('[prescription-scan]', JSON.stringify({
+    event: 'started', scan_id: requestId, filename: fileName,
+    active_request_id: requestId
+  }));
+  return { requestId, controller: prescriptionScanController };
+}
+
+function isCurrentPrescriptionScan(requestId) {
+  return requestId === prescriptionScanRequestId;
+}
 
 async function handlePrescriptionFileSelected(e) {
   const file = e.target.files?.[0];
   if (!file) return;
+
+  const { requestId, controller } = beginPrescriptionScan(file.name);
+  const previousMedicationCount = document.querySelectorAll('#prescription-verify-section [name="name"]').length;
+  const resultSection = document.getElementById('prescription-result-section');
+  const verifySection = document.getElementById('prescription-verify-section');
+  if (resultSection) { resultSection.replaceChildren(); resultSection.classList.add('hidden'); }
+  if (verifySection) { verifySection.replaceChildren(); verifySection.classList.add('hidden'); }
 
   // Lưu URL ảnh để hiển thị đối chiếu trực tiếp trên màn hình dò
   if (currentUploadedFileUrl && currentUploadedFileUrl.startsWith('blob:')) {
@@ -5136,26 +5164,46 @@ async function handlePrescriptionFileSelected(e) {
   const formData = new FormData();
   formData.append('file', file);
   showPrescriptionLoading(true, "AI đang nhận dạng văn bản & hình ảnh...", "Trích xuất thông tin hành chính, danh mục thuốc & đối chiếu liều dùng...");
+  console.debug('[prescription-scan]', JSON.stringify({
+    event: 'state_cleared', scan_id: requestId, filename: file.name,
+    medication_count_before: previousMedicationCount, medication_count_after: 0,
+    active_request_id: prescriptionScanRequestId
+  }));
+  const startedAt = Date.now();
 
   try {
     const res = await fetch('/api/prescription/scan', {
       method: 'POST',
-      body: formData
+      body: formData,
+      headers: { 'X-Scan-ID': String(requestId) },
+      signal: controller.signal
     });
     const data = await res.json();
+    if (!isCurrentPrescriptionScan(requestId)) return;
+    if (data.client_scan_id && String(data.client_scan_id) !== String(requestId)) return;
     showPrescriptionLoading(false);
 
+    console.debug('[prescription-scan]', JSON.stringify({
+      event: 'response', scan_id: requestId, filename: file.name,
+      duration_ms: Date.now() - startedAt,
+      backend_medication_count: Array.isArray(data.medications) ? data.medications.length : 0,
+      active_request_id: prescriptionScanRequestId
+    }));
+
     if (!res.ok) {
+      currentPrescriptionData = null;
       if (res.status === 401) {
         showMedicalToast('Vui lòng đăng nhập tài khoản để quét và lưu trữ đơn thuốc.', 'warning', 4500);
         openLoginModal();
       } else {
+        renderPrescriptionError(data);
         showMedicalToast(data.message || 'Không thể xử lý tệp tài liệu. Vui lòng kiểm tra lại.', 'error');
       }
       return;
     }
 
     if (data.status === 'failed' || data.status === 'rejected' || data.status === 'error') {
+      currentPrescriptionData = null;
       renderPrescriptionError(data);
       showMedicalToast(data.message || 'Không thể nhận diện nội dung đơn thuốc. Vui lòng chụp lại ảnh rõ nét.', 'error', 5000);
       return;
@@ -5171,10 +5219,18 @@ async function handlePrescriptionFileSelected(e) {
 
     // Chuyển tới màn hình dò lại & đối chiếu OCR cho người dùng kiểm tra trước
     renderPrescriptionVerification(data);
+    console.debug('[prescription-scan]', JSON.stringify({
+      event: 'state_updated', scan_id: requestId, filename: file.name,
+      medication_count_after: Array.isArray(data.medications) ? data.medications.length : 0,
+      active_request_id: prescriptionScanRequestId
+    }));
     showMedicalToast('Đã detect thông tin đơn thuốc: Quý vị vui lòng dò lại và bấm "Xác nhận đúng" để xem lịch uống.', 'info', 5000);
   } catch (err) {
+    if (!isCurrentPrescriptionScan(requestId) || err?.name === 'AbortError') return;
     console.error('Lỗi khi phân tích đơn thuốc:', err);
     showPrescriptionLoading(false);
+    currentPrescriptionData = null;
+    renderPrescriptionError({ message: 'Không thể kết nối để xử lý ảnh. Vui lòng thử lại.' });
     showMedicalToast('Hệ thống tạm thời bận hoặc không thể kết nối. Vui lòng tải lại ảnh hoặc chọn hồ sơ mẫu.', 'error');
   }
 }
@@ -5594,14 +5650,21 @@ function triggerCelebration(btnEl) {
 }
 
 async function loadPrescriptionPreset(presetKey) {
+  const { requestId, controller } = beginPrescriptionScan(`preset:${presetKey}`);
+  const resultSection = document.getElementById('prescription-result-section');
+  const verifySection = document.getElementById('prescription-verify-section');
+  if (resultSection) { resultSection.replaceChildren(); resultSection.classList.add('hidden'); }
+  if (verifySection) { verifySection.replaceChildren(); verifySection.classList.add('hidden'); }
   showPrescriptionLoading(true, "Đang nạp đơn thuốc mẫu lâm sàng...", "Thiết lập danh mục hoạt chất, liều lượng và thời gian biểu...");
   try {
     const res = await fetch(`/api/prescription/scan?preset=${presetKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preset: presetKey })
+      body: JSON.stringify({ preset: presetKey }),
+      signal: controller.signal
     });
     const data = await res.json();
+    if (!isCurrentPrescriptionScan(requestId)) return;
     showPrescriptionLoading(false);
 
     // 1. Kiểm tra mã phản hồi & trạng thái lỗi từ máy chủ
@@ -5625,6 +5688,7 @@ async function loadPrescriptionPreset(presetKey) {
     renderPrescriptionVerification(data);
     showMedicalToast(`Đã nạp đơn thuốc mẫu: Quý vị có thể dò lại và bấm "Xác nhận đúng" để tạo lịch uống.`, 'info', 4500);
   } catch (err) {
+    if (!isCurrentPrescriptionScan(requestId) || err?.name === 'AbortError') return;
     console.error('Lỗi khi tải dữ liệu đối soát:', err);
     showPrescriptionLoading(false);
     showMedicalToast('Không thể kết nối đến máy chủ để nạp hồ sơ mẫu.', 'error');
@@ -5654,6 +5718,9 @@ function showPrescriptionLoading(show, stepText, substepText) {
 }
 
 function resetPrescriptionScan() {
+  prescriptionScanController?.abort();
+  prescriptionScanController = null;
+  ++prescriptionScanRequestId;
   const inputSec = document.getElementById('prescription-input-section');
   const histSec = document.getElementById('prescription-history-section');
   const loadSec = document.getElementById('prescription-loading-section');
@@ -5663,6 +5730,8 @@ function resetPrescriptionScan() {
   const fileInput = document.getElementById('prescription-file-input');
 
   if (fileInput) fileInput.value = '';
+  if (currentUploadedFileUrl?.startsWith('blob:')) URL.revokeObjectURL(currentUploadedFileUrl);
+  currentUploadedFileUrl = '';
   if (preview) preview.classList.add('hidden');
   if (loadSec) loadSec.classList.add('hidden');
   if (verifySec) {
@@ -5937,10 +6006,12 @@ function renderPrescriptionVerification(data) {
   const doctor = data.doctor || 'BS. Chuyên khoa';
   const patient = data.patient_name || 'Bệnh nhân';
   const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
+  const clinic = data.clinic || data.data?.clinic || '';
   const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
   const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
   const currentYear = new Date().getFullYear();
+  const prescriptionYear = Number(String(data.date || '').match(/(19\d{2}|20\d{2})/)?.[1]) || currentYear;
 
   let displayBirthInfo = '';
   let displayAge = '';
@@ -5948,14 +6019,14 @@ function renderPrescriptionVerification(data) {
   const yearMatch = rawDob.match(/(19\d{2}|20\d{2})/);
   if (yearMatch) {
     const birthYear = parseInt(yearMatch[1], 10);
-    const calculatedAge = currentYear - birthYear;
+    const calculatedAge = prescriptionYear - birthYear;
     const fullDateMatch = rawDob.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/);
     displayBirthInfo = fullDateMatch ? fullDateMatch[1] : birthYear.toString();
     displayAge = `${calculatedAge} tuổi`;
   } else if (rawAge && !isNaN(parseInt(rawAge, 10))) {
     const parsedAge = parseInt(rawAge, 10);
     displayAge = `${parsedAge} tuổi`;
-    displayBirthInfo = `${currentYear - parsedAge}`;
+    displayBirthInfo = `${prescriptionYear - parsedAge}`;
   } else if (rawDob) {
     displayBirthInfo = rawDob;
     displayAge = '';
@@ -5983,7 +6054,7 @@ function renderPrescriptionVerification(data) {
             📄 ${escapeHtml(fileName)} ${scanAcc != null ? `<span class="text-slate-400 font-mono font-normal">(${scanAcc}% Tin cậy)</span>` : ''}
           </span>
           <span class="text-xs text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-500/30 px-2.5 py-1 rounded-md font-bold">
-            Vui lòng đối chiếu dữ liệu detect với đơn gốc bên dưới
+            Vui lòng đối chiếu dữ liệu detect với đơn gốc bên dưới ${data.scan_id ? `• Scan ${escapeHtml(data.scan_id.slice(0, 8))}` : ''}
           </span>
         </div>
 
@@ -6009,9 +6080,12 @@ function renderPrescriptionVerification(data) {
 
           <div class="relative rounded-xl overflow-hidden bg-slate-950 border border-slate-200 dark:border-white/10 min-h-[300px] flex items-center justify-center group">
             ${imgUrl ? `
-              <img src="${imgUrl}" alt="Ảnh đơn thuốc gốc" onclick="openPrescriptionLightbox('${imgUrl}')" class="w-full max-h-[460px] object-contain rounded-xl cursor-zoom-in transition-transform group-hover:scale-[1.01]">
+              <div id="prescription-image-stage" class="relative inline-block max-w-full max-h-[460px] leading-none">
+                <img id="prescription-overlay-source" src="${imgUrl}" alt="Ảnh đơn thuốc gốc" class="block w-auto max-w-full max-h-[460px] rounded-xl">
+                <svg id="prescription-ocr-overlay" class="absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 ${Number(data.source_image?.width || 1)} ${Number(data.source_image?.height || 1)}" preserveAspectRatio="none" aria-label="Bounding box OCR"></svg>
+              </div>
               <div class="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] px-2.5 py-1 rounded-md backdrop-blur-sm pointer-events-none">
-                Bấm vào ảnh để phóng to
+                Bấm khung để chọn thuốc • đúp bấm ảnh để phóng to
               </div>
             ` : `
               <div class="text-center p-6 space-y-2 text-slate-400">
@@ -6021,6 +6095,21 @@ function renderPrescriptionVerification(data) {
               </div>
             `}
           </div>
+
+          <div class="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+            <span id="prescription-ocr-overlay-status" aria-live="polite">Khung xanh: đã khớp • vàng: cần kiểm tra • đỏ: chưa ghép</span>
+            <button id="prescription-ocr-overlay-toggle" type="button" class="shrink-0 rounded-lg border border-slate-300 dark:border-slate-600 px-2.5 py-1 font-bold">Ẩn khung</button>
+          </div>
+          <button id="prescription-ocr-details-toggle" type="button" class="text-[11px] font-bold text-sky-700 dark:text-sky-300 underline underline-offset-2">Hiện chi tiết vùng chưa ghép (${(data.unclassified_ocr_regions || []).length})</button>
+          ${(data.unclassified_ocr_regions || []).length ? `
+            <div class="rounded-xl border border-rose-300 bg-rose-50 dark:bg-rose-950/30 p-3 space-y-2">
+              <strong class="block text-[11px] text-rose-800 dark:text-rose-200">Vùng OCR chưa ghép với thuốc (${data.unclassified_ocr_regions.length}) — vui lòng đối chiếu</strong>
+              <div class="flex flex-wrap gap-1.5">
+                ${(data.unclassified_ocr_regions || []).map(box => `<button type="button" data-ocr-line-index="${Number(box.line_index)}" class="rounded-md border border-rose-300 px-2 py-1 text-[10px] font-mono text-rose-800 dark:text-rose-100">${escapeHtml(box.text)} (${Math.round(Number(box.confidence || 0) * 100)}%)</button>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+          ${data.raw_ocr_text ? `<details class="text-[10px] text-slate-500"><summary class="cursor-pointer font-bold">Xem toàn bộ raw OCR (${(data.ocr_lines || data.boxes || []).length} vùng)</summary><pre class="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg bg-black/20 p-2">${escapeHtml(data.raw_ocr_text)}</pre></details>` : ''}
 
           <div class="p-3 bg-sky-50 dark:bg-white/[0.03] border border-sky-100 dark:border-white/10 rounded-xl text-[11px] text-slate-600 dark:text-slate-300 space-y-1 leading-relaxed">
             <strong class="text-sky-900 dark:text-sky-300 block">💡 Mẹo đối chiếu:</strong>
@@ -6070,6 +6159,8 @@ function renderPrescriptionVerification(data) {
                 <input id="verify-facility" type="text" value="${escapeHtml(facility)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
 
+              ${clinic ? `<div class="sm:col-span-2"><label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Phòng khám:</label><input id="verify-clinic" type="text" value="${escapeHtml(clinic)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none"></div>` : ''}
+
               <div class="sm:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Chẩn đoán bệnh (Mắc bệnh gì):</label>
                 <input id="verify-diagnosis" type="text" value="${escapeHtml(diag)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
@@ -6090,27 +6181,38 @@ function renderPrescriptionVerification(data) {
             </div>
 
             <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+              ${data.count_warning ? `<div class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">${escapeHtml(data.count_warning)}</div>` : ''}
               ${meds.map((m, idx) => {
                 const numStr = (idx + 1).toString().padStart(2, '0');
                 const strength = m.strength ? `(${m.strength})` : '';
-                const dose = m.dose || '1 viên';
-                const freq = m.frequency || '2 lần/ngày';
-                const days = m.days || 'Theo đơn';
+                const dose = m.dose || 'Không đọc được';
+                const freq = m.frequency || 'Không đọc được';
+                const days = m.quantity || m.days || 'Không đọc được';
                 const isNeedsReview = m.needs_review;
+                const isUnmatched = m.match_status === 'unmatched';
+                const isExactMatch = m.match_status === 'matched'
+                  && Number(m.match_score) >= 95 && Boolean(m.dose)
+                  && Boolean(m.quantity || m.days);
 
                 return `
-                  <div class="p-3 rounded-xl border ${isNeedsReview ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]'} transition-all space-y-1.5 text-xs">
+                  <div data-medicine-id="${escapeHtml(m.medicine_id || `MED_${String(idx + 1).padStart(3, '0')}`)}" class="prescription-medication-card p-3 rounded-xl border ${isNeedsReview ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]'} transition-all space-y-1.5 text-xs cursor-pointer">
                     <div class="flex items-start justify-between gap-2">
                       <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-lg bg-teal-800 text-white flex items-center justify-center font-mono font-bold text-[10px] shrink-0">${numStr}</span>
                         <div>
-                          <strong class="text-slate-900 dark:text-white font-black text-xs">${escapeHtml(m.standard_name || m.name)}</strong>
+                        <strong class="text-slate-900 dark:text-white font-black text-xs">${escapeHtml(m.name || m.standard_name || 'Thuốc chưa xác định')}</strong>
                           <span class="text-slate-500 text-[11px] font-medium ml-1">${escapeHtml(strength)}</span>
+                          ${m.active_ingredient ? `<div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Hoạt chất: ${escapeHtml(m.active_ingredient)}</div>` : ''}
+                          ${m.suggested_name ? `<div class="text-[10px] text-sky-700 dark:text-sky-300">Có phải ${escapeHtml(m.suggested_name)}?</div>` : ''}
                         </div>
                       </div>
 
                       <div>
-                        ${isNeedsReview ? `
+                        ${isUnmatched ? `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                            Không nhận diện được, vui lòng kiểm tra
+                          </span>
+                        ` : !isExactMatch ? `
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                             ⚠️ Cần kiểm tra liều
                           </span>
@@ -6130,7 +6232,7 @@ function renderPrescriptionVerification(data) {
                         <span class="text-slate-400">Tổng cấp:</span> <strong>${escapeHtml(days)}</strong>
                       </div>
                       <div class="sm:col-span-2 text-slate-500 dark:text-slate-400">
-                        <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng &amp; lưu ý:</span> ${escapeHtml(m.purpose || m.category || 'Thuốc điều trị')} • ${escapeHtml(m.usage || 'Uống theo chỉ dẫn')}
+                        <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng &amp; lưu ý:</span> ${escapeHtml(isUnmatched ? '' : (m.purpose || m.category || ''))}${!isUnmatched && m.usage ? ` • ${escapeHtml(m.usage)}` : ''}
                       </div>
                       ${m.ocr_matched_text ? `
                         <div class="sm:col-span-2 text-[10px] font-mono text-slate-400 bg-white/40 dark:bg-black/20 p-1.5 rounded">
@@ -6170,6 +6272,102 @@ function renderPrescriptionVerification(data) {
   `;
 
   verifySec.innerHTML = verifyHtml;
+  const overlaySvg = document.getElementById('prescription-ocr-overlay');
+  const sourceImage = document.getElementById('prescription-overlay-source');
+  const overlayBoxes = Array.isArray(data.boxes) ? data.boxes : [];
+  const detailBoxes = Array.isArray(data.unclassified_ocr_regions) ? data.unclassified_ocr_regions : [];
+  if (overlaySvg && sourceImage && imgUrl) {
+    let boxesVisible = true;
+    let detailsVisible = false;
+    let selectedMedicineId = '';
+    let selectedBoxId = '';
+    let hoveredMedicineId = '';
+    const overlayStatus = document.getElementById('prescription-ocr-overlay-status');
+    const renderOverlay = () => {
+      const imageWidth = sourceImage.naturalWidth || Number(data.source_image?.width) || 1;
+      const imageHeight = sourceImage.naturalHeight || Number(data.source_image?.height) || 1;
+      overlaySvg.setAttribute('viewBox', `0 0 ${imageWidth} ${imageHeight}`);
+      const visible = [
+        ...(boxesVisible ? overlayBoxes : []),
+        ...(boxesVisible && detailsVisible ? detailBoxes : []),
+      ];
+      overlaySvg.innerHTML = visible.map(box => {
+        const normalized = Array.isArray(box?.bbox) ? box.bbox : box?.points;
+        if (!Array.isArray(normalized) || normalized.length < 4) return '';
+        const points = normalized.map(([x, y]) => `${Number(x) * imageWidth},${Number(y) * imageHeight}`).join(' ');
+        const selected = selectedBoxId === box.id || (selectedMedicineId && box.medicine_id === selectedMedicineId);
+        const activeHover = hoveredMedicineId && box.medicine_id === hoveredMedicineId;
+        const dim = (hoveredMedicineId || selectedMedicineId) && !activeHover && !selected ? 0.3 : 1;
+        const color = box.status === 'unclassified' || box.status === 'unmatched' ? '#ef4444'
+          : box.status === 'needs_review' || box.status === 'low_confidence' ? '#f59e0b' : '#22c55e';
+        const stroke = selected || activeHover ? '#38bdf8' : color;
+        const width = selected || activeHover ? 2 : 1;
+        const label = String(box.id || `OCR_${box.line_index ?? ''}`);
+        return `<polygon data-box-id="${escapeHtml(label)}" data-med-id="${escapeHtml(box.medicine_id || '')}" data-field-id="${escapeHtml(box.field_id || '')}" points="${points}" fill="none" stroke="${stroke}" stroke-width="${width}" opacity="${dim}" vector-effect="non-scaling-stroke"/>`;
+      }).join('');
+      overlaySvg.querySelectorAll('[data-box-id]').forEach(polygon => {
+        polygon.addEventListener('click', event => {
+          event.stopPropagation();
+          const medicineId = polygon.dataset.medId;
+          const fieldId = polygon.dataset.fieldId;
+          selectedBoxId = polygon.dataset.boxId;
+          selectedMedicineId = medicineId || '';
+          renderOverlay();
+          if (medicineId) {
+            const card = [...verifySec.querySelectorAll('.prescription-medication-card')]
+              .find(item => item.dataset.medicineId === medicineId);
+            card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else if (fieldId) {
+            document.getElementById(`verify-${fieldId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          if (overlayStatus) overlayStatus.textContent = `Đang đối chiếu: ${polygon.dataset.boxId}`;
+        });
+      });
+    };
+    const selectMedicine = (medicineId, scrollToCard = false) => {
+      selectedMedicineId = medicineId || '';
+      selectedBoxId = '';
+      renderOverlay();
+      const cards = [...verifySec.querySelectorAll('.prescription-medication-card')];
+      for (const card of cards) {
+        const active = selectedMedicineId && card.dataset.medicineId === selectedMedicineId;
+        card.classList.toggle('ring-2', Boolean(active));
+        card.classList.toggle('ring-sky-500', Boolean(active));
+        card.classList.toggle('border-sky-500', Boolean(active));
+        if (active && scrollToCard) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      const box = overlayBoxes.find(item => item.medicine_id === selectedMedicineId);
+      if (overlayStatus && box) overlayStatus.textContent = `OCR: “${box.text}” • tin cậy ${Math.round(Number(box.confidence || 0) * 100)}%`;
+    };
+    sourceImage.onload = renderOverlay;
+    sourceImage.onerror = () => {
+      if (overlayStatus) overlayStatus.textContent = 'Không thể hiển thị lớp OCR trên ảnh nguồn.';
+    };
+    if (sourceImage.complete) renderOverlay();
+    sourceImage.addEventListener('dblclick', () => openPrescriptionLightbox(imgUrl));
+    verifySec.querySelectorAll('.prescription-medication-card').forEach(card => {
+      card.addEventListener('click', () => selectMedicine(card.dataset.medicineId));
+      card.addEventListener('mouseenter', () => { hoveredMedicineId = card.dataset.medicineId; renderOverlay(); });
+      card.addEventListener('mouseleave', () => { hoveredMedicineId = ''; renderOverlay(); });
+    });
+    verifySec.querySelectorAll('[data-ocr-line-index]').forEach(button => {
+      button.addEventListener('click', () => {
+        selectedBoxId = `OCR_${button.dataset.ocrLineIndex}`;
+        renderOverlay();
+        if (overlayStatus) overlayStatus.textContent = `OCR chưa ghép: ${button.textContent}`;
+      });
+    });
+    document.getElementById('prescription-ocr-overlay-toggle')?.addEventListener('click', event => {
+      boxesVisible = !boxesVisible;
+      event.currentTarget.textContent = boxesVisible ? 'Ẩn khung' : 'Hiện khung';
+      renderOverlay();
+    });
+    document.getElementById('prescription-ocr-details-toggle')?.addEventListener('click', event => {
+      detailsVisible = !detailsVisible;
+      event.currentTarget.textContent = `${detailsVisible ? 'Ẩn' : 'Hiện'} chi tiết vùng chưa ghép (${detailBoxes.length})`;
+      renderOverlay();
+    });
+  }
   verifySec.classList.remove('hidden');
   verifySec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -6181,6 +6379,7 @@ async function confirmAndProceedPrescription() {
   const dobVal = document.getElementById('verify-patient-dob')?.value?.trim();
   const genderVal = document.getElementById('verify-patient-gender')?.value?.trim();
   const facVal = document.getElementById('verify-facility')?.value?.trim();
+  const clinicVal = document.getElementById('verify-clinic')?.value?.trim();
   const docVal = document.getElementById('verify-doctor')?.value?.trim();
   const diagVal = document.getElementById('verify-diagnosis')?.value?.trim();
 
@@ -6189,13 +6388,15 @@ async function confirmAndProceedPrescription() {
     const ageNumMatch = dobVal.match(/^(\d{1,3})(?:\s*tuổi)?$/i);
     if (ageNumMatch && parseInt(ageNumMatch[1], 10) < 130) {
       currentPrescriptionData.age = ageNumMatch[1];
-      currentPrescriptionData.dob = `${new Date().getFullYear() - parseInt(ageNumMatch[1], 10)}`;
+      const prescriptionYear = Number(String(currentPrescriptionData.date || '').match(/(19\d{2}|20\d{2})/)?.[1]) || new Date().getFullYear();
+      currentPrescriptionData.dob = `${prescriptionYear - parseInt(ageNumMatch[1], 10)}`;
     } else {
       currentPrescriptionData.dob = dobVal;
     }
   }
   if (genderVal) currentPrescriptionData.gender = genderVal;
   if (facVal) currentPrescriptionData.facility = facVal;
+  if (clinicVal) currentPrescriptionData.clinic = clinicVal;
   if (docVal) currentPrescriptionData.doctor = docVal;
   if (diagVal) currentPrescriptionData.diagnosis = diagVal;
 
@@ -6231,7 +6432,7 @@ function recalcVerifyAge() {
   const ageBadge = document.getElementById('verify-calc-age');
   if (!dobInput || !ageBadge) return;
   const val = dobInput.value.trim();
-  const currentYear = new Date().getFullYear();
+  const currentYear = Number(String(currentPrescriptionData?.date || '').match(/(19\d{2}|20\d{2})/)?.[1]) || new Date().getFullYear();
   const yearMatch = val.match(/(19\d{2}|20\d{2})/);
   if (yearMatch) {
     const birthYear = parseInt(yearMatch[1], 10);
@@ -6249,7 +6450,52 @@ function openPrescriptionLightbox(src) {
   const img = document.getElementById('prescription-lightbox-img');
   if (!modal || !img) return;
   img.src = src || currentUploadedFileUrl;
+  resetPrescriptionImageZoom();
+  if (!img.dataset.panZoomBound) {
+    img.dataset.panZoomBound = 'true';
+    img.addEventListener('wheel', event => {
+      event.preventDefault();
+      adjustPrescriptionImageZoom(event.deltaY < 0 ? 1.15 : 0.87);
+    }, { passive: false });
+    img.addEventListener('pointerdown', event => {
+      if (prescriptionLightboxZoom <= 1) return;
+      img.setPointerCapture(event.pointerId);
+      img.dataset.dragStartX = String(event.clientX - prescriptionLightboxPan.x);
+      img.dataset.dragStartY = String(event.clientY - prescriptionLightboxPan.y);
+      img.style.cursor = 'grabbing';
+    });
+    img.addEventListener('pointermove', event => {
+      if (!img.hasPointerCapture(event.pointerId) || prescriptionLightboxZoom <= 1) return;
+      prescriptionLightboxPan = {
+        x: event.clientX - Number(img.dataset.dragStartX || 0),
+        y: event.clientY - Number(img.dataset.dragStartY || 0),
+      };
+      applyPrescriptionImageZoom();
+    });
+    img.addEventListener('pointerup', () => { img.style.cursor = prescriptionLightboxZoom > 1 ? 'grab' : 'zoom-in'; });
+    img.addEventListener('pointercancel', () => { img.style.cursor = 'grab'; });
+  }
   modal.classList.remove('hidden');
+}
+
+function applyPrescriptionImageZoom() {
+  const img = document.getElementById('prescription-lightbox-img');
+  if (!img) return;
+  img.style.transformOrigin = 'center center';
+  img.style.transform = `translate(${prescriptionLightboxPan.x}px, ${prescriptionLightboxPan.y}px) scale(${prescriptionLightboxZoom})`;
+  img.style.cursor = prescriptionLightboxZoom > 1 ? 'grab' : 'zoom-in';
+}
+
+function adjustPrescriptionImageZoom(factor) {
+  prescriptionLightboxZoom = Math.max(1, Math.min(5, prescriptionLightboxZoom * factor));
+  if (prescriptionLightboxZoom === 1) prescriptionLightboxPan = { x: 0, y: 0 };
+  applyPrescriptionImageZoom();
+}
+
+function resetPrescriptionImageZoom() {
+  prescriptionLightboxZoom = 1;
+  prescriptionLightboxPan = { x: 0, y: 0 };
+  applyPrescriptionImageZoom();
 }
 
 function closePrescriptionLightbox() {

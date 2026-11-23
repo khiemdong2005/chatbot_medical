@@ -1813,10 +1813,15 @@
               <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
               Ảnh Đơn Thuốc Gốc (Phóng To)
             </span>
-            <button onclick="closePrescriptionLightbox()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-base cursor-pointer">✕</button>
+            <div class="flex items-center gap-1.5">
+              <button onclick="adjustPrescriptionImageZoom(0.8)" aria-label="Thu nhỏ ảnh" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold">−</button>
+              <button onclick="adjustPrescriptionImageZoom(1.25)" aria-label="Phóng to ảnh" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold">+</button>
+              <button onclick="resetPrescriptionImageZoom()" class="rounded-lg bg-white/10 hover:bg-white/20 px-2 h-7 text-white text-[10px] font-bold">Đặt lại</button>
+              <button onclick="closePrescriptionLightbox()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-base cursor-pointer">✕</button>
+            </div>
           </div>
           <div class="p-3 overflow-auto flex-1 flex items-center justify-center bg-black/40">
-            <img id="prescription-lightbox-img" src="" alt="Đơn thuốc gốc" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg">
+            <img id="prescription-lightbox-img" src="" alt="Đơn thuốc gốc" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg select-none touch-none" draggable="false">
           </div>
         </div>
       </div>
