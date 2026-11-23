@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/childdevelopment.html",
   "medlineplus_id": "185",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Child development",
+  "title_vi": "Phát triển ở trẻ em",
+  "category_en": "Pregnancy & Children",
+  "category_vi": "Sản phụ khoa & Nhi khoa",
+  "keywords_en": [
+    "child development",
+    "developmental milestones",
+    "growth milestones",
+    "pediatric development",
+    "motor skills"
+  ],
+  "keywords_vi": [
+    "phát triển ở trẻ em",
+    "mốc phát triển",
+    "tăng trưởng trẻ em",
+    "nhi khoa",
+    "kỹ năng vận động"
+  ],
+  "content_hash": "5fd1fda54ea0c063e3aefc6c32608c90932ef0465d8e7ee6feb9e502b141d8be",
+  "content_sha256": "5fd1fda54ea0c063e3aefc6c32608c90932ef0465d8e7ee6feb9e502b141d8be",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualhealth.html",
   "medlineplus_id": "1542",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Anxiety and sex",
+  "title_vi": "Lo âu và chức năng tình dục",
+  "category_en": "Sexual Relationships",
+  "category_vi": "Sức khỏe tình dục",
+  "keywords_en": [
+    "anxiety and sex",
+    "sexual performance anxiety",
+    "psychological sexual issues",
+    "intimacy stress"
+  ],
+  "keywords_vi": [
+    "lo âu tình dục",
+    "áp lực tâm lý khi quan hệ",
+    "rối loạn chức năng tình dục",
+    "tâm lý phòng the",
+    "sức khỏe sinh lý"
+  ],
+  "content_hash": "32d7c217bfc432a09a1396866f319842e44af7931848cab3fa698763f48a618e",
+  "content_sha256": "32d7c217bfc432a09a1396866f319842e44af7931848cab3fa698763f48a618e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

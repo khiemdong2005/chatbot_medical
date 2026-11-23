@@ -62,74 +62,208 @@ NEGATION_WORDS = [
     "không có", "khong co", "chẳng có", "chang co", "chưa có", "chua co"
 ]
 
-# English emergency keywords
+# English contractions map for robust normalization
+ENGLISH_CONTRACTIONS = {
+    r"\bdon't\b": "do not",
+    r"\bdont\b": "do not",
+    r"\bdidn't\b": "did not",
+    r"\bdidnt\b": "did not",
+    r"\bdoesn't\b": "does not",
+    r"\bdoesnt\b": "does not",
+    r"\bhaven't\b": "have not",
+    r"\bhavent\b": "have not",
+    r"\bhasn't\b": "has not",
+    r"\bhasnt\b": "has not",
+    r"\bhadn't\b": "had not",
+    r"\bhadnt\b": "had not",
+    r"\bwon't\b": "will not",
+    r"\bwont\b": "will not",
+    r"\bwouldn't\b": "would not",
+    r"\bwouldnt\b": "would not",
+    r"\bcan't\b": "cannot",
+    r"\bcant\b": "cannot",
+    r"\bcouldn't\b": "could not",
+    r"\bcouldnt\b": "could not",
+    r"\bshouldn't\b": "should not",
+    r"\bshouldnt\b": "should not",
+    r"\bisn't\b": "is not",
+    r"\bisnt\b": "is not",
+    r"\baren't\b": "are not",
+    r"\barent\b": "are not",
+    r"\bwasn't\b": "was not",
+    r"\bwasnt\b": "was not",
+    r"\bweren't\b": "were not",
+    r"\bwerent\b": "were not",
+}
+
+# English emergency keywords (generalized clinical red flags)
 EMERGENCY_SIGNS_EN = [
-    "chest pain", "severe chest pain", "shortness of breath", "difficulty breathing",
-    "cannot breathe", "choking", "facial drooping", "slurred speech", "paralysis",
-    "seizure", "unconscious", "passed out", "coughing blood", "vomiting blood", "anaphylaxis"
+    # Cardiovascular & Respiratory
+    "severe chest pain", "chest pain", "shortness of breath", "difficulty breathing",
+    "cannot breathe", "choking", "severe respiratory distress", "stridor",
+    # Neurological (FAST)
+    "facial drooping", "slurred speech", "paralysis", "seizure", "unconscious", "passed out",
+    # Hemorrhage & Anaphylaxis
+    "coughing blood", "vomiting blood", "blood spurting", "spurting blood", "anaphylaxis",
+    # Ophthalmic emergencies (acute vision loss / retinal detachment patterns)
+    "sudden vision loss", "sudden loss of vision", "loss of sight", "sudden blindness",
+    "acute vision loss", "abrupt vision loss", "abrupt loss of vision",
+    "curtain over vision", "curtain-like shadow", "gray shadow over vision", "dark shadow over vision",
+    "shadow covering vision", "shadow over vision", "suddenly cannot see"
 ]
+
+ENGLISH_NEGATION_MARKERS = {
+    "no", "not", "never", "without", "neither", "no longer",
+    "cannot", "denies", "denied", "free of"
+}
+
+ENGLISH_NEGATION_FILLERS = {
+    # auxiliary / verbs
+    "have", "had", "having", "feel", "feeling", "felt", "experience", "experienced", "experiencing",
+    "see", "seeing", "noticed", "noticing", "get", "getting", "got", "suffer", "suffered", "suffering",
+    "be", "is", "are", "was", "were", "been", "become", "became", "say", "think", "believe",
+    "reporting", "reported",
+    # pronouns / articles / prepositions
+    "i", "you", "he", "she", "we", "they", "my", "any", "a", "an", "the", "kind", "of", "type", "types",
+    "sign", "signs", "symptom", "symptoms", "with", "in", "to", "such",
+    # modifiers / qualifiers
+    "severe", "significant", "real", "actual", "noticeable", "current", "major", "acute",
+    "serious", "further", "other", "such", "new", "more", "particular", "true", "obvious"
+}
+
+
+def is_negated_english(before: str, after: str) -> bool:
+    """Determine if an English emergency sign mention is negated or resolved."""
+    # 1. Post-symptom resolution (e.g. 'chest pain has resolved', 'last year', 'months ago')
+    if re.match(r"\s+(?:has resolved|resolved|is gone|went away|last year|years ago|months ago)\b", after):
+        return True
+
+    # 2. Scope boundary before symptom: split by punctuation or contrastive conjunctions
+    scope = re.split(r"[,;]|\b(?:but|however|although|yet|though|instead of|rather than|while)\b", before)[-1]
+
+    # 3. Check coordinated negative list: e.g. "without slurred speech or [facial drooping]"
+    coord_match = re.search(r"\b(?:no|not|never|without|neither|denies|nor|cannot)\b[^,;]{0,60}\b(?:or|nor)\b", scope)
+    if coord_match:
+        after_coord = scope[coord_match.end():]
+        coord_tokens = re.findall(r"\b[\w']+\b", after_coord)
+        if all(w in ENGLISH_NEGATION_FILLERS for w in coord_tokens):
+            return True
+
+    # 4. Token-based lookback from symptom
+    tokens = re.findall(r"\b[\w']+\b", scope)
+    if not tokens:
+        return False
+
+    # Check from nearest word backwards up to 7 words
+    window = tokens[-7:]
+    for i in range(len(window) - 1, -1, -1):
+        word = window[i]
+        if word in ENGLISH_NEGATION_MARKERS:
+            intervening = window[i + 1:]
+            if all(w in ENGLISH_NEGATION_FILLERS for w in intervening):
+                return True
+        elif word not in ENGLISH_NEGATION_FILLERS:
+            break
+
+    return False
 
 
 # ------------------------------------------------------------------------------
 # 2. BƯỚC TIỀN KIỂM: PHÁT HIỆN CỜ ĐỎ CẤP CỨU & XỬ LÝ PHỦ ĐỊNH
 # ------------------------------------------------------------------------------
 
-def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
+def assess_emergency_risk(message: str, lang: str = "vi", previous_question: str = "") -> Dict[str, Any]:
     """
     Tiền kiểm an toàn: Quét xem tin nhắn người dân có dấu hiệu nguy kịch hay không.
     Có cơ chế phân tích cụm phủ định để không báo nhầm (ví dụ: 'sốt nhưng không khó thở').
     """
-    text_lower = message.lower()
-    text_no_accent = remove_accents(message)
-    matched_flags = []
-
-    for sign in EMERGENCY_SIGNS:
-        vi_kw = sign["vi"]
-        no_kw = sign["no_accent"]
-
-        is_matched = (vi_kw in text_lower) or (no_kw in text_no_accent)
-
-        if is_matched:
-            # KIỂM TRA BẪY PHỦ ĐỊNH: Quét xem ngay phía trước từ khóa có từ phủ định không
-            is_negated = False
-            for neg in NEGATION_WORDS:
-                pattern_vi = rf"\b{neg}\s+(?:(?:hề|có|thấy|bị|cảm thấy)\s+)?{re.escape(vi_kw)}"
-                pattern_no = rf"\b{neg}\s+(?:(?:he|co|thay|bi|cam thay)\s+)?{re.escape(no_kw)}"
-                if re.search(pattern_vi, text_lower) or re.search(pattern_no, text_no_accent):
-                    is_negated = True
-                    break
-
-            if not is_negated:
-                matched_flags.append(vi_kw.capitalize())
-
+    text = remove_accents(message).replace("đ", "d")
     if lang == "en":
-        for en_sign in EMERGENCY_SIGNS_EN:
-            if en_sign in text_lower:
-                # English negation check
-                pattern_en = rf"\b(no|not|without|neither)\s+({re.escape(en_sign)})"
-                if not re.search(pattern_en, text_lower):
-                    matched_flags.append(en_sign.title())
+        for pat, repl in ENGLISH_CONTRACTIONS.items():
+            text = re.sub(pat, repl, text, flags=re.IGNORECASE)
+
+    last_question = previous_question[:previous_question.rfind("?") + 1]
+    last_question = re.split(r"[.!?\n]", last_question[:-1])[-1] if last_question else ""
+    folded_question = remove_accents(last_question).replace("đ", "d").strip()
+    if folded_question in ("ban con nuot duoc nuoc bot khong", "can you still swallow your saliva"):
+        if re.fullmatch(r"(?:khong(?: (?:a|duoc|nuot duoc))?|no(?:,? i cannot)?|i cannot)", text.strip(" .!?,")):
+            text = "cannot swallow saliva" if lang == "en" else "khong nuot duoc nuoc bot"
+
+    if re.fullmatch(r"(?:co|dung|vang|yes)(?:\s+(?:co|thuong xuyen|lam|luon|roi|a|nhe))*", text.strip(" .!")):
+        for prefix in ("Hiện bạn hoặc người bạn đang hỏi giúp có đang bị ", "Are you or the person you are asking about experiencing "):
+            if previous_question.startswith(prefix):
+                text = remove_accents(previous_question[len(prefix):]).replace("đ", "d")
+                if lang == "en":
+                    for pat, repl in ENGLISH_CONTRACTIONS.items():
+                        text = re.sub(pat, repl, text, flags=re.IGNORECASE)
+                break
+        else:
+            # A bare "có" can affirm the last displayed chest-pain question.
+            # Only patient-experience questions qualify; a question about a
+            # condition in general must not become a self-reported symptom.
+            if (re.search(r"\b(?:ban|you)\s+(?:co\s+)?(?:bi|cam thay|dang bi|feel|have)\b", folded_question)
+                    and re.search(r"\b(?:tuc nguc|dau (?:that )?nguc|chest pain)\b", folded_question)):
+                text = "toi bi tuc nguc"
+    signs = [(r"\b" + re.escape(sign["no_accent"]) + r"\b", sign["vi"]) for sign in EMERGENCY_SIGNS]
+    swallowing_pattern = r"\bkhong (?:the |con )?nuot (?:(?:duoc|noi) )?nuoc(?: bot)?\b"
+    swallowing_label = "không nuốt được nước hoặc nước bọt"
+    if lang == "en":
+        signs.extend((r"\b" + re.escape(name) + r"\b", name)
+                     for name in sorted(EMERGENCY_SIGNS_EN, key=len, reverse=True))
+        swallowing_pattern = r"\b(?:cannot|can not|unable to) swallow (?:(?:my|their|his|her|your) )?(?:saliva|water)\b"
+        swallowing_label = "inability to swallow water or saliva"
+    signs.append((swallowing_pattern, swallowing_label))
+    matched_flags = []
+    uncertain = []
+    # Evaluate each mention in its own clause so a past denial cannot cancel a new symptom.
+    clauses = re.split(r"[.;!?\n]|\b(?:nhung|tuy nhien|but|however|although|yet|though|nevertheless)\b|(?=\b(?:bay gio|hien tai|luc nay|now)\b)", text)
+    for clause in clauses:
+        for pattern, label in signs:
+            for match in re.finditer(pattern, clause):
+                before = clause[:match.start()]
+                after = clause[match.end():]
+                history_scope = re.split(r",|\b(?:con toi|toi dang|bo toi dang|me toi dang)\b", before)[-1]
+                if re.search(r"\b(?:nam ngoai|nhieu nam truoc|tien su gia dinh|last year|years ago|family history of|history of)\b", history_scope):
+                    continue
+                if label == swallowing_label and re.search(r"\b(?:neu|if)\b", history_scope):
+                    continue
+                
+                if lang == "en":
+                    if is_negated_english(before, after):
+                        continue
+                    if re.search(r"\b(?:not sure|unsure|uncertain)\s+(?:if|whether)\s+"
+                                 r"(?:(?:i|we|they|have|am|are|having|feeling|any|some|a)\s+)*$", history_scope):
+                        uncertain.append(label)
+                        continue
+                else:
+                    # A new subject/affirmation starts a new scope; coordinated negative lists share one.
+                    scope = re.split(r"[,;]|\b(?:con toi|gio toi|i now)\b", before)[-1]
+                    negative = re.search(r"\b(?:khong|chua|chang)\s+(?:(?:he|bi|co|thay|con|cam thay)\s+)*$", scope)
+                    coordinated = re.search(r"\b(?:khong|chua|chang)\b[^,;]{0,45}\b(?:hay|hoac)\s*$", scope)
+                    if negative or coordinated or re.match(r"\s+(?:da het|het roi|nam ngoai)\b", after):
+                        continue
+                    if re.search(r"\b(?:khong nho ro|khong chac co|not sure (?:if|whether))\s+(?:(?:toi|minh|bi|i|have)\s+)*$", scope):
+                        uncertain.append(label)
+                        continue
+
+                cap_label = label.capitalize()
+                if cap_label not in matched_flags:
+                    matched_flags.append(cap_label)
 
     if matched_flags:
         if lang == "en":
             emergency_text = (
-                "⚠️ **CLINICAL EMERGENCY RED FLAG ALERT:**\n\n"
-                f"The system detected emergency symptom(s): **{', '.join(matched_flags)}**.\n\n"
-                "These signs may indicate acute cardiovascular, respiratory, or neurological emergencies. "
-                "To ensure immediate safety:\n"
-                "1. **Cease all physical exertion** and sit or rest in a well-ventilated space.\n"
-                "2. **Seek assistance from family or bystanders** and immediately call Emergency Services (**911 / 115**) or proceed to the nearest emergency room.\n"
-                "3. Do not take self-prescribed sedatives or strong analgesics before medical evaluation."
+                "⚠️ **HIGH RISK WARNING:**\n\n"
+                f"You mentioned **{', '.join(matched_flags)}**. This symptom can have a serious cause; "
+                "a chat cannot determine the cause or rule one out. "
+                "If it is happening now, persists, or worsens, seek urgent in-person medical assessment."
             )
         else:
             emergency_text = (
-                "⚠️ **CẢNH BÁO LÂM SÀNG CẦN CHÚ Ý ĐẶC BIỆT:**\n\n"
-                f"Hệ thống nhận thấy bạn có đề cập đến dấu hiệu: **{', '.join(matched_flags)}**.\n\n"
-                "Đây là nhóm triệu chứng có thể liên quan đến các vấn đề tim mạch, hô hấp hoặc tuần hoàn cấp tính. "
-                "Để đảm bảo an toàn tính mạng cao nhất, bạn nên:\n"
-                "1. **Tạm dừng các hoạt động gắng sức**, ngồi hoặc nằm nghỉ ở nơi thoáng khí.\n"
-                "2. **Cần người thân bên cạnh hỗ trợ** và liên hệ ngay cơ sở y tế gần nhất hoặc gọi tổng đài cấp cứu **115** để được bác sĩ kiểm tra kịp thời.\n"
-                "3. Tuyệt đối không tự ý dùng các loại thuốc giảm đau hay an thần liều cao khi chưa rõ nguyên nhân."
+                "⚠️ **CẢNH BÁO NGUY CƠ CAO:**\n\n"
+                f"Bạn có nhắc đến **{', '.join(matched_flags)}**. Triệu chứng này có thể có nguyên nhân nghiêm trọng; "
+                "chatbot không thể xác định hoặc loại trừ nguyên nhân chỉ qua tin nhắn. "
+                "Nếu triệu chứng đang xảy ra, kéo dài hoặc nặng lên, bạn nên được nhân viên y tế đánh giá trực tiếp khẩn."
             )
         return {
             "is_emergency": True,
@@ -137,6 +271,11 @@ def assess_emergency_risk(message: str, lang: str = "vi") -> Dict[str, Any]:
             "message": emergency_text
         }
 
+    if uncertain:
+        symptom = uncertain[0]
+        question = (f"Are you or the person you are asking about experiencing {symptom} right now?"
+                    if lang == "en" else f"Hiện bạn hoặc người bạn đang hỏi giúp có đang bị {symptom} không?")
+        return {"is_emergency": False, "symptoms": [], "clarification": question}
     return {"is_emergency": False, "symptoms": []}
 
 
@@ -153,60 +292,47 @@ ANTIBIOTIC_BLACKLIST = [
 
 
 def apply_safety_guardrails(answer: str, lang: str = "vi") -> str:
-    """
-    Hậu kiểm an toàn (Post-generation Guardrail):
-    Rà soát câu trả lời của AI và Fallback.
-    Nếu phát hiện nhắc tên thuốc kháng sinh kê đơn hoặc hướng dẫn liều dùng:
-      - Loại bỏ/thay thế nội dung vi phạm bằng cảnh báo từ chối kê đơn chuẩn y tế.
-      - Tuyệt đối không giữ nguyên hướng dẫn dùng thuốc kháng sinh bị cấm.
-    """
+    """Block antibiotic prescribing while preserving explanations and refusals."""
     if not answer:
         return ""
-
-    answer_lower = answer.lower()
-    found_antibiotics = [ab for ab in ANTIBIOTIC_BLACKLIST if ab in answer_lower]
-
-    if not found_antibiotics:
+    drugs = "|".join(re.escape(name) for name in ANTIBIOTIC_BLACKLIST)
+    if not re.search(r"\b(?:" + drugs + r")\b", answer, re.IGNORECASE):
         return answer
-
-    ab_names_str = ", ".join([ab.capitalize() for ab in found_antibiotics])
-
-    if lang == "en":
-        replacement_block = (
-            f"> [!CAUTION]\n"
-            f"> 🛑 **SAFETY INTERVENTION - PRESCRIPTION MEDICATION DETECTED ({ab_names_str}):**\n"
-            "> Under strict healthcare safety protocols and MOH regulations, AI assistants are strictly prohibited "
-            "from prescribing, dosing, or instructing the use of prescription antibiotics.\n"
-            "> Any self-medication with antibiotics carries severe risks of acute anaphylaxis, organ toxicity, "
-            "and dangerous antimicrobial resistance. Please consult a licensed medical practitioner for a proper examination and prescription."
-        )
-    else:
-        replacement_block = (
-            f"> [!CAUTION]\n"
-            f"> 🛑 **CAN THIỆP AN TOÀN Y TẾ - PHÁT HIỆN THUỐC KHÁNG SINH ({ab_names_str}):**\n"
-            "> Theo quy chuẩn an toàn lâm sàng của Bộ Y Tế, Trợ lý AI tuyệt đối không kê đơn, chỉ định liều dùng hoặc khuyến nghị tự ý sử dụng các loại thuốc kháng sinh.\n"
-            "> Việc tự ý mua và dùng kháng sinh tiềm ẩn nguy cơ sốc phản vệ nguy kịch, tổn thương gan thận và gia tăng tình trạng kháng kháng sinh trong cộng đồng. "
-            "Bạn hãy thăm khám trực tiếp tại cơ sở y tế để được bác sĩ chẩn đoán nguyên nhân và kê đơn chính xác."
-        )
-
-    # Tách đoạn văn bản và thay thế các đoạn có chứa tên kháng sinh
-    paragraphs = answer.split("\n\n")
-    cleaned_paragraphs = []
-    replaced_any = False
-
-    for p in paragraphs:
-        p_lower = p.lower()
-        if any(ab in p_lower for ab in found_antibiotics):
-            # Thay thế đoạn vi phạm bằng khối can thiệp an toàn
-            cleaned_paragraphs.append(replacement_block)
-            replaced_any = True
+    warning = ("Do not choose an antibiotic or dose from this reply. Consult a doctor or pharmacist and tell them about your allergies and current medicines."
+               if lang == "en" else "Bạn không được tự ý chọn kháng sinh hoặc liều dùng từ câu trả lời này. Hãy hỏi bác sĩ hoặc dược sĩ và cho biết dị ứng, thuốc đang dùng trước khi sử dụng.")
+    kept, blocked = [], False
+    for sentence in re.split(r"(?<=[.!?;])\s+|\n+", answer):
+        folded = remove_accents(re.sub(r"\bđừng\b", "không", sentence, flags=re.IGNORECASE)).replace("đ", "d")
+        if not re.search(r"\b(?:" + drugs + r")\b", folded):
+            # A regimen may be on the following line after an antibiotic name.
+            if re.search(r"\b\d+(?:\.\d+)?\s*(?:mg|ml|vien|tablets?|capsules?)\b.*\b(?:moi|ngay|lan|every|daily|times)\b", folded):
+                blocked = True
+                continue
+            kept.append(sentence)
+            continue
+        unsafe = bool(re.search(r"\b(?:don thuoc cho ban|prescription for you)\b", folded))
+        for action in re.finditer(r"\b(?:uong|dung|su dung|ke|take|use|start|prescribe|recommend)\b", folded):
+            tail = folded[action.end():action.end() + 100]
+            if not re.search(r"\b(?:" + drugs + r")\b", tail):
+                continue
+            prefix = folded[max(0, action.start() - 65):action.start()]
+            prefix = re.split(r"[,;:!?]|\b(?:nhung|but|however)\b", prefix)[-1]
+            if not re.search(r"\b(?:khong|chua|tranh|not|never|avoid|don't|shouldn't|mustn't)\b", prefix):
+                unsafe = True
+        regimen = re.search(r"\b\d+(?:\.\d+)?\s*(?:mg|ml|vien|tablets?|capsules?)\b.*\b(?:moi|ngay|lan|every|daily|times)\b", folded)
+        regimen_prefix = re.split(r"[,;:!?]|\b(?:nhung|but|however)\b", folded[:regimen.start()])[-1] if regimen else ""
+        if regimen and not re.search(r"\b(?:khong|tranh|not|never|avoid|don't|shouldn't|mustn't)\b", regimen_prefix):
+            unsafe = True
+        if unsafe:
+            blocked = True
+            if re.search(r"\b(?:115|cap cuu|emergency)\b", folded):
+                kept.append("Seek urgent in-person medical assessment." if lang == "en"
+                            else "Bạn nên được nhân viên y tế đánh giá trực tiếp khẩn.")
         else:
-            cleaned_paragraphs.append(p)
-
-    if not replaced_any:
-        cleaned_paragraphs.append(replacement_block)
-
-    return "\n\n".join(cleaned_paragraphs)
+            kept.append(sentence)
+    if not blocked:
+        return answer
+    return "\n\n".join(part for part in [*kept, warning] if part.strip())
 
 
 # ------------------------------------------------------------------------------
@@ -231,7 +357,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
             "risk_level": "Nguy cơ cao (Cần thăm khám khẩn)" if lang == "vi" else "High Risk (Immediate Care Needed)",
             "risk_score": 90,
             "symptoms": emergency_check["symptoms"],
-            "specialist": "Cấp cứu 115 / Khoa Cấp cứu" if lang == "vi" else "Emergency 115 / ER Department",
+            "specialist": "Khoa Cấp cứu" if lang == "vi" else "Emergency Department",
             "is_emergency": True,
             "visual_findings": [],
             "differential_diagnosis": ["Tình trạng cấp cứu tim mạch/hô hấp/tuần hoàn"],
@@ -284,7 +410,7 @@ def analyze_symptoms(message: str, history: Optional[List[Dict[str, Any]]] = Non
             "risk_level": "Chào hỏi ban đầu" if lang == "vi" else "Initial Greeting",
             "risk_score": 10,
             "symptoms": ["Khởi tạo hội thoại"],
-            "specialist": "Y học gia đình" if lang == "vi" else "Family Medicine",
+            "specialist": "",
             "visual_findings": [],
             "differential_diagnosis": [],
             "is_emergency": False,

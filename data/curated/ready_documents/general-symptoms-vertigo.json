@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
   "medlineplus_id": "216",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vertigo",
+  "title_vi": "Chóng mặt hoa mắt (Chóng mặt kịch phát)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "vertigo",
+    "dizziness",
+    "vestibular disorder",
+    "spinning sensation"
+  ],
+  "keywords_vi": [
+    "chóng mặt",
+    "chóng mặt hoa mắt",
+    "tiền đình",
+    "chóng mặt kịch phát",
+    "mất thăng bằng"
+  ],
+  "content_hash": "ca1303d9e0c08e0287fc684cf4e9f0291016b5a60ee4427cb6d689cebf43f728",
+  "content_sha256": "ca1303d9e0c08e0287fc684cf4e9f0291016b5a60ee4427cb6d689cebf43f728",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

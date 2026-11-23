@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/caffeine.html",
   "medlineplus_id": "1456",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Energy drinks",
+  "title_vi": "Nước tăng lực và sức khỏe tim mạch",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "energy drinks",
+    "high caffeine drinks",
+    "heart palpitations caffeine",
+    "energy beverage risk"
+  ],
+  "keywords_vi": [
+    "nước tăng lực",
+    "tác hại nước tăng lực",
+    "thừa caffeine",
+    "tim đập nhanh mất ngủ",
+    "nước ngọt có gas"
+  ],
+  "content_hash": "35e64428cb2cab528d47d0589de8d98ee4ebaa3f69bce6ac266c81d48ada3b0f",
+  "content_sha256": "35e64428cb2cab528d47d0589de8d98ee4ebaa3f69bce6ac266c81d48ada3b0f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

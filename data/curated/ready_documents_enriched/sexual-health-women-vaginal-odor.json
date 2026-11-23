@@ -1,0 +1,37 @@
+{
+  "id": "vaginal-odor",
+  "title": "Vaginal odor",
+  "category": "Sexual Health (Women)",
+  "mapped_title": "Vaginal Diseases",
+  "page_content": "User topic: Vaginal odor\nCategory: Sexual Health (Women)\nTrusted medical topic: Vaginal Diseases\nSearch phrases: Vaginal odor, Vaginal Diseases\nMedical groups: Women, Female Reproductive System\n\nMedical information:\nVaginal problems are some of the most common reasons women go to the doctor. They may have symptoms such as: Itching Burning Pain Abnormal bleeding Discharge One common problem is vaginitis , an inflammation of the vagina. Other problems that affect the vagina include sexually transmitted infections (STIs), vaginal cancer , and vulvar cancer . Treatment of vaginal problems depends on the cause.",
+  "search_phrases": [
+    "Vaginal odor",
+    "Vaginal Diseases"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+  "medlineplus_id": "451",
+  "mapping_type": "manual",
+  "mapping_score": 1.0,
+  "title_en": "Vaginal odor",
+  "title_vi": "Mùi hôi âm đạo bất thường",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "vaginal odor",
+    "foul vaginal smell",
+    "bacterial vaginosis",
+    "fishy odor discharge"
+  ],
+  "keywords_vi": [
+    "mùi hôi âm đạo",
+    "vùng kín có mùi hôi",
+    "viêm âm đạo do vi khuẩn",
+    "mùi tanh cá âm đạo",
+    "phụ khoa"
+  ],
+  "content_hash": "e519a1e3988baf49bfc4905ebf07735926adc8fb5f7077c2de7dad8472404a98",
+  "content_sha256": "e519a1e3988baf49bfc4905ebf07735926adc8fb5f7077c2de7dad8472404a98",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

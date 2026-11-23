@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/hyperglycemia.html",
   "medlineplus_id": "6125",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hyperglycemia",
+  "title_vi": "Tăng đường huyết (Đường huyết cao)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "hyperglycemia",
+    "high blood sugar",
+    "high blood glucose",
+    "diabetes symptom",
+    "glucose spike"
+  ],
+  "keywords_vi": [
+    "tăng đường huyết",
+    "đường huyết cao",
+    "đái tháo đường",
+    "khát nước tiểu nhiều",
+    "chỉ số glucose"
+  ],
+  "content_hash": "d3d47e2c975d669876bbf0ea6d87f6a44d95a36fcc0d6bed441001c767ce2106",
+  "content_sha256": "d3d47e2c975d669876bbf0ea6d87f6a44d95a36fcc0d6bed441001c767ce2106",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

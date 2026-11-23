@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440" viewBox="0 0 640 440" role="img" aria-labelledby="title desc">
+<title id="title">Sữa đậu nành ấm</title><desc id="desc">Minh họa tách sữa đậu nành màu kem cùng hạt đậu nành và lá xanh.</desc>
+<defs><linearGradient id="cup" x1="0" x2="1"><stop stop-color="#fffdf7"/><stop offset="1" stop-color="#e3e8de"/></linearGradient></defs>
+<rect width="640" height="440" fill="#f5f3ec"/><path d="M0 340c186-16 422-14 640 0v100H0Z" fill="#edece2"/><ellipse cx="340" cy="348" rx="151" ry="19" fill="#35585b" opacity=".09"/>
+<ellipse cx="342" cy="333" rx="124" ry="21" fill="#fffdf7" stroke="#cdd5c9" stroke-width="2"/>
+<path d="M413 173c52-10 73 13 67 51-5 32-29 49-63 44l-1-23c23 2 36-10 37-28 1-18-10-23-37-20Z" fill="#e4e8dd" stroke="#35585b" stroke-width="3"/>
+<path d="M249 158h172v110c0 38-32 59-86 59s-86-21-86-59Z" fill="url(#cup)" stroke="#35585b" stroke-width="3"/><path d="M264 183v79c0 27 20 43 48 48" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+<ellipse cx="335" cy="158" rx="86" ry="20" fill="#dfdfce" stroke="#35585b" stroke-width="3"/><ellipse cx="335" cy="158" rx="74" ry="13" fill="#f5edcf"/><path d="M281 157c27-7 68-8 106 0" stroke="#fffae5" stroke-width="3" fill="none"/>
+<g fill="none" stroke="#a0b0a2" stroke-width="3" stroke-linecap="round"><path d="M307 126c-14-21 14-26 0-48"/><path d="M340 117c-15-22 14-28 2-50"/><path d="M371 126c-11-19 13-22 1-40"/></g>
+<path d="M183 315c-15-2-28-13-31-29 19-3 34 4 40 17" fill="#9fba93" stroke="#628166" stroke-width="2"/><path d="M186 314c1-18 11-31 29-35 5 19-3 32-18 39" fill="#afc69f" stroke="#628166" stroke-width="2"/><path d="m170 297 29 27" stroke="#628166" stroke-width="2"/>
+<g fill="#e4d6ae" stroke="#9c8e63" stroke-width="2"><ellipse cx="178" cy="342" rx="12" ry="10" transform="rotate(-20 178 342)"/><ellipse cx="203" cy="350" rx="12" ry="10" transform="rotate(22 203 350)"/><ellipse cx="225" cy="336" rx="12" ry="10" transform="rotate(-13 225 336)"/></g><g fill="none" stroke="#b5a77f" stroke-width="2"><path d="M176 338c-4 3-3 7 1 9M201 346c-4 3-3 7 1 9M223 332c-4 3-3 7 1 9"/></g>
+</svg>

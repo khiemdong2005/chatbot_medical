@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/abdominalpain.html",
   "medlineplus_id": "3061",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Abdominal pain",
+  "title_vi": "Đau bụng",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "abdominal pain",
+    "stomach pain",
+    "belly ache",
+    "abdominal cramps"
+  ],
+  "keywords_vi": [
+    "đau bụng",
+    "đau dạ dày",
+    "đau vùng bụng",
+    "khó tiêu",
+    "co thắt bụng"
+  ],
+  "content_hash": "dda90a6b524f267bb833b2d74373eeeca650eeceb21a1181306ba688bcdb8304",
+  "content_sha256": "dda90a6b524f267bb833b2d74373eeeca650eeceb21a1181306ba688bcdb8304",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

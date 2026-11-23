@@ -1,0 +1,41 @@
+{
+  "id": "vaping",
+  "title": "Vaping",
+  "category": "Lifestyle",
+  "mapped_title": "E-Cigarettes",
+  "page_content": "User topic: Vaping\nCategory: Lifestyle\nTrusted medical topic: E-Cigarettes\nSearch phrases: Vaping, E-Cigarettes, E-Cigs, Electronic Cigarettes, Personal Vaporizer\nMedical groups: Substance Use and Disorders, Lungs and Breathing\n\nMedical information:\nE-cigarettes, or electronic cigarettes, are battery-operated smoking devices. They often look like cigarettes, but work differently. Using an e-cigarette is called vaping. The user puffs on the mouthpiece of a cartridge. This causes a vaporizer to heat the liquid inside the cartridge. The liquid contains nicotine, flavorings, and other chemicals. The heated liquid turns into the vapor that is inhaled. Some people think that e-cigarettes are safer than cigarettes, and that they can be used to help people quit smoking. But not much is known about the health risks of using them, or whether they do help people quit smoking. However we do know about some dangers of e-cigarettes: They contain nicotine, which is addictive They contain other potentially harmful chemicals There is a link between e-cigarette use and tobacco cigarette use in teens The liquid in e-cigarettes can cause nicotine poisoning if someone drinks, sniffs, or touches it NIH: National Institute on Drug Abuse",
+  "search_phrases": [
+    "Vaping",
+    "E-Cigarettes",
+    "E-Cigs",
+    "Electronic Cigarettes",
+    "Personal Vaporizer"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/ecigarettes.html",
+  "medlineplus_id": "6290",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Vaping",
+  "title_vi": "Tác hại của thuốc lá điện tử (Vaping)",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "vaping",
+    "e-cigarettes",
+    "vape health risks",
+    "nicotine addiction vaping",
+    "lung injury vaping"
+  ],
+  "keywords_vi": [
+    "thuốc lá điện tử",
+    "vaping",
+    "tác hại khói vape",
+    "nghiện nicotine vape",
+    "tổn thương phổi do vape"
+  ],
+  "content_hash": "e70953b2cc8514fcff76256b4de1d5402f8f0152024858b93b7f689eec20e476",
+  "content_sha256": "e70953b2cc8514fcff76256b4de1d5402f8f0152024858b93b7f689eec20e476",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

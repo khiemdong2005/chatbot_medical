@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/mumps.html",
   "medlineplus_id": "334",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Mumps",
+  "title_vi": "Bệnh quai bị",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "mumps",
+    "parotitis",
+    "swollen salivary glands",
+    "orchitis complication",
+    "mumps vaccine"
+  ],
+  "keywords_vi": [
+    "bệnh quai bị",
+    "viêm tuyến nước bọt mang tai",
+    "sưng mang tai",
+    "biến chứng viêm tinh hoàn",
+    "vắc-xin quai bị"
+  ],
+  "content_hash": "fd86b3724a265c40803bcfa7b02e343b780e9549050adf911ace0cce8d7b6432",
+  "content_sha256": "fd86b3724a265c40803bcfa7b02e343b780e9549050adf911ace0cce8d7b6432",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

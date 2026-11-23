@@ -52,14 +52,24 @@ def preprocess_prescription_image(image_path: str, save_debug: bool = True) -> D
 
     orig_h, orig_w = img.shape[:2]
 
-    # 1. Giới hạn độ phân giải hợp lý (max 1400px) để OCR chạy siêu nhanh và chính xác
-    max_dim = 1400
+    # 1. Chuẩn hóa kích thước tối ưu cho EasyOCR (từ 1100px - 1500px):
+    # - Nếu ảnh quá lớn (> 1500px): Thu nhỏ với INTER_AREA để giảm thời gian xử lý
+    # - Nếu ảnh chụp điện thoại nhỏ (< 1100px): Phóng to với INTER_CUBIC để nét chữ rõ ràng, tăng độ chính xác EasyOCR
+    max_dim = 1500
+    min_opt_dim = 1100
+    orig_max = max(orig_h, orig_w)
     scale = 1.0
-    if max(orig_h, orig_w) > max_dim:
-        scale = max_dim / float(max(orig_h, orig_w))
+
+    if orig_max > max_dim:
+        scale = max_dim / float(orig_max)
         new_w = int(orig_w * scale)
         new_h = int(orig_h * scale)
         img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    elif orig_max < min_opt_dim and orig_max > 0:
+        scale = min(2.5, float(min_opt_dim) / float(orig_max))
+        new_w = int(orig_w * scale)
+        new_h = int(orig_h * scale)
+        img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
 
     # 2. Chuyển sang ảnh xám (Grayscale)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/streptococcalinfections.html",
   "medlineplus_id": "421",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Strep throat",
+  "title_vi": "Viêm họng do liên cầu khuẩn",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "strep throat",
+    "streptococcal pharyngitis",
+    "group A strep",
+    "bacterial sore throat"
+  ],
+  "keywords_vi": [
+    "viêm họng liên cầu",
+    "liên cầu khuẩn nhóm A",
+    "sốt đau rát họng",
+    "kháng sinh viêm họng",
+    "tai mũi họng"
+  ],
+  "content_hash": "0938db43014853fa74825adea849a0d5148bf84bbf409ac3f1797701810b229f",
+  "content_sha256": "0938db43014853fa74825adea849a0d5148bf84bbf409ac3f1797701810b229f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/diabetestype2.html",
   "medlineplus_id": "5930",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Type 2 diabetes",
+  "title_vi": "Đái tháo đường tuýp 2 (Tiểu đường tuýp 2)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "type 2 diabetes",
+    "adult onset diabetes",
+    "blood sugar control",
+    "metformin",
+    "lifestyle management"
+  ],
+  "keywords_vi": [
+    "đái tháo đường tuýp 2",
+    "tiểu đường tuýp 2",
+    "kiểm soát đường huyết",
+    "hạ đường huyết ăn uống",
+    "nội tiết"
+  ],
+  "content_hash": "7c02f8bb63515a76bec916774cc4f4f1b30350ca162951c03ea3f2a17032db9b",
+  "content_sha256": "7c02f8bb63515a76bec916774cc4f4f1b30350ca162951c03ea3f2a17032db9b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

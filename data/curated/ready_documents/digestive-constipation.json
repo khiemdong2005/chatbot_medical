@@ -11,5 +11,26 @@
   "source_url": "https://medlineplus.gov/constipation.html",
   "medlineplus_id": "200",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Constipation",
+  "title_vi": "Táo bón",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "constipation",
+    "infrequent bowel movements",
+    "hard stool",
+    "dietary fiber constipation"
+  ],
+  "keywords_vi": [
+    "táo bón",
+    "khó đại tiện",
+    "phân khô cứng",
+    "chất xơ",
+    "tiêu hóa"
+  ],
+  "content_hash": "7fd51764f0e535f9e2ab93644113875d6e53166a5808b4944bbb256ff5e6718e",
+  "content_sha256": "7fd51764f0e535f9e2ab93644113875d6e53166a5808b4944bbb256ff5e6718e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

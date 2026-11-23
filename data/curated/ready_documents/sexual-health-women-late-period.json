@@ -15,5 +15,26 @@
   "source_url": "https://medlineplus.gov/menstruation.html",
   "medlineplus_id": "325",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Late period",
+  "title_vi": "Chậm kinh (Trễ kinh)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "late period",
+    "delayed menstruation",
+    "missed period pregnancy test",
+    "menstrual delay"
+  ],
+  "keywords_vi": [
+    "chậm kinh",
+    "trễ kinh",
+    "chậm kinh thử que",
+    "nguyên nhân trễ kinh",
+    "nội tiết buồng trứng"
+  ],
+  "content_hash": "f68d5ec1489a8d5142bc7e30d1b9b838925301be4932fea0440b6743a74f35df",
+  "content_sha256": "f68d5ec1489a8d5142bc7e30d1b9b838925301be4932fea0440b6743a74f35df",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

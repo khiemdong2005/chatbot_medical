@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/sexualproblemsinwomen.html",
   "medlineplus_id": "1423",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pain during sex",
+  "title_vi": "Đau khi quan hệ tình dục ở nữ (Chứng giao hợp đau)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "pain during sex female",
+    "dyspareunia",
+    "vaginal dryness pain",
+    "painful intercourse"
+  ],
+  "keywords_vi": [
+    "đau khi quan hệ nữ",
+    "chứng giao hợp đau",
+    "khô âm đạo đau rát",
+    "co thắt âm đạo",
+    "phụ khoa"
+  ],
+  "content_hash": "ff3e079d2789391a77cd03e4e57e0ba977fd4f4b6e0b0bcb1a234ac023533cc9",
+  "content_sha256": "ff3e079d2789391a77cd03e4e57e0ba977fd4f4b6e0b0bcb1a234ac023533cc9",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

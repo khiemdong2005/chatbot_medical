@@ -1,0 +1,49 @@
+{
+  "id": "gastrointestinalbleeding",
+  "title": "Gastrointestinal Bleeding",
+  "title_en": "Gastrointestinal Bleeding",
+  "title_vi": "Xuất huyết tiêu hóa",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "gastrointestinal bleeding",
+    "GI hemorrhage",
+    "hematemesis",
+    "melena",
+    "black tarry stools",
+    "xuất huyết tiêu hóa",
+    "nôn ra máu",
+    "đi ngoài phân đen",
+    "chảy máu dạ dày",
+    "cấp cứu tiêu hóa"
+  ],
+  "keywords_en": [
+    "gastrointestinal bleeding",
+    "GI hemorrhage",
+    "hematemesis",
+    "melena",
+    "black tarry stools"
+  ],
+  "keywords_vi": [
+    "xuất huyết tiêu hóa",
+    "nôn ra máu",
+    "đi ngoài phân đen",
+    "chảy máu dạ dày",
+    "cấp cứu tiêu hóa"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/gastrointestinalbleeding.html",
+  "summary": "Your digestive or gastrointestinal (GI) tract includes the esophagus, stomach, small intestine, large intestine or colon, rectum, and anus. Bleeding can come from any of these areas. The amount of bleeding can be so small that only a lab test can find it. Signs of bleeding in the digestive tract depend on where it is and how much bleeding there is. Signs of bleeding in the upper digestive tract include: Bright red blood in vomit Vomit that looks like coffee grounds Black or tarry stool Dark blood mixed with stool Signs of bleeding in the lower digestive tract include: Black or tarry stool Dark blood mixed with stool Stool mixed or coated with bright red blood GI bleeding is not a disease, but a symptom of a disease. There are many possible causes of GI bleeding, including hemorrhoids , peptic ulcers , tears or inflammation in the esophagus, diverticulosis and diverticulitis , ulcerative colitis and Crohn's disease , colonic polyps , or cancer in the colon , stomach or esophagus . The test used most often to look for the cause of GI bleeding is called endoscopy . It uses a flexible instrument inserted through the mouth or rectum to view the inside of the GI tract. A type of endoscopy called colonoscopy looks at the large intestine. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "page_content": "Your digestive or gastrointestinal (GI) tract includes the esophagus, stomach, small intestine, large intestine or colon, rectum, and anus. Bleeding can come from any of these areas. The amount of bleeding can be so small that only a lab test can find it. Signs of bleeding in the digestive tract depend on where it is and how much bleeding there is. Signs of bleeding in the upper digestive tract include: Bright red blood in vomit Vomit that looks like coffee grounds Black or tarry stool Dark blood mixed with stool Signs of bleeding in the lower digestive tract include: Black or tarry stool Dark blood mixed with stool Stool mixed or coated with bright red blood GI bleeding is not a disease, but a symptom of a disease. There are many possible causes of GI bleeding, including hemorrhoids , peptic ulcers , tears or inflammation in the esophagus, diverticulosis and diverticulitis , ulcerative colitis and Crohn's disease , colonic polyps , or cancer in the colon , stomach or esophagus . The test used most often to look for the cause of GI bleeding is called endoscopy . It uses a flexible instrument inserted through the mouth or rectum to view the inside of the GI tract. A type of endoscopy called colonoscopy looks at the large intestine. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "content_sha256": "ad2799142857ab207f1d0568111bee92fd18e4c4f4c71fcc88115ced0d62eb77",
+  "candidate_score": 0.98,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

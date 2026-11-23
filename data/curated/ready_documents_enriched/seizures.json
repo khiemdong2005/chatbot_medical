@@ -1,0 +1,49 @@
+{
+  "id": "seizures",
+  "title": "Seizures",
+  "title_en": "Seizures",
+  "title_vi": "Co giật",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "seizures",
+    "convulsions",
+    "epileptic seizure",
+    "brain electrical disturbance",
+    "first aid for seizures",
+    "co giật",
+    "lên cơn co giật",
+    "sơ cứu co giật",
+    "động kinh cấp",
+    "co giật toàn thể"
+  ],
+  "keywords_en": [
+    "seizures",
+    "convulsions",
+    "epileptic seizure",
+    "brain electrical disturbance",
+    "first aid for seizures"
+  ],
+  "keywords_vi": [
+    "co giật",
+    "lên cơn co giật",
+    "sơ cứu co giật",
+    "động kinh cấp",
+    "co giật toàn thể"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/seizures.html",
+  "summary": "Seizures are symptoms of a brain problem. They happen because of sudden, abnormal electrical activity in the brain. When people think of seizures, they often think of convulsions in which a person's body shakes rapidly and uncontrollably. Not all seizures cause convulsions. There are many types of seizures and some have mild symptoms. Seizures fall into two main groups. Focal seizures, also called partial seizures, happen in just one part of the brain. Generalized seizures are a result of abnormal activity on both sides of the brain. Most seizures last from 30 seconds to 2 minutes and do not cause lasting harm. However, it is a medical emergency if seizures last longer than 5 minutes or if a person has many seizures and does not wake up between them. Seizures can have many causes, including medicines, high fevers, head injuries and certain diseases. People who have recurring seizures due to a brain disorder have epilepsy . NIH: National Institute of Neurological Disorders and Stroke",
+  "page_content": "Seizures are symptoms of a brain problem. They happen because of sudden, abnormal electrical activity in the brain. When people think of seizures, they often think of convulsions in which a person's body shakes rapidly and uncontrollably. Not all seizures cause convulsions. There are many types of seizures and some have mild symptoms. Seizures fall into two main groups. Focal seizures, also called partial seizures, happen in just one part of the brain. Generalized seizures are a result of abnormal activity on both sides of the brain. Most seizures last from 30 seconds to 2 minutes and do not cause lasting harm. However, it is a medical emergency if seizures last longer than 5 minutes or if a person has many seizures and does not wake up between them. Seizures can have many causes, including medicines, high fevers, head injuries and certain diseases. People who have recurring seizures due to a brain disorder have epilepsy . NIH: National Institute of Neurological Disorders and Stroke",
+  "content_sha256": "1d1ab6a266b395e181757e45d700e04ec2636d2afb372b9fb831a3d793ed2531",
+  "candidate_score": 0.98,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

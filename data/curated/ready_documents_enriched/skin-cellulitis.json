@@ -1,0 +1,36 @@
+{
+  "id": "cellulitis",
+  "title": "Cellulitis",
+  "category": "Skin",
+  "mapped_title": "Cellulitis",
+  "page_content": "User topic: Cellulitis\nCategory: Skin\nTrusted medical topic: Cellulitis\nSearch phrases: Cellulitis\nMedical groups: Infections, Skin, Hair and Nails\n\nMedical information:\nCellulitis is an infection of the skin and deep underlying tissues. Group A strep ( streptococcal ) bacteria are the most common cause. The bacteria enter your body when you get an injury such as a bruise, burn, surgical cut, or wound. Symptoms include: Fever and chills Swollen glands or lymph nodes A rash with painful, red, tender skin. The skin may blister and scab over. Your health care provider may take a sample or culture from your skin or do a blood test to identify the bacteria causing infection. Treatment is with antibiotics. They may be oral in mild cases, or intravenous (by IV) for more severe cases.",
+  "search_phrases": [
+    "Cellulitis"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/cellulitis.html",
+  "medlineplus_id": "1227",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Cellulitis",
+  "title_vi": "Viêm mô tế bào da",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "cellulitis",
+    "bacterial skin infection",
+    "red swollen skin",
+    "skin inflammation"
+  ],
+  "keywords_vi": [
+    "viêm mô tế bào",
+    "nhiễm trùng da sâu",
+    "sưng nóng đỏ đau da",
+    "kháng sinh điều trị",
+    "da liễu"
+  ],
+  "content_hash": "0ce1efe3f825d4736707445591618a638502608fbfee056353eb67cfe7da0751",
+  "content_sha256": "0ce1efe3f825d4736707445591618a638502608fbfee056353eb67cfe7da0751",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

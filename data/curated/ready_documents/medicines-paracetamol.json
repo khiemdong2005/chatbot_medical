@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/painrelievers.html",
   "medlineplus_id": "4059",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Paracetamol",
+  "title_vi": "Thuốc Paracetamol (Acetaminophen)",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "paracetamol",
+    "acetaminophen",
+    "fever reducer",
+    "pain relief",
+    "liver toxicity risk"
+  ],
+  "keywords_vi": [
+    "paracetamol",
+    "acetaminophen",
+    "hạ sốt giảm đau",
+    "ngộ độc gan do paracetamol",
+    "liều paracetamol"
+  ],
+  "content_hash": "fd7f08f72320ba300a31fc2b99f83ea38751d91afde542ac62a38067950dfa1b",
+  "content_sha256": "fd7f08f72320ba300a31fc2b99f83ea38751d91afde542ac62a38067950dfa1b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -1,0 +1,51 @@
+{
+  "id": "tetanusdiphtheriaandpertussisvaccines",
+  "title": "Tetanus, Diphtheria, and Pertussis Vaccines (Tdap/DTaP)",
+  "title_en": "Tetanus, Diphtheria, and Pertussis Vaccines (Tdap/DTaP)",
+  "title_vi": "Vắc-xin phòng Uốn ván, Bạch hầu và Ho gà",
+  "category": "Preventive Medicine",
+  "category_en": "Preventive Medicine",
+  "category_vi": "Y học dự phòng & Lối sống",
+  "search_phrases": [
+    "tetanus vaccine",
+    "diphtheria vaccine",
+    "pertussis vaccine",
+    "DTaP",
+    "Tdap booster",
+    "vắc-xin uốn ván",
+    "bạch hầu ho gà uốn ván",
+    "tiêm phòng uốn ván",
+    "mũi tiêm tdap",
+    "tiêm nhắc lại uốn ván"
+  ],
+  "keywords_en": [
+    "tetanus vaccine",
+    "diphtheria vaccine",
+    "pertussis vaccine",
+    "DTaP",
+    "Tdap booster"
+  ],
+  "keywords_vi": [
+    "vắc-xin uốn ván",
+    "bạch hầu ho gà uốn ván",
+    "tiêm phòng uốn ván",
+    "mũi tiêm tdap",
+    "tiêm nhắc lại uốn ván"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/tetanusdiphtheriaandpertussisvaccines.html",
+  "summary": "Tetanus , diphtheria , and pertussis (whooping cough) are serious bacterial infections : Tetanus is an uncommon disease that requires immediate treatment in a hospital. It causes painful tightening of the muscles, usually all over the body. It can lead to \"locking\" of the jaw. Diphtheria usually affects the nose and throat. But it can also affect the skin and other body parts. Whooping cough can cause uncontrollable coughing fits. It may begin like a cold , but unlike a cold, the coughing can last for weeks or months. Vaccines can protect you from these diseases. In the U.S., there are three combination vaccines: DTaP (diphtheria, tetanus, and pertussis) prevents all three diseases. It is for babies and children under age 7. There are several different DTaP vaccines. Some of them also protect against other diseases. Tdap (tetanus, diphtheria, and pertussis) also prevents all three diseases. It is for older children and adults. Td (tetanus and diphtheria) prevents those two diseases. It is for older children and adults. It is usually given as a booster dose every 10 years. You may also get it after 5 years if you get a severe or dirty wound or burn. Some people should not get these vaccines, including those who have had severe reactions to the shots before. Check with your health care provider first if you have seizures , a neurologic problem , or Guillain-Barre syndrome . People with minor illnesses such as a cold can get vaccinated. But those who are more ill may need wait until they feel better before getting some vaccines. Centers for Disease Control and Prevention",
+  "page_content": "Tetanus , diphtheria , and pertussis (whooping cough) are serious bacterial infections : Tetanus is an uncommon disease that requires immediate treatment in a hospital. It causes painful tightening of the muscles, usually all over the body. It can lead to \"locking\" of the jaw. Diphtheria usually affects the nose and throat. But it can also affect the skin and other body parts. Whooping cough can cause uncontrollable coughing fits. It may begin like a cold , but unlike a cold, the coughing can last for weeks or months. Vaccines can protect you from these diseases. In the U.S., there are three combination vaccines: DTaP (diphtheria, tetanus, and pertussis) prevents all three diseases. It is for babies and children under age 7. There are several different DTaP vaccines. Some of them also protect against other diseases. Tdap (tetanus, diphtheria, and pertussis) also prevents all three diseases. It is for older children and adults. Td (tetanus and diphtheria) prevents those two diseases. It is for older children and adults. It is usually given as a booster dose every 10 years. You may also get it after 5 years if you get a severe or dirty wound or burn. Some people should not get these vaccines, including those who have had severe reactions to the shots before. Check with your health care provider first if you have seizures , a neurologic problem , or Guillain-Barre syndrome . People with minor illnesses such as a cold can get vaccinated. But those who are more ill may need wait until they feel better before getting some vaccines. Centers for Disease Control and Prevention",
+  "content_sha256": "ef4f079e7c65c192b0d6dfc3cc3d4b622b51c9160800a4a7c7b0463152b519b2",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED_WITH_SAFETY_FLAG",
+  "qa_flags": [
+    "public_health_immunization_schedule"
+  ],
+  "qa_review_reason": "Lịch tiêm chủng mở rộng quốc gia khuyến cáo tiêm nhắc lại mỗi 10 năm hoặc sau 5 năm nếu có vết thương bẩn; không phải kê đơn tự do.",
+  "safety_classification": "SAFE_WITH_CONTEXT",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

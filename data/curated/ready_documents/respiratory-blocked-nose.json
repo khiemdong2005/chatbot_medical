@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
   "medlineplus_id": "1400",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Blocked nose",
+  "title_vi": "Nghẹt mũi (Tắc mũi)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "blocked nose",
+    "nasal congestion",
+    "stuffy nose",
+    "sinus blockage"
+  ],
+  "keywords_vi": [
+    "nghẹt mũi",
+    "tắc mũi",
+    "ngạt mũi",
+    "khó thở bằng mũi",
+    "viêm mũi"
+  ],
+  "content_hash": "d6df3c5225ea9e0100bd4d25efa6a1c59be14f1d011bf57b628a185f90e47394",
+  "content_sha256": "d6df3c5225ea9e0100bd4d25efa6a1c59be14f1d011bf57b628a185f90e47394",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/crohnsdisease.html",
   "medlineplus_id": "119",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Crohn's disease",
+  "title_vi": "Bệnh Crohn (Viêm ruột từng vùng)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "Crohn's disease",
+    "inflammatory bowel disease",
+    "IBD",
+    "intestinal inflammation"
+  ],
+  "keywords_vi": [
+    "bệnh crohn",
+    "viêm ruột từng vùng",
+    "viêm đại tràng",
+    "đau bụng tiêu chảy",
+    "bệnh IBD"
+  ],
+  "content_hash": "82a1f1c764c175ca18f6555dd68e89d68d953d5a77a157da9753124956565861",
+  "content_sha256": "82a1f1c764c175ca18f6555dd68e89d68d953d5a77a157da9753124956565861",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

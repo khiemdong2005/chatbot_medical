@@ -15,5 +15,27 @@
   "source_url": "https://medlineplus.gov/ecigarettes.html",
   "medlineplus_id": "6290",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vaping",
+  "title_vi": "Tác hại của thuốc lá điện tử (Vaping)",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "vaping",
+    "e-cigarettes",
+    "vape health risks",
+    "nicotine addiction vaping",
+    "lung injury vaping"
+  ],
+  "keywords_vi": [
+    "thuốc lá điện tử",
+    "vaping",
+    "tác hại khói vape",
+    "nghiện nicotine vape",
+    "tổn thương phổi do vape"
+  ],
+  "content_hash": "e70953b2cc8514fcff76256b4de1d5402f8f0152024858b93b7f689eec20e476",
+  "content_sha256": "e70953b2cc8514fcff76256b4de1d5402f8f0152024858b93b7f689eec20e476",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

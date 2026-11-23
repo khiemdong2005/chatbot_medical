@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/vaccines.html",
   "medlineplus_id": "294",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Vaccinations",
+  "title_vi": "Tiêm chủng ở trẻ em",
+  "category_en": "Pregnancy & Children",
+  "category_vi": "Sản phụ khoa & Nhi khoa",
+  "keywords_en": [
+    "childhood vaccinations",
+    "immunization schedule",
+    "vaccines",
+    "pediatric immunization",
+    "disease prevention"
+  ],
+  "keywords_vi": [
+    "tiêm chủng ở trẻ em",
+    "vắc-xin trẻ em",
+    "lịch tiêm chủng",
+    "phòng ngừa bệnh",
+    "nhi khoa"
+  ],
+  "content_hash": "b0361f170fd943af69f1a37ea5e6722e121379997c581c6eca1251ff0a8fbbcd",
+  "content_sha256": "b0361f170fd943af69f1a37ea5e6722e121379997c581c6eca1251ff0a8fbbcd",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/menopause.html",
   "medlineplus_id": "62",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Menopause",
+  "title_vi": "Mãn kinh",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "menopause",
+    "postmenopause",
+    "cessation of menses",
+    "low estrogen",
+    "female aging"
+  ],
+  "keywords_vi": [
+    "mãn kinh",
+    "tuổi mãn kinh",
+    "hết kinh",
+    "suy giảm estrogen",
+    "nội tiết tố nữ"
+  ],
+  "content_hash": "38386d4589c5616fffac7dee6cc214a45ab796566dbbe2f5af06eace5e3af03d",
+  "content_sha256": "38386d4589c5616fffac7dee6cc214a45ab796566dbbe2f5af06eace5e3af03d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

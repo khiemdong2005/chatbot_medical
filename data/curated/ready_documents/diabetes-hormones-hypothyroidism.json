@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hypothyroidism.html",
   "medlineplus_id": "6175",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hypothyroidism",
+  "title_vi": "Suy giáp (Tuyến giáp hoạt động kém)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "hypothyroidism",
+    "underactive thyroid",
+    "fatigue weight gain",
+    "cold sensitivity",
+    "thyroid deficiency"
+  ],
+  "keywords_vi": [
+    "suy giáp",
+    "tuyến giáp hoạt động kém",
+    "mệt mỏi tăng cân sợ lạnh",
+    "nội tiết",
+    "hormone tuyến giáp"
+  ],
+  "content_hash": "3388b547bed680b54839869c803464d6ee81a0044e982277a6fd7280954f6b31",
+  "content_sha256": "3388b547bed680b54839869c803464d6ee81a0044e982277a6fd7280954f6b31",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

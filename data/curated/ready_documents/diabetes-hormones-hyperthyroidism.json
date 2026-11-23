@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hyperthyroidism.html",
   "medlineplus_id": "6177",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hyperthyroidism",
+  "title_vi": "Cường giáp (Tuyến giáp hoạt động quá mức)",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "hyperthyroidism",
+    "overactive thyroid",
+    "rapid heart rate",
+    "weight loss",
+    "thyroid hormone"
+  ],
+  "keywords_vi": [
+    "cường giáp",
+    "tuyến giáp hoạt động quá mức",
+    "tim đập nhanh sụt cân",
+    "bướu giáp",
+    "nội tiết"
+  ],
+  "content_hash": "16c1225412ae12a0fc27b5dd12015d9009d87b02d8d0f58684b4add85ad855bd",
+  "content_sha256": "16c1225412ae12a0fc27b5dd12015d9009d87b02d8d0f58684b4add85ad855bd",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

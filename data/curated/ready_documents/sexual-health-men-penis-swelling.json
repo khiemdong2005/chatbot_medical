@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/penisdisorders.html",
   "medlineplus_id": "1360",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Penis swelling",
+  "title_vi": "Sưng dương vật",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "penis swelling",
+    "penile edema",
+    "swollen foreskin",
+    "paraphimosis"
+  ],
+  "keywords_vi": [
+    "sưng dương vật",
+    "phù nề dương vật",
+    "sưng bao quy đầu",
+    "nghẹt bao quy đầu",
+    "nam khoa"
+  ],
+  "content_hash": "e8bd0384ec2f601dac31d7aef4ab2ed3d2715cfb8a9f73d0cb99ddcd68430464",
+  "content_sha256": "e8bd0384ec2f601dac31d7aef4ab2ed3d2715cfb8a9f73d0cb99ddcd68430464",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

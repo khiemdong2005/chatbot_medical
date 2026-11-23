@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/backinjuries.html",
   "medlineplus_id": "156",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heavy lifting injuries",
+  "title_vi": "Chấn thương do mang vác nặng",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "heavy lifting injuries",
+    "lifting strain",
+    "back injury",
+    "spine injury",
+    "ergonomics"
+  ],
+  "keywords_vi": [
+    "chấn thương mang vác",
+    "căng cơ do vác nặng",
+    "chấn thương lưng",
+    "thoát vị đĩa đệm",
+    "bảo vệ cột sống"
+  ],
+  "content_hash": "4fdad8c91e2b13e1a0a2a1de8a2f8f0e91d801b0168843c0b1f161b9ccaf0fdc",
+  "content_sha256": "4fdad8c91e2b13e1a0a2a1de8a2f8f0e91d801b0168843c0b1f161b9ccaf0fdc",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

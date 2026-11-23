@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/painrelievers.html",
   "medlineplus_id": "4059",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Painkillers",
+  "title_vi": "Thuốc giảm đau",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "painkillers",
+    "analgesics",
+    "pain relievers",
+    "OTC pain medication",
+    "chronic pain relief"
+  ],
+  "keywords_vi": [
+    "thuốc giảm đau",
+    "thuốc giảm đau không kê đơn",
+    "giảm đau nhức",
+    "tác dụng phụ",
+    "dược lâm sàng"
+  ],
+  "content_hash": "20e279042d790f174655741aa1388c57974b679d939125a13c285897c29295a6",
+  "content_sha256": "20e279042d790f174655741aa1388c57974b679d939125a13c285897c29295a6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

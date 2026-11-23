@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/hayfever.html",
   "medlineplus_id": "4746",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hay fever",
+  "title_vi": "Sốt cỏ khô (Dị ứng phấn hoa)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "hay fever",
+    "pollinosis",
+    "pollen allergy",
+    "seasonal rhinitis"
+  ],
+  "keywords_vi": [
+    "sốt cỏ khô",
+    "dị ứng phấn hoa",
+    "ngứa mắt hắt hơi",
+    "chảy nước mũi",
+    "dị ứng theo mùa"
+  ],
+  "content_hash": "cab09a1a67a95845898976bdca21dbc2799958eb76a10af28538eb78b5e1ec1e",
+  "content_sha256": "cab09a1a67a95845898976bdca21dbc2799958eb76a10af28538eb78b5e1ec1e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

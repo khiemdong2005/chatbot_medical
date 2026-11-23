@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/menopause.html",
   "medlineplus_id": "62",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hot flashes",
+  "title_vi": "Bốc hỏa (Cơn nóng bừng)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "hot flashes",
+    "hot flushes",
+    "night sweats",
+    "menopausal symptom"
+  ],
+  "keywords_vi": [
+    "bốc hỏa",
+    "cơn nóng bừng",
+    "tiền mãn kinh",
+    "đổ mồ hôi đêm",
+    "nội tiết nữ"
+  ],
+  "content_hash": "66164707d52734f9fb52d7c0bc7fdd26ab49dbf6c8a77896b150a1c298567c43",
+  "content_sha256": "66164707d52734f9fb52d7c0bc7fdd26ab49dbf6c8a77896b150a1c298567c43",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

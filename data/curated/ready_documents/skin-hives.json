@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hives.html",
   "medlineplus_id": "289",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hives",
+  "title_vi": "Mề đay (Mày đay dị ứng)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "hives",
+    "urticaria",
+    "allergic welts",
+    "itchy wheals",
+    "skin rash hives"
+  ],
+  "keywords_vi": [
+    "mề đay",
+    "mày đay",
+    "dị ứng nổi sẩn ngứa",
+    "phù mạch",
+    "kháng histamin"
+  ],
+  "content_hash": "684e238f18d92e31fbcc3f6eeb057a57a00bf0867fc76e9a48654a63da7819d4",
+  "content_sha256": "684e238f18d92e31fbcc3f6eeb057a57a00bf0867fc76e9a48654a63da7819d4",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

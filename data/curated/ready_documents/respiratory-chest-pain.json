@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/chestpain.html",
   "medlineplus_id": "4744",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Chest pain",
+  "title_vi": "Đau ngực kiểu màng phổi",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "chest pain respiratory",
+    "pleuritic chest pain",
+    "pain on deep breath",
+    "pleurisy"
+  ],
+  "keywords_vi": [
+    "đau ngực hô hấp",
+    "đau khi hít sâu",
+    "viêm màng phổi",
+    "đau thành ngực",
+    "hô hấp"
+  ],
+  "content_hash": "a395b83049c5e788dcffe3f6a92bbe1d4cfb1e9bd771b6ac8848f1c2c7d58e42",
+  "content_sha256": "a395b83049c5e788dcffe3f6a92bbe1d4cfb1e9bd771b6ac8848f1c2c7d58e42",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

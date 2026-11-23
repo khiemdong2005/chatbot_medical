@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/backpain.html",
   "medlineplus_id": "157",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Upper back pain",
+  "title_vi": "Đau lưng trên",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "upper back pain",
+    "thoracic spine pain",
+    "upper spine ache",
+    "scapular discomfort"
+  ],
+  "keywords_vi": [
+    "đau lưng trên",
+    "căng cơ lưng trên",
+    "đau cột sống ngực",
+    "nhức mỏi lưng",
+    "cột sống ngực"
+  ],
+  "content_hash": "37ed2c6fa44437d8e956259593d01099c0dc5cc40ad4c6e6679d495e704a9a3b",
+  "content_sha256": "37ed2c6fa44437d8e956259593d01099c0dc5cc40ad4c6e6679d495e704a9a3b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -45,7 +45,7 @@ def test_gemini_risk_score_clamped_to_range():
     # Không phải số
     res_invalid_num = service._validate_and_parse_json('{"answer": "Nội dung tư vấn", "risk_score": "not_a_number"}')
     assert res_invalid_num is not None
-    assert 0 <= res_invalid_num["risk_score"] <= 100
+    assert res_invalid_num["risk_score"] is None
 
 
 def test_chat_service_fallback_marks_degraded():
@@ -62,14 +62,14 @@ def test_chat_service_fallback_marks_degraded():
 
     assert result["degraded"] is True
     assert result["answer"] != ""
-    assert 0 <= result["risk_score"] <= 100
+    assert result["risk_score"] is None
     assert isinstance(result["sources"], list)
-    assert len(result["sources"]) > 0
 
 
-def test_chat_service_does_not_invent_fake_medlineplus_when_no_sources():
+def test_chat_service_does_not_invent_fake_medlineplus_when_no_sources(monkeypatch):
     """Kiểm thử: Khi không có tài liệu trích dẫn thực tế, không tự bịa nguồn MedlinePlus hay gán nguy cơ Thấp."""
     from unittest.mock import MagicMock
+    monkeypatch.setattr("core.chat_service.medical_rag_service.retrieve_context", lambda *args, **kwargs: [])
     mock_gemini = GeminiMedicalService(api_key="mock_key_1234567890")
     # Giả lập Gemini trả về kết quả không có sources và không có risk_level
     mock_gemini.generate_clinical_response = MagicMock(return_value={

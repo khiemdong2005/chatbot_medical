@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/obesity.html",
   "medlineplus_id": "61",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Obesity",
+  "title_vi": "Bệnh béo phì và kiểm soát cân nặng",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "obesity",
+    "overweight",
+    "high BMI",
+    "weight management",
+    "obesity health risks"
+  ],
+  "keywords_vi": [
+    "béo phì",
+    "thừa cân béo phì",
+    "chỉ số BMI cao",
+    "giảm cân ngừa bệnh",
+    "bệnh chuyển hóa"
+  ],
+  "content_hash": "8817e2665160f3180544c51d343fb2716a1b39ee3d0694d9d32e0b3ec963646a",
+  "content_sha256": "8817e2665160f3180544c51d343fb2716a1b39ee3d0694d9d32e0b3ec963646a",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

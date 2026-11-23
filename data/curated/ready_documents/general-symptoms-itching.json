@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/itching.html",
   "medlineplus_id": "3067",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Itching",
+  "title_vi": "Ngứa ngáy (Ngứa toàn thân)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "itching",
+    "pruritus",
+    "itchy skin",
+    "allergic itch"
+  ],
+  "keywords_vi": [
+    "ngứa ngáy",
+    "ngứa da",
+    "dị ứng ngứa",
+    "mẩn ngứa",
+    "da liễu"
+  ],
+  "content_hash": "0aec1d6c37e2d0166397fe02369561f0b87d5c3d8acc236d4f20283414eddb53",
+  "content_sha256": "0aec1d6c37e2d0166397fe02369561f0b87d5c3d8acc236d4f20283414eddb53",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

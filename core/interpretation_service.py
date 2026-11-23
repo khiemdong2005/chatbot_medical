@@ -1,18 +1,22 @@
 import os
 import json
 import re
+import logging
 from typing import Dict, Any
-from google import genai
+
+logger = logging.getLogger("InterpretationService")
 
 def generate_clinical_interpretation(validated_data: Dict[str, Any], api_key: str = "") -> Dict[str, Any]:
     """
-    [6] Diễn giải (Gemini, CHỈ NHẬN JSON ĐÃ VALIDATE):
+    [6] Diễn giải (Gemini qua Unified LLM Provider, CHỈ NHẬN JSON ĐÃ VALIDATE):
       - Giải thích đơn giản cho người dùng, tuyệt đối không tự thêm số liệu mới.
       - Gắn disclaimer rõ ràng.
       - Field needs_review=True hiển thị "vui lòng kiểm tra lại với đơn gốc".
     """
+    from core.llm_provider import llm_provider
+
     if not api_key:
-        api_key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
+        api_key = llm_provider.resolve_api_key(profile="interpretation")
 
     doc_type = validated_data.get("doc_type", "prescription")
     clean_payload = {
@@ -49,23 +53,20 @@ Trả về kết quả dưới dạng Markdown có cấu trúc (gồm các tiêu
         }
 
     try:
-        client = genai.Client(api_key=api_key)
         candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest"]
-        for model in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model,
-                    contents=prompt
-                )
-                if res and res.text:
-                    return {
-                        "interpretation_md": res.text.strip(),
-                        "disclaimer": "CẢNH BÁO: Thông tin trên mang tính chất hỗ trợ tra cứu và theo dõi tuân thủ điều trị. Bệnh nhân không tự ý thay đổi liều hoặc ngừng thuốc khi chưa có chỉ định của Bác sĩ."
-                    }
-            except Exception:
-                continue
+        res_text = llm_provider.generate_text(
+            prompt=prompt,
+            candidate_models=candidate_models,
+            api_key=api_key,
+            operation="interpretation"
+        )
+        if res_text and res_text.strip():
+            return {
+                "interpretation_md": res_text.strip(),
+                "disclaimer": "CẢNH BÁO: Thông tin trên mang tính chất hỗ trợ tra cứu và theo dõi tuân thủ điều trị. Bệnh nhân không tự ý thay đổi liều hoặc ngừng thuốc khi chưa có chỉ định của Bác sĩ."
+            }
     except Exception as e:
-        print(f"[INTERPRETATION ERROR] {e}")
+        logger.warning("Clinical interpretation call failed (%s).", type(e).__name__)
 
     return {
         "interpretation_md": "### Tóm tắt kết quả\nQuá trình trích xuất và chuẩn hóa hoàn tất. Vui lòng kiểm tra kỹ các thông tin trước khi xác nhận.",

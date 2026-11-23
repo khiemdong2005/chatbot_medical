@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
   "medlineplus_id": "5912",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "PCOS",
+  "title_vi": "Hội chứng buồng trứng đa nang (PCOS)",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "PCOS",
+    "polycystic ovary syndrome",
+    "anovulation",
+    "hyperandrogenism",
+    "irregular ovulation"
+  ],
+  "keywords_vi": [
+    "buồng trứng đa nang",
+    "PCOS",
+    "rối loạn rụng trứng",
+    "kinh nguyệt thưa rậm lông",
+    "kháng insulin nữ"
+  ],
+  "content_hash": "f6381192041d76793a261cdf03d44bee1617bcee73a6dc19a002c1676785ed0c",
+  "content_sha256": "f6381192041d76793a261cdf03d44bee1617bcee73a6dc19a002c1676785ed0c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

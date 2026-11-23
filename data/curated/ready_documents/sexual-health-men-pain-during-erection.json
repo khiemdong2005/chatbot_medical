@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/penisdisorders.html",
   "medlineplus_id": "1360",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pain during erection",
+  "title_vi": "Đau khi cương cứng",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "pain during erection",
+    "painful erection",
+    "priapism symptom",
+    "penile pain erection"
+  ],
+  "keywords_vi": [
+    "đau khi cương cứng",
+    "đau dương vật khi cương",
+    "cong dương vật đau",
+    "viêm thể hang",
+    "nam khoa"
+  ],
+  "content_hash": "7fb3aee2debb77908dfda76156e126db45ca152c8c0336a2df5dae1925cf8e31",
+  "content_sha256": "7fb3aee2debb77908dfda76156e126db45ca152c8c0336a2df5dae1925cf8e31",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

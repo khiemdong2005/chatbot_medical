@@ -1,0 +1,49 @@
+{
+  "id": "bellspalsy",
+  "title": "Bell's Palsy",
+  "title_en": "Bell's Palsy",
+  "title_vi": "Liệt dây thần kinh số VII ngoại biên (Liệt mặt Bell)",
+  "category": "Neurology",
+  "category_en": "Neurology",
+  "category_vi": "Thần kinh",
+  "search_phrases": [
+    "Bell's palsy",
+    "facial nerve paralysis",
+    "facial weakness",
+    "drooping smile",
+    "cranial nerve VII",
+    "liệt mặt bell",
+    "liệt dây thần kinh số 7",
+    "méo miệng",
+    "mắt nhắm không kín",
+    "liệt mặt ngoại biên"
+  ],
+  "keywords_en": [
+    "Bell's palsy",
+    "facial nerve paralysis",
+    "facial weakness",
+    "drooping smile",
+    "cranial nerve VII"
+  ],
+  "keywords_vi": [
+    "liệt mặt bell",
+    "liệt dây thần kinh số 7",
+    "méo miệng",
+    "mắt nhắm không kín",
+    "liệt mặt ngoại biên"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/bellspalsy.html",
+  "summary": "Bell's palsy is the most common cause of facial paralysis. It usually affects just one side of the face. Symptoms appear suddenly and are at their worst about 48 hours after they start. They can range from mild to severe and include: Twitching Weakness Paralysis Drooping eyelid or corner of mouth Drooling Dry eye or mouth Excessive tearing in the eye Impaired ability to taste Scientists think that a viral infection makes the facial nerve swell or become inflamed. You are most likely to get Bell's palsy if you are pregnant, diabetic or sick with a cold or flu. Three out of four patients improve without treatment. With or without treatment, most people begin to get better within 2 weeks and recover completely within 3 to 6 months. NIH: National Institute of Neurological Disorders and Stroke",
+  "page_content": "Bell's palsy is the most common cause of facial paralysis. It usually affects just one side of the face. Symptoms appear suddenly and are at their worst about 48 hours after they start. They can range from mild to severe and include: Twitching Weakness Paralysis Drooping eyelid or corner of mouth Drooling Dry eye or mouth Excessive tearing in the eye Impaired ability to taste Scientists think that a viral infection makes the facial nerve swell or become inflamed. You are most likely to get Bell's palsy if you are pregnant, diabetic or sick with a cold or flu. Three out of four patients improve without treatment. With or without treatment, most people begin to get better within 2 weeks and recover completely within 3 to 6 months. NIH: National Institute of Neurological Disorders and Stroke",
+  "content_sha256": "0d478c6882457bfabd577abde3932755b867c65aa924ab706e48e6170b3d4942",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

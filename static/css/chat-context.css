@@ -1,0 +1,24 @@
+.chat-health-context{margin:12px 0;border:1px solid #cfe3ef;border-radius:14px;background:#f6fbfe;color:#1c3b4d;font-size:12px;line-height:1.6}
+.chat-health-context summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;cursor:pointer;list-style:none;font-weight:650}
+.chat-health-context summary::-webkit-details-marker{display:none}
+.chat-health-context summary small{margin-left:6px;font-size:10px;font-weight:400;color:#647b8a}
+.chat-health-context summary [data-context-status]{font-size:10px;font-weight:500;color:#39728b;text-align:right}
+.chat-health-context .chat-context-body{padding:0 14px 14px}
+.chat-health-context .chat-context-notice{margin:0 0 12px;color:#526b7b;font-size:11px}
+.chat-health-context fieldset{border:0;margin:0;padding:0;min-width:0}
+.chat-health-context fieldset:disabled{opacity:.65}
+.chat-health-context .chat-context-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chat-health-context label{display:flex;flex-direction:column;gap:4px;min-width:0;font-weight:600;font-size:11px}
+.chat-health-context .chat-context-wide{grid-column:1/-1}
+.chat-health-context input,.chat-health-context select,.chat-health-context textarea{width:100%;box-sizing:border-box;border:1px solid #c8dae6;border-radius:9px;background:#fff;padding:8px 10px;color:#203c4d;font:inherit;font-size:12px;font-weight:400;resize:vertical}
+.chat-health-context input:focus,.chat-health-context select:focus,.chat-health-context textarea:focus{outline:2px solid #79c8e6;outline-offset:1px}
+.chat-health-context .chat-context-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chat-health-context button{border:1px solid #087aa4;border-radius:9px;padding:8px 12px;background:#087aa4;color:white;font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.chat-health-context button[data-context-clear]{border-color:#c8dae6;background:white;color:#456577}
+.chat-health-context button:disabled{cursor:wait}
+.chat-health-context .chat-context-result{margin:8px 0 0;color:#276d87;font-size:11px}
+body:not(.light-glass) .chat-health-context{background:#132434;border-color:#294359;color:#dbeefa}
+body:not(.light-glass) .chat-health-context input,body:not(.light-glass) .chat-health-context select,body:not(.light-glass) .chat-health-context textarea,body:not(.light-glass) .chat-health-context button[data-context-clear]{background:#0e1c2b;border-color:#385268;color:#e1edf5}
+body:not(.light-glass) .chat-health-context .chat-context-notice,body:not(.light-glass) .chat-health-context summary small{color:#a3b9ca}
+body:not(.light-glass) .chat-health-context summary [data-context-status],body:not(.light-glass) .chat-health-context .chat-context-result{color:#91d4ed}
+@media(max-width:480px){.chat-health-context summary{align-items:flex-start}.chat-health-context summary span:first-child{max-width:65%}.chat-health-context .chat-context-actions button{width:100%}}

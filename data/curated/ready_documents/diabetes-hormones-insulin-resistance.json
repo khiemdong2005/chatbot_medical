@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/metabolicsyndrome.html",
   "medlineplus_id": "3528",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Insulin resistance",
+  "title_vi": "Kháng insulin",
+  "category_en": "Diabetes & Hormones",
+  "category_vi": "Nội tiết & Đái tháo đường",
+  "keywords_en": [
+    "insulin resistance",
+    "metabolic syndrome",
+    "pre-diabetes risk",
+    "hyperinsulinemia",
+    "glucose uptake"
+  ],
+  "keywords_vi": [
+    "kháng insulin",
+    "nhạy cảm insulin",
+    "hội chứng chuyển hóa",
+    "nguy cơ tiểu đường",
+    "nội tiết"
+  ],
+  "content_hash": "e60c91a870354ce9d34a299201705d48ac051f5a376c3d46e17a375ddf6f0d26",
+  "content_sha256": "e60c91a870354ce9d34a299201705d48ac051f5a376c3d46e17a375ddf6f0d26",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

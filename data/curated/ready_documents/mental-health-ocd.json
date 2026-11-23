@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
   "medlineplus_id": "471",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "OCD",
+  "title_vi": "Rối loạn ám ảnh cưỡng chế (OCD)",
+  "category_en": "Mental Health",
+  "category_vi": "Sức khỏe tâm thần",
+  "keywords_en": [
+    "OCD",
+    "obsessive compulsive disorder",
+    "obsessions",
+    "compulsions",
+    "intrusive thoughts"
+  ],
+  "keywords_vi": [
+    "OCD",
+    "ám ảnh cưỡng chế",
+    "suy nghĩ ám ảnh",
+    "hành vi cưỡng chế",
+    "sức khỏe tâm thần"
+  ],
+  "content_hash": "939157d006d17b4e7b184de7e0506ac965b59595c6d4bc536e44586dacaaa92c",
+  "content_sha256": "939157d006d17b4e7b184de7e0506ac965b59595c6d4bc536e44586dacaaa92c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

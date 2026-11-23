@@ -1,0 +1,49 @@
+{
+  "id": "ecoliinfections",
+  "title": "E. coli Infections",
+  "title_en": "E. coli Infections",
+  "title_vi": "Nhiễm khuẩn E. coli",
+  "category": "Infectious Diseases",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "search_phrases": [
+    "E coli infections",
+    "Escherichia coli",
+    "hemolytic uremic syndrome HUS",
+    "bloody diarrhea",
+    "contaminated water",
+    "nhiễm khuẩn e coli",
+    "vi khuẩn e coli",
+    "tiêu chảy ra máu",
+    "hội chứng tán huyết urê huyết cao",
+    "nhiễm độc thực phẩm"
+  ],
+  "keywords_en": [
+    "E coli infections",
+    "Escherichia coli",
+    "hemolytic uremic syndrome HUS",
+    "bloody diarrhea",
+    "contaminated water"
+  ],
+  "keywords_vi": [
+    "nhiễm khuẩn e coli",
+    "vi khuẩn e coli",
+    "tiêu chảy ra máu",
+    "hội chứng tán huyết urê huyết cao",
+    "nhiễm độc thực phẩm"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/ecoliinfections.html",
+  "summary": "E. coli is the name of a type of bacteria that lives in your intestines. Most types of E. coli are harmless. However, some types can make you sick and cause diarrhea . One type causes travelers' diarrhea. The worst type of E. coli causes bloody diarrhea, and can sometimes cause kidney failure and even death. These problems are most likely to occur in children and in adults with weak immune systems. You can get E. coli infections by eating foods containing the bacteria. Symptoms of infection include: Nausea or vomiting Severe abdominal cramps Watery or very bloody diarrhea Fatigue Fever To help avoid food poisoning and prevent infection, handle food safely . Cook meat well, wash fruits and vegetables before eating or cooking them, and avoid unpasteurized milk and juices. You can also get the infection by swallowing water in a swimming pool contaminated with human waste. Most cases of E. coli infection get better without treatment in 5 to 10 days.",
+  "page_content": "E. coli is the name of a type of bacteria that lives in your intestines. Most types of E. coli are harmless. However, some types can make you sick and cause diarrhea . One type causes travelers' diarrhea. The worst type of E. coli causes bloody diarrhea, and can sometimes cause kidney failure and even death. These problems are most likely to occur in children and in adults with weak immune systems. You can get E. coli infections by eating foods containing the bacteria. Symptoms of infection include: Nausea or vomiting Severe abdominal cramps Watery or very bloody diarrhea Fatigue Fever To help avoid food poisoning and prevent infection, handle food safely . Cook meat well, wash fruits and vegetables before eating or cooking them, and avoid unpasteurized milk and juices. You can also get the infection by swallowing water in a swimming pool contaminated with human waste. Most cases of E. coli infection get better without treatment in 5 to 10 days.",
+  "content_sha256": "e20fe7357bd64cdd08c2fe2025e07c855eabcb66b1ea619533e6734831262b87",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

@@ -14,5 +14,26 @@
   "source_url": "https://medlineplus.gov/erectiledysfunction.html",
   "medlineplus_id": "118",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Morning erections",
+  "title_vi": "Hiện tượng cương dương buổi sáng",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "morning erections",
+    "nocturnal penile tumescence",
+    "NPT",
+    "healthy male erection"
+  ],
+  "keywords_vi": [
+    "cương dương buổi sáng",
+    "hiện tượng chào cờ",
+    "cương dương sinh lý",
+    "chức năng cương dương",
+    "nam khoa"
+  ],
+  "content_hash": "178562bd2bbf9b592c49838e73521d5870fac5bc6cc89b956ca2721169413e56",
+  "content_sha256": "178562bd2bbf9b592c49838e73521d5870fac5bc6cc89b956ca2721169413e56",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

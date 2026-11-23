@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/heatillness.html",
   "medlineplus_id": "280",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Heat exhaustion",
+  "title_vi": "Kiệt sức do nhiệt",
+  "category_en": "First Aid & Emergencies",
+  "category_vi": "Cấp cứu & Sơ cứu",
+  "keywords_en": [
+    "heat exhaustion",
+    "heat illness",
+    "dehydration heat",
+    "cool down",
+    "heat fatigue"
+  ],
+  "keywords_vi": [
+    "kiệt sức do nhiệt",
+    "say nắng nhẹ",
+    "mất nước do nóng",
+    "hạ nhiệt nghỉ ngơi",
+    "thân nhiệt cao"
+  ],
+  "content_hash": "04d7a4222676ec61be8215b7906ac6e69b53e24a8bd98df1546815f625b13332",
+  "content_sha256": "04d7a4222676ec61be8215b7906ac6e69b53e24a8bd98df1546815f625b13332",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

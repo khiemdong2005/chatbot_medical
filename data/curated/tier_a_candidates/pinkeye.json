@@ -1,0 +1,49 @@
+{
+  "id": "pinkeye",
+  "title": "Pinkeye (Conjunctivitis)",
+  "title_en": "Pinkeye (Conjunctivitis)",
+  "title_vi": "Đau mắt đỏ (Viêm kết mạc)",
+  "category": "Ophthalmology",
+  "category_en": "Ophthalmology",
+  "category_vi": "Nhãn khoa",
+  "search_phrases": [
+    "pinkeye",
+    "conjunctivitis",
+    "red itchy eye",
+    "eye discharge",
+    "viral conjunctivitis",
+    "đau mắt đỏ",
+    "viêm kết mạc",
+    "đỏ mắt chảy ghèn",
+    "ngứa rát mắt",
+    "dịch đau mắt đỏ"
+  ],
+  "keywords_en": [
+    "pinkeye",
+    "conjunctivitis",
+    "red itchy eye",
+    "eye discharge",
+    "viral conjunctivitis"
+  ],
+  "keywords_vi": [
+    "đau mắt đỏ",
+    "viêm kết mạc",
+    "đỏ mắt chảy ghèn",
+    "ngứa rát mắt",
+    "dịch đau mắt đỏ"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/pinkeye.html",
+  "summary": "Conjunctivitis is the medical name for pink eye. It involves inflammation of the outer layer of the eye and inside of the eyelid. It can cause swelling, itching, burning, discharge, and redness. Causes include: Bacterial or viral infection Allergies Substances that cause irritation Contact lens products, eye drops, or eye ointments Pink eye usually does not affect vision. Infectious pink eye can easily spread from one person to another. The infection will clear in most cases without medical care, but bacterial pink eye needs treatment with antibiotic eye drops or ointment. NIH: National Eye Institute",
+  "page_content": "Conjunctivitis is the medical name for pink eye. It involves inflammation of the outer layer of the eye and inside of the eyelid. It can cause swelling, itching, burning, discharge, and redness. Causes include: Bacterial or viral infection Allergies Substances that cause irritation Contact lens products, eye drops, or eye ointments Pink eye usually does not affect vision. Infectious pink eye can easily spread from one person to another. The infection will clear in most cases without medical care, but bacterial pink eye needs treatment with antibiotic eye drops or ointment. NIH: National Eye Institute",
+  "content_sha256": "73db6eeaa609f81b461af2ddfa0eacc39af3f116b5a5d9870f080de5a2c06ed8",
+  "candidate_score": 0.96,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

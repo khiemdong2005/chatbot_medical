@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/overactivebladder.html",
   "medlineplus_id": "6132",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Overactive bladder",
+  "title_vi": "Bàng quang tăng hoạt (OAB)",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "overactive bladder",
+    "urinary urgency",
+    "frequent urination",
+    "bladder spasms",
+    "nocturia"
+  ],
+  "keywords_vi": [
+    "bàng quang tăng hoạt",
+    "tiểu gấp",
+    "tiểu nhiều lần",
+    "tiểu đêm",
+    "tiết niệu"
+  ],
+  "content_hash": "aa6bc8c35c6c5768a7a89becaebe93d060e1fa5f7a9844ca45129f93e96c89c1",
+  "content_sha256": "aa6bc8c35c6c5768a7a89becaebe93d060e1fa5f7a9844ca45129f93e96c89c1",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

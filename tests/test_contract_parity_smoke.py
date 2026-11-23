@@ -1,6 +1,6 @@
 import pytest
 from starlette.testclient import TestClient
-from main_fastapi import app as fastapi_app
+from core.main_fastapi import app as fastapi_app
 
 
 def test_flask_and_fastapi_chat_contract_parity(client):
@@ -41,10 +41,8 @@ def test_flask_and_fastapi_chat_contract_parity(client):
         assert k in fastapi_data, f"FastAPI thiếu trường hợp đồng: {k}"
 
     # Kiểm tra loại dữ liệu
-    assert isinstance(flask_data["risk_score"], int)
-    assert isinstance(fastapi_data["risk_score"], int)
-    assert 0 <= flask_data["risk_score"] <= 100
-    assert 0 <= fastapi_data["risk_score"] <= 100
+    for data in (flask_data, fastapi_data):
+        assert data["risk_score"] is None or (type(data["risk_score"]) is int and 0 <= data["risk_score"] <= 100)
     assert isinstance(flask_data["sources"], list)
     assert isinstance(fastapi_data["sources"], list)
 
@@ -61,12 +59,12 @@ def test_emergency_parity_across_backends(client):
     flask_res = client.post("/api/chat", json=emergency_payload)
     assert flask_res.status_code == 200
     assert flask_res.get_json()["is_emergency"] is True
-    assert flask_res.get_json()["risk_score"] == 90
+    assert flask_res.get_json()["risk_score"] is None
 
     # FastAPI
     fastapi_client = TestClient(fastapi_app)
     fastapi_res = fastapi_client.post("/api/chat", json=emergency_payload)
     assert fastapi_res.status_code == 200
     assert fastapi_res.json()["is_emergency"] is True
-    assert fastapi_res.json()["risk_score"] == 90
+    assert fastapi_res.json()["risk_score"] is None
 

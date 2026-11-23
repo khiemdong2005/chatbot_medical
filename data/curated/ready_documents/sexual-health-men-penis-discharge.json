@@ -16,5 +16,26 @@
   "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
   "medlineplus_id": "400",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Penis discharge",
+  "title_vi": "Chảy mủ hoặc dịch tiết bất thường ở dương vật",
+  "category_en": "Sexual Health (Men)",
+  "category_vi": "Sức khỏe nam khoa",
+  "keywords_en": [
+    "penis discharge",
+    "urethral discharge male",
+    "pus from penis",
+    "urethritis male"
+  ],
+  "keywords_vi": [
+    "chảy mủ dương vật",
+    "tiết dịch niệu đạo nam",
+    "viêm niệu đạo mủ",
+    "dấu hiệu bệnh lậu",
+    "nam khoa"
+  ],
+  "content_hash": "0d9caeea8d8eb8ec9a80a1ac9d45aab3ff06533ab2fdf9968a81adbee4101372",
+  "content_sha256": "0d9caeea8d8eb8ec9a80a1ac9d45aab3ff06533ab2fdf9968a81adbee4101372",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

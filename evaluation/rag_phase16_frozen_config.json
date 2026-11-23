@@ -1,0 +1,34 @@
+{
+  "frozen_at_utc": "2026-11-12T08:54:24.638780+00:00",
+  "dataset_role": "provisional holdout; not independently expert-reviewed",
+  "files_sha256": {
+    "evaluation/rag_dev_dataset.json": "e5b25cabc2d7ed431f07da00d7fbb466dcdca7a0209cfe32f39484ce55bb455b",
+    "evaluation/rag_test_dataset.json": "6a5ceff833afc669309b4fb925adb91cdd8c1af9731928954884e43127d7de44",
+    "evaluation/rag_eval_dataset.json": "e5b25cabc2d7ed431f07da00d7fbb466dcdca7a0209cfe32f39484ce55bb455b",
+    "evaluation/cache/phase16_test_vi_input.json": "b9172a07adef635a32f0d09809bfb2fb86b30973e16e194596d42fc751e21572",
+    "core/rag_service.py": "61cce3fd857f34b059b6f3f7b6fb6d4a4443bbfc15c35d2aca7e25eeef004afa",
+    "scripts/experimental_cross_language.py": "d978b7e0592ee34f98daa783c861941b3efe22390c2cf3b0cbcc88f919b0432a",
+    "scripts/query_expansion_experiment.py": "8bda0771c96031f4e59a3f63f8465f24e4acfd02016a3382977aef63ad3989f4",
+    "scripts/cache_cross_language_queries.py": "ff00659f3a2f1e64428a03394afe2ebdabb60ee4d06ccf6561b453e449a3c3df",
+    "scripts/evaluate_rag_holdout.py": "95451b37bab21a9b14fd6815c62f1b383d76a04296a32bf12f4803ac2339762e",
+    "scripts/evaluate_retrieval.py": "853194a0c09dbbddfb386ea575dec657545de8ae5c63757ef54c1aa7bf5fe124",
+    "scripts/validate_rag_test_set.py": "cf1e17ff29e788913fe2f326b8607ab4f80ac72422358e10a3a2b8c3b7ab2ac9"
+  },
+  "corpus_sha256": "74b767f1c94704a529df19571b78f3b085364d8713ab5352bae537d8e3072b38",
+  "bm25": "existing core/rag_service.py lexical BM25, k1=1.2, b=0.75, existing df/overlap gating and existing query expansion",
+  "candidate_chunk_budget": 20,
+  "branch_pool_chunks": 60,
+  "rrf_constant": 60,
+  "document_identity": "metadata.source_url",
+  "source_dedup": "after top-20 chunk fusion",
+  "vector_enabled": false,
+  "reranker_enabled": false,
+  "query_expansion_method": "google_translate_unofficial_gtx_vi_en_keywords_v1",
+  "query_expansion_cache": "evaluation/cache/cross_language_test_queries.json",
+  "provider_version": "unspecified remote model; per-query responses will be frozen in cache before evaluation",
+  "notes": [
+    "Benchmark script refuses a second run after an attempt marker is created.",
+    "Evaluation labels are not present in translation input and are read only after retrieval.",
+    "Translation occurs before the single evaluation run; no tuning is permitted."
+  ]
+}

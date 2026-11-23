@@ -1,0 +1,38 @@
+{
+  "id": "overactive-bladder",
+  "title": "Overactive bladder",
+  "category": "Urinary System",
+  "mapped_title": "Overactive Bladder",
+  "page_content": "User topic: Overactive bladder\nCategory: Urinary System\nTrusted medical topic: Overactive Bladder\nSearch phrases: Overactive bladder, Overactive Bladder\nMedical groups: Kidneys and Urinary System\n\nMedical information:\nOveractive bladder is a condition in which the bladder squeezes urine out at the wrong time. You may have overactive bladder if you have two or more of these symptoms: You urinate eight or more times a day or two or more times at night You have the sudden, strong need to urinate immediately You leak urine after a sudden, strong urge to urinate You also may have incontinence , a loss of bladder control. Nerve problems, too much fluid, or too much caffeine can cause it. Often the cause is unknown. Your doctor may prescribe a medicine that can calm muscles and nerves. The medicine may come as a pill, a liquid, or a patch. The medicines can cause your eyes to become dry. They can also cause dry mouth and constipation. To deal with these effects, use eye drops to keep your eyes moist, chew sugarless gum or suck on sugarless hard candy if dry mouth bothers you, and take small sips of water throughout the day. NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "search_phrases": [
+    "Overactive bladder",
+    "Overactive Bladder"
+  ],
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/overactivebladder.html",
+  "medlineplus_id": "6132",
+  "mapping_type": "exact",
+  "mapping_score": 1.0,
+  "title_en": "Overactive bladder",
+  "title_vi": "Bàng quang tăng hoạt (OAB)",
+  "category_en": "Urinary System",
+  "category_vi": "Tiết niệu & Thận",
+  "keywords_en": [
+    "overactive bladder",
+    "urinary urgency",
+    "frequent urination",
+    "bladder spasms",
+    "nocturia"
+  ],
+  "keywords_vi": [
+    "bàng quang tăng hoạt",
+    "tiểu gấp",
+    "tiểu nhiều lần",
+    "tiểu đêm",
+    "tiết niệu"
+  ],
+  "content_hash": "aa6bc8c35c6c5768a7a89becaebe93d060e1fa5f7a9844ca45129f93e96c89c1",
+  "content_sha256": "aa6bc8c35c6c5768a7a89becaebe93d060e1fa5f7a9844ca45129f93e96c89c1",
+  "qa_status": "APPROVED",
+  "qa_flags": []
+}

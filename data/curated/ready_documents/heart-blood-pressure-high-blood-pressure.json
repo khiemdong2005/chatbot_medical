@@ -17,5 +17,27 @@
   "source_url": "https://medlineplus.gov/highbloodpressure.html",
   "medlineplus_id": "34",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "High blood pressure",
+  "title_vi": "Tăng huyết áp (Huyết áp cao)",
+  "category_en": "Heart & Blood Pressure",
+  "category_vi": "Tim mạch & Huyết áp",
+  "keywords_en": [
+    "high blood pressure",
+    "hypertension",
+    "blood pressure reading",
+    "systolic",
+    "cardiovascular disease"
+  ],
+  "keywords_vi": [
+    "tăng huyết áp",
+    "huyết áp cao",
+    "đo huyết áp",
+    "chỉ số huyết áp",
+    "tim mạch"
+  ],
+  "content_hash": "ac10cc7b2876f0886656622539066888febc5175de15974564543f3041cb8d5b",
+  "content_sha256": "ac10cc7b2876f0886656622539066888febc5175de15974564543f3041cb8d5b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -16,5 +16,27 @@
   "source_url": "https://medlineplus.gov/gas.html",
   "medlineplus_id": "4291",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Gas",
+  "title_vi": "Đầy hơi chướng bụng",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "gas",
+    "bloating",
+    "intestinal gas",
+    "flatulence",
+    "abdominal fullness"
+  ],
+  "keywords_vi": [
+    "đầy hơi",
+    "chướng bụng",
+    "sinh khí đường ruột",
+    "sình bụng",
+    "khó tiêu"
+  ],
+  "content_hash": "97e1a0b764c5d425dbbb549f2c220a0128ee57f9a196dd3a29b8f846a7d5336c",
+  "content_sha256": "97e1a0b764c5d425dbbb549f2c220a0128ee57f9a196dd3a29b8f846a7d5336c",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

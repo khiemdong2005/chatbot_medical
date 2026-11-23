@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/pneumonia.html",
   "medlineplus_id": "363",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Pneumonia",
+  "title_vi": "Viêm phổi",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "pneumonia",
+    "lung infection",
+    "pulmonary infection",
+    "shortness of breath pneumonia"
+  ],
+  "keywords_vi": [
+    "viêm phổi",
+    "nhiễm trùng phổi",
+    "sốt cao khó thở",
+    "đau ngực khi ho",
+    "nhiễm khuẩn hô hấp"
+  ],
+  "content_hash": "f9f99f9bef9c04f00e7068684d3b0ceb9a9a6b7ad11828f681c028e8f09a553d",
+  "content_sha256": "f9f99f9bef9c04f00e7068684d3b0ceb9a9a6b7ad11828f681c028e8f09a553d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/ovariancysts.html",
   "medlineplus_id": "349",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Ovarian cyst",
+  "title_vi": "U nang buồng trứng",
+  "category_en": "Sexual Health (Women)",
+  "category_vi": "Sức khỏe phụ khoa",
+  "keywords_en": [
+    "ovarian cyst",
+    "ovarian swelling",
+    "pelvic cyst",
+    "ovarian follicle cyst"
+  ],
+  "keywords_vi": [
+    "u nang buồng trứng",
+    "nang buồng trứng",
+    "đau vùng chậu",
+    "xoắn nang buồng trứng",
+    "phụ khoa"
+  ],
+  "content_hash": "7bf51c5639c9194c6c615db2ce90fcc57de5ee6e5fae50cae3b08c983a0a090d",
+  "content_sha256": "7bf51c5639c9194c6c615db2ce90fcc57de5ee6e5fae50cae3b08c983a0a090d",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

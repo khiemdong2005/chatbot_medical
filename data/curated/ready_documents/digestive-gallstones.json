@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/gallstones.html",
   "medlineplus_id": "4643",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Gallstones",
+  "title_vi": "Sỏi túi mật (Sỏi mật)",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "gallstones",
+    "cholelithiasis",
+    "biliary colic",
+    "gallbladder stones"
+  ],
+  "keywords_vi": [
+    "sỏi túi mật",
+    "sỏi mật",
+    "cơn đau quặn mật",
+    "đau hạ sườn phải",
+    "túi mật"
+  ],
+  "content_hash": "dd495867bce6834672460b914d635691ff664c398aaf59d6f56f3fe9db343142",
+  "content_sha256": "dd495867bce6834672460b914d635691ff664c398aaf59d6f56f3fe9db343142",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

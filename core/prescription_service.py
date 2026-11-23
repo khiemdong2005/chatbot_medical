@@ -42,12 +42,13 @@ def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filenam
       - Phân tích tương tác thuốc đối kháng, tác dụng phụ và cảnh báo an toàn
     """
     raw_text = ocr_data.get("raw_text", "").strip()
+    from core.circuit_breaker import gemini_circuit_breaker
+    if not gemini_circuit_breaker.can_execute():
+        return None
 
     try:
-        from google import genai
+        from core.llm_provider import llm_provider
         from google.genai import types
-
-        client = genai.Client(api_key=GEMINI_API_KEY)
 
         prompt = f"""
 Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI hàng đầu tại Việt Nam.
@@ -107,40 +108,19 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
 
         contents_payload.append(prompt)
 
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-        config = types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.1
+        if llm_provider.is_openrouter_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+            ocr_api_key = None
+        else:
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+            ocr_api_key = GEMINI_API_KEY
+        data = llm_provider.generate_json(
+            contents=contents_payload,
+            candidate_models=candidate_models,
+            api_key=ocr_api_key,
+            temperature=0.1,
+            operation="prescription_ocr"
         )
-
-        raw_json_str = None
-        for model_name in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model_name,
-                    contents=contents_payload,
-                    config=config
-                )
-                if res and res.text:
-                    raw_json_str = res.text.strip()
-                    break
-            except Exception:
-                continue
-
-        if not raw_json_str:
-            return None
-
-        cleaned = raw_json_str
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-            cleaned = re.sub(r"\s*```$", "", cleaned)
-            cleaned = cleaned.strip()
-
-        match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-        if match:
-            cleaned = match.group(1).strip()
-
-        data = json.loads(cleaned)
         if isinstance(data, dict):
             data.setdefault("status", "success")
             data.setdefault("type", "prescription")
@@ -170,11 +150,13 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
     DỰ PHÒNG CẤP 2 (Fallback Vision Multimodal):
     Dùng trực tiếp Gemini Vision khi ảnh scan quá mờ, chữ viết tay khó hoặc file PDF nhiều trang.
     """
-    try:
-        from google import genai
-        from google.genai import types
+    from core.circuit_breaker import gemini_circuit_breaker
+    if not gemini_circuit_breaker.can_execute():
+        return None
 
-        client = genai.Client(api_key=GEMINI_API_KEY)
+    try:
+        from core.llm_provider import llm_provider
+        from google.genai import types
 
         with open(file_path, 'rb') as f:
             file_bytes = f.read()
@@ -188,39 +170,32 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
 
         prompt = """
         Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI.
-        Hãy quan sát tài liệu y tế này (bao gồm chữ in và chữ viết tay):
-        1. Xác định type: "prescription" hay "lab_test".
-        2. Nếu là prescription: trích xuất facility, department, doctor, patient_name, diagnosis, date, duration, timeline 4 cữ, medications và warnings.
-        3. Nếu là lab_test: trích xuất metrics (name, value, unit, reference, status: High/Normal/Low, advice) và ai_summary.
-        Trả về DUY NHẤT một JSON hợp lệ.
+        Hãy quan sát đơn thuốc y tế này (bao gồm chữ in và chữ viết tay):
+        Trích xuất facility, department, doctor, patient_name, dob, age, gender, diagnosis, date, duration, timeline 4 cữ (morning, noon, evening, bedtime), medications (name, strength, dose, frequency, days, usage, purpose) và warnings.
+        Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
         """
 
-        candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-        for model_name in candidate_models:
-            try:
-                res = client.models.generate_content(
-                    model=model_name,
-                    contents=[
-                        types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
-                        prompt
-                    ]
-                )
-                if res and res.text:
-                    cleaned = res.text.strip()
-                    if cleaned.startswith("```"):
-                        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
-                        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
-                    match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
-                    if match:
-                        cleaned = match.group(1).strip()
-                    data = json.loads(cleaned)
-                    if isinstance(data, dict):
-                        data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
-                        data["pipeline_mode"] = "End-to-End Vision Fallback"
-                        data["uploaded_filename"] = original_filename or os.path.basename(file_path)
-                        return data
-            except Exception:
-                continue
+        if llm_provider.is_openrouter_active():
+            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
+            ocr_api_key = None
+        else:
+            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+            ocr_api_key = GEMINI_API_KEY
+        contents = [
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+            prompt
+        ]
+        data = llm_provider.generate_json(
+            contents=contents,
+            candidate_models=candidate_models,
+            api_key=ocr_api_key,
+            operation="prescription_ocr"
+        )
+        if isinstance(data, dict):
+            data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
+            data["pipeline_mode"] = "End-to-End Vision Fallback"
+            data["uploaded_filename"] = original_filename or os.path.basename(file_path)
+            return data
 
     except Exception as e:
         print(f"[VISION FALLBACK ERROR] {e}")
@@ -230,13 +205,16 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
 
 def analyze_uploaded_document(file_path: str, original_filename: str = "") -> Dict[str, Any]:
     """
-    BỘ ĐIỀU PHỐI KIẾN TRÚC HYBRID:
-      1. Tiền xử lý OpenCV + Bóc tách EasyOCR cục bộ.
-      2. Chuyển văn bản sang Gemini để chuẩn hóa dược học.
-      3. Dự phòng Gemini Vision nếu OCR không đọc được text.
-      4. BẢO MẬT & TRUNG THỰC: Khi cả OCR và Gemini thất bại, KHÔNG tự bịa dữ liệu mẫu hoặc trả preset.
-         Trả về trạng thái failed/needs_review kèm mã lỗi rõ ràng để người bệnh chụp lại.
+    [DEPRECATED] Hàm phân tích tài liệu legacy.
+    Production runtime hiện đã chuyển sang pipeline_orchestrator.process_medical_document_pipeline.
+    Hàm này được duy trì để đảm bảo tương thích ngược cho test fixtures và legacy callers.
     """
+    import warnings
+    warnings.warn(
+        "analyze_uploaded_document() is deprecated; use core.pipeline_orchestrator.process_medical_document_pipeline() instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     filename_clean = original_filename or os.path.basename(file_path)
 
     if not os.path.exists(file_path):
@@ -430,66 +408,93 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
             ]
         }
 
-    elif preset_key == "lab_blood":
+    elif preset_key in ["cardio", "tim_mach", "lab_blood"]:
         return {
             "status": "demo",
             "is_demo": True,
-            "type": "lab_test",
-            "doc_title": "Phiếu Kết quả Xét nghiệm Sinh hóa & Huyết học (Dữ liệu Demo)",
-            "facility": "Trung tâm Xét nghiệm Y khoa MediLab (DEMO)",
-            "department": "Khoa Hóa sinh - Miễn dịch",
+            "type": "prescription",
+            "doc_title": "Đơn thuốc Tim mạch & Tăng Huyết Áp (Dữ liệu Demo)",
+            "facility": "BỆNH VIỆN TIM TÂM ĐỨC (DEMO)",
+            "department": "Khoa Nội Tim Mạch & Lão Học",
             "doctor": "BS. CKI Lê Thị Mai",
-            "patient_name": "Nguyễn Thành Khiêm (Mẫu)",
-            "diagnosis": "Kiểm tra sức khỏe định kỳ & Đánh giá hội chứng chuyển hóa",
+            "patient_name": "NGUYỄN VĂN HÙNG",
+            "dob": "12/04/1972",
+            "age": "54",
+            "gender": "Nam",
+            "diagnosis": "Tăng huyết áp nguyên phát (vô căn) / Rối loạn lipid máu hỗn hợp (Mã ICD: I10 / E78.2)",
             "date": today,
-            "duration": "Có giá trị đối chiếu trong 3 tháng",
-            "metrics": [
+            "duration": "30 ngày (Đợt điều trị bệnh mạn tính)",
+            "timeline": {
+                "morning": [
+                    {"name": "Amlodipine 5mg", "dosage": "1 viên", "time": "07:30", "note": "Uống sau ăn sáng, duy trì huyết áp mục tiêu", "tag": "Hạ áp chẹn kênh Calci", "color": "blue"},
+                    {"name": "Losartan Potassium 50mg", "dosage": "1 viên", "time": "07:30", "note": "Uống cùng nước lọc vào buổi sáng", "tag": "Ức chế thụ thể ARB", "color": "emerald"},
+                    {"name": "Aspirin 81mg", "dosage": "1 viên", "time": "08:00", "note": "Uống sau ăn no để bảo vệ niêm mạc dạ dày", "tag": "Chống kết tập tiểu cầu", "color": "amber"}
+                ],
+                "noon": [
+                    {"name": "Uống đủ nước lọc", "dosage": "1-2 ly", "time": "12:00", "note": "Duy trì tuần hoàn và thanh thải thận", "tag": "Chế độ sinh hoạt", "color": "sky"}
+                ],
+                "evening": [
+                    {"name": "Atorvastatin 20mg", "dosage": "1 viên", "time": "20:00", "note": "Uống vào buổi tối trước khi ngủ", "tag": "Hạ mỡ máu nhóm Statin", "color": "indigo"}
+                ],
+                "bedtime": [
+                    {"name": "Đo huyết áp & Ghi nhật ký", "dosage": "Đo huyết áp tại nhà", "time": "21:30", "note": "Nghỉ ngơi 15 phút trước khi đo, ghi lại chỉ số HA", "tag": "Theo dõi lâm sàng", "color": "purple"}
+                ]
+            },
+            "medications": [
                 {
-                    "name": "Glucose (Đường huyết lúc đói)",
-                    "value": "7.8",
-                    "unit": "mmol/L",
-                    "reference": "3.9 - 6.4",
-                    "status": "High",
-                    "status_label": "Vượt ngưỡng an toàn",
-                    "advice": "Chỉ số đường huyết vượt ngưỡng, cần hạn chế tinh bột trắng và kiểm tra định kỳ."
+                    "name": "Amlodipine 5mg (Amlor) - 30 Viên",
+                    "strength": "5mg",
+                    "ingredient": "Amlodipine besilate 5mg",
+                    "category": "Thuốc chẹn kênh calci nhóm Dihydropyridine",
+                    "purpose": "Giãn cơ trơn mạch máu ngoại vi, giảm sức cản ngoại biên, hạ huyết áp.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống 1 viên vào buổi sáng sau ăn."
                 },
                 {
-                    "name": "Cholesterol Toàn phần",
-                    "value": "5.9",
-                    "unit": "mmol/L",
-                    "reference": "< 5.2",
-                    "status": "High",
-                    "status_label": "Hơi cao",
-                    "advice": "Mỡ máu toàn phần vượt ngưỡng, nên tập luyện thể dục thường xuyên."
+                    "name": "Losartan Potassium 50mg (Cozaar) - 30 Viên",
+                    "strength": "50mg",
+                    "ingredient": "Losartan potassium 50mg",
+                    "category": "Thuốc đối kháng thụ thể Angiotensin II (ARB)",
+                    "purpose": "Hạ huyết áp và bảo vệ chức năng thận ở bệnh nhân tăng huyết áp.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống 1 viên vào buổi sáng cùng Amlodipine."
                 },
                 {
-                    "name": "AST / SGOT (Men gan)",
-                    "value": "26",
-                    "unit": "U/L",
-                    "reference": "< 40",
-                    "status": "Normal",
-                    "status_label": "Bình thường",
-                    "advice": "Men gan trong giới hạn bình thường."
+                    "name": "Atorvastatin 20mg (Lipitor) - 30 Viên",
+                    "strength": "20mg",
+                    "ingredient": "Atorvastatin calcium 20mg",
+                    "category": "Thuốc ức chế men HMG-CoA reductase (Statin)",
+                    "purpose": "Hạ cholesterol toàn phần, LDL-C và bảo vệ thành mạch chống xơ vữa.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Tối)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống 1 viên vào buổi tối sau ăn hoặc trước khi đi ngủ."
                 },
                 {
-                    "name": "Creatinine (Chức năng thận)",
-                    "value": "72",
-                    "unit": "µmol/L",
-                    "reference": "53 - 106",
-                    "status": "Normal",
-                    "status_label": "Bình thường",
-                    "advice": "Chức năng lọc cầu thận bình thường."
+                    "name": "Aspirin 81mg (Aspirin pH8) - 30 Viên",
+                    "strength": "81mg",
+                    "ingredient": "Acid Acetylsalicylic 81mg",
+                    "category": "Thuốc kháng kết tập tiểu cầu liều thấp",
+                    "purpose": "Ngừa hình thành huyết khối vi mạch, phòng ngừa tai biến tim mạch.",
+                    "dose": "1 viên",
+                    "frequency": "1 lần/ngày (Sáng)",
+                    "days": "30 viên (Đủ 30 ngày)",
+                    "usage": "Uống sau bữa ăn sáng no. Uống nguyên viên với nhiều nước, không bẻ viên."
                 }
             ],
-            "ai_summary": "[DỮ LIỆU MẪU DEMO]: Kết quả xét nghiệm mẫu minh họa chỉ số đường huyết và mỡ máu hơi cao.",
-            "lifestyle_recommendations": [
-                "Tăng cường rau xanh và thực phẩm giàu chất xơ hòa tan.",
-                "Tập thể dục ít nhất 30 phút mỗi ngày."
+            "warnings": [
+                "[DỮ LIỆU MẪU DEMO]: Đây là đơn thuốc mẫu minh họa điều trị tăng huyết áp và rối loạn lipid máu.",
+                "Uống thuốc hạ áp đều đặn mỗi ngày vào cùng một thời điểm, không được tự ý ngưng thuốc ngay cả khi huyết áp đã về bình thường.",
+                "Hạn chế ăn mặn (giảm muối dưới 5g/ngày), kiêng rượu bia, thuốc lá và tập thể dục nhẹ nhàng 30 phút mỗi ngày."
             ]
         }
 
     return {
         "status": "error",
         "is_demo": True,
-        "message": f"Kịch bản mẫu '{preset_key}' không tồn tại. Vui lòng chọn 'binh_dan' hoặc 'lab_blood'."
+        "message": f"Kịch bản mẫu '{preset_key}' không tồn tại. Vui lòng chọn 'binh_dan' hoặc 'throat' hoặc 'cardio'."
     }

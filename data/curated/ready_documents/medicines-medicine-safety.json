@@ -14,5 +14,27 @@
   "source_url": "https://medlineplus.gov/medicines.html",
   "medlineplus_id": "31",
   "mapping_type": "manual",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Medicine safety",
+  "title_vi": "An toàn khi dùng thuốc",
+  "category_en": "Medicines",
+  "category_vi": "Thuốc & Dược phẩm",
+  "keywords_en": [
+    "medicine safety",
+    "safe medication use",
+    "drug storage",
+    "expiration date",
+    "dosage guidelines"
+  ],
+  "keywords_vi": [
+    "an toàn khi dùng thuốc",
+    "bảo quản thuốc",
+    "hạn sử dụng thuốc",
+    "đúng chỉ định",
+    "dược phẩm"
+  ],
+  "content_hash": "17ffff406aa38668f0b887714796b8af595a6109b59dad12079251b5cc95c6be",
+  "content_sha256": "17ffff406aa38668f0b887714796b8af595a6109b59dad12079251b5cc95c6be",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

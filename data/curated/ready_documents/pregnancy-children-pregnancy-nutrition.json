@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
   "medlineplus_id": "5984",
   "mapping_type": "fuzzy",
-  "mapping_score": 0.905
+  "mapping_score": 0.905,
+  "title_en": "Pregnancy nutrition",
+  "title_vi": "Dinh dưỡng khi mang thai",
+  "category_en": "Pregnancy & Children",
+  "category_vi": "Sản phụ khoa & Nhi khoa",
+  "keywords_en": [
+    "pregnancy nutrition",
+    "prenatal diet",
+    "folic acid",
+    "prenatal vitamins",
+    "maternal health"
+  ],
+  "keywords_vi": [
+    "dinh dưỡng khi mang thai",
+    "ăn uống thai kỳ",
+    "bổ sung axit folic",
+    "vitamin cho bà bầu",
+    "sản khoa"
+  ],
+  "content_hash": "f3c277d2f29327f26dd533913753a9c1aa2ba2043da75f6c19b2854ce157120b",
+  "content_sha256": "f3c277d2f29327f26dd533913753a9c1aa2ba2043da75f6c19b2854ce157120b",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

@@ -1,0 +1,49 @@
+{
+  "id": "shock",
+  "title": "Shock",
+  "title_en": "Shock",
+  "title_vi": "Tình trạng sốc (Trụy tim mạch)",
+  "category": "Emergency Care",
+  "category_en": "Emergency Care",
+  "category_vi": "Cấp cứu & Hồi sức",
+  "search_phrases": [
+    "shock",
+    "hypovolemic shock",
+    "septic shock",
+    "cardiogenic shock",
+    "circulatory collapse",
+    "sốc",
+    "trụy mạch",
+    "tụt huyết áp nghiêm trọng",
+    "sốc tuần hoàn",
+    "hồi sức cấp cứu"
+  ],
+  "keywords_en": [
+    "shock",
+    "hypovolemic shock",
+    "septic shock",
+    "cardiogenic shock",
+    "circulatory collapse"
+  ],
+  "keywords_vi": [
+    "sốc",
+    "trụy mạch",
+    "tụt huyết áp nghiêm trọng",
+    "sốc tuần hoàn",
+    "hồi sức cấp cứu"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/shock.html",
+  "summary": "Shock happens when not enough blood and oxygen can get to your organs and tissues. It causes very low blood pressure and may be life-threatening. It often happens along with a serious injury. There are several kinds of shock. Hypovolemic shock happens when you lose a lot of blood or fluids. Causes include internal or external bleeding, dehydration, burns, and severe vomiting and/or diarrhea. Septic shock is caused by infections in the bloodstream. A severe allergic reaction can cause anaphylactic shock . An insect bite or sting might cause it. Cardiogenic shock happens when the heart cannot pump blood effectively. This may happen after a heart attack. Neurogenic shock is caused by damage to the nervous system. Symptoms of shock include: Confusion or lack of alertness Loss of consciousness Sudden and ongoing rapid heartbeat Sweating Pale skin A weak pulse Rapid breathing Decreased or no urine output Cool hands and feet Shock is a life-threatening medical emergency and it is important to get help right away. Treatment of shock depends on the cause. NIH: National Heart, Lung, and Blood Institute",
+  "page_content": "Shock happens when not enough blood and oxygen can get to your organs and tissues. It causes very low blood pressure and may be life-threatening. It often happens along with a serious injury. There are several kinds of shock. Hypovolemic shock happens when you lose a lot of blood or fluids. Causes include internal or external bleeding, dehydration, burns, and severe vomiting and/or diarrhea. Septic shock is caused by infections in the bloodstream. A severe allergic reaction can cause anaphylactic shock . An insect bite or sting might cause it. Cardiogenic shock happens when the heart cannot pump blood effectively. This may happen after a heart attack. Neurogenic shock is caused by damage to the nervous system. Symptoms of shock include: Confusion or lack of alertness Loss of consciousness Sudden and ongoing rapid heartbeat Sweating Pale skin A weak pulse Rapid breathing Decreased or no urine output Cool hands and feet Shock is a life-threatening medical emergency and it is important to get help right away. Treatment of shock depends on the cause. NIH: National Heart, Lung, and Blood Institute",
+  "content_sha256": "9b7deaa66416cbf7f068810c37e09f151cc4c1226a8cd22ac871766d1734bb50",
+  "candidate_score": 0.98,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

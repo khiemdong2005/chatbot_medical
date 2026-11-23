@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/gonorrhea.html",
   "medlineplus_id": "3019",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Gonorrhea",
+  "title_vi": "Bệnh lậu",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "gonorrhea",
+    "neisseria gonorrhoeae",
+    "STI gonorrhea",
+    "urethral discharge"
+  ],
+  "keywords_vi": [
+    "bệnh lậu",
+    "vi khuẩn lậu cầu",
+    "tiểu buốt ra mủ",
+    "bệnh lây qua đường tình dục",
+    "điều trị lậu"
+  ],
+  "content_hash": "7eb0d6ec5224d14ad7f18056dff650e3d5aa72b9c5450943e196477e3d9166d7",
+  "content_sha256": "7eb0d6ec5224d14ad7f18056dff650e3d5aa72b9c5450943e196477e3d9166d7",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

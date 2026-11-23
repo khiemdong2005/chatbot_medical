@@ -1,0 +1,2576 @@
+[
+  {
+    "filename": "diabetes-hormones-adrenal-disorders.json",
+    "title": "Adrenal disorders",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/adrenalglanddisorders.html",
+    "search_phrases": [
+      "Adrenal disorders",
+      "Adrenal Gland Disorders"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-hyperglycemia.json",
+    "title": "Hyperglycemia",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/hyperglycemia.html",
+    "search_phrases": [
+      "Hyperglycemia",
+      "High blood glucose",
+      "High blood sugar"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-hyperthyroidism.json",
+    "title": "Hyperthyroidism",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/hyperthyroidism.html",
+    "search_phrases": [
+      "Hyperthyroidism",
+      "Overactive thyroid"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-hypoglycemia.json",
+    "title": "Hypoglycemia",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/hypoglycemia.html",
+    "search_phrases": [
+      "Hypoglycemia",
+      "Low blood sugar"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-hypothyroidism.json",
+    "title": "Hypothyroidism",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/hypothyroidism.html",
+    "search_phrases": [
+      "Hypothyroidism",
+      "Underactive thyroid"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-insulin-resistance.json",
+    "title": "Insulin resistance",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/metabolicsyndrome.html",
+    "search_phrases": [
+      "Insulin resistance",
+      "Metabolic Syndrome",
+      "Insulin resistance syndrome",
+      "Metabolic syndrome X"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-prediabetes.json",
+    "title": "Prediabetes",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/prediabetes.html",
+    "search_phrases": [
+      "Prediabetes"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-thyroid-disease.json",
+    "title": "Thyroid disease",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/thyroiddiseases.html",
+    "search_phrases": [
+      "Thyroid disease",
+      "Thyroid Diseases"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-type-1-diabetes.json",
+    "title": "Type 1 diabetes",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/diabetestype1.html",
+    "search_phrases": [
+      "Type 1 diabetes",
+      "Diabetes Type 1",
+      "Insulin-dependent diabetes",
+      "Juvenile diabetes",
+      "Type I diabetes"
+    ]
+  },
+  {
+    "filename": "diabetes-hormones-type-2-diabetes.json",
+    "title": "Type 2 diabetes",
+    "category": "Diabetes & Hormones",
+    "source_url": "https://medlineplus.gov/diabetestype2.html",
+    "search_phrases": [
+      "Type 2 diabetes",
+      "Diabetes Type 2",
+      "Type 2 Diabetes"
+    ]
+  },
+  {
+    "filename": "digestive-abdominal-pain.json",
+    "title": "Abdominal pain",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/abdominalpain.html",
+    "search_phrases": [
+      "Abdominal pain",
+      "Abdominal Pain",
+      "Bellyache"
+    ]
+  },
+  {
+    "filename": "digestive-acid-reflux.json",
+    "title": "Acid reflux",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/heartburn.html",
+    "search_phrases": [
+      "Acid reflux",
+      "Heartburn",
+      "Acid indigestion",
+      "Pyrosis"
+    ]
+  },
+  {
+    "filename": "digestive-appendicitis.json",
+    "title": "Appendicitis",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/appendicitis.html",
+    "search_phrases": [
+      "Appendicitis"
+    ]
+  },
+  {
+    "filename": "digestive-burping.json",
+    "title": "Burping",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/gas.html",
+    "search_phrases": [
+      "Burping",
+      "Gas",
+      "Belch",
+      "Burp",
+      "Eructation",
+      "Flatulence",
+      "Flatus"
+    ]
+  },
+  {
+    "filename": "digestive-celiac-disease.json",
+    "title": "Celiac disease",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/celiacdisease.html",
+    "search_phrases": [
+      "Celiac disease",
+      "Celiac Disease",
+      "Celiac sprue",
+      "Gluten-sensitive enteropathy",
+      "Nontropical sprue"
+    ]
+  },
+  {
+    "filename": "digestive-constipation.json",
+    "title": "Constipation",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/constipation.html",
+    "search_phrases": [
+      "Constipation"
+    ]
+  },
+  {
+    "filename": "digestive-crohn-s-disease.json",
+    "title": "Crohn's disease",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/crohnsdisease.html",
+    "search_phrases": [
+      "Crohn's disease",
+      "Crohn's Disease",
+      "Regional enteritis",
+      "Regional ileitis"
+    ]
+  },
+  {
+    "filename": "digestive-diarrhea.json",
+    "title": "Diarrhea",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/diarrhea.html",
+    "search_phrases": [
+      "Diarrhea",
+      "Dysentery",
+      "The runs",
+      "The trots"
+    ]
+  },
+  {
+    "filename": "digestive-food-poisoning.json",
+    "title": "Food poisoning",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/foodborneillness.html",
+    "search_phrases": [
+      "Food poisoning",
+      "Foodborne Illness",
+      "Food Poisoning"
+    ]
+  },
+  {
+    "filename": "digestive-gallstones.json",
+    "title": "Gallstones",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/gallstones.html",
+    "search_phrases": [
+      "Gallstones",
+      "Cholelithiasis"
+    ]
+  },
+  {
+    "filename": "digestive-gas.json",
+    "title": "Gas",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/gas.html",
+    "search_phrases": [
+      "Gas",
+      "Belch",
+      "Burp",
+      "Eructation",
+      "Flatulence",
+      "Flatus"
+    ]
+  },
+  {
+    "filename": "digestive-gerd.json",
+    "title": "GERD",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/gerd.html",
+    "search_phrases": [
+      "GERD",
+      "Gastroesophageal reflux disease"
+    ]
+  },
+  {
+    "filename": "digestive-heartburn.json",
+    "title": "Heartburn",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/heartburn.html",
+    "search_phrases": [
+      "Heartburn",
+      "Acid indigestion",
+      "Pyrosis"
+    ]
+  },
+  {
+    "filename": "digestive-hemorrhoids.json",
+    "title": "Hemorrhoids",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/hemorrhoids.html",
+    "search_phrases": [
+      "Hemorrhoids",
+      "Piles"
+    ]
+  },
+  {
+    "filename": "digestive-hiccups.json",
+    "title": "Hiccups",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/hiccups.html",
+    "search_phrases": [
+      "Hiccups",
+      "Hiccough"
+    ]
+  },
+  {
+    "filename": "digestive-ibs.json",
+    "title": "IBS",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/irritablebowelsyndrome.html",
+    "search_phrases": [
+      "IBS",
+      "Irritable Bowel Syndrome",
+      "Irritable colon"
+    ]
+  },
+  {
+    "filename": "digestive-indigestion.json",
+    "title": "Indigestion",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/indigestion.html",
+    "search_phrases": [
+      "Indigestion",
+      "Dyspepsia",
+      "Upset stomach"
+    ]
+  },
+  {
+    "filename": "digestive-lactose-intolerance.json",
+    "title": "Lactose intolerance",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/lactoseintolerance.html",
+    "search_phrases": [
+      "Lactose intolerance",
+      "Lactose Intolerance",
+      "Dairy product intolerance",
+      "Lactase deficiency",
+      "Milk intolerance"
+    ]
+  },
+  {
+    "filename": "digestive-stomach-ulcer.json",
+    "title": "Stomach ulcer",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/pepticulcer.html",
+    "search_phrases": [
+      "Stomach ulcer",
+      "Peptic Ulcer",
+      "Duodenal ulcer",
+      "Gastric ulcer",
+      "Ulcer"
+    ]
+  },
+  {
+    "filename": "digestive-ulcerative-colitis.json",
+    "title": "Ulcerative colitis",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/ulcerativecolitis.html",
+    "search_phrases": [
+      "Ulcerative colitis",
+      "Ulcerative Colitis",
+      "Colitis",
+      "Distal colitis",
+      "Pancolitis",
+      "Ulcerative proctitis"
+    ]
+  },
+  {
+    "filename": "digestive-vomiting.json",
+    "title": "Vomiting",
+    "category": "Digestive",
+    "source_url": "https://medlineplus.gov/nauseaandvomiting.html",
+    "search_phrases": [
+      "Vomiting",
+      "Nausea and Vomiting",
+      "Emesis"
+    ]
+  },
+  {
+    "filename": "eye-ear-mouth-bad-breath.json",
+    "title": "Bad breath",
+    "category": "Eye, Ear & Mouth",
+    "source_url": "https://medlineplus.gov/badbreath.html",
+    "search_phrases": [
+      "Bad breath",
+      "Bad Breath",
+      "Halitosis"
+    ]
+  },
+  {
+    "filename": "eye-ear-mouth-dry-eyes.json",
+    "title": "Dry eyes",
+    "category": "Eye, Ear & Mouth",
+    "source_url": "https://medlineplus.gov/tears.html",
+    "search_phrases": [
+      "Dry eyes",
+      "Tears",
+      "Lacrimation"
+    ]
+  },
+  {
+    "filename": "eye-ear-mouth-ear-infection.json",
+    "title": "Ear infection",
+    "category": "Eye, Ear & Mouth",
+    "source_url": "https://medlineplus.gov/earinfections.html",
+    "search_phrases": [
+      "Ear infection",
+      "Ear Infections",
+      "Otitis media"
+    ]
+  },
+  {
+    "filename": "eye-ear-mouth-hearing-loss.json",
+    "title": "Hearing loss",
+    "category": "Eye, Ear & Mouth",
+    "source_url": "https://medlineplus.gov/hearingdisordersanddeafness.html",
+    "search_phrases": [
+      "Hearing loss",
+      "Hearing Disorders and Deafness",
+      "Presbycusis"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-animal-bites.json",
+    "title": "Animal bites",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/animalbites.html",
+    "search_phrases": [
+      "Animal bites",
+      "Animal Bites",
+      "Cat bites",
+      "Dog bites"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-bleeding.json",
+    "title": "Bleeding",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/bleeding.html",
+    "search_phrases": [
+      "Bleeding",
+      "Hematoma",
+      "Hemorrhage"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-broken-bone.json",
+    "title": "Broken bone",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/fractures.html",
+    "search_phrases": [
+      "Broken bone",
+      "Fractures"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-burns.json",
+    "title": "Burns",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/burns.html",
+    "search_phrases": [
+      "Burns"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-choking.json",
+    "title": "Choking",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/choking.html",
+    "search_phrases": [
+      "Choking"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-cpr.json",
+    "title": "CPR",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/cpr.html",
+    "search_phrases": [
+      "CPR",
+      "Cardiopulmonary resuscitation"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-electric-shock.json",
+    "title": "Electric shock",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/electricalinjuries.html",
+    "search_phrases": [
+      "Electric shock",
+      "Electrical Injuries",
+      "Electrical burn"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-heat-exhaustion.json",
+    "title": "Heat exhaustion",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/heatillness.html",
+    "search_phrases": [
+      "Heat exhaustion",
+      "Heat Illness",
+      "Heat stroke",
+      "Sunstroke"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-heat-stroke.json",
+    "title": "Heat stroke",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/heatillness.html",
+    "search_phrases": [
+      "Heat stroke",
+      "Heat Illness",
+      "Heat exhaustion",
+      "Sunstroke"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-hypothermia.json",
+    "title": "Hypothermia",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/hypothermia.html",
+    "search_phrases": [
+      "Hypothermia",
+      "Cold-related illness"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-nosebleed.json",
+    "title": "Nosebleed",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
+    "search_phrases": [
+      "Nosebleed",
+      "Nose Injuries and Disorders",
+      "Nasal disorders"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-poisoning.json",
+    "title": "Poisoning",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/poisoning.html",
+    "search_phrases": [
+      "Poisoning"
+    ]
+  },
+  {
+    "filename": "first-aid-emergencies-snake-bites.json",
+    "title": "Snake bites",
+    "category": "First Aid & Emergencies",
+    "source_url": "https://medlineplus.gov/animalbites.html",
+    "search_phrases": [
+      "Snake bites",
+      "Animal Bites",
+      "Cat bites",
+      "Dog bites"
+    ]
+  },
+  {
+    "filename": "general-symptoms-bad-breath.json",
+    "title": "Bad breath",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/badbreath.html",
+    "search_phrases": [
+      "Bad breath",
+      "Bad Breath",
+      "Halitosis"
+    ]
+  },
+  {
+    "filename": "general-symptoms-chills.json",
+    "title": "Chills",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fever.html",
+    "search_phrases": [
+      "Chills",
+      "Fever",
+      "Pyrexia"
+    ]
+  },
+  {
+    "filename": "general-symptoms-confusion.json",
+    "title": "Confusion",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/delirium.html",
+    "search_phrases": [
+      "Confusion",
+      "Delirium"
+    ]
+  },
+  {
+    "filename": "general-symptoms-dehydration.json",
+    "title": "Dehydration",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/dehydration.html",
+    "search_phrases": [
+      "Dehydration"
+    ]
+  },
+  {
+    "filename": "general-symptoms-dry-mouth.json",
+    "title": "Dry mouth",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/drymouth.html",
+    "search_phrases": [
+      "Dry mouth",
+      "Dry Mouth",
+      "Xerostomia"
+    ]
+  },
+  {
+    "filename": "general-symptoms-fainting.json",
+    "title": "Fainting",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fainting.html",
+    "search_phrases": [
+      "Fainting",
+      "Syncope"
+    ]
+  },
+  {
+    "filename": "general-symptoms-fatigue.json",
+    "title": "Fatigue",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fatigue.html",
+    "search_phrases": [
+      "Fatigue",
+      "Tiredness",
+      "Weariness"
+    ]
+  },
+  {
+    "filename": "general-symptoms-fever.json",
+    "title": "Fever",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fever.html",
+    "search_phrases": [
+      "Fever",
+      "Pyrexia"
+    ]
+  },
+  {
+    "filename": "general-symptoms-headache.json",
+    "title": "Headache",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/headache.html",
+    "search_phrases": [
+      "Headache"
+    ]
+  },
+  {
+    "filename": "general-symptoms-high-fever.json",
+    "title": "High fever",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fever.html",
+    "search_phrases": [
+      "High fever",
+      "Fever",
+      "Pyrexia"
+    ]
+  },
+  {
+    "filename": "general-symptoms-hot-flashes.json",
+    "title": "Hot flashes",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/menopause.html",
+    "search_phrases": [
+      "Hot flashes",
+      "Menopause",
+      "Change of life"
+    ]
+  },
+  {
+    "filename": "general-symptoms-itching.json",
+    "title": "Itching",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/itching.html",
+    "search_phrases": [
+      "Itching",
+      "Pruritus"
+    ]
+  },
+  {
+    "filename": "general-symptoms-joint-pain.json",
+    "title": "Joint pain",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/jointdisorders.html",
+    "search_phrases": [
+      "Joint pain",
+      "Joint Disorders"
+    ]
+  },
+  {
+    "filename": "general-symptoms-low-grade-fever.json",
+    "title": "Low-grade fever",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fever.html",
+    "search_phrases": [
+      "Low-grade fever",
+      "Fever",
+      "Pyrexia"
+    ]
+  },
+  {
+    "filename": "general-symptoms-migraine.json",
+    "title": "Migraine",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/migraine.html",
+    "search_phrases": [
+      "Migraine"
+    ]
+  },
+  {
+    "filename": "general-symptoms-muscle-pain.json",
+    "title": "Muscle pain",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/muscledisorders.html",
+    "search_phrases": [
+      "Muscle pain",
+      "Muscle Disorders",
+      "Myopathy"
+    ]
+  },
+  {
+    "filename": "general-symptoms-swelling.json",
+    "title": "Swelling",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/edema.html",
+    "search_phrases": [
+      "Swelling",
+      "Edema",
+      "Dropsy"
+    ]
+  },
+  {
+    "filename": "general-symptoms-swollen-glands.json",
+    "title": "Swollen glands",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/lymphaticdiseases.html",
+    "search_phrases": [
+      "Swollen glands",
+      "Lymphatic Diseases"
+    ]
+  },
+  {
+    "filename": "general-symptoms-tremor.json",
+    "title": "Tremor",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/tremor.html",
+    "search_phrases": [
+      "Tremor"
+    ]
+  },
+  {
+    "filename": "general-symptoms-vertigo.json",
+    "title": "Vertigo",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/dizzinessandvertigo.html",
+    "search_phrases": [
+      "Vertigo",
+      "Dizziness and Vertigo"
+    ]
+  },
+  {
+    "filename": "general-symptoms-weakness.json",
+    "title": "Weakness",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/fatigue.html",
+    "search_phrases": [
+      "Weakness",
+      "Fatigue",
+      "Tiredness",
+      "Weariness"
+    ]
+  },
+  {
+    "filename": "general-symptoms-weight-gain.json",
+    "title": "Weight gain",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "search_phrases": [
+      "Weight gain",
+      "Weight Control"
+    ]
+  },
+  {
+    "filename": "general-symptoms-weight-loss.json",
+    "title": "Weight loss",
+    "category": "General Symptoms",
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "search_phrases": [
+      "Weight loss",
+      "Weight Control"
+    ]
+  },
+  {
+    "filename": "heart-blood-pressure-chest-pain.json",
+    "title": "Chest pain",
+    "category": "Heart & Blood Pressure",
+    "source_url": "https://medlineplus.gov/chestpain.html",
+    "search_phrases": [
+      "Chest pain",
+      "Chest Pain"
+    ]
+  },
+  {
+    "filename": "heart-blood-pressure-heart-failure.json",
+    "title": "Heart failure",
+    "category": "Heart & Blood Pressure",
+    "source_url": "https://medlineplus.gov/heartfailure.html",
+    "search_phrases": [
+      "Heart failure",
+      "Heart Failure",
+      "CHF",
+      "Cardiac failure",
+      "Congestive heart failure",
+      "Left-sided heart failure",
+      "Right-sided heart failure"
+    ]
+  },
+  {
+    "filename": "heart-blood-pressure-high-blood-pressure.json",
+    "title": "High blood pressure",
+    "category": "Heart & Blood Pressure",
+    "source_url": "https://medlineplus.gov/highbloodpressure.html",
+    "search_phrases": [
+      "High blood pressure",
+      "High Blood Pressure",
+      "Benign essential hypertension",
+      "Essential hypertension",
+      "HBP",
+      "HTN",
+      "Hypertension"
+    ]
+  },
+  {
+    "filename": "heart-blood-pressure-low-blood-pressure.json",
+    "title": "Low blood pressure",
+    "category": "Heart & Blood Pressure",
+    "source_url": "https://medlineplus.gov/lowbloodpressure.html",
+    "search_phrases": [
+      "Low blood pressure",
+      "Low Blood Pressure",
+      "Hypotension",
+      "LBP"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-aids.json",
+    "title": "AIDS",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/hiv.html",
+    "search_phrases": [
+      "AIDS",
+      "HIV",
+      "Acquired immunodeficiency syndrome",
+      "Human immunodeficiency virus"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-chickenpox.json",
+    "title": "Chickenpox",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/chickenpox.html",
+    "search_phrases": [
+      "Chickenpox",
+      "Varicella"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-dengue.json",
+    "title": "Dengue",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/dengue.html",
+    "search_phrases": [
+      "Dengue",
+      "Break-bone fever",
+      "Dengue fever"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-gonorrhea.json",
+    "title": "Gonorrhea",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/gonorrhea.html",
+    "search_phrases": [
+      "Gonorrhea",
+      "The clap"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-hepatitis.json",
+    "title": "Hepatitis",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/hepatitis.html",
+    "search_phrases": [
+      "Hepatitis"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-hiv.json",
+    "title": "HIV",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/hiv.html",
+    "search_phrases": [
+      "HIV",
+      "AIDS",
+      "Acquired immunodeficiency syndrome",
+      "Human immunodeficiency virus"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-hpv.json",
+    "title": "HPV",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/hpv.html",
+    "search_phrases": [
+      "HPV",
+      "Human papillomavirus"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-lyme-disease.json",
+    "title": "Lyme disease",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/lymedisease.html",
+    "search_phrases": [
+      "Lyme disease",
+      "Lyme Disease",
+      "Borreliosis"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-malaria.json",
+    "title": "Malaria",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/malaria.html",
+    "search_phrases": [
+      "Malaria"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-measles.json",
+    "title": "Measles",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/measles.html",
+    "search_phrases": [
+      "Measles",
+      "Rubeola"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-mononucleosis.json",
+    "title": "Mononucleosis",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/infectiousmononucleosis.html",
+    "search_phrases": [
+      "Mononucleosis",
+      "Infectious Mononucleosis",
+      "Glandular fever",
+      "Kissing disease",
+      "Mono"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-mumps.json",
+    "title": "Mumps",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/mumps.html",
+    "search_phrases": [
+      "Mumps"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-rubella.json",
+    "title": "Rubella",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/rubella.html",
+    "search_phrases": [
+      "Rubella",
+      "German measles",
+      "Three day measles"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-strep-throat.json",
+    "title": "Strep throat",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/streptococcalinfections.html",
+    "search_phrases": [
+      "Strep throat",
+      "Streptococcal Infections",
+      "Strep"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-syphilis.json",
+    "title": "Syphilis",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/syphilis.html",
+    "search_phrases": [
+      "Syphilis"
+    ]
+  },
+  {
+    "filename": "infectious-diseases-tuberculosis.json",
+    "title": "Tuberculosis",
+    "category": "Infectious Diseases",
+    "source_url": "https://medlineplus.gov/tuberculosis.html",
+    "search_phrases": [
+      "Tuberculosis",
+      "TB"
+    ]
+  },
+  {
+    "filename": "lifestyle-alcohol.json",
+    "title": "Alcohol",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/alcohol.html",
+    "search_phrases": [
+      "Alcohol",
+      "Drinking"
+    ]
+  },
+  {
+    "filename": "lifestyle-energy-drinks.json",
+    "title": "Energy drinks",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/caffeine.html",
+    "search_phrases": [
+      "Energy drinks",
+      "Caffeine"
+    ]
+  },
+  {
+    "filename": "lifestyle-healthy-eating.json",
+    "title": "Healthy eating",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/nutrition.html",
+    "search_phrases": [
+      "Healthy eating",
+      "Nutrition"
+    ]
+  },
+  {
+    "filename": "lifestyle-hydration.json",
+    "title": "Hydration",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/dehydration.html",
+    "search_phrases": [
+      "Hydration",
+      "Dehydration"
+    ]
+  },
+  {
+    "filename": "lifestyle-minerals.json",
+    "title": "Minerals",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/minerals.html",
+    "search_phrases": [
+      "Minerals"
+    ]
+  },
+  {
+    "filename": "lifestyle-obesity.json",
+    "title": "Obesity",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/obesity.html",
+    "search_phrases": [
+      "Obesity"
+    ]
+  },
+  {
+    "filename": "lifestyle-protein.json",
+    "title": "Protein",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/dietaryproteins.html",
+    "search_phrases": [
+      "Protein",
+      "Dietary Proteins"
+    ]
+  },
+  {
+    "filename": "lifestyle-sleep-hygiene.json",
+    "title": "Sleep hygiene",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/healthysleep.html",
+    "search_phrases": [
+      "Sleep hygiene",
+      "Healthy Sleep",
+      "Sleep Hygiene"
+    ]
+  },
+  {
+    "filename": "lifestyle-smoking.json",
+    "title": "Smoking",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/smoking.html",
+    "search_phrases": [
+      "Smoking",
+      "Cigar smoking",
+      "Cigarette smoking",
+      "Pipe smoking",
+      "Tobacco smoking"
+    ]
+  },
+  {
+    "filename": "lifestyle-vaping.json",
+    "title": "Vaping",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/ecigarettes.html",
+    "search_phrases": [
+      "Vaping",
+      "E-Cigarettes",
+      "E-Cigs",
+      "Electronic Cigarettes",
+      "Personal Vaporizer"
+    ]
+  },
+  {
+    "filename": "lifestyle-vitamins.json",
+    "title": "Vitamins",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/vitamins.html",
+    "search_phrases": [
+      "Vitamins"
+    ]
+  },
+  {
+    "filename": "lifestyle-weight-gain.json",
+    "title": "Weight gain",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "search_phrases": [
+      "Weight gain",
+      "Weight Control"
+    ]
+  },
+  {
+    "filename": "lifestyle-weight-loss.json",
+    "title": "Weight loss",
+    "category": "Lifestyle",
+    "source_url": "https://medlineplus.gov/weightcontrol.html",
+    "search_phrases": [
+      "Weight loss",
+      "Weight Control"
+    ]
+  },
+  {
+    "filename": "medicines-antibiotics.json",
+    "title": "Antibiotics",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/antibiotics.html",
+    "search_phrases": [
+      "Antibiotics"
+    ]
+  },
+  {
+    "filename": "medicines-drug-interactions.json",
+    "title": "Drug interactions",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/drugreactions.html",
+    "search_phrases": [
+      "Drug interactions",
+      "Drug Reactions",
+      "Side effects"
+    ]
+  },
+  {
+    "filename": "medicines-ibuprofen.json",
+    "title": "Ibuprofen",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/painrelievers.html",
+    "search_phrases": [
+      "Ibuprofen",
+      "Pain Relievers",
+      "Analgesics",
+      "Pain medicines",
+      "Painkillers"
+    ]
+  },
+  {
+    "filename": "medicines-medicine-safety.json",
+    "title": "Medicine safety",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/medicines.html",
+    "search_phrases": [
+      "Medicine safety",
+      "Medicines",
+      "Drugs",
+      "Medications"
+    ]
+  },
+  {
+    "filename": "medicines-missed-dose.json",
+    "title": "Missed dose",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/medicines.html",
+    "search_phrases": [
+      "Missed dose",
+      "Medicines",
+      "Drugs",
+      "Medications"
+    ]
+  },
+  {
+    "filename": "medicines-painkillers.json",
+    "title": "Painkillers",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/painrelievers.html",
+    "search_phrases": [
+      "Painkillers",
+      "Pain Relievers",
+      "Analgesics",
+      "Pain medicines"
+    ]
+  },
+  {
+    "filename": "medicines-paracetamol.json",
+    "title": "Paracetamol",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/painrelievers.html",
+    "search_phrases": [
+      "Paracetamol",
+      "Pain Relievers",
+      "Analgesics",
+      "Pain medicines",
+      "Painkillers"
+    ]
+  },
+  {
+    "filename": "medicines-side-effects.json",
+    "title": "Side effects",
+    "category": "Medicines",
+    "source_url": "https://medlineplus.gov/drugreactions.html",
+    "search_phrases": [
+      "Side effects",
+      "Drug Reactions"
+    ]
+  },
+  {
+    "filename": "mental-health-adhd.json",
+    "title": "ADHD",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/attentiondeficithyperactivitydisorder.html",
+    "search_phrases": [
+      "ADHD",
+      "Attention Deficit Hyperactivity Disorder"
+    ]
+  },
+  {
+    "filename": "mental-health-anxiety.json",
+    "title": "Anxiety",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/anxiety.html",
+    "search_phrases": [
+      "Anxiety"
+    ]
+  },
+  {
+    "filename": "mental-health-autism.json",
+    "title": "Autism",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/autismspectrumdisorder.html",
+    "search_phrases": [
+      "Autism",
+      "Autism Spectrum Disorder",
+      "ASD",
+      "Pervasive developmental disorder (PDD)"
+    ]
+  },
+  {
+    "filename": "mental-health-depression.json",
+    "title": "Depression",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/depression.html",
+    "search_phrases": [
+      "Depression",
+      "Clinical depression",
+      "Dysthymic disorder",
+      "Major depressive disorder",
+      "Unipolar depression"
+    ]
+  },
+  {
+    "filename": "mental-health-grief.json",
+    "title": "Grief",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/bereavement.html",
+    "search_phrases": [
+      "Grief",
+      "Bereavement"
+    ]
+  },
+  {
+    "filename": "mental-health-insomnia.json",
+    "title": "Insomnia",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/insomnia.html",
+    "search_phrases": [
+      "Insomnia"
+    ]
+  },
+  {
+    "filename": "mental-health-ocd.json",
+    "title": "OCD",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/obsessivecompulsivedisorder.html",
+    "search_phrases": [
+      "OCD",
+      "Obsessive-Compulsive Disorder"
+    ]
+  },
+  {
+    "filename": "mental-health-ptsd.json",
+    "title": "PTSD",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/posttraumaticstressdisorder.html",
+    "search_phrases": [
+      "PTSD",
+      "Post-Traumatic Stress Disorder"
+    ]
+  },
+  {
+    "filename": "mental-health-stress.json",
+    "title": "Stress",
+    "category": "Mental Health",
+    "source_url": "https://medlineplus.gov/stress.html",
+    "search_phrases": [
+      "Stress",
+      "Psychological stress"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-ankle-pain.json",
+    "title": "Ankle pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/ankleinjuriesanddisorders.html",
+    "search_phrases": [
+      "Ankle pain",
+      "Ankle Injuries and Disorders"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-arthritis.json",
+    "title": "Arthritis",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/arthritis.html",
+    "search_phrases": [
+      "Arthritis"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-carpal-tunnel-syndrome.json",
+    "title": "Carpal tunnel syndrome",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
+    "search_phrases": [
+      "Carpal tunnel syndrome",
+      "Carpal Tunnel Syndrome",
+      "Median nerve entrapment"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-frozen-shoulder.json",
+    "title": "Frozen shoulder",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/shoulderinjuriesanddisorders.html",
+    "search_phrases": [
+      "Frozen shoulder",
+      "Shoulder Injuries and Disorders"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-heavy-lifting-injuries.json",
+    "title": "Heavy lifting injuries",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/backinjuries.html",
+    "search_phrases": [
+      "Heavy lifting injuries",
+      "Back Injuries"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-heel-pain.json",
+    "title": "Heel pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/heelinjuriesanddisorders.html",
+    "search_phrases": [
+      "Heel pain",
+      "Heel Injuries and Disorders"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-lower-back-pain.json",
+    "title": "Lower back pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "search_phrases": [
+      "Lower back pain",
+      "Back Pain",
+      "Backache",
+      "Lumbago"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-muscle-cramps.json",
+    "title": "Muscle cramps",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/musclecramps.html",
+    "search_phrases": [
+      "Muscle cramps",
+      "Muscle Cramps",
+      "Charley horse"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-muscle-stiffness.json",
+    "title": "Muscle stiffness",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/muscledisorders.html",
+    "search_phrases": [
+      "Muscle stiffness",
+      "Muscle Disorders",
+      "Myopathy"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-muscle-strain.json",
+    "title": "Muscle strain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/sprainsandstrains.html",
+    "search_phrases": [
+      "Muscle strain",
+      "Sprains and Strains"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-neck-pain.json",
+    "title": "Neck pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/neckinjuriesanddisorders.html",
+    "search_phrases": [
+      "Neck pain",
+      "Neck Injuries and Disorders"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-osteoarthritis.json",
+    "title": "Osteoarthritis",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/osteoarthritis.html",
+    "search_phrases": [
+      "Osteoarthritis",
+      "Degenerative joint disease",
+      "OA",
+      "Osteoarthrosis"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-pain-between-shoulder-blades.json",
+    "title": "Pain between shoulder blades",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "search_phrases": [
+      "Pain between shoulder blades",
+      "Back Pain",
+      "Backache",
+      "Lumbago"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-poor-posture.json",
+    "title": "Poor posture",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "search_phrases": [
+      "Poor posture",
+      "Back Pain",
+      "Backache",
+      "Lumbago"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-rheumatoid-arthritis.json",
+    "title": "Rheumatoid arthritis",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/rheumatoidarthritis.html",
+    "search_phrases": [
+      "Rheumatoid arthritis",
+      "Rheumatoid Arthritis",
+      "RA"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-sciatica.json",
+    "title": "Sciatica",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/sciatica.html",
+    "search_phrases": [
+      "Sciatica"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-shoulder-pain.json",
+    "title": "Shoulder pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/shoulderinjuriesanddisorders.html",
+    "search_phrases": [
+      "Shoulder pain",
+      "Shoulder Injuries and Disorders"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-tennis-elbow.json",
+    "title": "Tennis elbow",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/elbowinjuriesanddisorders.html",
+    "search_phrases": [
+      "Tennis elbow",
+      "Elbow Injuries and Disorders"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-upper-back-pain.json",
+    "title": "Upper back pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/backpain.html",
+    "search_phrases": [
+      "Upper back pain",
+      "Back Pain",
+      "Backache",
+      "Lumbago"
+    ]
+  },
+  {
+    "filename": "muscles-bones-back-work-related-muscle-pain.json",
+    "title": "Work-related muscle pain",
+    "category": "Muscles, Bones & Back",
+    "source_url": "https://medlineplus.gov/muscledisorders.html",
+    "search_phrases": [
+      "Work-related muscle pain",
+      "Muscle Disorders",
+      "Myopathy"
+    ]
+  },
+  {
+    "filename": "nutrition-calcium.json",
+    "title": "Calcium",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/calcium.html",
+    "search_phrases": [
+      "Calcium"
+    ]
+  },
+  {
+    "filename": "nutrition-healthy-eating.json",
+    "title": "Healthy eating",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/nutrition.html",
+    "search_phrases": [
+      "Healthy eating",
+      "Nutrition"
+    ]
+  },
+  {
+    "filename": "nutrition-magnesium.json",
+    "title": "Magnesium",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/minerals.html",
+    "search_phrases": [
+      "Magnesium",
+      "Minerals"
+    ]
+  },
+  {
+    "filename": "nutrition-vegan-diet.json",
+    "title": "Vegan diet",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/vegetariandiet.html",
+    "search_phrases": [
+      "Vegan diet",
+      "Vegetarian Diet"
+    ]
+  },
+  {
+    "filename": "nutrition-vegetarian-diet.json",
+    "title": "Vegetarian diet",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/vegetariandiet.html",
+    "search_phrases": [
+      "Vegetarian diet",
+      "Vegetarian Diet"
+    ]
+  },
+  {
+    "filename": "nutrition-vitamin-b12.json",
+    "title": "Vitamin B12",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/bvitamins.html",
+    "search_phrases": [
+      "Vitamin B12",
+      "B Vitamins"
+    ]
+  },
+  {
+    "filename": "nutrition-vitamin-d.json",
+    "title": "Vitamin D",
+    "category": "Nutrition",
+    "source_url": "https://medlineplus.gov/vitamind.html",
+    "search_phrases": [
+      "Vitamin D",
+      "Cholecalciferol",
+      "Ergocalciferol"
+    ]
+  },
+  {
+    "filename": "pregnancy-children-breastfeeding.json",
+    "title": "Breastfeeding",
+    "category": "Pregnancy & Children",
+    "source_url": "https://medlineplus.gov/breastfeeding.html",
+    "search_phrases": [
+      "Breastfeeding",
+      "Lactation",
+      "Nursing"
+    ]
+  },
+  {
+    "filename": "pregnancy-children-child-development.json",
+    "title": "Child development",
+    "category": "Pregnancy & Children",
+    "source_url": "https://medlineplus.gov/childdevelopment.html",
+    "search_phrases": [
+      "Child development",
+      "Child Development"
+    ]
+  },
+  {
+    "filename": "pregnancy-children-pregnancy-nutrition.json",
+    "title": "Pregnancy nutrition",
+    "category": "Pregnancy & Children",
+    "source_url": "https://medlineplus.gov/pregnancyandnutrition.html",
+    "search_phrases": [
+      "Pregnancy nutrition",
+      "Pregnancy and Nutrition"
+    ]
+  },
+  {
+    "filename": "pregnancy-children-pregnancy.json",
+    "title": "Pregnancy",
+    "category": "Pregnancy & Children",
+    "source_url": "https://medlineplus.gov/pregnancy.html",
+    "search_phrases": [
+      "Pregnancy"
+    ]
+  },
+  {
+    "filename": "pregnancy-children-vaccinations.json",
+    "title": "Vaccinations",
+    "category": "Pregnancy & Children",
+    "source_url": "https://medlineplus.gov/vaccines.html",
+    "search_phrases": [
+      "Vaccinations",
+      "Vaccines",
+      "Immunization",
+      "Vaccination"
+    ]
+  },
+  {
+    "filename": "respiratory-allergic-rhinitis.json",
+    "title": "Allergic rhinitis",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/allergy.html",
+    "search_phrases": [
+      "Allergic rhinitis",
+      "Allergy",
+      "Hypersensitivity"
+    ]
+  },
+  {
+    "filename": "respiratory-asthma.json",
+    "title": "Asthma",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/asthma.html",
+    "search_phrases": [
+      "Asthma"
+    ]
+  },
+  {
+    "filename": "respiratory-blocked-nose.json",
+    "title": "Blocked nose",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
+    "search_phrases": [
+      "Blocked nose",
+      "Nose Injuries and Disorders",
+      "Nasal disorders"
+    ]
+  },
+  {
+    "filename": "respiratory-bronchitis.json",
+    "title": "Bronchitis",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/chronicbronchitis.html",
+    "search_phrases": [
+      "Bronchitis",
+      "Chronic Bronchitis"
+    ]
+  },
+  {
+    "filename": "respiratory-chest-pain.json",
+    "title": "Chest pain",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/chestpain.html",
+    "search_phrases": [
+      "Chest pain",
+      "Chest Pain"
+    ]
+  },
+  {
+    "filename": "respiratory-common-cold.json",
+    "title": "Common cold",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/commoncold.html",
+    "search_phrases": [
+      "Common cold",
+      "Common Cold"
+    ]
+  },
+  {
+    "filename": "respiratory-cough.json",
+    "title": "Cough",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/cough.html",
+    "search_phrases": [
+      "Cough"
+    ]
+  },
+  {
+    "filename": "respiratory-covid-19.json",
+    "title": "COVID-19",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/covid19coronavirusdisease2019.html",
+    "search_phrases": [
+      "COVID-19",
+      "COVID-19 (Coronavirus Disease 2019)",
+      "Coronavirus"
+    ]
+  },
+  {
+    "filename": "respiratory-dry-cough.json",
+    "title": "Dry cough",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/cough.html",
+    "search_phrases": [
+      "Dry cough",
+      "Cough"
+    ]
+  },
+  {
+    "filename": "respiratory-hay-fever.json",
+    "title": "Hay fever",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/hayfever.html",
+    "search_phrases": [
+      "Hay fever",
+      "Hay Fever",
+      "Pollen allergy"
+    ]
+  },
+  {
+    "filename": "respiratory-influenza.json",
+    "title": "Influenza",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/flu.html",
+    "search_phrases": [
+      "Influenza",
+      "Flu",
+      "Grippe",
+      "Seasonal flu"
+    ]
+  },
+  {
+    "filename": "respiratory-nosebleed.json",
+    "title": "Nosebleed",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/noseinjuriesanddisorders.html",
+    "search_phrases": [
+      "Nosebleed",
+      "Nose Injuries and Disorders",
+      "Nasal disorders"
+    ]
+  },
+  {
+    "filename": "respiratory-persistent-cough.json",
+    "title": "Persistent cough",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/cough.html",
+    "search_phrases": [
+      "Persistent cough",
+      "Cough"
+    ]
+  },
+  {
+    "filename": "respiratory-pneumonia.json",
+    "title": "Pneumonia",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/pneumonia.html",
+    "search_phrases": [
+      "Pneumonia",
+      "Bronchopneumonia"
+    ]
+  },
+  {
+    "filename": "respiratory-productive-cough.json",
+    "title": "Productive cough",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/cough.html",
+    "search_phrases": [
+      "Productive cough",
+      "Cough"
+    ]
+  },
+  {
+    "filename": "respiratory-seasonal-allergies.json",
+    "title": "Seasonal allergies",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/hayfever.html",
+    "search_phrases": [
+      "Seasonal allergies",
+      "Hay Fever",
+      "Pollen allergy"
+    ]
+  },
+  {
+    "filename": "respiratory-shortness-of-breath.json",
+    "title": "Shortness of breath",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/breathingproblems.html",
+    "search_phrases": [
+      "Shortness of breath",
+      "Breathing Problems"
+    ]
+  },
+  {
+    "filename": "respiratory-sinusitis.json",
+    "title": "Sinusitis",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/sinusitis.html",
+    "search_phrases": [
+      "Sinusitis"
+    ]
+  },
+  {
+    "filename": "respiratory-sore-throat.json",
+    "title": "Sore throat",
+    "category": "Respiratory",
+    "source_url": "https://medlineplus.gov/sorethroat.html",
+    "search_phrases": [
+      "Sore throat",
+      "Sore Throat",
+      "Pharyngitis"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-erectile-dysfunction.json",
+    "title": "Erectile dysfunction",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/erectiledysfunction.html",
+    "search_phrases": [
+      "Erectile dysfunction",
+      "Erectile Dysfunction",
+      "ED",
+      "Impotence"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-high-libido.json",
+    "title": "High libido",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "High libido",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-hydrocele.json",
+    "title": "Hydrocele",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/testiculardisorders.html",
+    "search_phrases": [
+      "Hydrocele",
+      "Testicular Disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-infertility.json",
+    "title": "Infertility",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/infertility.html",
+    "search_phrases": [
+      "Infertility",
+      "Sterility"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-male-fertility.json",
+    "title": "Male fertility",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/maleinfertility.html",
+    "search_phrases": [
+      "Male fertility",
+      "Male Infertility"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-morning-erections.json",
+    "title": "Morning erections",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/erectiledysfunction.html",
+    "search_phrases": [
+      "Morning erections",
+      "Erectile Dysfunction",
+      "ED",
+      "Impotence"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-pain-during-erection.json",
+    "title": "Pain during erection",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "search_phrases": [
+      "Pain during erection",
+      "Penis Disorders",
+      "Penile disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-penis-discharge.json",
+    "title": "Penis discharge",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+    "search_phrases": [
+      "Penis discharge",
+      "Sexually Transmitted Infections",
+      "STDs",
+      "STIs",
+      "Sexually transmitted diseases",
+      "Venereal disease"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-penis-itching.json",
+    "title": "Penis itching",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "search_phrases": [
+      "Penis itching",
+      "Penis Disorders",
+      "Penile disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-penis-pain.json",
+    "title": "Penis pain",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "search_phrases": [
+      "Penis pain",
+      "Penis Disorders",
+      "Penile disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-penis-redness.json",
+    "title": "Penis redness",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "search_phrases": [
+      "Penis redness",
+      "Penis Disorders",
+      "Penile disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-penis-swelling.json",
+    "title": "Penis swelling",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "search_phrases": [
+      "Penis swelling",
+      "Penis Disorders",
+      "Penile disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-peyronie-s-disease.json",
+    "title": "Peyronie's disease",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/penisdisorders.html",
+    "search_phrases": [
+      "Peyronie's disease",
+      "Penis Disorders",
+      "Penile disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-premature-ejaculation.json",
+    "title": "Premature ejaculation",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/sexualproblemsinmen.html",
+    "search_phrases": [
+      "Premature ejaculation",
+      "Sexual Problems in Men"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-prostatitis.json",
+    "title": "Prostatitis",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/prostatediseases.html",
+    "search_phrases": [
+      "Prostatitis",
+      "Prostate Diseases"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-testicular-pain.json",
+    "title": "Testicular pain",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/testiculardisorders.html",
+    "search_phrases": [
+      "Testicular pain",
+      "Testicular Disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-varicocele.json",
+    "title": "Varicocele",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/testiculardisorders.html",
+    "search_phrases": [
+      "Varicocele",
+      "Testicular Disorders"
+    ]
+  },
+  {
+    "filename": "sexual-health-men-weak-erection.json",
+    "title": "Weak erection",
+    "category": "Sexual Health (Men)",
+    "source_url": "https://medlineplus.gov/erectiledysfunction.html",
+    "search_phrases": [
+      "Weak erection",
+      "Erectile Dysfunction",
+      "ED",
+      "Impotence"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-breast-pain.json",
+    "title": "Breast pain",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/breastdiseases.html",
+    "search_phrases": [
+      "Breast pain",
+      "Breast Diseases"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-endometriosis.json",
+    "title": "Endometriosis",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/endometriosis.html",
+    "search_phrases": [
+      "Endometriosis",
+      "Endo"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-heavy-periods.json",
+    "title": "Heavy periods",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "search_phrases": [
+      "Heavy periods",
+      "Menstruation",
+      "Menses",
+      "Menstrual period",
+      "Period"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-irregular-periods.json",
+    "title": "Irregular periods",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "search_phrases": [
+      "Irregular periods",
+      "Menstruation",
+      "Menses",
+      "Menstrual period",
+      "Period"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-late-period.json",
+    "title": "Late period",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "search_phrases": [
+      "Late period",
+      "Menstruation",
+      "Menses",
+      "Menstrual period",
+      "Period"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-light-periods.json",
+    "title": "Light periods",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "search_phrases": [
+      "Light periods",
+      "Menstruation",
+      "Menses",
+      "Menstrual period",
+      "Period"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-menopause.json",
+    "title": "Menopause",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menopause.html",
+    "search_phrases": [
+      "Menopause",
+      "Change of life"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-menstrual-pain.json",
+    "title": "Menstrual pain",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "search_phrases": [
+      "Menstrual pain",
+      "Menstruation",
+      "Menses",
+      "Menstrual period",
+      "Period"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-missed-period.json",
+    "title": "Missed period",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menstruation.html",
+    "search_phrases": [
+      "Missed period",
+      "Menstruation",
+      "Menses",
+      "Menstrual period",
+      "Period"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-ovarian-cyst.json",
+    "title": "Ovarian cyst",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/ovariancysts.html",
+    "search_phrases": [
+      "Ovarian cyst",
+      "Ovarian Cysts"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-pain-during-sex.json",
+    "title": "Pain during sex",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/sexualproblemsinwomen.html",
+    "search_phrases": [
+      "Pain during sex",
+      "Sexual Problems in Women"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-pcos.json",
+    "title": "PCOS",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/polycysticovarysyndrome.html",
+    "search_phrases": [
+      "PCOS",
+      "Polycystic Ovary Syndrome",
+      "Stein-Leventhal Syndrome"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-pelvic-pain.json",
+    "title": "Pelvic pain",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/pelvicpain.html",
+    "search_phrases": [
+      "Pelvic pain",
+      "Pelvic Pain"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-perimenopause.json",
+    "title": "Perimenopause",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/menopause.html",
+    "search_phrases": [
+      "Perimenopause",
+      "Menopause",
+      "Change of life"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-postpartum-care.json",
+    "title": "Postpartum care",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/postpartumcare.html",
+    "search_phrases": [
+      "Postpartum care",
+      "Postpartum Care",
+      "Post-pregnancy health"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-pregnancy-symptoms.json",
+    "title": "Pregnancy symptoms",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/pregnancy.html",
+    "search_phrases": [
+      "Pregnancy symptoms",
+      "Pregnancy"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-vaginal-discharge.json",
+    "title": "Vaginal discharge",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+    "search_phrases": [
+      "Vaginal discharge",
+      "Vaginal Diseases"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-vaginal-itching.json",
+    "title": "Vaginal itching",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+    "search_phrases": [
+      "Vaginal itching",
+      "Vaginal Diseases"
+    ]
+  },
+  {
+    "filename": "sexual-health-women-vaginal-odor.json",
+    "title": "Vaginal odor",
+    "category": "Sexual Health (Women)",
+    "source_url": "https://medlineplus.gov/vaginaldiseases.html",
+    "search_phrases": [
+      "Vaginal odor",
+      "Vaginal Diseases"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-anxiety-and-sex.json",
+    "title": "Anxiety and sex",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Anxiety and sex",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-birth-control.json",
+    "title": "Birth control",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/birthcontrol.html",
+    "search_phrases": [
+      "Birth control",
+      "Birth Control",
+      "Contraception"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-communication-with-partner.json",
+    "title": "Communication with partner",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Communication with partner",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-different-sex-drives.json",
+    "title": "Different sex drives",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Different sex drives",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-emergency-contraception.json",
+    "title": "Emergency contraception",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/birthcontrol.html",
+    "search_phrases": [
+      "Emergency contraception",
+      "Birth Control",
+      "Contraception"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-high-libido.json",
+    "title": "High libido",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "High libido",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-masturbation.json",
+    "title": "Masturbation",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Masturbation",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-partner-wants-more-sex.json",
+    "title": "Partner wants more sex",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Partner wants more sex",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-pornography-and-sexual-function.json",
+    "title": "Pornography and sexual function",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Pornography and sexual function",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-relationship-intimacy.json",
+    "title": "Relationship intimacy",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexualhealth.html",
+    "search_phrases": [
+      "Relationship intimacy",
+      "Sexual Health"
+    ]
+  },
+  {
+    "filename": "sexual-relationships-sti-prevention.json",
+    "title": "STI prevention",
+    "category": "Sexual Relationships",
+    "source_url": "https://medlineplus.gov/sexuallytransmittedinfections.html",
+    "search_phrases": [
+      "STI prevention",
+      "Sexually Transmitted Infections",
+      "STDs",
+      "STIs",
+      "Sexually transmitted diseases",
+      "Venereal disease"
+    ]
+  },
+  {
+    "filename": "skin-acne.json",
+    "title": "Acne",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/acne.html",
+    "search_phrases": [
+      "Acne",
+      "Pimples",
+      "Zits"
+    ]
+  },
+  {
+    "filename": "skin-cellulitis.json",
+    "title": "Cellulitis",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/cellulitis.html",
+    "search_phrases": [
+      "Cellulitis"
+    ]
+  },
+  {
+    "filename": "skin-cold-sores.json",
+    "title": "Cold sores",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/coldsores.html",
+    "search_phrases": [
+      "Cold sores",
+      "Cold Sores",
+      "Fever blister",
+      "Oral herpes"
+    ]
+  },
+  {
+    "filename": "skin-eczema.json",
+    "title": "Eczema",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/eczema.html",
+    "search_phrases": [
+      "Eczema",
+      "Dermatitis"
+    ]
+  },
+  {
+    "filename": "skin-fungal-infection.json",
+    "title": "Fungal infection",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/fungalinfections.html",
+    "search_phrases": [
+      "Fungal infection",
+      "Fungal Infections",
+      "Mycoses"
+    ]
+  },
+  {
+    "filename": "skin-hives.json",
+    "title": "Hives",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/hives.html",
+    "search_phrases": [
+      "Hives",
+      "Urticaria"
+    ]
+  },
+  {
+    "filename": "skin-moles.json",
+    "title": "Moles",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/moles.html",
+    "search_phrases": [
+      "Moles",
+      "Nevus"
+    ]
+  },
+  {
+    "filename": "skin-psoriasis.json",
+    "title": "Psoriasis",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/psoriasis.html",
+    "search_phrases": [
+      "Psoriasis"
+    ]
+  },
+  {
+    "filename": "skin-ringworm.json",
+    "title": "Ringworm",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/tineainfections.html",
+    "search_phrases": [
+      "Ringworm",
+      "Tinea Infections"
+    ]
+  },
+  {
+    "filename": "skin-rosacea.json",
+    "title": "Rosacea",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/rosacea.html",
+    "search_phrases": [
+      "Rosacea",
+      "Acne rosacea"
+    ]
+  },
+  {
+    "filename": "skin-scabies.json",
+    "title": "Scabies",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/scabies.html",
+    "search_phrases": [
+      "Scabies"
+    ]
+  },
+  {
+    "filename": "skin-shingles.json",
+    "title": "Shingles",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/shingles.html",
+    "search_phrases": [
+      "Shingles",
+      "Herpes zoster"
+    ]
+  },
+  {
+    "filename": "skin-skin-infection.json",
+    "title": "Skin infection",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/skininfections.html",
+    "search_phrases": [
+      "Skin infection",
+      "Skin Infections"
+    ]
+  },
+  {
+    "filename": "skin-sunburn.json",
+    "title": "Sunburn",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/sunexposure.html",
+    "search_phrases": [
+      "Sunburn",
+      "Sun Exposure"
+    ]
+  },
+  {
+    "filename": "skin-warts.json",
+    "title": "Warts",
+    "category": "Skin",
+    "source_url": "https://medlineplus.gov/warts.html",
+    "search_phrases": [
+      "Warts",
+      "Verruca"
+    ]
+  },
+  {
+    "filename": "urinary-system-blood-in-urine.json",
+    "title": "Blood in urine",
+    "category": "Urinary System",
+    "source_url": "https://medlineplus.gov/urineandurination.html",
+    "search_phrases": [
+      "Blood in urine",
+      "Urine and Urination"
+    ]
+  },
+  {
+    "filename": "urinary-system-kidney-infection.json",
+    "title": "Kidney infection",
+    "category": "Urinary System",
+    "source_url": "https://medlineplus.gov/urinarytractinfections.html",
+    "search_phrases": [
+      "Kidney infection",
+      "Urinary Tract Infections",
+      "UTI"
+    ]
+  },
+  {
+    "filename": "urinary-system-kidney-stones.json",
+    "title": "Kidney stones",
+    "category": "Urinary System",
+    "source_url": "https://medlineplus.gov/kidneystones.html",
+    "search_phrases": [
+      "Kidney stones",
+      "Kidney Stones",
+      "Nephrolithiasis"
+    ]
+  },
+  {
+    "filename": "urinary-system-overactive-bladder.json",
+    "title": "Overactive bladder",
+    "category": "Urinary System",
+    "source_url": "https://medlineplus.gov/overactivebladder.html",
+    "search_phrases": [
+      "Overactive bladder",
+      "Overactive Bladder"
+    ]
+  },
+  {
+    "filename": "urinary-system-urinary-incontinence.json",
+    "title": "Urinary incontinence",
+    "category": "Urinary System",
+    "source_url": "https://medlineplus.gov/urinaryincontinence.html",
+    "search_phrases": [
+      "Urinary incontinence",
+      "Urinary Incontinence",
+      "Bladder control problems"
+    ]
+  },
+  {
+    "filename": "urinary-system-urinary-tract-infection.json",
+    "title": "Urinary tract infection",
+    "category": "Urinary System",
+    "source_url": "https://medlineplus.gov/urinarytractinfections.html",
+    "search_phrases": [
+      "Urinary tract infection",
+      "Urinary Tract Infections",
+      "UTI"
+    ]
+  }
+]

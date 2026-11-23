@@ -1,0 +1,49 @@
+{
+  "id": "kidneydiseases",
+  "title": "Kidney Diseases",
+  "title_en": "Kidney Diseases",
+  "title_vi": "Các bệnh lý về thận tổng quan",
+  "category": "Nephrology",
+  "category_en": "Nephrology",
+  "category_vi": "Thận & Tiết niệu",
+  "search_phrases": [
+    "kidney diseases",
+    "renal disorders",
+    "kidney damage",
+    "creatinine and BUN",
+    "kidney failure symptoms",
+    "bệnh về thận",
+    "chức năng lọc của thận",
+    "xét nghiệm creatinine",
+    "phù thũng",
+    "bảo vệ thận"
+  ],
+  "keywords_en": [
+    "kidney diseases",
+    "renal disorders",
+    "kidney damage",
+    "creatinine and BUN",
+    "kidney failure symptoms"
+  ],
+  "keywords_vi": [
+    "bệnh về thận",
+    "chức năng lọc của thận",
+    "xét nghiệm creatinine",
+    "phù thũng",
+    "bảo vệ thận"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/kidneydiseases.html",
+  "summary": "You have two kidneys, each about the size of your fist. They are near the middle of your back, just below the rib cage. Inside each kidney there are about a million tiny structures called nephrons. They filter your blood. They remove wastes and extra water, which become urine. The urine flows through tubes called ureters. It goes to your bladder, which stores the urine until you go to the bathroom. Most kidney diseases attack the nephrons. This damage may leave kidneys unable to remove wastes. Causes can include genetic problems, injuries, or medicines. You have a higher risk of kidney disease if you have diabetes , high blood pressure , or a close family member with kidney disease. Chronic kidney disease damages the nephrons slowly over several years. Other kidney problems include: Cancer Cysts Stones Infections Your doctor can do blood and urine tests to check if you have kidney disease. If your kidneys fail , you will need dialysis or a kidney transplant . NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "page_content": "You have two kidneys, each about the size of your fist. They are near the middle of your back, just below the rib cage. Inside each kidney there are about a million tiny structures called nephrons. They filter your blood. They remove wastes and extra water, which become urine. The urine flows through tubes called ureters. It goes to your bladder, which stores the urine until you go to the bathroom. Most kidney diseases attack the nephrons. This damage may leave kidneys unable to remove wastes. Causes can include genetic problems, injuries, or medicines. You have a higher risk of kidney disease if you have diabetes , high blood pressure , or a close family member with kidney disease. Chronic kidney disease damages the nephrons slowly over several years. Other kidney problems include: Cancer Cysts Stones Infections Your doctor can do blood and urine tests to check if you have kidney disease. If your kidneys fail , you will need dialysis or a kidney transplant . NIH: National Institute of Diabetes and Digestive and Kidney Diseases",
+  "content_sha256": "c5befa475f979f1cb9ff398b6896c18a8e8e582ea5c07bfef5034184aeff46ab",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

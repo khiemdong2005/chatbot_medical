@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/healthysleep.html",
   "medlineplus_id": "6469",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Sleep hygiene",
+  "title_vi": "Vệ sinh giấc ngủ và thói quen ngủ tốt",
+  "category_en": "Lifestyle",
+  "category_vi": "Lối sống & Sức khỏe",
+  "keywords_en": [
+    "sleep hygiene",
+    "healthy sleep habits",
+    "better sleep",
+    "sleep schedule",
+    "restful sleep"
+  ],
+  "keywords_vi": [
+    "vệ sinh giấc ngủ",
+    "thói quen ngủ tốt",
+    "ngủ đủ giấc",
+    "cải thiện giấc ngủ",
+    "chữa khó ngủ"
+  ],
+  "content_hash": "f9b21e797a504dbb15ef107bab813427e5563248320c43dadcd17481b7744293",
+  "content_sha256": "f9b21e797a504dbb15ef107bab813427e5563248320c43dadcd17481b7744293",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

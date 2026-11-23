@@ -11,5 +11,27 @@
   "source_url": "https://medlineplus.gov/asthma.html",
   "medlineplus_id": "2",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Asthma",
+  "title_vi": "Hen suyễn (Hen phế quản)",
+  "category_en": "Respiratory",
+  "category_vi": "Hô hấp",
+  "keywords_en": [
+    "asthma",
+    "bronchial asthma",
+    "wheezing",
+    "asthma attack",
+    "inhaler"
+  ],
+  "keywords_vi": [
+    "hen suyễn",
+    "hen phế quản",
+    "cơn khó thở",
+    "khò khè",
+    "thuốc xịt cắt cơn"
+  ],
+  "content_hash": "070b936998aea3c45abb15a343e5be8f7bfc6fb0a172837f245325368db80b12",
+  "content_sha256": "070b936998aea3c45abb15a343e5be8f7bfc6fb0a172837f245325368db80b12",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

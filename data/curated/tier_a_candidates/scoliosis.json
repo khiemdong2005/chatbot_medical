@@ -1,0 +1,49 @@
+{
+  "id": "scoliosis",
+  "title": "Scoliosis",
+  "title_en": "Scoliosis",
+  "title_vi": "Vẹo cột sống",
+  "category": "Rheumatology & Bone",
+  "category_en": "Rheumatology & Bone",
+  "category_vi": "Cơ xương khớp & Thấp khớp",
+  "search_phrases": [
+    "scoliosis",
+    "spinal curvature",
+    "adolescent idiopathic scoliosis",
+    "back brace",
+    "uneven shoulders",
+    "vẹo cột sống",
+    "cong vẹo cột sống ở trẻ",
+    "lệch vai",
+    "áo nẹp chỉnh hình",
+    "tầm soát cong vẹo cột sống"
+  ],
+  "keywords_en": [
+    "scoliosis",
+    "spinal curvature",
+    "adolescent idiopathic scoliosis",
+    "back brace",
+    "uneven shoulders"
+  ],
+  "keywords_vi": [
+    "vẹo cột sống",
+    "cong vẹo cột sống ở trẻ",
+    "lệch vai",
+    "áo nẹp chỉnh hình",
+    "tầm soát cong vẹo cột sống"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/scoliosis.html",
+  "summary": "Scoliosis causes a sideways curve of your backbone, or spine. These curves are often S- or C-shaped. Scoliosis is most common in late childhood and the early teens, when children grow fast. Girls are more likely to have it than boys. It can run in families. Symptoms include leaning to one side and having uneven shoulders and hips. Sometimes it is easy to notice, but not always. Children may get screening for scoliosis at school or during a checkup . If it looks like there is a problem, your doctor will use your medical and family history, a physical exam, and imaging tests to make a diagnosis. Treatment depends on your age, how much more you're likely to grow, how much curving there is, and whether the curve is temporary or permanent. People with mild scoliosis might only need checkups to see if the curve is getting worse. Others might need to wear a brace or have surgery. NIH: National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+  "page_content": "Scoliosis causes a sideways curve of your backbone, or spine. These curves are often S- or C-shaped. Scoliosis is most common in late childhood and the early teens, when children grow fast. Girls are more likely to have it than boys. It can run in families. Symptoms include leaning to one side and having uneven shoulders and hips. Sometimes it is easy to notice, but not always. Children may get screening for scoliosis at school or during a checkup . If it looks like there is a problem, your doctor will use your medical and family history, a physical exam, and imaging tests to make a diagnosis. Treatment depends on your age, how much more you're likely to grow, how much curving there is, and whether the curve is temporary or permanent. People with mild scoliosis might only need checkups to see if the curve is getting worse. Others might need to wear a brace or have surgery. NIH: National Institute of Arthritis and Musculoskeletal and Skin Diseases",
+  "content_sha256": "305d3e375b88f39a1d258a385ddf95bb41c2f9436a38f6659324f7caddf9d758",
+  "candidate_score": 0.94,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

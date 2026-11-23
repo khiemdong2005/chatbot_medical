@@ -1,0 +1,49 @@
+{
+  "id": "bladdercancer",
+  "title": "Bladder Cancer",
+  "title_en": "Bladder Cancer",
+  "title_vi": "Ung thư bàng quang",
+  "category": "Oncology",
+  "category_en": "Oncology",
+  "category_vi": "Ung bướu",
+  "search_phrases": [
+    "bladder cancer",
+    "urothelial carcinoma",
+    "painless hematuria",
+    "cystoscopy",
+    "smoking bladder tumor",
+    "ung thư bàng quang",
+    "tiểu ra máu không đau",
+    "soi bàng quang",
+    "khối u đường tiết niệu",
+    "ung thư biểu mô niệu mạc"
+  ],
+  "keywords_en": [
+    "bladder cancer",
+    "urothelial carcinoma",
+    "painless hematuria",
+    "cystoscopy",
+    "smoking bladder tumor"
+  ],
+  "keywords_vi": [
+    "ung thư bàng quang",
+    "tiểu ra máu không đau",
+    "soi bàng quang",
+    "khối u đường tiết niệu",
+    "ung thư biểu mô niệu mạc"
+  ],
+  "language": "en",
+  "source": "MedlinePlus",
+  "source_url": "https://medlineplus.gov/bladdercancer.html",
+  "summary": "The bladder is a hollow organ in your lower abdomen that stores urine. Bladder cancer occurs in the lining of the bladder. It is the sixth most common type of cancer in the United States. Symptoms include: Blood in your urine A frequent urge to urinate Pain when you urinate Low back pain Risk factors for developing bladder cancer include smoking and exposure to certain chemicals in the workplace. People with a family history of bladder cancer or who are older, White, or male have a higher risk. Treatments for bladder cancer include surgery, radiation therapy, chemotherapy, and biologic therapy. Biologic therapy boosts your body's own ability to fight cancer. NIH: National Cancer Institute",
+  "page_content": "The bladder is a hollow organ in your lower abdomen that stores urine. Bladder cancer occurs in the lining of the bladder. It is the sixth most common type of cancer in the United States. Symptoms include: Blood in your urine A frequent urge to urinate Pain when you urinate Low back pain Risk factors for developing bladder cancer include smoking and exposure to certain chemicals in the workplace. People with a family history of bladder cancer or who are older, White, or male have a higher risk. Treatments for bladder cancer include surgery, radiation therapy, chemotherapy, and biologic therapy. Biologic therapy boosts your body's own ability to fight cancer. NIH: National Cancer Institute",
+  "content_sha256": "842ad5ea2dc945e4a150448850ea283cc4ce18cdea1882492a558c9911dcd3e7",
+  "candidate_score": 0.95,
+  "tier": "TIER_A",
+  "qa_status": "APPROVED",
+  "qa_flags": [],
+  "qa_review_reason": "Automated QA scan passed without dosing or safety triggers.",
+  "safety_classification": "SAFE_EDUCATIONAL",
+  "metadata_generated_by": "curation_pipeline_bilingual_v1",
+  "metadata_review_status": "audited_qa_passed"
+}

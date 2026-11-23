@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/eczema.html",
   "medlineplus_id": "1215",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Eczema",
+  "title_vi": "Chàm da (Eczema / Viêm da cơ địa)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "eczema",
+    "atopic dermatitis",
+    "dry itchy skin",
+    "skin barrier",
+    "eczema flare"
+  ],
+  "keywords_vi": [
+    "chàm da",
+    "viêm da cơ địa",
+    "eczema",
+    "ngứa khô da",
+    "dưỡng ẩm da"
+  ],
+  "content_hash": "092761c2f2d46817b6477519a2c50ccf80d54f6e9481ba410ff597850066be2e",
+  "content_sha256": "092761c2f2d46817b6477519a2c50ccf80d54f6e9481ba410ff597850066be2e",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

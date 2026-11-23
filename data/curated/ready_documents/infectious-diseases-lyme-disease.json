@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/lymedisease.html",
   "medlineplus_id": "84",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Lyme disease",
+  "title_vi": "Bệnh Lyme",
+  "category_en": "Infectious Diseases",
+  "category_vi": "Bệnh truyền nhiễm",
+  "keywords_en": [
+    "Lyme disease",
+    "borrelia infection",
+    "tick bite",
+    "bullseye rash",
+    "erythema migrans"
+  ],
+  "keywords_vi": [
+    "bệnh lyme",
+    "bọ ve đốt",
+    "phát ban mắt bò",
+    "nhiễm vi khuẩn borrelia",
+    "đau nhức khớp lyme"
+  ],
+  "content_hash": "6ed7a00ad4f1e0dc4b3d34be266bc03509ad80729485c6ed59c242f4d27ffc21",
+  "content_sha256": "6ed7a00ad4f1e0dc4b3d34be266bc03509ad80729485c6ed59c242f4d27ffc21",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

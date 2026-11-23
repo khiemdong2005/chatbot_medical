@@ -1,0 +1,257 @@
+[
+  {
+    "query": "Mệt mỏi kéo dài có thể liên quan đến những yếu tố nào?",
+    "status": "ok",
+    "latency_ms": 1516.6810000009718
+  },
+  {
+    "query": "Trước khi ngất xỉu một người có thể cảm thấy thế nào?",
+    "status": "ok",
+    "latency_ms": 737.5551000004634
+  },
+  {
+    "query": "Khô miệng ảnh hưởng thế nào đến việc nhai nuốt?",
+    "status": "ok",
+    "latency_ms": 808.3847999987483
+  },
+  {
+    "query": "Khi đứng yên mà vẫn thấy căn phòng quay vòng thì hiện tượng đó gọi là gì?",
+    "status": "ok",
+    "latency_ms": 1023.8257000019075
+  },
+  {
+    "query": "Khớp trong cơ thể gồm những cấu trúc nào?",
+    "status": "ok",
+    "latency_ms": 407.9258999990998
+  },
+  {
+    "query": "Chuột rút ở chân vào ban đêm là hiện tượng gì?",
+    "status": "ok",
+    "latency_ms": 680.2406999995583
+  },
+  {
+    "query": "Những tình trạng nào có thể gây buồn nôn và nôn?",
+    "status": "ok",
+    "latency_ms": 1057.0797000000312
+  },
+  {
+    "query": "Ngứa da có thể xuất hiện ở một vùng hay toàn thân?",
+    "status": "ok",
+    "latency_ms": 740.1315999995859
+  },
+  {
+    "query": "Đau cơ có thể xuất phát từ những vấn đề nào?",
+    "status": "ok",
+    "latency_ms": 1260.2664000005461
+  },
+  {
+    "query": "Chứng đau nửa đầu khác gì với cơn đau đầu thông thường?",
+    "status": "ok",
+    "latency_ms": 194.62510000084876
+  },
+  {
+    "query": "Chảy máu bên trong khác chảy máu ngoài như thế nào?",
+    "status": "ok",
+    "latency_ms": 894.8602000018582
+  },
+  {
+    "query": "Gãy xương có thể có những biểu hiện nào?",
+    "status": "ok",
+    "latency_ms": 655.305700001918
+  },
+  {
+    "query": "Điện giật có thể gây tổn thương bên trong cơ thể không?",
+    "status": "ok",
+    "latency_ms": 782.3384000002989
+  },
+  {
+    "query": "Sau khi làm việc ngoài nắng, người bị nóng quá mức và lú lẫn có thể gặp tình trạng gì?",
+    "status": "ok",
+    "latency_ms": 526.602300000377
+  },
+  {
+    "query": "Cơ thể mất nhiệt quá nhanh trong thời tiết lạnh có thể dẫn tới điều gì?",
+    "status": "ok",
+    "latency_ms": 993.8399999991816
+  },
+  {
+    "query": "Sau khi bị động vật cắn, vết thương có thể gặp biến chứng gì?",
+    "status": "ok",
+    "latency_ms": 890.6681000007666
+  },
+  {
+    "query": "Ruột thừa nằm ở đâu và viêm ruột thừa do điều gì gây ra?",
+    "status": "ok",
+    "latency_ms": 1458.6254000023473
+  },
+  {
+    "query": "Dùng thuốc trong thai kỳ cần cân nhắc những nguy cơ nào?",
+    "status": "ok",
+    "latency_ms": 786.656899999798
+  },
+  {
+    "query": "Thuốc giảm đau không kê đơn gồm những nhóm nào?",
+    "status": "ok",
+    "latency_ms": 664.7908000013558
+  },
+  {
+    "query": "Tại sao dùng nhiều loại thuốc cùng chứa acetaminophen có thể gây rủi ro?",
+    "status": "ok",
+    "latency_ms": 1057.4582999979611
+  },
+  {
+    "query": "Phản ứng không mong muốn do thuốc có thể biểu hiện như thế nào?",
+    "status": "ok",
+    "latency_ms": 481.57959999662125
+  },
+  {
+    "query": "Thuốc kháng sinh có tác dụng với virus cảm lạnh không?",
+    "status": "ok",
+    "latency_ms": 1219.9768999998923
+  },
+  {
+    "query": "Vắc xin giúp hệ miễn dịch chuẩn bị chống lại tác nhân gây bệnh như thế nào?",
+    "status": "ok",
+    "latency_ms": 663.5083999972267
+  },
+  {
+    "query": "Khói thuốc của người khác có thể ảnh hưởng đến sức khỏe ra sao?",
+    "status": "ok",
+    "latency_ms": 1003.3849999999802
+  },
+  {
+    "query": "Thuốc lá điện tử có chứa nicotine gây lệ thuộc không?",
+    "status": "ok",
+    "latency_ms": 659.0300999996543
+  },
+  {
+    "query": "Thói quen nào giúp duy trì giấc ngủ tốt hơn?",
+    "status": "ok",
+    "latency_ms": 1046.590300000389
+  },
+  {
+    "query": "Một chế độ ăn cân bằng thường bao gồm những nhóm thực phẩm nào?",
+    "status": "ok",
+    "latency_ms": 562.3818000021856
+  },
+  {
+    "query": "Bác sĩ dùng xét nghiệm nào để kiểm tra tuyến giáp hoạt động kém?",
+    "status": "ok",
+    "latency_ms": 640.5111999993096
+  },
+  {
+    "query": "Vì sao cần đo huyết áp để phát hiện huyết áp cao?",
+    "status": "ok",
+    "latency_ms": 1229.9226000031922
+  },
+  {
+    "query": "Sỏi mật có thể được phát hiện tình cờ khi kiểm tra hình ảnh không?",
+    "status": "ok",
+    "latency_ms": 454.5889000000898
+  },
+  {
+    "query": "Chụp X quang ngực có vai trò gì khi kiểm tra viêm phổi?",
+    "status": "ok",
+    "latency_ms": 699.3579000009049
+  },
+  {
+    "query": "Các bác sĩ đánh giá hội chứng buồng trứng đa nang bằng những cách nào?",
+    "status": "ok",
+    "latency_ms": 1110.4015999990224
+  },
+  {
+    "query": "Nhiễm nấm da hình vòng thường được điều trị bằng loại thuốc nào?",
+    "status": "ok",
+    "latency_ms": 623.7166999999317
+  },
+  {
+    "query": "Những lựa chọn điều trị nào có thể được dùng cho chứng mất ngủ?",
+    "status": "ok",
+    "latency_ms": 970.170100001269
+  },
+  {
+    "query": "Có những phương pháp nào giúp kiểm soát bệnh chàm?",
+    "status": "ok",
+    "latency_ms": 507.354999997915
+  },
+  {
+    "query": "Thoái hóa khớp thường được kiểm soát bằng những phương pháp gì?",
+    "status": "ok",
+    "latency_ms": 492.367099999683
+  },
+  {
+    "query": "Mụn trứng cá có thể được điều trị bằng những cách nào?",
+    "status": "ok",
+    "latency_ms": 1110.0156000029529
+  },
+  {
+    "query": "Vì sao một số người khó chịu ở bụng sau khi uống sữa?",
+    "status": "ok",
+    "latency_ms": 829.448799999227
+  },
+  {
+    "query": "Viêm phế quản mạn tính có liên quan gì đến COPD?",
+    "status": "ok",
+    "latency_ms": 1254.3320000004314
+  },
+  {
+    "query": "Bệnh vảy nến thường có biểu hiện trên da ra sao?",
+    "status": "ok",
+    "latency_ms": 826.4640999987023
+  },
+  {
+    "query": "Viêm gan ảnh hưởng đến cơ quan nào và là tình trạng gì?",
+    "status": "ok",
+    "latency_ms": 1004.9088000014308
+  },
+  {
+    "query": "Lo âu có thể gây ra những cảm giác hoặc biểu hiện cơ thể nào?",
+    "status": "ok",
+    "latency_ms": 537.3665999977675
+  },
+  {
+    "query": "Bệnh lao chủ yếu ảnh hưởng đến bộ phận nào của cơ thể?",
+    "status": "ok",
+    "latency_ms": 495.88109999967855
+  },
+  {
+    "query": "Nhiễm trùng thận thuộc nhóm nhiễm trùng nào?",
+    "status": "ok",
+    "latency_ms": 968.3139000007941
+  },
+  {
+    "query": "Vitamin nhóm B giúp cơ thể thực hiện những chức năng nào?",
+    "status": "ok",
+    "latency_ms": 730.8819999998377
+  },
+  {
+    "query": "Các biện pháp tránh thai có những loại tổng quát nào?",
+    "status": "ok",
+    "latency_ms": 631.53720000264
+  },
+  {
+    "query": "Vi rút gây COVID-19 có thể lây giữa người với người như thế nào?",
+    "status": "ok",
+    "latency_ms": 964.1326000019035
+  },
+  {
+    "query": "Đường huyết thấp có thể gây ra những dấu hiệu nào?",
+    "status": "ok",
+    "latency_ms": 755.0099000000046
+  },
+  {
+    "query": "Người mắc bệnh celiac cần tránh loại protein nào trong thực phẩm?",
+    "status": "ok",
+    "latency_ms": 1231.0532000010426
+  },
+  {
+    "query": "Tuyến giáp hoạt động quá mức ảnh hưởng thế nào đến chuyển hóa?",
+    "status": "ok",
+    "latency_ms": 534.8209000003408
+  },
+  {
+    "query": "Thuốc giảm đau và kháng sinh khác nhau thế nào về mục đích sử dụng?",
+    "status": "ok",
+    "latency_ms": 202.03630000105477
+  }
+]

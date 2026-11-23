@@ -1,0 +1,9 @@
+{
+  "collection_name": "medical_knowledge_expanded_v4_20261115_005612",
+  "created_at": "2026-11-15T00:56:26.256912",
+  "source_count": 364,
+  "chunk_count": 725,
+  "mean_prefix_chars": 317.5,
+  "p95_prefix_chars": 403.2,
+  "build_time_ms": 14080.4
+}

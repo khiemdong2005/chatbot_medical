@@ -13,5 +13,27 @@
   "source_url": "https://medlineplus.gov/acne.html",
   "medlineplus_id": "124",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Acne",
+  "title_vi": "Mụn trứng cá",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "acne",
+    "acne vulgaris",
+    "pimples",
+    "blackheads",
+    "skin breakouts"
+  ],
+  "keywords_vi": [
+    "mụn trứng cá",
+    "mụn bọc mụn mủ",
+    "bít tắc lỗ chân lông",
+    "chăm sóc da mụn",
+    "da liễu"
+  ],
+  "content_hash": "8f599914ae80355d4dec78e1420fa7111ec592b20acf0f6f94f673a4ef3e28b6",
+  "content_sha256": "8f599914ae80355d4dec78e1420fa7111ec592b20acf0f6f94f673a4ef3e28b6",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

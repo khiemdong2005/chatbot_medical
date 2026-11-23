@@ -12,5 +12,26 @@
   "source_url": "https://medlineplus.gov/lymphaticdiseases.html",
   "medlineplus_id": "591",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Swollen glands",
+  "title_vi": "Sưng hạch (Nổi hạch)",
+  "category_en": "General Symptoms",
+  "category_vi": "Triệu chứng toàn thân",
+  "keywords_en": [
+    "swollen glands",
+    "swollen lymph nodes",
+    "lymphadenopathy",
+    "lymph node swelling"
+  ],
+  "keywords_vi": [
+    "sưng hạch",
+    "nổi hạch",
+    "hạch cổ",
+    "hạch bạch huyết",
+    "nhiễm trùng hạch"
+  ],
+  "content_hash": "026ce051162de081d081c77daec014499d60371d322be7b7a3b3abc140e36849",
+  "content_sha256": "026ce051162de081d081c77daec014499d60371d322be7b7a3b3abc140e36849",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

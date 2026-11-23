@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/rosacea.html",
   "medlineplus_id": "1247",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Rosacea",
+  "title_vi": "Chứng đỏ mặt (Rosacea)",
+  "category_en": "Skin",
+  "category_vi": "Da liễu",
+  "keywords_en": [
+    "rosacea",
+    "facial redness",
+    "flushed skin",
+    "telangiectasia",
+    "sensitive facial skin"
+  ],
+  "keywords_vi": [
+    "chứng đỏ mặt",
+    "rosacea",
+    "đỏ ửng mặt",
+    "giãn mao mạch da mặt",
+    "da nhạy cảm"
+  ],
+  "content_hash": "7d397582444df7e4d1248472919d99ba042600073c16200afc88af57a3601b4f",
+  "content_sha256": "7d397582444df7e4d1248472919d99ba042600073c16200afc88af57a3601b4f",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

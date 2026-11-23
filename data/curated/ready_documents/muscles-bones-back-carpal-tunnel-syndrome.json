@@ -13,5 +13,26 @@
   "source_url": "https://medlineplus.gov/carpaltunnelsyndrome.html",
   "medlineplus_id": "179",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Carpal tunnel syndrome",
+  "title_vi": "Hội chứng ống cổ tay",
+  "category_en": "Muscles, Bones & Back",
+  "category_vi": "Cơ xương khớp",
+  "keywords_en": [
+    "carpal tunnel syndrome",
+    "median nerve compression",
+    "hand numbness",
+    "wrist pain"
+  ],
+  "keywords_vi": [
+    "hội chứng ống cổ tay",
+    "tê bàn tay",
+    "chèn ép thần kinh giữa",
+    "đau cổ tay",
+    "tê ngón tay"
+  ],
+  "content_hash": "fd42ed6b4090211f796908d860d98876c1cc87dd52c049b558952507fb5386e1",
+  "content_sha256": "fd42ed6b4090211f796908d860d98876c1cc87dd52c049b558952507fb5386e1",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }

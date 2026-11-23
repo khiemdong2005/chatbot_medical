@@ -12,5 +12,27 @@
   "source_url": "https://medlineplus.gov/hemorrhoids.html",
   "medlineplus_id": "1226",
   "mapping_type": "exact",
-  "mapping_score": 1.0
+  "mapping_score": 1.0,
+  "title_en": "Hemorrhoids",
+  "title_vi": "Bệnh trĩ",
+  "category_en": "Digestive",
+  "category_vi": "Tiêu hóa",
+  "keywords_en": [
+    "hemorrhoids",
+    "piles",
+    "rectal bleeding",
+    "anal itching",
+    "hemorrhoidal cushion"
+  ],
+  "keywords_vi": [
+    "bệnh trĩ",
+    "trĩ nội",
+    "trĩ ngoại",
+    "chảy máu hậu môn",
+    "búi trĩ"
+  ],
+  "content_hash": "5a2b30fb0d0aeba77020cf3dfb1494c2a3c85b1852d2cdcc5d3b1986ceb9afae",
+  "content_sha256": "5a2b30fb0d0aeba77020cf3dfb1494c2a3c85b1852d2cdcc5d3b1986ceb9afae",
+  "qa_status": "APPROVED",
+  "qa_flags": []
 }
