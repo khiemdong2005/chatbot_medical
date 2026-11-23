@@ -15,7 +15,10 @@ from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
 from core.ocr_parallel_service import extract_ocr_parallel
 from core.gemini_schema_service import extract_with_gemini_schema
-from core.reconciliation_service import reconcile_parallel_results, extract_schema_from_ocr
+from core.reconciliation_service import (
+    reconcile_parallel_results, extract_schema_from_ocr,
+    _ascii_fold, _prescription_body_bounds,
+)
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
 from core.interpretation_service import generate_clinical_interpretation
@@ -66,6 +69,139 @@ def _ocr_needs_second_pass(result: Dict[str, Any], doc_type_hint: str) -> bool:
             return False
     return True
 
+
+def _compose_prescription_crop_ocr(full_ocr, crop_ocr, crop_path, bounds):
+    """Use cropped OCR for medicine blocks and full-page OCR only for header/total anchors."""
+    from PIL import Image
+    from core.ocr_parallel_service import _group_ocr_rows
+
+    x1, y1, x2, y2 = bounds
+    with Image.open(crop_path) as image:
+        crop_w, crop_h = image.size
+    scale_x = crop_w / max(1, x2 - x1)
+    scale_y = crop_h / max(1, y2 - y1)
+
+    crop_lines = []
+    for original in crop_ocr.get("lines", []):
+        line = dict(original)
+        line["box"] = [[x1 + point[0] / scale_x, y1 + point[1] / scale_y]
+                       for point in original.get("box", [])]
+        for key, offset, scale in (("x_min", x1, scale_x), ("x_max", x1, scale_x),
+                                   ("y_min", y1, scale_y), ("y_max", y1, scale_y),
+                                   ("y_center", y1, scale_y)):
+            if original.get(key) is not None:
+                line[key] = offset + original[key] / scale
+        text = _ascii_fold(line.get("text", ""))
+        if re.search(r"\b(?:cong\s*khoan|chan\s*doan)\b", text):
+            continue
+        crop_lines.append(line)
+
+    full_rows = full_ocr.get("rows", [])
+    diagnosis_row = next((row for row in full_rows
+                          if re.search(r"\bchan\s*doan\b", _ascii_fold(row.get("text", "")))), None)
+    first_medicine_row = next((row for row in full_rows
+                               if re.match(r"^\s*\d+\s*[.)]\s*\S+", row.get("text", ""))
+                               or ((row.get("items") or []) and re.fullmatch(
+                                   r"\d+\s*[.)]?", str(row["items"][0].get("text", "")).strip()
+                               ) and len(row.get("items", [])) > 1)), None)
+    if diagnosis_row:
+        header_cutoff = float(diagnosis_row.get("y_max", float("inf")))
+    elif first_medicine_row:
+        header_cutoff = float(first_medicine_row.get("y_min", 0)) - 1
+    else:
+        header_cutoff = float("-inf")
+    header_lines = [dict(line) for line in full_ocr.get("lines", [])
+                    if float(line.get("y_center", 0)) <= header_cutoff]
+
+    total_rows = [row for row in full_rows if re.search(
+        r"\b(?:cong\s*khoan|tong\s*cong)\s*[:|.]?\s*\d+\b",
+        _ascii_fold(row.get("text", "")),
+    )]
+    total_lines = []
+    if total_rows:
+        total_row = total_rows[0]
+        total_lines = [dict(line) for line in full_ocr.get("lines", [])
+                       if float(line.get("y_center", 0)) >= float(total_row.get("y_min", 0)) - 3
+                       and float(line.get("y_center", 0)) <= float(total_row.get("y_max", 0)) + 3]
+    scoped_lines = header_lines + crop_lines + total_lines
+    scoped_lines.sort(key=lambda line: float(line.get("y_center", 0)))
+    for line_index, line in enumerate(scoped_lines):
+        line["line_index"] = line_index
+    scoped_rows = _group_ocr_rows(scoped_lines)
+    raw_text = "\n".join(row.get("text", "") for row in scoped_rows)
+    return {
+        **full_ocr,
+        "lines": scoped_lines,
+        "rows": scoped_rows,
+        "raw_text": raw_text,
+        "total_lines": len(scoped_lines),
+        "total_rows": len(scoped_rows),
+        "avg_confidence": round(sum(float(line.get("confidence", 0)) for line in scoped_lines)
+                                 / max(1, len(scoped_lines)), 3),
+    }
+
+
+def _build_default_overlay_boxes(medications, detail_boxes, rows, width, height):
+    """Aggregate OCR fragments into one rendered box per medicine and header row."""
+    boxes = []
+    boxes_by_id = {}
+    for detail in detail_boxes:
+        if detail.get("medicine_id"):
+            boxes_by_id.setdefault(detail["medicine_id"], []).append(detail)
+    for medicine in medications:
+        linked = boxes_by_id.get(medicine.get("medicine_id"), [])
+        medicine["ocr_box_ids"] = [box["line_index"] for box in linked]
+        if not linked:
+            continue
+        points = [point for box in linked for point in box["points"]]
+        xs, ys = [point[0] for point in points], [point[1] for point in points]
+        bbox = [[min(xs), min(ys)], [max(xs), min(ys)], [max(xs), max(ys)], [min(xs), max(ys)]]
+        status = ("unmatched" if medicine.get("match_status") == "unmatched"
+                  else "needs_review" if medicine.get("needs_review") else "recognized")
+        boxes.append({
+            "id": medicine["medicine_id"], "medicine_id": medicine["medicine_id"],
+            "text": medicine.get("ocr_matched_text") or medicine.get("name", ""),
+            "confidence": float(medicine.get("ocr_confidence") or 0),
+            "bbox": bbox, "points": bbox,
+            "bbox_pixels": [[x * width, y * height] for x, y in bbox],
+            "line_index": linked[0]["line_index"],
+            "line_indices": medicine["ocr_box_ids"], "status": status,
+            "kind": "medicine",
+        })
+
+    patterns = {
+        "patient_name": r"\bho\s*ten\b",
+        "diagnosis": r"\bchan\s*doan\b",
+        "date": r"\bngay\s*kham\b|\bngay\s*\d{1,2}\s*thang\b",
+    }
+    added = set()
+    detail_by_line = {box["line_index"]: box for box in detail_boxes}
+    for row in rows:
+        row_text = _ascii_fold(row.get("text", ""))
+        for field_name, pattern in patterns.items():
+            if field_name in added or not re.search(pattern, row_text):
+                continue
+            linked = [detail_by_line[int(item["line_index"])] for item in row.get("items", [])
+                      if item.get("line_index") is not None and int(item["line_index"]) in detail_by_line]
+            if not linked:
+                continue
+            points = [point for box in linked for point in box["points"]]
+            xs, ys = [point[0] for point in points], [point[1] for point in points]
+            bbox = [[min(xs), min(ys)], [max(xs), min(ys)], [max(xs), max(ys)], [min(xs), max(ys)]]
+            boxes.append({
+                "id": f"HDR_{field_name}", "medicine_id": None, "field_id": field_name,
+                "text": row.get("text", ""),
+                "confidence": min(float(box.get("confidence") or 0) for box in linked),
+                "bbox": bbox, "points": bbox,
+                "bbox_pixels": [[x * width, y * height] for x, y in bbox],
+                "line_index": linked[0]["line_index"],
+                "line_indices": [box["line_index"] for box in linked],
+                "status": "recognized", "kind": "header",
+            })
+            added.add(field_name)
+            break
+    return boxes
+
 def process_medical_document_pipeline(
     file_path: str,
     original_filename: str = "",
@@ -86,6 +222,11 @@ def process_medical_document_pipeline(
     """
     start_all = time.time()
     filename_clean = original_filename or os.path.basename(file_path)
+
+    # Tạo scan ID duy nhất cho mỗi lần xử lý — dễ tra cứu trong log
+    import uuid
+    scan_id = str(uuid.uuid4())[:8].upper()
+    logger.info(f"[SCAN:{scan_id}] START file={filename_clean}")
 
     if not os.path.exists(file_path):
         return {
@@ -164,14 +305,9 @@ def process_medical_document_pipeline(
     # 2.A: OCR cục bộ
     ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
     ocr_candidates = [(active_image_path, ocr_result)]
-    # Geometric correction and resizing can erase small text. Keep an
-    # independent reading of the original image for comparison.
     original_image_path = embedded_img_path if is_pdf and embedded_img_path else file_path
-    if (not mask_pii and original_image_path != active_image_path
-            and _ocr_needs_second_pass(ocr_result, doc_type_hint)
-            and os.path.splitext(original_image_path)[1].lower() != ".pdf"):
-        original_ocr = extract_ocr_parallel(original_image_path, doc_type=doc_type_hint)
-        ocr_candidates.append((original_image_path, original_ocr))
+    # One EasyOCR pass per scan keeps a single coordinate/text source. The
+    # rectified, upscaled image is the OCR source; the original remains for UI.
 
     # Phân loại tự động nếu chưa có doc_type_hint
     doc_type = doc_type_hint
@@ -199,8 +335,20 @@ def process_medical_document_pipeline(
     crop_image_path = None
     if doc_type in ("prescription", "auto"):
         try:
-            from core.prescription_crop_service import crop_and_upscale_medication_region
-            crop_image_path = crop_and_upscale_medication_region(active_image_path, ocr_result)
+            from PIL import Image
+            from core.prescription_crop_service import (
+                crop_and_upscale_medication_region, detect_medication_bounds,
+            )
+            crop_source_path = selected_ocr_path
+            with Image.open(crop_source_path) as source_image:
+                source_width, source_height = source_image.size
+            crop_bounds = detect_medication_bounds(
+                ocr_result.get("lines", []), ocr_result.get("rows", []),
+                source_width, source_height,
+            )
+            crop_image_path = crop_and_upscale_medication_region(crop_source_path, ocr_result)
+            # The enlarged ROI is passed to vision extraction only. EasyOCR
+            # stays single-pass and its bboxes all use the rectified page.
         except Exception as e:
             logger.warning("Lỗi cắt phóng to vùng thuốc: %s", e)
             crop_image_path = None
@@ -256,16 +404,40 @@ def process_medical_document_pipeline(
     draft = {field: reconciled.get(field) or "" for field in HEADER_FIELDS}
     draft[key] = []
     anchor_boxes = []
-    for row in reconciled.get(key, []):
-        review_row = {field: str(row.get(field) or "") for field in fields}
+    for med_index, row in enumerate(reconciled.get(key, []), start=1):
+        review_row = {
+            field: (row.get(field) if row.get(field) not in ("", None) else None)
+            for field in fields
+        }
         if key == "medications":
-            review_row["needs_review"] = bool(row.get("needs_review", False))
+            ocr_active_ingredient = str(row.get("active_ingredient") or "").strip()
+            drug_match = normalize_drug_entity(str(row.get("name") or ""))
+            if drug_match.get("status") != "matched" and ocr_active_ingredient:
+                drug_match = normalize_drug_entity(ocr_active_ingredient)
+            matched = drug_match.get("status") == "matched"
+            review_row["status"] = "matched" if matched else "unmatched"
+            review_row["match_status"] = "matched" if matched else "unmatched"
+            review_row["match_score"] = drug_match.get("match_confidence", 0)
+            review_row["ocr_confidence"] = row.get("ocr_confidence", 0)
+            review_row["standard_name"] = drug_match.get("standard_name") if matched else str(row.get("name") or "")
+            review_row["suggested_name"] = (
+                drug_match.get("standard_name") if matched and drug_match.get("match_confidence", 0) < 95 else ""
+            )
+            review_row["active_ingredient"] = ocr_active_ingredient or (drug_match.get("active_ingredient", "") if matched else "")
+            review_row["purpose"] = drug_match.get("purpose", "") if matched else ""
+            review_row["needs_review"] = not (
+                matched and drug_match.get("match_confidence", 0) >= 95
+                and bool(row.get("dose")) and bool(row.get("quantity") or row.get("days"))
+            )
             review_row["field_confidence"] = row.get("field_confidence")
             review_row["ocr_matched_text"] = str(row.get("ocr_matched_text") or "")
             review_row["raw_ocr_name"] = str(row.get("raw_ocr_name") or "")
             review_row["raw_ocr_strength"] = str(row.get("raw_ocr_strength") or "")
             review_row["anchor_evidence_text"] = str(row.get("anchor_evidence_text") or "")
-            for extra in ("brand_name", "active_ingredient", "quantity", "unit", "schedule", "instructions", "purpose"):
+            review_row["medicine_id"] = f"MED_{med_index:03d}"
+            review_row["source_ordinal"] = row.get("source_ordinal")
+            review_row["source_line_indices"] = row.get("source_line_indices") or []
+            for extra in ("brand_name", "active_ingredient", "quantity", "unit", "schedule", "instructions"):
                 if row.get(extra):
                     review_row[extra] = str(row.get(extra))
             anchor_boxes.append(row.get("anchor_box"))
@@ -281,6 +453,8 @@ def process_medical_document_pipeline(
         extraction_warning = (
             "Tên thuốc chưa được OCR xác nhận trên ảnh. Hãy đối chiếu từng dòng với phiếu gốc trước khi lưu."
         )
+    if key == "medications" and reconciled.get("count_warning"):
+        extraction_warning = reconciled["count_warning"]
     boxes = []
     normalize_points = None
     if (selected_ocr_path == active_image_path and prep_res.get("to_original")
@@ -305,19 +479,59 @@ def process_medical_document_pipeline(
                 return [[float(x / width), float(y / height)] for x, y in box]
         except (OSError, ValueError, ZeroDivisionError):
             pass
+    unclassified_ocr_regions = []
+    detail_ocr_boxes = []
+    boxes = []
+    ocr_lines = ocr_result.get("lines", [])
+    line_to_med = {}
+    med_match_by_id = {}
+    if key == "medications":
+        for med in draft[key]:
+            med_match_by_id[med["medicine_id"]] = med.get("match_status")
+            for line_index in med.get("source_line_indices", []):
+                line_to_med[int(line_index)] = med["medicine_id"]
+    body_line_indices = set()
+    ignored_line_indices = set()
+    if key == "medications":
+        ignored_line_indices = set(
+            extract_schema_from_ocr(ocr_result, doc_type="prescription").get("ignored_ocr_line_indices", [])
+        )
+        rows_for_body = ocr_result.get("rows", [])
+        body_start, body_end = _prescription_body_bounds(rows_for_body)
+        for row in rows_for_body[body_start:body_end]:
+            for item in row.get("items", []):
+                if item.get("line_index") is not None:
+                    body_line_indices.add(int(item["line_index"]))
     if normalize_points:
-        for line in ocr_result.get("lines", []):
+        for fallback_index, line in enumerate(ocr_lines):
             source_box = line.get("box") or []
             if len(source_box) == 4:
                 points = normalize_points(source_box)
                 if len(points) == 4:
-                    boxes.append({"text": line["text"], "points": points})
-        if key == "medications":
-            for review_row, anchor_box in zip(draft[key], anchor_boxes):
-                if isinstance(anchor_box, list) and len(anchor_box) == 4:
-                    points = normalize_points(anchor_box)
-                    if len(points) == 4:
-                        review_row["anchor_points"] = points
+                    line_index = int(line.get("line_index", fallback_index))
+                    medicine_id = line_to_med.get(line_index)
+                    confidence = float(line.get("confidence", 0) or 0)
+                    status = "ignored_margin" if line_index in ignored_line_indices else (
+                        "unclassified" if line_index in body_line_indices and not medicine_id else (
+                            "unmatched" if medicine_id and med_match_by_id.get(medicine_id) == "unmatched"
+                            else "low_confidence" if confidence < 0.7 else "recognized"
+                        )
+                    )
+                    box_entry = {
+                        "text": str(line.get("text", "")), "line_index": line_index,
+                        "confidence": confidence,
+                        "bbox": points,
+                        "bbox_pixels": [[float(x * width), float(y * height)] for x, y in points],
+                        "points": points,
+                        "medicine_id": medicine_id, "status": status,
+                    }
+                    detail_ocr_boxes.append(box_entry)
+                    if status == "unclassified":
+                        unclassified_ocr_regions.append(box_entry)
+    if normalize_points and key == "medications":
+        boxes = _build_default_overlay_boxes(
+            draft[key], detail_ocr_boxes, ocr_result.get("rows", []), width, height,
+        )
     return {
         "status": "review",
         "doc_type": doc_type,
@@ -327,21 +541,34 @@ def process_medical_document_pipeline(
         "gender": draft.get("gender") or reconciled.get("gender", ""),
         "doctor": draft.get("doctor") or reconciled.get("doctor", ""),
         "facility": draft.get("facility") or reconciled.get("facility", ""),
+        "clinic": draft.get("clinic") or reconciled.get("clinic", ""),
         "diagnosis": draft.get("diagnosis") or reconciled.get("diagnosis", ""),
         "date": draft.get("date") or reconciled.get("date", ""),
         "medications": draft.get("medications") or reconciled.get("medications", []),
         "metrics": draft.get("metrics") or reconciled.get("metrics", []),
         "data": draft,
         "boxes": boxes,
+        "raw_ocr_text": ocr_result.get("raw_text", ""),
+        "ocr_lines": detail_ocr_boxes,
+        "unclassified_ocr_regions": unclassified_ocr_regions,
+        "ignored_ocr_line_indices": sorted(ignored_line_indices),
+        "raw_ocr_preview": [str(line.get("text", "")) for line in ocr_lines[:30]],
+        "ocr_metrics": {
+            "avg_confidence": ocr_result.get("avg_confidence", 0),
+            "total_lines": len(ocr_lines),
+            "low_confidence_lines": sum(1 for line in ocr_lines if float(line.get("confidence", 0) or 0) < 0.7),
+        },
         "header_alternatives": reconciled.get("header_alternatives", {}),
         "extraction_warning": extraction_warning,
+        "expected_medication_count": reconciled.get("expected_medication_count"),
+        "count_warning": reconciled.get("count_warning", ""),
         "review_schema_version": 3,
         "extraction_source": "ocr_gemini" if gemini_succeeded else "ocr_only",
         "requires_user_confirmation": True
     }
 
 
-HEADER_FIELDS = ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis")
+HEADER_FIELDS = ("patient_name", "dob", "age", "gender", "doctor", "facility", "clinic", "date", "diagnosis")
 REVIEW_FIELDS = {
     "medications": ("name", "strength", "dose", "frequency", "days", "usage"),
     "metrics": ("test_name", "result", "unit", "reference_range", "flag_on_paper")
@@ -361,11 +588,26 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         for med in reconciled.get("medications", []):
             med_entry = dict(med)
             ground_info = normalize_drug_entity(med_entry.get("name", ""))
+            ocr_active_ingredient = str(med_entry.get("active_ingredient") or "").strip()
+            if ground_info.get("status") != "matched" and ocr_active_ingredient:
+                ground_info = normalize_drug_entity(ocr_active_ingredient)
             med_entry["standard_name"] = ground_info["standard_name"]
-            med_entry["active_ingredient"] = ground_info["active_ingredient"]
+            med_entry["active_ingredient"] = ocr_active_ingredient or ground_info["active_ingredient"]
+            med_entry["suggested_name"] = (
+                ground_info["standard_name"] if ground_info.get("status") == "matched"
+                and ground_info.get("match_confidence", 0) < 95 else med_entry.get("suggested_name", "")
+            )
             med_entry["category"] = ground_info["category"]
-            med_entry["purpose"] = med_entry.get("purpose") or ground_info.get("purpose", ground_info["category"])
+            matched = ground_info.get("status") == "matched"
+            med_entry["purpose"] = ground_info.get("purpose", "") if matched else ""
+            med_entry["match_status"] = "matched" if matched else "unmatched"
+            med_entry["match_score"] = ground_info.get("match_confidence", 0)
             med_entry["grounding_status"] = ground_info["status"]
+            med_entry["needs_review"] = bool(
+                med_entry.get("needs_review") or not matched
+                or ground_info.get("match_confidence", 0) < 95
+                or not med_entry.get("dose") or not (med_entry.get("quantity") or med_entry.get("days"))
+            )
 
             # Lập lịch uống bằng RULE
             med_sched = parse_frequency_to_schedule(med_entry.get("frequency", ""), med_entry.get("usage", ""))
@@ -407,6 +649,7 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
     # [7] KẾT XUẤT OUTPUT JSON + MÀN HÌNH XÁC NHẬN NGƯỜI DÙNG
     # ==============================================================
     total_time = round(time.time() - start_all, 2)
+    logger.info(f"[SCAN:{scan_id}] DONE meds_count={len(reconciled.get('medications', []))} time={total_time:.2f}s")
 
     # Map sang định dạng tương thích với giao diện dashboard người dùng
     medications_list = reconciled.get("medications", [])
@@ -424,7 +667,7 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
     }
     for med in medications_list:
         sched = med.get("schedule", {})
-        m_name = med.get("standard_name") or med.get("name")
+        m_name = med.get("name") or med.get("standard_name")
         # Không tự ý điền mặc định "1 viên" nếu tài liệu không ghi rõ liều
         has_dose = bool(med.get("dose") and str(med.get("dose")).strip())
         m_dose = med.get("dose") if has_dose else "Chưa rõ liều (Cần đối chiếu đơn)"
@@ -461,6 +704,7 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         "doc_type": doc_type,
         "doc_title": f"Đơn thuốc {reconciled.get('facility', 'Bệnh viện')}" if doc_type == "prescription" else f"Phiếu Xét Nghiệm {reconciled.get('facility', '')}",
         "facility": reconciled.get("facility", "Bệnh viện"),
+        "clinic": reconciled.get("clinic", ""),
         "department": reconciled.get("department", "Khoa Khám bệnh"),
         "doctor": reconciled.get("doctor", "Bác sĩ chuyên khoa"),
         "patient_name": reconciled.get("patient_name", "Bệnh nhân"),
@@ -479,6 +723,7 @@ def finalize_reviewed_document(reconciled, doc_type, filename_clean, user_allerg
         "processing_time_sec": total_time,
         "uploaded_filename": filename_clean,
         "reconciliation": reconciled.get("reconciliation_review", {}),
+        "scan_id": scan_id,
         "data": reconciled,
         "interpretation": interp_res.get("interpretation_md", ""),
         "disclaimer": interp_res.get("disclaimer", "")

@@ -1,7 +1,10 @@
 import re
 import difflib
 import unicodedata
-from typing import Dict, Any, List
+import logging
+from typing import Dict, Any, List, Optional
+
+logger = logging.getLogger(__name__)
 
 KNOWN_MEDS = [
     {
@@ -404,28 +407,38 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
 
 
 def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
-    """Locate the medicine table using section labels, without trusting row numbers alone."""
-    start = None
-    end = len(rows)
-    for index, row in enumerate(rows):
-        folded = _ascii_fold(row.get("text", ""))
-        if re.search(r"\b(?:chan\s*doan|don\s*thuoc|toa\s*thuoc)\b", folded):
-            start = index + 1
-        if re.search(r"\b(?:stt|ten\s*thuoc|ten\s*duoc\s*pham)\b", folded):
-            if re.search(r"^\s*[1-9]\d*[\.\,\/\)\-]", row.get("text", "").strip()) or re.search(r"\b(?:febuxostat|althax|banitasc|forgout|paracetamol)\b", folded):
-                start = index
-            else:
-                start = index + 1
-        if start is not None and index >= start and re.search(
-            r"\b(?:cong\s*khoan|tong\s*cong|bac\s*si\s*dieu\s*tri|"
-            r"loi\s*dan|tai\s*kham|hen\s*tai\s*kham|ngay\s*hen)\b", folded,
-        ):
-            end = index
-            break
-    if start is None:
-        start = next((index for index, row in enumerate(rows)
-                      if re.match(r"^\s*[1-9]\d*[.)]\s*\S", row.get("text", ""))), len(rows))
-    return start, end
+    """Locate numbered medicine blocks between diagnosis and the item total."""
+    def numbered(row):
+        text = str(row.get("text", "") or "").strip()
+        if re.match(r"^\s*\d+\s*[.)]\s*\S+", text):
+            return True
+        items = [str(item.get("text", "") or "").strip() for item in row.get("items", [])]
+        return bool(items and re.fullmatch(r"\d+\s*[.)]?", items[0]) and len(items) > 1)
+
+    diagnosis_idx = next((i for i, row in enumerate(rows)
+                          if re.search(r"\bchan\s*doan\b", _ascii_fold(row.get("text", "")))), None)
+    first_numbered = next((i for i, row in enumerate(rows) if numbered(row)), None)
+    if diagnosis_idx is not None:
+        start = diagnosis_idx + 1
+    elif first_numbered is not None:
+        start = first_numbered
+    else:
+        heading = next((i for i, row in enumerate(rows)
+                        if re.search(r"\b(?:ten\s*thuoc|stt|ten\s*duoc\s*pham)\b",
+                                     _ascii_fold(row.get("text", "")))), None)
+        start = heading + 1 if heading is not None else len(rows)
+
+    total_idx = next((i for i, row in enumerate(rows)
+                      if i >= start and re.search(r"\bcong\s*khoan\s*[:|.]?\s*\d+\b",
+                                                  _ascii_fold(row.get("text", "")))), None)
+    if total_idx is not None:
+        return start, total_idx
+
+    footer_idx = next((i for i, row in enumerate(rows)
+                       if i >= start and re.search(
+                           r"\b(?:loi\s*dan|tai\s*kham|hen\s*tai\s*kham|bac\s*si\s*dieu\s*tri|"
+                           r"nguoi\s*ke\s*don)\b", _ascii_fold(row.get("text", "")))), None)
+    return start, footer_idx if footer_idx is not None else len(rows)
 
 
 def _medicine_heading_rows(rows: List[Dict[str, Any]]) -> List[tuple]:
@@ -743,6 +756,263 @@ def _parse_numbered_medications(rows: List[Dict[str, Any]]) -> List[Dict[str, st
     return meds
 
 
+def _parse_medication_ordinal(value: str) -> Optional[int]:
+    match = re.match(r"^\s*([1-9GgIlOoSb])\s*[.):]\s*(\S.*)$", str(value or ""))
+    if not match:
+        return None
+    char = match.group(1)
+    mapped = {"G": "6", "g": "6", "b": "6", "I": "1", "l": "1",
+              "O": "0", "o": "0", "S": "5", "s": "5"}.get(char, char)
+    number = int(mapped)
+    return number if 1 <= number <= 9 else None
+
+
+def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
+    """Remove low-confidence notes left of the printed ordinal column from parsing."""
+    ordinal_items = []
+    all_items = [item for row in rows for item in row.get("items", [])]
+    for row in rows:
+        row_text = str(row.get("text", "") or "")
+        if re.match(r"^\s*[1-9GgIlOoSb]\s*[.):]", row_text):
+            ordinal_items = [item for item in row.get("items", [])
+                             if re.match(r"^\s*[1-9GgIlOoSb]\s*[.):]?$", str(item.get("text", "")).strip())]
+            if ordinal_items:
+                break
+    if not ordinal_items:
+        return rows, set()
+    ordinal_x = min(float(item.get("x_min", 0) or 0) for item in ordinal_items)
+    page_right = max(float(item.get("x_max", item.get("x_min", 0)) or 0) for item in all_items)
+    margin_threshold = ordinal_x - max(8.0, page_right * 0.015)
+    ignored = set()
+    filtered_rows = []
+    for row in rows:
+        items = row.get("items", [])
+        kept_items = []
+        for item in items:
+            text = str(item.get("text", "") or "").strip()
+            x_max = float(item.get("x_max", item.get("x_min", 0)) or 0)
+            confidence = float(item.get("confidence", 1.0) or 0)
+            is_ordinal = bool(re.match(r"^\s*[1-9GgIlOoSb]\s*[.):]?\s*$", text))
+            if x_max < margin_threshold and confidence < 0.75 and not is_ordinal:
+                if item.get("line_index") is not None:
+                    ignored.add(int(item["line_index"]))
+                continue
+            kept_items.append(item)
+        if items and not kept_items:
+            continue
+        copied = dict(row)
+        copied["items"] = kept_items
+        if kept_items:
+            copied["text"] = " | ".join(str(item.get("text", "")).strip() for item in kept_items)
+        filtered_rows.append(copied)
+    return filtered_rows, ignored
+
+
+def _parse_prescription_dose(text: str) -> tuple:
+    """Read frequency and unit dose only from a daily-dosing instruction."""
+    folded = _ascii_fold(text).lower()
+    frequency_anchor = re.search(r"ng[a-z]{0,2}\s*u[o0]ng", folded)
+    if not frequency_anchor:
+        return None, None
+    tail = folded[frequency_anchor.end():]
+    freq_match = re.match(r"\s*(\d{1,2})\s*(?:[l1i{][a-z1i]{1,3})?", tail)
+    if not freq_match:
+        return None, None
+    # The OCR often reads 'lần' as 'ian', 'ion' or 'lon'.
+    after_freq = tail[freq_match.end():]
+    dose_match = re.search(
+        r"(?:m[o0a]i\s*)?[l1i{][a-z1i]{1,3}.{0,16}?(\d+(?:[.,/]\d+)?)\s*"
+        r"(vi[e]?n|ven|goi|chai|chal|ong|ong|ml)\b",
+        after_freq, re.IGNORECASE,
+    )
+    if not dose_match:
+        # Keep the fuzzy part conservative: require a near match for 'moi lan'
+        # and explicit amount plus unit in the same OCR line.
+        fuzzy = re.search(r"m[a-z0-9]{1,3}.{0,5}[l1i{][a-z1i]{1,3}", after_freq)
+        if fuzzy:
+            dose_match = re.search(
+                r"(\d+(?:[.,/]\d+)?)\s*(vi[e]?n|ven|goi|chai|chal|ong|ml)\b",
+                after_freq[fuzzy.end():], re.IGNORECASE,
+            )
+    if not dose_match:
+        return None, None
+    dose_amount = dose_match.group(1).replace(",", ".")
+    unit = _unit_label(dose_match.group(2))
+    return f"{dose_amount} {unit}", f"{freq_match.group(1)} lần/ngày"
+
+
+def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_count: Optional[int] = None) -> List[Dict[str, Any]]:
+    """Parse numbered drug blocks, including common OCR ordinal confusions."""
+    ordinal_cell = re.compile(r"^\s*[1-9GgIlOoSb]\s*[.):]?\s*$")
+    blocks: List[Dict[str, Any]] = []
+    current = None
+    right_edge = max((float(item.get("x_max", item.get("x_min", 0)) or 0)
+                      for row in rows for item in row.get("items", [])), default=0.0)
+
+    for row in rows:
+        row_text = str(row.get("text", "") or "").strip()
+        if not row_text:
+            continue
+        folded = _ascii_fold(row_text)
+        if re.search(r"\b(?:cong\s*khoan|loi\s*dan|hen\s*tai\s*kham|tai\s*kham|bac\s*si\s*dieu\s*tri)\b", folded):
+            break
+
+        cells = [str(item.get("text", "") or "").strip() for item in row.get("items", []) if item.get("text")]
+        if not cells:
+            cells = [part.strip() for part in re.split(r"\s*\|\s*", row_text) if part.strip()]
+
+        candidate = row_text
+        if cells and ordinal_cell.fullmatch(cells[0]) and len(cells) > 1:
+            candidate = f"{cells[0]} {' '.join(cells[1:])}"
+        ordinal_number = _parse_medication_ordinal(candidate)
+        ordinal_match = re.match(r"^\s*([1-9GgIlOoSb])\s*[.):]\s*(\S.*)$", candidate)
+        if ordinal_number is not None and ordinal_match:
+            if current:
+                blocks.append(current)
+            current = {"ordinal": ordinal_number, "heading": ordinal_match.group(2).strip(), "rows": [row]}
+            continue
+
+        if cells and ordinal_cell.fullmatch(cells[0]) and len(cells) == 1:
+            if current:
+                blocks.append(current)
+                current = None
+            continue
+        # Recover one missing ordinal only when the prescription's printed
+        # total proves another item is expected and this row has a right-column
+        # quantity plus a drug-like heading (not a dosing continuation).
+        row_items = row.get("items", [])
+        right_quantity = False
+        for item in row_items:
+            item_text = str(item.get("text", "") or "")
+            x_center = (float(item.get("x_min", 0) or 0) + float(item.get("x_max", item.get("x_min", 0)) or 0)) / 2
+            if right_edge and x_center >= right_edge * 0.70 and re.search(
+                r"\d{1,3}\s*(?:vien|vi[e]?n|ven|goi|chal|chai|ong|lo|tuyp)", _ascii_fold(item_text), re.IGNORECASE,
+            ):
+                right_quantity = True
+                break
+        looks_like_instruction = bool(re.search(r"ngay|uong|moi\s*lan|sang|trua|chieu|toi", _ascii_fold(row_text)))
+        has_heading_text = bool(re.search(r"[A-Za-zÀ-ỹ]{4,}", row_text))
+        if (current and expected_count and current["ordinal"] < expected_count
+                and right_quantity and has_heading_text and not looks_like_instruction):
+            blocks.append(current)
+            current = {"ordinal": current["ordinal"] + 1, "heading": row_text, "rows": [row]}
+            continue
+        if current:
+            current["rows"].append(row)
+
+    if current:
+        blocks.append(current)
+
+    meds: List[Dict[str, Any]] = []
+    quantity_re = re.compile(
+        r"\b(\d{1,3})\s*(vien|goi|chai|ong|lo|hop|vi|tuyp)\b", re.IGNORECASE,
+    )
+    strength_re = re.compile(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu))\b", re.IGNORECASE)
+
+    for block in blocks:
+        first_row = block["rows"][0]
+        name_cells = [str(item.get("text", "") or "").strip()
+                      for item in first_row.get("items", []) if item.get("text")]
+        if not name_cells:
+            name_cells = [part.strip() for part in str(first_row.get("text", "") or "").split("|") if part.strip()]
+        if name_cells and ordinal_cell.fullmatch(name_cells[0]):
+            name_cells = name_cells[1:]
+        elif name_cells:
+            name_cells[0] = re.sub(r"^\s*[1-9GgIlOoSb]\s*[.):]\s*", "", name_cells[0]).strip()
+        heading_parts = []
+        for cell in name_cells:
+            folded_cell = _ascii_fold(cell)
+            if (quantity_re.fullmatch(folded_cell) or re.fullmatch(r"\d{1,3}", cell)
+                    or re.fullmatch(r"(?:vien|goi|chai|ong|lo|hop|vi|tuyp)", folded_cell)):
+                continue
+            if re.match(r"^\s*(?:ngay|uong|sang|trua|chieu|toi)\b", folded_cell):
+                continue
+            heading_parts.append(cell)
+        heading = " ".join(heading_parts).strip() or block["heading"]
+        if len(heading) < 4 or not re.search(r"[A-Za-zÀ-ỹ]{4,}", heading):
+            continue
+        block_text = []
+        for row in block["rows"]:
+            row_text = str(row.get("text", "") or "").strip()
+            item_text = " ".join(str(item.get("text", "") or "").strip()
+                                 for item in row.get("items", []) if item.get("text"))
+            block_text.append(" ".join(part for part in (row_text, item_text) if part))
+        parsed_dose = None
+        frequency = None
+        for text in block_text:
+            parsed_dose, frequency = _parse_prescription_dose(text)
+            if parsed_dose and frequency:
+                break
+
+        quantity = None
+        right_column_texts = []
+        if right_edge:
+            for row in block["rows"]:
+                for item in row.get("items", []):
+                    x_center = (float(item.get("x_min", 0) or 0) + float(item.get("x_max", item.get("x_min", 0)) or 0)) / 2
+                    item_text = str(item.get("text", "") or "")
+                    if x_center >= right_edge * 0.70 and quantity_re.search(_ascii_fold(item_text)):
+                        right_column_texts.append(item_text)
+        for text in right_column_texts or block_text:
+            folded = _ascii_fold(text)
+            quantity_text = re.sub(
+                r"moi\s*lan\s*\d+(?:[.,/]\d+)?\s*(?:vien|goi|chai|ong|ml)\b", " ", folded
+            )
+            q_match = quantity_re.search(quantity_text)
+            if q_match:
+                quantity = f"{q_match.group(1)} {_unit_label(q_match.group(2))}"
+                break
+
+        strength_match = strength_re.search(" ".join(block_text))
+        active_match = re.search(r"\((.*)\)", heading)
+        if not active_match:
+            active_source = next((str(item.get("text", "")) for row in block["rows"]
+                                  for item in row.get("items", [])
+                                  if "(" in str(item.get("text", "")) and ")" in str(item.get("text", ""))), "")
+            active_match = re.search(r"\((.*)\)", active_source)
+        active_ingredient = re.sub(r"\s+", " ", active_match.group(1)).strip() if active_match else None
+        brand_heading = heading.split("(", 1)[0].strip()
+        heading_strength = strength_re.search(brand_heading)
+        if heading_strength and heading_strength.start() > 0 and brand_heading[heading_strength.start() - 1] not in "+-/":
+            name = brand_heading[:heading_strength.start()].strip(" -–,;:|")
+        else:
+            name = brand_heading.strip(" -–,;:|")
+        name = re.sub(r"\(\s*\)", "", name)
+        name = re.sub(r"\(\s*([^()]*?)\s*\)", r"(\1)", name)
+        name = re.sub(r"\s+", " ", name).strip()
+        if len(name.replace(" ", "")) < 4 or not re.search(r"[A-Za-zÀ-ỹ]{4,}", name):
+            continue
+        confidence_values = [
+            float(item["confidence"])
+            for row in block["rows"] for item in row.get("items", [])
+            if item.get("confidence") is not None
+        ]
+        meds.append({
+            "name": name,
+            "brand_name": name,
+            "active_ingredient": active_ingredient,
+            "strength": strength_match.group(1).replace(" ", "") if strength_match else None,
+            "dose": parsed_dose,
+            "frequency": frequency,
+            "days": quantity,
+            "quantity": quantity,
+            "usage": None,
+            "purpose": None,
+            "needs_review": True,
+            "match_status": "unmatched",
+            "match_score": 0,
+            "ocr_confidence": sum(confidence_values) / len(confidence_values) if confidence_values else 0.0,
+            "ocr_matched_text": " ".join(block_text),
+            "source_ordinal": block["ordinal"],
+            "source_line_indices": sorted({
+                int(item["line_index"])
+                for row in block["rows"] for item in row.get("items", [])
+                if item.get("line_index") is not None
+            }),
+        })
+    return meds
+
+
 def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") -> List[Dict[str, Any]]:
     """
     Trích xuất danh mục thuốc dự phòng thông minh khi phân đoạn bảng OCR bị lệch.
@@ -790,6 +1060,13 @@ def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") 
         is_numbered = bool(re.search(r"(?:^\s*[1-9]\d*[\.\,\/\)\-]|STT\s*\|?\s*[1-9]?)", txt, re.IGNORECASE))
 
         if (has_known_drug or is_numbered) and (has_qty or has_strength or "(" in txt or has_known_drug):
+            # Nếu chỉ nhận diện qua tên thuốc (không có qty/strength), kiểm tra confidence OCR
+            # Tránh ma thuốc giả khi OCR line có độ tin cậy thấp
+            if has_known_drug and not (has_qty or has_strength):
+                ocr_conf = r.get("confidence", 0)
+                if ocr_conf < 0.5:
+                    continue
+
             cand_name = ""
             if has_known_drug:
                 cand_name = has_known_drug
@@ -909,7 +1186,7 @@ VIETNAM_CLINICAL_KB = [
         "default_qty": "30 Gói"
     },
     {
-        "keywords": ["banitasc", "banitase", "trimebutine"],
+        "keywords": ["banitasc", "banitase"],  # removed trimebutine - ARTHUR/Trimebutine is a separate drug
         "name": "Banitase 100mg",
         "strength": "100mg",
         "purpose": "Điều hòa nhu động đường tiêu hóa, giảm co thắt",
@@ -1414,9 +1691,12 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         "gender": "",
         "doctor": "",
         "facility": "",
+        "clinic": "",
         "date": "",
         "diagnosis": "",
         "medications": [] if doc_type == "prescription" else [],
+        "expected_medication_count": None,
+        "ignored_ocr_line_indices": [],
         "metrics": [] if doc_type == "lab_test" else []
     }
 
@@ -1623,43 +1903,18 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     if doc_type == "prescription":
         body_start, body_end = _prescription_body_bounds(rows)
         body_rows = rows[body_start:body_end]
-        has_numbered_meds = any(
-            re.match(r"^\s*[1-9]\d*[\.\,\/\)\-\|](?:\s|\||[A-Za-zÀ-ỹ])", r.get("text", "").strip())
-            or (r.get("items") and re.fullmatch(r"[1-9]\d*[.,/)\-]?", str(r["items"][0].get("text", "")).strip()))
-            for r in body_rows
+        body_rows, ignored_line_indices = _filter_left_margin_handwriting(body_rows)
+        data["ignored_ocr_line_indices"] = sorted(ignored_line_indices)
+        expected_match = re.search(
+            r"(?:cộng|cong)\s*(?:khoản|khoan)\s*[:|.]?\s*(\d+)",
+            raw_text or "\n".join(row.get("text", "") for row in rows), re.IGNORECASE,
         )
-
-        all_lines = [r.get("text", "").strip() for r in rows if r.get("text", "").strip()]
-        if not all_lines and raw_text:
-            all_lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()]
-
-        block_meds = parse_clinical_prescription_blocks(all_lines)
-        base_meds = _parse_numbered_medications(body_rows) if has_numbered_meds else _prescription_medications_from_rows(rows)
-        robust_meds = _extract_medications_robust(rows, raw_text)
-
-        if len(block_meds) > len(base_meds):
-            combined = list(block_meds)
-            for bm in base_meds:
-                b_name = bm.get("name", "").lower()
-                if not any(b_name in m.get("name", "").lower() or m.get("name", "").lower() in b_name for m in combined):
-                    if is_plausible_medication_name(bm.get("name", "")):
-                        combined.append(bm)
-        else:
-            combined = list(base_meds)
-            for bm in block_meds:
-                b_name = bm.get("name", "").lower()
-                if not any(b_name in m.get("name", "").lower() or m.get("name", "").lower() in b_name for m in combined):
-                    if is_plausible_medication_name(bm.get("name", "")):
-                        combined.append(bm)
-
-        for rm in robust_meds:
-            r_name = rm.get("name", "").lower()
-            if not any(r_name in m.get("name", "").lower() or m.get("name", "").lower() in r_name for m in combined):
-                combined.append(rm)
-
-        data["medications"] = _clean_and_refine_medication_list(combined, raw_text)
-        if not data["medications"]:
-            data["medications"] = _clean_and_refine_medication_list(robust_meds, raw_text)
+        data["expected_medication_count"] = int(expected_match.group(1)) if expected_match else None
+        # Medication list is image evidence only. Do not add drugs from a catalog,
+        # an unnumbered OCR fragment, a database default, or a model completion.
+        data["medications"] = _parse_strict_numbered_medications(
+            body_rows, expected_count=data["expected_medication_count"],
+        )
 
     elif doc_type == "lab_test":
         metrics = []
@@ -1718,7 +1973,79 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                     })
         data["metrics"] = metrics
 
-    for hf in ("patient_name", "dob", "doctor", "facility", "date", "diagnosis"):
+    # Keep administrative values tied to their printed label and row. This
+    # prevents address/signature OCR boxes from being joined into the name or
+    # facility fields.
+    for row in rows:
+        row_text = re.sub(r"\s*\|\s*", " ", str(row.get("text", "") or "")).strip()
+        folded_row = _ascii_fold(row_text)
+        if re.search(r"\bho\s*ten\b", folded_row):
+            name_match = re.search(
+                r"(?:họ\s*tên|ho\s*ten)\s*[:：.\-]?\s*(.*?)"
+                r"(?=\s*(?:phái|phai|tuổi|tuoi|nam\s*tuổi|nam\s*tuoi)\s*[:：.]|$)",
+                row_text, re.IGNORECASE,
+            )
+            if name_match:
+                clean_name = re.sub(r"[^A-Za-zÀ-ỹ\s]", " ", name_match.group(1))
+                clean_name = re.sub(r"\s+", " ", clean_name).strip()
+                if clean_name:
+                    data["patient_name"] = clean_name
+
+        if re.search(r"\bbenh\s*vien\b", folded_row):
+            hospital_match = re.search(r"(?:bệnh|benh)\s*viện\s+(.+)$", row_text, re.IGNORECASE)
+            if hospital_match:
+                hospital = re.split(r"\s*(?:\||số\s*hồ\s*sơ|so\s*ho\s*so|phòng\s*khám|phong\s*kham)\b",
+                                    hospital_match.group(1), maxsplit=1, flags=re.IGNORECASE)[0]
+                hospital = re.sub(r"[^A-Za-zÀ-ỹ\s\-]", " ", hospital)
+                facility_value = re.sub(r"\s+", " ", hospital).strip()
+                if facility_value:
+                    data["facility"] = facility_value
+
+        if not data.get("clinic") and re.search(r"\bphong\s*kham\b", folded_row):
+            clinic_match = re.search(r"(?:phòng|phong)\s*khám\s*[:：.\-]?\s*(.+)$", row_text, re.IGNORECASE)
+            if clinic_match:
+                clinic = re.split(r"\s*(?:\||số\s*hồ\s*sơ|so\s*ho\s*so|ngày\s*khám|ngay\s*kham)\b",
+                                  clinic_match.group(1), maxsplit=1, flags=re.IGNORECASE)[0]
+                data["clinic"] = re.sub(r"\s+", " ", clinic).strip(" |:;,-")
+
+        if re.search(r"\bchan\s*doan\b", folded_row):
+            diagnosis_match = re.search(
+                r"ch[aẩâãáà]n\s*[đd]o[aáà]n\s*[:：.\-|]*\s*(.+)$",
+                row_text, re.IGNORECASE,
+            )
+            if diagnosis_match:
+                diagnosis = re.sub(r"\s+", " ", diagnosis_match.group(1).replace("|", " ")).strip()
+                diagnosis = re.sub(r"^(?:[A-Z]\d{2}(?:\.\d+)?\s*)", "", diagnosis).strip()
+                if re.search(r"[A-Za-zÀ-ỹ]{3,}", diagnosis):
+                    data["diagnosis"] = diagnosis[:120]
+                    break
+
+    # Prefer the prescription date (not a later follow-up date), then derive
+    # the birth year from that date and the stated age if no DOB is printed.
+    for row in rows:
+        row_text = str(row.get("text", "") or "").strip()
+        folded_row = _ascii_fold(row_text)
+        if "tai kham" in folded_row or "hen tai kham" in folded_row:
+            continue
+        if re.search(r"\bngay\b", folded_row):
+            numeric_date = re.search(r"(\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})", row_text)
+            word_date = re.search(r"ng[aà]y\s*(\d{1,2})\s*th[aá]ng\s*(\d{1,2})\s*n[aă]m\s*(\d{4})", row_text, re.IGNORECASE)
+            if numeric_date:
+                data["date"] = numeric_date.group(1).replace("-", "/").replace(".", "/")
+                break
+            if word_date:
+                data["date"] = f"{word_date.group(1)}/{word_date.group(2)}/{word_date.group(3)}"
+                break
+    if not data.get("dob") and data.get("date") and data.get("age"):
+        date_year = re.search(r"(19\d{2}|20\d{2})", str(data["date"]))
+        try:
+            birth_year = int(date_year.group(1)) - int(data["age"]) if date_year else None
+            if birth_year and 1900 <= birth_year <= 2100:
+                data["dob"] = str(birth_year)
+        except (TypeError, ValueError):
+            pass
+
+    for hf in ("patient_name", "dob", "doctor", "facility", "clinic", "date", "diagnosis"):
         if data.get(hf):
             data[hf] = _clean_ocr_display(data[hf])
     for med in data.get("medications", []):
@@ -1753,7 +2080,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
 
     ocr_fallback = extract_schema_from_ocr(ocr_data, doc_type=doc_type)
     header_alternatives = {}
-    for field in ("patient_name", "dob", "age", "gender", "doctor", "facility", "date", "diagnosis"):
+    for field in ("patient_name", "dob", "age", "gender", "doctor", "facility", "clinic", "date", "diagnosis"):
         ocr_value = str(ocr_fallback.get(field) or "").strip()
         model_value = str(reconciled.get(field) or "").strip()
         if not ocr_value:
@@ -1893,6 +2220,23 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             if ocr_data.get("rows") and not ocr_fallback.get("medications"):
                 if not any(name in _clean_str(row.get("text", "")) for row in body_rows):
                     continue
+            # A model suggestion is not enough to add a new drug. Require the
+            # candidate name to have lexical support in an OCR line; otherwise
+            # a short fragment such as "Anan" can be promoted to a known drug
+            # by the model/KB and appear as if it came from the prescription.
+            if ocr_lines:
+                clean_name = _clean_str(name)
+                core_name = _clean_str(_extract_core_name(name))
+                has_ocr_name_evidence = any(
+                    clean_name in _clean_str(line.get("text", ""))
+                    or (core_name and core_name in _clean_str(line.get("text", "")))
+                    or difflib.SequenceMatcher(
+                        None, clean_name, _clean_str(line.get("text", ""))
+                    ).ratio() >= 0.72
+                    for line in ocr_lines
+                )
+                if not has_ocr_name_evidence:
+                    continue
             supported_meds.append(med)
 
         meds = _merge_medication_rows(ocr_fallback.get("medications", []), supported_meds)
@@ -1941,6 +2285,11 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                 occupied.add(position)
         elif not ocr_fallback.get("medications") and supported_meds:
             meds = list(supported_meds)
+        # The numbered OCR blocks are authoritative. The vision model may help
+        # read the image, but cannot create a medication or fill its dose/count.
+        meds = [dict(item) for item in (ocr_fallback.get("medications") or [])
+                if isinstance(item, dict)]
+        reconciled["expected_medication_count"] = ocr_fallback.get("expected_medication_count")
         reconciled["medications"] = meds
 
         verified_meds = []
@@ -1982,7 +2331,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                         matched_ocr_confidence = float(ocr_line["confidence"])
                     except (KeyError, TypeError, ValueError):
                         matched_ocr_confidence = None
-                if ratio >= 0.55:
+                if ratio >= 0.72:
                     name_in_ocr = True
 
             # 2. Đối chiếu số (Hàm lượng, liều dùng) - Phải khớp tuyệt đối
@@ -1999,11 +2348,22 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             needs_review = (bool(med.get("needs_review"))
                             or not (name_in_ocr and nums_strictly_matched)
                             or (matched_ocr_confidence is not None and matched_ocr_confidence < 0.7))
+            if ocr_lines and not name_in_ocr:
+                # Keep the text the image actually produced for manual review,
+                # never the unsupported catalog/model guess. If there is no
+                # plausible OCR text to show, omit the medication candidate.
+                raw_ocr_name = str(med.get("raw_ocr_name") or matched_ocr_str or "").strip()
+                if not is_plausible_medication_name(raw_ocr_name):
+                    continue
+                med_entry["raw_ocr_name"] = raw_ocr_name
+                med_entry["name"] = raw_ocr_name
+                med_entry["standard_name"] = raw_ocr_name
+                med_entry["needs_review"] = True
             med_confidence = 0.95 if not needs_review else 0.80
 
             med_entry["field_confidence"] = round(med_confidence, 2)
             med_entry["needs_review"] = needs_review
-            med_entry["ocr_matched_text"] = matched_ocr_str if matched_ocr_str else "Khớp từ nhận diện OCR"
+            med_entry["ocr_matched_text"] = matched_ocr_str if (matched_ocr_str and best_match_ratio >= 0.55) else None
             if matched_ocr_box and not med_entry.get("anchor_box"):
                 med_entry["anchor_box"] = matched_ocr_box
 
@@ -2013,6 +2373,32 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
 
             verified_meds.append(med_entry)
 
+        expected_count = reconciled.get("expected_medication_count")
+        count_warning = ""
+        if isinstance(expected_count, int):
+            if len(verified_meds) > expected_count:
+                detected_before_filter = len(verified_meds)
+                verified_meds = sorted(
+                    enumerate(verified_meds),
+                    key=lambda pair: (float(pair[1].get("ocr_confidence") or 0), -pair[0]),
+                    reverse=True,
+                )[:expected_count]
+                verified_meds = [item for _, item in verified_meds]
+                logger.warning(
+                    "prescription_count_exceeded expected=%d detected_before_filter=%d detected_after_filter=%d",
+                    expected_count, detected_before_filter, len(verified_meds),
+                )
+                count_warning = (
+                    f"OCR đọc {detected_before_filter} dòng thuốc, nhiều hơn Cộng khoản {expected_count}; "
+                    "đã lọc các dòng confidence thấp. Vui lòng đối chiếu ảnh gốc."
+                )
+                fields_review.append(count_warning)
+                overall_confidence = min(overall_confidence, 0.8)
+            elif len(verified_meds) < expected_count:
+                count_warning = "Có thể thiếu thuốc, vui lòng đối chiếu ảnh gốc"
+                fields_review.append(count_warning)
+                overall_confidence = min(overall_confidence, 0.8)
+        reconciled["count_warning"] = count_warning
         reconciled["medications"] = verified_meds
 
     elif doc_type == "lab_test":
@@ -2068,3 +2454,242 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     }
 
     return reconciled
+
+
+# =============================================================================
+# TASK 4: Trình phân tích thuốc dựa trên vị trí hàng (Row-Position Parser)
+# Phân tích đơn thuốc bằng cách xác định vị trí tọa độ bounding-box OCR,
+# nhóm thành hàng và khối thuốc có số thứ tự, trích xuất tên/liều/SL.
+# =============================================================================
+
+def parse_medications_by_row_position(ocr_data: dict) -> list:
+    """
+    Parse medications using precise row/column position logic.
+    Groups OCR boxes into rows, then into numbered drug blocks.
+    Extracts qty from rightmost column, dose from dosing text.
+    Returns list of dicts with:
+        name, strength, active_ingredient, qty, qty_unit, dose, frequency, needs_review.
+
+    Hàm này được gọi từ extract_schema_from_ocr() như một bước xác minh bổ sung.
+    Không xóa hoặc thay thế bất kỳ hàm nào hiện có.
+    """
+    # --- Bản đồ sửa lỗi OCR cho số thứ tự ---
+    OCR_DIGIT_MAP = {'G': '6', 'g': '6', 'b': '6', 'I': '1', 'l': '1', 'O': '0', 'o': '0', 'S': '5'}
+    NUM_BLOCK_RE = re.compile(r'^\s*([1-9GgIlbOoS])\s*[\.):]\s*')
+
+    # Pattern liều dùng (fuzzy): "2 lần ... mỗi lần 2/viên"
+    DOSE_RE = re.compile(
+        r'(\d+)\s*l[aầ]n.*?m[oỗ]i\s*l[aầ]n\s*(\d+(?:[/,]\d+)?)',
+        re.IGNORECASE | re.DOTALL
+    )
+    # Pattern số lượng: "30 viên", "2 gói" …
+    QTY_RE = re.compile(
+        r'\b(\d{1,3})\s*(viên|vien|gói|goi|ống|ong|chai|lọ|lo|hộp|hop)\b',
+        re.IGNORECASE
+    )
+
+    lines_raw = ocr_data.get("lines", []) or ocr_data.get("rows", [])
+    if not lines_raw:
+        return []
+
+    # 1. Xác định chiều rộng ảnh để định vị cột
+    img_w = ocr_data.get("image_width") or ocr_data.get("width") or 0
+    # Fallback: tính từ bounding box nếu không có metadata
+    if not img_w:
+        for ln in lines_raw:
+            bx = ln.get("box") or ln.get("bbox") or []
+            if bx and len(bx) >= 2:
+                x_right = bx[2] if len(bx) >= 4 else (bx[0] + bx[2] if len(bx) == 4 else 0)
+                img_w = max(img_w, int(x_right))
+        if not img_w:
+            img_w = 1000  # mặc định an toàn
+
+    qty_col_threshold = img_w * 0.65  # cột số lượng bắt đầu từ 65% chiều rộng
+
+    # 2. Nhóm line thành hàng theo y-center (dùng lại logic hiện có nếu có)
+    # Mỗi row: {"y_center": float, "lines": [...], "text": str}
+    def _get_y_center(ln: dict) -> float:
+        bx = ln.get("box") or ln.get("bbox") or []
+        if len(bx) >= 4:
+            return float((bx[1] + bx[3]) / 2)
+        return float(ln.get("y", 0) or 0)
+
+    def _get_x_center(ln: dict) -> float:
+        bx = ln.get("box") or ln.get("bbox") or []
+        if len(bx) >= 4:
+            return float((bx[0] + bx[2]) / 2)
+        return float(ln.get("x", 0) or 0)
+
+    sorted_lines = sorted(lines_raw, key=_get_y_center)
+    rows_grouped: list = []
+    ROW_GAP = max(10, img_w * 0.015)  # khoảng cách tối đa giữa các line cùng hàng
+
+    for ln in sorted_lines:
+        yc = _get_y_center(ln)
+        if rows_grouped and abs(yc - rows_grouped[-1]["y_center"]) <= ROW_GAP:
+            rows_grouped[-1]["lines"].append(ln)
+            # cập nhật y_center là trung bình
+            rows_grouped[-1]["y_center"] = float(
+                sum(_get_y_center(l) for l in rows_grouped[-1]["lines"]) / len(rows_grouped[-1]["lines"])
+            )
+        else:
+            rows_grouped.append({"y_center": yc, "lines": [ln], "text": ""})
+
+    # Ghép text mỗi hàng
+    for row in rows_grouped:
+        row["text"] = " ".join(
+            str(l.get("text", "")).strip() for l in sorted(row["lines"], key=_get_x_center) if l.get("text")
+        )
+
+    # 3. Xác định vùng bảng thuốc: giữa "Tên thuốc" và "Cộng khoản"
+    table_start_y, table_end_y = None, None
+    for row in rows_grouped:
+        txt_low = row["text"].lower()
+        if table_start_y is None and re.search(r'tên\s*thu[oố]c|ten\s*thuoc', txt_low):
+            table_start_y = row["y_center"]
+        if table_end_y is None and re.search(r'c[oộ]ng\s*kho[aả]n|cong\s*khoan', txt_low):
+            table_end_y = row["y_center"]
+
+    # Nếu không tìm thấy giới hạn bảng, dùng toàn bộ hàng
+    body_rows = [
+        row for row in rows_grouped
+        if (table_start_y is None or row["y_center"] > table_start_y)
+        and (table_end_y is None or row["y_center"] < table_end_y)
+    ]
+
+    # 4. Nhóm hàng thành khối thuốc theo số thứ tự (1. 2. …)
+    blocks: list = []
+    current_block: dict | None = None
+
+    for row in body_rows:
+        txt = row["text"].strip()
+        if not txt:
+            continue
+        m = NUM_BLOCK_RE.match(txt)
+        if m:
+            if current_block is not None:
+                blocks.append(current_block)
+            raw_num = m.group(1)
+            # Sửa lỗi OCR số thứ tự
+            corrected = OCR_DIGIT_MAP.get(raw_num, raw_num)
+            try:
+                ordinal = int(corrected)
+            except ValueError:
+                ordinal = len(blocks) + 1
+            heading = txt[m.end():].strip()
+            current_block = {
+                "ordinal": ordinal,
+                "heading": heading,
+                "rows": [row],
+            }
+        elif current_block is not None:
+            current_block["rows"].append(row)
+
+    if current_block is not None:
+        blocks.append(current_block)
+
+    # 5. Trích xuất thông tin từng khối thuốc
+    results: list = []
+    for block in blocks:
+        heading_text = block["heading"]
+
+        # 5a. Tên thuốc: token đầu tiên có ý nghĩa (all-caps hoặc TitleCase)
+        name = ""
+        active_ingredient = ""
+        name_m = re.search(r'\b([A-Z][A-Za-z0-9\-]{2,30}(?:\s+[A-Z][A-Za-z0-9\-]{2,20})?)\b', heading_text)
+        if name_m:
+            name = name_m.group(1).strip()
+
+        # 5b. Hoạt chất trong ngoặc: "(Trimebutine 200)" → "Trimebutine 200"
+        ing_m = re.search(r'\(([^)]{3,60})\)', heading_text)
+        if ing_m:
+            active_ingredient = ing_m.group(1).strip()
+
+        if not name:
+            # Fallback: lấy token đầu tiên không phải số
+            tokens = heading_text.split()
+            for tok in tokens:
+                if re.match(r'[A-Za-z]{3,}', tok):
+                    name = tok
+                    break
+
+        if not name:
+            continue  # Không thể xác định tên thuốc — bỏ qua khối này
+
+        # 5c. Số lượng: lấy từ boxes có x_center > qty_col_threshold trong phạm vi y của block
+        qty = ""
+        qty_unit = ""
+        all_block_text = " ".join(r["text"] for r in block["rows"])
+
+        # Tìm từ cột bên phải trong các line của block
+        for row in block["rows"]:
+            for ln in row["lines"]:
+                xc = _get_x_center(ln)
+                if img_w > 0 and xc > qty_col_threshold:
+                    q_m = QTY_RE.search(str(ln.get("text", "")))
+                    if q_m and not qty:
+                        qty = q_m.group(1)
+                        qty_unit = q_m.group(2).capitalize()
+
+        # Fallback: tìm qty trong toàn bộ text của block
+        if not qty:
+            q_m = QTY_RE.search(all_block_text)
+            if q_m:
+                qty = q_m.group(1)
+                qty_unit = q_m.group(2).capitalize()
+
+        # 5d. Liều dùng và tần suất
+        dose = ""
+        frequency = ""
+        d_m = DOSE_RE.search(all_block_text)
+        if d_m:
+            frequency = f"{d_m.group(1)} lần/ngày"
+            dose = f"{d_m.group(2)} viên/lần"
+        else:
+            # Pattern đơn giản: "sáng X chiều Y" hoặc "uống X viên"
+            simple_dose = re.search(
+                r'(?:u[oố]ng|s[aá]ng|tr[uư]a|chi[eề]u|t[oố]i)\s+(\d+)\s*vi[eê]n',
+                all_block_text, re.IGNORECASE
+            )
+            if simple_dose:
+                dose = f"{simple_dose.group(1)} viên"
+
+        # 5e. Strength từ heading hoặc active_ingredient
+        strength = ""
+        str_m = re.search(r'\b(\d{1,4}\s*(?:mg|mcg|ml|g|IU))\b', heading_text, re.IGNORECASE)
+        if str_m:
+            strength = re.sub(r'\s+', '', str_m.group(1))
+
+        needs_review = not bool(name and qty)
+
+        results.append({
+            "name": name,
+            "strength": strength,
+            "active_ingredient": active_ingredient,
+            "qty": qty,
+            "qty_unit": qty_unit,
+            "dose": dose,
+            "frequency": frequency,
+            "needs_review": needs_review,
+        })
+
+    # 6. Kiểm tra chéo với tổng "Cộng khoản: N"
+    total_expected = None
+    for row in rows_grouped:
+        total_m = re.search(r'c[oộ]ng\s*kho[aả]n\s*[:\-]?\s*(\d+)', row["text"], re.IGNORECASE)
+        if total_m:
+            total_expected = int(total_m.group(1))
+            break
+
+    if total_expected is not None and len(results) != total_expected:
+        logger.warning(
+            "parse_medications_by_row_position: extracted=%d but Cộng khoản=%d — mismatch, review needed",
+            len(results), total_expected
+        )
+        for med in results:
+            med["extraction_warning"] = (
+                f"Số thuốc trích xuất ({len(results)}) khác Cộng khoản ({total_expected}). "
+                "Vui lòng đối chiếu đơn thuốc gốc."
+            )
+
+    return results
