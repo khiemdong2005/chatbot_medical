@@ -135,8 +135,9 @@ def run_migrations(engine):
                         if "avatar_url" not in existing_cols:
                             conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
                 elif version == "2026_01_05_medical_documents_clinical_fields":
-                    if "medical_documents" in inspector.get_table_names():
-                        existing_cols = {col["name"] for col in inspector.get_columns("medical_documents")}
+                    current_schema = inspect(conn)
+                    if current_schema.has_table("medical_documents"):
+                        existing_cols = {col["name"] for col in current_schema.get_columns("medical_documents")}
                         doc_columns_to_add = [
                             ("doc_type", "VARCHAR(50) DEFAULT 'prescription'"),
                             ("diagnosis", "TEXT"),
@@ -200,19 +201,28 @@ def run_migrations(engine):
                     ))
                     current_schema = inspect(conn)
                     if current_schema.has_table("medical_documents"):
-                        rows = conn.execute(text("""
-                            SELECT id, owner_id, storage_filename, patient_name, diagnosis,
-                                   facility, doctor, summary, parsed_data, created_at
-                            FROM medical_documents
-                            WHERE doc_type != 'ocr_draft'
-                              AND parsed_data IS NOT NULL
-                              AND TRIM(parsed_data) != ''
-                              AND id NOT IN (
-                                  SELECT document_id FROM prescription_history
-                                  WHERE document_id IS NOT NULL
-                              )
-                            ORDER BY created_at ASC, id ASC
-                        """)).fetchall()
+                        doc_cols = {col["name"] for col in current_schema.get_columns("medical_documents")}
+                        required_backfill_cols = {
+                            "id", "owner_id", "storage_filename", "doc_type",
+                            "patient_name", "diagnosis", "facility", "doctor",
+                            "summary", "parsed_data", "created_at",
+                        }
+                        if required_backfill_cols.issubset(doc_cols):
+                            rows = conn.execute(text("""
+                                SELECT id, owner_id, storage_filename, patient_name, diagnosis,
+                                       facility, doctor, summary, parsed_data, created_at
+                                FROM medical_documents
+                                WHERE doc_type != 'ocr_draft'
+                                  AND parsed_data IS NOT NULL
+                                  AND TRIM(parsed_data) != ''
+                                  AND id NOT IN (
+                                      SELECT document_id FROM prescription_history
+                                      WHERE document_id IS NOT NULL
+                                  )
+                                ORDER BY created_at ASC, id ASC
+                            """)).fetchall()
+                        else:
+                            rows = []
                         for r in rows:
                             storage_filename = str(r[2] or "").strip()
                             img_url = f"/uploads/{storage_filename}" if storage_filename else ""

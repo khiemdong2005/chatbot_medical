@@ -39,8 +39,14 @@ def _normalize_vietnamese_units(text: str) -> str:
 
     def _replace(match: re.Match) -> str:
         qty = re.sub(r"\s*/\s*", "/", match.group(1).strip())
-        unit_key = match.group(2).casefold()
-        return f"{qty} {_VIETNAMESE_UNIT_MAP.get(unit_key, match.group(2))}"
+        unit_raw = match.group(2)
+        unit_key = unit_raw.casefold()
+        needs_normalization = (
+            unit_key in {"vien", "goi", "ong", "tuyp", "lo", "hop"}
+            or unit_raw.isupper()
+        )
+        normalized_unit = _VIETNAMESE_UNIT_MAP.get(unit_key, unit_raw) if needs_normalization else unit_raw
+        return f"{qty} {normalized_unit}"
 
     return re.sub(
         r"(?i)\b(\d+(?:\s*/\s*\d+|[.,]\d+)?)\s*(viên|vien|gói|goi|ống|ong|chai|tuýp|tuyp|lọ|lo|hộp|hop)\b",

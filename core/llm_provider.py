@@ -220,8 +220,6 @@ class _OpenRouterModels:
         if self._provider != "groq":
             if isinstance(reasoning_enabled, bool):
                 payload["reasoning"] = {"enabled": reasoning_enabled}
-            elif "nemotron" in (model or "").lower():
-                payload["reasoning"] = {"enabled": False}
 
         def _send_with_compat(req_payload: Dict[str, Any]) -> Dict[str, Any]:
             try:

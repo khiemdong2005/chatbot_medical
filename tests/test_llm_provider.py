@@ -79,6 +79,9 @@ class TestLLMProviderLifecycle:
 
     def test_resolve_api_key_prioritizes_nutrition_profile(self, monkeypatch):
         """Profile nutrition đọc đúng GEMINI_NUTRITION_API_KEY khi có cấu hình."""
+        monkeypatch.setenv("AI_PROVIDER", "")
+        monkeypatch.setenv("GROQ_API_KEY", "")
+        monkeypatch.setenv("OPENROUTER_API_KEY", "")
         monkeypatch.setenv("GEMINI_NUTRITION_API_KEY", "nutri_key_123456789")
         monkeypatch.setenv("GEMINI_API_KEY", "general_key_123456789")
 
