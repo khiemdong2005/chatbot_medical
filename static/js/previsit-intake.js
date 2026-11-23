@@ -5,7 +5,6 @@ const PrevisitIntake = (() => {
   const key = account => 'medimind_previsit_id:' + account;
   const handoffKey = 'medimind_previsit_after_login';
   let state = null;
-  let source = 'chat';
   let opener;
   let busy = '';
   let notice = '';
@@ -153,7 +152,7 @@ const PrevisitIntake = (() => {
     const finish = el('finish');
     finish.disabled = busy;
     finish.textContent = busy === 'finish' ? saving : confirmed
-      ? (source === 'booking' ? tr('Quay lại đặt lịch', 'Back to booking') : tr('Đặt lịch khám', 'Book an appointment'))
+      ? tr('Đặt lịch khám', 'Book an appointment')
       : state.next_question ? tr('Tiếp tục trả lời', 'Continue answering')
         : !currentUser ? tr('Đăng nhập để xác nhận', 'Sign in to confirm')
           : tr('Xác nhận và lưu vào hồ sơ', 'Confirm and save to record');
@@ -319,7 +318,6 @@ const PrevisitIntake = (() => {
       el('answer').value = '';
       rememberId(account, data.conversation_id);
       if (handoff) rememberId('guest', null);
-      if (fresh) checkAndPrepareBookingPreVisitSummary();
     });
     focusCurrentStep();
   }
@@ -333,9 +331,8 @@ const PrevisitIntake = (() => {
     else el('close').focus();
   }
 
-  function open(from = 'chat', handoffId = null) {
+  function open(handoffId = null) {
     if (dialog.open) return;
-    source = from;
     opener = document.activeElement;
     if (!busy) {
       state = null;
@@ -408,7 +405,6 @@ const PrevisitIntake = (() => {
       if (account !== chatAccountKey()) return;
       state = data;
       editor = null;
-      checkAndPrepareBookingPreVisitSummary();
     });
     if (!editor) focusCurrentStep();
   }
@@ -417,10 +413,9 @@ const PrevisitIntake = (() => {
     const summary = state?.summary;
     if (!summary || busy) return;
     if (summary.is_confirmed) {
-      if (source !== 'booking') opener = null;
+      opener = null;
       dialog.close();
-      if (source === 'booking') checkAndPrepareBookingPreVisitSummary();
-      else switchTab('booking-tab');
+      switchTab('booking-tab');
       return;
     }
     if (state.next_question) {
@@ -445,7 +440,6 @@ const PrevisitIntake = (() => {
         });
         if (account !== chatAccountKey()) return;
         state = { ...state, summary: data.summary };
-        checkAndPrepareBookingPreVisitSummary();
       } catch (error) {
         if (error.status === 409) retry = () => loadSession(id);
         throw error;
@@ -460,16 +454,7 @@ const PrevisitIntake = (() => {
       id = sessionStorage.getItem(handoffKey);
       sessionStorage.removeItem(handoffKey);
     } catch (_) { }
-    if (id) setTimeout(() => { if (currentUser) open('chat', id); }, 0);
-  }
-
-  async function bookingSummary() {
-    const id = readId();
-    if (!id) return null;
-    const response = await fetch('/api/intake/summary/' + encodeURIComponent(id), { cache: 'no-store' });
-    if (!response.ok) return null;
-    const { summary } = await response.json();
-    return summary?.is_confirmed ? { id, version: summary.version } : null;
+    if (id) setTimeout(() => { if (currentUser) open(id); }, 0);
   }
 
   el('close').addEventListener('click', () => dialog.close());
@@ -492,5 +477,5 @@ const PrevisitIntake = (() => {
   el('edit-form').addEventListener('submit', event => { event.preventDefault(); saveEdit(); });
   el('edit-cancel').addEventListener('click', () => { editor = null; render(); focusCurrentStep(); });
 
-  return { open, resumeAfterLogin, bookingSummary };
+  return { open, resumeAfterLogin };
 })();
