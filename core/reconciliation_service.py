@@ -223,7 +223,10 @@ def is_plausible_medication_name(name: str) -> bool:
     if re.search(r"^\s*extra\b", raw_value, re.IGNORECASE):
         return False
     if raw_value.count("(") != raw_value.count(")") or raw_value.count("[") != raw_value.count("]"):
-        return False
+        # Nếu phần tên chính trước dấu ngoặc là tên thuốc hợp lệ (>= 4 chữ cái) thì không loại chỉ vì OCR đọc nhầm ']' thành ')'
+        core_before_paren = re.split(r"[\(\[]", raw_value, maxsplit=1)[0].strip()
+        if not (len(core_before_paren) >= 4 and re.search(r"[A-Za-zÀ-ỹ]{4,}", core_before_paren)):
+            return False
     if re.search(r"^\s*\+|\+\s*$", raw_value):
         return False
     value = raw_value.strip(" \t\r\n\"'.,;:()[]{}")
@@ -242,6 +245,9 @@ def is_plausible_medication_name(name: str) -> bool:
     if re.fullmatch(rf"\d+(?:[.,]\d+)?\s*(?:{_MEDICATION_UNITS})?", value, re.IGNORECASE):
         return False
     if re.fullmatch(rf"(?:{_MEDICATION_UNITS})", value, re.IGNORECASE):
+        return False
+    folded_val = _ascii_fold(value)
+    if re.search(r"\b(?:vien|goi|ong|chai|ml)\s*/\s*lan\b|\blan\s*/\s*(?:ngay|tuan)\b|\bsau\s*an\b|\btruoc\s*an\b|\bbuoi\s*(?:sang|toi|chieu)\b|thong\s*tin\s*(?:don|benh)|tin\s*don\s*thuoc|tindon|tinbenh", folded_val):
         return False
     return True
 
@@ -407,13 +413,13 @@ def _merge_medication_rows(ocr_meds: List[Dict[str, Any]],
 
 
 def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
-    """Locate numbered medicine blocks between diagnosis and the item total."""
+    """Locate medicine blocks between diagnosis/header and footer markers (Cộng khoản, Lời dặn, Ngày...tháng...năm, Bác sĩ...)."""
     def numbered(row):
         text = str(row.get("text", "") or "").strip()
-        if re.match(r"^\s*\d+\s*[.)]\s*\S+", text):
+        if re.match(r"^\s*\d{1,2}\s*[.):\-]\s*\S+", text):
             return True
         items = [str(item.get("text", "") or "").strip() for item in row.get("items", [])]
-        return bool(items and re.fullmatch(r"\d+\s*[.)]?", items[0]) and len(items) > 1)
+        return bool(items and re.fullmatch(r"\d{1,2}\s*[.):\-]?", items[0]) and len(items) > 1)
 
     diagnosis_idx = next((i for i, row in enumerate(rows)
                           if re.search(r"\bchan\s*doan\b", _ascii_fold(row.get("text", "")))), None)
@@ -428,16 +434,12 @@ def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
                                      _ascii_fold(row.get("text", "")))), None)
         start = heading + 1 if heading is not None else len(rows)
 
-    total_idx = next((i for i, row in enumerate(rows)
-                      if i >= start and re.search(r"\bcong\s*khoan\s*[:|.]?\s*\d+\b",
-                                                  _ascii_fold(row.get("text", "")))), None)
-    if total_idx is not None:
-        return start, total_idx
-
+    footer_pattern = re.compile(
+        r"\b(?:cong\s*khoan|loi\s*dan|hen\s*tai\s*kham|tai\s*kham|"
+        r"bac\s*s[iy]\b|nguoi\s*ke\s*don|ngay\s*\d{0,2}\s*thang)\b"
+    )
     footer_idx = next((i for i, row in enumerate(rows)
-                       if i >= start and re.search(
-                           r"\b(?:loi\s*dan|tai\s*kham|hen\s*tai\s*kham|bac\s*si\s*dieu\s*tri|"
-                           r"nguoi\s*ke\s*don)\b", _ascii_fold(row.get("text", "")))), None)
+                       if i >= start and footer_pattern.search(_ascii_fold(row.get("text", "")))), None)
     return start, footer_idx if footer_idx is not None else len(rows)
 
 
@@ -756,33 +758,213 @@ def _parse_numbered_medications(rows: List[Dict[str, Any]]) -> List[Dict[str, st
     return meds
 
 
-def _parse_medication_ordinal(value: str) -> Optional[int]:
-    match = re.match(r"^\s*([1-9GgIlOoSb])\s*[.):]\s*(\S.*)$", str(value or ""))
-    if not match:
+_ORDINAL_TYPO_MAP = {
+    "G": "6", "g": "6", "b": "6",
+    "I": "1", "l": "1", "|": "1",
+    "O": "0", "o": "0",
+    "S": "5", "s": "5",
+}
+
+_INSTRUCTION_HEAD_RE = re.compile(
+    r"^\s*(?:ng[aàa]?y|u[oốô]ng|m[oỗ]i\s*l[aầ]n|s[aá]ng|tr[uư]a|ch[iề]u|t[oố]i|"
+    r"c[aá]ch\s*d[uù]ng|l[oờ]i\s*d[aặ]n|c[oộ]ng\s*kho[aả]n|"
+    r"b[oô]i|xoa|thoa|t[aắ]m\s*g[oộ]i|nh[oỏ]|ng[aậ]m|x[iị]t|d[uù]ng\s*sau|"
+    r"cac\s*ngay|khi\s*dau|sau\s*an|truoc\s*an|"
+    r"vi[eêé]n|vien|ven|g[oóö]i|goi|[oố]ng|ong|chai|l[oọ]|lo|h[oộ]p|hop|tu[yý]p|tuyp|tube|ml|gi[oọ]t|giot|l[aầ]n|lan)\b",
+    re.IGNORECASE,
+)
+
+
+_FOREIGN_LATIN_CLUSTERS = re.compile(
+    r"[fjzw]|(?:bl|br|cl|cr|dr|fl|fr|gl|gr|kl|kr|pl|pr|sc|sk|sl|sm|sn|sp|st|sw|vr)|(?:[bcdfghjklmnpqrstvwxz]{3})",
+    re.IGNORECASE,
+)
+
+
+def _clean_foreign_brand_diacritics(name: str) -> str:
+    """Loại dấu tiếng Việt bị EasyOCR gắn nhầm lên từ biệt dược gốc Latin/tiếng Anh
+    (vd: từ có cụm phụ âm không tồn tại trong tiếng Việt như cr, fl, st, f, z, w...)."""
+    tokens = []
+    for tok in str(name or "").split():
+        folded = unicodedata.normalize("NFKD", tok)
+        ascii_only = "".join(ch for ch in folded if unicodedata.category(ch) != "Mn")
+        if ascii_only != tok and _FOREIGN_LATIN_CLUSTERS.search(ascii_only):
+            tokens.append(ascii_only)
+        else:
+            tokens.append(tok)
+    return " ".join(tokens)
+
+
+def _normalize_vi_instruction_text(text: str) -> str:
+    """Chỉnh các lỗi chính tả OCR tiếng Việt phổ biến trong dòng hướng dẫn sử dụng."""
+    s = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not s:
+        return ""
+    replacements = [
+        (r"\bU[oổồ]ng\b", "Uống"),
+        (r"\bu[oổồ]ng\b", "uống"),
+        (r"\bbu[oổ]i\s*t[oổ]i\b", "buổi tối"),
+        (r"\bT[aáà]m\s*g[oộồố]i\b", "Tắm gội"),
+        (r"\bsữa\s*t[aăẳằ]m\b", "sữa tắm"),
+        (r"\bl[aầẩẫấầ]n\s*[lI1'i]\s*(?=ng|tu)", "lần/ "),
+        (r"\bl[aẩẫ]n\b", "lần"),
+        (r"\bI[aầ]ni\b", "lần/"),
+        (r"\btu[aẩàáă]n\b", "tuần"),
+        (r"\bng[aằắá]y\b", "ngày"),
+        (r"\bng[aà]ỵ\b", "ngày"),
+        (r"\bchi[eèê]u\b", "chiều"),
+        (r"\bthu[oổồ]c\b", "thuốc"),
+        (r"\bsau\s*[àaăâ]n\s*no\b", "sau ăn no"),
+        (r"\bsau\s*[àaăâ]nno\b", "sau ăn no"),
+        (r"\bSau\s*n\.", "Sau ăn."),
+        (r"\bSau\s*[áàa]n\b", "Sau ăn"),
+        (r"\bsau\s*[áàa]n\b", "sau ăn"),
+        (r"\b(\d+)\s*ph[uúứ]\b", r"\1 phút"),
+        (r"\bSáng\s+chiều\b", "sáng, chiều"),
+        (r"\bsáng\s+chiều\b", "sáng, chiều"),
+    ]
+    for pattern, repl in replacements:
+        s = re.sub(pattern, repl, s)
+    # Chuẩn hóa dấu chấm phẩy/hai chấm cuối câu do OCR nhầm dấu phẩy/chấm
+    s = re.sub(r";\s*(?=[a-zà-ỹ])", ", ", s)
+    s = re.sub(r":\s*$", ".", s)
+    s = re.sub(r"\s+([,.;])", r"\1", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _decode_ordinal_token(token: str) -> Optional[int]:
+    """Giải mã token số thứ tự (1..99 hoặc ký tự OCR nhầm G/g/b->6, I/l/|->1, O/o->0, S->5)."""
+    cleaned = str(token or "").strip().rstrip(".,):|-")
+    if not cleaned:
         return None
-    char = match.group(1)
-    mapped = {"G": "6", "g": "6", "b": "6", "I": "1", "l": "1",
-              "O": "0", "o": "0", "S": "5", "s": "5"}.get(char, char)
-    number = int(mapped)
-    return number if 1 <= number <= 9 else None
+    if re.fullmatch(r"[1-9]\d?", cleaned):
+        val = int(cleaned)
+        return val if 1 <= val <= 50 else None
+    if len(cleaned) == 1 and cleaned in _ORDINAL_TYPO_MAP:
+        mapped = _ORDINAL_TYPO_MAP[cleaned]
+        val = int(mapped)
+        return val if 1 <= val <= 9 else None
+    return None
+
+
+def _parse_medication_ordinal(value: str) -> Optional[int]:
+    """Nhận diện số thứ tự đầu dòng thuốc (dấu phân cách . ) : - là tùy chọn)."""
+    s = str(value or "")
+    # Dạng có dấu phân cách: "1. YESOM", "6) ...", "G. DIGLUMISAN", "2: ...", "3- ..."
+    match = re.match(r"^\s*([1-9]\d?|[GgIlOoSb|])\s*[.):\-]\s*([A-Za-zÀ-ỹ].*)$", s)
+    if match:
+        return _decode_ordinal_token(match.group(1))
+    # Dạng không dấu phân cách (Layout B): "1  Ducray Kelual DS", "4 Halcort 6"
+    match_ws = re.match(r"^\s*([1-9]\d?|[GgIlbS])\s+([A-Za-zÀ-ỹ].*)$", s)
+    if match_ws:
+        tail = match_ws.group(2).strip()
+        if not _INSTRUCTION_HEAD_RE.match(_ascii_fold(tail)):
+            return _decode_ordinal_token(match_ws.group(1))
+    return None
+
+
+def _infer_route_from_text(text: str) -> Optional[str]:
+    """Suy đường dùng trực tiếp từ động từ trong hướng dẫn của đơn thuốc."""
+    folded = _ascii_fold(text)
+    if re.search(r"\btam\s*goi\b", folded):
+        return "Dùng ngoài"
+    if re.search(r"\b(?:boi|xoa|thoa)\b", folded):
+        return "Dùng ngoài da"
+    if re.search(r"\b(?:nho\s*mat|nho\s*mui|nho\s*tai|nho)\b", folded):
+        return "Nhỏ tại chỗ"
+    if re.search(r"\b(?:xit)\b", folded):
+        return "Xịt tại chỗ"
+    if re.search(r"\b(?:ngam)\b", folded):
+        return "Ngậm"
+    if re.search(r"\b(?:uong|u6ng)\b", folded):
+        return "Đường uống"
+    return None
+
+
+def _parse_prescription_dose(text: str) -> tuple:
+    """Read dose/frequency for both Layout A and Layout B regimens."""
+    folded = _ascii_fold(text).lower()
+    # Chuẩn hóa lỗi OCR hay gặp trong dòng liều dùng: "Iầni" -> "lan/", "lẩn'" -> "lan/", "tuẩn" -> "tuan"
+    folded = re.sub(r"\bl[a1i]n[i']\s*(?=ngay|tuan)", "lan/ ", folded)
+    folded = re.sub(r"\bi[a1]n\b", "lan", folded)
+    unit_pattern = r"(vi[e]?n|ven|goi|chai|chal|ong|ml|giot|tube|tuyp|lo|hop|tablet|tab|capsule|sachet)"
+
+    # 1. Liều mỗi lần (dose)
+    dose_match = re.search(
+        rf"(?:m[o0]i\s*l[a1i]n|m[e0][i1]\s*[{{(\[]?[a1]n|u[o06]ng|ngam)\s*[:\-]?\s*(\d+(?:[.,/]\d+)?)\s*{unit_pattern}\b",
+        folded,
+    )
+    if not dose_match:
+        dose_match = re.search(
+            rf"(\d+(?:[.,/]\d+)?)\s*{unit_pattern}\s*(?:/\s*l[a1i]n|x\s*\d|m[o0]i\s*l[a1i]n)",
+            folded,
+        )
+
+    # 2. Tần suất (frequency): hỗ trợ cả /ngày và /tuần
+    freq_value = None
+    # Layout B: "x 2 lần/ ngày" hoặc "2 lần/ ngày" hoặc "3 lần/ tuần"
+    freq_x = re.search(r"x\s*(\d{1,2})\s*l[a1i]n\s*/?\s*(ngay|tuan)\b", folded)
+    if freq_x:
+        period = "tuần" if freq_x.group(2) == "tuan" else "ngày"
+        freq_value = f"{freq_x.group(1)} lần/{period}"
+    if not freq_value:
+        freq_slash = re.search(r"(\d{1,2})\s*l[a1i]n\s*/\s*(ngay|tuan)\b", folded)
+        if freq_slash:
+            period = "tuần" if freq_slash.group(2) == "tuan" else "ngày"
+            freq_value = f"{freq_slash.group(1)} lần/{period}"
+    if not freq_value:
+        # Layout A: "Ngày uống 3 lần, mỗi lần 1 viên" hoặc "Ngay uong 3ion"
+        freq_a = re.search(
+            r"(?:ngay\s*u[o0c]ng|u[o0c]ng\s*ngay|ngay|u[o0]ng|boi(?:\s*tai\s*cho)?|xoa(?:\s*tai\s*cho)?|tam\s*goi)\s*"
+            r"(\d{1,2})\s*(?:l[a1i]n|ion|lan)\s*(?:/?\s*(ngay|tuan)|m[o0]i\s*(?:ngay|l[a1i]n)|$|[,;.])",
+            folded,
+        )
+        if freq_a:
+            period = "tuần" if freq_a.group(2) == "tuan" else "ngày"
+            freq_value = f"{freq_a.group(1)} lần/{period}"
+    if not freq_value:
+        # Layout B: "Uống 3 viên/ lần/ ngày, buổi sáng" -> 1 lần/ngày
+        if re.search(rf"\d+(?:[.,/]\d+)?\s*{unit_pattern}\s*/?\s*(?:l[a1i]n\s*/?\s*)?ngay\b", folded):
+            freq_value = "1 lần/ngày"
+
+    dose_value = None
+    if dose_match:
+        amount = dose_match.group(1).replace(",", ".")
+        unit = _unit_label(dose_match.group(2))
+        dose_value = f"{amount} {unit}"
+    return dose_value, freq_value
 
 
 def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
     """Remove low-confidence notes left of the printed ordinal column from parsing."""
-    ordinal_items = []
     all_items = [item for row in rows for item in row.get("items", [])]
-    for row in rows:
-        row_text = str(row.get("text", "") or "")
-        if re.match(r"^\s*[1-9GgIlOoSb]\s*[.):]", row_text):
-            ordinal_items = [item for item in row.get("items", [])
-                             if re.match(r"^\s*[1-9GgIlOoSb]\s*[.):]?$", str(item.get("text", "")).strip())]
-            if ordinal_items:
-                break
-    if not ordinal_items:
+    if not all_items:
         return rows, set()
-    ordinal_x = min(float(item.get("x_min", 0) or 0) for item in ordinal_items)
     page_right = max(float(item.get("x_max", item.get("x_min", 0)) or 0) for item in all_items)
-    margin_threshold = ordinal_x - max(8.0, page_right * 0.015)
+    if page_right <= 0:
+        return rows, set()
+
+    ordinal_x_candidates = []
+    for row in rows:
+        items = row.get("items", [])
+        if not items:
+            continue
+        first_item = items[0]
+        first_x = float(first_item.get("x_min", 0) or 0)
+        # Cột STT bắt buộc phải nằm ở phần lề trái (<= 25% chiều rộng trang)
+        if first_x > page_right * 0.25:
+            continue
+        row_text = str(row.get("text", "") or "").strip()
+        if _parse_medication_ordinal(row_text) is not None or re.match(
+            r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]?\s*$", str(first_item.get("text", "") or "").strip()
+        ):
+            ordinal_x_candidates.append(first_x)
+    if not ordinal_x_candidates:
+        return rows, set()
+    ordinal_x = min(ordinal_x_candidates)
+    margin_threshold = min(ordinal_x - max(8.0, page_right * 0.015), page_right * 0.22)
+    if margin_threshold <= 0:
+        return rows, set()
     ignored = set()
     filtered_rows = []
     for row in rows:
@@ -792,7 +974,7 @@ def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
             text = str(item.get("text", "") or "").strip()
             x_max = float(item.get("x_max", item.get("x_min", 0)) or 0)
             confidence = float(item.get("confidence", 1.0) or 0)
-            is_ordinal = bool(re.match(r"^\s*[1-9GgIlOoSb]\s*[.):]?\s*$", text))
+            is_ordinal = bool(re.match(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]?\s*$", text))
             if x_max < margin_threshold and confidence < 0.75 and not is_ordinal:
                 if item.get("line_index") is not None:
                     ignored.add(int(item["line_index"]))
@@ -808,162 +990,401 @@ def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
     return filtered_rows, ignored
 
 
-def _parse_prescription_dose(text: str) -> tuple:
-    """Read frequency and unit dose only from a daily-dosing instruction."""
-    folded = _ascii_fold(text).lower()
-    frequency_anchor = re.search(r"ng[a-z]{0,2}\s*u[o0]ng", folded)
-    if not frequency_anchor:
-        return None, None
-    tail = folded[frequency_anchor.end():]
-    freq_match = re.match(r"\s*(\d{1,2})\s*(?:[l1i{][a-z1i]{1,3})?", tail)
-    if not freq_match:
-        return None, None
-    # The OCR often reads 'lần' as 'ian', 'ion' or 'lon'.
-    after_freq = tail[freq_match.end():]
-    dose_match = re.search(
-        r"(?:m[o0a]i\s*)?[l1i{][a-z1i]{1,3}.{0,16}?(\d+(?:[.,/]\d+)?)\s*"
-        r"(vi[e]?n|ven|goi|chai|chal|ong|ong|ml)\b",
-        after_freq, re.IGNORECASE,
-    )
-    if not dose_match:
-        # Keep the fuzzy part conservative: require a near match for 'moi lan'
-        # and explicit amount plus unit in the same OCR line.
-        fuzzy = re.search(r"m[a-z0-9]{1,3}.{0,5}[l1i{][a-z1i]{1,3}", after_freq)
-        if fuzzy:
-            dose_match = re.search(
-                r"(\d+(?:[.,/]\d+)?)\s*(vi[e]?n|ven|goi|chai|chal|ong|ml)\b",
-                after_freq[fuzzy.end():], re.IGNORECASE,
-            )
-    if not dose_match:
-        return None, None
-    dose_amount = dose_match.group(1).replace(",", ".")
-    unit = _unit_label(dose_match.group(2))
-    return f"{dose_amount} {unit}", f"{freq_match.group(1)} lần/ngày"
-
-
 def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_count: Optional[int] = None) -> List[Dict[str, Any]]:
-    """Parse numbered drug blocks, including common OCR ordinal confusions."""
-    ordinal_cell = re.compile(r"^\s*[1-9GgIlOoSb]\s*[.):]?\s*$")
+    """Parse numbered drug blocks (Layout A & Layout B), including optional punctuation,
+    OCR ordinal confusions, left-column x validation, split-box quantities, and verbatim instructions."""
+    ordinal_cell = re.compile(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.,):\-]?\s*$")
     blocks: List[Dict[str, Any]] = []
     current = None
-    right_edge = max((float(item.get("x_max", item.get("x_min", 0)) or 0)
-                      for row in rows for item in row.get("items", [])), default=0.0)
+    pending_ordinal = None
+    pending_ordinal_row = None
+    unit_tokens_re = r"(?:vi[eêé]n|vien|ven|g[oóö]i|gôi|goi|chai|chal|char|[oố]ng|ông|ong|l[oọ]|lo|h[oộ]p|hop|v[iỉ]|vi|tu[yý]p|tuyp|tube)"
+    quantity_re = re.compile(
+        rf"(?:^|\b)(?:x\s*)?(\d{{1,3}})\s*({unit_tokens_re})\b", re.IGNORECASE,
+    )
+    unit_only_re = re.compile(rf"^\s*{unit_tokens_re}\s*$", re.IGNORECASE)
 
-    for row in rows:
+    all_x_mins = [float(item.get("x_min", 0)) for row in rows for item in row.get("items", []) if item.get("x_min") is not None]
+    all_x_maxs = [float(item.get("x_max", item.get("x_min", 0))) for row in rows for item in row.get("items", []) if item.get("x_min") is not None or item.get("x_max") is not None]
+    body_left = min(all_x_mins) if all_x_mins else 0.0
+    right_edge = max(all_x_maxs) if all_x_maxs else 0.0
+    body_width = max(0.0, right_edge - body_left)
+    has_coords = body_width > 50.0
+
+    def _is_in_left_ordinal_col(item: Dict[str, Any], is_standalone: bool = True) -> bool:
+        if not has_coords or item.get("x_min") is None:
+            return True
+        x_min = float(item.get("x_min", 0))
+        x_max = float(item.get("x_max", x_min))
+        ref_x = (x_min + x_max) / 2.0 if is_standalone else x_min
+        # Cột STT nằm ở lề trái (< 18% chiều rộng vùng thuốc), tuyệt đối không nhận nhầm cột SL ở bên phải
+        return (ref_x - body_left) <= body_width * 0.18
+
+    def _row_has_right_unit_or_qty(row: Dict[str, Any]) -> bool:
+        items = row.get("items", [])
+        if not has_coords or not items:
+            return False
+        right_parts = []
+        for it in items:
+            if it.get("x_min") is None:
+                continue
+            xc = (float(it.get("x_min", 0)) + float(it.get("x_max", it.get("x_min", 0)))) / 2.0
+            if (xc - body_left) >= body_width * 0.45:
+                right_parts.append(str(it.get("text", "") or "").strip())
+        if not right_parts:
+            return False
+        joined_right = " ".join(right_parts)
+        folded_right = _ascii_fold(joined_right)
+        if quantity_re.search(folded_right):
+            return True
+        if any(unit_only_re.fullmatch(_ascii_fold(p)) for p in right_parts):
+            return True
+        return False
+
+    # Đếm trước xem vùng thuốc có ít nhất 1 dòng đánh số hay không (phân biệt đơn có đánh số vs bảng rác)
+    has_any_ordinal_row = False
+    for r in rows:
+        rt = str(r.get("text", "") or "").strip()
+        r_items = r.get("items", [])
+        if _parse_medication_ordinal(rt) is not None:
+            if not r_items or _is_in_left_ordinal_col(r_items[0]):
+                has_any_ordinal_row = True
+                break
+        if r_items and ordinal_cell.fullmatch(str(r_items[0].get("text", "") or "").strip()) and _is_in_left_ordinal_col(r_items[0]):
+            has_any_ordinal_row = True
+            break
+
+    footer_stop_re = re.compile(
+        r"\b(?:cong\s*khoan|loi\s*dan|hen\s*tai\s*kham|tai\s*kham|bac\s*s[iy]\b|nguoi\s*ke\s*don|ngay\s*\d{0,2}\s*thang)\b"
+    )
+
+    last_unattached_drug_row = None
+    last_header_qty_row = None
+
+    for row_idx, row in enumerate(rows):
         row_text = str(row.get("text", "") or "").strip()
         if not row_text:
             continue
-        folded = _ascii_fold(row_text)
-        if re.search(r"\b(?:cong\s*khoan|loi\s*dan|hen\s*tai\s*kham|tai\s*kham|bac\s*si\s*dieu\s*tri)\b", folded):
-            break
-
-        cells = [str(item.get("text", "") or "").strip() for item in row.get("items", []) if item.get("text")]
+        folded = re.sub(r"\s*\|\s*", " ", _ascii_fold(row_text))
+        row_items = row.get("items", [])
+        cells = [str(item.get("text", "") or "").strip() for item in row_items if item.get("text")]
         if not cells:
             cells = [part.strip() for part in re.split(r"\s*\|\s*", row_text) if part.strip()]
 
-        candidate = row_text
-        if cells and ordinal_cell.fullmatch(cells[0]) and len(cells) > 1:
-            candidate = f"{cells[0]} {' '.join(cells[1:])}"
-        ordinal_number = _parse_medication_ordinal(candidate)
-        ordinal_match = re.match(r"^\s*([1-9GgIlOoSb])\s*[.):]\s*(\S.*)$", candidate)
-        if ordinal_number is not None and ordinal_match:
-            if current:
-                blocks.append(current)
-            current = {"ordinal": ordinal_number, "heading": ordinal_match.group(2).strip(), "rows": [row]}
+        # Ghi nhớ dòng tiêu đề bảng có chứa cột SL bị lệch y lên trên (vd: "STT | Tên thuốc | 21 | Viên")
+        if re.search(r"\b(?:stt|ten\s*[\{]?thuoc|ham\s*luong)\b", folded):
+            last_header_qty_row = row
             continue
 
-        if cells and ordinal_cell.fullmatch(cells[0]) and len(cells) == 1:
+        # Dòng chỉ có "tái khám" ở nửa phải nhưng nửa trái là STT "1" + liều (ảnh chụp nghiêng)
+        first_is_standalone_ord = bool(cells and ordinal_cell.fullmatch(cells[0]))
+        first_item_left_ok = (not row_items) or _is_in_left_ordinal_col(row_items[0], is_standalone=first_is_standalone_ord)
+        if footer_stop_re.search(folded):
+            if first_is_standalone_ord and first_item_left_ok and last_unattached_drug_row is not None:
+                # Khôi phục thuốc ở dòng ngay phía trên khi STT bị căn giữa theo chiều dọc xuống dòng dưới
+                ord_val = _decode_ordinal_token(cells[0])
+                prev_y = last_unattached_drug_row.get("y_center")
+                cur_y = row.get("y_center")
+                if ord_val is not None and (prev_y is None or cur_y is None or abs(float(cur_y) - float(prev_y)) <= 80.0):
+                    if current:
+                        blocks.append(current)
+                    prev_text = str(last_unattached_drug_row.get("text", "") or "").strip()
+                    block_rows = [last_unattached_drug_row]
+                    if last_header_qty_row is not None and prev_y is not None and last_header_qty_row.get("y_center") is not None:
+                        if 0 <= float(prev_y) - float(last_header_qty_row["y_center"]) <= 65.0:
+                            # Chỉ mượn các ô số lượng ở cột phải của dòng tiêu đề (không lấy chữ STT/Tên thuốc)
+                            qty_items = [
+                                it for it in last_header_qty_row.get("items", [])
+                                if it.get("x_min") is not None
+                                and ((float(it["x_min"]) + float(it.get("x_max", it["x_min"]))) / 2.0 - body_left) >= body_width * 0.65
+                            ]
+                            if qty_items:
+                                block_rows.append({"text": " ".join(str(it.get("text", "")) for it in qty_items), "items": qty_items, "y_center": last_header_qty_row["y_center"]})
+                    # Lấy phần liều dùng bên trái trước "tái khám"
+                    dose_left_items = [
+                        it for it in row_items[1:]
+                        if not re.search(r"\b(?:tai|kham|hen|ngay)\b", _ascii_fold(it.get("text", "")))
+                        and not re.match(r"^\d{1,2}/\d{1,2}", str(it.get("text", "")).strip())
+                    ]
+                    if dose_left_items:
+                        block_rows.append({"text": " ".join(str(it.get("text", "")) for it in dose_left_items), "items": dose_left_items, "y_center": cur_y})
+                    current = {"ordinal": ord_val, "heading": prev_text, "rows": block_rows, "heading_row": last_unattached_drug_row}
+                    last_unattached_drug_row = None
+            break
+
+        candidate = row_text
+        if first_is_standalone_ord and len(cells) > 1 and first_item_left_ok:
+            # Nếu ô sau STT là đơn vị/hướng dẫn (vd: "1 | viên | ...") thì không phải dòng tên thuốc
+            if not _INSTRUCTION_HEAD_RE.match(_ascii_fold(cells[1])):
+                candidate = f"{cells[0].strip().rstrip('.,):|-')}. {' '.join(cells[1:])}"
+            else:
+                candidate = ""
+
+        ordinal_number = _parse_medication_ordinal(candidate) if (candidate and first_item_left_ok) else None
+        ordinal_match = None
+        if ordinal_number is not None:
+            m_sep = re.match(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]\s*([A-Za-zÀ-ỹ].*)$", candidate)
+            if m_sep and not _INSTRUCTION_HEAD_RE.match(_ascii_fold(m_sep.group(1).strip())):
+                ordinal_match = m_sep
+            if not ordinal_match:
+                weak_match = re.match(r"^\s*(?:[1-9]\d?|[GgIlbS])\s+([A-Za-zÀ-ỹ].*)$", candidate)
+                if weak_match:
+                    weak_heading = weak_match.group(1).strip()
+                    if (not _INSTRUCTION_HEAD_RE.match(_ascii_fold(weak_heading))
+                            and is_plausible_medication_name(weak_heading)
+                            and re.search(r"[A-Za-zÀ-ỹ]{4,}", weak_heading)):
+                        ordinal_match = weak_match
+
+        if ordinal_number is not None and ordinal_match:
+            # Nếu khối hiện tại là khối suy đoán (inferred) bị trùng STT với dòng đánh số tường minh ngay sau,
+            # dòng đánh số tường minh luôn đúng -> bỏ khối suy đoán nhầm (vd: dòng tiêu đề "II. THÔNG TIN ĐƠN THUỐC")
+            if current and current["ordinal"] == ordinal_number:
+                if current.get("inferred_ordinal"):
+                    current = {"ordinal": ordinal_number, "heading": ordinal_match.group(1).strip(), "rows": [row]}
+                else:
+                    # Cùng STT tường minh lặp lại ở dòng gãy 2 dòng (vd: "2. Glucosamin..." + "2. mg)(Viartril...)")
+                    current["rows"].append(row)
+                pending_ordinal = None
+                pending_ordinal_row = None
+                continue
             if current:
                 blocks.append(current)
+            current = {"ordinal": ordinal_number, "heading": ordinal_match.group(1).strip(), "rows": [row]}
+            pending_ordinal = None
+            pending_ordinal_row = None
+            continue
+
+        # STT đứng 1 mình trên 1 dòng OCR (và phải ở cột trái, không phải cột số lượng bên phải)
+        if first_is_standalone_ord and len(cells) == 1 and first_item_left_ok:
+            decoded_only = _decode_ordinal_token(cells[0])
+            if decoded_only is not None:
+                if current and current["ordinal"] == decoded_only:
+                    current["rows"].append(row)
+                    continue
+                if current:
+                    blocks.append(current)
                 current = None
+                pending_ordinal = decoded_only
+                pending_ordinal_row = row
+                continue
+
+        if pending_ordinal is not None:
+            same_printed_line = (
+                pending_ordinal_row is not None
+                and row.get("y_center") is not None
+                and pending_ordinal_row.get("y_center") is not None
+                and abs(float(row["y_center"]) - float(pending_ordinal_row["y_center"])) <= 18.0
+            )
+            instruction_row = bool(_INSTRUCTION_HEAD_RE.match(_ascii_fold(row_text)))
+            candidate_cells = [
+                cell for cell in cells
+                if not quantity_re.fullmatch(_ascii_fold(cell))
+                and not re.fullmatch(r"\d{1,3}", cell.strip())
+                and not re.fullmatch(r"[xX]", cell.strip())
+                and not unit_only_re.fullmatch(_ascii_fold(cell))
+            ]
+            heading_candidate = " ".join(candidate_cells).strip()
+            if (same_printed_line and not instruction_row and is_plausible_medication_name(heading_candidate)
+                    and re.search(r"[A-Za-zÀ-ỹ]{4,}", heading_candidate)):
+                current = {
+                    "ordinal": pending_ordinal,
+                    "heading": heading_candidate,
+                    "rows": [pending_ordinal_row, row],
+                    "heading_row": row,
+                }
+                pending_ordinal = None
+                pending_ordinal_row = None
+                continue
+            pending_ordinal = None
+            pending_ordinal_row = None
+
+        # Khôi phục dòng thuốc bị OCR bỏ sót chữ số STT đơn lẻ (vd: 1, 4, 5, 6, 7 ở Layout B)
+        # Chỉ áp dụng khi ảnh có tọa độ thực + vùng thuốc đã nhận diện là danh sách thuốc + dòng hiện tại
+        # có tên thuốc hợp lệ và có đơn vị/số lượng ở cột phải (không phải dòng hướng dẫn).
+        looks_like_instruction = bool(_INSTRUCTION_HEAD_RE.match(folded))
+        non_qty_cells = [
+            cell for cell in cells
+            if not quantity_re.fullmatch(_ascii_fold(cell))
+            and not re.fullmatch(r"\d{1,3}", cell.strip())
+            and not re.fullmatch(r"[xX]", cell.strip())
+            and not unit_only_re.fullmatch(_ascii_fold(cell))
+        ]
+        inferred_heading = " ".join(non_qty_cells).strip()
+        has_heading_text = bool(
+            inferred_heading
+            and is_plausible_medication_name(inferred_heading)
+            and re.search(r"[A-Za-zÀ-ỹ]{4,}", inferred_heading)
+        )
+        row_has_right_qty = _row_has_right_unit_or_qty(row)
+        if has_coords and has_any_ordinal_row and row_has_right_qty and has_heading_text and not looks_like_instruction:
+            if current:
+                blocks.append(current)
+                next_ord = current["ordinal"] + 1
+            else:
+                next_ord = 1
+            current = {"ordinal": next_ord, "heading": inferred_heading, "rows": [row], "inferred_ordinal": True}
             continue
-        # Recover one missing ordinal only when the prescription's printed
-        # total proves another item is expected and this row has a right-column
-        # quantity plus a drug-like heading (not a dosing continuation).
-        row_items = row.get("items", [])
-        right_quantity = False
-        for item in row_items:
-            item_text = str(item.get("text", "") or "")
-            x_center = (float(item.get("x_min", 0) or 0) + float(item.get("x_max", item.get("x_min", 0)) or 0)) / 2
-            if right_edge and x_center >= right_edge * 0.70 and re.search(
-                r"\d{1,3}\s*(?:vien|vi[e]?n|ven|goi|chal|chai|ong|lo|tuyp)", _ascii_fold(item_text), re.IGNORECASE,
-            ):
-                right_quantity = True
-                break
-        looks_like_instruction = bool(re.search(r"ngay|uong|moi\s*lan|sang|trua|chieu|toi", _ascii_fold(row_text)))
-        has_heading_text = bool(re.search(r"[A-Za-zÀ-ỹ]{4,}", row_text))
-        if (current and expected_count and current["ordinal"] < expected_count
-                and right_quantity and has_heading_text and not looks_like_instruction):
-            blocks.append(current)
-            current = {"ordinal": current["ordinal"] + 1, "heading": row_text, "rows": [row]}
-            continue
+
         if current:
             current["rows"].append(row)
+        elif has_heading_text and not looks_like_instruction:
+            # Ghi nhớ dòng tên thuốc chưa có STT (trường hợp ô STT bảng bị căn giữa xuống dòng dưới)
+            last_unattached_drug_row = row
 
     if current:
         blocks.append(current)
 
+    # Sửa số thứ tự nếu dòng đầu bị suy là 1 trước dòng 2 (hoặc tăng dần theo y)
+    for idx in range(len(blocks)):
+        if blocks[idx].get("inferred_ordinal"):
+            if idx == 0 and len(blocks) > 1 and blocks[1]["ordinal"] > 1:
+                blocks[idx]["ordinal"] = blocks[1]["ordinal"] - 1
+            elif idx > 0:
+                blocks[idx]["ordinal"] = blocks[idx - 1]["ordinal"] + 1
+
     meds: List[Dict[str, Any]] = []
-    quantity_re = re.compile(
-        r"\b(\d{1,3})\s*(vien|goi|chai|ong|lo|hop|vi|tuyp)\b", re.IGNORECASE,
-    )
-    strength_re = re.compile(r"\b(\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu))\b", re.IGNORECASE)
+    strength_re = re.compile(r"\b([1-9]\d*(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu))\b", re.IGNORECASE)
 
     for block in blocks:
-        first_row = block["rows"][0]
+        first_row = block.get("heading_row", block["rows"][0])
+        first_row_items = first_row.get("items", [])
         name_cells = [str(item.get("text", "") or "").strip()
-                      for item in first_row.get("items", []) if item.get("text")]
+                      for item in first_row_items if item.get("text")]
         if not name_cells:
             name_cells = [part.strip() for part in str(first_row.get("text", "") or "").split("|") if part.strip()]
-        if name_cells and ordinal_cell.fullmatch(name_cells[0]):
+
+        if name_cells and ordinal_cell.fullmatch(name_cells[0]) and ((not first_row_items) or _is_in_left_ordinal_col(first_row_items[0])):
             name_cells = name_cells[1:]
         elif name_cells:
-            name_cells[0] = re.sub(r"^\s*[1-9GgIlOoSb]\s*[.):]\s*", "", name_cells[0]).strip()
+            name_cells[0] = re.sub(
+                r"^\s*(?:[1-9]\d?|[GgIlOoSb|])(?:\s*[.,):\-]\s*|\s+)", "", name_cells[0]
+            ).strip()
+
         heading_parts = []
         for cell in name_cells:
             folded_cell = _ascii_fold(cell)
-            if (quantity_re.fullmatch(folded_cell) or re.fullmatch(r"\d{1,3}", cell)
-                    or re.fullmatch(r"(?:vien|goi|chai|ong|lo|hop|vi|tuyp)", folded_cell)):
+            # Dừng / bỏ qua token "x" (Layout B) và cột số lượng / đơn vị
+            if re.fullmatch(r"[xX]", cell.strip()):
+                break
+            if (quantity_re.fullmatch(folded_cell) or re.fullmatch(r"\d{1,3}", cell.strip())
+                    or unit_only_re.fullmatch(folded_cell)):
                 continue
-            if re.match(r"^\s*(?:ngay|uong|sang|trua|chieu|toi)\b", folded_cell):
+            if _INSTRUCTION_HEAD_RE.match(folded_cell):
                 continue
-            heading_parts.append(cell)
+            # Chuẩn hóa lỗi OCR hàm lượng phổ biến trong tên (vd: "Smg" -> "5mg", "3Omg" -> "30mg", "9Omg" -> "90mg")
+            fixed_cell = re.sub(r"\bS\s*mg\b", "5mg", cell)
+            fixed_cell = re.sub(r"\b(\d+)[oO]+(mg|mcg|ml|g)\b", lambda m: f"{m.group(1)}{'0' * (len(m.group(0)) - len(m.group(1)) - len(m.group(2)))}{m.group(2)}", fixed_cell, flags=re.IGNORECASE)
+            heading_parts.append(fixed_cell)
+
         heading = " ".join(heading_parts).strip() or block["heading"]
         if len(heading) < 4 or not re.search(r"[A-Za-zÀ-ỹ]{4,}", heading):
             continue
+
+        # Tách các dòng hướng dẫn (sau dòng tên thuốc trong khối)
+        heading_row_obj = first_row
+        instruction_lines = []
+        for row in block["rows"]:
+            if row is heading_row_obj:
+                continue
+            r_clean = re.sub(r"\s*\|\s*", " ", str(row.get("text", "") or "")).strip()
+            if r_clean and not ordinal_cell.fullmatch(r_clean):
+                instruction_lines.append(_normalize_vi_instruction_text(r_clean))
+        verbatim_instructions = " ".join(instruction_lines).strip()
+
         block_text = []
         for row in block["rows"]:
-            row_text = str(row.get("text", "") or "").strip()
-            item_text = " ".join(str(item.get("text", "") or "").strip()
-                                 for item in row.get("items", []) if item.get("text"))
-            block_text.append(" ".join(part for part in (row_text, item_text) if part))
+            row_text = re.sub(r"\s*\|\s*", " ", str(row.get("text", "") or "")).strip()
+            if row_text:
+                block_text.append(row_text)
+
         parsed_dose = None
         frequency = None
-        for text in block_text:
-            parsed_dose, frequency = _parse_prescription_dose(text)
-            if parsed_dose and frequency:
+        parsed_usage = None
+        parsed_route = _infer_route_from_text(verbatim_instructions or " ".join(block_text))
+
+        dosing_texts = list(instruction_lines) + list(block_text)
+        dosing_texts.extend(
+            f"{left} {right}" for left, right in zip(block_text, block_text[1:])
+        )
+        for text in dosing_texts:
+            dose_value, frequency_value = _parse_prescription_dose(text)
+            if dose_value and not parsed_dose:
+                parsed_dose = dose_value
+            if frequency_value and not frequency:
+                frequency = frequency_value
+            folded_text = _ascii_fold(text)
+            if re.search(r"\b(?:ngay|uong|moi\s*lan|sau\s*an|truoc\s*an|trong\s*bua|ngoai\s*da|boi|xoa|tam\s*goi|khi\s*dau)\b", folded_text):
+                dosing = _parse_dosing_details(text)
+                if not parsed_dose and dosing.get("dose"):
+                    parsed_dose = dosing["dose"]
+                if not frequency and dosing.get("frequency"):
+                    frequency = dosing["frequency"]
+                if not parsed_usage and dosing.get("usage"):
+                    parsed_usage = dosing["usage"]
+            if parsed_dose and frequency and parsed_usage:
                 break
 
+        # Nếu có dòng hướng dẫn nguyên văn, lưu vào huong_dan & dùng làm usage nếu usage đang rỗng
+        if not parsed_usage and verbatim_instructions:
+            parsed_usage = verbatim_instructions
+
+        # SỐ LƯỢNG: ưu tiên gom các box ở nửa phải của dòng tiêu đề thuốc (hỗ trợ cả "x | 30 | viên" và "63 | Viên")
         quantity = None
-        right_column_texts = []
-        if right_edge:
+        qty_candidates = []
+        if has_coords:
+            heading_right_items = []
+            for item in first_row.get("items", []):
+                if item.get("x_min") is None:
+                    continue
+                x_center = (float(item.get("x_min", 0)) + float(item.get("x_max", item.get("x_min", 0)))) / 2.0
+                if (x_center - body_left) >= body_width * 0.45:
+                    heading_right_items.append(str(item.get("text", "") or "").strip())
+            if heading_right_items:
+                qty_candidates.append(" ".join(heading_right_items))
+
+            # Cũng kiểm tra các dòng khác trong khối ở cột phải (>= 65%)
             for row in block["rows"]:
+                if row is first_row:
+                    continue
+                row_right_items = []
                 for item in row.get("items", []):
-                    x_center = (float(item.get("x_min", 0) or 0) + float(item.get("x_max", item.get("x_min", 0)) or 0)) / 2
-                    item_text = str(item.get("text", "") or "")
-                    if x_center >= right_edge * 0.70 and quantity_re.search(_ascii_fold(item_text)):
-                        right_column_texts.append(item_text)
-        for text in right_column_texts or block_text:
+                    if item.get("x_min") is None:
+                        continue
+                    x_center = (float(item.get("x_min", 0)) + float(item.get("x_max", item.get("x_min", 0)))) / 2.0
+                    if (x_center - body_left) >= body_width * 0.65:
+                        row_right_items.append(str(item.get("text", "") or "").strip())
+                if row_right_items:
+                    qty_candidates.append(" ".join(row_right_items))
+
+        # Fallback: dòng tiêu đề ghép lại (cho unit test không có tọa độ x)
+        first_row_joined = re.sub(r"\s*\|\s*", " ", str(first_row.get("text", "") or "")).strip()
+        if first_row_joined:
+            qty_candidates.append(first_row_joined)
+        qty_candidates.extend(block_text)
+
+        for text in qty_candidates:
             folded = _ascii_fold(text)
+            # Không lấy nhầm số trong câu liều dùng ("mỗi lần 1 viên", "mỗi lần 1/3 Chal", "uống 3 viên/lần", "x 2 tuần")
             quantity_text = re.sub(
-                r"moi\s*lan\s*\d+(?:[.,/]\d+)?\s*(?:vien|goi|chai|ong|ml)\b", " ", folded
+                r"(?:moi\s*lan|uong)\s*\d+(?:[.,/]\d+)?\s*(?:vien|ven|goi|chai|chal|char|ong|ml|tube|tuyp|lo|hop)\b",
+                " ", folded,
             )
-            q_match = quantity_re.search(quantity_text)
-            if q_match:
+            quantity_text = re.sub(r"\d+\s*(?:vien|ven|goi|chai|chal|ong)\s*/\s*lan\b", " ", quantity_text)
+            q_matches = list(quantity_re.finditer(quantity_text))
+            if q_matches:
+                q_match = q_matches[-1]
                 quantity = f"{q_match.group(1)} {_unit_label(q_match.group(2))}"
                 break
 
-        strength_match = strength_re.search(" ".join(block_text))
+        heading_clean_strength = re.sub(r"\bS\s*mg\b", "5mg", " ".join(block_text))
+        heading_clean_strength = re.sub(r"[\[\(]?[aA4][oO0]\s*mg[\]\)]?", "40mg", heading_clean_strength)
+        heading_clean_strength = re.sub(
+            r"\b(\d+)[oO]+(mg|mcg|ml|g)\b",
+            lambda m: f"{m.group(1)}{'0' * (len(m.group(0)) - len(m.group(1)) - len(m.group(2)))}{m.group(2)}",
+            heading_clean_strength,
+            flags=re.IGNORECASE,
+        )
+        strength_match = strength_re.search(heading_clean_strength)
         active_match = re.search(r"\((.*)\)", heading)
         if not active_match:
             active_source = next((str(item.get("text", "")) for row in block["rows"]
@@ -979,6 +1400,7 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
             name = brand_heading.strip(" -–,;:|")
         name = re.sub(r"\(\s*\)", "", name)
         name = re.sub(r"\(\s*([^()]*?)\s*\)", r"(\1)", name)
+        name = _clean_foreign_brand_diacritics(name)
         name = re.sub(r"\s+", " ", name).strip()
         if len(name.replace(" ", "")) < 4 or not re.search(r"[A-Za-zÀ-ỹ]{4,}", name):
             continue
@@ -996,7 +1418,10 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
             "frequency": frequency,
             "days": quantity,
             "quantity": quantity,
-            "usage": None,
+            "usage": parsed_usage,
+            "huong_dan": verbatim_instructions or parsed_usage or "",
+            "instructions": verbatim_instructions or parsed_usage or "",
+            "route": parsed_route,
             "purpose": None,
             "needs_review": True,
             "match_status": "unmatched",
@@ -1011,6 +1436,41 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
             }),
         })
     return meds
+
+
+def detect_left_column_ordinals(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Đếm các dòng bắt đầu bằng số thứ tự ở cột trái (kể cả conf thấp) để tính chỉ số chất lượng K
+    và xác định vùng y bị thiếu thuốc nếu cần chạy lại OCR cục bộ."""
+    ordinal_cell = re.compile(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.,):\-]?\s*$")
+    all_x_mins = [float(it.get("x_min", 0)) for r in rows for it in r.get("items", []) if it.get("x_min") is not None]
+    all_x_maxs = [float(it.get("x_max", it.get("x_min", 0))) for r in rows for it in r.get("items", []) if it.get("x_min") is not None or it.get("x_max") is not None]
+    body_left = min(all_x_mins) if all_x_mins else 0.0
+    body_right = max(all_x_maxs) if all_x_maxs else 0.0
+    body_width = max(0.0, body_right - body_left)
+
+    found = []
+    for row in rows:
+        items = row.get("items", [])
+        rt = str(row.get("text", "") or "").strip()
+        if not rt:
+            continue
+        if items and body_width > 50.0 and items[0].get("x_min") is not None:
+            xc = (float(items[0].get("x_min", 0)) + float(items[0].get("x_max", items[0].get("x_min", 0)))) / 2.0
+            if (xc - body_left) > body_width * 0.18:
+                continue
+        ord_val = _parse_medication_ordinal(rt)
+        if ord_val is None and items and ordinal_cell.fullmatch(str(items[0].get("text", "") or "").strip()):
+            ord_val = _decode_ordinal_token(items[0].get("text", ""))
+        if ord_val is not None:
+            found.append({
+                "ordinal": ord_val,
+                "y_min": float(row.get("y_min", row.get("y_center", 0)) or 0),
+                "y_max": float(row.get("y_max", row.get("y_center", 0)) or 0),
+                "y_center": float(row.get("y_center", 0) or 0),
+                "x_min": body_left,
+                "x_max": body_right,
+            })
+    return found
 
 
 def _extract_medications_robust(rows: List[Dict[str, Any]], raw_text: str = "") -> List[Dict[str, Any]]:
@@ -1661,7 +2121,7 @@ def _clean_and_refine_medication_list(meds: List[Dict[str, Any]], raw_text: str 
 
 def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescription") -> Dict[str, Any]:
     """
-    Fallback bóc tách cấu trúc từ kết quả EasyOCR / WinRT OCR khi Cloud LLM (Gemini) không khả dụng.
+    Fallback bóc tách cấu trúc từ kết quả EasyOCR / WinRT OCR khi Cloud LLM (Groq) không khả dụng.
     Tự động trích xuất thông tin hành chính, danh mục thuốc hoặc chỉ số xét nghiệm để người dùng chỉ cần xác nhận.
     """
     raw_text = ocr_data.get("raw_text", "") or ""
@@ -1718,9 +2178,14 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             if data["facility"]:
                 break
 
-    # 2. Người bệnh (Họ tên)
-    for r in rows:
+    # 2. Người bệnh (Họ tên) — chỉ tìm ở phần đầu đơn (trước vùng thuốc / chữ ký cuối trang)
+    header_end_idx = _prescription_body_bounds(rows)[0] if doc_type == "prescription" else len(rows)
+    header_rows_for_patient = rows[:header_end_idx] if header_end_idx > 0 else rows[:15]
+    footer_sig_re = re.compile(r"\b(?:nguoi\s*giao|khoa\s*duoc|bac\s*si\s*kham\s*benh|ky\s*ten)\b", re.IGNORECASE)
+    for r in header_rows_for_patient:
         r_txt = r.get("text", "")
+        if footer_sig_re.search(_ascii_fold(r_txt)):
+            continue
         if re.search(r"(?:t[eêé]n\s*)?b[eệ]nh\s*nh[aâãáàảạ]n|h[oọ]\s*(?:v[aà]\s*)?t[eêé]n", r_txt, re.IGNORECASE):
             flat_line = re.sub(r"\s*\|\s*", " ", r_txt).strip()
             m_lbl = re.search(
@@ -1739,7 +2204,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 cand_name = tail_split[0].strip(" |,-;:")
                 cand_name = re.sub(r"^(?:(?:t[eêé]n\s*)?b[eệ]nh\s*nh[aâãáàảạ]n|h[oọ]\s*t[eêé]n)\s*[:.\-]*", "", cand_name, flags=re.IGNORECASE).strip()
                 cand_name = re.sub(r"\s+(?:địa\s*chỉ|ấp|xã|huyện|tỉnh|tuổi|nam|nữ|ngay|sinh).*$", "", cand_name, flags=re.IGNORECASE).strip()
-                if len(cand_name) >= 2 and not cand_name.isdigit():
+                if len(cand_name) >= 2 and not cand_name.isdigit() and not footer_sig_re.search(_ascii_fold(cand_name)):
                     data["patient_name"] = cand_name
                     break
 
@@ -1747,7 +2212,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             candidates = []
             for it in items:
                 clean_it = it.strip()
-                if re.search(r"(?:ho\s*ten|họ\s*tên|nruvi\s*benh|ncuời\s*benh|người\s*bệnh|bệnh\s*nhân|dchls|địa\s*chỉ|iuj[zi]|tuổi|tuoi|mã|bhyt)", clean_it, re.IGNORECASE):
+                if re.search(r"(?:ho\s*ten|họ\s*tên|nruvi\s*benh|ncuời\s*benh|người\s*bệnh|bệnh\s*nhân|dchls|địa\s*chỉ|iuj[zi]|tuổi|tuoi|mã|bhyt|giới\s*tính|gioi\s*tinh|khoa\s*dược|người\s*giao)", clean_it, re.IGNORECASE):
                     continue
                 if re.search(r"^\d+$", clean_it):
                     continue
@@ -1992,9 +2457,15 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                     data["patient_name"] = clean_name
 
         if re.search(r"\bbenh\s*vien\b", folded_row):
-            hospital_match = re.search(r"(?:bệnh|benh)\s*viện\s+(.+)$", row_text, re.IGNORECASE)
+            # Ưu tiên lấy đúng ô OCR chứa "Bệnh viện ..." để không dính mã đơn ở cột phải cùng hàng
+            hosp_source = next(
+                (str(it.get("text", "") or "").strip() for it in row.get("items", [])
+                 if re.search(r"\bbenh\s*vien\b", _ascii_fold(it.get("text", "")))),
+                row_text,
+            )
+            hospital_match = re.search(r"(?:b[eệê]nh|benh)\s*vi[eệê]n\s+(.+)$", hosp_source, re.IGNORECASE)
             if hospital_match:
-                hospital = re.split(r"\s*(?:\||số\s*hồ\s*sơ|so\s*ho\s*so|phòng\s*khám|phong\s*kham)\b",
+                hospital = re.split(r"\s*(?:\||số\s*hồ\s*sơ|so\s*ho\s*so|phòng\s*khám|phong\s*kham|mã\s*đơn|ma\s*don)\b",
                                     hospital_match.group(1), maxsplit=1, flags=re.IGNORECASE)[0]
                 hospital = re.sub(r"[^A-Za-zÀ-ỹ\s\-]", " ", hospital)
                 facility_value = re.sub(r"\s+", " ", hospital).strip()
@@ -2016,6 +2487,16 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             if diagnosis_match:
                 diagnosis = re.sub(r"\s+", " ", diagnosis_match.group(1).replace("|", " ")).strip()
                 diagnosis = re.sub(r"^(?:[A-Z]\d{2}(?:\.\d+)?\s*)", "", diagnosis).strip()
+                # Loại bỏ lặp câu trong chẩn đoán nếu OCR ghép trùng
+                diag_parts = [p.strip() for p in re.split(r"\s*[;/|]\s*", diagnosis) if p.strip()]
+                seen_dp = set()
+                dedup_dp = []
+                for dp in diag_parts:
+                    k_dp = _ascii_fold(dp)
+                    if k_dp and k_dp not in seen_dp:
+                        seen_dp.add(k_dp)
+                        dedup_dp.append(dp)
+                diagnosis = "; ".join(dedup_dp) if dedup_dp else diagnosis
                 if re.search(r"[A-Za-zÀ-ỹ]{3,}", diagnosis):
                     data["diagnosis"] = diagnosis[:120]
                     break
@@ -2023,13 +2504,16 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     # Prefer the prescription date (not a later follow-up date), then derive
     # the birth year from that date and the stated age if no DOB is printed.
     for row in rows:
-        row_text = str(row.get("text", "") or "").strip()
+        row_text = re.sub(r"\s*\|\s*", " ", str(row.get("text", "") or "")).strip()
         folded_row = _ascii_fold(row_text)
-        if "tai kham" in folded_row or "hen tai kham" in folded_row:
+        if "tai kham" in folded_row or "hen tai kham" in folded_row or "hen kham lai" in folded_row:
             continue
         if re.search(r"\bngay\b", folded_row):
             numeric_date = re.search(r"(\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4})", row_text)
-            word_date = re.search(r"ng[aà]y\s*(\d{1,2})\s*th[aá]ng\s*(\d{1,2})\s*n[aă]m\s*(\d{4})", row_text, re.IGNORECASE)
+            word_date = re.search(
+                r"ng[aàá]y\s*(\d{1,2})\s*th[aáà]ng\s*(\d{1,2})\s*n[aăáà]m\s*(\d{4})",
+                row_text, re.IGNORECASE,
+            )
             if numeric_date:
                 data["date"] = numeric_date.group(1).replace("-", "/").replace(".", "/")
                 break
@@ -2058,9 +2542,9 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     return data
 
 
-def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, Any], doc_type: str) -> Dict[str, Any]:
+def reconcile_parallel_results(ocr_data: Dict[str, Any], model_data: Dict[str, Any], doc_type: str) -> Dict[str, Any]:
     """
-    [3] Đối chiếu A (OCR) và B (Gemini) theo từng field:
+    [3] Đối chiếu A (OCR) và B (Groq) theo từng field:
       - Khớp -> confidence cao
       - Lệch -> needs_review=True, giữ cả hai giá trị
       - Số (liều, kết quả XN) phải khớp tuyệt đối mới được coi là chắc chắn (confidence=1.0)
@@ -2069,7 +2553,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
     ocr_lines = ocr_data.get("lines", [])
     ocr_text_lower = ocr_raw_text.lower()
 
-    reconciled = dict(gemini_data) if gemini_data else {}
+    reconciled = dict(model_data) if model_data else {}
     raw_facility = reconciled.get("facility", "")
     if _is_role_only_doctor(reconciled.get("doctor")):
         reconciled["doctor"] = ""
@@ -2335,12 +2819,12 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                     name_in_ocr = True
 
             # 2. Đối chiếu số (Hàm lượng, liều dùng) - Phải khớp tuyệt đối
-            gemini_dose_nums = _extract_numbers(dose) + _extract_numbers(strength)
+            groq_dose_nums = _extract_numbers(dose) + _extract_numbers(strength)
             ocr_nums = _extract_numbers(ocr_raw_text)
 
             nums_strictly_matched = True
-            if gemini_dose_nums:
-                for num in gemini_dose_nums:
+            if groq_dose_nums:
+                for num in groq_dose_nums:
                     if num not in ocr_nums:
                         nums_strictly_matched = False
                         break
@@ -2349,10 +2833,17 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
                             or not (name_in_ocr and nums_strictly_matched)
                             or (matched_ocr_confidence is not None and matched_ocr_confidence < 0.7))
             if ocr_lines and not name_in_ocr:
-                # Keep the text the image actually produced for manual review,
-                # never the unsupported catalog/model guess. If there is no
-                # plausible OCR text to show, omit the medication candidate.
-                raw_ocr_name = str(med.get("raw_ocr_name") or matched_ocr_str or "").strip()
+                # This candidate already came from a numbered OCR medication
+                # block. OCR engines commonly split its printed name across
+                # several boxes, so requiring an exact match against one box
+                # drops valid medicines (especially on narrow/low-resolution
+                # prescriptions). Preserve the block's own text for review;
+                # do not replace it with a fuzzy database/model guess.
+                raw_ocr_name = str(
+                    med.get("raw_ocr_name") or med.get("name") or matched_ocr_str or ""
+                ).strip()
+                if not is_plausible_medication_name(raw_ocr_name):
+                    raw_ocr_name = str(med.get("name") or "").strip()
                 if not is_plausible_medication_name(raw_ocr_name):
                     continue
                 med_entry["raw_ocr_name"] = raw_ocr_name
@@ -2439,7 +2930,7 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], gemini_data: Dict[str, 
             metric_entry["needs_review"] = needs_review
             metric_entry["ocr_matched_row"] = best_ocr_row if best_ocr_row else "Khớp từ nhận diện OCR"
 
-            if needs_review and gemini_data:
+            if needs_review and model_data:
                 fields_review.append(f"Chỉ số '{t_name}': kết quả ({res_val}) cần xác nhận lại với phiếu gốc.")
                 overall_confidence = min(overall_confidence, 0.8)
 

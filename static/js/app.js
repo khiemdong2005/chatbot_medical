@@ -631,7 +631,7 @@ const translations = {
     ocr_btn_upload_new: "Tải đơn thuốc mới",
     ocr_btn_home: "Trang chủ",
     ocr_box_title: "Tải Lên Đơn Thuốc Lâm Sàng",
-    ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép đơn thuốc (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)",
+    ocr_box_desc: "Chụp rõ chữ, đủ sáng, không cắt mất mép đơn thuốc (Hỗ trợ định dạng JPG, PNG, WebP, PDF, tối đa 10MB)",
     ocr_btn_choose: "Chọn đơn thuốc từ thiết bị",
     ocr_privacy_note: "🔒 Đơn thuốc được bảo mật y tế và chỉ lưu vào hồ sơ cá nhân sau khi bạn đối chiếu xác nhận kết quả.",
     ocr_preset_hint: "Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:",
@@ -1045,7 +1045,7 @@ const translations = {
     ocr_btn_upload_new: "Upload New Prescription",
     ocr_btn_home: "Home",
     ocr_box_title: "Upload Clinical Prescription",
-    ocr_box_desc: "Clear text, adequate light, all edges visible (Supports JPG, PNG, PDF, up to 10MB)",
+    ocr_box_desc: "Clear text, adequate light, all edges visible (Supports JPG, PNG, WebP, PDF, up to 10MB)",
     ocr_btn_choose: "Select Prescription from Device",
     ocr_privacy_note: "🔒 Your prescription is protected and only saved to your personal health record upon confirmation.",
     ocr_preset_hint: "No prescription at hand? Try quick samples:",
@@ -5794,7 +5794,10 @@ async function loadPrescriptionHistory() {
       if (emptyEl) emptyEl.classList.add('hidden');
       if (listEl) {
         listEl.innerHTML = history.map(item => {
-          const badgeType = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
+          const isLab = item.doc_type === 'lab_test';
+          const badgeType = isLab
+            ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">Phiếu Xét Nghiệm</span>'
+            : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 flex items-center gap-1"><svg class="w-3 h-3 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Đơn Thuốc Lâm Sàng</span>';
 
           const iconSvg = isLab
             ? `<svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`
@@ -5802,14 +5805,17 @@ async function loadPrescriptionHistory() {
 
           const diag = item.diagnosis && item.diagnosis !== 'Chưa phân loại bệnh' ? item.diagnosis : 'Theo dõi & Điều trị theo chỉ định';
           const facility = item.facility && item.facility !== 'Cơ sở Y tế' ? item.facility : 'Cơ sở Y tế';
+          const thumbHtml = item.preview_image_url
+            ? `<button type="button" onclick="openPrescriptionLightbox('${escapeHtml(item.preview_image_url)}')" class="w-14 h-16 rounded-xl overflow-hidden border border-slate-200 dark:border-white/15 bg-slate-950 shrink-0 mt-0.5 hover:ring-2 hover:ring-sky-400 transition-all cursor-zoom-in" title="Bấm để phóng to ảnh đơn gốc đối chứng">
+                 <img src="${escapeHtml(item.preview_image_url)}" alt="Ảnh đơn thuốc gốc" class="w-full h-full object-cover" loading="lazy">
+               </button>`
+            : `<div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800'} border flex items-center justify-center shrink-0 mt-0.5">${iconSvg}</div>`;
 
           return `
             <div class="glass-card p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-sky-400/50 bg-white dark:bg-slate-900/90 shadow-xs transition-all space-y-2.5">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-start gap-3">
-                  <div class="w-10 h-10 rounded-xl ${isLab ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800' : 'bg-sky-50 dark:bg-sky-950/40 border-sky-200 dark:border-sky-800'} border flex items-center justify-center shrink-0 mt-0.5">
-                    ${iconSvg}
-                  </div>
+                  ${thumbHtml}
                   <div class="space-y-1">
                     <div class="flex flex-wrap items-center gap-2">
                       ${badgeType}
@@ -5846,7 +5852,12 @@ async function loadPrescriptionHistory() {
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0">
-                  <button type="button" onclick="viewPrescriptionHistoryItem(${item.id})" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                  ${item.preview_image_url ? `
+                    <button type="button" onclick="viewPrescriptionHistoryItem(${item.id}, true)" class="px-3 py-2 rounded-xl border border-teal-500/40 bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-teal-800 dark:text-teal-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer" title="Mở chế độ đối chiếu song song với ảnh đơn gốc">
+                      <span>🔍 Đối chiếu ảnh</span>
+                    </button>
+                  ` : ''}
+                  <button type="button" onclick="viewPrescriptionHistoryItem(${item.id}, false)" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     <span>Xem lại đơn</span>
                   </button>
@@ -5894,15 +5905,14 @@ async function loadPrescriptionHistory() {
   }
 }
 
-async function viewPrescriptionHistoryItem(docId) {
+async function viewPrescriptionHistoryItem(docId, openVerify = false) {
   try {
-    showPrescriptionLoading(true, "Đang nạp lại dữ liệu đơn thuốc từ hồ sơ cá nhân...", "Khôi phục danh mục thuốc, cữ uống và hướng dẫn điều trị...");
+    showPrescriptionLoading(true, "Đang nạp lại dữ liệu đơn thuốc từ hồ sơ cá nhân...", "Khôi phục danh mục thuốc, ảnh đơn gốc và hướng dẫn điều trị...");
     const res = await fetch(`/api/prescription/history/${docId}`);
     const resJson = await res.json();
     showPrescriptionLoading(false);
 
     if (resJson.status === 'success' && resJson.data) {
-      // Ẩn upload section và history section để người dùng xem kết quả
       const inputSec = document.getElementById('prescription-input-section');
       const histSec = document.getElementById('prescription-history-section');
       const verifySec = document.getElementById('prescription-verify-section');
@@ -5910,7 +5920,6 @@ async function viewPrescriptionHistoryItem(docId) {
       if (histSec) histSec.classList.add('hidden');
       if (verifySec) verifySec.classList.add('hidden');
 
-      // Chuyển tab sang ocr-tab nếu đang ở tab khác
       switchTab('ocr-tab');
 
       currentPrescriptionData = resJson.data;
@@ -5918,14 +5927,16 @@ async function viewPrescriptionHistoryItem(docId) {
         currentUploadedFileUrl = resJson.data.preview_image_url;
       }
 
-      // Render kết quả chi tiết
-      renderPrescriptionResult(resJson.data);
-      showMedicalToast(`Đang hiển thị đơn thuốc lưu trữ: ${resJson.data.diagnosis || 'Đơn thuốc'}`, 'info', 4000);
-
-      // Cuộn lên kết quả
-      const resSec = document.getElementById('prescription-result-section');
-      if (resSec) {
-        resSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (openVerify) {
+        renderPrescriptionVerification(resJson.data);
+        showMedicalToast(`Đang mở chế độ đối chiếu ảnh gốc: ${resJson.data.diagnosis || 'Đơn thuốc'}`, 'info', 4000);
+      } else {
+        renderPrescriptionResult(resJson.data);
+        showMedicalToast(`Đang hiển thị đơn thuốc lưu trữ: ${resJson.data.diagnosis || 'Đơn thuốc'}`, 'info', 4000);
+        const resSec = document.getElementById('prescription-result-section');
+        if (resSec) {
+          resSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     } else {
       showMedicalToast(resJson.message || 'Không thể đọc dữ liệu chi tiết của đơn thuốc này.', 'warning');
@@ -6002,14 +6013,14 @@ function renderPrescriptionVerification(data) {
     if ((!data.medications || data.medications.length === 0) && data.data.medications) data.medications = data.data.medications;
   }
 
-  const diag = data.diagnosis || 'Theo dõi & Điều trị theo chỉ định';
-  const doctor = data.doctor || 'BS. Chuyên khoa';
-  const patient = data.patient_name || 'Bệnh nhân';
-  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : 'Cơ sở Y tế';
+  const diag = data.diagnosis || '';
+  const doctor = data.doctor || '';
+  const patient = data.patient_name || '';
+  const facility = data.facility && data.facility !== 'Không xác định' ? data.facility : '';
   const clinic = data.clinic || data.data?.clinic || '';
   const rawDob = (data.dob || data.birth_date || data.data?.dob || '').toString().trim();
   const rawAge = (data.age || data.data?.age || '').toString().trim();
-  const rawGender = (data.gender || data.data?.gender || 'Nam').toString().trim();
+  const rawGender = (data.gender || data.data?.gender || '').toString().trim();
   const currentYear = new Date().getFullYear();
   const prescriptionYear = Number(String(data.date || '').match(/(19\d{2}|20\d{2})/)?.[1]) || currentYear;
 
@@ -6130,7 +6141,7 @@ function renderPrescriptionVerification(data) {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Họ và tên bệnh nhân:</label>
-                <input id="verify-patient-name" type="text" value="${escapeHtml(patient)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <input id="verify-patient-name" type="text" value="${escapeHtml(patient)}" placeholder="Chưa đọc được trên đơn" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
 
               <div>
@@ -6138,12 +6149,13 @@ function renderPrescriptionVerification(data) {
                   Ngày/Năm sinh: 
                   <span id="verify-calc-age" class="text-teal-700 dark:text-teal-300 font-bold ml-1">${displayAge ? `(${displayAge})` : ''}</span>
                 </label>
-                <input id="verify-patient-dob" type="text" value="${escapeHtml(displayBirthInfo)}" oninput="recalcVerifyAge()" placeholder="VD: 20/11/2010 hoặc 1982" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <input id="verify-patient-dob" type="text" value="${escapeHtml(displayBirthInfo)}" oninput="recalcVerifyAge()" placeholder="VD: 20/11/2010 hoặc 1982" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
 
               <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Giới tính:</label>
                 <select id="verify-patient-gender" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none cursor-pointer">
+                  <option value="" ${!rawGender ? 'selected' : ''}>—</option>
                   <option value="Nữ" ${rawGender === 'Nữ' ? 'selected' : ''}>Nữ</option>
                   <option value="Nam" ${rawGender === 'Nam' ? 'selected' : ''}>Nam</option>
                 </select>
@@ -6151,19 +6163,19 @@ function renderPrescriptionVerification(data) {
 
               <div>
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Bác sĩ kê đơn:</label>
-                <input id="verify-doctor" type="text" value="${escapeHtml(doctor)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <input id="verify-doctor" type="text" value="${escapeHtml(doctor)}" placeholder="Chưa đọc được trên đơn" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
 
               <div class="sm:col-span-2">
-                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Bệnh viện / Phòng khám:</label>
-                <input id="verify-facility" type="text" value="${escapeHtml(facility)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Bệnh viện / Cơ sở y tế:</label>
+                <input id="verify-facility" type="text" value="${escapeHtml(facility)}" placeholder="Chưa đọc được trên đơn" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
 
               ${clinic ? `<div class="sm:col-span-2"><label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Phòng khám:</label><input id="verify-clinic" type="text" value="${escapeHtml(clinic)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none"></div>` : ''}
 
               <div class="sm:col-span-2">
                 <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">Chẩn đoán bệnh (Mắc bệnh gì):</label>
-                <input id="verify-diagnosis" type="text" value="${escapeHtml(diag)}" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                <input id="verify-diagnosis" type="text" value="${escapeHtml(diag)}" placeholder="Chưa đọc được chẩn đoán" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold placeholder:font-normal placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none">
               </div>
             </div>
           </div>
@@ -6185,17 +6197,28 @@ function renderPrescriptionVerification(data) {
               ${meds.map((m, idx) => {
                 const numStr = (idx + 1).toString().padStart(2, '0');
                 const strength = m.strength ? `(${m.strength})` : '';
-                const dose = m.dose || 'Không đọc được';
-                const freq = m.frequency || 'Không đọc được';
+                const huongDan = (m.huong_dan || m.instructions || m.usage || '').trim();
+                const route = (m.route || '').trim();
+                const dose = m.dose || '';
+                const freq = m.frequency || '';
                 const days = m.quantity || m.days || 'Không đọc được';
-                const isNeedsReview = m.needs_review;
-                const isUnmatched = m.match_status === 'unmatched';
-                const isExactMatch = m.match_status === 'matched'
-                  && Number(m.match_score) >= 95 && Boolean(m.dose)
-                  && Boolean(m.quantity || m.days);
+                const cardStatus = m.card_status || (
+                  m.match_status === 'matched' ? 'matched'
+                    : m.match_status === 'not_in_db' ? 'not_in_db'
+                      : (Number(m.ocr_confidence || 0) >= 0.7 && String(m.name || '').replace(/\s+/g, '').length >= 4 ? 'not_in_db' : 'uncertain')
+                );
+                const isMatched = cardStatus === 'matched';
+                const isNotInDb = cardStatus === 'not_in_db';
+                const isUncertain = cardStatus === 'uncertain';
+                const cardBorderClass = isUncertain
+                  ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20'
+                  : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]';
+                const regimenText = (dose || freq)
+                  ? `${dose ? `<strong>${escapeHtml(dose)}</strong> / lần` : ''}${dose && freq ? ' • ' : ''}${freq ? escapeHtml(freq) : ''}`
+                  : (huongDan ? escapeHtml(huongDan) : 'Không đọc được');
 
                 return `
-                  <div data-medicine-id="${escapeHtml(m.medicine_id || `MED_${String(idx + 1).padStart(3, '0')}`)}" class="prescription-medication-card p-3 rounded-xl border ${isNeedsReview ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]'} transition-all space-y-1.5 text-xs cursor-pointer">
+                  <div data-medicine-id="${escapeHtml(m.medicine_id || `MED_${String(idx + 1).padStart(3, '0')}`)}" class="prescription-medication-card p-3 rounded-xl border ${cardBorderClass} transition-all space-y-1.5 text-xs cursor-pointer">
                     <div class="flex items-start justify-between gap-2">
                       <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-lg bg-teal-800 text-white flex items-center justify-center font-mono font-bold text-[10px] shrink-0">${numStr}</span>
@@ -6208,17 +6231,17 @@ function renderPrescriptionVerification(data) {
                       </div>
 
                       <div>
-                        ${isUnmatched ? `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
-                            Không nhận diện được, vui lòng kiểm tra
+                        ${isMatched ? `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ✓ Đã khớp CSDL
                           </span>
-                        ` : !isExactMatch ? `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                            ⚠️ Cần kiểm tra liều
+                        ` : isNotInDb ? `
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600">
+                            Chưa có trong CSDL
                           </span>
                         ` : `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            ✓ Khớp OCR 100%
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                            ⚠️ Vui lòng kiểm tra
                           </span>
                         `}
                       </div>
@@ -6226,13 +6249,18 @@ function renderPrescriptionVerification(data) {
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 pt-1">
                       <div>
-                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> <strong>${escapeHtml(dose)} / lần</strong> • ${escapeHtml(freq)}
+                        <span class="text-slate-400">Liều dùng &amp; cữ:</span> ${regimenText}${route ? ` <span class="text-slate-400">(${escapeHtml(route)})</span>` : ''}
                       </div>
                       <div>
                         <span class="text-slate-400">Tổng cấp:</span> <strong>${escapeHtml(days)}</strong>
                       </div>
+                      ${huongDan ? `
+                        <div class="sm:col-span-2 text-slate-600 dark:text-slate-300">
+                          <span class="text-sky-700 dark:text-sky-400 font-semibold">Hướng dẫn trên đơn:</span> ${escapeHtml(huongDan)}
+                        </div>
+                      ` : ''}
                       <div class="sm:col-span-2 text-slate-500 dark:text-slate-400">
-                        <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng &amp; lưu ý:</span> ${escapeHtml(isUnmatched ? '' : (m.purpose || m.category || ''))}${!isUnmatched && m.usage ? ` • ${escapeHtml(m.usage)}` : ''}
+                        <span class="text-teal-700 dark:text-teal-400 font-semibold">Công dụng:</span> ${escapeHtml(isMatched ? (m.purpose || m.category || 'Chưa có thông tin') : 'Chưa có thông tin')}
                       </div>
                       ${m.ocr_matched_text ? `
                         <div class="sm:col-span-2 text-[10px] font-mono text-slate-400 bg-white/40 dark:bg-black/20 p-1.5 rounded">
@@ -6286,9 +6314,19 @@ function renderPrescriptionVerification(data) {
     const renderOverlay = () => {
       const imageWidth = sourceImage.naturalWidth || Number(data.source_image?.width) || 1;
       const imageHeight = sourceImage.naturalHeight || Number(data.source_image?.height) || 1;
+      // Căn SVG đúng vùng ảnh thật (tránh lệch khi container có viền đen / letterbox)
+      const stageEl = document.getElementById('prescription-image-stage');
+      if (stageEl && sourceImage.clientWidth > 0 && sourceImage.clientHeight > 0) {
+        const imgRect = sourceImage.getBoundingClientRect();
+        const stageRect = stageEl.getBoundingClientRect();
+        overlaySvg.style.left = `${imgRect.left - stageRect.left}px`;
+        overlaySvg.style.top = `${imgRect.top - stageRect.top}px`;
+        overlaySvg.style.width = `${imgRect.width}px`;
+        overlaySvg.style.height = `${imgRect.height}px`;
+      }
       overlaySvg.setAttribute('viewBox', `0 0 ${imageWidth} ${imageHeight}`);
       const visible = [
-        ...(boxesVisible ? overlayBoxes : []),
+        ...(boxesVisible ? overlayBoxes.slice(0, 12) : []),
         ...(boxesVisible && detailsVisible ? detailBoxes : []),
       ];
       overlaySvg.innerHTML = visible.map(box => {
@@ -6299,7 +6337,8 @@ function renderPrescriptionVerification(data) {
         const activeHover = hoveredMedicineId && box.medicine_id === hoveredMedicineId;
         const dim = (hoveredMedicineId || selectedMedicineId) && !activeHover && !selected ? 0.3 : 1;
         const color = box.status === 'unclassified' || box.status === 'unmatched' ? '#ef4444'
-          : box.status === 'needs_review' || box.status === 'low_confidence' ? '#f59e0b' : '#22c55e';
+          : box.status === 'needs_review' || box.status === 'low_confidence' ? '#f59e0b'
+            : box.status === 'not_in_db' ? '#64748b' : '#22c55e';
         const stroke = selected || activeHover ? '#38bdf8' : color;
         const width = selected || activeHover ? 2 : 1;
         const label = String(box.id || `OCR_${box.line_index ?? ''}`);
@@ -6400,13 +6439,13 @@ async function confirmAndProceedPrescription() {
   if (docVal) currentPrescriptionData.doctor = docVal;
   if (diagVal) currentPrescriptionData.diagnosis = diagVal;
 
-  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument
+  // Gửi cập nhật xác nhận lên backend để lưu vào MedicalDocument (chờ lưu xong mới nạp lại lịch sử)
   try {
-    fetch('/api/prescription/confirm', {
+    await fetch('/api/prescription/confirm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentPrescriptionData)
-    }).catch(e => console.warn('Lỗi lưu xác nhận:', e));
+    });
   } catch (err) {
     console.warn('Lỗi gửi xác nhận:', err);
   }
@@ -6527,6 +6566,7 @@ function renderPrescriptionResult(data) {
   const rawAge = (data.age || data.data?.age || '').toString().trim();
   const rawGender = escapeHtml((data.gender || data.data?.gender || 'Nam').toString().trim());
   const currentYear = new Date().getFullYear();
+  const prescriptionYear = Number(String(data.date || '').match(/(19\d{2}|20\d{2})/)?.[1]) || currentYear;
 
   // Xử lý Ngày sinh / Năm sinh và tự tính tuổi
   let displayBirthInfo = '';
@@ -6535,7 +6575,7 @@ function renderPrescriptionResult(data) {
   const yearMatch = rawDob.match(/(19\d{2}|20\d{2})/);
   if (yearMatch) {
     const birthYear = parseInt(yearMatch[1], 10);
-    const calculatedAge = currentYear - birthYear;
+    const calculatedAge = prescriptionYear - birthYear;
     const fullDateMatch = rawDob.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})/);
     if (fullDateMatch) {
       displayBirthInfo = escapeHtml(fullDateMatch[1]);
@@ -6546,7 +6586,7 @@ function renderPrescriptionResult(data) {
   } else if (rawAge && !isNaN(parseInt(rawAge, 10))) {
     const parsedAge = parseInt(rawAge, 10);
     displayAge = `${parsedAge} tuổi`;
-    displayBirthInfo = `${currentYear - parsedAge}`;
+    displayBirthInfo = `${prescriptionYear - parsedAge}`;
   } else if (rawDob) {
     displayBirthInfo = escapeHtml(rawDob);
     displayAge = '';
@@ -6729,7 +6769,12 @@ function renderPrescriptionResult(data) {
           </span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          ${(data.preview_image_url || currentUploadedFileUrl) ? `
+            <button onclick="openPrescriptionLightbox('${escapeHtml(data.preview_image_url || currentUploadedFileUrl)}')" class="px-3.5 py-1.5 rounded-lg border border-sky-300 dark:border-sky-500/40 bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Phóng to ảnh đơn gốc đã tải lên để tự đối chứng">
+              <span>🔍 Xem ảnh đơn gốc</span>
+            </button>
+          ` : ''}
           <button onclick="reviewPrescriptionVerification()" class="px-3.5 py-1.5 rounded-lg border border-teal-300 dark:border-teal-500/30 text-teal-800 dark:text-teal-200 hover:bg-teal-50 dark:hover:bg-white/[0.04] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer" title="Dò lại ảnh gốc &amp; đối chiếu dữ liệu detect">
             <svg class="w-3.5 h-3.5 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             <span>Dò lại đơn gốc</span>
@@ -6900,10 +6945,13 @@ function renderPrescriptionResult(data) {
           <div class="space-y-3">
             ${meds.map((m, idx) => {
               const numStr = (idx + 1).toString().padStart(2, '0');
-              const freq = escapeHtml(String(m.frequency || m.cu || '--'));
-              const usage = escapeHtml(String(m.usage || m.purpose || 'Theo chỉ dẫn của bác sĩ'));
-              const dose = escapeHtml(String(m.dose || m.dosage || m.lieu || '--'));
-              const days = escapeHtml(String(m.days || (m.quantity ? `${m.quantity} ${m.unit || 'viên'}` : 'Chưa rõ số lượng')));
+              const isUnmatched = m.match_status === 'unmatched' || m.status === 'unmatched';
+              const isExactMatch = !isUnmatched && Number(m.match_score) >= 95
+                && Boolean(m.dose) && Boolean(m.quantity || m.days);
+              const freq = escapeHtml(String(m.frequency || m.cu || 'Không đọc được'));
+              const usage = escapeHtml(String(m.usage || (isUnmatched ? '' : (m.purpose || ''))));
+              const dose = escapeHtml(String(m.dose || m.dosage || m.lieu || 'Không đọc được'));
+              const days = escapeHtml(String(m.quantity || m.days || 'Không đọc được'));
               const strength = m.strength ? `(${escapeHtml(String(m.strength))})` : '';
               const medQueryName = escapeHtml(String(m.name || m.standard_name || 'thuốc')).replace(/'/g, "\\'");
 
@@ -6916,9 +6964,10 @@ function renderPrescriptionResult(data) {
                       </div>
                       <div>
                         <div class="flex flex-wrap items-center gap-2">
-                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(String(m.standard_name || m.name || 'Thuốc chưa xác định'))} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
-                          <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                            ${m.purpose || m.category || 'Thuốc đặc trị'}
+                          <h5 class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(String(m.name || m.standard_name || 'Thuốc chưa xác định'))} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
+                          ${m.suggested_name ? `<div class="text-[10px] text-sky-700 dark:text-sky-300">Có phải ${escapeHtml(m.suggested_name)}?</div>` : ''}
+                          <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md ${isUnmatched ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'}">
+                            ${isUnmatched ? 'Không nhận diện được, vui lòng kiểm tra' : isExactMatch ? 'Khớp OCR 100%' : 'Cần kiểm tra liều'}
                           </span>
                         </div>
                         
@@ -6930,7 +6979,7 @@ function renderPrescriptionResult(data) {
                     </div>
 
                     <div class="text-right shrink-0">
-                      <span class="text-xs font-black text-slate-950 block">${dose !== '--' ? `${dose} / lần` : '--'}</span>
+                      <span class="text-xs font-black text-slate-950 block">${dose !== 'Không đọc được' ? `${dose} / lần` : dose}</span>
                       <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${freq}</span>
                     </div>
                   </div>

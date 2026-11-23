@@ -1700,7 +1700,12 @@ def create_app(test_config=None):
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch sử hồ sơ."}), 401
 
         docs = MedicalDocument.query.filter_by(owner_id=user_id).filter(MedicalDocument.doc_type != "ocr_draft").order_by(MedicalDocument.created_at.desc()).all()
-        history = [d.to_dict() for d in docs]
+        history = []
+        for d in docs:
+            item = d.to_dict()
+            if d.storage_filename:
+                item["preview_image_url"] = f"/uploads/{d.storage_filename}"
+            history.append(item)
         return jsonify({"status": "success", "history": history, "total": len(history)})
 
 
@@ -1771,6 +1776,8 @@ def create_app(test_config=None):
                             sum_text += f" và {len(meds) - 3} thuốc khác"
 
                     doc.summary = sum_text
+                    if doc.storage_filename and not data.get("preview_image_url"):
+                        data["preview_image_url"] = f"/uploads/{doc.storage_filename}"
                     doc.parsed_data = json.dumps(data, ensure_ascii=False)
                     db.session.commit()
             except Exception as e:

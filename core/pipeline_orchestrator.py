@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 
 from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
-from core.ocr_parallel_service import extract_ocr_parallel
+from core.ocr_parallel_service import extract_ocr_parallel, retry_ocr_crop_band, _group_ocr_rows
 from core.gemini_schema_service import extract_with_gemini_schema
 from core.reconciliation_service import (
     reconcile_parallel_results, extract_schema_from_ocr,
-    _ascii_fold, _prescription_body_bounds,
+    _ascii_fold, _prescription_body_bounds, detect_left_column_ordinals,
 )
 from core.grounding_service import normalize_drug_entity, map_lab_test, parse_frequency_to_schedule, normalize_lab_unit_and_value
 from core.validation_service import validate_prescription_rules, validate_lab_rules
@@ -156,8 +156,13 @@ def _build_default_overlay_boxes(medications, detail_boxes, rows, width, height)
         points = [point for box in linked for point in box["points"]]
         xs, ys = [point[0] for point in points], [point[1] for point in points]
         bbox = [[min(xs), min(ys)], [max(xs), min(ys)], [max(xs), max(ys)], [min(xs), max(ys)]]
-        status = ("unmatched" if medicine.get("match_status") == "unmatched"
-                  else "needs_review" if medicine.get("needs_review") else "recognized")
+        card_status = medicine.get("card_status") or medicine.get("match_status")
+        status = (
+            "unmatched" if card_status == "missing_row"
+            else "needs_review" if (card_status == "uncertain" or medicine.get("needs_review"))
+            else "not_in_db" if card_status == "not_in_db"
+            else "recognized"
+        )
         boxes.append({
             "id": medicine["medicine_id"], "medicine_id": medicine["medicine_id"],
             "text": medicine.get("ocr_matched_text") or medicine.get("name", ""),
@@ -331,6 +336,84 @@ def process_medical_document_pipeline(
         ocr_candidates, key=lambda candidate: _ocr_variant_score(candidate[1], doc_type)
     )
 
+    # Kiểm tra chất lượng vùng thuốc: chạy lại OCR crop cục bộ cho vùng STT bị thiếu hoặc thuốc thiếu liều/số lượng
+    if doc_type == "prescription" and ocr_result.get("rows") and os.path.exists(selected_ocr_path):
+        try:
+            b_start, b_end = _prescription_body_bounds(ocr_result["rows"])
+            b_rows = ocr_result["rows"][b_start:b_end]
+            detected_ords = detect_left_column_ordinals(b_rows)
+            initial_schema = extract_schema_from_ocr(ocr_result, doc_type="prescription")
+            initial_meds = initial_schema.get("medications", [])
+            parsed_ords = {m.get("source_ordinal") for m in initial_meds if m.get("source_ordinal") is not None}
+            lines_by_idx_init = {int(l["line_index"]): l for l in ocr_result.get("lines", []) if l.get("line_index") is not None}
+            med_y_ranges = []
+            for m in initial_meds:
+                m_lines = [lines_by_idx_init[i] for i in m.get("source_line_indices", []) if i in lines_by_idx_init]
+                if not m_lines:
+                    continue
+                med_y_ranges.append((
+                    min(float(l["y_min"]) for l in m_lines),
+                    max(float(l["y_max"]) for l in m_lines),
+                    m,
+                ))
+            med_y_ranges.sort(key=lambda t: t[0])
+
+            retry_bands = []
+            for idx_o, ord_info in enumerate(detected_ords):
+                if ord_info["ordinal"] in parsed_ords:
+                    continue
+                y1 = max(0.0, ord_info["y_min"] - 18.0)
+                y2 = (detected_ords[idx_o + 1]["y_min"] + 8.0) if idx_o + 1 < len(detected_ords) else (ord_info["y_max"] + 120.0)
+                retry_bands.append((y1, y2, f"missing_ord_{ord_info['ordinal']}"))
+
+            for idx_m, (my1, my2, m_obj) in enumerate(med_y_ranges):
+                missing_regimen = not (m_obj.get("dose") or m_obj.get("frequency") or m_obj.get("huong_dan"))
+                missing_qty = not (m_obj.get("quantity") or m_obj.get("days"))
+                if missing_regimen or missing_qty:
+                    next_y = med_y_ranges[idx_m + 1][0] if idx_m + 1 < len(med_y_ranges) else (my2 + 110.0)
+                    band_y1 = max(0.0, my1 - 12.0)
+                    band_y2 = max(my2 + 18.0, next_y + 4.0)
+                    retry_bands.append((band_y1, band_y2, f"med_{m_obj.get('source_ordinal')}"))
+
+            if retry_bands:
+                added_lines = []
+                for y1, y2, _tag in retry_bands[:6]:
+                    band_lines = retry_ocr_crop_band(selected_ocr_path, y1, y2, scale=1.5, min_conf=0.20)
+                    added_lines.extend(band_lines)
+                if added_lines:
+                    existing_lines = list(ocr_result.get("lines", []))
+                    newly_merged = 0
+                    for cand in added_lines:
+                        cx = (cand["x_min"] + cand["x_max"]) / 2.0
+                        cy = cand["y_center"]
+                        dup = any(
+                            abs(((ex["x_min"] + ex["x_max"]) / 2.0) - cx) < 28
+                            and abs(ex["y_center"] - cy) < 18
+                            for ex in existing_lines
+                        )
+                        if not dup:
+                            existing_lines.append(cand)
+                            newly_merged += 1
+                    if newly_merged:
+                        existing_lines.sort(key=lambda item: item["y_center"])
+                        for li, ln in enumerate(existing_lines):
+                            ln["line_index"] = li
+                        merged_rows = _group_ocr_rows(existing_lines)
+                        ocr_result = {
+                            **ocr_result,
+                            "lines": existing_lines,
+                            "rows": merged_rows,
+                            "raw_text": "\n".join(r["text"] for r in merged_rows),
+                            "total_lines": len(existing_lines),
+                            "total_rows": len(merged_rows),
+                        }
+                        logger.info(
+                            "[SCAN:%s] Band-retry OCR recovered %d new boxes across %d band(s)",
+                            scan_id, newly_merged, len(retry_bands),
+                        )
+        except Exception as retry_err:
+            logger.warning("[SCAN:%s] Bỏ qua band-retry OCR: %s", scan_id, retry_err)
+
     # 2.B: Gemini Schema extraction (Cơ chế ảnh toàn trang + ảnh cắt phóng to LANCZOS)
     crop_image_path = None
     if doc_type in ("prescription", "auto"):
@@ -415,19 +498,40 @@ def process_medical_document_pipeline(
             if drug_match.get("status") != "matched" and ocr_active_ingredient:
                 drug_match = normalize_drug_entity(ocr_active_ingredient)
             matched = drug_match.get("status") == "matched"
-            review_row["status"] = "matched" if matched else "unmatched"
-            review_row["match_status"] = "matched" if matched else "unmatched"
+            ocr_conf = float(row.get("ocr_confidence") or 0.0)
+            med_name_clean = str(row.get("name") or "").strip()
+            is_clear_ocr_name = (
+                ocr_conf >= 0.70
+                and len(med_name_clean.replace(" ", "")) >= 4
+                and bool(re.search(r"[A-Za-zÀ-ỹ]{4,}", med_name_clean))
+            )
+            if matched:
+                card_status = "matched"
+                match_status = "matched"
+            elif is_clear_ocr_name:
+                card_status = "not_in_db"
+                match_status = "not_in_db"
+            else:
+                card_status = "uncertain"
+                match_status = "unmatched"
+
+            review_row["status"] = match_status
+            review_row["match_status"] = match_status
+            review_row["card_status"] = card_status
             review_row["match_score"] = drug_match.get("match_confidence", 0)
-            review_row["ocr_confidence"] = row.get("ocr_confidence", 0)
-            review_row["standard_name"] = drug_match.get("standard_name") if matched else str(row.get("name") or "")
+            review_row["ocr_confidence"] = round(ocr_conf, 3)
+            review_row["standard_name"] = drug_match.get("standard_name") if matched else med_name_clean
             review_row["suggested_name"] = (
                 drug_match.get("standard_name") if matched and drug_match.get("match_confidence", 0) < 95 else ""
             )
             review_row["active_ingredient"] = ocr_active_ingredient or (drug_match.get("active_ingredient", "") if matched else "")
             review_row["purpose"] = drug_match.get("purpose", "") if matched else ""
-            review_row["needs_review"] = not (
-                matched and drug_match.get("match_confidence", 0) >= 95
-                and bool(row.get("dose")) and bool(row.get("quantity") or row.get("days"))
+            has_regimen = bool(row.get("dose") or row.get("frequency") or row.get("huong_dan") or row.get("instructions"))
+            review_row["needs_review"] = (
+                card_status == "uncertain"
+                or (matched and drug_match.get("match_confidence", 0) < 95)
+                or not has_regimen
+                or not bool(row.get("quantity") or row.get("days"))
             )
             review_row["field_confidence"] = row.get("field_confidence")
             review_row["ocr_matched_text"] = str(row.get("ocr_matched_text") or "")
@@ -437,7 +541,7 @@ def process_medical_document_pipeline(
             review_row["medicine_id"] = f"MED_{med_index:03d}"
             review_row["source_ordinal"] = row.get("source_ordinal")
             review_row["source_line_indices"] = row.get("source_line_indices") or []
-            for extra in ("brand_name", "active_ingredient", "quantity", "unit", "schedule", "instructions"):
+            for extra in ("brand_name", "active_ingredient", "quantity", "unit", "schedule", "instructions", "huong_dan", "route"):
                 if row.get(extra):
                     review_row[extra] = str(row.get(extra))
             anchor_boxes.append(row.get("anchor_box"))
@@ -532,6 +636,43 @@ def process_medical_document_pipeline(
         boxes = _build_default_overlay_boxes(
             draft[key], detail_ocr_boxes, ocr_result.get("rows", []), width, height,
         )
+        # Kiểm tra chỉ số chất lượng K (số dòng STT ở cột trái) và gắn khung đỏ cho dòng thiếu nếu có
+        body_rows_q = ocr_result.get("rows", [])[body_start:body_end]
+        detected_ords = detect_left_column_ordinals(body_rows_q)
+        k_detected = len(detected_ords)
+        parsed_ords = {m.get("source_ordinal") for m in draft[key] if m.get("source_ordinal") is not None}
+        if k_detected > len(draft[key]):
+            missing_msg = f"Đọc được {len(draft[key])}/{k_detected} dòng thuốc, vui lòng đối chiếu"
+            if not extraction_warning:
+                extraction_warning = missing_msg
+            if not reconciled.get("count_warning"):
+                reconciled["count_warning"] = missing_msg
+            for ord_info in detected_ords:
+                if ord_info["ordinal"] not in parsed_ords:
+                    raw_missing_box = [
+                        [ord_info["x_min"], max(0.0, ord_info["y_min"] - 4)],
+                        [ord_info["x_max"], max(0.0, ord_info["y_min"] - 4)],
+                        [ord_info["x_max"], ord_info["y_max"] + 16],
+                        [ord_info["x_min"], ord_info["y_max"] + 16],
+                    ]
+                    norm_missing = normalize_points(raw_missing_box)
+                    if len(norm_missing) == 4:
+                        boxes.append({
+                            "id": f"MISSING_ROW_{ord_info['ordinal']}",
+                            "medicine_id": None,
+                            "text": f"Dòng thuốc số {ord_info['ordinal']} chưa đọc được đầy đủ",
+                            "confidence": 0.0,
+                            "bbox": norm_missing,
+                            "points": norm_missing,
+                            "bbox_pixels": [[x * width, y * height] for x, y in norm_missing],
+                            "status": "unmatched",
+                            "kind": "missing_row",
+                        })
+        # Giới hạn mặc định tối đa 12 khung trên ảnh
+        if len(boxes) > 12:
+            med_and_missing = [b for b in boxes if b.get("kind") in ("medicine", "missing_row")]
+            hdr_boxes = [b for b in boxes if b.get("kind") == "header"]
+            boxes = (med_and_missing + hdr_boxes)[:12]
     return {
         "status": "review",
         "doc_type": doc_type,
@@ -557,6 +698,7 @@ def process_medical_document_pipeline(
             "avg_confidence": ocr_result.get("avg_confidence", 0),
             "total_lines": len(ocr_lines),
             "low_confidence_lines": sum(1 for line in ocr_lines if float(line.get("confidence", 0) or 0) < 0.7),
+            "filter_stats": ocr_result.get("filter_stats", {}),
         },
         "header_alternatives": reconciled.get("header_alternatives", {}),
         "extraction_warning": extraction_warning,
