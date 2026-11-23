@@ -200,8 +200,14 @@ import jinja2
 def compat_url_for(context: dict, name: str, **path_params):
     if name == "static" and "filename" in path_params and "path" not in path_params:
         path_params["path"] = path_params.pop("filename")
+    external = bool(path_params.pop("_external", False))
     request = context["request"]
-    return request.url_for(name, **path_params)
+    url = request.url_for(name, **path_params)
+    if external:
+        return str(url)
+    # Match Flask's url_for() behavior by returning root-relative paths (/static/...)
+    # so browsers never block CSS/JS as Mixed Content behind HTTPS CloudFront/ALB -> HTTP origin.
+    return url.path + (f"?{url.query}" if url.query else "")
 
 templates.env.globals["url_for"] = compat_url_for
 

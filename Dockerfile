@@ -55,6 +55,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Khởi chạy FastAPI Gateway bằng Uvicorn
-CMD ["uvicorn", "core.main_fastapi:app", "--host", "0.0.0.0", "--port", "8000"]
+# Khởi chạy FastAPI Gateway bằng Uvicorn (nhận X-Forwarded-Proto/For từ CloudFront/ALB)
+CMD ["uvicorn", "core.main_fastapi:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
 
