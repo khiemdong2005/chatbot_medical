@@ -199,7 +199,7 @@ flowchart LR
 ### 2.3.6. Bảng Dự toán Ngân sách & Tối ưu Chi phí (Cost Estimation & Optimization)
 
 > [!CAUTION]
-> **Đồng bộ Tuyệt đối với Sơ đồ Kiến trúc AWS**: Bảng dự toán dưới đây được tính toán trên **AWS Pricing Calculator** tại khu vực **Singapore (`ap-southeast-1`)**, khớp chính xác 100% với các dịch vụ có mặt trong sơ đồ kiến trúc: **Amazon EC2**, **Amazon EBS**, **Amazon RDS for PostgreSQL**, **Application Load Balancer**, **NAT Gateway**, **Amazon S3**, **Amazon ECR**, **AWS Secrets Manager**, **Amazon CloudFront**, **AWS WAF**, **Amazon Route 53**, **AWS Certificate Manager** và **Amazon CloudWatch**.
+> **Đồng bộ Tuyệt đối với Sơ đồ Kiến trúc AWS**: Bảng dự toán dưới đây được tính toán trên **AWS Pricing Calculator** tại khu vực **Singapore (`ap-southeast-1`)**, khớp chính xác 100% với các dịch vụ có mặt trong sơ đồ kiến trúc: **Amazon EC2**, **Amazon EBS**, **Amazon RDS for PostgreSQL**, **Application Load Balancer**, **NAT Gateway**, **Amazon S3**, **Amazon ECR**, **AWS Secrets Manager**, **Amazon CloudFront**, **AWS WAF**, **Amazon Route 53**, **AWS Certificate Manager**, **Amazon CloudWatch** và **AWS IAM**.
 
 #### 6.1. Kịch bản Giai đoạn Thử nghiệm & Chấm thi Workshop (Dev / PoC Environment)
 *Quy mô giả định: Phục vụ phát triển, kiểm thử tự động và trình diễn Live Demo trước hội đồng chấm thi (~500 phiên tư vấn, 200 lượt quét OCR đơn thuốc/xét nghiệm, tận dụng tối đa AWS Free Tier và OpenRouter `:free` models).*
@@ -217,6 +217,7 @@ flowchart LR
 | **Amazon Route 53** | 1 Hosted Zone + ~50.000 DNS Queries | \$0.50/Hosted Zone + \$0.40/triệu queries | **\$0.52** | Định tuyến tên miền chuẩn cho hệ thống. |
 | **AWS WAF** | 1 Web ACL + 3 Managed Rules (bật trong tuần kiểm định bảo mật) | \$5.00/ACL + \$1.00/Rule (tính theo giờ/tháng) | **\$8.00** | Bảo vệ biên mạng chống OWASP Top 10 & Rate Limit. |
 | **Amazon CloudWatch** | 2 GB App Logs + 3 Billing/CPU Alarms | Miễn phí 5 GB Logs & 10 Alarms | **\$0.00** | Nằm hoàn toàn trong hạn mức Always-Free. |
+| **AWS IAM** | Cấp quyền đặc quyền tối thiểu (`EC2 IAM Role`, Policies cho S3, Secrets Manager, ECR, CloudWatch) | Miễn phí | **\$0.00** | Dịch vụ phân quyền miễn phí trọn đời (Always-Free), không lưu cứng Access Key. |
 | **External Services (OpenRouter, Gmail SMTP, Google OAuth)** | Models: `nvidia/nemotron-3.5-super-vl:free` & `particle-ai/particle-1:free` + Gmail SMTP | Gói `:free` OpenRouter & Gmail SMTP tiêu chuẩn | **\$0.00** | Không tốn chi phí suy luận LLM/Vision và gửi Email OTP. |
 | **TỔNG CỘNG (DEV / POC)** | *Môi trường thử nghiệm & bảo vệ Workshop* | — | **\$16.26 / tháng**<br>*(~410.000 VNĐ)* | **Tối ưu và nằm gọn trong ngân sách sinh viên (< \$20/tháng).** |
 
@@ -230,7 +231,7 @@ flowchart LR
 | **Networking (Application Load Balancer + NAT Gateway)** | 1 ALB chạy 24/7 + 1 NAT Gateway xử lý outbound calls tới AI/OAuth/SMTP | **\$41.50** | 39.7% |
 | **Backup & Registry (Amazon S3 + Amazon ECR)** | 40 GB S3 (kèm Lifecycle chuyển S3-IA/Glacier) + 2 GB ECR Docker Images | **\$1.10** | 1.1% |
 | **Edge & Security (AWS WAF + CloudFront + Route 53 + ACM)** | 1 Web ACL + 4 Rules, 150 GB CloudFront CDN (Always-Free 1 TB), 1 Hosted Zone, ACM Free | **\$9.60** | 9.2% |
-| **Governance & Observability (Secrets Manager + CloudWatch)** | 4 Secrets + 12 GB App Logs + Custom Alarms | **\$4.70** | 4.5% |
+| **Governance & Observability (Secrets Manager + CloudWatch + AWS IAM)** | 4 Secrets + 12 GB App Logs + Custom Alarms + IAM Role/Policies (Miễn phí) | **\$4.70** | 4.5% |
 | **External Services (OpenRouter AI / SpeedSMS / Maps)** | OpenRouter `:free` & Low-cost Fallback + Hạn mức miễn phí Google Maps Platform (\$200 credit/tháng) | **\$4.00** | 3.7% |
 | **TỔNG CHI PHÍ PRODUCTION** | **Phục vụ 10.000 người bệnh / 25.000 phiên tư vấn / 8.000 lượt OCR** | **\$104.60 / tháng**<br>*(~2.640.000 VNĐ)* | **100%** |
 
