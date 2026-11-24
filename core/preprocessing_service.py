@@ -141,7 +141,8 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
     except Exception as e:
         print(f"[DESKEW LOG] Bỏ qua deskew: {e}")
 
-    # 4. Làm sáng vùng tối (gamma) + CLAHE trên kênh Luminance (LAB) khi ảnh tối hoặc thiếu tương phản
+    # 4. Làm sáng nhẹ vùng tối (gamma) + CLAHE vừa phải trên kênh Luminance (LAB)
+    # Tránh khuếch đại nét bút bi/nếp nhăn bằng unsharp mask quá gắt
     clahe_applied = False
     gamma_applied = False
     if not is_synthetic_blank:
@@ -150,26 +151,28 @@ def preprocess_lightweight(image_path: str, need_clahe: bool = False) -> Dict[st
             l_chan, a_chan, b_chan = cv2.split(lab)
             mean_l = float(np.mean(l_chan))
             std_l = float(np.std(l_chan))
-            # Làm sáng nhẹ vùng tối bằng gamma khi ảnh tối
+
             if mean_l < 155.0:
-                gamma = 0.78 if mean_l < 120.0 else 0.88
+                gamma = 0.80 if mean_l < 120.0 else 0.90
                 lut = np.array([min(255, int(((i / 255.0) ** gamma) * 255.0)) for i in range(256)], dtype=np.uint8)
                 l_chan = cv2.LUT(l_chan, lut)
                 gamma_applied = True
+
             if need_clahe or mean_l < 175.0 or std_l > 42.0:
-                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+                clahe = cv2.createCLAHE(clipLimit=1.8, tileGridSize=(8, 8))
                 l_chan = clahe.apply(l_chan)
                 clahe_applied = True
+
             if gamma_applied or clahe_applied:
                 limg = cv2.merge((l_chan, a_chan, b_chan))
                 img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
         except Exception:
             pass
 
-    # 4b. Giảm nhiễu nhẹ bảo toàn biên chữ (bilateralFilter nhanh hơn fastNlMeans trên ảnh >= 2000px)
+    # 4b. Giảm nhiễu nhẹ bảo toàn biên chữ
     if (clahe_applied or gamma_applied or perspective_corrected) and not is_synthetic_blank:
         try:
-            img = cv2.bilateralFilter(img, 5, 25, 25)
+            img = cv2.bilateralFilter(img, 5, 22, 22)
         except Exception:
             pass
 

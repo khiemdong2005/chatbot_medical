@@ -362,35 +362,47 @@ def process_medical_document_pipeline(
             for idx_o, ord_info in enumerate(detected_ords):
                 if ord_info["ordinal"] in parsed_ords:
                     continue
-                y1 = max(0.0, ord_info["y_min"] - 18.0)
+                # Mở rộng lên trên 85px để bắt cả trường hợp STT căn giữa ô bảng nằm dưới dòng tên thuốc
+                y1 = max(0.0, ord_info["y_min"] - 85.0)
                 y2 = (detected_ords[idx_o + 1]["y_min"] + 8.0) if idx_o + 1 < len(detected_ords) else (ord_info["y_max"] + 120.0)
                 retry_bands.append((y1, y2, f"missing_ord_{ord_info['ordinal']}"))
 
             for idx_m, (my1, my2, m_obj) in enumerate(med_y_ranges):
-                missing_regimen = not (m_obj.get("dose") or m_obj.get("frequency") or m_obj.get("huong_dan"))
+                is_external = (m_obj.get("route") or "") in ("Dùng ngoài", "Dùng ngoài da")
+                missing_regimen = (
+                    (not m_obj.get("frequency"))
+                    or (not is_external and not m_obj.get("dose"))
+                )
                 missing_qty = not (m_obj.get("quantity") or m_obj.get("days"))
                 if missing_regimen or missing_qty:
-                    next_y = med_y_ranges[idx_m + 1][0] if idx_m + 1 < len(med_y_ranges) else (my2 + 110.0)
+                    next_y = med_y_ranges[idx_m + 1][0] if idx_m + 1 < len(med_y_ranges) else (my2 + 120.0)
                     band_y1 = max(0.0, my1 - 12.0)
-                    band_y2 = max(my2 + 18.0, next_y + 4.0)
+                    band_y2 = max(my2 + 24.0, next_y + 4.0)
                     retry_bands.append((band_y1, band_y2, f"med_{m_obj.get('source_ordinal')}"))
 
             if retry_bands:
                 added_lines = []
-                for y1, y2, _tag in retry_bands[:6]:
-                    band_lines = retry_ocr_crop_band(selected_ocr_path, y1, y2, scale=1.5, min_conf=0.20)
+                for y1, y2, _tag in retry_bands[:8]:
+                    band_lines = retry_ocr_crop_band(selected_ocr_path, y1, y2, scale=1.8, min_conf=0.20)
                     added_lines.extend(band_lines)
                 if added_lines:
                     existing_lines = list(ocr_result.get("lines", []))
                     newly_merged = 0
                     for cand in added_lines:
-                        cx = (cand["x_min"] + cand["x_max"]) / 2.0
-                        cy = cand["y_center"]
-                        dup = any(
-                            abs(((ex["x_min"] + ex["x_max"]) / 2.0) - cx) < 28
-                            and abs(ex["y_center"] - cy) < 18
-                            for ex in existing_lines
-                        )
+                        cx1, cy1, cx2, cy2 = cand["x_min"], cand["y_min"], cand["x_max"], cand["y_max"]
+                        c_area = max(1.0, (cx2 - cx1) * (cy2 - cy1))
+                        dup = False
+                        for ex in existing_lines:
+                            ex1, ey1, ex2, ey2 = ex["x_min"], ex["y_min"], ex["x_max"], ex["y_max"]
+                            inter = max(0.0, min(cx2, ex2) - max(cx1, ex1)) * max(0.0, min(cy2, ey2) - max(cy1, ey1))
+                            if inter <= 0:
+                                continue
+                            ex_area = max(1.0, (ex2 - ex1) * (ey2 - ey1))
+                            iou = inter / (c_area + ex_area - inter)
+                            overlap_min = inter / min(c_area, ex_area)
+                            if iou > 0.25 or overlap_min > 0.45:
+                                dup = True
+                                break
                         if not dup:
                             existing_lines.append(cand)
                             newly_merged += 1

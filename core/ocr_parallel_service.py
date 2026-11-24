@@ -307,14 +307,24 @@ def _dedupe_ocr_results(results: list, iou_threshold: float = 0.30) -> list:
     return kept
 
 
-def _readtext_relaxed(reader, img_or_path, min_size: int = 5, text_threshold: float = 0.5, low_text: float = 0.3) -> list:
-    """Gọi EasyOCR với ngưỡng mềm hơn để không sót chữ số đơn (1..7, x 1); fallback cho mock reader."""
+def _readtext_relaxed(
+    reader,
+    img_or_path,
+    min_size: int = 5,
+    text_threshold: float = 0.5,
+    low_text: float = 0.3,
+    contrast_ths: float = 0.1,
+    adjust_contrast: float = 0.5,
+) -> list:
+    """Gọi EasyOCR với ngưỡng mềm hơn để không sót chữ số đơn hoặc dòng liều in nghiêng/mờ; fallback cho mock reader."""
     try:
         return reader.readtext(
             img_or_path,
             min_size=min_size,
             text_threshold=text_threshold,
             low_text=low_text,
+            contrast_ths=contrast_ths,
+            adjust_contrast=adjust_contrast,
         )
     except TypeError:
         return reader.readtext(img_or_path)
@@ -413,7 +423,18 @@ def retry_ocr_crop_band(image_path: str, y1: float, y2: float, scale: float = 2.
             return []
         crop = image[top:bottom, :]
         enlarged = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
-        raw = _readtext_relaxed(reader, enlarged, min_size=4, text_threshold=0.45, low_text=0.25)
+        # Chỉ tăng tương phản nhẹ CLAHE (không double-sharpen để tránh vỡ nét chữ in nghiêng nhỏ)
+        gray = cv2.cvtColor(enlarged, cv2.COLOR_BGR2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
+        raw = _readtext_relaxed(
+            reader,
+            clahe,
+            min_size=4,
+            text_threshold=0.35,
+            low_text=0.20,
+            contrast_ths=0.05,
+            adjust_contrast=0.7,
+        )
         recovered = []
         for box, text, prob in raw:
             clean_t = str(text or "").strip()

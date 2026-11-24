@@ -416,10 +416,17 @@ def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
     """Locate medicine blocks between diagnosis/header and footer markers (Cộng khoản, Lời dặn, Ngày...tháng...năm, Bác sĩ...)."""
     def numbered(row):
         text = str(row.get("text", "") or "").strip()
-        if re.match(r"^\s*\d{1,2}\s*[.):\-]\s*\S+", text):
+        if re.search(r"\b(?:ng[aàoy]\s*kh[aá]m|ngay\s*sinh|ho\s*ten|chan\s*doan|don\s*thuoc)\b", _ascii_fold(text)):
+            return False
+        if re.match(r"^\s*['\"*•\-]?\s*[1-9]\d?\s*[.):\-/]\s*[A-Za-zÀ-ỹ]", text):
             return True
         items = [str(item.get("text", "") or "").strip() for item in row.get("items", [])]
-        return bool(items and re.fullmatch(r"\d{1,2}\s*[.):\-]?", items[0]) and len(items) > 1)
+        return bool(
+            items
+            and re.fullmatch(r"['\"*•\-]?\s*[1-9]\d?\s*[.):\-/]?", items[0])
+            and len(items) > 1
+            and re.search(r"[A-Za-zÀ-ỹ]{3,}", items[1])
+        )
 
     diagnosis_idx = next((i for i, row in enumerate(rows)
                           if re.search(r"\bchan\s*doan\b", _ascii_fold(row.get("text", "")))), None)
@@ -428,6 +435,18 @@ def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
         start = diagnosis_idx + 1
     elif first_numbered is not None:
         start = first_numbered
+        # Nếu dòng đánh số đầu tiên bắt đầu từ số >= 2 (vì OCR rớt số "1."),
+        # kiểm tra 1-2 dòng ngay phía trên xem có dòng thuốc số 1 (có số lượng/đơn vị) không
+        first_ord = _parse_medication_ordinal(str(rows[first_numbered].get("text", "") or ""))
+        if first_ord is not None and first_ord >= 2:
+            for back in range(first_numbered - 1, max(-1, first_numbered - 4), -1):
+                b_txt = str(rows[back].get("text", "") or "")
+                b_fold = _ascii_fold(b_txt)
+                if re.search(r"\b(?:ho\s*ten|doi\s*tuong|don\s*thuoc|dia\s*chi|phai|tuoi)\b", b_fold):
+                    break
+                if re.search(r"\b\d{1,3}\s*(?:vien|ven|goi|ong|chai|lo|hop|tuyp|tube)\b", re.sub(r"\s*\|\s*", " ", b_fold)):
+                    start = back
+                    break
     else:
         heading = next((i for i, row in enumerate(rows)
                         if re.search(r"\b(?:ten\s*thuoc|stt|ten\s*duoc\s*pham)\b",
@@ -834,7 +853,7 @@ def _normalize_vi_instruction_text(text: str) -> str:
 
 def _decode_ordinal_token(token: str) -> Optional[int]:
     """Giải mã token số thứ tự (1..99 hoặc ký tự OCR nhầm G/g/b->6, I/l/|->1, O/o->0, S->5)."""
-    cleaned = str(token or "").strip().rstrip(".,):|-")
+    cleaned = str(token or "").strip().lstrip("'\"*•- ").rstrip(".,):|-/")
     if not cleaned:
         return None
     if re.fullmatch(r"[1-9]\d?", cleaned):
@@ -848,10 +867,10 @@ def _decode_ordinal_token(token: str) -> Optional[int]:
 
 
 def _parse_medication_ordinal(value: str) -> Optional[int]:
-    """Nhận diện số thứ tự đầu dòng thuốc (dấu phân cách . ) : - là tùy chọn)."""
+    """Nhận diện số thứ tự đầu dòng thuốc (hỗ trợ các dấu phân cách . ) : - / hoặc khoảng trắng)."""
     s = str(value or "")
-    # Dạng có dấu phân cách: "1. YESOM", "6) ...", "G. DIGLUMISAN", "2: ...", "3- ..."
-    match = re.match(r"^\s*([1-9]\d?|[GgIlOoSb|])\s*[.):\-]\s*([A-Za-zÀ-ỹ].*)$", s)
+    # Dạng có dấu phân cách: "1. YESOM", "6) ...", "G. DIGLUMISAN", "2: ...", "3- ...", "1/ Cetirizine", "'2 / Liverterder"
+    match = re.match(r"^\s*['\"*•\-]?\s*([1-9]\d?|[GgIlOoSb|])\s*[.):\-/]\s*([A-Za-zÀ-ỹ].*)$", s)
     if match:
         return _decode_ordinal_token(match.group(1))
     # Dạng không dấu phân cách (Layout B): "1  Ducray Kelual DS", "4 Halcort 6"
@@ -883,7 +902,7 @@ def _infer_route_from_text(text: str) -> Optional[str]:
 
 def _parse_prescription_dose(text: str) -> tuple:
     """Read dose/frequency for both Layout A and Layout B regimens."""
-    folded = _ascii_fold(text).lower()
+    folded = _ascii_fold(text).lower().replace("_", " ")
     # Chuẩn hóa lỗi OCR hay gặp trong dòng liều dùng: "Iầni" -> "lan/", "lẩn'" -> "lan/", "tuẩn" -> "tuan"
     folded = re.sub(r"\bl[a1i]n[i']\s*(?=ngay|tuan)", "lan/ ", folded)
     folded = re.sub(r"\bi[a1]n\b", "lan", folded)
@@ -891,7 +910,7 @@ def _parse_prescription_dose(text: str) -> tuple:
 
     # 1. Liều mỗi lần (dose)
     dose_match = re.search(
-        rf"(?:m[o0]i\s*l[a1i]n|m[e0][i1]\s*[{{(\[]?[a1]n|u[o06]ng|ngam)\s*[:\-]?\s*(\d+(?:[.,/]\d+)?)\s*{unit_pattern}\b",
+        rf"(?:m[o0]i\s*l[a1i]n|m[e0][i1]\s*[{{(\[]?[a1]n|u[o06]ng(?:\s*(?:sang|trua|chieu|toi))?|ngam)\s*[:,\-]?\s*(\d+(?:[.,/]\d+)?)\s*{unit_pattern}\b",
         folded,
     )
     if not dose_match:
@@ -913,10 +932,10 @@ def _parse_prescription_dose(text: str) -> tuple:
             period = "tuần" if freq_slash.group(2) == "tuan" else "ngày"
             freq_value = f"{freq_slash.group(1)} lần/{period}"
     if not freq_value:
-        # Layout A: "Ngày uống 3 lần, mỗi lần 1 viên" hoặc "Ngay uong 3ion"
+        # Layout A: "Ngày uống 3 lần, mỗi lần 1 viên" hoặc OCR dính chữ "3lan, moilan 1 Vien"
         freq_a = re.search(
-            r"(?:ngay\s*u[o0c]ng|u[o0c]ng\s*ngay|ngay|u[o0]ng|boi(?:\s*tai\s*cho)?|xoa(?:\s*tai\s*cho)?|tam\s*goi)\s*"
-            r"(\d{1,2})\s*(?:l[a1i]n|ion|lan)\s*(?:/?\s*(ngay|tuan)|m[o0]i\s*(?:ngay|l[a1i]n)|$|[,;.])",
+            r"(?:(?:ngay\s*u[o0c]ng|u[o0c]ng\s*ngay|ngay|u[o0]ng|boi(?:\s*tai\s*cho)?|xoa(?:\s*tai\s*cho)?|tam\s*goi)\s*)?"
+            r"(\d{1,2})\s*(?:l[a1i]n|ion|lan)\s*(?:/?\s*(ngay|tuan)|[,;.]?\s*m[o0]i\s*(?:ngay|l[a1i]n)|$|[,;.])",
             folded,
         )
         if freq_a:
@@ -936,7 +955,8 @@ def _parse_prescription_dose(text: str) -> tuple:
 
 
 def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
-    """Remove low-confidence notes left of the printed ordinal column from parsing."""
+    """Remove handwritten notes/numbers strictly left of the printed ordinal column from parsing."""
+    from statistics import median as _median
     all_items = [item for row in rows for item in row.get("items", [])]
     if not all_items:
         return rows, set()
@@ -949,20 +969,24 @@ def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
         items = row.get("items", [])
         if not items:
             continue
-        first_item = items[0]
-        first_x = float(first_item.get("x_min", 0) or 0)
-        # Cột STT bắt buộc phải nằm ở phần lề trái (<= 25% chiều rộng trang)
-        if first_x > page_right * 0.25:
-            continue
-        row_text = str(row.get("text", "") or "").strip()
-        if _parse_medication_ordinal(row_text) is not None or re.match(
-            r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]?\s*$", str(first_item.get("text", "") or "").strip()
-        ):
-            ordinal_x_candidates.append(first_x)
+        for item in items[:2]:
+            it_x = float(item.get("x_min", 0) or 0)
+            if it_x > page_right * 0.25:
+                continue
+            it_txt = str(item.get("text", "") or "").strip()
+            # Ưu tiên các dòng có STT in rõ kèm tên thuốc (tránh bị kéo lệch bởi số viết tay sát mép x≈0)
+            if _parse_medication_ordinal(it_txt) is not None or (
+                item is items[0]
+                and re.match(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]?\s*$", it_txt)
+                and it_x >= page_right * 0.03
+            ):
+                ordinal_x_candidates.append(it_x)
+                break
     if not ordinal_x_candidates:
         return rows, set()
-    ordinal_x = min(ordinal_x_candidates)
-    margin_threshold = min(ordinal_x - max(8.0, page_right * 0.015), page_right * 0.22)
+    # Dùng median của cột STT in để 1 chữ viết tay sát mép trái không kéo lệch ngưỡng lọc
+    ordinal_x = float(_median(ordinal_x_candidates))
+    margin_threshold = min(ordinal_x - max(12.0, page_right * 0.02), page_right * 0.22)
     if margin_threshold <= 0:
         return rows, set()
     ignored = set()
@@ -975,7 +999,8 @@ def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
             x_max = float(item.get("x_max", item.get("x_min", 0)) or 0)
             confidence = float(item.get("confidence", 1.0) or 0)
             is_ordinal = bool(re.match(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]?\s*$", text))
-            if x_max < margin_threshold and confidence < 0.75 and not is_ordinal:
+            far_left_margin = x_max < (ordinal_x - max(25.0, page_right * 0.04))
+            if (x_max < margin_threshold and confidence < 0.75 and not is_ordinal) or far_left_margin:
                 if item.get("line_index") is not None:
                     ignored.add(int(item["line_index"]))
                 continue
@@ -993,14 +1018,14 @@ def _filter_left_margin_handwriting(rows: List[Dict[str, Any]]) -> tuple:
 def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_count: Optional[int] = None) -> List[Dict[str, Any]]:
     """Parse numbered drug blocks (Layout A & Layout B), including optional punctuation,
     OCR ordinal confusions, left-column x validation, split-box quantities, and verbatim instructions."""
-    ordinal_cell = re.compile(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.,):\-]?\s*$")
+    ordinal_cell = re.compile(r"^\s*['\"*•\-]?\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.,):\-/]?\s*$")
     blocks: List[Dict[str, Any]] = []
     current = None
     pending_ordinal = None
     pending_ordinal_row = None
-    unit_tokens_re = r"(?:vi[eêé]n|vien|ven|g[oóö]i|gôi|goi|chai|chal|char|[oố]ng|ông|ong|l[oọ]|lo|h[oộ]p|hop|v[iỉ]|vi|tu[yý]p|tuyp|tube)"
+    unit_tokens_re = r"(?:vi[eêé]n|vien|ven|vin|g[oóö]i|gôi|goi|gfi|chai|chal|char|[oố]ng|ông|ong|l[oọ]|lo|h[oộ]p|hop|v[iỉ]|vi|tu[yý]p|tuyp|tube)"
     quantity_re = re.compile(
-        rf"(?:^|\b)(?:x\s*)?(\d{{1,3}})\s*({unit_tokens_re})\b", re.IGNORECASE,
+        rf"(?:^|\b|[=])\s*(?:x\s*)?(\d{{1,3}})\s*({unit_tokens_re})\b", re.IGNORECASE,
     )
     unit_only_re = re.compile(rf"^\s*{unit_tokens_re}\s*$", re.IGNORECASE)
 
@@ -1024,12 +1049,16 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
         items = row.get("items", [])
         if not has_coords or not items:
             return False
+        # Không bao giờ coi dòng liều dùng ("mỗi lần 1 viên", "3lan, moilan 1 Vien") là cột số lượng
+        row_fold = _ascii_fold(str(row.get("text", "") or ""))
+        if re.search(r"m[o0]i\s*l[a1i]n|ngay\s*u[o0]ng|\d\s*l[a1i]n\b", row_fold):
+            return False
         right_parts = []
         for it in items:
             if it.get("x_min") is None:
                 continue
             xc = (float(it.get("x_min", 0)) + float(it.get("x_max", it.get("x_min", 0)))) / 2.0
-            if (xc - body_left) >= body_width * 0.45:
+            if (xc - body_left) >= body_width * 0.55:
                 right_parts.append(str(it.get("text", "") or "").strip())
         if not right_parts:
             return False
@@ -1047,10 +1076,10 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
         rt = str(r.get("text", "") or "").strip()
         r_items = r.get("items", [])
         if _parse_medication_ordinal(rt) is not None:
-            if not r_items or _is_in_left_ordinal_col(r_items[0]):
+            if not r_items or _is_in_left_ordinal_col(r_items[0], is_standalone=False):
                 has_any_ordinal_row = True
                 break
-        if r_items and ordinal_cell.fullmatch(str(r_items[0].get("text", "") or "").strip()) and _is_in_left_ordinal_col(r_items[0]):
+        if r_items and ordinal_cell.fullmatch(str(r_items[0].get("text", "") or "").strip()) and _is_in_left_ordinal_col(r_items[0], is_standalone=True):
             has_any_ordinal_row = True
             break
 
@@ -1059,6 +1088,7 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
     )
 
     last_unattached_drug_row = None
+    unattached_prefix_rows: List[Dict[str, Any]] = []
     last_header_qty_row = None
 
     for row_idx, row in enumerate(rows):
@@ -1071,9 +1101,40 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
         if not cells:
             cells = [part.strip() for part in re.split(r"\s*\|\s*", row_text) if part.strip()]
 
+        # Nếu ô đầu dòng là ký tự viết tay/nhiễu lề trái (vd: "((IS4 ,") nhưng ô kế tiếp bắt đầu bằng STT in ("4. PAPAZE...")
+        if len(cells) > 1 and _parse_medication_ordinal(cells[0]) is None and not ordinal_cell.fullmatch(cells[0]):
+            if not re.search(r"[A-Za-zÀ-ỹ]{4,}", cells[0]) and (
+                _parse_medication_ordinal(cells[1]) is not None or ordinal_cell.fullmatch(cells[1])
+            ):
+                cells = cells[1:]
+                row_items = row_items[1:] if len(row_items) > 1 else row_items
+                row_text = " | ".join(cells)
+                row = {**row, "items": row_items, "text": row_text}
+
         # Ghi nhớ dòng tiêu đề bảng có chứa cột SL bị lệch y lên trên (vd: "STT | Tên thuốc | 21 | Viên")
         if re.search(r"\b(?:stt|ten\s*[\{]?thuoc|ham\s*luong)\b", folded):
             last_header_qty_row = row
+            # Nếu ảnh chụp nghiêng làm tên thuốc bị gom chung hàng với tiêu đề bảng (vd: "STT | Febuxostat (...) | Hàm lượng | 21 Viên"),
+            # tách riêng các ô không phải nhãn tiêu đề để không làm mất thuốc số 1
+            non_hdr_items = [
+                it for it in row_items
+                if not re.fullmatch(
+                    r"\s*(?:stt|ten\s*[\{]?thuoc|ham\s*luong|so\s*luong|sl|don\s*vi|cach\s*dung)\s*",
+                    _ascii_fold(it.get("text", "")),
+                )
+            ]
+            has_drug_on_hdr = any(
+                is_plausible_medication_name(str(it.get("text", "")))
+                and re.search(r"[A-Za-zÀ-ỹ]{4,}", str(it.get("text", "")))
+                and ("(" in str(it.get("text", "")) or re.search(r"\d+\s*(?:mg|mcg|ml|g)\b", str(it.get("text", "")), re.IGNORECASE))
+                for it in non_hdr_items
+            )
+            if has_drug_on_hdr:
+                last_unattached_drug_row = {
+                    **row,
+                    "items": non_hdr_items,
+                    "text": " | ".join(str(it.get("text", "")).strip() for it in non_hdr_items),
+                }
             continue
 
         # Dòng chỉ có "tái khám" ở nửa phải nhưng nửa trái là STT "1" + liều (ảnh chụp nghiêng)
@@ -1085,7 +1146,7 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
                 ord_val = _decode_ordinal_token(cells[0])
                 prev_y = last_unattached_drug_row.get("y_center")
                 cur_y = row.get("y_center")
-                if ord_val is not None and (prev_y is None or cur_y is None or abs(float(cur_y) - float(prev_y)) <= 80.0):
+                if ord_val is not None and (prev_y is None or cur_y is None or abs(float(cur_y) - float(prev_y)) <= 95.0):
                     if current:
                         blocks.append(current)
                     prev_text = str(last_unattached_drug_row.get("text", "") or "").strip()
@@ -1122,8 +1183,16 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
 
         ordinal_number = _parse_medication_ordinal(candidate) if (candidate and first_item_left_ok) else None
         ordinal_match = None
-        if ordinal_number is not None:
-            m_sep = re.match(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-]\s*([A-Za-zÀ-ỹ].*)$", candidate)
+        if ordinal_number is None and has_coords and candidate and first_item_left_ok:
+            # Trên ảnh mờ/nhòe nhiệt, dấu '.' sau STT hay bị EasyOCR đọc thành dấu ',' (vd: "4, Gastsus", "6, Atilude")
+            m_comma = re.match(r"^\s*['\"*•\-]?\s*([1-9]\d?|[GgIlOoSb|])\s*,\s*([A-Za-zÀ-ỹ].*)$", candidate)
+            if m_comma and not _INSTRUCTION_HEAD_RE.match(_ascii_fold(m_comma.group(2).strip())):
+                decoded_c = _decode_ordinal_token(m_comma.group(1))
+                if decoded_c is not None:
+                    ordinal_number = decoded_c
+                    ordinal_match = m_comma
+        if ordinal_number is not None and ordinal_match is None:
+            m_sep = re.match(r"^\s*['\"*•\-]?\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.):\-/]\s*([A-Za-zÀ-ỹ].*)$", candidate)
             if m_sep and not _INSTRUCTION_HEAD_RE.match(_ascii_fold(m_sep.group(1).strip())):
                 ordinal_match = m_sep
             if not ordinal_match:
@@ -1136,6 +1205,13 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
                         ordinal_match = weak_match
 
         if ordinal_number is not None and ordinal_match:
+            # STT trong đơn thuốc phải tăng dần: nếu gặp số nhỏ hơn STT hiện tại (vd: chữ viết tay "2" ở lề sau thuốc số 5),
+            # coi là dòng tiếp nối của thuốc hiện tại chứ không tách thuốc mới
+            if current and not current.get("inferred_ordinal") and ordinal_number < current["ordinal"]:
+                current["rows"].append(row)
+                pending_ordinal = None
+                pending_ordinal_row = None
+                continue
             # Nếu khối hiện tại là khối suy đoán (inferred) bị trùng STT với dòng đánh số tường minh ngay sau,
             # dòng đánh số tường minh luôn đúng -> bỏ khối suy đoán nhầm (vd: dòng tiêu đề "II. THÔNG TIN ĐƠN THUỐC")
             if current and current["ordinal"] == ordinal_number:
@@ -1149,7 +1225,21 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
                 continue
             if current:
                 blocks.append(current)
-            current = {"ordinal": ordinal_number, "heading": ordinal_match.group(1).strip(), "rows": [row]}
+            elif not blocks and ordinal_number == 2 and unattached_prefix_rows:
+                # Khôi phục thuốc số 1 khi OCR rớt chữ số "1" nhưng dòng tên thuốc (+ hướng dẫn) nằm ngay trước thuốc số 2
+                head_row = unattached_prefix_rows[0]
+                head_txt = re.sub(r"\s*\|\s*", " ", str(head_row.get("text", "") or "")).strip()
+                if is_plausible_medication_name(head_txt) and re.search(r"[A-Za-zÀ-ỹ]{4,}", head_txt):
+                    blocks.append({
+                        "ordinal": 1,
+                        "heading": head_txt,
+                        "rows": list(unattached_prefix_rows),
+                        "heading_row": head_row,
+                        "inferred_ordinal": True,
+                    })
+                unattached_prefix_rows.clear()
+            heading_group = ordinal_match.group(2) if ordinal_match.lastindex and ordinal_match.lastindex >= 2 else ordinal_match.group(1)
+            current = {"ordinal": ordinal_number, "heading": heading_group.strip(), "rows": [row]}
             pending_ordinal = None
             pending_ordinal_row = None
             continue
@@ -1228,8 +1318,13 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
         if current:
             current["rows"].append(row)
         elif has_heading_text and not looks_like_instruction:
-            # Ghi nhớ dòng tên thuốc chưa có STT (trường hợp ô STT bảng bị căn giữa xuống dòng dưới)
+            # Ghi nhớ dòng tên thuốc chưa có STT (trường hợp ô STT bị căn giữa xuống dưới hoặc OCR rớt số "1")
             last_unattached_drug_row = row
+            if not blocks and not unattached_prefix_rows:
+                unattached_prefix_rows.append(row)
+        elif not blocks and unattached_prefix_rows and looks_like_instruction:
+            # Gắn dòng hướng dẫn ngay sau dòng thuốc số 1 bị rớt STT
+            unattached_prefix_rows.append(row)
 
     if current:
         blocks.append(current)
@@ -1257,7 +1352,7 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
             name_cells = name_cells[1:]
         elif name_cells:
             name_cells[0] = re.sub(
-                r"^\s*(?:[1-9]\d?|[GgIlOoSb|])(?:\s*[.,):\-]\s*|\s+)", "", name_cells[0]
+                r"^\s*['\"*•\-]?\s*(?:[1-9]\d?|[GgIlOoSb|])(?:\s*[.,):\-/]\s*|\s+)", "", name_cells[0]
             ).strip()
 
         heading_parts = []
@@ -1290,6 +1385,9 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
             if r_clean and not ordinal_cell.fullmatch(r_clean):
                 instruction_lines.append(_normalize_vi_instruction_text(r_clean))
         verbatim_instructions = " ".join(instruction_lines).strip()
+        # Không lưu mẩu OCR rác 1 từ rời rạc không có số/nghĩa (vd: "ueng", "Ngay") làm hướng dẫn
+        if verbatim_instructions and not re.search(r"\d", verbatim_instructions) and len(verbatim_instructions.split()) < 2:
+            verbatim_instructions = ""
 
         block_text = []
         for row in block["rows"]:
@@ -1364,16 +1462,18 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
 
         for text in qty_candidates:
             folded = _ascii_fold(text)
-            # Không lấy nhầm số trong câu liều dùng ("mỗi lần 1 viên", "mỗi lần 1/3 Chal", "uống 3 viên/lần", "x 2 tuần")
+            # Không lấy nhầm số trong câu liều dùng ("mỗi lần 1 viên", "1/3 Chai", "uống 3 viên/lần", "x 2 tuần")
             quantity_text = re.sub(
                 r"(?:moi\s*lan|uong)\s*\d+(?:[.,/]\d+)?\s*(?:vien|ven|goi|chai|chal|char|ong|ml|tube|tuyp|lo|hop)\b",
                 " ", folded,
             )
+            quantity_text = re.sub(r"\b\d+/\d+\s*(?:vien|ven|goi|chai|chal|char|ong|ml|tube|tuyp|lo|hop)\b", " ", quantity_text)
             quantity_text = re.sub(r"\d+\s*(?:vien|ven|goi|chai|chal|ong)\s*/\s*lan\b", " ", quantity_text)
             q_matches = list(quantity_re.finditer(quantity_text))
             if q_matches:
                 q_match = q_matches[-1]
-                quantity = f"{q_match.group(1)} {_unit_label(q_match.group(2))}"
+                q_num = int(q_match.group(1))
+                quantity = f"{q_num} {_unit_label(q_match.group(2))}"
                 break
 
         heading_clean_strength = re.sub(r"\bS\s*mg\b", "5mg", " ".join(block_text))
@@ -1392,16 +1492,18 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
                                   if "(" in str(item.get("text", "")) and ")" in str(item.get("text", ""))), "")
             active_match = re.search(r"\((.*)\)", active_source)
         active_ingredient = re.sub(r"\s+", " ", active_match.group(1)).strip() if active_match else None
-        brand_heading = heading.split("(", 1)[0].strip()
+        brand_heading = clean_ocr_typos(heading.split("(", 1)[0].strip())
+        brand_heading = re.sub(r"\b[sS5][oO0]\s*mg(?:[/l]ml)?\b", "50mg", brand_heading)
         heading_strength = strength_re.search(brand_heading)
         if heading_strength and heading_strength.start() > 0 and brand_heading[heading_strength.start() - 1] not in "+-/":
-            name = brand_heading[:heading_strength.start()].strip(" -–,;:|")
+            name = brand_heading[:heading_strength.start()].strip(" -–,;:|+")
         else:
-            name = brand_heading.strip(" -–,;:|")
+            name = brand_heading.strip(" -–,;:|+")
+        name = re.sub(r"\s*\[(?:KDNT|KINT|KD[A-Z]{1,3}T)\]\s*", " ", name, flags=re.IGNORECASE)
         name = re.sub(r"\(\s*\)", "", name)
         name = re.sub(r"\(\s*([^()]*?)\s*\)", r"(\1)", name)
         name = _clean_foreign_brand_diacritics(name)
-        name = re.sub(r"\s+", " ", name).strip()
+        name = re.sub(r"\s+", " ", name).strip(" -–,;:|+")
         if len(name.replace(" ", "")) < 4 or not re.search(r"[A-Za-zÀ-ỹ]{4,}", name):
             continue
         confidence_values = [
@@ -1441,7 +1543,7 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
 def detect_left_column_ordinals(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Đếm các dòng bắt đầu bằng số thứ tự ở cột trái (kể cả conf thấp) để tính chỉ số chất lượng K
     và xác định vùng y bị thiếu thuốc nếu cần chạy lại OCR cục bộ."""
-    ordinal_cell = re.compile(r"^\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.,):\-]?\s*$")
+    ordinal_cell = re.compile(r"^\s*['\"*•\-]?\s*(?:[1-9]\d?|[GgIlOoSb|])\s*[.,):\-/]?\s*$")
     all_x_mins = [float(it.get("x_min", 0)) for r in rows for it in r.get("items", []) if it.get("x_min") is not None]
     all_x_maxs = [float(it.get("x_max", it.get("x_min", 0))) for r in rows for it in r.get("items", []) if it.get("x_min") is not None or it.get("x_max") is not None]
     body_left = min(all_x_mins) if all_x_mins else 0.0
@@ -2173,8 +2275,14 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
             for part in r_txt.split("|"):
                 part = part.strip()
                 if re.search(r"\b(?:bệnh\s*viện|benh\s*vien|phòng\s*khám|phong\s*kham|trung\s*tâm|trung\s*tam|viện\s+y|vien\s+y)\b", part, re.IGNORECASE):
-                    data["facility"] = part
-                    break
+                    # Không lấy nhãn trống không có tên cơ sở phía sau (vd: chỉ có "Phong kham" hoặc "Bệnh viện")
+                    stripped_label = re.sub(
+                        r"^(?:b[eệê]nh\s*vi[eệê]n|benh\s*vien|ph[oò]ng\s*kh[aá]m|phong\s*kham|trung\s*t[aâ]m|trung\s*tam)\s*[:.\-]*",
+                        "", part, flags=re.IGNORECASE
+                    ).strip()
+                    if len(stripped_label) >= 3:
+                        data["facility"] = part
+                        break
             if data["facility"]:
                 break
 
@@ -2238,7 +2346,7 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
     # Tuổi
     m_age = re.search(r'\b([1-9]\d?)\s*(?:tuổi|tuoi|t[ikou][a-z0-9]{1,4}|\bt\b)', raw_text, re.IGNORECASE)
     if not m_age:
-        m_age = re.search(r'(?:tuổi|tuoi|age|sinb)[|\s:.;\-]*(\d{1,3})', raw_text, re.IGNORECASE)
+        m_age = re.search(r'(?:tuổi|tuoi|tuói|tubi|age|sinb)[|\s:.;\-]*(\d{1,3})', raw_text, re.IGNORECASE)
     if m_age and 0 < int(m_age.group(1)) <= 120:
         data["age"] = m_age.group(1)
 
@@ -2446,14 +2554,15 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         folded_row = _ascii_fold(row_text)
         if re.search(r"\bho\s*ten\b", folded_row):
             name_match = re.search(
-                r"(?:họ\s*tên|ho\s*ten)\s*[:：.\-]?\s*(.*?)"
-                r"(?=\s*(?:phái|phai|tuổi|tuoi|nam\s*tuổi|nam\s*tuoi)\s*[:：.]|$)",
+                r"(?:h[oọ]\s*t[eê]n|ho\s*ten)\s*[:：.\-]?\s*(.*?)"
+                r"(?=\s*(?:ph[aáàảãạ][iíìỉĩị]|gi[oớờ]i\s*t[ií]nh|tu[oổ]i|tuoi|tubi|nam\s*tu[oổ]i|nam\s*tuoi|namtubi)\b|$)",
                 row_text, re.IGNORECASE,
             )
             if name_match:
                 clean_name = re.sub(r"[^A-Za-zÀ-ỹ\s]", " ", name_match.group(1))
+                clean_name = re.sub(r"\s+(?:ph[aáàảãạ][iíìỉĩị]|gi[oớờ]i\s*t[ií]nh|nam|n[uữ])\b.*$", "", clean_name, flags=re.IGNORECASE)
                 clean_name = re.sub(r"\s+", " ", clean_name).strip()
-                if clean_name:
+                if clean_name and not re.fullmatch(r"(?:ho\s*(?:va\s*)?ten(?:\s*benh\s*nhan)?|ten\s*benh\s*nhan|benh\s*nhan|nguoi\s*benh)", _ascii_fold(clean_name)):
                     data["patient_name"] = clean_name
 
         if re.search(r"\bbenh\s*vien\b", folded_row):
@@ -2528,6 +2637,17 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
                 data["dob"] = str(birth_year)
         except (TypeError, ValueError):
             pass
+
+    if data.get("patient_name"):
+        data["patient_name"] = re.sub(
+            r"\s+(?:tu[oôổốồộơớờởỡợ][iíì]|tubi|age\b|ph[aáàảãạ][iíìỉĩị]|gi[oớờ]i\s*t[ií]nh)\b.*$",
+            "", str(data["patient_name"]), flags=re.IGNORECASE,
+        ).strip(" :.-,;")
+    if data.get("patient_name") and re.fullmatch(
+        r"(?:ho\s*(?:va\s*)?ten(?:\s*benh\s*nhan)?|ten\s*benh\s*nhan|benh\s*nhan|nguoi\s*benh)",
+        _ascii_fold(data["patient_name"]),
+    ):
+        data["patient_name"] = ""
 
     for hf in ("patient_name", "dob", "doctor", "facility", "clinic", "date", "diagnosis"):
         if data.get(hf):
