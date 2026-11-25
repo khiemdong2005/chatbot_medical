@@ -256,6 +256,25 @@
     return `<p class="nf-limit-note">${safe(noteText)}</p>${items ? `<div class="nf-limit-items">${items}</div>` : ''}`;
   }
 
+  const _NF_SESSION_KEY = 'medimind_nutrition_session_v1';
+
+  function _readNutritionSession() {
+    try {
+      const raw = sessionStorage.getItem(_NF_SESSION_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function _saveNutritionSession(patch) {
+    try {
+      const prev = _readNutritionSession();
+      const next = { ...prev, ...patch };
+      sessionStorage.setItem(_NF_SESSION_KEY, JSON.stringify(next));
+    } catch (_) { /* Ignore storage quota errors. */ }
+  }
+
   function show(stage) {
     state.stage = stage;
     ['search', 'type', 'results', 'detail'].forEach(name => { el('nf-' + name).hidden = name !== stage; });
@@ -263,6 +282,13 @@
     if (stage === 'results') { el('nf-recipe-source').innerHTML = ''; el('nf-recipe-source').hidden = true; }
     const label = state.query ? state.query.charAt(0).toLocaleUpperCase(_isEn() ? 'en-US' : 'vi-VN') + state.query.slice(1) : '';
     document.querySelectorAll('#doctor-tab .nf-query-label').forEach(node => { node.textContent = label; });
+    if (stage === 'search' || stage === 'results' || stage === 'detail') {
+      _saveNutritionSession({
+        stage,
+        query: state.query || '',
+        activeRecipe: stage === 'detail' ? (state.activeRecipe || null) : null
+      });
+    }
     if (window.scrollY > 200) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -938,6 +964,204 @@
           }
         });
       });
+      function _renderMealPlanView(data, mainTab = 'food', foodSubTab = 'single') {
+        const plan = data?.daily_plan;
+        if (!plan) return;
+        const cardsEl = el('nf-cards');
+        const ctxEl = el('nf-context');
+        const emptyEl = el('nf-empty');
+        const loadMoreEl = el('nf-load-more');
+        if (emptyEl) emptyEl.hidden = true;
+        if (loadMoreEl) loadMoreEl.hidden = true;
+        document.querySelectorAll('.nf-query-label').forEach(n => { n.textContent = state.query; });
+
+        const warnHtml = plan.calorie_warning
+          ? `<div class="mt-2 rounded-xl border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs text-amber-200">⚠️ ${plan.calorie_warning}</div>`
+          : '';
+        const aiNoteHtml = data.ai_rationale
+          ? `<div class="mt-2 text-xs text-sky-200/90">✨ ${data.ai_rationale}</div>`
+          : '';
+        if (ctxEl) {
+          ctxEl.hidden = false;
+          ctxEl.innerHTML = `
+            <div class="rounded-2xl border border-white/15 bg-slate-900/60 p-4 text-sm text-slate-100">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div><strong>Chỉ số năng lượng:</strong> BMR <strong>${plan.bmr} kcal</strong> · TDEE <strong>${plan.tdee} kcal</strong></div>
+                <div class="text-emerald-300 font-semibold">Mục tiêu: ${plan.target_calories} kcal/ngày (Thực tế: ${plan.total_calories} kcal)</div>
+              </div>
+              ${aiNoteHtml}
+              ${warnHtml}
+            </div>`;
+        }
+
+        state.recipes = [];
+        const regRecipe = (r) => {
+          if (!r) return -1;
+          const idx = state.recipes.length;
+          state.recipes.push(r);
+          return idx;
+        };
+        const imgTag = (r, altText) => {
+          const src = r?.image_link || r?.source_image_url || '';
+          return src
+            ? `<img src="${src}" alt="${altText || ''}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0 border border-white/10 bg-slate-800" loading="lazy">`
+            : `<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shrink-0 bg-slate-800/80 border border-white/10 flex items-center justify-center text-2xl">🍽️</div>`;
+        };
+
+        // 1. HTML Món lẻ theo bữa
+        const singleMealsHtml = (plan.meals || []).map(meal => {
+          const itemsHtml = (meal.items || []).map(item => {
+            const idx = regRecipe(item.recipe);
+            return `
+              <button type="button" data-nf-recipe="${idx}" class="w-full text-left rounded-xl border border-white/15 bg-slate-900/70 hover:bg-slate-800/90 p-3 transition flex items-center gap-3.5">
+                ${imgTag(item.recipe, item.name)}
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-white text-base truncate">${item.name || 'Món ăn'}</div>
+                  <div class="text-xs text-slate-300 mt-1">Khẩu phần: ${item.portion || '1 phần'} · Bấm để xem công thức</div>
+                </div>
+                <div class="shrink-0 rounded-lg bg-emerald-500/20 border border-emerald-400/30 px-3 py-1.5 text-xs font-bold text-emerald-300">${item.calories} kcal</div>
+              </button>`;
+          }).join('');
+          return `
+            <div class="rounded-2xl border border-white/15 bg-slate-900/40 p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-sky-300">${meal.meal_name}</h3>
+                <span class="text-xs text-slate-300">Mục tiêu: ${meal.target_calories} kcal · Thực tế: <strong>${meal.calories} kcal</strong></span>
+              </div>
+              ${itemsHtml || '<div class="text-xs text-slate-400">Chưa có món phù hợp trong tập đã lọc.</div>'}
+            </div>`;
+        }).join('');
+
+        // 2. HTML Combo (Mâm cơm đủ món: cơm, canh, món mặn/xào)
+        const combos = data.food_combos || [];
+        const combosHtml = combos.length ? combos.map((combo, cIdx) => {
+          const dishes = combo.dishes || combo.items || [];
+          const dishesHtml = dishes.map(d => {
+            const recipeObj = d.recipe || d;
+            const idx = d.recipe === null ? -1 : regRecipe(recipeObj);
+            const attr = idx >= 0 ? `data-nf-recipe="${idx}"` : '';
+            return `
+              <button type="button" ${attr} class="w-full text-left rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/90 p-2.5 transition flex items-center gap-3">
+                ${imgTag(d, d.title || d.name)}
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-white text-sm truncate">${d.title || d.name || 'Món ăn'}</div>
+                  <div class="text-xs text-slate-400">${d.dish_role_label || d.meal_label || 'Món trong mâm'}${d.servings_note ? ' · ' + d.servings_note : ''}</div>
+                </div>
+                <div class="text-xs font-semibold text-emerald-300 shrink-0">${d.calories || 0} kcal</div>
+              </button>`;
+          }).join('');
+          return `
+            <div class="rounded-2xl border border-white/15 bg-slate-900/40 p-4 space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="text-base font-bold text-amber-300">${combo.title || `Mâm cơm gợi ý #${cIdx + 1}`}</h3>
+                <span class="text-xs font-semibold text-emerald-300 shrink-0">${combo.total_calories || ''} kcal</span>
+              </div>
+              ${combo.note ? `<div class="text-xs text-slate-400">${combo.note}</div>` : ''}
+              <div class="grid grid-cols-1 gap-2">${dishesHtml}</div>
+            </div>`;
+        }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa ghép được mâm cơm combo phù hợp cho điều kiện này, bạn xem tab Món lẻ bên cạnh nhé.</div>';
+
+        // 3. HTML Nước uống
+        const drinks = data.drinks || [];
+        const drinksHtml = drinks.length ? drinks.map(dr => {
+          const idx = regRecipe(dr);
+          const dCal = dr.per_person_calories || dr.calories || 0;
+          return `
+            <button type="button" data-nf-recipe="${idx}" class="w-full text-left rounded-xl border border-white/15 bg-slate-900/70 hover:bg-slate-800/90 p-3 transition flex items-center gap-3.5">
+              ${imgTag(dr, dr.title || dr.name)}
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-white text-base truncate">${dr.title || dr.name || 'Thức uống'}</div>
+                <div class="text-xs text-slate-300 mt-1">${dr.cooking_time || 'Pha chế nhanh'} · ${dr.servings || '1 ly'} · Bấm để xem cách làm</div>
+              </div>
+              <div class="shrink-0 rounded-lg bg-sky-500/20 border border-sky-400/30 px-3 py-1.5 text-xs font-bold text-sky-300">${dCal} kcal</div>
+            </button>`;
+        }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa có thức uống phù hợp với điều kiện lọc hiện tại.</div>';
+
+        if (cardsEl) {
+          const iconUtensils = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+          const iconCup = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M6 8h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M5 8h14"/><path d="M12 8V4l3-1"/></svg>';
+          const iconSoupBowl = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M9 5v2"/><path d="M12 4v3"/><path d="M15 5v2"/><path d="M8 20h8"/></svg>';
+          const iconRiceBowl = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 12a6 6 0 0 1 12 0"/><path d="M9 20h6"/></svg>';
+          const iconGrid = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>';
+
+          const tabActiveCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-sky-500 text-white border border-sky-400/60 shadow-[0_6px_18px_rgba(14,165,233,0.35)] cursor-pointer transition';
+          const tabIdleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-[#122644]/90 text-slate-100 border border-white/15 hover:bg-slate-800/90 cursor-pointer transition';
+          const subActiveCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-teal-600/35 text-teal-100 border border-teal-400/65 shadow-sm cursor-pointer transition';
+          const subIdleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-[#122644]/90 text-slate-100 border border-white/15 hover:bg-slate-800/90 cursor-pointer transition';
+          const shuffleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-amber-600/25 text-amber-100 border border-amber-400/60 hover:bg-amber-500/35 cursor-pointer transition';
+
+          const isDrink = mainTab === 'drink';
+          const isCombo = foodSubTab === 'combo';
+
+          cardsEl.innerHTML = `
+            <div class="col-span-full space-y-4">
+              <div class="flex flex-wrap items-center gap-3 border-b border-white/10 pb-3.5">
+                <button type="button" id="nf-tab-food" class="${!isDrink ? tabActiveCls : tabIdleCls}">${iconUtensils}<span>Thức ăn</span></button>
+                <button type="button" id="nf-tab-drink" class="${isDrink ? tabActiveCls : tabIdleCls}">${iconCup}<span>Nước uống (${drinks.length})</span></button>
+                <div id="nf-food-subtabs" class="${isDrink ? 'hidden ' : ''}flex flex-wrap items-center gap-3">
+                  <button type="button" id="nf-sub-single" class="${!isCombo ? subActiveCls : subIdleCls}">${iconSoupBowl}<span>Món lẻ theo bữa</span></button>
+                  <button type="button" id="nf-sub-combo" class="${isCombo ? subActiveCls : subIdleCls}">${iconRiceBowl}<span>Combo mâm cơm (${combos.length})</span></button>
+                </div>
+                <button type="button" id="nf-shuffle-menu-btn" class="${shuffleCls}">${iconGrid}<span>Đổi thực đơn khác</span></button>
+              </div>
+              <div id="nf-panel-food-single" class="${(isDrink || isCombo) ? 'hidden ' : ''}grid grid-cols-1 md:grid-cols-2 gap-4">${singleMealsHtml}</div>
+              <div id="nf-panel-food-combo" class="${(isDrink || !isCombo) ? 'hidden ' : ''}grid grid-cols-1 md:grid-cols-2 gap-4">${combosHtml}</div>
+              <div id="nf-panel-drink" class="${!isDrink ? 'hidden ' : ''}grid grid-cols-1 md:grid-cols-2 gap-4">${drinksHtml}</div>
+            </div>`;
+
+          const tabFood = el('nf-tab-food');
+          const tabDrink = el('nf-tab-drink');
+          const subTabs = el('nf-food-subtabs');
+          const subSingle = el('nf-sub-single');
+          const subCombo = el('nf-sub-combo');
+          const shuffleBtn = el('nf-shuffle-menu-btn');
+          const pSingle = el('nf-panel-food-single');
+          const pCombo = el('nf-panel-food-combo');
+          const pDrink = el('nf-panel-drink');
+
+          if (shuffleBtn && el('nf-survey-form')) {
+            shuffleBtn.addEventListener('click', () => {
+              el('nf-survey-form').dispatchEvent(new Event('submit', { cancelable: true }));
+            });
+          }
+
+          tabFood.addEventListener('click', () => {
+            tabFood.className = tabActiveCls;
+            tabDrink.className = tabIdleCls;
+            subSingle.className = subActiveCls;
+            subCombo.className = subIdleCls;
+            subTabs.classList.remove('hidden');
+            pDrink.classList.add('hidden');
+            pSingle.classList.remove('hidden');
+            pCombo.classList.add('hidden');
+            _saveNutritionSession({ mainTab: 'food', foodSubTab: 'single' });
+          });
+          tabDrink.addEventListener('click', () => {
+            tabDrink.className = tabActiveCls;
+            tabFood.className = tabIdleCls;
+            subTabs.classList.add('hidden');
+            pSingle.classList.add('hidden');
+            pCombo.classList.add('hidden');
+            pDrink.classList.remove('hidden');
+            _saveNutritionSession({ mainTab: 'drink' });
+          });
+          subSingle.addEventListener('click', () => {
+            subSingle.className = subActiveCls;
+            subCombo.className = subIdleCls;
+            pSingle.classList.remove('hidden');
+            pCombo.classList.add('hidden');
+            _saveNutritionSession({ mainTab: 'food', foodSubTab: 'single' });
+          });
+          subCombo.addEventListener('click', () => {
+            subCombo.className = subActiveCls;
+            subSingle.className = subIdleCls;
+            pCombo.classList.remove('hidden');
+            pSingle.classList.add('hidden');
+            _saveNutritionSession({ mainTab: 'food', foodSubTab: 'combo' });
+          });
+        }
+      }
+
       if (el('nf-survey-form')) {
         el('nf-survey-form').addEventListener('submit', async event => {
           event.preventDefault();
@@ -959,8 +1183,9 @@
             'Dạ dày / Trào ngược': 'Dạ dày',
             'Rối loạn mỡ máu': 'Rối loạn mỡ máu',
           };
-          const medical_conditions = Array.from(document.querySelectorAll('input[name="nf-sv-cond"]:checked'))
-            .map(cb => condMap[cb.value] || cb.value)
+          const checkedCondValues = Array.from(document.querySelectorAll('input[name="nf-sv-cond"]:checked')).map(cb => cb.value);
+          const medical_conditions = checkedCondValues
+            .map(val => condMap[val] || val)
             .filter(Boolean);
           const customCond = (el('nf-sv-cond-custom')?.value || '').trim();
           if (customCond) medical_conditions.push(customCond);
@@ -1017,184 +1242,19 @@
               return;
             }
 
-            const warnHtml = plan.calorie_warning
-              ? `<div class="mt-2 rounded-xl border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs text-amber-200">⚠️ ${plan.calorie_warning}</div>`
-              : '';
-            const aiNoteHtml = data.ai_rationale
-              ? `<div class="mt-2 text-xs text-sky-200/90">✨ ${data.ai_rationale}</div>`
-              : '';
-            if (ctxEl) {
-              ctxEl.hidden = false;
-              ctxEl.innerHTML = `
-                <div class="rounded-2xl border border-white/15 bg-slate-900/60 p-4 text-sm text-slate-100">
-                  <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div><strong>Chỉ số năng lượng:</strong> BMR <strong>${plan.bmr} kcal</strong> · TDEE <strong>${plan.tdee} kcal</strong></div>
-                    <div class="text-emerald-300 font-semibold">Mục tiêu: ${plan.target_calories} kcal/ngày (Thực tế: ${plan.total_calories} kcal)</div>
-                  </div>
-                  ${aiNoteHtml}
-                  ${warnHtml}
-                </div>`;
-            }
-
-            state.recipes = [];
-            const regRecipe = (r) => {
-              if (!r) return -1;
-              const idx = state.recipes.length;
-              state.recipes.push(r);
-              return idx;
-            };
-            const imgTag = (r, altText) => {
-              const src = r?.image_link || r?.source_image_url || '';
-              return src
-                ? `<img src="${src}" alt="${altText || ''}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover shrink-0 border border-white/10 bg-slate-800" loading="lazy">`
-                : `<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shrink-0 bg-slate-800/80 border border-white/10 flex items-center justify-center text-2xl">🍽️</div>`;
-            };
-
-            // 1. HTML Món lẻ theo bữa
-            const singleMealsHtml = (plan.meals || []).map(meal => {
-              const itemsHtml = (meal.items || []).map(item => {
-                const idx = regRecipe(item.recipe);
-                return `
-                  <button type="button" data-nf-recipe="${idx}" class="w-full text-left rounded-xl border border-white/15 bg-slate-900/70 hover:bg-slate-800/90 p-3 transition flex items-center gap-3.5">
-                    ${imgTag(item.recipe, item.name)}
-                    <div class="flex-1 min-w-0">
-                      <div class="font-semibold text-white text-base truncate">${item.name || 'Món ăn'}</div>
-                      <div class="text-xs text-slate-300 mt-1">Khẩu phần: ${item.portion || '1 phần'} · Bấm để xem công thức</div>
-                    </div>
-                    <div class="shrink-0 rounded-lg bg-emerald-500/20 border border-emerald-400/30 px-3 py-1.5 text-xs font-bold text-emerald-300">${item.calories} kcal</div>
-                  </button>`;
-              }).join('');
-              return `
-                <div class="rounded-2xl border border-white/15 bg-slate-900/40 p-4 space-y-3">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-base font-bold text-sky-300">${meal.meal_name}</h3>
-                    <span class="text-xs text-slate-300">Mục tiêu: ${meal.target_calories} kcal · Thực tế: <strong>${meal.calories} kcal</strong></span>
-                  </div>
-                  ${itemsHtml || '<div class="text-xs text-slate-400">Chưa có món phù hợp trong tập đã lọc.</div>'}
-                </div>`;
-            }).join('');
-
-            // 2. HTML Combo (Mâm cơm đủ món: cơm, canh, món mặn/xào)
-            const combos = data.food_combos || [];
-            const combosHtml = combos.length ? combos.map((combo, cIdx) => {
-              const dishes = combo.dishes || combo.items || [];
-              const dishesHtml = dishes.map(d => {
-                const recipeObj = d.recipe || d;
-                const idx = d.recipe === null ? -1 : regRecipe(recipeObj);
-                const attr = idx >= 0 ? `data-nf-recipe="${idx}"` : '';
-                return `
-                  <button type="button" ${attr} class="w-full text-left rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/90 p-2.5 transition flex items-center gap-3">
-                    ${imgTag(d, d.title || d.name)}
-                    <div class="flex-1 min-w-0">
-                      <div class="font-medium text-white text-sm truncate">${d.title || d.name || 'Món ăn'}</div>
-                      <div class="text-xs text-slate-400">${d.dish_role_label || d.meal_label || 'Món trong mâm'}${d.servings_note ? ' · ' + d.servings_note : ''}</div>
-                    </div>
-                    <div class="text-xs font-semibold text-emerald-300 shrink-0">${d.calories || 0} kcal</div>
-                  </button>`;
-              }).join('');
-              return `
-                <div class="rounded-2xl border border-white/15 bg-slate-900/40 p-4 space-y-3">
-                  <div class="flex items-center justify-between gap-2">
-                    <h3 class="text-base font-bold text-amber-300">${combo.title || `Mâm cơm gợi ý #${cIdx + 1}`}</h3>
-                    <span class="text-xs font-semibold text-emerald-300 shrink-0">${combo.total_calories || ''} kcal</span>
-                  </div>
-                  ${combo.note ? `<div class="text-xs text-slate-400">${combo.note}</div>` : ''}
-                  <div class="grid grid-cols-1 gap-2">${dishesHtml}</div>
-                </div>`;
-            }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa ghép được mâm cơm combo phù hợp cho điều kiện này, bạn xem tab Món lẻ bên cạnh nhé.</div>';
-
-            // 3. HTML Nước uống
-            const drinks = data.drinks || [];
-            const drinksHtml = drinks.length ? drinks.map(dr => {
-              const idx = regRecipe(dr);
-              const dCal = dr.per_person_calories || dr.calories || 0;
-              return `
-                <button type="button" data-nf-recipe="${idx}" class="w-full text-left rounded-xl border border-white/15 bg-slate-900/70 hover:bg-slate-800/90 p-3 transition flex items-center gap-3.5">
-                  ${imgTag(dr, dr.title || dr.name)}
-                  <div class="flex-1 min-w-0">
-                    <div class="font-semibold text-white text-base truncate">${dr.title || dr.name || 'Thức uống'}</div>
-                    <div class="text-xs text-slate-300 mt-1">${dr.cooking_time || 'Pha chế nhanh'} · ${dr.servings || '1 ly'} · Bấm để xem cách làm</div>
-                  </div>
-                  <div class="shrink-0 rounded-lg bg-sky-500/20 border border-sky-400/30 px-3 py-1.5 text-xs font-bold text-sky-300">${dCal} kcal</div>
-                </button>`;
-            }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa có thức uống phù hợp với điều kiện lọc hiện tại.</div>';
-
-            if (cardsEl) {
-              const iconUtensils = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
-              const iconCup = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M6 8h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M5 8h14"/><path d="M12 8V4l3-1"/></svg>';
-              const iconSoupBowl = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M9 5v2"/><path d="M12 4v3"/><path d="M15 5v2"/><path d="M8 20h8"/></svg>';
-              const iconRiceBowl = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 12a6 6 0 0 1 12 0"/><path d="M9 20h6"/></svg>';
-              const iconGrid = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>';
-
-              const tabActiveCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-sky-500 text-white border border-sky-400/60 shadow-[0_6px_18px_rgba(14,165,233,0.35)] cursor-pointer transition';
-              const tabIdleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-[#122644]/90 text-slate-100 border border-white/15 hover:bg-slate-800/90 cursor-pointer transition';
-              const subActiveCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-teal-600/35 text-teal-100 border border-teal-400/65 shadow-sm cursor-pointer transition';
-              const subIdleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-[#122644]/90 text-slate-100 border border-white/15 hover:bg-slate-800/90 cursor-pointer transition';
-              const shuffleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-amber-600/25 text-amber-100 border border-amber-400/60 hover:bg-amber-500/35 cursor-pointer transition';
-
-              cardsEl.innerHTML = `
-                <div class="col-span-full space-y-4">
-                  <div class="flex flex-wrap items-center gap-3 border-b border-white/10 pb-3.5">
-                    <button type="button" id="nf-tab-food" class="${tabActiveCls}">${iconUtensils}<span>Thức ăn</span></button>
-                    <button type="button" id="nf-tab-drink" class="${tabIdleCls}">${iconCup}<span>Nước uống (${drinks.length})</span></button>
-                    <div id="nf-food-subtabs" class="flex flex-wrap items-center gap-3">
-                      <button type="button" id="nf-sub-single" class="${subActiveCls}">${iconSoupBowl}<span>Món lẻ theo bữa</span></button>
-                      <button type="button" id="nf-sub-combo" class="${subIdleCls}">${iconRiceBowl}<span>Combo mâm cơm (${combos.length})</span></button>
-                    </div>
-                    <button type="button" id="nf-shuffle-menu-btn" class="${shuffleCls}">${iconGrid}<span>Đổi thực đơn khác</span></button>
-                  </div>
-                  <div id="nf-panel-food-single" class="grid grid-cols-1 md:grid-cols-2 gap-4">${singleMealsHtml}</div>
-                  <div id="nf-panel-food-combo" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">${combosHtml}</div>
-                  <div id="nf-panel-drink" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">${drinksHtml}</div>
-                </div>`;
-
-              const tabFood = el('nf-tab-food');
-              const tabDrink = el('nf-tab-drink');
-              const subTabs = el('nf-food-subtabs');
-              const subSingle = el('nf-sub-single');
-              const subCombo = el('nf-sub-combo');
-              const shuffleBtn = el('nf-shuffle-menu-btn');
-              const pSingle = el('nf-panel-food-single');
-              const pCombo = el('nf-panel-food-combo');
-              const pDrink = el('nf-panel-drink');
-
-              if (shuffleBtn && el('nf-survey-form')) {
-                shuffleBtn.addEventListener('click', () => {
-                  el('nf-survey-form').dispatchEvent(new Event('submit', { cancelable: true }));
-                });
+            _saveNutritionSession({
+              stage: 'results',
+              query: state.query,
+              mainTab: 'food',
+              foodSubTab: 'single',
+              activeRecipe: null,
+              mealPlanData: data,
+              surveyFields: {
+                height, weight, age, gender, activity_level, goal, mealsText, allergies,
+                checkedCondValues, customCond
               }
-
-              tabFood.addEventListener('click', () => {
-                tabFood.className = tabActiveCls;
-                tabDrink.className = tabIdleCls;
-                subSingle.className = subActiveCls;
-                subCombo.className = subIdleCls;
-                subTabs.classList.remove('hidden');
-                pDrink.classList.add('hidden');
-                pSingle.classList.remove('hidden');
-                pCombo.classList.add('hidden');
-              });
-              tabDrink.addEventListener('click', () => {
-                tabDrink.className = tabActiveCls;
-                tabFood.className = tabIdleCls;
-                subTabs.classList.add('hidden');
-                pSingle.classList.add('hidden');
-                pCombo.classList.add('hidden');
-                pDrink.classList.remove('hidden');
-              });
-              subSingle.addEventListener('click', () => {
-                subSingle.className = subActiveCls;
-                subCombo.className = subIdleCls;
-                pSingle.classList.remove('hidden');
-                pCombo.classList.add('hidden');
-              });
-              subCombo.addEventListener('click', () => {
-                subCombo.className = subActiveCls;
-                subSingle.className = subIdleCls;
-                pCombo.classList.remove('hidden');
-                pSingle.classList.add('hidden');
-              });
-            }
+            });
+            _renderMealPlanView(data, 'food', 'single');
           } catch (err) {
             if (ctxEl) ctxEl.innerHTML = '<div class="p-4 text-sm text-rose-300">Lỗi kết nối máy chủ khi tạo thực đơn.</div>';
           }
@@ -1287,7 +1347,39 @@
         if (state.lastData) applyResultsCopy();
         if (state.stage === 'detail' && state.activeRecipe) renderDetail(state.activeRecipe);
       });
+
+      // Khôi phục đúng màn đang xem (results / detail / search) khi F5 reload trang
+      const saved = _readNutritionSession();
+      const fields = saved.surveyFields;
+      if (fields && el('nf-survey-form')) {
+        if (el('nf-sv-height') && fields.height) el('nf-sv-height').value = fields.height;
+        if (el('nf-sv-weight') && fields.weight) el('nf-sv-weight').value = fields.weight;
+        if (el('nf-sv-age') && fields.age) el('nf-sv-age').value = fields.age;
+        if (el('nf-sv-gender') && fields.gender) el('nf-sv-gender').value = fields.gender;
+        if (el('nf-sv-activity') && fields.activity_level) el('nf-sv-activity').value = fields.activity_level;
+        if (el('nf-sv-goal') && fields.goal !== undefined) el('nf-sv-goal').value = fields.goal;
+        if (el('nf-sv-meals') && fields.mealsText) el('nf-sv-meals').value = fields.mealsText;
+        if (el('nf-sv-avoid') && fields.allergies !== undefined) el('nf-sv-avoid').value = fields.allergies;
+        if (el('nf-sv-cond-custom') && fields.customCond !== undefined) el('nf-sv-cond-custom').value = fields.customCond;
+        if (Array.isArray(fields.checkedCondValues)) {
+          const picked = new Set(fields.checkedCondValues);
+          document.querySelectorAll('input[name="nf-sv-cond"]').forEach(cb => {
+            cb.checked = picked.has(cb.value);
+          });
+        }
+      }
+      if (saved.mealPlanData?.daily_plan && (saved.stage === 'results' || saved.stage === 'detail')) {
+        state.query = saved.query || '';
+        _renderMealPlanView(saved.mealPlanData, saved.mainTab || 'food', saved.foodSubTab || 'single');
+        if (saved.stage === 'detail' && saved.activeRecipe) {
+          renderDetail(saved.activeRecipe);
+          show('detail');
+        } else {
+          show('results');
+        }
+      } else {
+        show('search');
+      }
     }
-    show('search');
   };
 })();
