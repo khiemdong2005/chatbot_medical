@@ -2279,6 +2279,12 @@ def create_app(test_config=None):
         result = build_production_meal_plan(payload)
         return jsonify(result), 200
 
+    @app.get("/api/nutrition/recipe-catalog")
+    def nutrition_recipe_catalog():
+        """Tìm kiếm, lọc và phân trang danh mục công thức Món Ngon Mỗi Ngày."""
+        from core.monngonmoingay_catalog import search_recipes
+        return jsonify(search_recipes(request.args)), 200
+
     @app.route("/api/nutrition/analyze", methods=["POST"])
     def analyze_nutrition():
         """

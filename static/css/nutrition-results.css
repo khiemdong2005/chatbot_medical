@@ -29,15 +29,7 @@
   font-size: clamp(32px, 4.4vw, 46px) !important;
   line-height: 1.16;
 }
-#doctor-tab #nf-results-title::before {
-  content: '🍲';
-  font-size: .9em;
-  font-weight: 400;
-  filter: drop-shadow(0 5px 6px rgba(0, 25, 60, .25));
-}
-#doctor-tab #nf-results[data-type="drink"] #nf-results-title::before {
-  content: '🍵';
-}
+#doctor-tab #nf-results-title::before { content: none; }
 
 #doctor-tab #nf-results .nf-condition-banner {
   display: flex !important;

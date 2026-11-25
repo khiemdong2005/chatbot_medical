@@ -33,11 +33,11 @@
   </script>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.6">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=17">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=21">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=10">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=10">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=12">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=3">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=7">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=7">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=21">
@@ -1925,6 +1925,7 @@
             Bắt đầu khảo sát bữa ăn
           </button>
         </div>
+        <button id="nf-open-catalog" type="button" class="nf-catalog-open">Khám phá 2.500+ công thức <span aria-hidden="true">→</span></button>
         <form id="nf-search-form" class="nf-search-box hidden" style="display: none;">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
@@ -1938,35 +1939,38 @@
         <p class="nf-search-hint">Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
       </section>
 
-      <section id="nf-type" class="nf-stage" hidden style="display: none;">
-        <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
-        <p class="nf-overline">BƯỚC 1 / 3</p>
-        <h1>Bạn muốn xem loại nào?</h1>
-        <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
-              aria-hidden="true">
-              <path fill-rule="evenodd"
-                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                clip-rule="evenodd" />
-            </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
-        <div class="nf-type-grid">
-          <button type="button" class="nf-type-card" data-nf-type="food"><span class="nf-type-icon nf-type-food"
-              aria-hidden="true"><svg viewBox="0 0 40 40" fill="none">
-                <path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7" />
-                <path
-                  d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9"
-                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-              </svg></span><span><strong>Thức ăn</strong><small>Khám phá những món ăn dễ làm</small></span><span
-              class="nf-arrow">↗</span></button>
-          <button type="button" class="nf-type-card" data-nf-type="drink"><span class="nf-type-icon nf-type-drink"
-              aria-hidden="true"><svg viewBox="0 0 40 40" fill="none">
-                <path d="m11 9 3 25h13l3-25H11Z" fill="#d9edf2" />
-                <path d="M12 20h16" stroke="#95c6ce" stroke-width="2" />
-                <path d="m11 9 3 25h13l3-25H11Zm11 16 4-21 6-2" stroke="currentColor" stroke-width="1.8"
-                  stroke-linecap="round" stroke-linejoin="round" />
-              </svg></span><span><strong>Nước uống</strong><small>Khám phá những thức uống dễ pha</small></span><span
-              class="nf-arrow">↗</span></button>
+      <section id="nf-catalog" class="nf-stage nf-catalog" hidden aria-labelledby="nf-catalog-title">
+        <button id="nf-catalog-back" class="nf-back" type="button">← Quay lại Pha chế dinh dưỡng</button>
+        <p class="nf-overline">DANH MỤC CÔNG THỨC</p>
+        <div class="nf-catalog-heading"><div><h1 id="nf-catalog-title">Khám phá món ngon, chọn theo nhu cầu</h1><p>Tra cứu công thức và nguyên liệu từ Món Ngon Mỗi Ngày. Kcal là tổng ước tính của cả món theo dữ liệu nguồn.</p></div><span class="nf-catalog-count" id="nf-catalog-count" aria-live="polite">Đang tải…</span></div>
+        <div class="nf-catalog-toolbar">
+          <label class="nf-catalog-search"><span aria-hidden="true">⌕</span><input id="nf-catalog-query" type="search" placeholder="Tìm món hoặc nguyên liệu…" autocomplete="off"><kbd>Không dấu</kbd></label>
+          <button type="button" id="nf-catalog-reset" class="nf-catalog-reset">Xóa bộ lọc</button>
         </div>
+        <div class="nf-catalog-filter-block"><span class="nf-catalog-label">Mục tiêu &amp; chế độ ăn</span><div class="nf-catalog-chips" id="nf-catalog-objectives">
+          <button type="button" class="active" data-objective="all">Tất cả</button><button type="button" data-objective="Ăn kiêng / Giảm mỡ">Ăn kiêng / Giảm mỡ</button><button type="button" data-objective="Cân bằng dinh dưỡng">Cân bằng dinh dưỡng</button><button type="button" data-objective="Ăn chay">Ăn chay</button><button type="button" data-objective="Tăng năng lượng">Tăng năng lượng</button><button type="button" data-objective="Tốt cho xương &amp; cơ">Tốt cho xương &amp; cơ</button><button type="button" data-objective="Phục hồi sức khỏe">Phục hồi sức khỏe</button>
+        </div></div>
+        <div class="nf-catalog-selects">
+          <label>Bữa ăn<select id="nf-catalog-meal"><option value="all">Mọi bữa ăn</option><option>Bữa sáng</option><option>Bữa trưa</option><option>Bữa tối</option><option>Ăn vặt</option></select></label>
+          <label>Cách nấu<select id="nf-catalog-method"><option value="all">Mọi cách nấu</option><optgroup label="Ưu tiên ít dầu mỡ"><option>Hấp/Tiềm</option><option>Canh/Súp</option><option>Gỏi/Trộn</option><option>Nướng</option></optgroup><optgroup label="Món áp chảo / dùng dầu"><option>Chiên</option><option>Món xào</option></optgroup><option>Kho</option></select></label>
+          <label>Tổng năng lượng<select id="nf-catalog-kcal"><option value="all">Mọi mức kcal</option><option value="under1000">Dưới 1.000 kcal</option><option value="1000to2500">1.000–2.500 kcal</option><option value="2500to4000">2.501–4.000 kcal</option><option value="over4000">Trên 4.000 kcal</option></select></label>
+          <label>Sắp xếp<select id="nf-catalog-sort"><option value="relevance">Liên quan nhất</option><option value="kcal_asc">Calo tăng dần</option><option value="kcal_desc">Calo giảm dần</option></select></label>
+        </div>
+        <details class="nf-catalog-allergies"><summary>Loại trừ dị ứng &amp; thành phần cần tránh</summary><div id="nf-catalog-excludes" class="nf-catalog-excludes">
+          <label><input type="checkbox" value="Tôm"> Tôm</label><label><input type="checkbox" value="Hải sản"> Hải sản</label><label><input type="checkbox" value="Trứng"> Trứng</label><label><input type="checkbox" value="Thịt bò"> Thịt bò</label><label><input type="checkbox" value="Đậu phộng"> Đậu phộng</label><label><input type="checkbox" value="Phô mai / Sữa"> Phô mai / Sữa</label><label><input type="checkbox" value="Nấm"> Nấm</label>
+        </div><p>Món có thành phần khớp từ khóa trong nguyên liệu hoặc tag sẽ được ẩn. Hãy luôn kiểm tra nhãn sản phẩm và nguy cơ nhiễm chéo.</p></details>
+        <div id="nf-catalog-grid" class="nf-catalog-grid" aria-live="polite"></div>
+        <div id="nf-catalog-empty" class="nf-catalog-empty" hidden>Không tìm thấy món phù hợp. Hãy thử đổi từ khóa hoặc bộ lọc.</div>
+        <nav id="nf-catalog-pages" class="nf-catalog-pages" aria-label="Trang công thức"></nav>
+        <p class="nf-catalog-disclaimer">Thông tin kcal và tag được cung cấp trong dữ liệu công thức, chưa phải phân tích dinh dưỡng lâm sàng. Dị ứng được lọc tự động theo tên nguyên liệu nên hãy xác nhận trước khi sử dụng.</p>
       </section>
+      <div id="nf-recipe-drawer" class="nf-recipe-drawer" hidden>
+        <button class="nf-drawer-backdrop" type="button" data-drawer-close aria-label="Đóng chi tiết công thức"></button>
+        <section class="nf-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="nf-drawer-title" tabindex="-1">
+          <button class="nf-drawer-close" type="button" data-drawer-close aria-label="Đóng">×</button>
+          <div id="nf-drawer-content"></div>
+        </section>
+      </div>
 
       <section id="nf-results" class="nf-stage nf-wide" hidden>
         <button class="nf-back" type="button" data-nf-back="search">← Làm lại khảo sát</button>
@@ -1990,11 +1994,9 @@
         <!-- Bộ chuyển đổi chế độ xem: Mâm cơm gia đình (4 món) vs Món ăn độc lập -->
         <div id="nf-mode-switcher" class="nf-mode-switcher" hidden>
           <button type="button" class="nf-mode-btn active" data-nf-view="full_meal">
-            <span class="nf-mode-icon">🍱</span>
             <span>Mâm cơm gia đình (4 món)</span>
           </button>
           <button type="button" class="nf-mode-btn" data-nf-view="single_dishes">
-            <span class="nf-mode-icon">🍲</span>
             <span>Món ăn độc lập (Phở, bún, cháo, mì...)</span>
           </button>
         </div>
@@ -4154,7 +4156,8 @@
       </div>
 
   <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.43"></script>
-  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.21"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.28"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-catalog.js') }}?v=6"></script>
 
   <!-- ============================================================== -->
   <!-- FACILITY APPOINTMENT BOOKING MODAL (DOCTOGO MULTI-STEP FLOW)     -->

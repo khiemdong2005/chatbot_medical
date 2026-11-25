@@ -9,8 +9,9 @@ import unicodedata
 from urllib.parse import unquote, urlsplit
 
 DATA_ROOT = Path(__file__).resolve().parent.parent / "data/recipes"
-DATA_PATH = DATA_ROOT / "vifoodrec/recipes.json"
+DATA_PATH = DATA_ROOT / "monngonmoingay_recipes_with_kcal.json"
 WIKIBOOKS_DATA_PATH = DATA_ROOT / "wikibooks/recipes.json"
+LEGACY_VIFOODREC_DATA_PATH = DATA_ROOT / "vifoodrec/recipes.json"
 VIFOODREC_REPOSITORY = "QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System"
 
 
@@ -49,6 +50,75 @@ def _parse_servings_count(servings_value) -> int:
     if not match:
         return 1
     return max(1, min(12, int(match.group(1))))
+
+
+@lru_cache(maxsize=2)
+def _read_monngonmoingay(path, version):
+    if version is None:
+        return []
+    try:
+        raw = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return []
+    result = []
+    for index, entry in enumerate(raw if isinstance(raw, list) else []):
+        if not isinstance(entry, dict) or not isinstance(entry.get("ten_mon"), str) or not entry["ten_mon"].strip():
+            continue
+        ingredients = entry.get("nguyen_lieu") if isinstance(entry.get("nguyen_lieu"), list) else []
+        prep = entry.get("so_che") if isinstance(entry.get("so_che"), list) else []
+        steps = entry.get("thuc_hien") if isinstance(entry.get("thuc_hien"), list) else []
+        tags = entry.get("tags") if isinstance(entry.get("tags"), list) else []
+        kcal = entry.get("kcal")
+        if (not ingredients or not isinstance(kcal, (int, float)) or isinstance(kcal, bool)
+                or not math.isfinite(kcal) or kcal < 0):
+            continue
+        recipe_id = f"monngonmoingay_{index}"
+        source_url = entry.get("url") if _is_mnnm_url(entry.get("url")) else ""
+        image_url = entry.get("hinh_anh") if _is_mnnm_url(entry.get("hinh_anh")) else ""
+        recipe = {
+            "id": recipe_id,
+            "recipe_type": "food",
+            "title": entry["ten_mon"].strip(),
+            "display_title": entry["ten_mon"].strip(),
+            "subtitle": "Công thức từ Món Ngon Mỗi Ngày",
+            "cooking_time": "Linh hoạt" if str(entry.get("thoi_gian_thuc_hien", "")).strip().lower() == "0 phút" else str(entry.get("thoi_gian_thuc_hien") or "Xem cách làm"),
+            "servings": str(entry.get("khau_phan") or "Theo công thức"),
+            "ingredients": [{"name": str(item).strip(), "amount": "", "unit": "", "icon": ""}
+                            for item in ingredients if isinstance(item, str) and item.strip()],
+            "steps": [*(f"Sơ chế: {step.strip()}" for step in prep if isinstance(step, str) and step.strip()),
+                      *(step.strip() for step in steps if isinstance(step, str) and step.strip())],
+            "preparation_steps": [step.strip() for step in prep if isinstance(step, str) and step.strip()],
+            "categories": [str(tag).strip() for tag in tags if isinstance(tag, str) and tag.strip()],
+            "tags": [str(tag).strip() for tag in tags if isinstance(tag, str) and tag.strip()],
+            "calories": round(kcal),
+            "total_calories": round(kcal),
+            "calories_basis": "whole_recipe",
+            "source_url": source_url,
+            "revision_url": source_url,
+            "source_image_url": image_url,
+            "image_link": image_url,
+            "source_provider": "Món Ngon Mỗi Ngày",
+            "source_attribution": "Món Ngon Mỗi Ngày",
+            "source_title": entry["ten_mon"].strip(),
+            "license": "not_declared",
+            "language": "vi",
+            "cuisine": "VN",
+            "imported": True,
+            "benefit": "Kcal và thẻ phân loại lấy từ dữ liệu công thức; chưa được xác minh phù hợp y khoa cho từng người.",
+            "avoid": ["Kiểm tra dị ứng, thành phần, khẩu phần và hướng dẫn cá nhân trước khi dùng."],
+        }
+        if recipe["ingredients"]:
+            result.append(recipe)
+    return result
+
+
+def _is_mnnm_url(value):
+    try:
+        url = urlsplit(str(value or ""))
+        return (url.scheme == "https" and url.hostname in ("monngonmoingay.com", "www.monngonmoingay.com")
+                and not url.username and not url.password and url.port in (None, 443))
+    except (TypeError, ValueError):
+        return False
 
 
 def normalize_drink_calories(recipe) -> None:
@@ -123,11 +193,11 @@ def _read_catalog(path, version):
 
 
 def _records(source=None):
-    # International records remain archived for reproducibility. They are not
-    # silently used as the fallback for a Vietnamese catalog or empty filter.
-    path = WIKIBOOKS_DATA_PATH if source == "wikibooks" else DATA_PATH
-    version = path.stat().st_mtime_ns if path.exists() else None
-    return _read_catalog(str(path), version)
+    if source == "wikibooks":
+        version = WIKIBOOKS_DATA_PATH.stat().st_mtime_ns if WIKIBOOKS_DATA_PATH.exists() else None
+        return _read_catalog(str(WIKIBOOKS_DATA_PATH), version)
+    version = DATA_PATH.stat().st_mtime_ns if DATA_PATH.exists() else None
+    return _read_monngonmoingay(str(DATA_PATH), version)
 
 
 def imported_recipes(recipe_type=None, source=None):
@@ -137,14 +207,13 @@ def imported_recipes(recipe_type=None, source=None):
 
 def catalog_stats():
     records = _records()
-    demo = 0 if records else 7
     providers = sorted({r["source_provider"] for r in records})
     vietnamese = bool(records) and all(r.get("cuisine") == "VN" for r in records)
-    return {"imported_count": len(records), "food_count": demo + sum(r["recipe_type"] == "food" for r in records),
-            "drink_count": demo + sum(r["recipe_type"] == "drink" for r in records),
-            "total": 2 * demo + len(records), "source": ", ".join(providers) if providers else "Danh mục mẫu",
+    return {"imported_count": len(records), "food_count": sum(r["recipe_type"] == "food" for r in records),
+            "drink_count": sum(r["recipe_type"] == "drink" for r in records),
+            "total": len(records), "source": ", ".join(providers) if providers else "Danh mục trống",
             "cuisine": "VN" if vietnamese else "unspecified",
-            "license": "not_declared" if vietnamese else "CC BY-SA 4.0" if providers == ["Wikibooks Cookbook"] else "project_samples"}
+            "license": "not_declared" if "Món Ngon Mỗi Ngày" in providers else "CC BY-SA 4.0" if providers == ["Wikibooks Cookbook"] else "project_samples"}
 
 
 EXPANSIONS = {

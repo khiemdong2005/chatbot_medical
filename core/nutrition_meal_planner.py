@@ -2,7 +2,7 @@
 MediMind Production Meal Planner
 Kiến trúc 4 tầng chuẩn Production:
   1. Tính BMR / TDEE (Mifflin-St Jeor) & Target Calories thông minh.
-  2. Bộ lọc cứng lâm sàng Python trên toàn bộ ViFoodRec (an toàn 100% bệnh nền & dị ứng).
+  2. Bộ lọc nguyên liệu Python trên danh mục Món Ngon Mỗi Ngày và các công thức chuyên biệt đã chọn lọc.
   3. Chuẩn hóa Calo theo khẩu phần 1 người (chia servings) + phân loại món ăn chuẩn + gán ảnh thật 100%.
   4. AI Ranker (Groq key rotation) xếp hạng thực đơn hài hòa khẩu vị & giải thích lâm sàng (có Python fallback).
 """
@@ -11,7 +11,9 @@ import logging
 import os
 import random
 import re
+from itertools import product
 import unicodedata
+from urllib.parse import urlsplit
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger("MediMindNutritionPlanner")
@@ -98,7 +100,8 @@ def parse_servings_count(recipe: Dict[str, Any]) -> int:
     srv = str(recipe.get("servings") or "")
     m = re.search(r"(\d+)", srv)
     if m:
-        return max(1, min(20, int(m.group(1))))
+        limit = 100 if recipe.get("calories_basis") == "whole_recipe" else 20
+        return max(1, min(limit, int(m.group(1))))
     return 1
 
 
@@ -107,6 +110,8 @@ def per_person_calories(recipe: Dict[str, Any], is_combo_dish: bool = False) -> 
     if raw <= 0:
         return 110 if is_combo_dish else 260
     n = parse_servings_count(recipe)
+    if recipe.get("calories_basis") == "whole_recipe":
+        return max(1, round(raw / n)) if n > 1 else round(raw)
     if is_combo_dish:
         # Món trong mâm cơm (chia sẻ cho N người trong bữa gia đình)
         return max(35, round(raw / n)) if n > 1 else round(raw)
@@ -207,6 +212,22 @@ def _is_breakfast_friendly(recipe: Dict[str, Any]) -> bool:
     return any(k in t for k in BREAKFAST_KEYWORDS)
 
 
+def _is_light_snack(recipe: Dict[str, Any]) -> bool:
+    title = _strip_accents(recipe.get("title") or "").lower().strip()
+    snack_keywords = (
+        "an vat", "sua chua", "yaourt", "trai cay", "hoa qua", "goi cuon",
+        "salad", "bap luoc", "khoai luoc", "rau cau", "banh flan", "hat rang",
+        "soup", "sup", "che dau", "che hat sen",
+    )
+    return any(keyword in title for keyword in snack_keywords)
+
+
+def _is_stir_fried(recipe: Dict[str, Any]) -> bool:
+    title = _strip_accents(recipe.get("title") or "").lower()
+    tags = " ".join(str(tag) for tag in (recipe.get("tags") or recipe.get("categories") or []))
+    return "xao" in title or "mon xao" in _strip_accents(tags).lower()
+
+
 class _ImageResolver:
     """Đảm bảo 100% món ăn & đồ uống đều có ảnh thật đúng loại trong static/images/recipes/."""
 
@@ -235,6 +256,14 @@ class _ImageResolver:
                 disk_path = img.lstrip("/").replace("/", os.sep)
                 if os.path.exists(disk_path):
                     return img
+            try:
+                parsed_image = urlsplit(img)
+                if (parsed_image.scheme == "https"
+                        and parsed_image.hostname in ("monngonmoingay.com", "www.monngonmoingay.com")
+                        and not parsed_image.username and not parsed_image.password):
+                    return img
+            except ValueError:
+                pass
         is_drink = bool(recipe and recipe.get("recipe_type") == "drink")
         title = (recipe.get("title") if recipe else "") or fallback_title
         norm = _strip_accents(title)
@@ -383,7 +412,7 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
     all_drink_raw = _get_general_options(cond_query, "drink")["recipes"]
     img_resolver = _ImageResolver(all_food_raw + all_drink_raw)
 
-    # Gộp các công thức lâm sàng nội bộ vào kho thay vì để prepare_nutrition_candidates ghi đè mất ViFoodRec
+    # Giữ các công thức chuyên biệt đã chọn lọc bên cạnh kho món Món Ngon Mỗi Ngày.
     combined_food = list(all_food_raw)
     existing_ids = {r.get("id") for r in combined_food}
     for extra in FATTY_LIVER_FOOD:
@@ -424,7 +453,7 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "status": "clarification_needed",
             "message": (
-                f"Không tìm thấy món ăn nào trong kho ViFoodRec đáp ứng đồng thời '{cond_query}' "
+                f"Không tìm thấy món ăn nào trong kho hiện tại đáp ứng đồng thời '{cond_query}' "
                 f"và thành phần cần tránh '{allergies}'. Bạn hãy thử dùng từ khóa dị ứng cụ thể hơn "
                 "(ví dụ: 'tôm, cua' hoặc 'thịt bò, thịt heo' thay vì chữ 'thịt' chung chung)."
             ),
@@ -488,45 +517,78 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     for idx, (meal_name, ratio, slot) in enumerate(splits):
         meal_target = round(target_calories * ratio)
+        eligible = [r for r in (clean_food_pool if slot == "snack" else single_pool) if r["id"] not in used_ids]
+        if slot == "breakfast":
+            breakfast_options = [r for r in eligible if _is_breakfast_friendly(r)]
+            if breakfast_options:
+                eligible = breakfast_options
+        if slot == "snack":
+            low_calorie = [r for r in eligible if per_person_calories(r, False) <= 400]
+            if len(low_calorie) >= 5:
+                eligible = low_calorie
+            ranked = sorted(
+                eligible,
+                key=lambda r: (not _is_light_snack(r), per_person_calories(r, False), abs(per_person_calories(r, False) - meal_target)),
+            )
+        else:
+            ranked = sorted(eligible, key=lambda r: abs(per_person_calories(r, False) - meal_target))
+
         chosen = None
         if idx < len(ai_meal_ids):
-            cand = pool_by_id.get(ai_meal_ids[idx])
-            if cand and cand["id"] in single_ids and cand["id"] not in used_ids:
-                if slot != "breakfast" or _is_breakfast_friendly(cand):
-                    chosen = cand
+            candidate = pool_by_id.get(ai_meal_ids[idx])
+            if candidate and candidate["id"] in single_ids and candidate["id"] not in used_ids:
+                breakfast_ok = slot != "breakfast" or not eligible or _is_breakfast_friendly(candidate)
+                snack_ok = slot != "snack" or (
+                    _is_light_snack(candidate) and per_person_calories(candidate, False) <= 400
+                )
+                if breakfast_ok and snack_ok:
+                    chosen = candidate
 
-        if not chosen:
-            avail = [r for r in single_pool if r["id"] not in used_ids] or clean_food_pool
+        if chosen and all(r["id"] != chosen["id"] for r in ranked):
+            ranked.insert(0, chosen)
+        elif chosen:
+            ranked.remove(chosen)
+            ranked.insert(0, chosen)
+
+        # Return several individually selectable alternatives for each meal slot.
+        options = ranked[:5]
+        if chosen and chosen not in options:
+            options = [chosen] + options[:4]
+        if not options:
+            fallback = clean_food_pool[:5]
             if slot == "breakfast":
-                bf = [r for r in avail if _is_breakfast_friendly(r)]
-                if bf:
-                    avail = bf
-            if avail:
-                ranked = sorted(avail, key=lambda r: abs(per_person_calories(r, False) - meal_target))
-                chosen = random.choice(ranked[:min(5, len(ranked))])
-
-        if not chosen:
+                breakfast_fallback = [r for r in fallback if _is_breakfast_friendly(r)]
+                if breakfast_fallback:
+                    fallback = breakfast_fallback
+            options = fallback
+        if not options:
             continue
 
-        used_ids.add(chosen["id"])
-        cal = per_person_calories(chosen, False)
-        total_actual += cal
-        srv_n = parse_servings_count(chosen)
-        portion_txt = "1 suất chuẩn" if srv_n <= 1 else f"1 suất (công thức nguồn {chosen.get('servings')})"
+        used_ids.update(r["id"] for r in options)
+        primary = options[0]
+        primary_calories = per_person_calories(primary, False)
+        total_actual += primary_calories
+        items = []
+        for recipe in options:
+            recipe_calories = per_person_calories(recipe, False)
+            servings = parse_servings_count(recipe)
+            portion = "1 suất chuẩn" if servings <= 1 else f"1 suất (công thức nguồn {recipe.get('servings')})"
+            items.append({
+                "food_id": recipe["id"],
+                "name": recipe["title"],
+                "portion": portion,
+                "calories": recipe_calories,
+                "recipe": recipe,
+            })
         meals_out.append({
             "meal_name": meal_name,
+            "meal_time": slot,
             "target_calories": meal_target,
-            "calories": cal,
-            "items": [{
-                "food_id": chosen["id"],
-                "name": chosen["title"],
-                "portion": portion_txt,
-                "calories": cal,
-                "recipe": chosen,
-            }],
+            "calories": primary_calories,
+            "items": items,
         })
 
-    # Ghép 2 Combo Mâm cơm chuẩn với tinh bột đa dạng (lọc bỏ tinh bột phạm dị ứng/tránh)
+    # Build one calorie-balanced combo for each lunch or dinner.
     food_combos = []
     is_diabetic_or_cut = any("đái tháo đường" in c.lower() for c in clean_conds) or "giam can" in _strip_accents(goal)
     if is_diabetic_or_cut:
@@ -552,81 +614,92 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
         staple_options = filtered_staples
     chosen_staples = random.sample(staple_options, k=min(2, len(staple_options)))
 
-    combo_mains = [r for r in mains_pool if r["id"] not in used_ids] or mains_pool
-    combo_soups = [r for r in soups_pool if r["id"] not in used_ids] or soups_pool
-    combo_sides = [r for r in sides_pool if r["id"] not in used_ids] or sides_pool
-    used_combo_ids = set(used_ids)
+    role_pools = {"main": mains, "soup": soups, "side": sides}
+    used_combo_ids = set()
 
-    for c_idx, key in enumerate(("combo1", "combo2")):
-        ai_c = (ai_choice or {}).get(key) or {}
-        m_cand = pool_by_id.get(ai_c.get("main"))
-        m_rec = m_cand if (m_cand and m_cand["id"] not in used_combo_ids and classify_dish(m_cand) == "main") else next((r for r in combo_mains if r["id"] not in used_combo_ids), combo_mains[c_idx % len(combo_mains)] if combo_mains else None)
-        if m_rec: used_combo_ids.add(m_rec["id"])
+    def select_calorie_balanced_combo(meal_target: int):
+        # Each combo has one staple, one main dish, and either soup or a side.
+        # A looser 150% ceiling allows variety while preventing extreme totals.
+        calorie_ceiling = round(meal_target * 1.5)
+        role_groups = (("main", "soup"), ("main", "side"))
+        best_overall = None
+        for roles in role_groups:
+            pools = []
+            for role in roles:
+                share = meal_target * (0.48 if role == "main" else 0.24)
+                candidates = [
+                    recipe for recipe in role_pools[role]
+                    if recipe.get("id") not in used_combo_ids
+                    and 0 < per_person_calories(recipe, True) <= calorie_ceiling
+                ]
+                candidates.sort(key=lambda recipe: abs(per_person_calories(recipe, True) - share))
+                pools.append(candidates[:36])
+            if any(not pool for pool in pools):
+                continue
 
-        sp_cand = pool_by_id.get(ai_c.get("soup"))
-        sp_rec = sp_cand if (sp_cand and sp_cand["id"] not in used_combo_ids and classify_dish(sp_cand) == "soup") else next((r for r in combo_soups if r["id"] not in used_combo_ids), combo_soups[c_idx % len(combo_soups)] if combo_soups else None)
-        if sp_rec: used_combo_ids.add(sp_rec["id"])
+            for recipes in product(*pools):
+                if len({recipe.get("id") for recipe in recipes}) != len(recipes):
+                    continue
+                if "soup" in roles and _is_stir_fried(recipes[0]):
+                    continue
+                for staple in staple_options:
+                    total = staple[1] + sum(per_person_calories(recipe, True) for recipe in recipes)
+                    if total > calorie_ceiling:
+                        continue
+                    score = (abs(meal_target - total), total > meal_target, 0 if "soup" in roles else 1, total)
+                    if best_overall is None or score < best_overall[0]:
+                        best_overall = (score, staple, roles, recipes)
+        if not best_overall:
+            return None
+        score, staple, roles, recipes = best_overall
+        return staple, list(zip(roles, recipes)), score[3]
 
-        sd_cand = pool_by_id.get(ai_c.get("side"))
-        sd_rec = sd_cand if (sd_cand and sd_cand["id"] not in used_combo_ids and classify_dish(sd_cand) == "side") else next((r for r in combo_sides if r["id"] not in used_combo_ids), combo_sides[c_idx % len(combo_sides)] if combo_sides else None)
-        if sd_rec: used_combo_ids.add(sd_rec["id"])
-
-        chosen_parts = []
-        if m_rec:
-            chosen_parts.append(("Món chính", m_rec))
-        if sp_rec:
-            chosen_parts.append(("Món canh", sp_rec))
-        if sd_rec and sd_rec.get("id") != (m_rec or {}).get("id"):
-            chosen_parts.append(("Món rau / phụ", sd_rec))
-
-        if len(chosen_parts) >= 2:
-            st_title, st_cal, st_img, st_note = chosen_staples[c_idx % len(chosen_staples)]
-            dishes_norm = [{
-                "id": f"staple_{c_idx}",
-                "title": st_title,
-                "dish_role_label": "Tinh bột ăn kèm",
-                "calories": st_cal,
-                "servings_note": st_note,
-                "image_link": st_img,
-                "recipe": None,
-            }]
-            combo_cal = st_cal
-            for role_lbl, rec in chosen_parts:
-                c = per_person_calories(rec, True)
-                combo_cal += c
-                dishes_norm.append({
-                    "id": rec["id"],
-                    "title": rec["title"],
-                    "dish_role_label": role_lbl,
-                    "calories": c,
-                    "servings_note": f"1 suất chia từ {rec.get('servings') or '1 người'}",
-                    "image_link": rec["image_link"],
-                    "recipe": rec,
-                })
-            title = "Combo Bữa trưa (Đủ món Cân bằng)" if c_idx == 0 else "Combo Bữa tối (Đủ món Cân bằng)"
-            food_combos.append({
-                "title": title,
-                "total_calories": combo_cal,
-                "note": "Đã chuẩn hóa định lượng Calo cho 1 người ăn.",
-                "dishes": dishes_norm,
+    for meal_name, ratio, meal_slot in splits:
+        if meal_slot in ("breakfast", "snack"):
+            continue
+        meal_target = round(target_calories * ratio)
+        selected = select_calorie_balanced_combo(meal_target)
+        if not selected:
+            continue
+        (st_title, st_cal, st_img, st_note), chosen_parts, combo_cal = selected
+        dishes_norm = [{
+            "id": f"staple_{meal_slot}",
+            "title": st_title,
+            "dish_role_label": "Tinh bột ăn kèm",
+            "calories": st_cal,
+            "servings_note": st_note,
+            "image_link": st_img,
+            "recipe": None,
+        }]
+        for role, rec in chosen_parts:
+            role_label = {"main": "Món chính", "soup": "Món canh", "side": "Món rau / phụ"}[role]
+            calories = per_person_calories(rec, True)
+            used_combo_ids.add(rec["id"])
+            dishes_norm.append({
+                "id": rec["id"],
+                "title": rec["title"],
+                "dish_role_label": role_label,
+                "calories": calories,
+                "servings_note": f"1 suất chia từ {rec.get('servings') or '1 người'}",
+                "image_link": rec["image_link"],
+                "recipe": rec,
             })
-
-    # Nước uống ít đường ưu tiên hàng đầu, xáo trộn nhẹ top đầu để phong phú
-    drink_pool.sort(key=lambda r: float(r.get("sugar") if r.get("sugar") is not None else 999))
-    top_drinks = list(drink_pool[:16])
-    random.shuffle(top_drinks)
-    drinks_list = []
-    for dr in top_drinks[:8]:
-        d_copy = dict(dr)
-        d_copy["per_person_calories"] = per_person_calories(dr, True)
-        drinks_list.append(d_copy)
+        slot_label = {"lunch": "Bữa trưa", "dinner": "Bữa tối"}.get(meal_slot, meal_name)
+        food_combos.append({
+            "title": f"Combo {slot_label} (Đủ món cân bằng)",
+            "meal_time": meal_slot,
+            "target_calories": meal_target,
+            "total_calories": combo_cal,
+            "note": f"Combo 3 món, ước tính cho 1 người và cân đối linh hoạt quanh mục tiêu {meal_target} kcal.",
+            "dishes": dishes_norm,
+        })
 
     return {
         "success": True,
         "status": "success",
         "ai_used": ai_choice is not None,
         "ai_rationale": (ai_choice or {}).get("rationale") or (
-            f"Thực đơn được lọc an toàn cho hồ sơ ({bmr} kcal BMR, {tdee} kcal TDEE) từ kho ViFoodRec."
+            f"Thực đơn được lọc cho hồ sơ ({bmr} kcal BMR, {tdee} kcal TDEE) từ kho công thức dinh dưỡng."
         ),
         "daily_plan": {
             "target_calories": target_calories,
@@ -640,7 +713,6 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
             "meals": meals_out,
         },
         "food_combos": food_combos,
-        "drinks": drinks_list,
         "avoidance": prep_food.get("avoidance") or [],
         "sources": prep_food.get("guidance") or [],
     }

@@ -604,8 +604,10 @@ def _get_general_options(condition: str, recipe_type: str) -> Dict[str, Any]:
     note_context = {"nhiet mieng": "nhiet_mieng", "loet mieng": "nhiet_mieng",
                     "mat ngu": "mat_ngu", "kho ngu": "mat_ngu"}.get(normalized)
     recipes = imported_recipes(recipe_type)
-    if not catalog_stats()["imported_count"]:
-        recipes = deepcopy(DRINK if recipe_type == "drink" else FOOD)
+    # The supplied Món Ngon Mỗi Ngày file is the only food source for this tab.
+    # Keep the separate, locally authored drink options because that file is a food catalog.
+    if recipe_type == "drink" and not recipes:
+        recipes = deepcopy(DRINK)
     notice = f'Danh sách tham khảo chung. Chưa xác nhận mức độ phù hợp của từng món với tình trạng “{query}”.'
     if note_context == "nhiet_mieng":
         notice = "Danh sách tham khảo chung, có thêm lưu ý khi miệng khó chịu. Các món chưa được lọc riêng theo tình trạng này."
