@@ -23,14 +23,14 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 }
 
 #doctor-tab:has(#nf-search:not([hidden])) {
-  padding: 0 0 clamp(32px, 6svh, 64px);
+  padding: clamp(16px, 3svh, 32px) 0;
 }
 
 #doctor-tab #nf-search {
   display: flex;
   align-items: center;
   flex-direction: column;
-  padding-top: clamp(10px, 1.35svh, 15px);
+  margin-block: auto;
   text-align: center;
 }
 
@@ -41,25 +41,7 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
   margin-bottom: 10px;
 }
 
-#doctor-tab #nf-search .nf-overline {
-  justify-content: center;
-  background: rgba(0, 123, 167, .22) !important;
-  border-color: rgba(0, 207, 255, .56) !important;
-  color: #5eeaff !important;
-  font-size: clamp(10px, .95vw, 15px) !important;
-  letter-spacing: .08em !important;
-  margin: 0 0 9px !important;
-  padding: 6px 15px !important;
-}
-
-#doctor-tab #nf-search .nf-overline svg {
-  flex: 0 0 1em;
-  width: 1em;
-  height: 1em;
-}
-
 #doctor-tab #nf-search #nf-search-title {
-  position: relative;
   max-width: 930px;
   color: #f8fcff !important;
   font-size: clamp(30px, 3vw, 48px) !important;
@@ -67,19 +49,9 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
   text-wrap: balance;
 }
 
-#doctor-tab .nf-title-leaf {
-  position: absolute;
-  inset-block-start: -.37em;
-  inset-inline-start: 100%;
-  width: .65em;
-  height: .65em;
-  color: #27ddff;
-  filter: drop-shadow(0 0 7px rgba(0, 203, 255, .5));
-}
-
 #doctor-tab #nf-search .nf-subtitle {
   max-width: 780px;
-  margin-top: 8px;
+  margin-top: 10px;
   color: #dfebf7 !important;
   font-size: clamp(14px, 1.16vw, 19px) !important;
   line-height: 1.55 !important;
@@ -87,18 +59,17 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 }
 
 #doctor-tab #nf-search .nf-search-box {
-  --nf-submit-size: clamp(44px, 3.6vw, 60px);
   display: flex;
   align-items: center;
   gap: clamp(10px, 1.35vw, 22px);
-  width: min(100%, 896px);
+  width: min(100%, 720px);
   min-height: clamp(58px, 4.6vw, 76px);
   margin-top: clamp(17px, 2.55svh, 24px);
   padding: 7px clamp(7px, .8vw, 13px) 7px clamp(12px, 1.6vw, 27px);
-  border: 1px solid rgba(0, 194, 247, .72) !important;
+  border: 1px solid rgba(169, 218, 237, .44) !important;
   border-radius: clamp(17px, 1.45vw, 24px) !important;
   background: rgba(5, 43, 84, .78) !important;
-  box-shadow: inset 0 0 15px rgba(9, 177, 237, .19), 0 10px 30px rgba(3, 25, 61, .24) !important;
+  box-shadow: 0 8px 24px rgba(3, 25, 61, .22) !important;
 }
 
 #doctor-tab #nf-search .nf-search-box:focus-within {
@@ -110,7 +81,7 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
   flex: 0 0 auto;
   width: clamp(19px, 1.8vw, 29px);
   height: auto;
-  color: #20d0ff;
+  color: #a8d7ea;
 }
 
 #doctor-tab #nf-query {
@@ -124,45 +95,19 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 #doctor-tab #nf-query::placeholder { color: #bfcfe2; }
 
 #doctor-tab .nf-search-box button {
-  flex: 0 0 var(--nf-submit-size);
-  width: var(--nf-submit-size);
-  height: clamp(42px, 3.2vw, 52px);
+  flex: none;
+  min-height: clamp(44px, 3.2vw, 52px);
+  padding: 0 clamp(10px, 1.4vw, 22px);
   border-radius: clamp(12px, 1vw, 17px);
   background: #057dae;
   color: #fff;
-  font-size: clamp(23px, 2vw, 31px);
-  line-height: 1;
+  font-size: clamp(13px, 1vw, 16px);
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 #doctor-tab .nf-search-box button:hover { background: #006896; }
-
-#doctor-tab .nf-examples {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px clamp(8px, .9vw, 15px);
-  margin-top: clamp(14px, 2svh, 19px);
-  color: #b9cee5;
-  font-size: clamp(12px, .94vw, 15px);
-}
-
-#doctor-tab #nf-search .nf-examples button {
-  min-height: 36px;
-  padding: 5px clamp(10px, 1vw, 17px) !important;
-  border-color: rgba(162, 213, 246, .19) !important;
-  background: rgba(4, 36, 73, .8) !important;
-  color: #e2eefc !important;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-#doctor-tab #nf-search .nf-examples button:hover {
-  border-color: #2fbfe8 !important;
-  background: #104773 !important;
-  color: #fff !important;
-}
 
 #doctor-tab #nf-search button:focus-visible {
   outline: 2px solid #8eecff;
@@ -171,15 +116,11 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 
 #doctor-tab .nf-search-hint {
   max-width: 840px;
-  margin: clamp(14px, 2svh, 19px) 0 0;
+  margin: 10px 0 0;
   color: #d4e3f4;
   font-size: clamp(12px, .87vw, 14px);
   line-height: 1.55;
   text-wrap: pretty;
-}
-
-@media (max-width: 1050px) {
-  #doctor-tab .nf-title-leaf { display: none; }
 }
 
 @media (min-width: 640px) and (max-width: 768px) {
@@ -188,21 +129,9 @@ body:has(#doctor-tab.active #nf-search:not([hidden])) > main {
 
 @media (max-width: 639px) {
   body:has(#doctor-tab.active #nf-search:not([hidden])) > main { padding-inline: 66px 16px !important; }
-  #doctor-tab:has(#nf-search:not([hidden])) { padding-bottom: 100px; }
   #doctor-tab .nf-hero-mascot { width: min(100%, clamp(180px, 57vw, 270px)); }
   #doctor-tab #nf-search #nf-search-title { font-size: clamp(25px, 6.4vw, 34px) !important; }
-}
-
-@media (max-width: 460px) {
-  #doctor-tab .nf-examples {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  #doctor-tab .nf-examples > span { grid-column: 1 / -1; }
-  #doctor-tab #nf-search .nf-examples button { min-height: 38px; line-height: 1.25; }
+  #doctor-tab .nf-search-box > svg { display: none; }
 }
 
 .floating-launcher-icon { display: none; }
@@ -517,44 +446,10 @@ body:not(.light-glass) #doctor-tab .nf-card-footer { border-top-color: #1e293b; 
 }
 
 /* Meal Time Filter Pills */
-#doctor-tab .nf-meal-filters {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 10px 0 22px;
-  flex-wrap: wrap;
-}
 
-#doctor-tab .nf-filter-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  margin-right: 4px;
-}
 
-#doctor-tab .nf-meal-pill {
-  padding: 6px 14px;
-  border-radius: 9999px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .15s ease;
-}
 
-#doctor-tab .nf-meal-pill:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
 
-#doctor-tab .nf-meal-pill.active {
-  background: #0284c7;
-  border-color: #0284c7;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(2, 132, 199, .25);
-}
 
 /* Full Meal Set (Mâm cơm đủ món) Layout */
 #doctor-tab .nf-full-meal-wrap {
@@ -797,17 +692,7 @@ body:not(.light-glass) #doctor-tab .nf-mode-btn.active {
   color: #fff;
 }
 
-body:not(.light-glass) #doctor-tab .nf-meal-pill {
-  background: #1e293b;
-  border-color: #334155;
-  color: #94a3b8;
-}
 
-body:not(.light-glass) #doctor-tab .nf-meal-pill.active {
-  background: #0284c7;
-  border-color: #0284c7;
-  color: #fff;
-}
 
 body:not(.light-glass) #doctor-tab .nf-meal-hero {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -900,7 +785,6 @@ body:not(.light-glass) #doctor-tab .nf-nutrients-badge b {
 #doctor-tab .nf-preference-chip { border-radius: 999px; padding: 4px 9px; background: #e7f2ec; color: #1e6c5e; font-size: 11px; font-weight: 700; }
 #doctor-tab .nf-mode-switcher { margin: 18px 0 8px; }
 #doctor-tab .nf-mode-btn.active { background: #177c70; box-shadow: 0 5px 14px #177c7033; }
-#doctor-tab .nf-meal-pill.active { background: #177c70; border-color: #177c70; box-shadow: 0 2px 8px #177c7033; }
 #doctor-tab .nf-meal-hero-badge, #doctor-tab .nf-meal-dish-footer b { color: #177c70; }
 #doctor-tab .nf-meal-time-tag { background: #e8f4ed; border-color: #cde6d5; color: #177c70; }
 #doctor-tab .nf-meal-staple { border-color: #cde6d5; color: #1d6c5e; }
@@ -941,7 +825,7 @@ body:not(.light-glass) #doctor-tab .nf-nutrients-badge b {
 body:not(.light-glass) #doctor-tab .nf-context, body:not(.light-glass) #doctor-tab .nf-evidence { background: #17272a; border-color: #36524b; color: #d8eee4; }
 body:not(.light-glass) #doctor-tab .nf-profile-link { background: #213532; border-color: #41675c; color: #b9e5d0; }
 body:not(.light-glass) #doctor-tab .nf-preference-chip { background: #24473c; color: #b9e5d0; }
-body:not(.light-glass) #doctor-tab .nf-mode-btn.active, body:not(.light-glass) #doctor-tab .nf-meal-pill.active { background: #177c70; border-color: #177c70; color: #fff; }
+body:not(.light-glass) #doctor-tab .nf-mode-btn.active { background: #177c70; border-color: #177c70; color: #fff; }
 body:not(.light-glass) #doctor-tab .nf-context p, body:not(.light-glass) #doctor-tab .nf-evidence-content p { color: #afc7bc; }
 body:not(.light-glass) #doctor-tab .nf-meal-energy { background: #142d2b; border-color: #36524b; }
 body:not(.light-glass) #doctor-tab .nf-meal-energy span, body:not(.light-glass) #doctor-tab .nf-meal-energy small { color: #b6cbc1; }
@@ -1113,9 +997,6 @@ body:not(.light-glass) #doctor-tab .nf-switch-btn:hover {
 #doctor-tab .nf-mode-btn { padding: 10px 16px; border: 0; border-radius: 11px; background: transparent; box-shadow: none; }
 #doctor-tab .nf-mode-btn:hover { border: 0; color: var(--nf-accent); transform: none; }
 #doctor-tab .nf-mode-btn.active { background: var(--nf-accent); color: #fff; box-shadow: 0 4px 12px rgba(20,125,116,.22); }
-#doctor-tab .nf-meal-filters { margin: 8px 0 14px; }
-#doctor-tab .nf-meal-pill { background: rgba(255,255,255,.72); border-color: var(--nf-line); color: #4d6879; }
-#doctor-tab .nf-meal-pill.active { background: var(--nf-accent); border-color: var(--nf-accent); color: #fff; }
 
 #doctor-tab .nf-cards {
   display: flex;
@@ -1159,16 +1040,6 @@ body:not(.light-glass) #doctor-tab .nf-switch-btn:hover {
 #doctor-tab .nf-reason-text { color: #41636a; -webkit-line-clamp: 2; }
 #doctor-tab .nf-card-footer { padding-top: 11px; }
 #doctor-tab .nf-card-footer b { color: var(--nf-accent); }
-#doctor-tab .nf-empty-meal-hint {
-  width: min(100%, 560px);
-  padding: 25px;
-  border: 1px dashed #b8d2d3;
-  border-radius: 16px;
-  background: rgba(255,255,255,.72);
-  color: var(--nf-muted);
-  text-align: center;
-  font-size: 13px;
-}
 #doctor-tab .nf-load-more { display: block; margin: 24px auto 0; color: var(--nf-accent); border-color: #a4d6cc; }
 #doctor-tab .nf-evidence, #doctor-tab .nf-limit-disclosure { margin-top: 18px; }
 #doctor-tab .nf-meal-dish-card { border-color: var(--nf-line); }
@@ -1185,7 +1056,6 @@ body:not(.light-glass) #doctor-tab .nf-mode-btn { background: transparent; color
 body:not(.light-glass) #doctor-tab .nf-mode-btn.active { background: var(--nf-accent); color: #fff; }
 body:not(.light-glass) #doctor-tab .nf-notice { background: #173a37; border-color: #315c53; color: #bbdfd1; }
 body:not(.light-glass) #doctor-tab .nf-reason-text { color: #c6dbd7; }
-body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; border-color: #355253; color: #b8cbd0; }
 
 @media (max-width: 900px) {
   #doctor-tab .nf-card { flex-basis: calc(50% - 9px); }
@@ -1239,7 +1109,6 @@ body:not(.light-glass) #doctor-tab .nf-empty-meal-hint { background: #172d32; bo
 #doctor-tab .nf-context p { color: #607985; }
 #doctor-tab .nf-profile-link { border-color: #bddde9; color: #176d8b; }
 #doctor-tab .nf-mode-btn.active,
-#doctor-tab .nf-meal-pill.active { background: var(--nf-accent); border-color: var(--nf-accent); box-shadow: 0 4px 12px rgba(2, 132, 199, .2); }
 #doctor-tab .nf-meal-hero-badge,
 #doctor-tab .nf-meal-dish-footer b,
 #doctor-tab .nf-meal-energy strong,
@@ -1294,42 +1163,297 @@ body:not(.light-glass) #doctor-tab .nf-reason-header,
 body:not(.light-glass) #doctor-tab .nf-recommendation-box > strong,
 body:not(.light-glass) #doctor-tab .nf-evidence summary { color: #9bdcf6; }
 body:not(.light-glass) #doctor-tab .nf-mode-btn.active,
-body:not(.light-glass) #doctor-tab .nf-meal-pill.active { background: var(--nf-accent); border-color: var(--nf-accent); }
 
 @media (prefers-reduced-motion: reduce) {
   #doctor-tab .nf-card, #doctor-tab .nf-type-card, #doctor-tab .nf-condition-banner { transition: none; }
 }
 
-/* Compact #nutrition/results top chrome so the meal card sits cleanly above the fold */
-#doctor-tab #nf-results.nf-stage { padding-top: clamp(10px, 1.4vw, 18px); }
-#doctor-tab .nf-results-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-#doctor-tab #nf-results .nf-back { margin-bottom: 0; padding: 6px 12px; }
-#doctor-tab #nf-results .nf-overline { margin: 0; }
-#doctor-tab .nf-results-header-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
-#doctor-tab .nf-results-heading { display: inline-flex; align-items: center; gap: 10px; font-size: clamp(22px, 2.3vw, 30px) !important; line-height: 1.18; }
-#doctor-tab .nf-results-icon { display: inline-grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; flex: 0 0 38px; }
-#doctor-tab .nf-results-icon svg { width: 22px; height: 22px; }
-#doctor-tab #nf-results .nf-condition-banner { width: auto; margin: 0; padding: 6px 13px; gap: 10px; border-radius: 12px; }
-#doctor-tab #nf-results .nf-condition-banner > strong,
-#doctor-tab #nf-results .nf-condition-banner .nf-query-label { font-size: clamp(14px, 1.5vw, 17px); }
-#doctor-tab #nf-results .nf-subtitle { margin: 4px 0 0; font-size: 13px; line-height: 1.45; }
-#doctor-tab #nf-results .nf-context { margin-top: 9px; padding: 9px 14px; border-radius: 13px; }
-#doctor-tab #nf-results .nf-context p { margin-top: 2px; font-size: 11.5px; line-height: 1.4; }
-#doctor-tab #nf-results .nf-preferences { margin-top: 6px; }
-#doctor-tab #nf-results .nf-notice { margin-top: 8px; padding: 7px 12px; font-size: 11.5px; line-height: 1.4; }
-#doctor-tab #nf-results .nf-mode-switcher { margin: 10px 0 6px; padding: 3px; }
-#doctor-tab #nf-results .nf-mode-btn { padding: 7px 14px; font-size: 13px; }
-#doctor-tab #nf-results .nf-full-meal-wrap { margin: 10px 0 24px; }
-#doctor-tab #nf-results .nf-meal-hero { padding: 14px 18px; }
-#doctor-tab #nf-results .nf-meal-hero-title { margin: 4px 0 8px; font-size: clamp(18px, 2vw, 22px); }
-#doctor-tab #nf-results .nf-meal-energy { margin: 6px 0 9px; padding: 8px 12px; }
-#doctor-tab #nf-results .nf-meal-energy strong { font-size: 19px; }
-#doctor-tab #nf-results .nf-meal-hero-rationale { padding: 10px 14px; }
-#doctor-tab #nf-results .nf-meal-staple { margin-top: 9px; padding: 5px 12px; }
-#doctor-tab .nf-purine-badge { display: inline-flex; align-items: center; gap: 5px; margin: 4px 0 6px; padding: 4px 8px; border-radius: 8px; background: #fff7ed; border: 1px solid #fed7aa; color: #b45309; font-size: 10.5px; font-weight: 600; line-height: 1.35; }
-body:not(.light-glass) #doctor-tab .nf-results-icon { background: #14394d; color: #75c9eb; }
-body:not(.light-glass) #doctor-tab .nf-purine-badge { background: rgba(180, 83, 9, 0.22); border-color: rgba(251, 146, 60, 0.4); color: #fdba74; }
-@media (max-width: 650px) {
-  #doctor-tab #nf-results .nf-condition-banner { width: 100%; }
-  #doctor-tab .nf-results-topbar { flex-wrap: wrap; }
+/* ==========================================================================
+   Combo Selector Tabs (Bữa ăn đầy đủ Combo 1, Combo 2, Combo 3)
+   ========================================================================== */
+#doctor-tab .nf-combo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  background: rgba(240, 249, 255, 0.7);
+  padding: 6px;
+  border-radius: 18px;
+  border: 1px solid #e0f2fe;
+}
+
+#doctor-tab .nf-combo-tab {
+  flex: 1 1 140px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+#doctor-tab .nf-combo-tab:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #bae6fd;
+}
+
+#doctor-tab .nf-combo-tab.active {
+  background: #ffffff;
+  border-color: #0284c7;
+  color: #0369a1;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.12);
+}
+
+#doctor-tab .nf-combo-refresh-tab {
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px dashed #94a3b8;
+  color: #334155;
+}
+
+#doctor-tab .nf-combo-refresh-tab:hover {
+  background: #f8fafc;
+  border-color: #0284c7;
+  color: #0284c7;
+  transform: translateY(-1px);
+}
+
+#doctor-tab .nf-combo-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+#doctor-tab .nf-combo-tab-text {
+  display: flex;
+  flex-direction: column;
+}
+
+#doctor-tab .nf-combo-tab-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: inherit;
+}
+
+#doctor-tab .nf-combo-tab-badge {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+#doctor-tab .nf-combo-tab.active .nf-combo-tab-badge {
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.dark #doctor-tab .nf-combo-bar,
+body:not(.light-glass) #doctor-tab .nf-combo-bar {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark #doctor-tab .nf-combo-tab,
+body:not(.light-glass) #doctor-tab .nf-combo-tab {
+  color: #94a3b8;
+}
+
+.dark #doctor-tab .nf-combo-tab:hover,
+body:not(.light-glass) #doctor-tab .nf-combo-tab:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.dark #doctor-tab .nf-combo-tab.active,
+body:not(.light-glass) #doctor-tab .nf-combo-tab.active {
+  background: #1e293b;
+  border-color: #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.dark #doctor-tab .nf-combo-tab.active .nf-combo-tab-badge,
+body:not(.light-glass) #doctor-tab .nf-combo-tab.active .nf-combo-tab-badge {
+  color: #7dd3fc;
+}
+
+/* ==========================================================================
+   Hydration Priority Alert & Safety Badges
+   ========================================================================== */
+#doctor-tab .nf-hydration-alert {
+  margin: 14px 0 20px;
+}
+
+#doctor-tab .nf-hydration-card {
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(240, 253, 250, 0.95) 100%);
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.1);
+}
+
+#doctor-tab .nf-hydration-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+#doctor-tab .nf-hydration-pill {
+  font-size: 11px;
+  font-weight: 800;
+  color: #0284c7;
+  letter-spacing: .05em;
+  background: #e0f2fe;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #bae6fd;
+}
+
+#doctor-tab .nf-hydration-src {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0284c7;
+  text-decoration: underline;
+}
+
+#doctor-tab .nf-hydration-title {
+  margin: 4px 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0369a1;
+}
+
+#doctor-tab .nf-hydration-lead {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+#doctor-tab .nf-hydration-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#doctor-tab .nf-hydration-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #1e293b;
+}
+
+#doctor-tab .nf-hydration-list .nf-check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+#doctor-tab .nf-hydration-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#doctor-tab .nf-hydration-warning .nf-warn-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+#doctor-tab .nf-hydration-warning strong {
+  display: block;
+  font-weight: 800;
+  margin-bottom: 2px;
+  color: #881337;
+}
+
+#doctor-tab .nf-allergy-safe-notice {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  color: #854d0e;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+#doctor-tab .nf-portion-clarity-badge {
+  margin: 10px 0 14px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.dark #doctor-tab .nf-hydration-card,
+body:not(.light-glass) #doctor-tab .nf-hydration-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(19, 78, 74, 0.4) 100%);
+  border-color: #0284c7;
+}
+
+.dark #doctor-tab .nf-hydration-title,
+body:not(.light-glass) #doctor-tab .nf-hydration-title {
+  color: #38bdf8;
+}
+
+.dark #doctor-tab .nf-hydration-lead,
+body:not(.light-glass) #doctor-tab .nf-hydration-lead,
+.dark #doctor-tab .nf-hydration-list li,
+body:not(.light-glass) #doctor-tab .nf-hydration-list li {
+  color: #cbd5e1;
+}
+
+.dark #doctor-tab .nf-hydration-warning,
+body:not(.light-glass) #doctor-tab .nf-hydration-warning {
+  background: rgba(136, 19, 55, 0.25);
+  border-color: rgba(244, 63, 94, 0.3);
+  color: #fca5a5;
+}
+
+.dark #doctor-tab .nf-hydration-warning strong,
+body:not(.light-glass) #doctor-tab .nf-hydration-warning strong {
+  color: #fda4af;
+}
+
+.dark #doctor-tab .nf-allergy-safe-notice,
+body:not(.light-glass) #doctor-tab .nf-allergy-safe-notice {
+  background: rgba(113, 63, 18, 0.25);
+  border-color: rgba(234, 179, 8, 0.3);
+  color: #fef08a;
+}
+
+.dark #doctor-tab .nf-portion-clarity-badge,
+body:not(.light-glass) #doctor-tab .nf-portion-clarity-badge {
+  background: rgba(20, 83, 45, 0.25);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #86efac;
 }

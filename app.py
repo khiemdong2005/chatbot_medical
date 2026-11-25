@@ -2265,6 +2265,20 @@ def create_app(test_config=None):
         return jsonify({"success": True, "data": get_nutrition_options(
             condition, recipe_type, exclude_ids, profile=profile, dob=dob)}), 200
 
+    @app.route("/api/nutrition/meal-plan", methods=["POST"])
+    def nutrition_meal_plan():
+        """
+        API cá nhân hóa thực đơn chuẩn Production (4 tầng):
+          1. Tính BMR & TDEE (Mifflin-St Jeor) từ 5 chỉ số cơ sở.
+          2. Lọc cứng bệnh nền & dị ứng trên toàn kho ViFoodRec.
+          3. Chuẩn hóa Calo 1 người, phân loại món & gán ảnh thật 100%.
+          4. AI Ranker (Groq key rotation) ghép thực đơn tối ưu + giải thích.
+        """
+        payload = request.get_json(silent=True) or {}
+        from core.nutrition_meal_planner import build_production_meal_plan
+        result = build_production_meal_plan(payload)
+        return jsonify(result), 200
+
     @app.route("/api/nutrition/analyze", methods=["POST"])
     def analyze_nutrition():
         """

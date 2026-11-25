@@ -8,7 +8,7 @@ logger = logging.getLogger("InterpretationService")
 
 def generate_clinical_interpretation(validated_data: Dict[str, Any], api_key: str = "") -> Dict[str, Any]:
     """
-    [6] Diễn giải (Gemini qua Unified LLM Provider, CHỈ NHẬN JSON ĐÃ VALIDATE):
+    Diễn giải qua Groq Unified LLM Provider (chỉ nhận JSON đã validate):
       - Giải thích đơn giản cho người dùng, tuyệt đối không tự thêm số liệu mới.
       - Gắn disclaimer rõ ràng.
       - Field needs_review=True hiển thị "vui lòng kiểm tra lại với đơn gốc".
@@ -53,10 +53,7 @@ Trả về kết quả dưới dạng Markdown có cấu trúc (gồm các tiêu
         }
 
     try:
-        if llm_provider.is_groq_active() or llm_provider.is_openrouter_active():
-            candidate_models = [llm_provider.get_default_model("interpretation")]
-        else:
-            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest"]
+        candidate_models = [llm_provider.get_default_model("interpretation")]
         res_text = llm_provider.generate_text(
             prompt=prompt,
             candidate_models=candidate_models,

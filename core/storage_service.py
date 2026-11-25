@@ -8,7 +8,7 @@ from typing import Tuple, Optional, Dict, Any
 from werkzeug.utils import secure_filename
 from PIL import Image
 
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "pdf", "docx", "doc"}
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "pdf", "docx", "doc"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 MAX_BASE64_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB
 
@@ -26,11 +26,15 @@ Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
 # Magic bytes signatures for file format verification
 FILE_SIGNATURES = {
     "png": [b"\x89PNG\r\n\x1a\n"],
-    "jpg": [b"\xff\xd8\xff"],
-    "jpeg": [b"\xff\xd8\xff"],
+    "jpg": [b"\xff\xd8\xff", b"\xff\xd8"],
+    "jpeg": [b"\xff\xd8\xff", b"\xff\xd8"],
+    "webp": [b"RIFF"],
     "pdf": [b"%PDF"],
     "docx": [b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"],
-    "doc": [b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"]
+    "doc": [b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"],
+    # HEIC/HEIF: ftyp box magic (iPhone default camera format)
+    "heic": [b"\x00\x00\x00", b"ftyp"],
+    "heif": [b"\x00\x00\x00", b"ftyp"],
 }
 
 
@@ -50,13 +54,39 @@ def is_safe_path(target_path: Path, base_dir: Path) -> bool:
 def validate_file_content(file_bytes: bytes, declared_ext: str) -> bool:
     """
     Kiểm tra magic bytes để ngăn chặn kỹ thuật giả mạo đuôi file (File extension spoofing).
+    Hỗ trợ: JPEG, PNG, WEBP, PDF, DOCX, DOC, HEIC/HEIF (ảnh iPhone).
     """
     ext = declared_ext.lower()
-    if ext not in FILE_SIGNATURES:
+
+    # Kiểm tra magic bytes chuẩn
+    if ext in FILE_SIGNATURES:
+        signatures = FILE_SIGNATURES[ext]
+        if any(file_bytes.startswith(sig) for sig in signatures):
+            return True
+
+    # Fallback Pillow cho mọi định dạng ảnh phổ biến kể cả HEIC/HEIF
+    # Nếu Pillow mở được và đọc được định dạng ảnh hợp lệ -> chấp nhận
+    if ext in ("jpg", "jpeg", "png", "webp", "heic", "heif"):
+        try:
+            with Image.open(io.BytesIO(file_bytes)) as img:
+                fmt = (img.format or "").lower()
+                if fmt in ("jpeg", "png", "webp", "heif", "heic"):
+                    return True
+        except Exception:
+            pass
+        # HEIC: check ftyp box dạng thủ công (4 bytes size + "ftyp" + heic/heif brand)
+        if len(file_bytes) >= 12:
+            box_type = file_bytes[4:8]
+            brand = file_bytes[8:12]
+            if box_type == b"ftyp" and brand[:4] in (b"heic", b"heif", b"mif1", b"msf1", b"heix"):
+                return True
+
+    # PDF, DOCX đã check ở trên qua FILE_SIGNATURES
+    if ext in FILE_SIGNATURES:
         return False
 
-    signatures = FILE_SIGNATURES[ext]
-    return any(file_bytes.startswith(sig) for sig in signatures)
+    # Định dạng không trong danh sách -> từ chối
+    return False
 
 
 def inspect_upload_safety(file_bytes: bytes, ext: str) -> Tuple[bool, Optional[str]]:
@@ -158,6 +188,18 @@ def process_secure_upload(file_obj, upload_folder: str) -> Tuple[bool, Dict[str,
     is_safe, safety_err = inspect_upload_safety(file_bytes, ext)
     if not is_safe:
         return False, {}, safety_err or "Tệp tải lên không vượt qua kiểm tra an toàn cấu trúc."
+
+    # Đồng bộ phần mở rộng thực tế cho ảnh nếu khai báo lệch (ví dụ ảnh PNG đổi đuôi .jpg)
+    if ext in ("jpg", "jpeg", "png", "webp"):
+        try:
+            with Image.open(io.BytesIO(file_bytes)) as img:
+                fmt = (img.format or "").lower()
+                if fmt == "jpeg":
+                    ext = "jpg"
+                elif fmt in ("png", "webp"):
+                    ext = fmt
+        except Exception:
+            pass
 
     # Sinh tên lưu trữ ngẫu nhiên (UUID) để tránh trùng tên và chống tấn công đoán tên tệp
     random_filename = f"{uuid.uuid4().hex}.{ext}"

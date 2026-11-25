@@ -123,6 +123,14 @@ def is_informational_query(text: str) -> bool:
     folded = remove_accents(text.lower()).replace("đ", "d") if text else ""
     if not folded or requests_consultation_conclusion(text):
         return False
+    # Các câu hỏi kiến thức trực tiếp về ăn uống, kiêng cữ, cách xử trí, công dụng/tác dụng phụ thuốc
+    # (ngay cả khi người dùng mở đầu bằng "tôi đã bị rồi vậy nên tránh ăn gì")
+    if re.search(
+        r"\b(?:nen (?:tranh |kieng )?an gi|tranh an gi|kieng an gi|kieng gi|nen lam (?:gi|sao)|"
+        r"cach xu tri|cach cham soc|cong dung gi|tac dung phu)\b",
+        folded,
+    ) and not re.search(r"\b(?:kho tho|dau nguc|tuc nguc|ngat|co giat|chay mau|cap cuu)\b", folded):
+        return True
     if re.search(
         r"\b(?:toi|minh|em|con|chau|bac|ba|me|bo|ong|chi|anh|vo|chong|be|nguoi nha)"
         r"(?:\s+(?:toi|minh|em))?\s+(?:(?:dang|vua|moi|hien|da|van|lai)\s+)*"

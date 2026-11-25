@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" role="img" aria-label="Minh họa bát cơm trắng">
+<title>Bát cơm trắng</title>
+<rect width="640" height="440" fill="#f5f4ef"/>
+<path d="M0 350C128 306 212 368 348 337S533 300 640 332V440H0Z" fill="#e8eee8" opacity=".55"/>
+<!-- Shadow -->
+<ellipse cx="320" cy="342" rx="200" ry="26" fill="#35585b" opacity=".08"/>
+<ellipse cx="320" cy="326" rx="190" ry="30" fill="#fffdf7" stroke="#dfe4dc" stroke-width="2"/>
+<!-- Ceramic bowl body -->
+<path d="M160 215 C168 290 215 335 320 335 C425 335 472 290 480 215 Z" fill="#2d5257" stroke="#1d373a" stroke-width="3"/>
+<path d="M175 225 C185 285 225 325 320 325 C415 325 455 285 465 225 Z" fill="#38646a"/>
+<path d="M185 240 C205 280 245 310 320 310" fill="none" stroke="#52838a" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+<!-- Rice mound -->
+<path d="M175 210 C190 145 250 120 320 120 C390 120 450 145 465 210 Z" fill="#f8faf8" stroke="#d5e0d8" stroke-width="2"/>
+<!-- Fluffy rice texture and grains -->
+<path d="M210 185 Q240 160 280 170 Q320 150 360 165 Q400 155 430 185" fill="none" stroke="#e6ede8" stroke-width="12" stroke-linecap="round"/>
+<g fill="#edf2ee" stroke="#cad8ce" stroke-width="1.2">
+  <ellipse cx="230" cy="180" rx="8" ry="4" transform="rotate(20 230 180)"/>
+  <ellipse cx="260" cy="165" rx="8" ry="4" transform="rotate(-15 260 165)"/>
+  <ellipse cx="295" cy="150" rx="9" ry="4.5" transform="rotate(10 295 150)"/>
+  <ellipse cx="335" cy="145" rx="8.5" ry="4" transform="rotate(-10 335 145)"/>
+  <ellipse cx="375" cy="155" rx="9" ry="4.5" transform="rotate(25 375 155)"/>
+  <ellipse cx="410" cy="170" rx="8" ry="4" transform="rotate(-20 410 170)"/>
+  <ellipse cx="250" cy="195" rx="8.5" ry="4.2" transform="rotate(-25 250 195)"/>
+  <ellipse cx="290" cy="180" rx="9" ry="4.5" transform="rotate(15 290 180)"/>
+  <ellipse cx="325" cy="170" rx="8" ry="4" transform="rotate(-5 325 170)"/>
+  <ellipse cx="360" cy="185" rx="9" ry="4" transform="rotate(30 360 185)"/>
+  <ellipse cx="395" cy="195" rx="8" ry="4.2" transform="rotate(-15 395 195)"/>
+</g>
+<!-- Subtle steam -->
+<g fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".65">
+  <path d="M290 100 Q280 75 295 50 T290 15"/>
+  <path d="M330 95 Q345 70 330 45 T335 10"/>
+</g>
+<!-- Wooden chopsticks resting on side -->
+<g transform="translate(485 180) rotate(22)">
+  <path d="M0 0 L40 180" stroke="#8a532d" stroke-width="6" stroke-linecap="round"/>
+  <path d="M12 0 L52 180" stroke="#a06337" stroke-width="6" stroke-linecap="round"/>
+</g>
+</svg>

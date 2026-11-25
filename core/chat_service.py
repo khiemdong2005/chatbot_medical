@@ -62,7 +62,7 @@ def conversation_search_context(message, history, max_user_turns=3):
     A bare "có" / "hông" carries no searchable symptom. Recent user turns from the
     same consultation supply the topic; long messages already stand on their own.
     """
-    if not history or len(str(message).split()) > 7:
+    if not history or len(str(message).split()) > 16:
         return ""
     prior = [turn.get("content", "").strip() for turn in history
              if isinstance(turn, dict) and turn.get("role") == "user"
@@ -70,7 +70,14 @@ def conversation_search_context(message, history, max_user_turns=3):
     prior = [text[:300] for text in prior if len(text.split()) >= 2]
     if prior and prior[-1].strip().casefold() == str(message).strip().casefold():
         prior = prior[:-1]
-    return " ".join(prior[-max_user_turns:])
+    selected = prior[-max_user_turns:]
+    if prior and prior[0] not in selected:
+        selected = [prior[0]] + selected
+    cleaned = []
+    for text in selected:
+        topic_only = re.sub(r"\b(?:là\s+(?:bệnh\s+|cái\s+)?gì|thế\s+nào\s+là|như\s+thế\s+nào|cho\s+(?:tôi|mình|em)\s+hỏi\s+về)\b", "", text, flags=re.IGNORECASE).strip(" ?.,!")
+        cleaned.append(topic_only or text)
+    return " ".join(cleaned)
 
 
 def retrieval_query(message, facts, history=None):
@@ -142,6 +149,10 @@ def process_clinical_chat(
     if consultation_mode == "informational" or (consultation_mode != "final" and is_informational_query(user_message)):
         consultation_mode = "informational"
     elif consultation_mode == "final" or requests_consultation_conclusion(user_message):
+        consultation_mode = "final"
+    elif consultation_mode == "collecting" and sum(1 for t in history if t.get("role") == "user") >= 2:
+        # Sau khi đã thu thập >= 2 lượt thông tin từ người bệnh, chuyển sang tổng hợp & tư vấn hướng dẫn
+        # thay vì tiếp tục hỏi xoáy lắt nhắt quá nhiều lượt.
         consultation_mode = "final"
     if consultation_mode != "collecting":
         clinical_hint = None
@@ -264,8 +275,8 @@ def process_clinical_chat(
             retrieval_facts = {} if consultation_mode == "informational" else intake_facts
             rag_docs = medical_rag_service.retrieve_context(
                 retrieval_query(user_message, retrieval_facts,
-                                history=None if consultation_mode == "informational" else history),
-                top_k=2,
+                                history=history),
+                top_k=4,
                 lang=lang
             )
             retrieval_ms = (time.perf_counter() - retrieval_start) * 1000.0
@@ -365,8 +376,10 @@ def process_clinical_chat(
         safety_question = follow_up and question_topic(follow_up) in {"dyspnea", "chest_pain", "swallowing_ability"}
         next_question = follow_up if safety_question else model_question or follow_up
 
-        if not degraded and grounding_status == "verified" and model_question and not follow_up:
-            raw_answer = f"{raw_answer}\n\n{model_question}"
+        if not degraded and grounding_status == "verified":
+            tail_q = model_question or (follow_up if safety_question else "")
+            if tail_q:
+                raw_answer = f"{raw_answer}\n\n{tail_q}"
         elif next_question and not degraded and grounding_status != "unrecognized_input":
             raw_answer = next_question
             grounding_status = "clarification"

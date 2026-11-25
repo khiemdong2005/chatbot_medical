@@ -1,0 +1,75 @@
+@keyframes mm-spin {
+  to { transform: rotate(360deg); }
+}
+
+.mm-spinner,
+[data-mm-loading]::before {
+  box-sizing: border-box;
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: -.125em;
+  animation: mm-spin .7s linear infinite;
+}
+
+[data-mm-loading]::before {
+  content: "";
+  margin-inline-end: .4em;
+}
+
+.chat-reset-control[data-mm-loading] > svg {
+  display: none;
+}
+
+.chat-reset-icon[data-mm-loading]::before {
+  margin: 0;
+}
+
+.app-startup-status {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  background: rgb(3 17 35 / 76%);
+  pointer-events: none;
+}
+
+html[data-app-starting] .app-startup-status {
+  display: flex;
+}
+
+.app-startup-status > span {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .9rem 1.1rem;
+  border: 1px solid #367ba2;
+  border-radius: 14px;
+  background: #0b2845;
+  color: #eaf7ff;
+  font-size: .95rem;
+  font-weight: 650;
+}
+
+.app-startup-status .mm-spinner {
+  color: #7dd3fc;
+}
+
+.previsit-notice[data-mm-loading] {
+  display: flex;
+  align-items: center;
+  gap: .35em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-spinner,
+  [data-mm-loading]::before {
+    animation: none;
+  }
+}

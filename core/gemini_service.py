@@ -357,8 +357,8 @@ class GeminiMedicalService:
             )
 
         mode_directive = {
-            "final": "Give a short preliminary assessment and next step if supported. Do not ask a follow-up.",
-            "informational": "Answer the specific health question directly. Do not ask a follow-up.",
+            "final": f"The patient has finished answering intake questions in history (even if the latest message is short like 'không' or '38 độ'). Read the main symptoms from history, set response_kind='grounded', and write 2-3 concise grounded points {'IN ENGLISH' if lang == 'en' else 'IN VIETNAMESE'} using ONLY facts directly present in the [S1..] quotes (do not add extra thresholds like '3 days' or numbers not in the quote). Do not ask a follow-up.",
+            "informational": "Answer the specific health question directly in the UI language using the provided [S1..] references and conversation history. Do not ask a follow-up.",
         }.get(consultation_mode, "Answer what the current evidence supports. Use a follow-up only when needed.")
 
         dialogue_history = sanitize_history(history)
@@ -490,14 +490,48 @@ class GeminiMedicalService:
                 # Re-ask once; a second empty body is handled by the default JSON below.
                 resp = None
                 for empty_attempt in (1, 2):
-                    resp = self.client.models.generate_content(
-                        model=self.model,
-                        contents=req_contents,
-                        config=config
-                    )
-                    if (getattr(resp, "text", None) or "").strip():
-                        break
-                    print(f"⚠️ [LLM] Empty completion (attempt {empty_attempt}/2) req_id={req_id}", flush=True)
+                    try:
+                        resp = self.client.models.generate_content(
+                            model=self.model,
+                            contents=req_contents,
+                            config=config
+                        )
+                        if (getattr(resp, "text", None) or "").strip():
+                            break
+                        print(f"⚠️ [LLM] Empty completion (attempt {empty_attempt}/2) req_id={req_id}", flush=True)
+                    except Exception as primary_err:
+                        # Multi-provider auto failover & Groq key rotation: thử lần lượt tất cả các key Groq
+                        raw_keys = ",".join([
+                            os.getenv("GROQ_API_KEYS") or "",
+                            os.getenv("GROQ_BACKUP_API_KEY") or "",
+                            os.getenv("GROQ_API_KEY") or "",
+                        ])
+                        candidate_keys = []
+                        for k in raw_keys.split(","):
+                            ks = k.strip()
+                            if ks and ks not in candidate_keys:
+                                candidate_keys.append(ks)
+                        provider_inst = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
+                        if candidate_keys and provider_inst:
+                            groq_model = (os.getenv("GROQ_CHAT_MODEL") or "qwen/qwen3.8-27b").strip()
+                            logger.warning(
+                                "[REQ-%s] Primary LLM failed (%s: %s). Auto-fallback/rotate Groq (%s).",
+                                req_id, type(primary_err).__name__, primary_err, groq_model
+                            )
+                            for gk in candidate_keys:
+                                try:
+                                    groq_client = provider_inst.get_client(gk, timeout_seconds=self.timeout_seconds, provider="groq", profile="chat")
+                                    resp = groq_client.models.generate_content(
+                                        model=groq_model,
+                                        contents=req_contents,
+                                        config=config
+                                    )
+                                    if (getattr(resp, "text", None) or "").strip():
+                                        return resp
+                                except Exception as groq_err:
+                                    logger.error("[REQ-%s] Groq key %s... failed: %s", req_id, gk[:10], groq_err)
+                                    continue
+                        raise primary_err
                 return resp
 
             policy = getattr(self, "retry_policy", None) or RetryPolicy()
@@ -540,8 +574,14 @@ class GeminiMedicalService:
             metrics_collector.record_attempts(retries_count + 1)
             metrics_collector.log_event("generation", req_id, latency * 1000.0, "SUCCESS", retry_count=retries_count)
 
+            verifier_question = user_message
+            if dialogue_history and len(user_message.split()) <= 7:
+                user_turns = [t["content"] for t in dialogue_history if t.get("role") == "user"]
+                if user_turns:
+                    verifier_question = " | ".join(user_turns[-3:] + [user_message])
+
             parsed = self._ground_clinical_result(
-                parsed, references, user_message, clinical_hint, consultation_mode, lang, has_image,
+                parsed, references, verifier_question, clinical_hint, consultation_mode, lang, has_image,
                 clinical_context, screening_reply=screening_reply
             )
 
@@ -634,10 +674,34 @@ class GeminiMedicalService:
                 verify_model = self.model
 
             def _do_verify():
-                res = self.client.models.generate_content(model=verify_model, contents=payload, config=config)
-                if isinstance(self.client, _OpenRouterClient) and not (getattr(res, "text", None) or "").strip():
-                    raise _OpenRouterHTTPError(502, "OpenRouter empty verifier completion")
-                return res
+                try:
+                    res = self.client.models.generate_content(model=verify_model, contents=payload, config=config)
+                    if isinstance(self.client, _OpenRouterClient) and not (getattr(res, "text", None) or "").strip():
+                        raise _OpenRouterHTTPError(502, "OpenRouter empty verifier completion")
+                    return res
+                except Exception as verify_err:
+                    raw_keys = ",".join([
+                        os.getenv("GROQ_API_KEYS") or "",
+                        os.getenv("GROQ_BACKUP_API_KEY") or "",
+                        os.getenv("GROQ_API_KEY") or "",
+                    ])
+                    candidate_keys = []
+                    for k in raw_keys.split(","):
+                        ks = k.strip()
+                        if ks and ks not in candidate_keys:
+                            candidate_keys.append(ks)
+                    provider_inst = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
+                    if candidate_keys and provider_inst:
+                        groq_verify_model = (os.getenv("GROQ_CHAT_VERIFY_MODEL") or "qwen/qwen3.8-27b").strip()
+                        for gk in candidate_keys:
+                            try:
+                                groq_client = provider_inst.get_client(gk, timeout_seconds=self.timeout_seconds, provider="groq", profile="chat")
+                                resp = groq_client.models.generate_content(model=groq_verify_model, contents=payload, config=config)
+                                if (getattr(resp, "text", None) or "").strip():
+                                    return resp
+                            except Exception:
+                                continue
+                    raise verify_err
 
             if isinstance(self.client, _OpenRouterClient):
                 verify_policy = RetryPolicy(max_attempts=2, base_delay=0.5, max_delay=2.0, jitter=True)
@@ -800,6 +864,10 @@ class GeminiMedicalService:
         if data.get("response_kind") in ("grounded", "clarify", "insufficient"):
             if not isinstance(data.get("grounded_points"), list):
                 return None
+            # Neu model (Groq) khong tra "answer" ma co "follow_up_question", dung no lam answer
+            if not isinstance(answer, str) or not answer.strip():
+                fq = data.get("follow_up_question", "")
+                answer = fq.strip() if isinstance(fq, str) else ""
         elif not isinstance(answer, str) or not answer.strip():
             return None
 

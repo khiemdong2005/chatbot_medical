@@ -310,7 +310,7 @@ QUY TẮC:
             model=model,
             system_instruction=instruction,
             temperature=0.2,
-            max_output_tokens=2600,
+            max_output_tokens=1800 if use_groq else 2600,
             timeout_seconds=gen_timeout,
             operation="nutrition_ai",
             profile="nutrition",

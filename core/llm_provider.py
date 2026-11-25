@@ -39,7 +39,15 @@ from core.circuit_breaker import (
     CircuitBreakerOpenError,
     get_circuit_breaker
 )
-from core.settings import settings
+try:
+    from core.settings import settings, is_configured_secret
+except ImportError:
+    from core.settings import settings
+    def is_configured_secret(val: Any) -> bool:
+        if not val or not isinstance(val, str):
+            return False
+        clean = val.strip().lower()
+        return clean not in ("", "placeholder", "none", "null", "your_api_key_here") and not clean.startswith("your_")
 from core.observability import metrics_collector
 
 logger = logging.getLogger("LLMProvider")
@@ -73,35 +81,30 @@ class _OpenRouterHTTPError(Exception):
 
 class _OpenRouterResponse:
     """Mimics google-genai GenerateContentResponse with .text attribute."""
-    def __init__(self, text: str, raw: Optional[Dict[str, Any]] = None, model: Optional[str] = None):
+    def __init__(self, text: str, raw: Optional[Dict[str, Any]] = None):
         self.text = text
         self.raw = raw or {}
-        self.model = model
-
-
-GROQ_FALLBACK_MODELS = ("qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b")
 
 
 class _OpenRouterModels:
-    """Mimics client.models.generate_content(...) via OpenAI-compatible Chat Completions API (Groq / OpenRouter)."""
-    ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+    """Mimics client.models.generate_content(...) via OpenRouter Chat Completions API."""
+    ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+    GROQ_OCR_FALLBACK_MODELS = ("qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b")
 
-    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False, provider: str = "openrouter"):
-        self._api_key = (api_key or "").strip()
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False,
+                 ocr: bool = False, groq: bool = False, provider: str = ""):
+        self._api_key = api_key
         self._timeout = max(10.0, float(timeout_seconds))
         self._chat = chat
-        self._provider = (provider or "openrouter").strip().lower()
+        self._ocr = ocr
+        self._groq = groq or (str(provider).lower() == "groq")
 
     def _endpoint(self) -> str:
-        if self._provider == "groq":
-            base = (os.getenv("GROQ_BASE_URL") or "https://api.groq.com/openai/v1").strip().rstrip("/")
-            parsed = urlsplit(base)
-            if (parsed.scheme != "https" or parsed.netloc != "api.groq.com"
-                    or parsed.path != "/openai/v1" or parsed.query or parsed.fragment):
-                raise _OpenRouterHTTPError(400, "Invalid Groq base URL")
-            return f"{base}/chat/completions"
-
-        base = (os.getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1").strip().rstrip("/")
+        if self._groq:
+            return _groq_completion_endpoint()
+        base = (os.getenv("OPENROUTER_BASE_URL") or "https://openrouter.ai/api/v1").rstrip("/")
+        if self._ocr:
+            base = base.strip().rstrip("/")
         parsed = urlsplit(base)
         if (parsed.scheme != "https" or parsed.netloc != "openrouter.ai"
                 or parsed.path != "/api/v1" or parsed.query or parsed.fragment):
@@ -117,7 +120,15 @@ class _OpenRouterModels:
             if isinstance(item, str):
                 parts.append({"type": "text", "text": item})
             elif isinstance(item, dict):
-                if "text" in item:
+                if item.get("type") == "image_bytes" and item.get("data"):
+                    mime = item.get("mime_type") or "image/jpeg"
+                    raw_bytes = item["data"]
+                    b64 = base64.b64encode(raw_bytes).decode("ascii") if isinstance(raw_bytes, (bytes, bytearray)) else str(raw_bytes)
+                    parts.append({
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime};base64,{b64}"}
+                    })
+                elif "text" in item:
                     parts.append({"type": "text", "text": str(item["text"])})
                 else:
                     parts.append(item)
@@ -143,12 +154,13 @@ class _OpenRouterModels:
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
-            "User-Agent": "MediMind-Clinical-AI/2.5",
+            "Accept": "application/json",
+            "User-Agent": "MediMind-Clinical-AI/1.0",
         }
-        if self._provider != "groq":
+        if not self._groq:
             headers["HTTP-Referer"] = "https://medimind.local"
             headers["X-Title"] = "MediMind Clinical AI"
-        provider_label = "Groq" if self._provider == "groq" else "OpenRouter"
+        provider_label = "Groq" if self._groq else "OpenRouter"
         req = urllib.request.Request(
             self._endpoint(),
             data=json.dumps(payload).encode("utf-8"),
@@ -164,6 +176,16 @@ class _OpenRouterModels:
             raise _OpenRouterHTTPError(he.code, f"{provider_label} HTTP {he.code}") from None
         except urllib.error.URLError as ue:
             raise TimeoutError(f"{provider_label} connection error: {ue.reason}") from None
+
+    def _post_with_json_compatibility(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            return self._post_completion(payload)
+        except _OpenRouterHTTPError as error:
+            retry_statuses = (400,) if self._ocr else (400, 422)
+            if self._chat or error.status_code not in retry_statuses or "response_format" not in payload:
+                raise
+            payload.pop("response_format")
+            return self._post_completion(payload)
 
     def generate_content(self, model: str, contents: Any, config: Optional[Any] = None) -> _OpenRouterResponse:
         def get_config(key: str) -> Any:
@@ -193,12 +215,13 @@ class _OpenRouterModels:
         }
         if temperature is not None:
             payload["temperature"] = float(temperature)
-        if max_tokens is not None and int(max_tokens) >= 2048:
-            payload["max_tokens"] = int(max_tokens)
-        if self._provider == "groq":
-            if want_json:
-                payload["response_format"] = {"type": "json_object"}
-        elif self._chat:
+        if max_tokens is not None:
+            output_tokens = int(max_tokens)
+            if self._ocr and output_tokens >= 2048:
+                payload["max_tokens"] = output_tokens
+            elif not self._ocr and output_tokens > 0:
+                payload["max_tokens"] = max(output_tokens, 4096)
+        if self._chat:
             routing: Dict[str, Any] = {}
             if os.getenv("OPENROUTER_CHAT_DATA_COLLECTION", "").strip().lower() == "deny":
                 routing["data_collection"] = "deny"
@@ -217,41 +240,37 @@ class _OpenRouterModels:
                 payload["provider"] = routing
         elif want_json:
             payload["response_format"] = {"type": "json_object"}
-        if self._provider != "groq":
-            if isinstance(reasoning_enabled, bool):
-                payload["reasoning"] = {"enabled": reasoning_enabled}
+        if not self._groq and isinstance(reasoning_enabled, bool):
+            payload["reasoning"] = {"enabled": reasoning_enabled}
 
-        def _send_with_compat(req_payload: Dict[str, Any]) -> Dict[str, Any]:
-            try:
-                return self._post_completion(req_payload)
-            except _OpenRouterHTTPError as err:
-                # Preserve the legacy compatibility retry for workflows outside strict OpenRouter chat.
-                if (self._provider == "groq" or not self._chat) and err.status_code == 400 and "response_format" in req_payload:
-                    req_payload.pop("response_format", None)
-                    return self._post_completion(req_payload)
-                raise
-
+        fallback_statuses = (404, 413, 429)
         try:
-            resp_json = _send_with_compat(payload)
-        except _OpenRouterHTTPError as e:
-            if self._provider == "groq" and e.status_code in (404, 413, 429):
-                last_err = e
-                resp_json = None
-                for fallback_model in GROQ_FALLBACK_MODELS:
-                    if fallback_model == payload.get("model"):
-                        continue
-                    payload["model"] = fallback_model
-                    try:
-                        resp_json = _send_with_compat(payload)
-                        break
-                    except _OpenRouterHTTPError as fb_err:
-                        last_err = fb_err
-                        if fb_err.status_code not in (404, 413, 429):
-                            raise
-                if resp_json is None:
-                    raise last_err
-            else:
+            resp_json = self._post_with_json_compatibility(payload)
+        except _OpenRouterHTTPError as error:
+            if not self._groq or error.status_code not in fallback_statuses:
                 raise
+            has_image = any(
+                isinstance(msg.get("content"), list)
+                and any(isinstance(part, dict) and part.get("type") == "image_url" for part in msg["content"])
+                for msg in (payload.get("messages") or [])
+                if isinstance(msg, dict)
+            )
+            if has_image:
+                raise
+            last_error = error
+            for fallback_model in self.GROQ_OCR_FALLBACK_MODELS:
+                if fallback_model == model:
+                    continue
+                payload["model"] = fallback_model
+                try:
+                    resp_json = self._post_with_json_compatibility(payload)
+                    break
+                except _OpenRouterHTTPError as fallback_error:
+                    if fallback_error.status_code not in fallback_statuses:
+                        raise
+                    last_error = fallback_error
+            else:
+                raise last_error
 
         response = resp_json if isinstance(resp_json, dict) else {}
         choices = response.get("choices")
@@ -273,14 +292,184 @@ class _OpenRouterModels:
                               if isinstance(part, dict) and isinstance(part.get("text"), str))
         if not isinstance(content, str):
             content = ""
-        return _OpenRouterResponse(text=content, raw=resp_json, model=payload.get("model"))
+        if not self._ocr and not content.strip() and isinstance(message, dict):
+            reasoning = message.get("reasoning", "")
+            if isinstance(reasoning, str) and reasoning.strip():
+                content = reasoning
+        return _OpenRouterResponse(text=content, raw=resp_json)
 
 
 class _OpenRouterClient:
-    """Drop-in replacement for genai.Client exposing .models.generate_content() (Groq / OpenRouter)."""
-    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False, provider: str = "openrouter"):
-        self.provider = (provider or "openrouter").strip().lower()
-        self.models = _OpenRouterModels(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat, provider=self.provider)
+    """Drop-in replacement for genai.Client exposing .models.generate_content()."""
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0, *, chat: bool = False,
+                 ocr: bool = False, groq: bool = False):
+        self.models = _OpenRouterModels(api_key, timeout_seconds, chat=chat, ocr=ocr, groq=groq)
+
+
+# ==============================================================================
+# GROQ PROVIDER — OpenAI-compatible, free tier 30 req/min (10x OpenRouter free)
+# Models: llama-3.3-70b-versatile, gemma2-9b-it, llama-3.1-8b-instant, ...
+# Endpoint: https://api.groq.com/openai/v1/chat/completions
+# Key format: gsk_...
+# ==============================================================================
+
+class _GroqHTTPError(_OpenRouterHTTPError):
+    """Dedicated HTTP error for Groq so logs clearly distinguish Groq from OpenRouter."""
+
+
+def _groq_completion_endpoint() -> str:
+    base = (os.getenv("GROQ_BASE_URL") or "https://api.groq.com/openai/v1").strip().rstrip("/")
+    parsed = urlsplit(base)
+    if (parsed.scheme != "https" or parsed.netloc != "api.groq.com"
+            or parsed.path != "/openai/v1" or parsed.query or parsed.fragment):
+        raise _GroqHTTPError(400, "Invalid Groq base URL")
+    return f"{base}/chat/completions"
+
+
+class _GroqModels:
+    """Mimics _OpenRouterModels via Groq's OpenAI-compatible Chat Completions API."""
+    ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0):
+        self._api_key = api_key
+        self._timeout = max(10.0, float(timeout_seconds))
+
+    def _convert_contents(self, contents: Any) -> str:
+        """Groq không hỗ trợ image input trên free tier — chỉ nhận text."""
+        if isinstance(contents, str):
+            return contents
+        items = contents if isinstance(contents, list) else [contents]
+        parts: List[str] = []
+        for item in items:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                if "text" in item:
+                    parts.append(str(item["text"]))
+                # bỏ qua image_bytes — Groq free không hỗ trợ vision
+            else:
+                text = getattr(item, "text", None)
+                if text is not None:
+                    parts.append(str(text))
+        return "\n\n".join(parts)
+
+    def _endpoint(self) -> str:
+        return _groq_completion_endpoint()
+
+    def _post_completion(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        req = urllib.request.Request(
+            self._endpoint(),
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": "MediMind-Clinical-AI/1.0",
+            },
+            method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as he:
+            if he.code == 429:
+                headers = he.headers or {}
+                logger.warning(
+                    "Groq rate limit: model=%s retry_after=%s remaining_requests=%s remaining_tokens=%s",
+                    payload.get("model"),
+                    headers.get("Retry-After"),
+                    headers.get("x-ratelimit-remaining-requests"),
+                    headers.get("x-ratelimit-remaining-tokens"),
+                )
+            raise _GroqHTTPError(he.code, f"Groq HTTP {he.code}") from None
+        except urllib.error.URLError as ue:
+            raise TimeoutError(f"Groq connection error: {ue.reason}") from None
+
+    def generate_content(self, model: str, contents: Any, config: Optional[Any] = None) -> _OpenRouterResponse:
+        def get_config(key: str) -> Any:
+            if isinstance(config, dict):
+                return config.get(key)
+            return getattr(config, key, None)
+
+        messages: List[Dict[str, Any]] = []
+        sys_inst = get_config("system_instruction")
+        temperature = get_config("temperature")
+        max_tokens = get_config("max_output_tokens")
+        want_json = get_config("response_mime_type") == "application/json"
+
+        if sys_inst:
+            if want_json:
+                sys_inst = (f"{sys_inst}\n\n"
+                            "IMPORTANT: Respond ONLY with a valid raw JSON object "
+                            "(no markdown fences, no extra text).")
+            messages.append({"role": "system", "content": str(sys_inst)})
+        elif want_json:
+            messages.append({
+                "role": "system",
+                "content": "Respond ONLY with a valid raw JSON object (no markdown fences, no extra text)."
+            })
+
+        messages.append({"role": "user", "content": self._convert_contents(contents)})
+
+        payload: Dict[str, Any] = {"model": model, "messages": messages}
+        if temperature is not None:
+            payload["temperature"] = float(temperature)
+        # Groq reasoning models (gpt-oss-*) consume tokens for internal reasoning —
+        # enforce a minimum of 1024 so content tokens remain after the reasoning budget.
+        effective_max = int(max_tokens) if (max_tokens is not None and int(max_tokens) > 0) else 1024
+        payload["max_tokens"] = max(effective_max, 1024)
+        if want_json:
+            payload["response_format"] = {"type": "json_object"}
+
+        try:
+            resp_json = self._post_completion(payload)
+        except _OpenRouterHTTPError as e:
+            # Retry without response_format nếu model không hỗ trợ JSON mode
+            if e.status_code in (400, 422) and "response_format" in payload:
+                payload.pop("response_format", None)
+                resp_json = self._post_completion(payload)
+            else:
+                raise
+
+        response = resp_json if isinstance(resp_json, dict) else {}
+        # Handle Groq error field
+        error = response.get("error")
+        if isinstance(error, dict):
+            code = error.get("code") or 502
+            if isinstance(code, str) and re.fullmatch(r"[45][0-9]{2}", code):
+                code = int(code)
+            status = code if isinstance(code, int) and 400 <= code <= 599 else 502
+            raise _GroqHTTPError(status, f"Groq completion error ({status})")
+
+        choices = response.get("choices")
+        choice = choices[0] if isinstance(choices, list) and choices and isinstance(choices[0], dict) else {}
+        message = choice.get("message")
+        content = message.get("content", "") if isinstance(message, dict) else ""
+        if isinstance(content, list):
+            content = "".join(
+                part.get("text", "") for part in content
+                if isinstance(part, dict) and isinstance(part.get("text"), str)
+            )
+        if not isinstance(content, str):
+            content = ""
+        if not content.strip() and isinstance(message, dict):
+            reasoning = message.get("reasoning", "")
+            if isinstance(reasoning, str) and reasoning.strip():
+                content = reasoning
+        # Groq reasoning models (openai/gpt-oss-*) may put output only in "reasoning"
+        # when max_tokens is too small — fall back to reasoning field if content is empty.
+        if not content.strip() and isinstance(message, dict):
+            reasoning = message.get("reasoning", "")
+            if isinstance(reasoning, str) and reasoning.strip():
+                content = reasoning.strip()
+                logger.debug("Groq: content empty, falling back to reasoning field (%d chars)", len(content))
+        return _OpenRouterResponse(text=content, raw=resp_json)
+
+
+class _GroqClient:
+    """Drop-in replacement for genai.Client — wraps _GroqModels."""
+    def __init__(self, api_key: str, timeout_seconds: float = 25.0):
+        self.models = _GroqModels(api_key=api_key, timeout_seconds=timeout_seconds)
 
 
 class LLMProviderError(Exception):
@@ -310,33 +499,73 @@ class LLMProvider:
     def __init__(self):
         self._clients: Dict[str, Any] = {}
         self._lock = threading.Lock()
+        self._groq_rr_idx = 0
+
+    def _groq_key_pool(self, primary_key: str) -> List[str]:
+        """Collect configured Groq API keys (primary + backup + GROQ_API_KEYS) and rotate round-robin."""
+        candidates: List[str] = []
+        for raw in (
+            primary_key,
+            os.getenv("GROQ_API_KEY", ""),
+            os.getenv("GROQ_BACKUP_API_KEY", ""),
+        ):
+            clean = (raw or "").strip()
+            if clean and is_configured_secret(clean) and clean not in candidates:
+                candidates.append(clean)
+        for part in (os.getenv("GROQ_API_KEYS") or "").split(","):
+            clean = part.strip()
+            if clean and is_configured_secret(clean) and clean not in candidates:
+                candidates.append(clean)
+        if len(candidates) > 1:
+            with self._lock:
+                start = self._groq_rr_idx % len(candidates)
+                self._groq_rr_idx += 1
+            return candidates[start:] + candidates[:start]
+        return candidates
 
     # ==========================================================================
     # 1. API KEY RESOLUTION & VALIDATION
     # ==========================================================================
 
     def is_groq_active(self) -> bool:
-        """Kiểm tra xem hệ thống có đang cấu hình chạy Groq API hay không."""
+        """Kiểm tra Groq có được cấu hình làm primary provider không."""
         provider = os.getenv("AI_PROVIDER", "").strip().lower()
         groq_key = os.getenv("GROQ_API_KEY", "").strip()
-        if provider == "groq":
-            return bool(groq_key)
-        if not provider and groq_key:
-            return True
-        return False
+        return provider == "groq" and is_configured_secret(groq_key)
 
     def is_openrouter_active(self) -> bool:
         """Kiểm tra xem hệ thống có đang cấu hình chạy OpenRouter hay không."""
-        if self.is_groq_active():
-            return False
         provider = os.getenv("AI_PROVIDER", "").strip().lower()
+        if provider == "openrouter":
+            return True
         openrouter_key = (
-            os.getenv("OPENROUTER_API_KEY", "").strip()
-            or os.getenv("OPENROUTER_CHAT_API_KEY", "").strip()
-            or os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
-            or os.getenv("OPENROUTER_NUTRITION_API_KEY", "").strip()
-        )
-        return provider == "openrouter" and bool(openrouter_key)
+            os.getenv("OPENROUTER_API_KEY")
+            or os.getenv("OPENROUTER_CHAT_API_KEY")
+            or os.getenv("OPENROUTER_OCR_API_KEY")
+            or os.getenv("OPENROUTER_NUTRITION_API_KEY")
+            or ""
+        ).strip()
+        return provider == "openrouter" and is_configured_secret(openrouter_key)
+
+    def _prescription_ocr_credentials(self) -> tuple[str, str]:
+        provider = os.getenv("OCR_AI_PROVIDER", "").strip().lower()
+        if not provider:
+            provider = os.getenv("AI_PROVIDER", "").strip().lower()
+        # Groq không hỗ trợ multimodal vision cho đơn thuốc (text-only).
+        # Nếu có OPENROUTER_OCR_API_KEY hoặc GEMINI_API_KEY, tự động ưu tiên cho OCR vision.
+        if provider == "openrouter" or (provider in ("", "groq") and os.getenv("OCR_AI_PROVIDER", "").strip().lower() != "groq"):
+            for name in ("OPENROUTER_OCR_API_KEY", "OPENROUTER_API_KEY",
+                         "OPENROUTER_CHAT_API_KEY", "OPENROUTER_NUTRITION_API_KEY"):
+                key = os.getenv(name, "").strip()
+                if is_configured_secret(key):
+                    return "openrouter", key
+        gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or settings.gemini.api_key or ""
+        if is_configured_secret(gemini_key):
+            return "gemini", gemini_key.strip()
+        groq_key = os.getenv("GROQ_API_KEY", "").strip()
+        if provider in ("", "groq") and is_configured_secret(groq_key):
+            return "groq", groq_key
+        return "gemini", gemini_key.strip()
 
     def resolve_api_key(
         self,
@@ -345,51 +574,78 @@ class LLMProvider:
     ) -> str:
         """
         Xác định API Key theo Profile một cách an toàn:
-        - Nếu có explicit_key -> ưu tiên số 1.
-        - Nếu AI_PROVIDER=groq (hoặc mặc định có GROQ_API_KEY) -> dùng GROQ_API_KEY.
-        - Nếu AI_PROVIDER=openrouter -> ưu tiên key OpenRouter theo profile rồi tới OPENROUTER_API_KEY.
-        - Profile 'nutrition' -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
-        - Profile 'chat' -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
-        - Mặc định -> GEMINI_API_KEY -> GOOGLE_API_KEY.
+        - Nếu AI_PROVIDER=groq      -> ưu tiên GROQ_API_KEY (gsk_...).
+        - Nếu AI_PROVIDER=openrouter -> ưu tiên OPENROUTER_*_API_KEY (sk-or-...).
+        - Nếu có explicit_key        -> ưu tiên số 1.
+        - Profile 'nutrition' -> OPENROUTER_NUTRITION_API_KEY -> GEMINI_NUTRITION_API_KEY -> GEMINI_API_KEY.
+        - Profile 'chat'      -> OPENROUTER_CHAT_API_KEY -> GEMINI_CHAT_API_KEY -> GEMINI_API_KEY.
+        - Profile 'ocr'       -> OPENROUTER_OCR_API_KEY -> OCR_MODEL / GEMINI_API_KEY.
+        - Mặc định            -> GEMINI_API_KEY -> GOOGLE_API_KEY.
         """
         if explicit_key and isinstance(explicit_key, str) and explicit_key.strip():
             return explicit_key.strip()
 
-        if self.is_groq_active():
-            return os.getenv("GROQ_API_KEY", "").strip()
-
         prof = (profile or "").lower()
+        if prof in ("ocr", "prescription_ocr", "prescription", "interpretation"):
+            return self._prescription_ocr_credentials()[1]
+        is_vision_ocr = any(tag in prof for tag in ("ocr", "prescription", "vision"))
+
+        # Groq primary provider (text-only: không hỗ trợ vision/OCR -> bỏ qua cho tác vụ OCR/Vision)
+        if self.is_groq_active() and not is_vision_ocr:
+            groq_key = os.getenv("GROQ_API_KEY", "").strip()
+            if groq_key:
+                return groq_key
+
         if self.is_openrouter_active():
+            if prof in ("nutrition", "nutrition_ai"):
+                or_nutri_key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or "").strip()
+                if is_configured_secret(or_nutri_key):
+                    return or_nutri_key
             if prof in ("chat", "chat_generation"):
-                k = os.getenv("OPENROUTER_CHAT_API_KEY", "").strip()
-                if k:
-                    return k
-            elif prof in ("ocr", "prescription", "interpretation"):
-                k = os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
-                if k:
-                    return k
-            elif prof in ("nutrition", "nutrition_ai"):
-                k = os.getenv("OPENROUTER_NUTRITION_API_KEY", "").strip()
-                if k:
-                    return k
-            return (
-                os.getenv("OPENROUTER_API_KEY", "").strip()
-                or os.getenv("OPENROUTER_CHAT_API_KEY", "").strip()
-                or os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
-                or os.getenv("OPENROUTER_NUTRITION_API_KEY", "").strip()
-            )
+                or_chat_key = (os.getenv("OPENROUTER_CHAT_API_KEY") or "").strip()
+                if is_configured_secret(or_chat_key):
+                    return or_chat_key
+            if is_vision_ocr or prof in ("ocr", "prescription", "vision", "interpretation"):
+                or_ocr_key = (os.getenv("OPENROUTER_OCR_API_KEY") or "").strip()
+                if is_configured_secret(or_ocr_key):
+                    return or_ocr_key
+                return or_ocr_key
+
+        if self.is_openrouter_active():
+            for env_name in (
+                "OPENROUTER_API_KEY",
+                "OPENROUTER_CHAT_API_KEY",
+                "OPENROUTER_OCR_API_KEY",
+                "OPENROUTER_NUTRITION_API_KEY",
+            ):
+                candidate = (os.getenv(env_name) or "").strip()
+                if is_configured_secret(candidate):
+                    return candidate
+            return ""
+
+        or_general_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
+        if is_configured_secret(or_general_key):
+            return or_general_key
+
         if prof in ("nutrition", "nutrition_ai"):
-            key = os.getenv("GEMINI_NUTRITION_API_KEY") or settings.gemini.nutrition_api_key or ""
-            if key:
-                return key.strip()
+            key = (os.getenv("GEMINI_NUTRITION_API_KEY") or settings.gemini.nutrition_api_key or "").strip()
+            if is_configured_secret(key):
+                return key
 
         if prof in ("chat", "chat_generation"):
-            key = os.getenv("GEMINI_CHAT_API_KEY") or settings.gemini.chat_api_key or ""
-            if key:
-                return key.strip()
+            key = (os.getenv("GEMINI_CHAT_API_KEY") or settings.gemini.chat_api_key or "").strip()
+            if is_configured_secret(key):
+                return key
 
-        key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or settings.gemini.api_key or ""
-        return key.strip()
+        for candidate in (
+            os.getenv("GEMINI_API_KEY"),
+            os.getenv("GOOGLE_API_KEY"),
+            settings.gemini.api_key,
+        ):
+            clean = (candidate or "").strip()
+            if is_configured_secret(clean):
+                return clean
+        return ""
 
     def is_configured(
         self,
@@ -398,12 +654,7 @@ class LLMProvider:
     ) -> bool:
         """Kiểm tra tính hợp lệ của API Key mà không thực hiện kết nối mạng."""
         key = self.resolve_api_key(profile=profile, explicit_key=explicit_key)
-        return bool(
-            key
-            and not key.startswith("YOUR_")
-            and key != "your_google_gemini_api_key_here"
-            and len(key) > 10
-        )
+        return bool(is_configured_secret(key) and len(key) > 10)
 
     # ==========================================================================
     # 2. CLIENT LIFECYCLE (LAZY SINGLETON & THREAD-SAFE)
@@ -418,40 +669,46 @@ class LLMProvider:
         profile: Optional[str] = None,
     ) -> Any:
         """
-        Khởi tạo hoặc tái sử dụng AI Client (OpenRouter hoặc Gemini) một cách lười (Lazy) và an toàn đa luồng.
+        Khởi tạo hoặc tái sử dụng AI Client (Groq / OpenRouter / Gemini) một cách lười (Lazy) và an toàn đa luồng.
         Không thực hiện bất kỳ lệnh gọi mạng nào lúc khởi tạo.
+        Priority: Groq (gsk_...) > OpenRouter (sk-or-...) > Gemini
         """
-        key_clean = (api_key or "").strip()
-        env_groq_key = os.getenv("GROQ_API_KEY", "").strip()
         use_groq = provider == "groq" or (
-            provider is None and (
-                key_clean.startswith("gsk_")
-                or (self.is_groq_active() and bool(env_groq_key) and key_clean == env_groq_key)
-            )
-        )
+            provider is None and isinstance(api_key, str) and api_key.startswith("gsk_"))
         use_openrouter = (not use_groq) and (
             provider == "openrouter" or (
-                provider is None and key_clean.startswith("sk-or-")
-            )
-        )
-        chat = (use_groq or use_openrouter) and (profile or "").lower() in ("chat", "chat_generation")
+                provider is None and isinstance(api_key, str) and api_key.startswith("sk-or-")))
+        chat = use_openrouter and (profile or "").lower() in ("chat", "chat_generation")
+        ocr = (use_groq or use_openrouter) and profile in ("prescription_ocr", "interpretation")
         timeout_ms = max(10000, int(timeout_seconds * 1000))
-        prefix = "gq" if use_groq else ("or" if use_openrouter else "gm")
-        cache_key = f"{prefix}_{hash(key_clean)}_{timeout_ms}"
-        if chat:
-            cache_key += "_chat"
+
+        if use_groq:
+            cache_key = f"groq_{hash(api_key)}_{timeout_ms}"
+        elif use_openrouter:
+            cache_key = f"or_{hash(api_key)}_{timeout_ms}"
+            if chat:
+                cache_key += "_chat"
+        else:
+            cache_key = f"gm_{hash(api_key)}_{timeout_ms}"
+        if ocr:
+            cache_key += "_ocr"
 
         with self._lock:
             if cache_key in self._clients:
                 return self._clients[cache_key]
 
+            if ocr:
+                client = _OpenRouterClient(api_key, timeout_seconds, ocr=True, groq=use_groq)
+                self._clients[cache_key] = client
+                return client
+
             if use_groq:
-                client = _OpenRouterClient(api_key=key_clean, timeout_seconds=timeout_seconds, chat=chat, provider="groq")
+                client = _GroqClient(api_key=api_key, timeout_seconds=timeout_seconds)
                 self._clients[cache_key] = client
                 return client
 
             if use_openrouter:
-                client = _OpenRouterClient(api_key=key_clean, timeout_seconds=timeout_seconds, chat=chat, provider="openrouter")
+                client = _OpenRouterClient(api_key=api_key, timeout_seconds=timeout_seconds, chat=chat)
                 self._clients[cache_key] = client
                 return client
 
@@ -489,8 +746,8 @@ class LLMProvider:
             val = os.getenv("LLM_EXPANSION_TIMEOUT_SECONDS") or os.getenv("QUERY_EXPANSION_TIMEOUT_SECONDS")
             return float(val) if val else settings.gemini.timeout_expansion
         if "ocr" in op or "prescription" in op:
-            val = os.getenv("OCR_AI_TIMEOUT_SECONDS")
-            return float(val) if val else settings.gemini.timeout_ocr
+            val = os.getenv("OCR_AI_TIMEOUT_SECONDS") or os.getenv("OPENROUTER_OCR_TIMEOUT_SECONDS")
+            return float(val) if val else max(60.0, float(settings.gemini.timeout_ocr))
         if "nutrition" in op:
             val = os.getenv("GEMINI_NUTRITION_TIMEOUT_SECONDS")
             return float(val) if val else settings.gemini.timeout_nutrition
@@ -528,24 +785,55 @@ class LLMProvider:
             return get_circuit_breaker("interpretation")
         return get_circuit_breaker("gemini_main")
 
-    def get_default_model(self, operation: str) -> str:
-        """Lấy model mặc định cho từng tác vụ."""
+    def get_default_model(self, operation: str, api_key: Optional[str] = None) -> str:
+        """Lấy model mặc định cho từng tác vụ. Priority: Groq > OpenRouter > Gemini."""
         op = operation.lower()
-        if self.is_groq_active():
-            default_groq = (os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
-            if "chat" in op:
-                return (os.getenv("GROQ_CHAT_MODEL") or default_groq).strip()
-            if "expansion" in op:
-                return (os.getenv("GROQ_EXPANSION_MODEL") or default_groq).strip()
-            if "nutrition" in op:
-                return (os.getenv("GROQ_NUTRITION_MODEL") or default_groq).strip()
-            if "ocr" in op or "prescription" in op:
-                return (os.getenv("GROQ_OCR_MODEL") or default_groq).strip()
-            if "interpretation" in op:
-                return (os.getenv("GROQ_INTERPRETATION_MODEL") or default_groq).strip()
-            return default_groq
 
-        if self.is_openrouter_active():
+        if op == "prescription_ocr":
+            provider, _ = self._prescription_ocr_credentials()
+            if provider == "groq":
+                return (os.getenv("GROQ_OCR_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
+            if provider == "openrouter":
+                return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
+            return (os.getenv("OCR_MODEL") or settings.gemini.ocr_model).strip()
+
+        if op == "interpretation" and api_key:
+            if api_key.startswith("gsk_"):
+                return (os.getenv("GROQ_INTERPRETATION_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
+            if api_key.startswith("sk-or-"):
+                return os.getenv("OPENROUTER_INTERPRETATION_MODEL", "openrouter/free").strip()
+            return (os.getenv("INTERPRETATION_MODEL") or settings.gemini.interpretation_model).strip()
+
+        # Groq priority
+        use_groq = (
+            self.is_groq_active()
+            or (isinstance(api_key, str) and api_key.strip().startswith("gsk_"))
+        )
+        if use_groq:
+            # Groq không hỗ trợ vision — OCR fallback sang OpenRouter hoặc Gemini
+            if "ocr" in op or "prescription" in op or "vision" in op:
+                or_key = (
+                    os.getenv("OPENROUTER_OCR_API_KEY", "").strip()
+                    or os.getenv("OPENROUTER_API_KEY", "").strip()
+                )
+                if is_configured_secret(or_key) or (isinstance(api_key, str) and api_key.startswith("sk-or-")):
+                    return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
+                return (os.getenv("OCR_MODEL") or settings.gemini.ocr_model).strip()
+            if "chat" in op:
+                return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
+            if "expansion" in op:
+                return os.getenv("GROQ_EXPANSION_MODEL", "openai/gpt-oss-20b").strip()
+            if "nutrition" in op:
+                return os.getenv("GROQ_NUTRITION_MODEL", "openai/gpt-oss-20b").strip()
+            if "interpretation" in op:
+                return os.getenv("GROQ_INTERPRETATION_MODEL", "openai/gpt-oss-120b").strip()
+            return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
+
+        use_openrouter = (
+            self.is_openrouter_active()
+            or (isinstance(api_key, str) and api_key.strip().startswith("sk-or-"))
+        )
+        if use_openrouter:
             if "chat" in op:
                 return os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
             if "expansion" in op:
@@ -606,9 +894,7 @@ class LLMProvider:
         else:
             effective_key = self.resolve_api_key(profile=profile or operation, explicit_key=api_key)
 
-        valid_key = bool(effective_key and not effective_key.startswith("YOUR_")
-                         and effective_key != "your_google_gemini_api_key_here"
-                         and len(effective_key) > 10)
+        valid_key = bool(is_configured_secret(effective_key) and len(effective_key) > 10)
         if not valid_key:
             metrics_collector.increment("llm_failure_total")
             metrics_collector.record_error("AUTH_ERROR")
@@ -642,70 +928,119 @@ class LLMProvider:
             elif classification == ErrorClassification.TIMEOUT:
                 metrics_collector.increment("timeout_total")
 
-        if provider is None:
-            client = self.get_client(effective_key, timeout_seconds=timeout)
-        else:
-            client = self.get_client(effective_key, timeout_seconds=timeout, provider=provider)
+        document_ai = operation in ("prescription_ocr", "interpretation")
+        is_groq_key = effective_key.startswith("gsk_") or provider == "groq"
+        key_pool = self._groq_key_pool(effective_key) if is_groq_key else [effective_key]
+        if not key_pool:
+            key_pool = [effective_key]
+
+        def _make_client(key_str: str):
+            if document_ai:
+                return self.get_client(key_str, timeout_seconds=timeout, provider=provider, profile=operation)
+            if provider is None:
+                return self.get_client(key_str, timeout_seconds=timeout)
+            return self.get_client(key_str, timeout_seconds=timeout, provider=provider)
+
+        client = _make_client(key_pool[0])
+        is_groq_client = isinstance(client, _GroqClient) or (
+            isinstance(client, _OpenRouterClient) and getattr(client.models, "_groq", False)
+        )
+
+        # Nếu client là Groq, loại bỏ các fallback model của Gemini/OpenRouter
+        if is_groq_client:
+            groq_models = [
+                m for m in models_to_try
+                if not m.startswith("gemini-") and m != "default" and not m.endswith(":free")
+            ]
+            if groq_models:
+                models_to_try = list(dict.fromkeys(groq_models))
+        # Nếu client là OpenRouter, chuẩn hóa các model Gemini sang OpenRouter model hợp lệ
+        elif isinstance(client, _OpenRouterClient):
+            mapped_models = []
+            default_or_ocr = os.getenv("OPENROUTER_OCR_MODEL", "openrouter/free").strip()
+            default_or_chat = os.getenv("OPENROUTER_CHAT_MODEL", "openrouter/free").strip()
+            for m in models_to_try:
+                if m.startswith("gemini-") or "flash" in m or m == "default":
+                    mapped_models.append(default_or_ocr if "ocr" in operation or "prescription" in operation else default_or_chat)
+                else:
+                    mapped_models.append(m)
+            if "ocr" in operation or "prescription" in operation:
+                mapped_models.extend(["nvidia/nemotron-3.5-super-vl:free", "google/gemma-4-26b-a4b-it:free"])
+            models_to_try = list(dict.fromkeys(mapped_models))
 
         last_error = None
         last_classification = ErrorClassification.UNKNOWN
 
         for current_model in models_to_try:
-            try:
-                def _do_call():
-                    return call_fn(client, current_model)
-
-                res = execute_with_retry(
-                    _do_call,
-                    policy=policy,
-                    circuit_breaker=breaker,
-                    stage=operation,
-                    request_id=req_id,
-                    on_retry=_on_retry
+            rotated_on_rate_limit = False
+            model_unavailable = False
+            for key_idx, active_key in enumerate(key_pool):
+                active_client = client if key_idx == 0 else _make_client(active_key)
+                active_policy = (
+                    RetryPolicy(max_attempts=1, base_delay=0.1, max_delay=0.5, jitter=False)
+                    if len(key_pool) > 1 and key_idx < len(key_pool) - 1
+                    else policy
                 )
+                try:
+                    def _do_call():
+                        return call_fn(active_client, current_model)
 
-                latency_ms = (time.time() - start_time) * 1000.0
-                metrics_collector.increment("llm_success_total")
-                metrics_collector.record_latency(f"{operation}_latency_ms", latency_ms)
-                metrics_collector.record_attempts(retries_count + 1)
-                metrics_collector.log_event(operation, req_id, latency_ms, "SUCCESS", retry_count=retries_count)
+                    res = execute_with_retry(
+                        _do_call,
+                        policy=active_policy,
+                        circuit_breaker=breaker,
+                        stage=operation,
+                        request_id=req_id,
+                        on_retry=_on_retry
+                    )
 
-                logger.info(
-                    "[%s][REQ-%s] Hoàn tất thành công qua model %s trong %.1fms (lượt thử: %d).",
-                    operation, req_id, current_model, latency_ms, retries_count + 1
-                )
-                return res
+                    latency_ms = (time.time() - start_time) * 1000.0
+                    metrics_collector.increment("llm_success_total")
+                    metrics_collector.record_latency(f"{operation}_latency_ms", latency_ms)
+                    metrics_collector.record_attempts(retries_count + 1)
+                    metrics_collector.log_event(operation, req_id, latency_ms, "SUCCESS", retry_count=retries_count)
 
-            except CircuitBreakerOpenError as cbe:
-                latency_ms = (time.time() - start_time) * 1000.0
-                metrics_collector.increment("llm_failure_total")
-                metrics_collector.increment("circuit_breaker_open_total")
-                metrics_collector.record_error("CIRCUIT_OPEN")
-                metrics_collector.log_event(operation, req_id, latency_ms, "CIRCUIT_OPEN", error_class="CIRCUIT_OPEN")
-                logger.warning("[%s][REQ-%s] Circuit Breaker '%s' đang MỞ. Từ chối thực thi.", operation, req_id, breaker.name)
-                raise LLMProviderError(
-                    message=f"Circuit Breaker '{breaker.name}' đang mở.",
-                    classification=ErrorClassification.CIRCUIT_OPEN,
-                    operation=operation,
-                    retryable=False,
-                    original_exception=cbe
-                ) from None
+                    logger.info(
+                        "[%s][REQ-%s] Hoàn tất thành công qua model %s trong %.1fms (lượt thử: %d).",
+                        operation, req_id, current_model, latency_ms, retries_count + 1
+                    )
+                    return res
 
-            except Exception as e:
-                classification = classify_exception(e)
-                model_unavailable = _is_model_unavailable_error(e)
-                if classification == ErrorClassification.UNKNOWN and type(e).__name__ == "ClientError":
-                    classification = ErrorClassification.BAD_REQUEST
-                last_error = e
-                last_classification = classification
-                logger.warning(
-                    "[%s][REQ-%s] Lỗi khi gọi model %s (%s).",
-                    operation, req_id, current_model, classification.value
-                )
-                # Đổi model chỉ khi model hiện tại không tồn tại hoặc lỗi tạm thời.
-                # Lỗi tài khoản, payload, schema và ClientError UNKNOWN sẽ lặp lại
-                # với mọi model nên phải trả về OCR cục bộ ngay.
-                if model_unavailable or classification in policy.retryable_classes:
+                except CircuitBreakerOpenError as cbe:
+                    latency_ms = (time.time() - start_time) * 1000.0
+                    metrics_collector.increment("llm_failure_total")
+                    metrics_collector.increment("circuit_breaker_open_total")
+                    metrics_collector.record_error("CIRCUIT_OPEN")
+                    metrics_collector.log_event(operation, req_id, latency_ms, "CIRCUIT_OPEN", error_class="CIRCUIT_OPEN")
+                    logger.warning("[%s][REQ-%s] Circuit Breaker '%s' đang MỞ. Từ chối thực thi.", operation, req_id, breaker.name)
+                    raise LLMProviderError(
+                        message=f"Circuit Breaker '{breaker.name}' đang mở.",
+                        classification=ErrorClassification.CIRCUIT_OPEN,
+                        operation=operation,
+                        retryable=False,
+                        original_exception=cbe
+                    ) from None
+
+                except Exception as e:
+                    classification = classify_exception(e)
+                    model_unavailable = _is_model_unavailable_error(e)
+                    if classification == ErrorClassification.UNKNOWN and type(e).__name__ == "ClientError":
+                        classification = ErrorClassification.BAD_REQUEST
+                    last_error = e
+                    last_classification = classification
+                    logger.warning(
+                        "[%s][REQ-%s] Lỗi khi gọi model %s (%s).",
+                        operation, req_id, current_model, classification.value
+                    )
+                    if classification == ErrorClassification.RATE_LIMIT and key_idx < len(key_pool) - 1:
+                        logger.info("[%s][REQ-%s] Key Groq #%d dính 429, xoay sang key dự phòng #%d.", operation, req_id, key_idx + 1, key_idx + 2)
+                        rotated_on_rate_limit = True
+                        continue
+                    rotated_on_rate_limit = False
+                    break
+
+            if not rotated_on_rate_limit:
+                if model_unavailable or last_classification in policy.retryable_classes:
                     continue
                 break
 
@@ -816,7 +1151,7 @@ class LLMProvider:
             config_kwargs["reasoning_enabled"] = reasoning_enabled
 
         if provider in ("openrouter", "groq"):
-            # Many OpenAI-compatible endpoints do not accept Gemini SDK structured-output parameters.
+            # Many free/OpenAI-compatible models do not accept Gemini structured-output params.
             # The caller's prompt describes the schema; validation remains local.
             config = config_kwargs
         else:
@@ -832,7 +1167,9 @@ class LLMProvider:
             raw = res.text or "" if res else ""
             if not isinstance(raw, str):
                 raw = ""
-            cleaned = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL | re.IGNORECASE).strip()
+            if operation == "prescription_ocr":
+                raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL | re.IGNORECASE)
+            cleaned = raw.strip()
             if cleaned.startswith("```"):
                 cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
                 cleaned = re.sub(r"\s*```$", "", cleaned).strip()
