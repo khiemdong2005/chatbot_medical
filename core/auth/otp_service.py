@@ -14,7 +14,7 @@ from core.auth.sms_service import sms_service
 
 class OtpManager:
     """Trình quản lý mã OTP an toàn đa luồng (Thread-safe)."""
-    def __init__(self, ttl_seconds: int = 300, cooldown_seconds: int = 60, max_attempts: int = 3):
+    def __init__(self, ttl_seconds: int = 120, cooldown_seconds: int = 60, max_attempts: int = 5):
         self.ttl = ttl_seconds
         self.cooldown = cooldown_seconds
         self.max_attempts = max_attempts
@@ -75,9 +75,15 @@ class OtpManager:
         # Tiến hành gửi qua kênh tương ứng ngoài Lock
         try:
             if channel == "email":
-                sent = email_service.send_verification_otp(identifier, otp_code, full_name=full_name, purpose=purpose)
+                sent = email_service.send_verification_otp(
+                    identifier,
+                    otp_code,
+                    full_name=full_name,
+                    purpose=purpose,
+                    ttl_seconds=self.ttl,
+                )
             else:
-                sent = sms_service.send_otp_sms(identifier, otp_code)
+                sent = sms_service.send_otp_sms(identifier, otp_code, ttl_seconds=self.ttl)
         except Exception:
             sent = False
 
@@ -95,8 +101,9 @@ class OtpManager:
         with self._lock:
             self._cleanup_expired()
             key = f"{channel}:{identifier.strip().lower()}"
+            ttl_minutes = max(1, self.ttl // 60)
             if key not in self._store:
-                return False, "Mã xác thực không tồn tại hoặc đã hết hạn (sau 5 phút)."
+                return False, f"Mã xác thực không tồn tại hoặc đã hết hạn (sau {ttl_minutes} phút)."
 
             entry = self._store[key]
             now = time.time()
@@ -107,7 +114,7 @@ class OtpManager:
 
             if entry["attempts"] >= self.max_attempts:
                 del self._store[key]
-                return False, "Bạn đã nhập sai quá 3 lần. Mã đã bị hủy vì lý do an toàn."
+                return False, f"Bạn đã nhập sai quá {self.max_attempts} lần. Mã đã bị hủy vì lý do an toàn."
 
             if purpose and entry.get("purpose") != purpose:
                 return False, "Mã xác thực không khớp với mục đích yêu cầu."
@@ -115,9 +122,12 @@ class OtpManager:
             if entry["code"] != code.strip():
                 entry["attempts"] += 1
                 remaining_attempts = self.max_attempts - entry["attempts"]
+                if remaining_attempts <= 0:
+                    del self._store[key]
+                    return False, f"Bạn đã nhập sai quá {self.max_attempts} lần. Mã đã bị hủy vì lý do an toàn."
                 return False, f"Mã xác thực không chính xác. Bạn còn {remaining_attempts} lần thử."
 
-            # Đánh dấu đã xác thực thành công (lưu dấu 5 phút) và xóa mã OTP một lần
+            # Đánh dấu đã xác thực thành công và xóa mã OTP dùng một lần
             self._verified_store[key] = now + self.ttl
             del self._store[key]
             return True, "Xác thực danh tính thành công."

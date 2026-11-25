@@ -1480,6 +1480,20 @@ body.light-glass .text-slate-500 {
   outline: none !important;
 }
 
+#login-modal.auth-4exam-shell .auth-4e-input:-webkit-autofill,
+#login-modal.auth-4exam-shell .auth-4e-input:-webkit-autofill:hover,
+#login-modal.auth-4exam-shell .auth-4e-input:-webkit-autofill:focus,
+#login-modal .auth-4e-input:-webkit-autofill,
+#login-modal .auth-4e-input:-webkit-autofill:hover,
+#login-modal .auth-4e-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #0a1e38 inset !important;
+  box-shadow: 0 0 0 1000px #0a1e38 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+
 #login-modal.auth-4exam-shell .auth-4e-google-btn,
 #login-modal .auth-4e-google-btn {
   height: 48px !important;

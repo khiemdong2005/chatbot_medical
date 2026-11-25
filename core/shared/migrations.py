@@ -82,6 +82,7 @@ MIGRATIONS = [
     ("2026_11_08_confirmed_summary", "Store explicitly accepted summary", None),
     ("2026_11_22_appointment_pre_visit_summary", "Store confirmed pre-visit summaries on appointments", None),
     ("2026_11_23_prescription_history_table", "Tạo bảng prescription_history và đồng bộ các đơn thuốc đã xác nhận trước đó", None),
+    ("2026_11_25_user_preferences_json", "Bổ sung cột preferences (JSON) lưu cài đặt cá nhân hóa người dùng", None),
 ]
 
 
@@ -252,6 +253,12 @@ def run_migrations(engine):
                                     "json_drugs": str(r[8] or "{}"),
                                 },
                             )
+                elif version == "2026_11_25_user_preferences_json":
+                    current_schema = inspect(conn)
+                    if current_schema.has_table("users"):
+                        existing_cols = {col["name"] for col in current_schema.get_columns("users")}
+                        if "preferences" not in existing_cols:
+                            conn.execute(text("ALTER TABLE users ADD COLUMN preferences TEXT;"))
                 elif sql:
                     # Chạy câu lệnh SQL tạo bảng / index
                     for stmt in sql.strip().split(";"):

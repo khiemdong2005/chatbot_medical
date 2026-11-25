@@ -263,16 +263,170 @@ async function handleChangePasswordSubmit() {
   }
 }
 
-function handleSaveAllSettings() {
+const DEFAULT_USER_PREFERENCES = {
+  lang: 'vi',
+  timezone: 'UTC+7',
+  date_format: 'DD/MM/YYYY',
+  push_notif: true,
+};
+const ALLOWED_PREF_TIMEZONES = new Set(['UTC+7', 'UTC+0', 'UTC+8', 'UTC+9', 'UTC-5', 'UTC-8']);
+const ALLOWED_PREF_DATE_FORMATS = new Set(['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD']);
+let activeUserPreferences = null;
+
+function normalizeUserPreferences(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const lang = src.lang === 'en' ? 'en' : (src.lang === 'vi' ? 'vi' : (typeof currentLang !== 'undefined' && currentLang === 'en' ? 'en' : 'vi'));
+  const timezone = ALLOWED_PREF_TIMEZONES.has(src.timezone) ? src.timezone : DEFAULT_USER_PREFERENCES.timezone;
+  const rawDateFormat = src.date_format || src.dateFormat;
+  const date_format = ALLOWED_PREF_DATE_FORMATS.has(rawDateFormat) ? rawDateFormat : DEFAULT_USER_PREFERENCES.date_format;
+  const rawPush = typeof src.push_notif === 'boolean' ? src.push_notif : src.pushNotif;
+  const push_notif = typeof rawPush === 'boolean' ? rawPush : DEFAULT_USER_PREFERENCES.push_notif;
+  return { lang, timezone, date_format, push_notif };
+}
+
+function getUserPreferences() {
+  if (activeUserPreferences) return { ...activeUserPreferences };
+  try {
+    const raw = localStorage.getItem('medimind_settings');
+    if (raw) {
+      activeUserPreferences = normalizeUserPreferences(JSON.parse(raw));
+      return { ...activeUserPreferences };
+    }
+  } catch (_) {}
+  activeUserPreferences = normalizeUserPreferences({});
+  return { ...activeUserPreferences };
+}
+
+function applyUserPreferencesToUI(rawPrefs, options = {}) {
+  const prefs = normalizeUserPreferences(rawPrefs);
+  activeUserPreferences = prefs;
+  try {
+    localStorage.setItem('medimind_settings', JSON.stringify({
+      ...prefs,
+      dateFormat: prefs.date_format,
+      pushNotif: prefs.push_notif,
+      theme: 'dark',
+    }));
+  } catch (_) {}
+
+  const langEl = document.getElementById('set-language');
+  if (langEl) langEl.value = prefs.lang;
+  const tzEl = document.getElementById('set-timezone');
+  if (tzEl) tzEl.value = prefs.timezone;
+  const dfEl = document.getElementById('set-date-format');
+  if (dfEl) dfEl.value = prefs.date_format;
+  const pushEl = document.getElementById('set-push-notif');
+  if (pushEl) pushEl.checked = Boolean(prefs.push_notif);
+
+  if (options.applyLanguage !== false && typeof setLanguage === 'function' && typeof currentLang !== 'undefined' && prefs.lang !== currentLang) {
+    setLanguage(prefs.lang);
+  }
+  return prefs;
+}
+
+function parseTimezoneOffsetMinutes(tzLabel) {
+  const m = String(tzLabel || 'UTC+7').match(/^UTC([+-])(\d{1,2})$/);
+  if (!m) return 7 * 60;
+  const sign = m[1] === '-' ? -1 : 1;
+  return sign * parseInt(m[2], 10) * 60;
+}
+
+function formatUserDate(rawInput, includeTime = false) {
+  if (!rawInput) return '';
+  const prefs = getUserPreferences();
+  let year, month, day, hour = null, minute = null;
+
+  if (rawInput instanceof Date && !Number.isNaN(rawInput.getTime())) {
+    const shifted = new Date(rawInput.getTime() + parseTimezoneOffsetMinutes(prefs.timezone) * 60000);
+    year = shifted.getUTCFullYear();
+    month = shifted.getUTCMonth() + 1;
+    day = shifted.getUTCDate();
+    hour = shifted.getUTCHours();
+    minute = shifted.getUTCMinutes();
+  } else {
+    const s = String(rawInput).trim();
+    const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    const ymd = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (dmy) {
+      day = parseInt(dmy[1], 10);
+      month = parseInt(dmy[2], 10);
+      year = parseInt(dmy[3], 10);
+    } else if (ymd) {
+      year = parseInt(ymd[1], 10);
+      month = parseInt(ymd[2], 10);
+      day = parseInt(ymd[3], 10);
+    } else {
+      const parsed = new Date(s);
+      if (Number.isNaN(parsed.getTime())) return s;
+      const shifted = new Date(parsed.getTime() + parseTimezoneOffsetMinutes(prefs.timezone) * 60000);
+      year = shifted.getUTCFullYear();
+      month = shifted.getUTCMonth() + 1;
+      day = shifted.getUTCDate();
+      hour = shifted.getUTCHours();
+      minute = shifted.getUTCMinutes();
+    }
+  }
+
+  const dd = String(day).padStart(2, '0');
+  const mm = String(month).padStart(2, '0');
+  const yyyy = String(year);
+  let dateStr = `${dd}/${mm}/${yyyy}`;
+  if (prefs.date_format === 'MM/DD/YYYY') {
+    dateStr = `${mm}/${dd}/${yyyy}`;
+  } else if (prefs.date_format === 'YYYY-MM-DD') {
+    dateStr = `${yyyy}-${mm}-${dd}`;
+  }
+
+  if (includeTime && hour !== null && minute !== null) {
+    const hh = String(hour).padStart(2, '0');
+    const mi = String(minute).padStart(2, '0');
+    return `${dateStr} ${hh}:${mi} (${prefs.timezone})`;
+  }
+  return dateStr;
+}
+
+function formatUserDateTime(rawInput) {
+  return formatUserDate(rawInput, true);
+}
+
+window.getUserPreferences = getUserPreferences;
+window.formatUserDate = formatUserDate;
+window.formatUserDateTime = formatUserDateTime;
+
+async function handleSaveAllSettings() {
   const lang = document.getElementById('set-language')?.value || currentLang;
   const timezone = document.getElementById('set-timezone')?.value || 'UTC+7';
   const dateFormat = document.getElementById('set-date-format')?.value || 'DD/MM/YYYY';
-  const pushNotif = document.getElementById('set-push-notif')?.checked ?? true;
-  const theme = 'dark';
+  let pushNotif = document.getElementById('set-push-notif')?.checked ?? true;
 
-  // Apply language if changed
-  if (lang !== currentLang) {
-    setLanguage(lang);
+  // Xin quyền Browser Notification thực tế khi người dùng bật thông báo đẩy
+  if (pushNotif && typeof Notification !== 'undefined') {
+    if (Notification.permission === 'default') {
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          pushNotif = false;
+          const pushEl = document.getElementById('set-push-notif');
+          if (pushEl) pushEl.checked = false;
+          showMedicalToast(
+            currentLang === 'en'
+              ? 'Browser notification permission was not granted.'
+              : 'Trình duyệt chưa cấp quyền thông báo đẩy.',
+            'warning'
+          );
+        }
+      } catch (_) {}
+    } else if (Notification.permission === 'denied') {
+      pushNotif = false;
+      const pushEl = document.getElementById('set-push-notif');
+      if (pushEl) pushEl.checked = false;
+      showMedicalToast(
+        currentLang === 'en'
+          ? 'Browser notifications are blocked in browser settings.'
+          : 'Thông báo đẩy đang bị chặn trong cài đặt trình duyệt.',
+        'warning'
+      );
+    }
   }
 
   // Always lock theme to Dark Mode (submerged ocean canvas)
@@ -282,16 +436,48 @@ function handleSaveAllSettings() {
     toggleGlassThemeMode();
   }
 
-  // Save to localStorage
-  const userSettings = {
+  const nextPrefs = applyUserPreferencesToUI({
     lang,
     timezone,
-    dateFormat,
-    pushNotif,
-    theme
-  };
-  localStorage.setItem('medimind_settings', JSON.stringify(userSettings));
+    date_format: dateFormat,
+    push_notif: pushNotif,
+  });
 
+  // Đồng bộ lên CSDL nếu người dùng đã đăng nhập
+  if (currentUser) {
+    try {
+      const res = await fetch('/api/auth/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nextPrefs),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showMedicalToast(
+          data.error || (currentLang === 'en' ? 'Failed to save preferences.' : 'Không thể lưu cài đặt lên máy chủ.'),
+          'error'
+        );
+        return;
+      }
+      if (data.preferences) {
+        applyUserPreferencesToUI(data.preferences, { applyLanguage: false });
+        currentUser.preferences = data.preferences;
+        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      }
+    } catch (err) {
+      console.error('Lỗi lưu cài đặt cá nhân hóa:', err);
+      showMedicalToast(
+        currentLang === 'en'
+          ? 'Could not sync preferences to server. Saved locally.'
+          : 'Không thể đồng bộ cài đặt lên máy chủ. Đã lưu tạm trên trình duyệt.',
+        'warning'
+      );
+      return;
+    }
+  }
+
+  broadcastTabEvent('PREFERENCES_UPDATED', { preferences: nextPrefs });
+  if (typeof updateAuthUI === 'function') updateAuthUI();
   const msg = currentLang === 'en' ? 'All settings saved successfully!' : 'Đã lưu tất cả cài đặt thành công!';
   showMedicalToast(msg, 'success');
 }
@@ -465,6 +651,9 @@ function handleProvinceChange() {
 
 const chatHistory = [];
 let currentLang = localStorage.getItem('medimind_lang') || 'vi';
+function t(viText, enText) {
+  return currentLang === 'en' ? (enText || viText) : viText;
+}
 let currentRole = 'patient';
 const DEFAULT_USER_PROFILE = {
   id: 84291908,
@@ -3860,7 +4049,42 @@ function syncAuthModalTheme() {
   }
 }
 
+function showAuthInlineError(message, type = 'error') {
+  const box = document.getElementById('auth-inline-error');
+  const textEl = document.getElementById('auth-inline-error-text');
+  if (box && textEl) {
+    const iconEl = box.querySelector('span[aria-hidden="true"]');
+    textEl.textContent = message || 'Đã xảy ra lỗi xác thực. Vui lòng thử lại.';
+    box.classList.remove('hidden');
+    if (type === 'success') {
+      box.className = 'w-full rounded-xl border border-emerald-400/50 bg-emerald-500/15 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-emerald-100 leading-relaxed flex items-start gap-2.5';
+      if (iconEl) iconEl.textContent = '✅';
+    } else if (type === 'warning') {
+      box.className = 'w-full rounded-xl border border-amber-400/50 bg-amber-500/15 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-amber-100 leading-relaxed flex items-start gap-2.5';
+      if (iconEl) iconEl.textContent = '⚠️';
+    } else {
+      box.className = 'w-full rounded-xl border border-rose-400/50 bg-rose-500/15 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-rose-100 leading-relaxed flex items-start gap-2.5';
+      if (iconEl) iconEl.textContent = '⚠️';
+    }
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  if (typeof showMedicalToast === 'function') {
+    showMedicalToast(message, type, 5500);
+  }
+}
+
+function clearAuthInlineError() {
+  const box = document.getElementById('auth-inline-error');
+  const textEl = document.getElementById('auth-inline-error-text');
+  if (box) box.classList.add('hidden');
+  if (textEl) textEl.textContent = '';
+}
+
 function resetAuthModal() {
+  clearAuthInlineError();
+  if (typeof resetGoogleSignInButton === 'function') {
+    resetGoogleSignInButton();
+  }
   if (otpCountdownTimer) {
     clearInterval(otpCountdownTimer);
     otpCountdownTimer = null;
@@ -3961,6 +4185,7 @@ function startForgotPasswordFlow() {
 let currentAuthMode = 'login';
 function toggleAuthMode(mode) {
   currentAuthMode = mode;
+  clearAuthInlineError();
   const dict = translations[currentLang] || translations.vi;
   const titleEl = document.getElementById('auth-modal-title');
   const loginForm = document.getElementById('login-form');
@@ -3984,7 +4209,8 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
+    resetGoogleSignInButton();
+    const googleSpan = document.querySelector('#btn-google-signin [data-i18n="btn_google_signin"]');
     if (googleSpan) {
       googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
@@ -4005,7 +4231,8 @@ function toggleAuthMode(mode) {
     if (googleContainer) googleContainer.classList.remove('hidden');
     if (socialDivider) socialDivider.classList.remove('hidden');
     if (tabsContainer) tabsContainer.classList.remove('hidden');
-    const googleSpan = document.querySelector('#btn-google-signin span');
+    resetGoogleSignInButton();
+    const googleSpan = document.querySelector('#btn-google-signin [data-i18n="btn_google_signin"]');
     if (googleSpan) {
       googleSpan.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Tiếp tục với Google');
     }
@@ -4079,6 +4306,8 @@ function handleCrossTabMessage(data) {
 
   if (data.type === 'THEME_CHANGE') {
     applyThemeMode('dark');
+  } else if (data.type === 'PREFERENCES_UPDATED' && data.payload?.preferences) {
+    applyUserPreferencesToUI(data.payload.preferences);
   } else if (data.type === 'AUTH_LOGIN' || data.type === 'PROFILE_UPDATE' || data.type === 'AUTH_PROFILE_UPDATE') {
     if (data.payload?.user) {
       const previousUserId = currentUser?.id;
@@ -4249,10 +4478,11 @@ async function requestAndShowOtp(identifier, channel, purpose, fullName = '') {
     });
     const data = await res.json();
     if (!data.success) {
-      showMedicalToast(data.error || 'Không thể gửi mã xác thực OTP.', 'error');
+      showAuthInlineError(data.error || 'Không thể gửi mã xác thực OTP.', res.status === 409 ? 'warning' : 'error');
       return;
     }
 
+    clearAuthInlineError();
     toggleAuthMode('otp');
     setupOtpDigitInputs();
 
@@ -4302,6 +4532,38 @@ async function handleOtpSubmit(e) {
     });
     const data = await res.json();
     if (data.success) {
+      const isResetFlow = pendingOtpFlow.purpose === 'reset_pwd' || data.purpose === 'reset_pwd';
+      const isRegisterFlow = pendingOtpFlow.purpose === 'register' || data.purpose === 'register' || data.requires_login === true;
+      if (isResetFlow || isRegisterFlow) {
+        if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+        const targetIdentifier = data.identifier || pendingOtpFlow.identifier || '';
+        currentUser = null;
+        localStorage.removeItem('medimind_user');
+        updateAuthUI();
+        if (isResetFlow) {
+          broadcastTabEvent('AUTH_LOGOUT', {});
+          document.getElementById('forgot-form')?.reset();
+        } else {
+          document.getElementById('register-form')?.reset();
+        }
+        clearOtpInputs();
+        toggleAuthMode('login');
+        const loginIdentifierInput = document.getElementById('login-identifier');
+        if (loginIdentifierInput && targetIdentifier) {
+          loginIdentifierInput.value = targetIdentifier;
+        }
+        const loginPasswordInput = document.getElementById('login-password');
+        if (loginPasswordInput) {
+          loginPasswordInput.value = '';
+          loginPasswordInput.focus();
+        }
+        const defaultMsg = isResetFlow
+          ? t('Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại bằng mật khẩu mới.', 'Password reset successfully! Please sign in with your new password.')
+          : t('Đăng ký tài khoản thành công! Vui lòng đăng nhập để bắt đầu sử dụng.', 'Registration successful! Please sign in to continue.');
+        showAuthInlineError(data.message || defaultMsg, 'success');
+        return;
+      }
+
       if (data.user) {
         currentUser = data.user;
         localStorage.setItem('medimind_user', JSON.stringify(currentUser));
@@ -4318,12 +4580,12 @@ async function handleOtpSubmit(e) {
         switchTab(target);
       }
     } else {
-      showMedicalToast(data.error || 'Mã xác thực không chính xác.', 'error');
+      showAuthInlineError(data.error || 'Mã xác thực không chính xác.', 'error');
       clearOtpInputs();
     }
   } catch (err) {
     console.error('Lỗi xác thực OTP:', err);
-    showMedicalToast('Không thể kết nối máy chủ xác thực.', 'error');
+    showAuthInlineError('Không thể kết nối máy chủ xác thực.', 'error');
   }
 }
 
@@ -4364,9 +4626,8 @@ async function startOtpLoginFlow() {
 
 
 // ==============================================================
-// GOOGLE IDENTITY SERVICES / 1-CLICK GOOGLE SIGN-IN (5-STATE MACHINE)
+// GOOGLE OAUTH 2.0 (AUTHORIZATION CODE FLOW)
 // ==============================================================
-let currentGoogleState = 'select'; // 'select' | 'custom' | 'loading' | 'success'
 
 function detectInAppWebView() {
   const ua = (window.navigator && window.navigator.userAgent) || '';
@@ -4378,6 +4639,37 @@ function detectInAppWebView() {
   return null;
 }
 
+const DEFAULT_GOOGLE_SIGNIN_HTML = `
+  <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+  </svg>
+  <span data-i18n="btn_google_signin" class="font-semibold text-white">Đăng nhập bằng Google</span>
+`.trim();
+
+function resetGoogleSignInButton() {
+  const btn = document.getElementById('btn-google-signin');
+  if (!btn) return;
+  const wasLoading = btn.dataset.loading === 'true' || btn.disabled || !btn.querySelector('[data-i18n="btn_google_signin"]');
+  if (wasLoading) {
+    btn.innerHTML = btn.dataset.defaultHtml || DEFAULT_GOOGLE_SIGNIN_HTML;
+  }
+  btn.disabled = false;
+  btn.dataset.loading = 'false';
+  const label = btn.querySelector('[data-i18n="btn_google_signin"]');
+  if (label) {
+    const dict = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : {};
+    label.innerText = dict.btn_google_signin || (currentLang === 'en' ? 'Continue with Google' : 'Đăng nhập bằng Google');
+  }
+}
+
+// Khôi phục nút Google Sign-In ngay khi trình duyệt Back từ trang Google (bfcache)
+window.addEventListener('pageshow', () => {
+  resetGoogleSignInButton();
+});
+
 async function handleGoogleSignIn(intentOverride) {
   const inAppName = detectInAppWebView();
   if (inAppName) {
@@ -4388,11 +4680,14 @@ async function handleGoogleSignIn(intentOverride) {
 
   const intent = intentOverride || 'continue';
   const btn = document.getElementById('btn-google-signin');
-  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn && !btn.dataset.defaultHtml && btn.querySelector('[data-i18n="btn_google_signin"]')) {
+    btn.dataset.defaultHtml = btn.innerHTML;
+  }
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
+    btn.dataset.loading = 'true';
+    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-sky-500 border-t-transparent animate-spin inline-block" aria-hidden="true"></span><span class="font-semibold">${currentLang === 'en' ? 'Connecting to Google...' : 'Đang chuyển tới Google...'}</span>`;
   }
 
   try {
@@ -4410,12 +4705,15 @@ async function handleGoogleSignIn(intentOverride) {
     }
 
     if (data.configured === false) {
-      if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
-      const modal = document.getElementById('google-account-modal');
-      if (modal) {
-        if (typeof syncAuthModalTheme === 'function') syncAuthModalTheme();
-        setGoogleModalState('select');
-        modal.classList.remove('hidden');
+      resetGoogleSignInButton();
+      if (typeof showMedicalToast === 'function') {
+        showMedicalToast(
+          currentLang === 'en'
+            ? 'Google Sign-In is not configured on this server. Please sign in with Email or Phone.'
+            : 'Đăng nhập Google chưa được cấu hình trên máy chủ. Vui lòng đăng nhập bằng Email hoặc Số điện thoại.',
+          'warning',
+          5000
+        );
       }
       return;
     }
@@ -4423,153 +4721,16 @@ async function handleGoogleSignIn(intentOverride) {
     throw new Error(data.error || 'Không thể khởi tạo phiên Google OAuth.');
   } catch (err) {
     console.error('Lỗi khởi tạo Google OAuth:', err);
-    if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    resetGoogleSignInButton();
     if (typeof showMedicalToast === 'function') {
       showMedicalToast('Máy chủ đăng nhập đang chậm hoặc gián đoạn. Vui lòng thử lại.', 'error', 4500);
     }
   }
 }
 
-function closeGoogleAccountModal() {
-  restoreModalTriggerFocus();
-  // Trạng thái 4 – Hủy đăng nhập: Đóng popup, quay lại modal đăng nhập ban đầu mà không đổi dữ liệu
-  const modal = document.getElementById('google-account-modal');
-  if (modal) modal.classList.add('hidden');
-  setGoogleModalState('select');
-}
-
-function setGoogleModalState(state) {
-  currentGoogleState = state;
-  const stateSelect = document.getElementById('google-state-select');
-  const stateCustom = document.getElementById('google-state-custom');
-  const stateLoading = document.getElementById('google-state-loading');
-  const stateSuccess = document.getElementById('google-state-success');
-  const heading = document.getElementById('google-modal-heading');
-  const subheading = document.getElementById('google-modal-subheading');
-
-  if (stateSelect) stateSelect.classList.toggle('hidden', state !== 'select');
-  if (stateCustom) stateCustom.classList.toggle('hidden', state !== 'custom');
-  if (stateLoading) stateLoading.classList.toggle('hidden', state !== 'loading');
-  if (stateSuccess) stateSuccess.classList.toggle('hidden', state !== 'success');
-
-  if (heading && subheading) {
-    if (state === 'select') {
-      heading.textContent = 'Chọn tài khoản';
-      subheading.innerHTML = 'Để tiếp tục đến <span class="text-white font-medium">MediMind AI</span>';
-    } else if (state === 'custom') {
-      heading.textContent = 'Đăng nhập';
-      subheading.innerHTML = 'Sử dụng Tài khoản Google của bạn';
-      const input = document.getElementById('google-custom-email-input');
-      if (input) setTimeout(() => input.focus(), 60);
-    } else if (state === 'loading') {
-      heading.textContent = 'Đang xác thực...';
-      subheading.innerHTML = 'Đang bảo mật phiên kết nối';
-    } else if (state === 'success') {
-      heading.textContent = 'Hoàn tất!';
-      subheading.innerHTML = 'Chào mừng bạn đến với MediMind AI';
-    }
-  }
-}
-
-async function startGoogleAccountSelection(email, name, initial, bgColor) {
-  // Cập nhật thông tin lên State 3 trước để sẵn sàng hiển thị
-  const avatarEl = document.getElementById('google-success-avatar');
-  const nameEl = document.getElementById('google-success-name');
-  const emailEl = document.getElementById('google-success-email');
-
-  if (avatarEl) {
-    avatarEl.textContent = initial || name.charAt(0).toUpperCase();
-    avatarEl.style.backgroundColor = bgColor || '#0284c7';
-  }
-  if (nameEl) nameEl.textContent = name;
-  if (emailEl) emailEl.textContent = email;
-
-  // Trạng thái 2 – Đang đăng nhập (Loading animation & pulse)
-  setGoogleModalState('loading');
-
-  try {
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${(bgColor || '#0284c7').replace('#', '')}&color=fff&size=128`;
-    
-    const [res] = await Promise.all([
-      fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, avatar_url: avatarUrl })
-      }),
-      new Promise(resolve => setTimeout(resolve, 750)) // Smooth animation pause
-    ]);
-
-    const data = await res.json();
-    if (data.success && data.user) {
-      // Trạng thái 3 – Đăng nhập thành công (Demo checkmark & selected user display)
-      setGoogleModalState('success');
-
-      // Tự động chuyển đến giao diện Dashboard mẫu sau hiệu ứng hoàn tất
-      setTimeout(() => {
-        currentUser = data.user;
-        localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-        startFreshChatForCurrentUser();
-        updateAuthUI();
-        closeGoogleAccountModal();
-        closeLoginModal();
-        broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-
-        if (typeof showMedicalToast === 'function') {
-          showMedicalToast(`Đăng nhập thành công với Google (${currentUser.email})!`, 'success');
-        }
-
-        if (pendingTabAfterLogin) {
-          const target = pendingTabAfterLogin;
-          pendingTabAfterLogin = null;
-          switchTab(target);
-        } else {
-          switchTab('home-tab');
-        }
-      }, 1200);
-
-    } else {
-      setGoogleModalState('select');
-      showMedicalToast(data.error || 'Đăng nhập Google thất bại.', 'error');
-    }
-  } catch (err) {
-    console.error('Lỗi Google Sign-In:', err);
-    setGoogleModalState('select');
-    showMedicalToast('Không thể kết nối máy chủ Google OAuth.', 'error');
-  }
-}
-
-function submitCustomGoogleAccount() {
-  const input = document.getElementById('google-custom-email-input');
-  let raw = (input?.value || '').trim();
-  if (!raw) {
-    input?.focus();
-    return;
-  }
-  let email = raw;
-  if (!email.includes('@')) {
-    email += '@gmail.com';
-  }
-  const prefix = email.split('@')[0];
-  const name = prefix.replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Google User';
-  const initial = name.charAt(0).toUpperCase();
-  startGoogleAccountSelection(email, name, initial, '#0284c7');
-}
-
-// Bắt phím Escape và Enter cho Google Account Modal
-window.addEventListener('keydown', (e) => {
-  const modal = document.getElementById('google-account-modal');
-  if (modal && !modal.classList.contains('hidden')) {
-    if (e.key === 'Escape' && currentGoogleState !== 'loading') {
-      closeGoogleAccountModal();
-    }
-    if (e.key === 'Enter' && currentGoogleState === 'custom') {
-      submitCustomGoogleAccount();
-    }
-  }
-});
-
 async function handleRegisterSubmit(e) {
   e.preventDefault();
+  clearAuthInlineError();
   const lastName = (document.getElementById('register-last-name')?.value || '').trim();
   const firstName = (document.getElementById('register-first-name')?.value || '').trim();
   const fullName = [lastName, firstName].filter(Boolean).join(' ') || (document.getElementById('register-name')?.value || '').trim();
@@ -4579,13 +4740,27 @@ async function handleRegisterSubmit(e) {
   const gender = document.getElementById('register-gender')?.value || '';
   const identifier = (document.getElementById('register-identifier')?.value || document.getElementById('register-email')?.value || '').trim();
   const password = document.getElementById('register-password')?.value;
+  const confirmEl = document.getElementById('register-confirm-password');
+  const confirmPassword = confirmEl ? confirmEl.value : password;
 
   if (!fullName || !identifier || !password) {
-    showMedicalToast('Vui lòng điền đầy đủ Họ và Tên, Email hoặc Số di động và mật khẩu.', 'warning');
+    showAuthInlineError('Vui lòng điền đầy đủ Họ và Tên, Email hoặc Số di động và mật khẩu.', 'warning');
     return;
   }
-  if (password.length < 6) {
-    showMedicalToast('Mật khẩu phải có ít nhất 6 ký tự.', 'warning');
+  if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+    showAuthInlineError(
+      t(
+        'Mật khẩu phải có tối thiểu 8 ký tự, gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số.',
+        'Password must be at least 8 characters and include at least 1 uppercase letter, 1 lowercase letter, and 1 number.'
+      ),
+      'warning'
+    );
+    document.getElementById('register-password')?.focus();
+    return;
+  }
+  if (confirmEl && password !== confirmPassword) {
+    showAuthInlineError('Mật khẩu xác nhận không khớp với mật khẩu đã nhập.', 'warning');
+    confirmEl.focus();
     return;
   }
 
@@ -4613,38 +4788,13 @@ async function handleRegisterSubmit(e) {
   await requestAndShowOtp(identifier, channel, 'register', fullName);
 }
 
-async function quickLogin(type) {
-  const identifier = 'benhnhan.an@gmail.com';
-  const password = 'MatKhau123@';
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password, role: 'patient' })
-    });
-    const data = await res.json();
-    if (data.success && data.user) {
-      currentUser = data.user;
-      localStorage.setItem('medimind_user', JSON.stringify(currentUser));
-      startFreshChatForCurrentUser();
-      updateAuthUI();
-      broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
-      closeLoginModal();
-    } else {
-      showMedicalToast(data.error || 'Đăng nhập thất bại.', 'error');
-    }
-  } catch (err) {
-    console.error('Lỗi đăng nhập nhanh:', err);
-    showMedicalToast('Không thể kết nối máy chủ xác thực.', 'error');
-  }
-}
-
 async function handleLoginSubmit(e) {
   e.preventDefault();
+  clearAuthInlineError();
   const identifier = document.getElementById('login-identifier')?.value.trim();
   const password = document.getElementById('login-password')?.value;
   if (!identifier || !password) {
-    showMedicalToast('Vui lòng nhập đầy đủ tài khoản và mật khẩu.', 'warning');
+    showAuthInlineError('Vui lòng nhập đầy đủ tài khoản và mật khẩu.', 'warning');
     return;
   }
   try {
@@ -4657,6 +4807,9 @@ async function handleLoginSubmit(e) {
     if (data.success && data.user) {
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      if (currentUser.preferences) {
+        applyUserPreferencesToUI(currentUser.preferences);
+      }
       startFreshChatForCurrentUser();
       if (typeof renderChatHistoryList === 'function') renderChatHistoryList();
       updateAuthUI();
@@ -4669,11 +4822,11 @@ async function handleLoginSubmit(e) {
         switchTab(target);
       }
     } else {
-      showMedicalToast(data.error || 'Thông tin đăng nhập không hợp lệ.', 'error');
+      showAuthInlineError(data.error || 'Thông tin đăng nhập không hợp lệ.', 'error');
     }
   } catch (err) {
     console.error('Lỗi gửi form đăng nhập:', err);
-    showMedicalToast('Không thể kết nối tới máy chủ CSDL.', 'error');
+    showAuthInlineError('Không thể kết nối tới máy chủ CSDL.', 'error');
   }
 }
 
@@ -5193,6 +5346,12 @@ document.addEventListener('DOMContentLoaded', () => {
       errMsg = 'Đã hủy đăng nhập Google (hoặc email này chưa được thêm vào mục Audience -> Test users trên Google Cloud).';
     } else if (googleErrorReason === 'redirect_uri_mismatch') {
       errMsg = 'Lỗi cấu hình Redirect URI trên Google Cloud Console.';
+    } else if (googleErrorReason === 'unconfigured') {
+      errMsg = 'Đăng nhập Google chưa được cấu hình trên máy chủ.';
+    } else if (googleErrorReason === 'invalid_state') {
+      errMsg = 'Phiên xác thực Google không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.';
+    } else if (googleErrorReason === 'email_unverified') {
+      errMsg = 'Tài khoản Google chưa xác minh địa chỉ email.';
     }
     setTimeout(() => {
       if (typeof showMedicalToast === 'function') showMedicalToast(errMsg, 'warning', 6000);
@@ -5212,6 +5371,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => {});
   }
 
+  // Phục hồi cài đặt cá nhân hóa đã lưu trên trình duyệt ngay khi tải trang
+  applyUserPreferencesToUI(getUserPreferences(), { applyLanguage: false });
+
   fetch('/api/auth/me').then(r => r.json()).then(data => {
     if (!data.authenticated) {
       if (currentUser) {
@@ -5225,6 +5387,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const previousUserId = currentUser?.id;
       currentUser = mergeServerUserWithLocal(currentUser, data.user);
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      if (currentUser.preferences) {
+        applyUserPreferencesToUI(currentUser.preferences);
+      }
       if (googleAuthStatus === 'success' || String(previousUserId || '') !== String(currentUser.id || '')) {
         startFreshChatForCurrentUser();
       } else {
@@ -10226,15 +10391,22 @@ function syncProfileTabDobFromDropdowns() {
 
 async function handleForgotSubmit(e) {
   e.preventDefault();
+  clearAuthInlineError();
   const identifier = (document.getElementById('forgot-identifier')?.value || '').trim();
   const newPassword = (document.getElementById('forgot-new-password')?.value || '').trim();
   if (!identifier) {
-    if (typeof showMedicalToast === 'function') showMedicalToast(t('Vui lòng nhập email hoặc số điện thoại.', 'Please enter your email or phone number.'), 'warning');
+    showAuthInlineError(t('Vui lòng nhập email hoặc số điện thoại.', 'Please enter your email or phone number.'), 'warning');
     document.getElementById('forgot-identifier')?.focus();
     return;
   }
-  if (newPassword.length < 6) {
-    if (typeof showMedicalToast === 'function') showMedicalToast(t('Mật khẩu mới phải có tối thiểu 6 ký tự.', 'New password must be at least 6 characters.'), 'warning');
+  if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/\d/.test(newPassword)) {
+    showAuthInlineError(
+      t(
+        'Mật khẩu mới phải có tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và chữ số.',
+        'New password must be at least 8 characters and include uppercase, lowercase, and a number.'
+      ),
+      'warning'
+    );
     document.getElementById('forgot-new-password')?.focus();
     return;
   }

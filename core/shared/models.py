@@ -22,6 +22,17 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
             pass
 
 
+DEFAULT_USER_PREFERENCES = {
+    "lang": "vi",
+    "timezone": "UTC+7",
+    "date_format": "DD/MM/YYYY",
+    "push_notif": True,
+}
+ALLOWED_PREFERENCE_LANGS = ("vi", "en")
+ALLOWED_PREFERENCE_TIMEZONES = ("UTC+7", "UTC+0", "UTC+8", "UTC+9", "UTC-5", "UTC-8")
+ALLOWED_PREFERENCE_DATE_FORMATS = ("DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD")
+
+
 class User(db.Model):
     """
     Mô hình Người dùng (User Model) tuân thủ kiến trúc SQLAlchemy ORM.
@@ -43,9 +54,63 @@ class User(db.Model):
     address = db.Column(db.String(255), nullable=True)  # Địa chỉ / Tỉnh thành
     bhyt = db.Column(db.String(50), nullable=True)  # Số thẻ BHYT
     avatar_url = db.Column(db.String(500), nullable=True)
-    clinical_profile = db.Column(db.Text, nullable=True)  # Ảnh đại diện Google hoặc ảnh upload
+    clinical_profile = db.Column(db.Text, nullable=True)  # Hồ sơ y tế mở rộng JSON
+    preferences = db.Column(db.Text, nullable=True)  # Cài đặt cá nhân hóa (lang, timezone, date_format, push_notif)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    def get_preferences(self) -> dict:
+        """Trả về cài đặt cá nhân hóa chuẩn hóa kèm giá trị mặc định an toàn."""
+        merged = dict(DEFAULT_USER_PREFERENCES)
+        if self.preferences:
+            try:
+                import json
+                stored = json.loads(self.preferences)
+                if isinstance(stored, dict):
+                    if stored.get("lang") in ALLOWED_PREFERENCE_LANGS:
+                        merged["lang"] = stored["lang"]
+                    if stored.get("timezone") in ALLOWED_PREFERENCE_TIMEZONES:
+                        merged["timezone"] = stored["timezone"]
+                    if stored.get("date_format") in ALLOWED_PREFERENCE_DATE_FORMATS:
+                        merged["date_format"] = stored["date_format"]
+                    if isinstance(stored.get("push_notif"), bool):
+                        merged["push_notif"] = stored["push_notif"]
+            except Exception:
+                pass
+        return merged
+
+    def set_preferences(self, updates: dict) -> dict:
+        """Xác thực và lưu cài đặt cá nhân hóa dạng JSON vào cột preferences."""
+        import json
+
+        current = self.get_preferences()
+        if "lang" in updates and updates["lang"] is not None:
+            lang = str(updates["lang"]).strip().lower()
+            if lang not in ALLOWED_PREFERENCE_LANGS:
+                raise ValueError("Ngôn ngữ không hợp lệ (chỉ hỗ trợ 'vi' hoặc 'en').")
+            current["lang"] = lang
+
+        if "timezone" in updates and updates["timezone"] is not None:
+            tz = str(updates["timezone"]).strip()
+            if tz not in ALLOWED_PREFERENCE_TIMEZONES:
+                raise ValueError("Múi giờ không hợp lệ.")
+            current["timezone"] = tz
+
+        raw_df = updates.get("date_format") if "date_format" in updates else updates.get("dateFormat")
+        if raw_df is not None:
+            df = str(raw_df).strip()
+            if df not in ALLOWED_PREFERENCE_DATE_FORMATS:
+                raise ValueError("Định dạng ngày không hợp lệ (chỉ hỗ trợ DD/MM/YYYY, MM/DD/YYYY hoặc YYYY-MM-DD).")
+            current["date_format"] = df
+
+        raw_push = updates.get("push_notif") if "push_notif" in updates else updates.get("pushNotif")
+        if raw_push is not None:
+            if not isinstance(raw_push, bool):
+                raise ValueError("Giá trị thông báo đẩy phải là kiểu boolean (true/false).")
+            current["push_notif"] = raw_push
+
+        self.preferences = json.dumps(current, ensure_ascii=False)
+        return current
 
     def set_password(self, password: str) -> None:
         """Băm mật khẩu 1 chiều an toàn bằng thuật toán scrypt/pbkdf2."""
@@ -89,7 +154,8 @@ class User(db.Model):
             "bhyt": self.bhyt or "",
             "avatar": self.avatar_url or "",
             "avatar_url": self.avatar_url or "",
-            "joined_date": self.created_at.strftime("%d/%m/%Y") if self.created_at else ""
+            "joined_date": self.created_at.strftime("%d/%m/%Y") if self.created_at else "",
+            "preferences": self.get_preferences(),
         }
         if self.clinical_profile:
             try:

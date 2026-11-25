@@ -146,8 +146,9 @@ class _OpenRouterModels:
             "User-Agent": "MediMind-Clinical-AI/2.5",
         }
         if self._provider != "groq":
-            headers["HTTP-Referer"] = "https://medimind.local"
-            headers["X-Title"] = "MediMind Clinical AI"
+            referer = (os.getenv("OPENROUTER_REFERER") or os.getenv("PUBLIC_BASE_URL") or "https://medimind.local").strip()
+            headers["HTTP-Referer"] = referer
+            headers["X-Title"] = (os.getenv("OPENROUTER_APP_TITLE") or "MediMind Clinical AI").strip()
         provider_label = "Groq" if self._provider == "groq" else "OpenRouter"
         req = urllib.request.Request(
             self._endpoint(),

@@ -13,23 +13,36 @@ from typing import Optional, Dict, Any
 
 class EmailService:
     """Dịch vụ gửi Email giao dịch (OTP 2FA, Khôi phục mật khẩu, Chào mừng)."""
+
     def __init__(self):
+        self._refresh_config()
+
+    def _refresh_config(self) -> None:
         self.server = os.getenv("SMTP_SERVER", "").strip()
-        self.port = int(os.getenv("SMTP_PORT", 587))
+        self.port = int(os.getenv("SMTP_PORT", "587") or 587)
         self.username = os.getenv("SMTP_USERNAME", "").strip()
         # Tự động loại bỏ khoảng trắng phòng trường hợp copy mã App Password có dấu cách
         raw_pwd = os.getenv("SMTP_PASSWORD", "").strip()
         self.password = raw_pwd.replace(" ", "") if raw_pwd else ""
-        self.use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
-        self.sender_name = os.getenv("SMTP_SENDER_NAME", "MediMind Clinical AI").strip()
+        self.use_tls = os.getenv("SMTP_USE_TLS", "true").strip().lower() == "true"
+        self.sender_name = os.getenv("SMTP_SENDER_NAME", "MediMind Clinical AI").strip().strip('"')
         self.sender_email = self.username or "no-reply@medimind.ai"
 
+    @staticmethod
+    def _is_production() -> bool:
+        env_val = (os.getenv("ENV") or os.getenv("FLASK_ENV") or "").strip().lower()
+        return env_val in ("production", "prod")
+
     def is_configured(self) -> bool:
+        self._refresh_config()
         return bool(self.server and self.username and self.password)
 
     def send_email(self, to_email: str, subject: str, html_body: str, text_body: Optional[str] = None) -> bool:
-        """Gửi thư điện tử qua giao thức SMTP. Nếu chưa cấu hình, in ra terminal để test."""
+        """Gửi thư điện tử qua giao thức SMTP. Fail-closed khi ENV=production; local dev in ra terminal."""
         if not self.is_configured():
+            if self._is_production():
+                print("❌ [Email Service] Production mode: SMTP chưa được cấu hình. Đã chặn Dev Simulator (fail-closed).")
+                return False
             print("\n" + "=" * 70)
             print(f"📧 [DEV EMAIL SIMULATOR] Gửi tới: {to_email}")
             print(f"📌 Tiêu đề: {subject}")
@@ -58,26 +71,42 @@ class EmailService:
             print(f"✅ [Email Service] Đã gửi thư thành công tới: {to_email}")
             return True
         except Exception as e:
-            print(f"❌ [Email Service] Gửi thư qua Gmail thất bại: {e}")
-            print(f"👉 Lý do: Máy chủ Google (smtp.gmail.com) từ chối xác thực tài khoản '{self.username}' với mật khẩu ứng dụng hiện tại.")
-            # Dự phòng Dev Simulator: In mã ra console để không làm nghẽn quy trình thử nghiệm
+            print(f"❌ [Email Service] Gửi thư qua SMTP thất bại ({type(e).__name__}): {e}")
+            if self._is_production():
+                print("❌ [Email Service] Production mode: không dùng Dev Simulator khi SMTP lỗi (fail-closed).")
+                return False
+            # Dự phòng Dev Simulator ở Local Development: in mã ra console để không làm nghẽn thử nghiệm
             print("\n" + "=" * 70)
             print(f"📧 [FALLBACK DEV EMAIL SIMULATOR] Gửi tới: {to_email}")
             print(f"📌 Tiêu đề: {subject}")
             print(f"📝 Nội dung:\n{text_body or html_body}")
             print("=" * 70 + "\n")
-            if os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1") or os.getenv("ENV") == "development":
-                print("⚠️ [Email Service] Đang ở chế độ Development -> Cho phép vượt qua kiểm tra và dùng mã trên Terminal để tiếp tục.")
+            if os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1") or os.getenv("ENV", "").lower() == "development":
+                print("⚠️ [Email Service] Đang ở chế độ Development -> Cho phép dùng mã trên Terminal để tiếp tục.")
                 return True
             return False
 
-    def send_verification_otp(self, to_email: str, otp_code: str, full_name: Optional[str] = None, purpose: str = "register") -> bool:
-        """Gửi mã OTP 6 số xác thực 2 lớp / Đăng ký qua Email với giao diện y tế cao cấp."""
+    def send_verification_otp(
+        self,
+        to_email: str,
+        otp_code: str,
+        full_name: Optional[str] = None,
+        purpose: str = "register",
+        ttl_seconds: int = 120,
+    ) -> bool:
+        """Gửi mã OTP 6 số xác thực tài khoản / Đăng nhập 2FA / Đặt lại mật khẩu qua Email."""
         raw_name = full_name or "Quý bệnh nhân"
         name = html.escape(str(raw_name), quote=True)
-        purpose_title = "Xác thực tài khoản mới" if purpose == "register" else ("Đăng nhập thiết bị mới (2FA)" if purpose == "login_2fa" else "Xác nhận danh tính y tế")
+        purpose_titles = {
+            "register": "Xác thực tài khoản mới",
+            "login_2fa": "Đăng nhập thiết bị mới (2FA)",
+            "reset_pwd": "Đặt lại mật khẩu",
+        }
+        purpose_title = purpose_titles.get(purpose, "Xác nhận danh tính y tế")
         subject = f"[{otp_code}] Mã xác thực {purpose_title} - MediMind Clinical AI"
 
+        ttl_sec = max(30, int(ttl_seconds or 120))
+        ttl_min = max(1, ttl_sec // 60)
         formatted_otp = " ".join(list(otp_code))
 
         html_body = f"""
@@ -111,7 +140,7 @@ class EmailService:
               
               <div class="otp-box">
                 <span class="otp-code">{formatted_otp}</span>
-                <div class="otp-exp">⏱️ Mã có hiệu lực trong vòng 5 phút (300 giây)</div>
+                <div class="otp-exp">⏱️ Mã có hiệu lực trong vòng {ttl_min} phút ({ttl_sec} giây)</div>
               </div>
 
               <div class="warning">
@@ -127,7 +156,7 @@ class EmailService:
         </body>
         </html>
         """
-        text = f"Kính chào {name},\nMã xác thực {purpose_title} của bạn là: {otp_code}.\nMã có hiệu lực trong 5 phút. Tuyệt đối không chia sẻ mã này cho ai."
+        text = f"Kính chào {name},\nMã xác thực {purpose_title} của bạn là: {otp_code}.\nMã có hiệu lực trong {ttl_min} phút ({ttl_sec} giây). Tuyệt đối không chia sẻ mã này cho ai."
         return self.send_email(to_email, subject, html_body, text)
 
     def send_welcome_email(self, to_email: str, full_name: str) -> bool:

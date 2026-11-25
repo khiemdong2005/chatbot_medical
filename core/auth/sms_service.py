@@ -11,14 +11,24 @@ from typing import Optional, Dict, Any
 
 class SmsService:
     """Dịch vụ gửi SMS OTP giao dịch y tế nội địa Việt Nam."""
+
     def __init__(self):
+        self._refresh_config()
+
+    def _refresh_config(self) -> None:
         # SpeedSMS Provider (Cổng SMS Việt Nam)
         self.speedsms_token = os.getenv("SPEEDSMS_AUTH_TOKEN", "").strip()
-        self.speedsms_sms_type = int(os.getenv("SPEEDSMS_SMS_TYPE", "2"))
+        self.speedsms_sms_type = int(os.getenv("SPEEDSMS_SMS_TYPE", "2") or 2)
         self.speedsms_sender = os.getenv("SPEEDSMS_SENDER", "").strip()
+
+    @staticmethod
+    def _is_production() -> bool:
+        env_val = (os.getenv("ENV") or os.getenv("FLASK_ENV") or "").strip().lower()
+        return env_val in ("production", "prod")
 
     def is_configured(self) -> bool:
         """Kiểm tra cấu hình cổng SMS nội địa."""
+        self._refresh_config()
         return bool(self.speedsms_token)
 
     def normalize_phone(self, phone: str) -> Optional[str]:
@@ -43,21 +53,31 @@ class SmsService:
 
         return None
 
-    def send_otp_sms(self, to_phone: str, otp_code: str, brand_name: str = "MediMind AI") -> bool:
+    def send_otp_sms(
+        self,
+        to_phone: str,
+        otp_code: str,
+        brand_name: str = "MediMind AI",
+        ttl_seconds: int = 120,
+    ) -> bool:
         """
         Gửi mã OTP qua tin nhắn SMS tới số điện thoại nội địa Việt Nam.
-        Chặn toàn bộ số quốc tế và đã loại bỏ hoàn toàn cổng Twilio SMS quốc tế.
-        Nếu chưa cấu hình SpeedSMS token, chạy chế độ Dev Simulator in ra console.
+        Chặn toàn bộ số quốc tế và fail-closed khi ENV=production mà chưa cấu hình SpeedSMS.
+        Ở local dev khi chưa có API Key, in mã OTP ra terminal.
         """
         norm_phone = self.normalize_phone(to_phone)
         if not norm_phone:
             print(f"⚠️ [SMS Service] Từ chối gửi SMS: Số '{to_phone}' không phải số di động Việt Nam (+84). Hệ thống đã chặn gửi OTP quốc tế.")
             return False
 
-        message_text = f"[{brand_name}] Ma xac thuc y te (OTP) cua ban la: {otp_code}. Hieu luc trong 5 phut. Tuyet doi khong chia se cho nguoi khac."
+        ttl_min = max(1, int(ttl_seconds or 120) // 60)
+        message_text = f"[{brand_name}] Ma xac thuc y te (OTP) cua ban la: {otp_code}. Hieu luc trong {ttl_min} phut. Tuyet doi khong chia se cho nguoi khac."
 
-        # Chế độ Dev Simulator khi chưa có API Key
+        # Chế độ Dev Simulator khi chưa có API Key (chặn ở Production)
         if not self.is_configured():
+            if self._is_production():
+                print("❌ [SMS Service] Production mode: SpeedSMS chưa được cấu hình. Đã chặn Dev Simulator (fail-closed).")
+                return False
             print("\n" + "=" * 70)
             print(f"📱 [DEV SMS SIMULATOR - VN ONLY] Gửi tới SĐT: {norm_phone}")
             print(f"🔑 Mã OTP 6 số: {otp_code}")

@@ -169,7 +169,7 @@ def test_date_formatting_zero_padded():
 
 
 def test_modal_accessibility_attributes(index_soup):
-    """Verify all 9 modals have role='dialog', aria-modal='true', and aria-labelledby."""
+    """Verify all 8 active modals have role='dialog', aria-modal='true', and aria-labelledby."""
     soup, _ = index_soup
     expected_modals = [
         "login-modal",
@@ -180,7 +180,6 @@ def test_modal_accessibility_attributes(index_soup):
         "medical-record-modal",
         "facility-booking-modal",
         "facility-detail-modal",
-        "google-account-modal"
     ]
 
     for mid in expected_modals:
@@ -207,7 +206,6 @@ def test_modal_close_buttons_have_accessible_names(index_soup):
         "medical-record-modal",
         "facility-booking-modal",
         "facility-detail-modal",
-        "google-account-modal"
     ]
 
     for mid in modal_ids:

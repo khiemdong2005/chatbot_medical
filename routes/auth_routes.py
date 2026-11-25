@@ -4,6 +4,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import re
 import secrets
 import uuid
 
@@ -24,6 +25,15 @@ from routes.shared_helpers import (
 )
 
 logger = logging.getLogger("MediMindApp")
+
+
+def _validate_reset_password_strength(password: str):
+    """Kiểm tra độ mạnh mật khẩu mới (2B): >= 8 ký tự, có chữ hoa, chữ thường và chữ số."""
+    if not password or len(password) < 8:
+        return "Mật khẩu mới phải có tối thiểu 8 ký tự (gồm chữ hoa, chữ thường và chữ số)."
+    if not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password) or not re.search(r"\d", password):
+        return "Mật khẩu mới phải bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 chữ số."
+    return None
 
 
 def register_auth_routes(app):
@@ -115,6 +125,10 @@ def register_auth_routes(app):
         if not raw_identifier or not password:
             return jsonify({"success": False, "error": "Vui lòng điền đầy đủ Email/SĐT và mật khẩu."}), 400
 
+        pwd_err = _validate_reset_password_strength(password)
+        if pwd_err:
+            return jsonify({"success": False, "error": pwd_err}), 400
+
         if not full_name:
             full_name = "Bệnh nhân mới"
 
@@ -162,13 +176,13 @@ def register_auth_routes(app):
         except Exception:
             return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
-        session.permanent = True
-        _start_authenticated_session(new_user)
-        session["user_role"] = new_user.role
+        # Sau khi đăng ký thành công, yêu cầu người dùng đăng nhập trước khi vào hệ thống
+        session.clear()
 
         return jsonify({
             "success": True,
-            "message": "Đăng ký tài khoản thành công!",
+            "requires_login": True,
+            "message": "Đăng ký tài khoản thành công! Vui lòng đăng nhập để bắt đầu sử dụng.",
             "user": new_user.to_dict()
         }), 201
 
@@ -361,6 +375,51 @@ def register_auth_routes(app):
             return jsonify({"success": False, "error": "Không thể cập nhật mật khẩu vào cơ sở dữ liệu."}), 500
         return jsonify({"success": True, "message": "Đã thay đổi mật khẩu thành công!"})
 
+    @app.route("/api/auth/preferences", methods=["GET"])
+    def auth_get_preferences():
+        """Lấy cài đặt cá nhân hóa (ngôn ngữ, múi giờ, định dạng ngày, thông báo đẩy) của tài khoản hiện tại."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"success": False, "error": "Vui lòng đăng nhập để xem cài đặt cá nhân hóa."}), 401
+
+        user = db.session.get(User, user_id)
+        if not user:
+            session.clear()
+            return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+
+        return jsonify({"success": True, "preferences": user.get_preferences()})
+
+    @app.route("/api/auth/preferences", methods=["PUT", "POST"])
+    def auth_update_preferences():
+        """Lưu cài đặt cá nhân hóa (lang, timezone, date_format, push_notif) vào CSDL."""
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"success": False, "error": "Vui lòng đăng nhập để lưu cài đặt lên tài khoản."}), 401
+
+        user = db.session.get(User, user_id)
+        if not user:
+            session.clear()
+            return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Dữ liệu cài đặt không hợp lệ."}), 400
+
+        try:
+            updated = user.set_preferences(data)
+        except ValueError as ve:
+            return jsonify({"success": False, "error": str(ve)}), 400
+
+        try:
+            commit_or_rollback()
+        except Exception:
+            return jsonify({"success": False, "error": "Không thể lưu cài đặt vào cơ sở dữ liệu."}), 500
+
+        return jsonify({
+            "success": True,
+            "message": "Đã lưu cài đặt cá nhân hóa thành công!",
+            "preferences": updated,
+        })
 
     @app.route("/api/auth/logout", methods=["POST"])
     def auth_logout():
@@ -428,17 +487,15 @@ def register_auth_routes(app):
                     "success": False,
                     "error": "Email hoặc Số điện thoại này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập!"
                 }), 409
-        elif purpose == "login_2fa":
-            exist_acc = User.query.filter(
-                (db.func.lower(User.email) == identifier.lower()) |
-                (User.phone_number == identifier) |
-                (User.email == f"{identifier}@phone.medimind")
-            ).first()
+        elif purpose in ("login_2fa", "reset_pwd"):
+            exist_acc = find_login_user(identifier)
             if not exist_acc:
                 return jsonify({
                     "success": False,
-                    "error": "Tài khoản không tồn tại trên hệ thống. Vui lòng đăng ký tài khoản mới!"
+                    "error": "Tài khoản không tồn tại trên hệ thống. Vui lòng kiểm tra lại hoặc đăng ký tài khoản mới!"
                 }), 404
+            if not full_name and exist_acc.full_name:
+                full_name = exist_acc.full_name
 
         success, msg, cooldown = otp_manager.request_otp(
             identifier=identifier,
@@ -493,6 +550,19 @@ def register_auth_routes(app):
         if purpose == "register" and dob and not valid_birth_date(dob, ("%d/%m/%Y", "%Y-%m-%d")):
             return jsonify({"success": False, "error": "Ngày sinh phải đúng định dạng DD/MM/YYYY (VD: 15/08/1995)."}), 400
 
+        if purpose == "register":
+            reg_pwd = (user_data.get("password") or "").strip()
+            if reg_pwd:
+                reg_pwd_err = _validate_reset_password_strength(reg_pwd)
+                if reg_pwd_err:
+                    return jsonify({"success": False, "error": reg_pwd_err}), 400
+
+        new_password = (user_data.get("new_password") or data.get("new_password") or "").strip()
+        if purpose == "reset_pwd":
+            pwd_err = _validate_reset_password_strength(new_password)
+            if pwd_err:
+                return jsonify({"success": False, "error": pwd_err}), 400
+
         success, err_msg = otp_manager.verify_otp(
             identifier=identifier,
             channel=channel,
@@ -544,12 +614,15 @@ def register_auth_routes(app):
             except Exception:
                 return jsonify({"success": False, "error": "Không thể lưu thông tin tài khoản vào cơ sở dữ liệu."}), 500
 
-            session["user_id"] = new_user.id
-            session["user_role"] = new_user.role
+            # Sau khi xác thực OTP đăng ký thành công, chuyển về bước Đăng nhập trước khi vào website
+            session.clear()
 
             return jsonify({
                 "success": True,
-                "message": "Xác thực danh tính và đăng ký tài khoản thành công!",
+                "purpose": "register",
+                "identifier": identifier,
+                "requires_login": True,
+                "message": "Đăng ký tài khoản thành công! Vui lòng đăng nhập để bắt đầu sử dụng.",
                 "user": new_user.to_dict()
             }), 201
 
@@ -567,6 +640,34 @@ def register_auth_routes(app):
                 "success": True,
                 "message": f"Xác thực 2 lớp thành công! Chào mừng {user.full_name}.",
                 "user": user.to_dict()
+            })
+
+        # Nếu là kịch bản Quên mật khẩu / Đặt lại mật khẩu (Reset Password with OTP)
+        if purpose == "reset_pwd":
+            user = find_login_user(identifier)
+            if not user:
+                return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
+
+            if user.check_password(new_password):
+                return jsonify({
+                    "success": False,
+                    "error": "Mật khẩu mới không được trùng với mật khẩu hiện tại."
+                }), 400
+
+            user.set_password(new_password)
+            try:
+                commit_or_rollback()
+            except Exception:
+                return jsonify({"success": False, "error": "Không thể cập nhật mật khẩu mới vào cơ sở dữ liệu."}), 500
+
+            # 3A: Xóa phiên đăng nhập cũ và yêu cầu đăng nhập lại bằng mật khẩu mới
+            session.clear()
+            return jsonify({
+                "success": True,
+                "purpose": "reset_pwd",
+                "identifier": identifier,
+                "requires_login": True,
+                "message": "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại bằng mật khẩu mới."
             })
 
         return jsonify({
@@ -683,15 +784,16 @@ def register_auth_routes(app):
             logger.warning(f"Google OAuth trả về lỗi hoặc người dùng hủy: {error}")
             return redirect(f"/?google_auth=error&error_reason={urllib.parse.quote(error)}")
 
+        import hmac
+
         code = (request.args.get("code") or "").strip()
         state_token = (request.args.get("state") or "").strip()
 
         intent = _verify_google_oauth_state(state_token)
-        if not intent or not code:
+        expected_state = session.pop("google_oauth_state", None)
+        if not intent or not code or (expected_state and not hmac.compare_digest(expected_state, state_token)):
             logger.warning("Google OAuth callback thất bại: state không hợp lệ hoặc thiếu code.")
             return redirect("/?google_auth=error&error_reason=invalid_state")
-
-        session.pop("google_oauth_state", None)
 
         client_id = (os.getenv("GOOGLE_CLIENT_ID") or "").strip()
         client_secret = (os.getenv("GOOGLE_CLIENT_SECRET") or "").strip()
@@ -740,6 +842,9 @@ def register_auth_routes(app):
         full_name = (user_info.get("name") or "").strip()
         avatar_url = (user_info.get("picture") or "").strip()
 
+        if user_info.get("email_verified") is False:
+            return redirect("/?google_auth=error&error_reason=email_unverified")
+
         if not email or "@" not in email:
             return redirect("/?google_auth=error&error_reason=invalid_email")
 
@@ -757,7 +862,8 @@ def register_auth_routes(app):
             commit_or_rollback()
 
             session.pop("pending_google_register", None)
-            session["user_id"] = user.id
+            session.permanent = True
+            _start_authenticated_session(user)
             session["user_role"] = user.role
 
             query_out = {
@@ -817,15 +923,17 @@ def register_auth_routes(app):
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             session.pop("pending_google_register", None)
-            session["user_id"] = existing_user.id
+            session.permanent = True
+            _start_authenticated_session(existing_user)
             session["user_role"] = existing_user.role
             return jsonify({"success": True, "user": existing_user.to_dict()})
 
-        dup_phone = User.query.filter(
-            (User.phone_number == clean_phone) | (User.email == f"{clean_phone}@phone.medimind")
-        ).first()
-        if dup_phone:
-            return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
+        if clean_phone:
+            dup_phone = User.query.filter(
+                (User.phone_number == clean_phone) | (User.email == f"{clean_phone}@phone.medimind")
+            ).first()
+            if dup_phone:
+                return jsonify({"success": False, "error": "Số điện thoại này đã được liên kết với một tài khoản khác."}), 409
 
         user = User(
             email=email,
@@ -841,7 +949,8 @@ def register_auth_routes(app):
         commit_or_rollback()
 
         session.pop("pending_google_register", None)
-        session["user_id"] = user.id
+        session.permanent = True
+        _start_authenticated_session(user)
         session["user_role"] = user.role
 
         return jsonify({
