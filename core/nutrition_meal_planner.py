@@ -232,7 +232,7 @@ class _ImageResolver:
         if recipe:
             img = recipe.get("image_link") or recipe.get("source_image_url") or ""
             if img.startswith("/static/"):
-                disk_path = img.lstrip("/").replace("/", os.sep)
+                disk_path = img.split("?", 1)[0].lstrip("/").replace("/", os.sep)
                 if os.path.exists(disk_path):
                     return img
         is_drink = bool(recipe and recipe.get("recipe_type") == "drink")
@@ -243,21 +243,14 @@ class _ImageResolver:
                 return "/static/images/recipes/canonical_staple_com_gao_lut.jpg"
             if "com trang" in norm or norm.startswith("com "):
                 return "/static/images/recipes/canonical_staple_com_trang.jpg"
+            if "bun tuoi" in norm or norm.startswith("bun "):
+                return "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg"
+            if "khoai lang" in norm:
+                return "/static/images/recipes/canonical_staple_khoai_lang_steamed.jpg"
 
-        pool = self.drink_pool if is_drink else self.food_pool
-        stop = {"mon", "it", "khong", "voi", "cua", "cho", "duong", "pha", "loang", "tuoi", "nhat"}
-        tokens = [w for w in norm.split() if len(w) >= 2 and w not in stop]
-        best_score = 0
-        best_img = ""
-        for _, p_norm, p_img in pool:
-            score = sum(1 for tk in tokens if tk in p_norm)
-            if score > best_score:
-                best_score = score
-                best_img = p_img
-        if best_img and best_score >= 1:
-            return best_img
-
-        return self.default_drink_img if is_drink else self.default_food_img
+        # Tránh ghép chuỗi con mù quáng sang món không cùng nhóm (vd: "cá" -> "bún xào cải", "cà tím" -> "bao tử cá");
+        # dùng minh họa SVG sạch theo từng loại nếu bản ghi không có sẵn ảnh thật đã kiểm chứng.
+        return "/static/images/nutrition/category-drink.svg?v=2" if is_drink else "/static/images/nutrition/category-food.svg?v=2"
 
 
 def _ai_rank_meal_plan(

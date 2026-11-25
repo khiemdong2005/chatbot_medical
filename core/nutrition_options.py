@@ -629,6 +629,42 @@ _CURATED_NUTRITION_MACROS = {
     "gout_light_green_tea": {"calories": 15, "protein": 0.3, "fat": 0.0, "carbs": 3.0},
     "gout_orange_carrot": {"calories": 95, "protein": 1.6, "fat": 0.3, "carbs": 21.0},
 }
+_CURATED_EXACT_IMAGES = {
+    "oat_porridge": "/static/images/nutrition/oat_porridge.svg?v=2",
+    "pumpkin_soup": "/static/images/recipes/vifoodrec_3756.jpg",
+    "rice_carrot": "/static/images/nutrition/rice_carrot.svg?v=2",
+    "soft_egg": "/static/images/nutrition/soft_egg.svg?v=2",
+    "sweet_potato": "/static/images/recipes/canonical_staple_khoai_lang_steamed.jpg",
+    "chicken_congee": "/static/images/recipes/vifoodrec_2046.jpg",
+    "tofu_pumpkin": "/static/images/nutrition/tofu_pumpkin.svg?v=2",
+    "warm_water": "/static/images/nutrition/warm_water.svg?v=2",
+    "warm_milk": "/static/images/nutrition/warm_milk.svg?v=2",
+    "oat_drink": "/static/images/recipes/vifoodrec_2004.jpg",
+    "cucumber_water": "/static/images/recipes/vifoodrec_3943.jpg",
+    "warm_soy": "/static/images/recipes/vifoodrec_3417.jpg",
+    "pear_water": "/static/images/nutrition/pear_water.svg?v=2",
+    "barley_water": "/static/images/nutrition/barley_water.svg?v=2",
+    "fl_steamed_fish": "/static/images/recipes/vifoodrec_762.jpg",
+    "fl_chicken_vegetables": "/static/images/recipes/curated_uc_ga_luoc_rau_cu.jpg",
+    "fl_tofu_tomato": "/static/images/recipes/vifoodrec_1984.jpg",
+    "fl_winter_melon_soup": "/static/images/recipes/vifoodrec_304.jpg",
+    "fl_steamed_greens": "/static/images/nutrition/category-food.svg?v=2",
+    "fl_oat_vegetable_porridge": "/static/images/nutrition/oat_porridge.svg?v=2",
+    "fl_brown_rice_chicken": "/static/images/recipes/vifoodrec_1925.png",
+    "gout_egg_tomato": "/static/images/recipes/vifoodrec_3072.jpg",
+    "gout_steamed_egg_veggies": "/static/images/recipes/vifoodrec_1241.jpg",
+    "gout_braised_eggplant": "/static/images/recipes/vifoodrec_2090.jpg",
+    "gout_winter_melon_soup": "/static/images/recipes/vifoodrec_304.jpg",
+    "gout_cabbage_tomato_soup": "/static/images/recipes/vifoodrec_2697.jpg",
+    "gout_boiled_greens": "/static/images/nutrition/category-food.svg?v=2",
+    "gout_oat_pumpkin_congee": "/static/images/nutrition/oat_porridge.svg?v=2",
+    "gout_rice_egg_veggies": "/static/images/recipes/canonical_staple_com_gao_lut.jpg",
+    "gout_celery_juice": "/static/images/recipes/vifoodrec_2798.jpg",
+    "gout_cucumber_lemon": "/static/images/recipes/vifoodrec_3943.jpg",
+    "gout_cherry_juice": "/static/images/recipes/vifoodrec_3042.jpg",
+    "gout_light_green_tea": "/static/images/nutrition/barley_water.svg?v=2",
+    "gout_orange_carrot": "/static/images/nutrition/pear_water.svg?v=2",
+}
 for _group in (FOOD, DRINK, FATTY_LIVER_FOOD, GOUT_FOODS, GOUT_DRINKS):
     for _rec in _group:
         _macros = _CURATED_NUTRITION_MACROS.get(_rec.get("id"))
@@ -636,6 +672,9 @@ for _group in (FOOD, DRINK, FATTY_LIVER_FOOD, GOUT_FOODS, GOUT_DRINKS):
             for _mk, _mv in _macros.items():
                 if _rec.get(_mk) is None:
                     _rec[_mk] = _mv
+        _exact_img = _CURATED_EXACT_IMAGES.get(_rec.get("id"))
+        if _exact_img and not _rec.get("image_link"):
+            _rec["image_link"] = _exact_img
 
 
 def _get_general_options(condition: str, recipe_type: str) -> Dict[str, Any]:
