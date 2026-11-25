@@ -40,21 +40,21 @@ from starlette.concurrency import run_in_threadpool
 from starlette.middleware.wsgi import WSGIMiddleware
 from starlette.routing import Route
 
-from core.api_errors import fastapi_api_error, status_code_to_error_code, ErrorCode
+from core.shared.api_errors import fastapi_api_error, status_code_to_error_code, ErrorCode
 
-from core.chat_service import process_clinical_chat, execute_chat_workflow
-from core.health_context import validate_chat_request
-from core.storage_service import decode_and_validate_base64_image
-from core.gemini_service import GeminiMedicalService
+from core.chat.chat_service import process_clinical_chat, execute_chat_workflow
+from core.chat.health_context import validate_chat_request
+from core.shared.storage_service import decode_and_validate_base64_image
+from core.ai.gemini_service import GeminiMedicalService
 from core.observability import metrics_collector
-from core.rag_service import medical_rag_service
-from core.circuit_breaker import gemini_circuit_breaker
-from core.security_patch import get_rate_limit_identity, check_chat_rate_limit
+from core.chat.rag_service import medical_rag_service
+from core.ai.circuit_breaker import gemini_circuit_breaker
+from core.auth.security_patch import get_rate_limit_identity, check_chat_rate_limit
 from core.routers.deps import require_admin
-from core.settings import get_settings
-from core.network_utils import get_trusted_client_ip, is_request_https
-from core.security_headers import get_security_headers
-from core.logging_redaction import setup_logging_redaction, redact_sensitive_text
+from core.shared.settings import get_settings
+from core.shared.network_utils import get_trusted_client_ip, is_request_https
+from core.auth.security_headers import get_security_headers
+from core.shared.logging_redaction import setup_logging_redaction, redact_sensitive_text
 from app import app as flask_app_instance
 
 setup_logging_redaction()
@@ -119,7 +119,7 @@ async def security_headers_middleware(request: Request, call_next):
 async def csrf_middleware(request: Request, call_next):
     """Bảo vệ chống tấn công CSRF trên các mutating routes của FastAPI Gateway (Phase 8.2)."""
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-        from core.csrf_protection import validate_csrf_request
+        from core.auth.csrf_protection import validate_csrf_request
 
         is_valid, error_msg = validate_csrf_request(
             request.method,
@@ -449,8 +449,8 @@ app.include_router(clinical_summary_router)
 # ==============================================================================
 
 # Đồng bộ Flask app instance cho tầng lưu trữ Intake & CSDL dùng chung
-from core.intake_service import set_flask_app
-from core.db_utils import set_flask_app as set_db_flask_app
+from core.chat.intake_service import set_flask_app
+from core.shared.db_utils import set_flask_app as set_db_flask_app
 set_flask_app(flask_app_instance)
 set_db_flask_app(flask_app_instance)
 

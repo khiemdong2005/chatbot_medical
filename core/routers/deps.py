@@ -14,7 +14,7 @@ except ImportError:
         def __init__(self, status_code=500, detail=""):
             self.status_code = status_code
             self.detail = detail
-from core.db_utils import get_flask_app
+from core.shared.db_utils import get_flask_app
 
 logger = logging.getLogger("RouterDeps")
 
@@ -100,7 +100,7 @@ def extract_request_user_and_role(request: Request) -> Tuple[Optional[int], Opti
 
     if user_id and not user_role:
         try:
-            from core.models import db, User
+            from core.shared.models import db, User
             user = db.session.get(User, user_id)
             if user:
                 user_role = user.role
@@ -136,7 +136,7 @@ def check_flask_admin() -> Optional[Tuple[Any, int]]:
     Trả về None nếu hợp lệ, hoặc trả về (response, status_code) nếu không hợp lệ.
     """
     from flask import session
-    from core.api_errors import flask_api_error, ErrorCode
+    from core.shared.api_errors import flask_api_error, ErrorCode
 
     user_id = session.get("user_id")
     if not user_id:
@@ -149,7 +149,7 @@ def check_flask_admin() -> Optional[Tuple[Any, int]]:
     user_role = session.get("user_role")
     if user_role != "admin":
         try:
-            from core.models import db, User
+            from core.shared.models import db, User
             user = db.session.get(User, user_id)
             if user:
                 user_role = user.role

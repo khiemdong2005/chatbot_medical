@@ -5,7 +5,7 @@ FastAPI native router cho danh mục Cơ sở Y tế, Bộ lọc và Bản đồ
 from typing import Optional
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
-from core.facilities_service import (
+from core.facilities.facilities_service import (
     get_facilities,
     get_facilities_filters,
     get_facilities_map_markers

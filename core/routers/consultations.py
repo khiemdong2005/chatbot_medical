@@ -5,11 +5,11 @@ FastAPI native router cho danh sách các phiên tư vấn đã lưu (Clinical C
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from core.routers.deps import require_authenticated_user, extract_request_identity
-from core.consultation_service import (
+from core.chat.consultation_service import (
     get_user_consultations,
     delete_user_consultation
 )
-from core.api_errors import fastapi_api_error, ErrorCode
+from core.shared.api_errors import fastapi_api_error, ErrorCode
 
 router = APIRouter(prefix="/api/consultations", tags=["4. Lịch sử Tư vấn (Consultations)"])
 

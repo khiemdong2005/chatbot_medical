@@ -6,8 +6,8 @@ from typing import Optional
 from fastapi import APIRouter, Request, Query
 from fastapi.responses import JSONResponse
 from core.routers.deps import require_authenticated_user
-from core.consultation_service import get_clinical_summary
-from core.api_errors import fastapi_api_error, ErrorCode
+from core.chat.consultation_service import get_clinical_summary
+from core.shared.api_errors import fastapi_api_error, ErrorCode
 
 router = APIRouter(prefix="/api/clinical-summary", tags=["5. Hồ sơ Lâm sàng (Clinical Summary)"])
 

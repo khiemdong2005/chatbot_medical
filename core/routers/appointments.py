@@ -7,12 +7,12 @@ from typing import Any, Dict
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from core.routers.deps import require_authenticated_user
-from core.appointment_service import (
+from core.facilities.appointment_service import (
     get_user_appointments,
     create_user_appointment,
     delete_user_appointment
 )
-from core.api_errors import fastapi_api_error, ErrorCode
+from core.shared.api_errors import fastapi_api_error, ErrorCode
 
 router = APIRouter(prefix="/api/appointments", tags=["3. Đặt lịch khám (Appointments)"])
 

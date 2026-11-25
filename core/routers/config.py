@@ -5,7 +5,7 @@ FastAPI native router cho cấu hình công khai phục vụ frontend (Maps, cli
 import os
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from core.settings import get_settings
+from core.shared.settings import get_settings
 
 router = APIRouter(prefix="/api/config", tags=["0. Cấu hình Hệ thống (System Config)"])
 
