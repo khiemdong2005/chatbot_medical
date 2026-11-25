@@ -622,7 +622,9 @@
     const proDisplay = _formatMacroGrams(recipe.protein);
     const fatDisplay = _formatMacroGrams(recipe.fat);
     let rawCarb = recipe.carbs ?? recipe.carb ?? recipe.carbohydrate;
-    if ((rawCarb === null || rawCarb === undefined || rawCarb === '') && calNum !== null && Number.isFinite(Number(recipe.protein)) && Number.isFinite(Number(recipe.fat))) {
+    const hasPro = recipe.protein !== null && recipe.protein !== undefined && recipe.protein !== '' && Number.isFinite(Number(recipe.protein));
+    const hasFat = recipe.fat !== null && recipe.fat !== undefined && recipe.fat !== '' && Number.isFinite(Number(recipe.fat));
+    if ((rawCarb === null || rawCarb === undefined || rawCarb === '') && calNum !== null && hasPro && hasFat) {
       rawCarb = Math.max(0, Math.round((calNum - (Number(recipe.protein) * 4) - (Number(recipe.fat) * 9)) / 4));
     }
     const carbDisplay = _formatMacroGrams(rawCarb);
