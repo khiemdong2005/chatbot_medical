@@ -220,9 +220,11 @@ class CircuitBreaker:
 
 # Thể hiện Singleton dùng chung toàn hệ thống cho Gemini AI
 gemini_circuit_breaker = CircuitBreaker(name="gemini_main")
+groq_circuit_breaker = CircuitBreaker(name="groq_main")
 
 _circuit_breakers: Dict[str, CircuitBreaker] = {
     "gemini_main": gemini_circuit_breaker,
+    "groq_main": groq_circuit_breaker,
     "chat": gemini_circuit_breaker
 }
 _breakers_lock = threading.Lock()

@@ -490,3 +490,10 @@ def get_preset_data(preset_key: str) -> Dict[str, Any]:
         "is_demo": True,
         "message": f"Kịch bản mẫu '{preset_key}' không tồn tại. Vui lòng chọn 'binh_dan' hoặc 'throat' hoặc 'cardio'."
     }
+
+
+# Backward-compatible aliases for legacy callers & tests
+normalize_and_analyze_with_gemini = normalize_and_analyze_with_groq
+scan_prescription_with_gemini_vision = scan_prescription_with_groq_vision
+_gemini_image_part = _groq_image_content
+

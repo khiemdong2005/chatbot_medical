@@ -1457,3 +1457,511 @@ body:not(.light-glass) #doctor-tab .nf-portion-clarity-badge {
   border-color: rgba(34, 197, 94, 0.3);
   color: #86efac;
 }
+
+/* ==========================================================================
+   Recipe Detail Ocean-Glass Redesign (Step 3 / 3)
+   ========================================================================== */
+#doctor-tab .nf-detail-topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+#doctor-tab .nf-detail-topbar .nf-back,
+#doctor-tab .nf-detail-back-pill {
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#doctor-tab .nf-detail-step-pill {
+  margin: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  border: 1px solid rgba(56, 189, 248, 0.32);
+  background: rgba(14, 116, 144, 0.16);
+  color: #0369a1;
+}
+
+#doctor-tab .nf-detail-topbar .nf-detail-condition-pill {
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px 16px 4px 5px;
+  border-radius: 999px;
+  gap: 10px;
+}
+
+#doctor-tab .nf-detail-topbar .nf-detail-condition-pill::before {
+  display: none;
+}
+
+#doctor-tab .nf-detail-topbar .nf-detail-check-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+#doctor-tab .nf-detail-topbar .nf-query-label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#doctor-tab .nf-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+  gap: 20px;
+  align-items: start;
+}
+
+#doctor-tab .nf-detail-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#doctor-tab .nf-detail-visual {
+  padding: 14px 14px 4px;
+  border-radius: 20px;
+}
+
+#doctor-tab .nf-detail-photo-wrap {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+#doctor-tab .nf-bookmark-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  color: #f8fafc;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+#doctor-tab .nf-bookmark-btn:hover {
+  transform: scale(1.06);
+  background: rgba(15, 23, 42, 0.85);
+}
+
+#doctor-tab .nf-bookmark-btn.is-saved {
+  background: rgba(2, 132, 199, 0.9);
+  border-color: #7dd3fc;
+}
+
+#doctor-tab .nf-bookmark-btn.is-saved svg {
+  fill: currentColor;
+}
+
+#doctor-tab .nf-detail-meta-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  margin-top: 8px;
+  padding: 10px 2px 12px;
+}
+
+#doctor-tab .nf-detail-meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #475569;
+  padding: 2px 6px;
+  text-align: center;
+}
+
+#doctor-tab .nf-detail-meta-item + .nf-detail-meta-item {
+  border-left: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+#doctor-tab .nf-nutrition-card {
+  border-radius: 20px;
+  border: 1px solid #d8e9ef;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 12px 30px #1457730d;
+}
+
+#doctor-tab .nf-nutrition-head {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #173247;
+}
+
+#doctor-tab .nf-nutrition-head span {
+  font-weight: 400;
+  font-size: 13px;
+  color: #64748b;
+}
+
+#doctor-tab .nf-nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#doctor-tab .nf-nutri-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  text-align: center;
+}
+
+#doctor-tab .nf-nutri-tile.is-kcal {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: #fffbeb;
+}
+
+#doctor-tab .nf-nutri-tile b {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+#doctor-tab .nf-nutri-tile.is-kcal b {
+  color: #d97706;
+}
+
+#doctor-tab .nf-nutri-tile span:last-child {
+  font-size: 11px;
+  color: #64748b;
+}
+
+#doctor-tab .nf-nutri-icon {
+  color: #0284c7;
+  display: inline-flex;
+}
+
+#doctor-tab .nf-nutri-icon-amber {
+  color: #f59e0b;
+}
+
+#doctor-tab .nf-detail-copy {
+  padding: 24px 26px;
+  border-radius: 20px;
+}
+
+#doctor-tab .nf-detail-role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+#doctor-tab .nf-detail-copy h2 {
+  font-size: clamp(22px, 2.5vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+#doctor-tab .nf-detail-subtitle {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+}
+
+#doctor-tab .nf-detail-kcal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 158, 11, 0.48);
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+#doctor-tab .nf-detail-copy h3.nf-detail-sec-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 10px;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #0f172a;
+}
+
+#doctor-tab .nf-detail-copy .nf-ingredients {
+  gap: 10px;
+}
+
+#doctor-tab .nf-detail-copy .nf-ingredient {
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+  background: #e6f2fc;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+#doctor-tab .nf-detail-copy .nf-ingredient-dot {
+  background: #0f172a;
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+}
+
+#doctor-tab .nf-steps-panel {
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  background: rgba(248, 250, 252, 0.8);
+  padding: 16px 18px;
+}
+
+#doctor-tab .nf-detail-copy .nf-steps {
+  gap: 12px;
+}
+
+#doctor-tab .nf-detail-copy .nf-step {
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #1e293b;
+}
+
+#doctor-tab .nf-detail-copy .nf-step-number {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 999px;
+  background: #0284c7;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#doctor-tab .nf-avoid-callout {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px 18px;
+  border-radius: 14px;
+  border: 1px solid #fde68a;
+  background: #fef3c7;
+  color: #1e293b;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+#doctor-tab .nf-avoid-icon {
+  color: #78350f;
+  margin-top: 2px;
+  flex-shrink: 0;
+  display: inline-flex;
+}
+
+#doctor-tab .nf-avoid-callout strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0;
+}
+
+#doctor-tab .nf-avoid-callout p {
+  margin: 0;
+  color: #334155;
+}
+
+/* Dark Ocean-Glass Mode overrides for Step 3 Detail */
+body:not(.light-glass) #doctor-tab .nf-detail-topbar .nf-detail-back-pill {
+  background: rgba(15, 29, 52, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #f1f5f9;
+  backdrop-filter: blur(10px);
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-topbar .nf-detail-back-pill:hover {
+  border-color: #38bdf8;
+  color: #7dd3fc;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-step-pill {
+  background: rgba(12, 42, 74, 0.78);
+  border-color: rgba(56, 189, 248, 0.42);
+  color: #bae6fd;
+  backdrop-filter: blur(10px);
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-topbar .nf-detail-condition-pill {
+  background: rgba(11, 28, 50, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-topbar .nf-detail-check-badge {
+  background: #10b981;
+  border: 0;
+  color: #fff;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-topbar .nf-query-label {
+  color: #f8fafc;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-visual,
+body:not(.light-glass) #doctor-tab .nf-nutrition-card,
+body:not(.light-glass) #doctor-tab .nf-detail-copy {
+  background: rgba(10, 25, 48, 0.86);
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+  backdrop-filter: blur(16px);
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-meta-item {
+  color: #cbd5e1;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-meta-item svg {
+  color: #94a3b8;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutrition-head {
+  color: #f8fafc;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutrition-head span {
+  color: #cbd5e1;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-tile {
+  background: rgba(15, 36, 66, 0.78);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-tile.is-kcal {
+  background: rgba(29, 53, 84, 0.82);
+  border-color: rgba(251, 191, 36, 0.32);
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-tile b {
+  color: #f8fafc;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-tile.is-kcal b {
+  color: #f59e0b;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-tile span:last-child {
+  color: #cbd5e1;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-icon {
+  color: #7dd3fc;
+}
+
+body:not(.light-glass) #doctor-tab .nf-nutri-icon-amber {
+  color: #fbbf24;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-role-pill {
+  background: rgba(14, 116, 144, 0.22);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #bae6fd;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-subtitle {
+  color: #94a3b8;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-kcal-pill {
+  background: rgba(120, 53, 15, 0.35);
+  border-color: rgba(245, 158, 11, 0.55);
+  color: #fbbf24;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-copy h3.nf-detail-sec-head {
+  color: #f8fafc;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-copy .nf-ingredient {
+  background: #e3f1fc;
+  border-color: #bae6fd;
+  color: #0f172a;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-copy .nf-ingredient b {
+  color: #0369a1;
+}
+
+body:not(.light-glass) #doctor-tab .nf-steps-panel {
+  background: rgba(10, 29, 56, 0.65);
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-copy .nf-step {
+  color: #e2e8f0;
+}
+
+body:not(.light-glass) #doctor-tab .nf-detail-copy .nf-step-number {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  #doctor-tab .nf-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  #doctor-tab .nf-nutrition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #doctor-tab .nf-detail-copy .nf-ingredients {
+    grid-template-columns: 1fr;
+  }
+}

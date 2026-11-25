@@ -433,20 +433,23 @@ def _prescription_body_bounds(rows: List[Dict[str, Any]]) -> tuple:
     first_numbered = next((i for i, row in enumerate(rows) if numbered(row)), None)
     if diagnosis_idx is not None:
         start = diagnosis_idx + 1
+        while (start < len(rows)
+               and re.search(r"\b(?:stt|ten\s*thuoc|ten\s*duoc\s*pham)\b", _ascii_fold(rows[start].get("text", "")))
+               and not re.match(r"^\s*[1-9]\d*[\.\,\/\)\-]", str(rows[start].get("text", "")).strip())):
+            start += 1
     elif first_numbered is not None:
         start = first_numbered
         # Nếu dòng đánh số đầu tiên bắt đầu từ số >= 2 (vì OCR rớt số "1."),
         # kiểm tra 1-2 dòng ngay phía trên xem có dòng thuốc số 1 (có số lượng/đơn vị) không
         first_ord = _parse_medication_ordinal(str(rows[first_numbered].get("text", "") or ""))
         if first_ord is not None and first_ord >= 2:
-            for back in range(first_numbered - 1, max(-1, first_numbered - 4), -1):
+            for back in range(first_numbered - 1, max(-1, first_numbered - 5), -1):
                 b_txt = str(rows[back].get("text", "") or "")
                 b_fold = _ascii_fold(b_txt)
-                if re.search(r"\b(?:ho\s*ten|doi\s*tuong|don\s*thuoc|dia\s*chi|phai|tuoi)\b", b_fold):
+                if re.search(r"\b(?:ho\s*ten|doi\s*tuong|don\s*thuoc|dia\s*chi|phai|tuoi|chn\s*8oun)\b", b_fold):
                     break
-                if re.search(r"\b\d{1,3}\s*(?:vien|ven|goi|ong|chai|lo|hop|tuyp|tube)\b", re.sub(r"\s*\|\s*", " ", b_fold)):
+                if re.search(r"\b\d{1,3}\s*(?:vien|vicn|ven|goi|ong|chai|char|chal|lo|hop|tuyp|tube)\b|\b\d+[oO0]*\s*(?:mg|mcg|ml|g)\b", re.sub(r"\s*\|\s*", " ", b_fold)):
                     start = back
-                    break
     else:
         heading = next((i for i, row in enumerate(rows)
                         if re.search(r"\b(?:ten\s*thuoc|stt|ten\s*duoc\s*pham)\b",
@@ -1504,6 +1507,10 @@ def _parse_strict_numbered_medications(rows: List[Dict[str, Any]], expected_coun
         name = re.sub(r"\(\s*([^()]*?)\s*\)", r"(\1)", name)
         name = _clean_foreign_brand_diacritics(name)
         name = re.sub(r"\s+", " ", name).strip(" -–,;:|+")
+        if active_ingredient and "(" not in name:
+            inner_clean = re.sub(r"\b\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu|%)\b", "", active_ingredient, flags=re.IGNORECASE).strip(" -–,;:|+")
+            if re.fullmatch(r"[A-Z]{4,}", inner_clean):
+                name = f"{name} ({inner_clean})"
         if len(name.replace(" ", "")) < 4 or not re.search(r"[A-Za-zÀ-ỹ]{4,}", name):
             continue
         confidence_values = [
@@ -2485,9 +2492,24 @@ def extract_schema_from_ocr(ocr_data: Dict[str, Any], doc_type: str = "prescript
         data["expected_medication_count"] = int(expected_match.group(1)) if expected_match else None
         # Medication list is image evidence only. Do not add drugs from a catalog,
         # an unnumbered OCR fragment, a database default, or a model completion.
-        data["medications"] = _parse_strict_numbered_medications(
+        has_numbered_rows = any(
+            re.match(r"^\s*[1-9]\d*[\.\,\/\)\-\|](?:\s|\||[A-Za-zÀ-ỹ])", str(r.get("text", "")).strip())
+            or (r.get("items") and re.fullmatch(r"[1-9]\d*[.,/)\-]?", str(r["items"][0].get("text", "")).strip()))
+            for r in body_rows
+        )
+        strict_meds = _parse_strict_numbered_medications(
             body_rows, expected_count=data["expected_medication_count"],
         )
+        numbered_meds = _parse_numbered_medications(body_rows) if has_numbered_rows else []
+        row_meds = _prescription_medications_from_rows(rows)
+        if not strict_meds:
+            data["medications"] = numbered_meds or row_meds
+        elif len(numbered_meds) > len(strict_meds) and not data["expected_medication_count"]:
+            data["medications"] = numbered_meds
+        elif len(row_meds) > len(strict_meds) and not data["expected_medication_count"]:
+            data["medications"] = row_meds
+        else:
+            data["medications"] = strict_meds
 
     elif doc_type == "lab_test":
         metrics = []
@@ -2730,8 +2752,8 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], model_data: Dict[str, A
                 reconciled[field] = model_value
                 header_alternatives[field] = [ocr_value]
             else:
-                reconciled[field] = model_value
-                header_alternatives[field] = [ocr_value]
+                reconciled[field] = ocr_value
+                header_alternatives[field] = [model_value]
             fields_review.append(f"{field}: OCR và model đọc khác nhau; cần đối chiếu ảnh gốc.")
             overall_confidence = min(overall_confidence, 0.8)
     reconciled["header_alternatives"] = header_alternatives
@@ -2865,68 +2887,19 @@ def reconcile_parallel_results(ocr_data: Dict[str, Any], model_data: Dict[str, A
         ]
 
         if supported_meds and model_data is not ocr_fallback:
-            # Kết hợp danh sách thuốc từ Vision model (đầy đủ hàng & sạch lỗi chính tả OCR)
-            # với tọa độ/bằng chứng từ EasyOCR (để gắn bbox và kiểm chứng chéo).
-            merged_meds = []
-            used_ocr_indices = set()
-            for m_idx, m_med in enumerate(supported_meds):
-                combined = dict(m_med)
-                m_name = _normalized_entity(m_med.get("brand_name") or m_med.get("name"))
-                m_core = _extract_core_name(m_med.get("brand_name") or m_med.get("name"))
-                m_ing = _extract_core_name(m_med.get("active_ingredient") or "")
-                best_o_idx = None
-                best_o_score = 0.0
-                for o_idx, o_med in enumerate(ocr_meds_list):
-                    if o_idx in used_ocr_indices:
+            meds = _merge_medication_rows(ocr_meds_list, supported_meds)
+            if body_rows and ocr_meds_list:
+                existing_cores = {_extract_core_name(m.get("name", "")) for m in meds}
+                body_text_folded = " ".join(_ascii_fold(r.get("text", "")) for r in body_rows)
+                for m_med in supported_meds:
+                    m_core = _extract_core_name(m_med.get("brand_name") or m_med.get("name"))
+                    if not m_core or m_core in existing_cores:
                         continue
-                    o_name = _normalized_entity(o_med.get("name"))
-                    o_core = _extract_core_name(o_med.get("name"))
-                    if not o_name:
-                        continue
-                    score = difflib.SequenceMatcher(None, m_name, o_name).ratio() if m_name else 0.0
-                    if m_core and o_core:
-                        if m_core in o_name or o_core in m_name:
-                            score = max(score, 0.90)
-                        else:
-                            score = max(score, difflib.SequenceMatcher(None, m_core, o_core).ratio())
-                    if m_ing and o_core and (m_ing in o_name or o_core in m_ing):
-                        score = max(score, 0.85)
-                    if m_med.get("stt") and o_med.get("source_ordinal") == m_med.get("stt"):
-                        score = max(score, 0.72)
-                    if score > best_o_score:
-                        best_o_score = score
-                        best_o_idx = o_idx
-                if best_o_idx is not None and best_o_score >= 0.55:
-                    used_ocr_indices.add(best_o_idx)
-                    o_med = ocr_meds_list[best_o_idx]
-                    combined["raw_ocr_name"] = o_med.get("raw_ocr_name") or o_med.get("name") or ""
-                    combined["source_line_indices"] = o_med.get("source_line_indices") or []
-                    combined["source_ordinal"] = o_med.get("source_ordinal") or m_med.get("stt") or (m_idx + 1)
-                    if o_med.get("anchor_box"):
-                        combined["anchor_box"] = o_med["anchor_box"]
-                    if o_med.get("ocr_confidence"):
-                        combined["ocr_confidence"] = o_med["ocr_confidence"]
-                    # Bổ sung trường còn trống từ OCR nếu model chưa điền (tránh kéo nhầm liều uống vào thuốc bôi hoặc kéo tổng SL làm liều)
-                    is_ext_route = "ngoài" in str(combined.get("route") or "").lower()
-                    qty_nums_m = _extract_numbers(combined.get("quantity") or combined.get("days") or "")
-                    for fld in ("strength", "dose", "frequency", "quantity", "days", "unit", "usage", "route"):
-                        if not combined.get(fld) and o_med.get(fld):
-                            if fld == "dose":
-                                if is_ext_route:
-                                    continue
-                                dose_nums_o = _extract_numbers(o_med.get(fld))
-                                if dose_nums_o and qty_nums_m and dose_nums_o == qty_nums_m:
-                                    try:
-                                        if float(dose_nums_o[0]) >= 10:
-                                            continue
-                                    except ValueError:
-                                        pass
-                            combined[fld] = o_med[fld]
-                else:
-                    combined["source_ordinal"] = m_med.get("stt") or (m_idx + 1)
-                    combined.setdefault("source_line_indices", [])
-                merged_meds.append(combined)
-            meds = merged_meds
+                    if len(m_core) >= 4 and re.search(r"\b" + re.escape(m_core) + r"\b", body_text_folded):
+                        extra = dict(m_med)
+                        extra.setdefault("needs_review", True)
+                        meds.append(extra)
+                        existing_cores.add(m_core)
         else:
             meds = ocr_meds_list
 

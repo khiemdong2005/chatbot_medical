@@ -2872,11 +2872,30 @@ function handlePreVisitSummaryKeys(event) {
   }
 }
 
+function renderPreVisitSummaryRows(container, rows) {
+  if (!container) return;
+  container.replaceChildren();
+  for (const [label, value] of rows) {
+    if (!value) continue;
+    const row = document.createElement('div');
+    row.className = 'py-2.5';
+    const name = document.createElement('dt');
+    name.className = 'text-xs font-semibold text-slate-600 dark:text-slate-400';
+    name.textContent = label;
+    const detail = document.createElement('dd');
+    detail.className = 'mt-0.5 break-words whitespace-pre-line text-sm text-slate-900 dark:text-slate-100';
+    detail.textContent = value;
+    row.append(name, detail);
+    container.append(row);
+  }
+}
+
 function renderPreVisitSummaryInModal(summary, id = currentConversationId, awaitingReply = false) {
   reviewedIntakeSummary = { id, summary, awaitingReply };
   const partA = summary.part_a_patient_facts || {};
   const partB = summary.part_b_system_assessment || {};
   const dict = translations[currentLang] || translations.vi;
+  const label = (vi, en) => (typeof currentLang !== 'undefined' && currentLang === 'en') ? en : vi;
 
   const statusText = document.getElementById('modal-summary-status-text');
   const createdAt = document.getElementById('modal-summary-created-at');
@@ -2943,14 +2962,10 @@ function renderPreVisitSummaryInModal(summary, id = currentConversationId, await
     ...context.filter(item => item && known(item.question)).map(item => [known(item.question), known(item.answer)])
   ]);
   const mEl = document.getElementById('summary-a-missing');
-
-  if (cEl) cEl.innerText = [partA.chief_complaint, ...Object.values(partA.pain || {})].filter(Boolean).join(' · ') || '--';
-  if (dEl) dEl.innerText = partA.duration || '--';
-  if (pEl) pEl.innerText = (partA.symptoms_present && partA.symptoms_present.length) ? partA.symptoms_present.join(', ') : '--';
-  if (dnEl) dnEl.innerText = (partA.symptoms_denied && partA.symptoms_denied.length) ? partA.symptoms_denied.join(', ') : 'Chưa có triệu chứng phủ nhận';
-  if (vEl) vEl.innerText = partA.vitals || 'Chưa có chỉ số tự đo tại nhà';
-  if (attEl) attEl.innerText = partA.attachments_and_observations || 'Không có tệp hình ảnh đính kèm';
-  if (mEl) mEl.innerText = (partA.missing_or_unclear_info && partA.missing_or_unclear_info.length) ? partA.missing_or_unclear_info.join('; ') : 'Đã đủ thông tin cơ bản';
+  const missingSection = document.getElementById('summary-a-missing-section');
+  const missing = list(partA.missing_or_unclear_info);
+  if (mEl) mEl.innerText = missing;
+  if (missingSection) missingSection.hidden = !missing;
 
   const algEl = document.getElementById('summary-a-allergies');
   const medEl = document.getElementById('summary-a-medications');

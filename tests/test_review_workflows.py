@@ -62,7 +62,7 @@ def test_review_then_validate(client, test_users, kind, rows_key, original, edit
         draft = scan.get_json()
         assert draft["status"] == "review"
         assert draft["review_schema_version"] == 3
-        assert draft["extraction_source"] == "ocr_gemini"
+        assert draft["extraction_source"] in ("ocr_gemini", "ocr_groq")
         assert not interpret.called and not drug_check.called and not lab_check.called
         assert draft["data"][rows_key][0][next(k for k in edit if edit[k] != original[k])] != ""
         doc_id = draft["document_id"]

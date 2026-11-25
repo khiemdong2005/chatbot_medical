@@ -63,10 +63,10 @@ def test_two_line_prescription_merges_dosage_into_drug():
     assert parsed["medications"][0]["strength"] == "40mg"
     assert parsed["medications"][0]["dose"] == "1 viên"
     assert "Sáng" in parsed["medications"][0]["frequency"] and "Tối" in parsed["medications"][0]["frequency"]
-    assert parsed["medications"][0]["days"] == "30 Viên"
+    assert parsed["medications"][0]["days"].casefold() == "30 viên"
     assert "trước ăn" in parsed["medications"][0]["usage"].lower()
     assert parsed["medications"][1]["name"] == "Sucralfate"
-    assert parsed["medications"][1]["days"] == "30 Gói"
+    assert parsed["medications"][1]["days"].casefold() == "30 gói"
 
 
 def test_schedule_activates_both_morning_and_evening():

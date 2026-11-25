@@ -428,6 +428,13 @@ class _GroqModels:
             if e.status_code in (400, 422) and "response_format" in payload:
                 payload.pop("response_format", None)
                 resp_json = self._post_completion(payload)
+            elif e.status_code == 404:
+                fallback_model = (os.getenv("GROQ_FALLBACK_MODEL") or "qwen/qwen3.8-27b").strip()
+                if fallback_model and payload.get("model") != fallback_model:
+                    payload["model"] = fallback_model
+                    resp_json = self._post_completion(payload)
+                else:
+                    raise
             else:
                 raise
 
@@ -820,14 +827,14 @@ class LLMProvider:
                     return os.getenv("OPENROUTER_OCR_MODEL", "nvidia/nemotron-3.5-super-vl:free").strip()
                 return (os.getenv("OCR_MODEL") or settings.gemini.ocr_model).strip()
             if "chat" in op:
-                return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
+                return (os.getenv("GROQ_CHAT_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
             if "expansion" in op:
-                return os.getenv("GROQ_EXPANSION_MODEL", "openai/gpt-oss-20b").strip()
+                return (os.getenv("GROQ_EXPANSION_MODEL") or os.getenv("GROQ_MODEL") or "openai/gpt-oss-20b").strip()
             if "nutrition" in op:
-                return os.getenv("GROQ_NUTRITION_MODEL", "openai/gpt-oss-20b").strip()
+                return (os.getenv("GROQ_NUTRITION_MODEL") or os.getenv("GROQ_MODEL") or "openai/gpt-oss-20b").strip()
             if "interpretation" in op:
-                return os.getenv("GROQ_INTERPRETATION_MODEL", "openai/gpt-oss-120b").strip()
-            return os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b").strip()
+                return (os.getenv("GROQ_INTERPRETATION_MODEL") or os.getenv("GROQ_MODEL") or "openai/gpt-oss-120b").strip()
+            return (os.getenv("GROQ_CHAT_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
 
         use_openrouter = (
             self.is_openrouter_active()

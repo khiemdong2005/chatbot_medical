@@ -62,7 +62,7 @@ def conversation_search_context(message, history, max_user_turns=3):
     A bare "có" / "hông" carries no searchable symptom. Recent user turns from the
     same consultation supply the topic; long messages already stand on their own.
     """
-    if not history or len(str(message).split()) > 16:
+    if not history or len(str(message).split()) > 10:
         return ""
     prior = [turn.get("content", "").strip() for turn in history
              if isinstance(turn, dict) and turn.get("role") == "user"
@@ -376,7 +376,7 @@ def process_clinical_chat(
         safety_question = follow_up and question_topic(follow_up) in {"dyspnea", "chest_pain", "swallowing_ability"}
         next_question = follow_up if safety_question else model_question or follow_up
 
-        if not degraded and grounding_status == "verified":
+        if not degraded and grounding_status == "verified" and (consultation_mode == "final" or (model_question and not follow_up)):
             tail_q = model_question or (follow_up if safety_question else "")
             if tail_q:
                 raw_answer = f"{raw_answer}\n\n{tail_q}"

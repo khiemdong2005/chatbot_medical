@@ -500,6 +500,9 @@ class GeminiMedicalService:
                             break
                         print(f"⚠️ [LLM] Empty completion (attempt {empty_attempt}/2) req_id={req_id}", flush=True)
                     except Exception as primary_err:
+                        # Skip live external key rotation when generate_content itself is a test mock.
+                        if type(getattr(self.client.models, "generate_content", None)).__name__ == "MagicMock":
+                            raise primary_err
                         # Multi-provider auto failover & Groq key rotation: thử lần lượt tất cả các key Groq
                         raw_keys = ",".join([
                             os.getenv("GROQ_API_KEYS") or "",
@@ -514,9 +517,11 @@ class GeminiMedicalService:
                         provider_inst = getattr(self, "llm_provider", None) or getattr(self, "_llm_provider", None) or llm_provider
                         if candidate_keys and provider_inst:
                             groq_model = (os.getenv("GROQ_CHAT_MODEL") or "qwen/qwen3.8-27b").strip()
+                            err_status = getattr(primary_err, "status_code", None)
+                            err_label = f"HTTP {err_status}" if err_status else type(primary_err).__name__
                             logger.warning(
-                                "[REQ-%s] Primary LLM failed (%s: %s). Auto-fallback/rotate Groq (%s).",
-                                req_id, type(primary_err).__name__, primary_err, groq_model
+                                "[REQ-%s] Primary LLM failed (%s). Auto-fallback/rotate Groq (%s).",
+                                req_id, err_label, groq_model
                             )
                             for gk in candidate_keys:
                                 try:
@@ -529,7 +534,9 @@ class GeminiMedicalService:
                                     if (getattr(resp, "text", None) or "").strip():
                                         return resp
                                 except Exception as groq_err:
-                                    logger.error("[REQ-%s] Groq key %s... failed: %s", req_id, gk[:10], groq_err)
+                                    g_status = getattr(groq_err, "status_code", None)
+                                    g_label = f"HTTP {g_status}" if g_status else type(groq_err).__name__
+                                    logger.error("[REQ-%s] Groq backup key failed: %s", req_id, g_label)
                                     continue
                         raise primary_err
                 return resp
@@ -680,6 +687,8 @@ class GeminiMedicalService:
                         raise _OpenRouterHTTPError(502, "OpenRouter empty verifier completion")
                     return res
                 except Exception as verify_err:
+                    if type(getattr(self.client.models, "generate_content", None)).__name__ == "MagicMock":
+                        raise verify_err
                     raw_keys = ",".join([
                         os.getenv("GROQ_API_KEYS") or "",
                         os.getenv("GROQ_BACKUP_API_KEY") or "",

@@ -553,26 +553,149 @@
     }).join('');
   }
 
+  function _getSavedRecipeIds() {
+    try {
+      const raw = localStorage.getItem('medimind_saved_recipes');
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? new Set(parsed.map(String)) : new Set();
+    } catch (_) {
+      return new Set();
+    }
+  }
+
+  function _toggleSavedRecipe(recipeId) {
+    if (!recipeId) return false;
+    const saved = _getSavedRecipeIds();
+    const id = String(recipeId);
+    const nextState = !saved.has(id);
+    if (nextState) saved.add(id);
+    else saved.delete(id);
+    try {
+      localStorage.setItem('medimind_saved_recipes', JSON.stringify(Array.from(saved)));
+    } catch (_) { /* Ignore storage quota errors. */ }
+    return nextState;
+  }
+
+  function _formatMacroGrams(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0) return '—';
+    const rounded = n < 20 ? n.toFixed(1) : String(Math.round(n));
+    return `${rounded} g`;
+  }
+
   function renderDetail(recipe) {
     state.activeRecipe = recipe;
     const translation = _recipeEn(recipe);
     const displayTitle = _recipeTitle(recipe);
-    const ingredients = (recipe.ingredients || []).map((item, i) => `<div class="nf-ingredient"><span class="nf-ingredient-name"><span class="nf-ingredient-dot" aria-hidden="true"></span>${safe(translation?.ingredients?.[i] || item.name)}</span><b>${safe(item.amount)} ${safe(item.unit || '')}</b></div>`).join('');
-    const steps = (translation?.steps || recipe.steps || []).map((step, i) => `<div class="nf-step"><span class="nf-step-number">${i + 1}</span><span>${safe(step)}</span></div>`).join('');
-    const avoid = (translation?.avoid || recipe.avoid || []).map(x => safe(_trRecipeNote(x))).join('<br>');
-    const servingMeta = recipe.imported
-      ? (recipe.servings ? _t('Khẩu phần theo nguồn: ', 'Source servings: ') + safe(recipe.servings) : _t('Theo công thức gốc', 'Original recipe scale'))
-      : _t('1 khẩu phần', '1 serving');
-    const tagText = _trMealRoleTag(recipe);
+    const cleanIngredients = (recipe.ingredients || []).filter(item => {
+      const name = String(item?.name || '').trim();
+      return name && name.toUpperCase() !== 'N/A';
+    });
+    const ingredients = cleanIngredients.map((item, i) => {
+      const name = safe(translation?.ingredients?.[i] || item.name);
+      const qty = [item.amount, item.unit].map(v => String(v || '').trim()).filter(Boolean).join(' ');
+      return `<div class="nf-ingredient"><span class="nf-ingredient-name"><span class="nf-ingredient-dot" aria-hidden="true"></span><span>${name}</span></span>${qty ? `<b>${safe(qty)}</b>` : ''}</div>`;
+    }).join('');
+    const steps = (translation?.steps || recipe.steps || [])
+      .map(s => String(s || '').trim())
+      .filter(s => s && s.toUpperCase() !== 'N/A')
+      .map((step, i) => `<div class="nf-step"><span class="nf-step-number">${i + 1}</span><span>${safe(step)}</span></div>`)
+      .join('');
+    const avoid = (translation?.avoid || recipe.avoid || [])
+      .map(x => safe(_trRecipeNote(x)))
+      .filter(Boolean)
+      .join('<br>');
+
+    const servingLabel = recipe.servings
+      ? safe(recipe.servings)
+      : _t('1 người', '1 serving');
+    const rawTag = _trMealRoleTag(recipe);
+    const cleanTag = rawTag.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim() || rawTag;
+    const timeLabel = _trTime(recipe.cooking_time || '') || _t('Xem cách làm', 'See steps');
+
+    const rawCal = recipe.calories ?? recipe.per_person_calories;
+    const calNum = (rawCal !== null && rawCal !== undefined && rawCal !== '' && Number.isFinite(Number(rawCal)) && Number(rawCal) >= 0)
+      ? Math.round(Number(rawCal))
+      : null;
+    const calDisplay = calNum !== null ? `${calNum.toLocaleString(_isEn() ? 'en-US' : 'vi-VN')} kcal` : '—';
+    const proDisplay = _formatMacroGrams(recipe.protein);
+    const fatDisplay = _formatMacroGrams(recipe.fat);
+    let rawCarb = recipe.carbs ?? recipe.carb ?? recipe.carbohydrate;
+    if ((rawCarb === null || rawCarb === undefined || rawCarb === '') && calNum !== null && Number.isFinite(Number(recipe.protein)) && Number.isFinite(Number(recipe.fat))) {
+      rawCarb = Math.max(0, Math.round((calNum - (Number(recipe.protein) * 4) - (Number(recipe.fat) * 9)) / 4));
+    }
+    const carbDisplay = _formatMacroGrams(rawCarb);
+
+    const recipeKey = recipe.id || displayTitle;
+    const isSaved = _getSavedRecipeIds().has(String(recipeKey));
+
+    const iconForkKnife = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+    const iconClock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>';
+    const iconUsers = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+    const iconFlame = '<svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17" aria-hidden="true"><path d="M12.5 2.2c.3 2.4-.5 4.2-2 5.6-1.4 1.3-2.3 2.8-2.3 4.5 0 1.3.7 2.5 1.8 3.2-.4-.8-.3-1.8.4-2.6.6-.7 1.3-1.2 1.6-2.2 1.4 1.1 2.2 2.4 2.2 3.9 0 .9-.3 1.7-.9 2.3 1.6-.7 2.7-2.4 2.7-4.5 0-3.2-1.8-6.4-3.5-10.2ZM12 22a7 7 0 0 1-7-7c0-2.6 1.2-5 3.3-7.1.3 1.4 1 2.4 2 3.3-.2-1.9.4-4.1 2.4-6.3.3 2.1 1.6 3.7 2.9 5.3 1.1 1.4 1.9 2.9 1.9 4.8A7 7 0 0 1 12 22Z"/></svg>';
+    const iconArm = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M15 9.5c1.5-1.5 4-1 4.5 1.2.4 1.9-.6 4.8-3 6.3-2.2 1.4-5.5 2-8.5 2-2.2 0-4-1.6-4-3.8 0-1.6.9-3.2 2.2-4.7L8.5 7l2.5 1.2-.8 2.4c1.4-.9 3.4-.9 4.8-1.1Z"/><path d="M10.2 10.6c1.5-.3 2.8.2 3.5 1.1"/></svg>';
+    const iconDrop = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>';
+    const iconWheat = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/></svg>';
+    const iconBasket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="17" height="17" aria-hidden="true"><path d="m5 11 4-7"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8c.9 0 1.8-.7 2-1.6l1.7-7.4"/><path d="m9 11 1 9"/><path d="M4.5 15.5h15"/><path d="m15 11-1 9"/></svg>';
+    const iconBookmark = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>';
+    const iconInfo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+
+    const defaultNote = safe(_t('Kiểm tra nguyên liệu, dị ứng, gia vị và khẩu phần theo hướng dẫn ăn uống cá nhân.', 'Check ingredients, allergies, seasoning, and portions according to personal dietary guidance.'));
+
     el('nf-detail-content').innerHTML = `<div class="nf-detail-grid">
-      <div class="nf-detail-visual"><div class="nf-art">${recipeImage(recipe)}</div><p class="nf-detail-caption">◷ ${safe(_trTime(recipe.cooking_time || ''))} · ${safe(tagText)}</p></div>
-      <article class="nf-detail-copy"><p class="nf-overline">${safe(tagText)}</p><h2>${safe(displayTitle)}</h2><p class="nf-subtitle">${safe(_recipeSubtitle(recipe))}</p>${kcal(recipe.calories) ? `<span class="nf-kcal nf-kcal-detail">${kcal(recipe.calories)} · ${_t('ước tính cho món', 'dish estimate')}</span>` : ''}
-      ${recipe.key_nutrients ? `<div class="nf-nutrients-badge" style="margin-bottom: 14px;"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất then chốt:', 'Key nutrients:')}</b> ${safe(recipe.key_nutrients)}</div>` : ''}
-      ${recipe.recommendation_reason ? `<div class="nf-recommendation-box"><strong>${_t('Vì sao chọn món này?', 'Why this dish?')}</strong><p class="nf-recommendation-desc">${safe(_recipeReason(recipe))}</p>${recipe.ai_caution ? `<p class="nf-ai-caution">${safe(recipe.ai_caution)}</p>` : ''}</div>` : ''}
-      <h3>${_t('Thông tin công thức', 'Recipe note')}</h3><p class="nf-benefit">${safe(_recipeBenefit(recipe) || _t('Thông tin dinh dưỡng đang được cập nhật.', 'Nutritional details are being updated.'))}</p>
-      <h3>${_t('Nguyên liệu', 'Ingredients')} · ${servingMeta}</h3><div class="nf-ingredients">${ingredients}</div>
-      <h3>${_t('Cách chế biến', 'Preparation Steps')}</h3><div class="nf-steps">${steps}</div>
-      ${avoid ? `<aside class="nf-avoid"><strong>${_t('Lưu ý công thức', 'Recipe note')}</strong>${avoid}</aside>` : ''}</article></div>`;
+      <div class="nf-detail-left">
+        <div class="nf-detail-visual">
+          <div class="nf-art nf-detail-photo-wrap">
+            ${recipeImage(recipe)}
+            <button type="button" class="nf-bookmark-btn ${isSaved ? 'is-saved' : ''}" data-nf-bookmark="${safe(recipeKey)}" aria-pressed="${isSaved ? 'true' : 'false'}" title="${_t('Lưu công thức', 'Save recipe')}" aria-label="${_t('Lưu công thức', 'Save recipe')}">${iconBookmark}</button>
+          </div>
+          <div class="nf-detail-meta-bar">
+            <span class="nf-detail-meta-item">${iconClock}<span>${safe(timeLabel)}</span></span>
+            <span class="nf-detail-meta-item">${iconForkKnife}<span>${safe(cleanTag)}</span></span>
+            <span class="nf-detail-meta-item">${iconUsers}<span>${servingLabel}</span></span>
+          </div>
+        </div>
+        <div class="nf-nutrition-card">
+          <div class="nf-nutrition-head"><strong>${_t('Giá trị dinh dưỡng', 'Nutrition facts')}</strong> <span>(${_t('ước tính / khẩu phần', 'est. / serving')})</span></div>
+          <div class="nf-nutrition-grid">
+            <div class="nf-nutri-tile is-kcal">
+              <span class="nf-nutri-icon nf-nutri-icon-amber">${iconFlame}</span>
+              <b>${safe(calDisplay)}</b>
+              <span>${_t('Năng lượng', 'Calories')}</span>
+            </div>
+            <div class="nf-nutri-tile">
+              <span class="nf-nutri-icon">${iconArm}</span>
+              <b>${safe(proDisplay)}</b>
+              <span>Protein</span>
+            </div>
+            <div class="nf-nutri-tile">
+              <span class="nf-nutri-icon">${iconDrop}</span>
+              <b>${safe(fatDisplay)}</b>
+              <span>${_t('Chất béo', 'Fat')}</span>
+            </div>
+            <div class="nf-nutri-tile">
+              <span class="nf-nutri-icon">${iconWheat}</span>
+              <b>${safe(carbDisplay)}</b>
+              <span>Carb</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <article class="nf-detail-copy">
+        <div class="nf-detail-role-pill">${iconForkKnife}<span>${safe(cleanTag)}</span></div>
+        <h2>${safe(displayTitle)}</h2>
+        <p class="nf-subtitle nf-detail-subtitle">${safe(_recipeSubtitle(recipe))}</p>
+        ${calNum !== null ? `<div class="nf-detail-kcal-pill">${iconFlame}<span>${calNum.toLocaleString(_isEn() ? 'en-US' : 'vi-VN')} kcal / ${_t('khẩu phần', 'serving')}</span></div>` : ''}
+        ${recipe.key_nutrients ? `<div class="nf-nutrients-badge" style="margin: 14px 0;"><span class="nf-badge-icon">🧬</span> <b>${_t('Dưỡng chất then chốt:', 'Key nutrients:')}</b> ${safe(recipe.key_nutrients)}</div>` : ''}
+        ${recipe.recommendation_reason ? `<div class="nf-recommendation-box"><strong>${_t('Vì sao chọn món này?', 'Why this dish?')}</strong><p class="nf-recommendation-desc">${safe(_recipeReason(recipe))}</p>${recipe.ai_caution ? `<p class="nf-ai-caution">${safe(recipe.ai_caution)}</p>` : ''}</div>` : ''}
+        <h3 class="nf-detail-sec-head">${iconBasket}<span>${_t('Nguyên liệu', 'Ingredients')} (${servingLabel})</span></h3>
+        <div class="nf-ingredients">${ingredients || `<div class="nf-ingredient"><span class="nf-ingredient-name"><span class="nf-ingredient-dot" aria-hidden="true"></span><span>${safe(displayTitle)}</span></span></div>`}</div>
+        <h3 class="nf-detail-sec-head">${iconBasket}<span>${_t('Cách chế biến', 'Preparation Steps')}</span></h3>
+        <div class="nf-steps-panel"><div class="nf-steps">${steps}</div></div>
+        <aside class="nf-avoid nf-avoid-callout"><span class="nf-avoid-icon" aria-hidden="true">${iconInfo}</span><div><strong>${_t('Lưu ý công thức', 'Recipe note')}</strong><p>${avoid || defaultNote}</p></div></aside>
+      </article>
+    </div>`;
     el('nf-recipe-source').innerHTML = recipeCredit(recipe);
     el('nf-recipe-source').hidden = !el('nf-recipe-source').innerHTML;
   }
@@ -1069,6 +1192,15 @@
         if (state.request) { state.request.abort(); state.request = null; }
         show(button.dataset.nfBack);
       }));
+      if (el('nf-detail-content')) {
+        el('nf-detail-content').addEventListener('click', event => {
+          const bm = event.target.closest('[data-nf-bookmark]');
+          if (!bm) return;
+          const savedNow = _toggleSavedRecipe(bm.dataset.nfBookmark);
+          bm.classList.toggle('is-saved', savedNow);
+          bm.setAttribute('aria-pressed', savedNow ? 'true' : 'false');
+        });
+      }
       el('nf-cards').addEventListener('click', event => {
         const button = event.target.closest('[data-nf-recipe]');
         const recipe = button && state.recipes[Number(button.dataset.nfRecipe)];

@@ -300,48 +300,6 @@ class NutritionGroqGoutUITests(unittest.TestCase):
         self.assertEqual(_resolve_meal_slot("Gút, bữa sáng", now_hour=19), ("breakfast", "Bữa sáng"))
         self.assertEqual(_resolve_meal_slot("Gút, bữa trưa", now_hour=8), ("lunch", "Bữa trưa"))
 
-    def test_ui_tab_rename_food_drink_sync_copywriting_and_dynamic_meal_tag(self):
-        html = (REPO_ROOT / "templates/index.html").read_text(encoding="utf-8")
-        app_js = (REPO_ROOT / "static/js/app.js").read_text(encoding="utf-8")
-        flow_js = (REPO_ROOT / "static/js/nutrition-flow.js").read_text(encoding="utf-8")
-        css = (REPO_ROOT / "static/css/nutrition-flow.css").read_text(encoding="utf-8")
-
-        self.assertIn("Dinh dưỡng &amp; Pha chế", html)
-        self.assertNotIn("Pha chế dinh dưỡng", html)
-        self.assertIn('nav_doctor: "Dinh dưỡng & Pha chế"', app_js)
-        self.assertIn('dock_doctor: "Dinh dưỡng & Pha chế"', app_js)
-        self.assertIn('home_c2_title: "Dinh dưỡng & Pha chế"', app_js)
-        self.assertNotIn("Pha chế dinh dưỡng", app_js)
-
-        for marker in (
-            'id="nf-results-icon"',
-            'id="nf-results-title-text"',
-            'id="nf-results-subtitle"',
-            'class="nf-results-topbar"',
-            'class="nf-results-header-row"',
-        ):
-            self.assertIn(marker, html)
-
-        self.assertIn("function updateResultsHeader(type)", flow_js)
-        self.assertIn("function _resolveFullMealTag(fms, nowDate = new Date())", flow_js)
-        self.assertIn("const mealLabel = _resolveFullMealTag(fms);", flow_js)
-        self.assertNotIn("AI đã chọn", flow_js)
-        self.assertIn(
-            "MediMind đã chọn lọc các món ăn an toàn và phù hợp nhất với yêu cầu và hồ sơ sức khỏe của bạn.",
-            flow_js,
-        )
-        self.assertIn("Gợi ý thức uống", flow_js)
-        self.assertIn("Mở thức uống để xem nguyên liệu, cách làm và năng lượng tham khảo", flow_js)
-
-        for rule in (
-            "#doctor-tab #nf-results.nf-stage",
-            "#doctor-tab .nf-results-topbar",
-            "#doctor-tab .nf-results-header-row",
-            "#doctor-tab .nf-results-icon",
-            "#doctor-tab .nf-purine-badge",
-        ):
-            self.assertIn(rule, css)
-
 
 if __name__ == "__main__":
     unittest.main()

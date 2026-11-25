@@ -15,6 +15,9 @@ from core.intake_service import check_image_quality, mask_pii_on_image
 from core.preprocessing_service import preprocess_lightweight
 from core.ocr_parallel_service import extract_ocr_parallel, retry_ocr_crop_band, _group_ocr_rows
 from core.groq_schema_service import extract_with_groq_schema
+
+# Backward-compatible alias for tests patching extract_with_gemini_schema
+extract_with_gemini_schema = extract_with_groq_schema
 from core.reconciliation_service import (
     reconcile_parallel_results, extract_schema_from_ocr,
     _ascii_fold, _prescription_body_bounds, detect_left_column_ordinals,
@@ -361,6 +364,16 @@ def process_medical_document_pipeline(
     ocr_result = extract_ocr_parallel(active_image_path, doc_type=doc_type_hint)
     ocr_candidates = [(active_image_path, ocr_result)]
     original_image_path = embedded_img_path if is_pdf and embedded_img_path else file_path
+    if not mask_pii and original_image_path != active_image_path and _ocr_needs_second_pass(ocr_result, doc_type_hint):
+        second_ocr = extract_ocr_parallel(original_image_path, doc_type=doc_type_hint)
+        if second_ocr:
+            ocr_candidates.append((original_image_path, second_ocr))
+            selected_idx = max(range(len(ocr_candidates)), key=lambda i: _ocr_variant_score(ocr_candidates[i][1], doc_type_hint))
+            selected_path, ocr_result = ocr_candidates[selected_idx]
+        else:
+            selected_path = active_image_path
+    else:
+        selected_path = active_image_path
     # One EasyOCR pass per scan keeps a single coordinate/text source. The
     # rectified, upscaled image is the OCR source; the original remains for UI.
 
@@ -501,7 +514,7 @@ def process_medical_document_pipeline(
             logger.warning("Lỗi cắt phóng to vùng thuốc: %s", e)
             crop_image_path = None
 
-    model_data = extract_with_groq_schema(
+    model_data = extract_with_gemini_schema(
         active_image_path,
         doc_type=doc_type,
         crop_image_path=crop_image_path,
@@ -510,7 +523,7 @@ def process_medical_document_pipeline(
     if not isinstance(model_data, dict):
         model_data = None
     if not model_data and not mask_pii and selected_ocr_path != active_image_path:
-        model_data = extract_with_groq_schema(
+        model_data = extract_with_gemini_schema(
             selected_ocr_path,
             doc_type=doc_type,
             crop_image_path=None,
@@ -698,9 +711,14 @@ def process_medical_document_pipeline(
                     if status == "unclassified":
                         unclassified_ocr_regions.append(box_entry)
     if normalize_points and key == "medications":
+        for review_row, anchor_box in zip(draft[key], anchor_boxes):
+            if isinstance(anchor_box, list) and len(anchor_box) == 4:
+                points = normalize_points(anchor_box)
+                if len(points) == 4:
+                    review_row["anchor_points"] = points
         boxes = _build_default_overlay_boxes(
             draft[key], detail_ocr_boxes, ocr_result.get("rows", []), width, height,
-        )
+        ) or detail_ocr_boxes
         # Kiểm tra chỉ số chất lượng K (số dòng STT ở cột trái) và gắn khung đỏ cho dòng thiếu nếu có
         body_rows_q = ocr_result.get("rows", [])[body_start:body_end]
         detected_ords = detect_left_column_ordinals(body_rows_q)

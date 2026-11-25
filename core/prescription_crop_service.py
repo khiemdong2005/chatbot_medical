@@ -84,15 +84,29 @@ def detect_medication_bounds(
 
     # Chiến lược 2: Quét lines theo từ khóa mở đầu và kết thúc
     if (y_min is None or y_max is None or y_max <= y_min + 30) and lines:
-        header_patterns = re.compile(r"\bchẩn\s*đoán\b|\bchan\s*doan\b", re.IGNORECASE)
-        med_row_patterns = re.compile(r"^\s*\d+\s*[.)]\s*\S+", re.IGNORECASE)
+        header_patterns = re.compile(
+            r"\b(?:chẩn\s*đoán|chan\s*doan|thuốc\s*điều\s*trị|thuoc\s*dieu\s*tri|"
+            r"tên\s*thuốc|ten\s*thuoc|chỉ\s*định\s*thuốc|danh\s*mục\s*thuốc|stt)\b",
+            re.IGNORECASE,
+        )
+        med_row_patterns = re.compile(
+            r"^\s*\d+\s*[.)]\s*\S+|"
+            r"\b(?:\d+\s*(?:mg|mcg|ml|g|iu)\b|uống|viên\b|gói\b|ống\b|lọ\b|chai\b)",
+            re.IGNORECASE,
+        )
         footer_patterns = re.compile(
             r"\b(?:cộng\s*khoản|cong\s*khoan)\s*[:|.]?\s*\d+\b",
             re.IGNORECASE
         )
+        fallback_footer_patterns = re.compile(
+            r"\b(?:lời\s*dặn|loi\s*dan|dặn\s*dò|dan\s*do|tái\s*khám|tai\s*kham|"
+            r"bác\s*sĩ|bac\s*si|bác\s*sỹ|bac\s*sy|chữ\s*ký|chu\s*ky)\b",
+            re.IGNORECASE,
+        )
 
         detected_starts = []
         detected_ends = []
+        fallback_ends = []
         med_lines_y = []
 
         for line in lines:
@@ -107,6 +121,8 @@ def detect_medication_bounds(
 
             if footer_patterns.search(txt) and ly_min >= 0.25 * img_h:
                 detected_ends.append(ly_min)
+            elif fallback_footer_patterns.search(txt) and ly_min >= 0.25 * img_h:
+                fallback_ends.append(ly_min)
 
         if detected_starts:
             y_min = min(detected_starts)
@@ -114,8 +130,10 @@ def detect_medication_bounds(
             y_min = min(item[0] for item in med_lines_y)
 
         if y_min is not None:
-            # Chọn footer xuất hiện sau y_min
+            # Chọn footer xuất hiện sau y_min (ưu tiên Cộng khoản trước, rồi đến Lời dặn/Bác sĩ)
             valid_ends = [ey for ey in detected_ends if ey > y_min + 30]
+            if not valid_ends:
+                valid_ends = [ey for ey in fallback_ends if ey > y_min + 30]
             if detected_starts and valid_ends:
                 y_max = min(valid_ends)
             elif med_lines_y:
