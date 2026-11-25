@@ -122,7 +122,7 @@ def extract_with_gemini_schema(
     """
     [2.B] Đọc ảnh đơn thuốc -> JSON theo response schema chuẩn y khoa lâm sàng qua Unified LLM Provider:
       - Hỗ trợ cơ chế kép (Dual-image): Ảnh 1 toàn trang (bố cục/hành chính) + Ảnh 2 cắt phóng to LANCZOS (đọc chi tiết thuốc).
-      - Đảm bảo thực thi trong DUY NHẤT 1 lần gọi Vision API qua OpenRouter/Gemini.
+      - Đảm bảo thực thi trong DUY NHẤT 1 lần gọi Vision API qua Groq/Gemini.
       - Nếu không có ảnh cắt, tự động fallback gửi ảnh toàn trang.
       - Chép trung thực từng hàng thuốc, tách riêng biệt dược, hoạt chất, số lượng, lịch dùng, cách dùng.
     """

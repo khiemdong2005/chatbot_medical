@@ -739,6 +739,7 @@ body:not(.light-glass) #profile-modal select option {
   font-weight: 500;
   box-shadow: none !important;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  color-scheme: dark !important;
 }
 
 #login-modal.auth-4exam-shell .auth-4e-input::placeholder {
@@ -751,6 +752,36 @@ body:not(.light-glass) #profile-modal select option {
   border-color: rgba(56, 189, 248, 0.8) !important;
   box-shadow: 0 0 16px rgba(56, 189, 248, 0.35) !important;
   outline: none !important;
+}
+
+#login-modal .auth-4e-input:-webkit-autofill,
+#login-modal .auth-4e-input:-webkit-autofill:hover,
+#login-modal .auth-4e-input:-webkit-autofill:focus,
+#login-modal .auth-4e-input:-webkit-autofill:active,
+.auth-4e-input:-webkit-autofill,
+.auth-4e-input:-webkit-autofill:hover,
+.auth-4e-input:-webkit-autofill:focus,
+.auth-4e-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+input:autofill,
+input:autofill:hover,
+input:autofill:focus,
+input:autofill:active,
+textarea:-webkit-autofill,
+textarea:autofill,
+select:-webkit-autofill,
+select:autofill {
+  -webkit-box-shadow: 0 0 0 1000px #091a32 inset !important;
+  box-shadow: 0 0 0 1000px #091a32 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  caret-color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+  color-scheme: dark !important;
 }
 
 #login-modal.auth-4exam-shell .auth-4e-google-btn {
@@ -1147,19 +1178,103 @@ body:not(.light-glass) footer .text-slate-500 {
 
 /* 6. Fix OCR Prescription & Lab Result Dark Mode Contrast (.text-sky-950 / .text-slate-950) */
 body:not(.light-glass) #prescription-result-section .text-sky-950,
-body:not(.light-glass) #prescription-result-section .text-sky-900 {
+body:not(.light-glass) #prescription-result-section .text-sky-900:not(#btn-subtab-meds):not(#btn-subtab-schedule):not(.subtab-count) {
   color: #38BDF8 !important;
+}
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds.dark\:bg-sky-600,
+body:not(.light-glass) #prescription-result-section #btn-subtab-schedule.dark\:bg-sky-600,
+body:not(.light-glass) #prescription-result-section #btn-subtab-meds.dark\:bg-sky-600 .subtab-count,
+body:not(.light-glass) #prescription-result-section #btn-subtab-schedule.dark\:bg-sky-600 .subtab-count {
+  color: #FFFFFF !important;
 }
 body:not(.light-glass) #prescription-result-section .text-slate-950 {
   color: #F8FAFC !important;
 }
-body:not(.light-glass) #prescription-result-section #btn-subtab-meds {
-  background-color: #0284C7 !important;
-  color: #FFFFFF !important;
+
+/* Balanced typography scale for OCR Verify & Result cards */
+#prescription-result-section .text-\[9px\],
+#prescription-verify-section .text-\[9px\] {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
 }
-body:not(.light-glass) #prescription-result-section #btn-subtab-meds svg,
-body:not(.light-glass) #prescription-result-section #btn-subtab-meds span {
-  color: #FFFFFF !important;
+#prescription-result-section .text-\[10px\],
+#prescription-verify-section .text-\[10px\] {
+  font-size: 11.5px !important;
+  line-height: 1.4 !important;
+}
+
+/* Shared palette for the confirmed prescription and lab results. */
+.prescription-result {
+  --prescription-panel: #10243b;
+  --prescription-surface: #172f49;
+  --prescription-hover: #1d3a56;
+  --prescription-border: #395674;
+  --prescription-text: #f4f8ff;
+  --prescription-muted: #bbcee4;
+  --prescription-accent: #89d9ff;
+  --prescription-active: #08658d;
+  color: var(--prescription-text);
+}
+
+.prescription-panel {
+  background-color: var(--prescription-panel);
+  border-color: var(--prescription-border);
+}
+
+.prescription-surface {
+  background-color: var(--prescription-surface);
+  border-color: var(--prescription-border);
+}
+
+.prescription-divider { border-color: var(--prescription-border); }
+.prescription-value { color: var(--prescription-text); }
+.prescription-muted { color: var(--prescription-muted); }
+.prescription-accent { color: var(--prescription-accent); }
+
+.prescription-tab {
+  color: var(--prescription-muted);
+  border: 1px solid transparent;
+}
+
+.prescription-tab:hover {
+  background-color: var(--prescription-hover);
+  color: var(--prescription-text);
+}
+
+.prescription-tab[aria-pressed="true"],
+.prescription-primary {
+  color: #fff;
+  background-color: var(--prescription-active);
+}
+
+button.prescription-primary:hover { background-color: #075573; }
+button.prescription-accent:hover { color: var(--prescription-text); }
+
+.prescription-tab-count { border: 1px solid currentColor; }
+.prescription-lab-row:hover { background-color: var(--prescription-hover); }
+
+.prescription-result button:focus-visible {
+  outline: 2px solid var(--prescription-accent);
+  outline-offset: 2px;
+}
+
+@media print {
+  .prescription-result {
+    --prescription-panel: #fff;
+    --prescription-surface: #f1f5f9;
+    --prescription-hover: #e2e8f0;
+    --prescription-border: #cbd5e1;
+    --prescription-text: #0f172a;
+    --prescription-muted: #334155;
+    --prescription-accent: #075985;
+  }
+
+  .prescription-tab[aria-pressed="true"],
+  .prescription-primary {
+    color: var(--prescription-text);
+    border-color: var(--prescription-border);
+    background-color: var(--prescription-surface);
+  }
 }
 
 
@@ -1523,15 +1638,6 @@ body.light-glass #chat-tab #user-input {
 
 body.light-glass #chat-tab #user-input::placeholder {
   color: #64748B !important;
-}
-
-body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"] {
-  color: #475569 !important;
-}
-
-body.light-glass #chat-tab button[title="Đính kèm ảnh lâm sàng"]:hover {
-  color: #0284C7 !important;
-  background-color: #F1F5F9 !important;
 }
 
 body.light-glass #chat-tab #send-btn {

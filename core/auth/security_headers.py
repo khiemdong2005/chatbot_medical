@@ -19,6 +19,20 @@ CSP_POLICY = (
 )
 
 
+SENSITIVE_NO_STORE_PREFIXES = (
+    "/api/auth/",
+    "/api/appointments",
+    "/api/consultations",
+    "/api/clinical-summary",
+)
+
+
+def is_sensitive_api_path(path: str) -> bool:
+    """Xác định endpoint trả dữ liệu PII/y tế nhạy cảm cần cấm lưu đệm trình duyệt/proxy."""
+    norm = (path or "").strip().lower()
+    return any(norm.startswith(prefix) for prefix in SENSITIVE_NO_STORE_PREFIXES)
+
+
 def get_security_headers(is_https: bool = False) -> Dict[str, str]:
     """
     Trả về bộ headers phòng vệ an ninh đồng nhất cho toàn hệ thống:

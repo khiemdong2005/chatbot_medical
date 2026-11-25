@@ -4,6 +4,9 @@ import json
 import logging
 import os
 from pathlib import Path
+import re
+import time
+import uuid
 
 from flask import jsonify, request, session
 
@@ -12,6 +15,7 @@ from core.ocr.gemini_schema_service import _sanitize_redacted_admin_field
 from core.ocr.pipeline_orchestrator import (
     HEADER_FIELDS,
     REVIEW_FIELDS,
+    build_ui_timeline,
     finalize_reviewed_document,
     process_medical_document_pipeline,
 )
@@ -174,7 +178,9 @@ def register_ocr_routes(app):
                 return jsonify({"status": "error", "message": "Chưa chọn tệp hợp lệ."}), 400
 
             upload_folder = app.config.get("UPLOAD_FOLDER", default_upload_folder)
-            success, meta, err = process_secure_upload(file, upload_folder)
+            success, meta, err = process_secure_upload(
+                file, upload_folder, detect_image_format=True
+            )
             if not success:
                 return jsonify({"status": "failed", "needs_review": True, "message": err}), 400
 
@@ -204,11 +210,34 @@ def register_ocr_routes(app):
             if req_allergies:
                 user_allergies.extend([a.strip() for a in req_allergies.split(",") if a.strip()])
 
-            res = process_medical_document_pipeline(
-                file_path=meta["absolute_path"],
-                original_filename=meta["original_filename"],
-                mask_pii=mask_pii,
-                user_allergies=user_allergies
+            client_scan_id = re.sub(r"[^A-Za-z0-9_-]", "", request.headers.get("X-Scan-ID", ""))[:64]
+            scan_id = uuid.uuid4().hex
+            scan_started = time.monotonic()
+            logger.info(
+                "prescription_scan_started scan_id=%s filename=%s",
+                scan_id, os.path.basename(meta.get("original_filename", ""))[:160],
+            )
+            try:
+                res = process_medical_document_pipeline(
+                    file_path=meta["absolute_path"],
+                    original_filename=meta["original_filename"],
+                    mask_pii=mask_pii,
+                    user_allergies=user_allergies
+                )
+            except Exception as scan_err:
+                logger.exception(
+                    "prescription_scan_failed scan_id=%s filename=%s duration_ms=%d error_type=%s",
+                    scan_id, os.path.basename(meta.get("original_filename", ""))[:160],
+                    int((time.monotonic() - scan_started) * 1000), type(scan_err).__name__,
+                )
+                raise
+            logger.info(
+                "prescription_scan_finished scan_id=%s filename=%s duration_ms=%d "
+                "status=%s backend_medication_count=%d",
+                scan_id, os.path.basename(meta.get("original_filename", ""))[:160],
+                int((time.monotonic() - scan_started) * 1000),
+                str(res.get("status", "unknown")) if isinstance(res, dict) else "invalid_response",
+                len(res.get("medications", [])) if isinstance(res, dict) and isinstance(res.get("medications"), list) else 0,
             )
 
             if doc_id:
@@ -249,6 +278,33 @@ def register_ocr_routes(app):
             else:
                 if meta and meta.get("storage_filename"):
                     res["preview_image_url"] = f"/uploads/{meta['storage_filename']}"
+
+            image_size = {"width": None, "height": None}
+            try:
+                from PIL import Image
+                with Image.open(meta["absolute_path"]) as source_image:
+                    image_size = {"width": int(source_image.width), "height": int(source_image.height)}
+            except Exception:
+                pass
+            res["scan_id"] = scan_id
+            res["client_scan_id"] = client_scan_id or None
+            for field_name in ("boxes", "ocr_lines", "unclassified_ocr_regions"):
+                for region in res.get(field_name, []) if isinstance(res.get(field_name), list) else []:
+                    if isinstance(region, dict):
+                        region["scan_id"] = scan_id
+            for medicine in res.get("medications", []) if isinstance(res.get("medications"), list) else []:
+                if isinstance(medicine, dict):
+                    medicine["scan_id"] = scan_id
+            if isinstance(res.get("data"), dict):
+                for medicine in res["data"].get("medications", []) if isinstance(res["data"].get("medications"), list) else []:
+                    if isinstance(medicine, dict):
+                        medicine["scan_id"] = scan_id
+            res["source_image"] = {
+                "filename": meta.get("original_filename", ""),
+                "url": res.get("preview_image_url", ""),
+                "scan_id": scan_id,
+                **image_size,
+            }
             return jsonify(res)
 
         # 2. Trường hợp yêu cầu kịch bản mẫu thử nghiệm (Preset)
@@ -572,7 +628,12 @@ def register_ocr_routes(app):
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem lịch sử hồ sơ."}), 401
 
         docs = MedicalDocument.query.filter_by(owner_id=user_id).filter(MedicalDocument.doc_type != "ocr_draft").order_by(MedicalDocument.created_at.desc()).all()
-        history = [d.to_dict() for d in docs]
+        history = []
+        for d in docs:
+            item = d.to_dict()
+            if d.storage_filename:
+                item["preview_image_url"] = f"/uploads/{d.storage_filename}"
+            history.append(item)
         return jsonify({"status": "success", "history": history, "total": len(history)})
 
 
@@ -598,6 +659,10 @@ def register_ocr_routes(app):
                 parsed_json["uploaded_at"] = doc.created_at.strftime("%H:%M %d/%m/%Y") if doc.created_at else ""
                 if doc.storage_filename:
                     parsed_json["preview_image_url"] = f"/uploads/{doc.storage_filename}"
+                meds_saved = parsed_json.get("medications") or (parsed_json.get("data") or {}).get("medications") or []
+                tl_saved = parsed_json.get("timeline")
+                if meds_saved and (not isinstance(tl_saved, dict) or not any(tl_saved.get(k) for k in ("morning", "noon", "evening", "bedtime", "external"))):
+                    parsed_json["timeline"] = build_ui_timeline(meds_saved)
                 return jsonify({"status": "success", "data": parsed_json})
             except Exception as json_err:
                 logger.warning(f"Lỗi parse JSON doc {doc_id}: {json_err}")
@@ -619,6 +684,10 @@ def register_ocr_routes(app):
         data = request.get_json(silent=True) or {}
         doc_id = _coerce_optional_int(data.get("document_id"))
         history_id = _coerce_optional_int(data.get("history_id"))
+
+        meds_payload = data.get("medications", []) if isinstance(data, dict) else []
+        if isinstance(meds_payload, list) and meds_payload:
+            data["timeline"] = build_ui_timeline(meds_payload)
 
         if user_id and isinstance(data, dict):
             try:

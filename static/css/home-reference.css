@@ -1,59 +1,81 @@
-/* Home composition using the supplied mascot artwork. Content and controls stay in HTML. */
-@media (min-width: 1280px) {
-  #home-tab .home-hero-banner + div { margin-top: 24px; }
-  #home-tab .home-hero-banner + div > .grid { padding-top: 0; }
+/* The illustrations share the banner backdrop so their edges blend into it. */
+body #home-tab.active .home-hero-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  align-items: center;
+  padding: clamp(20px, 2.6vw, 42px);
+  background:
+    radial-gradient(ellipse at 64% 55%, rgba(0, 103, 168, .28), transparent 59%),
+    radial-gradient(ellipse at 98% 100%, rgba(38, 69, 163, .32), transparent 44%),
+    linear-gradient(110deg, #092746, #08294d 70%, #0b2b55) !important;
+}
 
-  #home-tab .home-hero-banner {
-    min-height: 440px;
-  }
+#home-tab .home-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 52fr) minmax(0, 48fr);
+  align-items: center;
+  gap: 24px;
+}
 
-  #home-tab .home-hero-visual {
-    align-self: stretch;
-    min-width: 0;
-    min-height: 350px;
-    display: block;
-  }
+#home-tab .home-hero-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
 
-  #home-tab .home-hero-stage {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    max-width: none;
-  }
+#home-tab .home-hero-title {
+  font-size: clamp(1.75rem, 2.8vw, 2.9rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
 
-  #home-tab .home-hero-mascot-wrap {
-    position: absolute;
-    left: -2%;
-    bottom: -130px;
-    height: 540px;
-    z-index: 2;
-  }
+#home-tab .home-hero-trust {
+  max-width: 100%;
+}
 
-  #home-tab .home-hero-mascot {
-    width: auto;
-    height: 540px;
-    max-width: none;
-  }
+#home-tab .home-hero-trust > span {
+  white-space: nowrap;
+}
 
-  #home-tab .home-hero-orbit {
-    position: absolute;
-    top: 10px;
-    right: 95px;
-    margin-left: 0;
-    width: 350px;
-    z-index: 1;
-  }
+#home-tab .home-hero-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.25;
+}
 
-  #home-tab .home-hero-metric {
-    position: absolute;
-    right: -95px;
-    bottom: -30px;
-    margin-top: 0;
-    white-space: nowrap;
-  }
+#home-tab .home-hero-art {
+  position: absolute;
+  display: block;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  mix-blend-mode: lighten;
+  mask-image:
+    linear-gradient(to right, transparent, #000 12%, #000 88%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%, #000 89%, transparent);
+  mask-composite: intersect;
+}
 
-  body:has(#home-tab.active) #floating-chatbot-root { right: -16px; }
+#home-tab .home-hero-tablet {
+  top: 0;
+  left: -8%;
+  width: 70%;
+}
+
+#home-tab .home-hero-radar {
+  top: -3%;
+  right: 3%;
+  width: 46%;
+}
+
+#home-tab .home-hero-metric {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 5%;
 }
 
 #home-tab #home-greeting-badge {
@@ -61,78 +83,125 @@
   border-color: rgba(144, 200, 242, .19);
 }
 
+#home-tab #home-greeting-badge > span:first-child {
+  flex-shrink: 0;
+}
+
 #home-tab .home-hero-banner button[onclick="switchTab('chat-tab')"] {
   background: linear-gradient(105deg, #08b5ef, #376cf6 65%, #6147ed) !important;
   box-shadow: 0 12px 28px rgba(24, 127, 245, .28);
 }
 
-body:has(#home-tab.active) .floating-launcher-close {
-  left: 68%;
-  top: 70%;
-  transform: translate(-50%, -50%);
+body:has(#home-tab.active) #floating-chat-bubble {
+  gap: 0;
 }
 
-@media (min-width: 1280px) and (max-width: 1499px) {
-  #home-tab .home-hero-mascot-wrap,
-  #home-tab .home-hero-mascot { height: 480px; }
-  #home-tab .home-hero-mascot-wrap { bottom: -105px; }
-  #home-tab .home-hero-orbit { right: 65px; }
-  #home-tab .home-hero-metric { right: -65px; }
+body:has(#home-tab.active) .floating-launcher-label {
+  padding-right: 1.75rem;
+  border-color: #45dafe;
+  box-shadow: inset 0 0 8px rgba(33, 196, 255, .26), 0 0 16px rgba(40, 192, 255, .55);
 }
 
-@media (min-width: 768px) and (max-width: 1159px) {
-  body:has(#home-tab.active) > header nav.glass-dock { display: none; }
-  #home-tab .home-hero-banner > .relative.z-10 {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  #home-tab .home-hero-copy { width: 100%; }
-  #home-tab .home-hero-visual {
-    width: 100%;
-    min-height: 320px;
-    justify-content: center;
-  }
-  #home-tab .home-hero-stage { max-width: 700px; }
+body:has(#home-tab.active) .floating-launcher-heart {
+  position: relative;
+  margin-left: -.9rem;
+  border-color: #c3f1ff;
+  background: linear-gradient(115deg, #02c6ed, #0877f4 65%, #5244f8);
+  box-shadow: 0 0 14px rgba(43, 151, 255, .8);
 }
 
-@media (max-width: 767px) {
-  #home-tab .home-hero-visual { min-height: 280px; }
-  #home-tab .home-hero-stage {
-    display: block;
-    position: relative;
-    width: 100%;
-    max-width: none;
-    height: 280px;
+@media (min-width: 1280px) {
+  body:has(#home-tab.active) > header,
+  body:has(#home-tab.active) > main {
+    padding-inline: 73px 22px;
   }
-  #home-tab .home-hero-mascot-wrap {
-    position: absolute;
-    left: -8px;
-    bottom: 0;
-    z-index: 2;
+
+  body:has(#home-tab.active) > header {
+    padding-block: 7px;
   }
-  #home-tab .home-hero-mascot {
-    width: auto;
-    height: 240px;
-    max-height: none;
+
+  body:has(#home-tab.active) > aside.glass-dock {
+    left: 8px;
   }
-  #home-tab .home-hero-orbit {
-    position: absolute;
-    right: -2px;
-    top: 12px;
-    width: 180px;
-    margin: 0;
+
+  body #home-tab.active .home-hero-banner {
+    min-height: 400px;
+    padding-block: 26px;
   }
-  #home-tab .home-hero-orbit svg { width: 180px; height: 180px; }
+
+  #home-tab .home-hero-tablet {
+    top: 1.5%;
+    left: -11.5%;
+  }
+
+  #home-tab .home-hero-radar {
+    top: -5.5%;
+  }
+
   #home-tab .home-hero-metric {
-    position: absolute;
-    right: 0;
-    bottom: -18px;
-    margin: 0;
-    white-space: nowrap;
-    transform: scale(.78);
-    transform-origin: right bottom;
+    right: -1.125rem;
+    padding-inline: 1.5rem;
   }
-  body:has(#home-tab.active) #floating-chatbot-root { right: 12px; }
-  body:has(#home-tab.active) #floating-chat-bubble img { width: 220px; }
-  body:has(#home-tab.active) .floating-launcher-close { width: 24px; height: 24px; }
+
+  #home-tab .home-discovery {
+    margin-top: 24px;
+  }
+
+  #home-tab .home-discovery > .grid {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 1159px) {
+  body:has(#home-tab.active) > header nav.glass-dock {
+    display: none;
+  }
+}
+
+@media (max-width: 1050px) {
+  #home-tab .home-hero-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  #home-tab .home-hero-stage {
+    justify-self: center;
+    max-width: 660px;
+  }
+
+  #home-tab .home-hero-tablet {
+    left: -1%;
+    width: 64%;
+  }
+
+  #home-tab .home-hero-radar {
+    top: 0;
+    right: 0;
+    width: 44%;
+  }
+}
+
+@media (max-width: 639px) {
+  #home-tab .home-hero-title {
+    font-size: clamp(1.5rem, 7.2vw, 2rem);
+    line-height: 1.26;
+  }
+
+  #home-tab .home-hero-stage {
+    aspect-ratio: auto;
+    padding-top: 48%;
+  }
+
+  #home-tab .home-hero-metric {
+    position: relative;
+    width: fit-content;
+    margin-left: auto;
+    right: auto;
+    bottom: auto;
+  }
+
+  body:has(#home-tab.active) #floating-chatbot-root {
+    right: 12px;
+    bottom: 16px;
+  }
 }

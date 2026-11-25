@@ -86,7 +86,7 @@ class PrescriptionOcrPromptTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             rx_path = self._create_image(tmpdir)
             lp = LLMProvider()
-            client = lp.get_client("sk-or-test-vision-key-123456", provider="openrouter", profile="ocr")
+            client = lp.get_client("gsk_test_vision_key_123456", provider="groq", profile="ocr")
             captured_payloads = []
 
             def fake_post(payload):
@@ -117,7 +117,7 @@ class PrescriptionOcrPromptTests(unittest.TestCase):
                 }
 
             with (
-                patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-vision-key-123456"}, clear=False),
+                patch.dict(os.environ, {"AI_PROVIDER": "groq", "GROQ_API_KEY": "gsk_test_vision_key_123456"}, clear=False),
                 patch.object(lp, "get_client", return_value=client),
                 patch.object(client.models, "_post_completion", side_effect=fake_post),
                 patch("core.gemini_schema_service.llm_provider", lp, create=True),

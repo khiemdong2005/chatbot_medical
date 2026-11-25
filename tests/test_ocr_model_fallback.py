@@ -6,7 +6,7 @@ import pytest
 
 from core.ai_types import ErrorClassification
 from core.llm_provider import LLMProvider, LLMProviderError, llm_provider
-from core.gemini_schema_service import extract_with_gemini_schema
+from core.groq_schema_service import extract_with_groq_schema
 
 
 def test_unclassified_deterministic_error_does_not_try_every_model():
@@ -101,7 +101,7 @@ def test_ocr_schema_uses_configured_model_and_one_fallback(tmp_path):
           patch.object(llm_provider, "is_configured", return_value=True),
           patch.object(llm_provider, "get_default_model", return_value="gemini-flash-lite-latest"),
           patch.object(llm_provider, "generate_json", return_value={}) as generate):
-        extract_with_gemini_schema(str(image))
+        extract_with_groq_schema(str(image))
 
     assert generate.call_args.kwargs["candidate_models"] == [
         "gemini-flash-lite-latest", "gemini-flash-latest"

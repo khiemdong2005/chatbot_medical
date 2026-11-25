@@ -218,3 +218,109 @@
 @media (max-width: 480px) {
   .previsit-body, .previsit-composer, .previsit-dialog .previsit-footer { padding-inline: 15px; }
 }
+
+/* ==========================================================================
+   DARK OCEAN THEME INTEGRATION
+   ========================================================================== */
+html.dark .previsit-dialog {
+  background: rgba(6, 22, 42, 0.95);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(56, 189, 248, 0.15);
+}
+
+html.dark .previsit-header {
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark .previsit-header h2 {
+  color: #ffffff;
+}
+
+html.dark .previsit-header p,
+html.dark .previsit-speaker {
+  color: #94a3b8;
+}
+
+html.dark .previsit-icon {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+html.dark .previsit-close {
+  color: #cbd5e1;
+}
+
+html.dark .previsit-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+html.dark .previsit-bubble {
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.dark .previsit-turn[data-role="user"] .previsit-bubble {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+html.dark .previsit-composer,
+html.dark .previsit-dialog .previsit-footer {
+  background: rgba(4, 18, 36, 0.7);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark #previsit-answer,
+html.dark #previsit-edit-value {
+  background: rgba(4, 18, 36, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+html.dark #previsit-answer:focus,
+html.dark #previsit-edit-value:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+}
+
+html.dark .previsit-fact-group {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html.dark .previsit-fact-group h4 {
+  color: #e2e8f0;
+}
+
+html.dark .previsit-fact {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .previsit-fact dt {
+  color: #94a3b8;
+}
+
+html.dark .previsit-fact dd {
+  color: #f8fafc;
+}
+
+html.dark .previsit-fact button {
+  color: #38bdf8;
+}
+
+html.dark .previsit-fact button:hover {
+  background: rgba(56, 189, 248, 0.12);
+}
+
+html.dark #previsit-edit-form {
+  background: rgba(4, 18, 36, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+

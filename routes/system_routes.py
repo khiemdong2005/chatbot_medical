@@ -11,8 +11,19 @@ def register_system_routes(app):
     # GIAO DIỆN NGƯỜI DÙNG WEB (UI)
     # ==============================================================
 
+    def _is_production_mode() -> bool:
+        from core.shared.settings import get_settings
+        env_val = (os.getenv("ENV") or os.getenv("FLASK_ENV") or "").strip().lower()
+        if env_val in ("production", "prod"):
+            return True
+        if env_val in ("development", "dev", "testing", "test"):
+            return False
+        return bool(get_settings().server.is_production)
+
     @app.get("/openapi.json")
     def api_spec():
+        if _is_production_mode():
+            return jsonify({"error": "Not Found"}), 404
         import re
 
         paths = {}
@@ -36,6 +47,8 @@ def register_system_routes(app):
 
     @app.get("/docs")
     def api_docs():
+        if _is_production_mode():
+            return jsonify({"error": "Not Found"}), 404
         return render_template("api_docs.html", paths=api_spec().get_json()["paths"])
 
 

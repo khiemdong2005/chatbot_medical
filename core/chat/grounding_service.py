@@ -1,6 +1,6 @@
 import re
-import difflib
 import unicodedata
+import difflib
 from typing import Dict, Any, List, Tuple
 
 
@@ -88,43 +88,77 @@ LAB_ALIAS_MAP = {
 }
 
 def normalize_drug_entity(raw_name: str) -> Dict[str, Any]:
-    """Fuzzy matching tên thuốc với danh mục thuốc VN."""
-    raw_lower = raw_name.lower().strip()
+    """Match an OCR drug name conservatively; never promote short OCR noise."""
+    raw_name = str(raw_name or "").strip()
+
+    def normalize(value: str) -> str:
+        value = unicodedata.normalize("NFD", value.casefold().replace("đ", "d"))
+        value = "".join(char for char in value if unicodedata.category(char) != "Mn")
+        value = re.sub(r"\b\d+(?:[.,]\d+)?\s*(?:mg|mcg|ml|g|iu|%)\b", " ", value)
+        value = re.sub(r"[^a-z0-9]+", " ", value)
+        return re.sub(r"\s+", " ", value).strip()
+
+    def score(left: str, right: str) -> float:
+        try:
+            from rapidfuzz.fuzz import token_set_ratio
+            return float(token_set_ratio(left, right))
+        except ImportError:
+            left_tokens, right_tokens = set(left.split()), set(right.split())
+            common = " ".join(sorted(left_tokens & right_tokens))
+            left_full = " ".join(sorted(left_tokens))
+            right_full = " ".join(sorted(right_tokens))
+            if not common:
+                return difflib.SequenceMatcher(None, left, right).ratio() * 100
+            return max(
+                difflib.SequenceMatcher(None, common, left_full).ratio(),
+                difflib.SequenceMatcher(None, common, right_full).ratio(),
+            ) * 100
+
+    raw_norm = normalize(raw_name)
+    if len(raw_norm.replace(" ", "")) < 4 or not re.search(r"[a-z]{4,}", raw_norm):
+        return {
+            "is_matched": False, "standard_name": raw_name,
+            "active_ingredient": "", "category": "", "purpose": "",
+            "match_confidence": 0, "status": "unmatched",
+        }
+
     best_match = None
     best_score = 0.0
 
     for drug in VN_DRUG_DATABASE:
-        score = difflib.SequenceMatcher(None, raw_lower, drug["name"].lower()).ratio()
-        if score > best_score:
-            best_score = score
+        drug_norm = normalize(drug["name"])
+        candidate_score = score(raw_norm, drug_norm)
+        if candidate_score > best_score:
+            best_score = candidate_score
             best_match = drug
 
         for alias in drug.get("aliases", []):
-            ascore = difflib.SequenceMatcher(None, raw_lower, alias.lower()).ratio()
-            if alias.lower() in raw_lower:
-                ascore = max(ascore, 0.85)
+            alias_norm = normalize(alias)
+            ascore = score(raw_norm, alias_norm)
+            if alias_norm and alias_norm in raw_norm.split():
+                ascore = max(ascore, 100.0)
             if ascore > best_score:
                 best_score = ascore
                 best_match = drug
 
-    if best_match and best_score >= 0.65:
+    if best_match and best_score >= 85:
         return {
             "is_matched": True,
             "standard_name": best_match["name"],
             "active_ingredient": best_match["active_ingredient"],
             "category": best_match["category"],
             "purpose": best_match.get("purpose", best_match["category"]),
-            "match_confidence": round(best_score, 2),
-            "status": "grounded"
+            "match_confidence": round(best_score),
+            "status": "matched"
         }
     return {
         "is_matched": False,
         "standard_name": raw_name,
-        "active_ingredient": "Chưa xác định",
-        "category": "Thuốc đặc trị",
-        "purpose": "Hỗ trợ điều trị triệu chứng theo đơn",
-        "match_confidence": round(best_score, 2),
-        "status": "uncertain"
+        "active_ingredient": "",
+        "category": "",
+        "purpose": "",
+        "match_confidence": round(best_score),
+        "status": "unmatched"
     }
 
 def map_lab_test(raw_name: str) -> Dict[str, Any]:

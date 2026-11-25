@@ -11,7 +11,7 @@
       optional: 'Không bắt buộc',
       emptyStatus: 'Chưa thêm thông tin',
       activeStatus: n => `Đang dùng ${n} mục tự khai`,
-      notice: 'Thông tin tự khai được gửi cùng tin nhắn tới Gemini, không lưu vào hồ sơ tài khoản. Nội dung được nhắc lại trong câu trả lời vẫn thuộc lịch sử chat; bạn có thể xóa cuộc chat để xóa lịch sử đó.',
+      notice: 'Thông tin tự khai được gửi cùng tin nhắn tới MediMind AI, không lưu vào hồ sơ tài khoản. Nội dung được nhắc lại trong câu trả lời vẫn thuộc lịch sử chat; bạn có thể xóa cuộc chat để xóa lịch sử đó.',
       labels: {
         age: 'Tuổi',
         gender: 'Giới tính',
@@ -39,7 +39,7 @@
       optional: 'Optional',
       emptyStatus: 'No context added',
       activeStatus: n => `Using ${n} self-reported item${n > 1 ? 's' : ''}`,
-      notice: 'Self-reported details are sent with your message to Gemini and are not stored in your account profile. Any details echoed in replies remain part of chat history; delete the chat to remove them.',
+      notice: 'Self-reported details are sent with your message to MediMind AI and are not stored in your account profile. Any details echoed in replies remain part of chat history; delete the chat to remove them.',
       labels: {
         age: 'Age',
         gender: 'Sex / Gender',

@@ -245,4 +245,5 @@ def reset_all_circuit_breakers() -> None:
         for cb in _circuit_breakers.values():
             cb.reset()
 
-
+# Alias tương thích cho các module OCR/Groq
+groq_circuit_breaker = gemini_circuit_breaker

@@ -42,7 +42,12 @@ async def create_appointment_endpoint(request: Request):
 
     success, result_payload, status_code = create_user_appointment(user_id, payload)
     if not success:
-        code = ErrorCode.VALIDATION_ERROR if status_code == 400 else ErrorCode.PERSISTENCE_ERROR
+        if status_code == 400:
+            code = ErrorCode.VALIDATION_ERROR
+        elif status_code == 429:
+            code = ErrorCode.RATE_LIMITED
+        else:
+            code = ErrorCode.PERSISTENCE_ERROR
         return fastapi_api_error(code, result_payload.get("error", "Lỗi tạo lịch hẹn."), status_code=status_code)
 
     return JSONResponse(content=result_payload, status_code=status_code)

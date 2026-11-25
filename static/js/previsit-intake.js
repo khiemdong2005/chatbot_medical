@@ -485,6 +485,7 @@ const PrevisitIntake = (() => {
   el('finish').addEventListener('click', finish);
   el('edit-form').addEventListener('submit', event => { event.preventDefault(); saveEdit(); });
   el('edit-cancel').addEventListener('click', () => { editor = null; render(); focusCurrentStep(); });
+  window.addEventListener('medimind:langchange', () => { if (dialog && dialog.open) render(); });
 
   return { open, resumeAfterLogin, bookingSummary };
 })();

@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 from PIL import Image, ImageDraw
 
 from core.prescription_crop_service import detect_medication_bounds, crop_and_upscale_medication_region
-from core.gemini_schema_service import extract_with_gemini_schema
+from core.groq_schema_service import extract_with_groq_schema
 import core.pipeline_orchestrator as pipe
 
 
@@ -122,9 +122,9 @@ def test_crop_and_upscale_medication_region_fallback_none(tmp_path):
 # 3. TEST TRÍCH XUẤT QUA VISION MODEL (ĐÚNG 1 LẦN GỌI VỚI 2 ẢNH)
 # ==============================================================================
 
-def test_extract_with_gemini_schema_dual_images_single_call(dummy_rx_image, tmp_path):
+def test_extract_with_groq_schema_dual_images_single_call(dummy_rx_image, tmp_path):
     """
-    Xác nhận trong MỘT lần gọi model thị giác qua OpenRouter:
+    Xác nhận trong MỘT lần gọi model thị giác qua Groq:
       1. Gửi ảnh toàn trang trước (Image 1)
       2. Gửi ảnh cắt sau (Image 2)
       3. Prompt giải thích hai ảnh là cùng một tài liệu
@@ -165,7 +165,7 @@ def test_extract_with_gemini_schema_dual_images_single_call(dummy_rx_image, tmp_
     with patch("core.llm_provider.llm_provider.is_configured", return_value=True), \
          patch("core.llm_provider.llm_provider.generate_json", return_value=mock_model_response) as mock_gen_json:
 
-        res = extract_with_gemini_schema(
+        res = extract_with_groq_schema(
             image_path=dummy_rx_image,
             doc_type="prescription",
             crop_image_path=crop_path
@@ -197,7 +197,7 @@ def test_extract_with_gemini_schema_dual_images_single_call(dummy_rx_image, tmp_
         assert med["schedule"] == "Sáng 1 viên"
 
 
-def test_extract_with_gemini_schema_single_image_fallback(dummy_rx_image):
+def test_extract_with_groq_schema_single_image_fallback(dummy_rx_image):
     """Khi không cắt được ảnh (crop_image_path=None), gửi ảnh toàn trang trong 1 lần gọi."""
     mock_model_response = {
         "doc_type": "prescription",
@@ -208,7 +208,7 @@ def test_extract_with_gemini_schema_single_image_fallback(dummy_rx_image):
     with patch("core.llm_provider.llm_provider.is_configured", return_value=True), \
          patch("core.llm_provider.llm_provider.generate_json", return_value=mock_model_response) as mock_gen_json:
 
-        res = extract_with_gemini_schema(
+        res = extract_with_groq_schema(
             image_path=dummy_rx_image,
             doc_type="prescription",
             crop_image_path=None
@@ -284,7 +284,7 @@ def test_pipeline_orchestrator_integration_status_review_and_fields(dummy_rx_ima
     }
 
     mock_extract = MagicMock(return_value=mock_gemini_return)
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", mock_extract)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", mock_extract)
 
     result = pipe.process_medical_document_pipeline(
         file_path=dummy_rx_image,
@@ -294,7 +294,7 @@ def test_pipeline_orchestrator_integration_status_review_and_fields(dummy_rx_ima
     )
 
     assert mock_extract.call_count == 1
-    # Kiểm tra crop_image_path đã được tạo và truyền vào extract_with_gemini_schema
+    # Kiểm tra crop_image_path đã được tạo và truyền vào extract_with_groq_schema
     call_kwargs = mock_extract.call_args[1]
     assert call_kwargs.get("crop_image_path") is not None
     assert os.path.exists(call_kwargs.get("crop_image_path"))
@@ -319,7 +319,7 @@ def test_pipeline_orchestrator_integration_status_review_and_fields(dummy_rx_ima
 
 
 def test_pipeline_orchestrator_graceful_fallback_when_vision_model_fails(dummy_rx_image, monkeypatch):
-    """Khi OpenRouter/Gemini thất bại hoặc trả JSON lỗi, pipeline tự động fallback về OCR draft an toàn."""
+    """Khi Groq/Gemini thất bại hoặc trả JSON lỗi, pipeline tự động fallback về OCR draft an toàn."""
     monkeypatch.setattr(pipe, "check_image_quality", lambda *a, **kw: {"passed": True})
     monkeypatch.setattr(pipe, "preprocess_lightweight", lambda p, **kw: {"processed_path": p})
     monkeypatch.setattr(
@@ -339,8 +339,8 @@ def test_pipeline_orchestrator_graceful_fallback_when_vision_model_fails(dummy_r
         }
     )
 
-    # Giả lập Gemini Schema trả về None (OpenRouter sập/lỗi JSON)
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    # Giả lập Groq Vision Schema trả về None (Groq sập/lỗi JSON)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
     result = pipe.process_medical_document_pipeline(
         file_path=dummy_rx_image,
         original_filename="DonThuoc.jpg",

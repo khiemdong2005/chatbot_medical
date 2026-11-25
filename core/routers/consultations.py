@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from core.routers.deps import require_authenticated_user, extract_request_identity
 from core.chat.consultation_service import (
     get_user_consultations,
+    get_user_chatbot_sessions,
     delete_user_consultation
 )
 from core.shared.api_errors import fastapi_api_error, ErrorCode
@@ -17,12 +18,14 @@ router = APIRouter(prefix="/api/consultations", tags=["4. Lịch sử Tư vấn 
 @router.get("", summary="Lấy danh sách các phiên tư vấn của tài khoản")
 @router.get("/", include_in_schema=False)
 async def get_consultations_endpoint(request: Request):
-    """Lấy danh sách tối đa 20 phiên tư vấn đã lưu gần nhất của tài khoản."""
+    """Lấy danh sách tối đa 20 phiên tư vấn đã lưu gần nhất và các hội thoại chatbot thực tế của tài khoản."""
     user_id = require_authenticated_user(request)
     consultations = get_user_consultations(user_id)
+    chatbot_sessions = get_user_chatbot_sessions(user_id)
     return JSONResponse(content={
         "status": "success",
-        "consultations": consultations
+        "consultations": consultations,
+        "chatbot_sessions": chatbot_sessions,
     })
 
 

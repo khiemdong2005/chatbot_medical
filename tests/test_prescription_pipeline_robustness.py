@@ -37,7 +37,7 @@ def test_scan_uses_original_image_when_processed_ocr_loses_drug_row(tmp_path, mo
     calls = []
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: (
         calls.append(path) or scans[path]))
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
 
     result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
 
@@ -53,7 +53,7 @@ def test_clear_processed_ocr_does_not_repeat_expensive_pass(tmp_path, monkeypatc
     calls = []
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: (
         calls.append(path) or good))
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
 
     result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
 
@@ -68,7 +68,7 @@ def test_masked_scan_does_not_send_unmasked_original_to_model(tmp_path, monkeypa
     calls = []
     monkeypatch.setattr(pipe, "mask_pii_on_image", lambda *a, **kw: str(masked))
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda *a, **kw: _ocr("ĐƠN THUỐC"))
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda path, **kw: (
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda path, **kw: (
         calls.append(path) or None))
 
     result = pipe.process_medical_document_pipeline(
@@ -85,7 +85,7 @@ def test_review_keeps_model_name_and_original_ocr_spelling(tmp_path, monkeypatch
         "ĐƠN THUỐC", "Chẩn đoán: đau họng", "1. Cclimned 500mg | 20 Viên",
         "Cộng khoản: 1",
     ))
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: {
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: {
         "doc_type": "prescription", "medications": [{"name": "Cefimed", "strength": "500mg"}],
     })
 
@@ -102,7 +102,7 @@ def test_review_maps_medicine_anchor_to_original_image(tmp_path, monkeypatch):
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda *a, **kw: _ocr(
         "ĐƠN THUỐC", "1. Althax 120mg",
     ))
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
     monkeypatch.setattr(pipe, "reconcile_parallel_results", lambda *a, **kw: {
         "medications": [{"name": "Althax", "needs_review": True,
                          "anchor_evidence_text": "1. Althax 120mg",
@@ -124,7 +124,7 @@ def test_unexpected_model_payload_falls_back_to_ocr(tmp_path, monkeypatch):
     good = _ocr("ĐƠN THUỐC", "Họ tên: TRẦN BÌNH", "Chẩn đoán: Gút",
                 "1. Febuxostat 40mg | 21 Viên", "Cộng khoản: 1")
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda *a, **kw: good)
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: ["bad schema"])
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: ["bad schema"])
 
     result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")
 
@@ -140,7 +140,7 @@ def test_model_type_correction_rescores_ocr_images(tmp_path, monkeypatch):
                             "Glucose | 7.8 | mmol/L | 3.9 - 6.4 | High"),
     }
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda path, **kw: scans[path])
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: {
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: {
         "doc_type": "lab_test", "metrics": []})
 
     result = pipe.process_medical_document_pipeline(str(original), doc_type_hint="prescription")

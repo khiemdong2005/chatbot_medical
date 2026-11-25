@@ -93,6 +93,154 @@ def retrieval_query(message, facts, history=None):
     return ((present + ". " if present else "") + query).strip()[:2400]
 
 
+_FACILITY_QUERY_PATTERN = re.compile(
+    r"\b(?:benh vien|phong kham|co so y te|trung tam y te|"
+    r"kham tong quat|kham suc khoe tong quat|kham suc khoe dinh ky|"
+    r"di kham o dau|kham o dau|cho nao kham|nen kham o dau|"
+    r"hospital|clinic|medical center|health checkup|check-up)\b",
+    re.IGNORECASE,
+)
+
+_FACILITY_SPECIALTY_RULES = (
+    (r"\b(?:da lieu|mun|viem da|nam da|dermatol)\b", "Da liễu"),
+    (r"\b(?:tim mach|huyet ap|cardiol)\b", "Tim mạch"),
+    (r"\b(?:nhi khoa|nhi dong|tre em|pediatr)\b", "Nhi"),
+    (r"\b(?:tai mui hong|viem hong|viem xoang|\bent\b)\b", "Tai Mũi Họng"),
+    (r"\b(?:san phu khoa|phu san|thai san|mang thai|obgyn)\b", "Sản"),
+    (r"\b(?:tieu hoa|da day|gan mat|gastro)\b", "Tiêu hóa"),
+    (r"\b(?:co xuong khop|xuong khop|chan thuong|orthop)\b", "Xương khớp"),
+    (r"\b(?:nhan khoa|kham mat|eye|ophthal)\b", "Mắt"),
+    (r"\b(?:rang ham mat|nha khoa|dental)\b", "Răng"),
+    (r"\b(?:than kinh|neuro)\b", "Thần kinh"),
+    (r"\b(?:ho hap|phoi|pulmon)\b", "Hô hấp"),
+    (r"\b(?:ung buou|ung thu|oncol)\b", "Ung bướu"),
+    (r"\b(?:noi tong hop|tong quat|suc khoe dinh ky|checkup|check-up)\b", "Nội"),
+)
+
+_FACILITY_DISTRICT_RULES = (
+    (r"\b(?:quan|q\.?)\s*10\b", "Quận 10"),
+    (r"\b(?:quan|q\.?)\s*11\b", "Quận 11"),
+    (r"\b(?:quan|q\.?)\s*12\b", "Quận 12"),
+    (r"\b(?:quan|q\.?)\s*1\b", "Quận 1"),
+    (r"\b(?:quan|q\.?)\s*3\b", "Quận 3"),
+    (r"\b(?:quan|q\.?)\s*4\b", "Quận 4"),
+    (r"\b(?:quan|q\.?)\s*5\b", "Quận 5"),
+    (r"\b(?:quan|q\.?)\s*6\b", "Quận 6"),
+    (r"\b(?:quan|q\.?)\s*7\b", "Quận 7"),
+    (r"\b(?:quan|q\.?)\s*8\b", "Quận 8"),
+    (r"\bbinh thanh\b", "Bình Thạnh"),
+    (r"\btan binh\b", "Tân Bình"),
+    (r"\btan phu\b", "Tân Phú"),
+    (r"\bphu nhuan\b", "Phú Nhuận"),
+    (r"\bgo vap\b", "Gò Vấp"),
+    (r"\bthu duc\b", "Thủ Đức"),
+    (r"\bbinh tan\b", "Bình Tân"),
+    (r"\bba dinh\b", "Ba Đình"),
+    (r"\bdong da\b", "Đống Đa"),
+    (r"\bcau giay\b", "Cầu Giấy"),
+    (r"\bhoan kiem\b", "Hoàn Kiếm"),
+    (r"\bhai ba trung\b", "Hai Bà Trưng"),
+    (r"\bthanh xuan\b", "Thanh Xuân"),
+)
+
+
+def _is_facility_query(text: str) -> bool:
+    """Detect whether the user is asking for hospital, clinic, or checkup facility recommendations."""
+    if not text:
+        return False
+    from core.chat.triage import remove_accents
+    folded = remove_accents(text.lower()).replace("đ", "d")
+    return bool(_FACILITY_QUERY_PATTERN.search(folded))
+
+
+def _retrieve_facility_references(user_message: str, lang: str = "vi") -> List[Dict[str, Any]]:
+    """Retrieve matching verified healthcare facilities from MediMind's local CSKCB directory."""
+    if not _is_facility_query(user_message):
+        return []
+    try:
+        from core.chat.triage import remove_accents
+        from core.facilities.facilities_service import get_facilities
+    except Exception:
+        return []
+
+    folded = remove_accents(user_message.lower()).replace("đ", "d")
+    region = "hcm"
+    if re.search(r"\b(?:ha noi|hanoi|\bhn\b|ba dinh|hoan kiem|dong da|cau giay|hai ba trung|thanh xuan)\b", folded):
+        region = "hanoi"
+
+    district = ""
+    for pat, label in _FACILITY_DISTRICT_RULES:
+        if re.search(pat, folded):
+            district = label
+            break
+
+    specialty = ""
+    for pat, label in _FACILITY_SPECIALTY_RULES:
+        if re.search(pat, folded):
+            specialty = label
+            break
+
+    loai_hinh = ""
+    if re.search(r"\b(?:benh vien|hospital)\b", folded) and not re.search(r"\b(?:phong kham|clinic)\b", folded):
+        loai_hinh = "Bệnh viện"
+    elif re.search(r"\b(?:phong kham|clinic)\b", folded) and not re.search(r"\b(?:benh vien|hospital)\b", folded):
+        loai_hinh = "Phòng khám"
+
+    attempts = [
+        {"tinh_tp": region, "loai_hinh": loai_hinh, "chuyen_khoa": specialty, "quan_huyen": district},
+        {"tinh_tp": region, "loai_hinh": loai_hinh, "chuyen_khoa": "", "quan_huyen": district},
+        {"tinh_tp": region, "loai_hinh": loai_hinh, "chuyen_khoa": specialty, "quan_huyen": ""},
+        {"tinh_tp": region, "loai_hinh": loai_hinh, "chuyen_khoa": "", "quan_huyen": ""},
+        {"tinh_tp": region, "loai_hinh": "", "chuyen_khoa": specialty, "quan_huyen": district},
+        {"tinh_tp": region, "loai_hinh": "", "chuyen_khoa": "", "quan_huyen": ""},
+    ]
+    items: List[Dict[str, Any]] = []
+    for params in attempts:
+        res = get_facilities(page=1, limit=6, **params)
+        items = res.get("data") or []
+        if items:
+            break
+    if not items:
+        return []
+
+    region_label = "TP. Hà Nội" if region == "hanoi" else "TP. Hồ Chí Minh"
+    lines = [
+        f"Danh sách cơ sở y tế thực tế trong hệ thống MediMind tại {region_label}:"
+        if lang == "vi" else
+        f"Verified healthcare facilities in the MediMind Directory ({region_label}):"
+    ]
+    for idx, fac in enumerate(items[:5], start=1):
+        name = str(fac.get("ten") or "").strip()
+        if not name:
+            continue
+        ftype = str(fac.get("loai_hinh") or "Cơ sở y tế").strip()
+        addr = str(fac.get("dia_chi_hien_thi_tren_web") or fac.get("dia_chi") or "").strip()
+        spec = str(fac.get("chuyen_khoa") or "Đa khoa").strip()
+        hours = str(fac.get("gio_mo_cua") or "").strip()
+        phone = str(fac.get("so_dien_thoai") or "").strip()
+        parts = [f"{idx}. {name} ({ftype})"]
+        if addr:
+            parts.append(f"Địa chỉ: {addr}")
+        if spec:
+            parts.append(f"Chuyên khoa: {spec}")
+        if hours:
+            parts.append(f"Giờ mở cửa: {hours}")
+        if phone:
+            parts.append(f"Điện thoại: {phone}")
+        lines.append(" — ".join(parts) + ".")
+
+    return [{
+        "title": (
+            f"Danh mục cơ sở y tế MediMind ({region_label})"
+            if lang == "vi" else
+            f"MediMind Healthcare Facilities Directory ({region_label})"
+        ),
+        "source": "MediMind Facilities Directory",
+        "source_url": "https://medimind.vn/facilities",
+        "content": "\n".join(lines),
+    }]
+
+
 def process_clinical_chat(
     message: str,
     history: Optional[List[Dict[str, Any]]] = None,
@@ -139,7 +287,10 @@ def process_clinical_chat(
         identify_missing_information, is_general_health_definition, is_informational_query,
         question_topic, requests_consultation_conclusion, select_next_question,
     )
-    if consultation_mode == "informational" or (consultation_mode != "final" and is_informational_query(user_message)):
+    facility_query = not has_image and _is_facility_query(user_message)
+    if consultation_mode == "informational" or (
+        consultation_mode != "final" and (is_informational_query(user_message) or facility_query)
+    ):
         consultation_mode = "informational"
     elif consultation_mode == "final" or requests_consultation_conclusion(user_message):
         consultation_mode = "final"
@@ -198,30 +349,6 @@ def process_clinical_chat(
         }
 
     msg_clean = user_message.lower().strip()
-    if not has_image and any(re.search(pattern, msg_clean) for pattern in OUT_OF_SCOPE_PATTERNS):
-        reported = (intake_facts or {}).get("present_symptoms", [])
-        if lang == "en":
-            answer = "I focus on health questions, so I can't help solve that. We can continue with your symptoms whenever you're ready."
-            risk_level = "Outside health scope"
-        elif reported:
-            answer = f"Mình tập trung hỗ trợ sức khỏe nên không giải bài toán được. Nếu muốn, mình có thể tiếp tục với chuyện {reported[0].lower()}."
-            risk_level = "Ngoài phạm vi tư vấn sức khỏe"
-        else:
-            answer = "Mình tập trung hỗ trợ sức khỏe nên không giải bài toán được. Bạn muốn hỏi gì về triệu chứng, thuốc hoặc kết quả xét nghiệm?"
-            risk_level = "Ngoài phạm vi tư vấn sức khỏe"
-        metrics_collector.increment("requests_success")
-        return {
-            "answer": answer,
-            "risk_level": risk_level,
-            "risk_score": None,
-            "symptoms": reported,
-            "specialist": "",
-            "visual_findings": [],
-            "differential_diagnosis": [],
-            "is_emergency": False,
-            "degraded": False,
-            "sources": [],
-        }
 
     # -------------------------------------------------------------
     # FAST-PATH CHÀO HỎI & KHỞI TẠO (Phản hồi tức thì < 0.01 giây)
@@ -254,20 +381,22 @@ def process_clinical_chat(
         }
 
     # -------------------------------------------------------------
-    # TẦNG 2: TRUY VẤN TRI THỨC Y KHOA RAG TỪ CHROMADB
+    # TẦNG 2: TRUY VẤN TRI THỨC Y KHOA RAG TỪ CHROMADB + DANH MỤC CƠ SỞ Y TẾ
     # -------------------------------------------------------------
     rag_docs = []
     # A pending intake question depends on what the patient has reported, not on a reference article.
     if not follow_up:
+        facility_docs = _retrieve_facility_references(user_message, lang=lang) if facility_query else []
         try:
             retrieval_start = time.perf_counter()
             retrieval_facts = {} if consultation_mode == "informational" else intake_facts
-            rag_docs = medical_rag_service.retrieve_context(
+            medline_docs = medical_rag_service.retrieve_context(
                 retrieval_query(user_message, retrieval_facts,
                                 history=None if consultation_mode == "informational" else history),
                 top_k=2,
                 lang=lang
             )
+            rag_docs = (facility_docs + (medline_docs or []))[:4]
             retrieval_ms = (time.perf_counter() - retrieval_start) * 1000.0
             metrics_collector.record_latency("retrieval_latency_ms", retrieval_ms)
             if rag_docs:
@@ -276,6 +405,7 @@ def process_clinical_chat(
                 metrics_collector.increment("retrieval_miss_total")
             metrics_collector.log_event("retrieval", req_id, retrieval_ms, "SUCCESS" if rag_docs else "EMPTY")
         except Exception as e:
+            rag_docs = facility_docs
             metrics_collector.increment("retrieval_miss_total")
             logger.warning("[REQ-%s] Retrieval unavailable (%s).", req_id, type(e).__name__)
 
@@ -367,7 +497,7 @@ def process_clinical_chat(
 
         if not degraded and grounding_status == "verified" and model_question and not follow_up:
             raw_answer = f"{raw_answer}\n\n{model_question}"
-        elif next_question and not degraded and grounding_status != "unrecognized_input":
+        elif next_question and not degraded and grounding_status not in ("unrecognized_input", "general_reference", "general_chat"):
             raw_answer = next_question
             grounding_status = "clarification"
             triage_result.update(

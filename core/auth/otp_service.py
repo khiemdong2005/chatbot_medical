@@ -14,20 +14,29 @@ from core.auth.sms_service import sms_service
 
 class OtpManager:
     """Trình quản lý mã OTP an toàn đa luồng (Thread-safe)."""
-    def __init__(self, ttl_seconds: int = 120, cooldown_seconds: int = 60, max_attempts: int = 5):
+    def __init__(self, ttl_seconds: int = 120, cooldown_seconds: int = 60, max_attempts: int = 5, max_entries: int = 5000):
         self.ttl = ttl_seconds
         self.cooldown = cooldown_seconds
         self.max_attempts = max_attempts
+        self.max_entries = max(100, int(max_entries))
         self._store: Dict[str, Dict[str, Any]] = {}
         self._verified_store: Dict[str, float] = {}
         self._lock = threading.Lock()
 
     def _cleanup_expired(self):
-        """Dọn dẹp các mã OTP đã hết hạn."""
+        """Dọn dẹp các mã OTP đã hết hạn và giới hạn kích thước bộ nhớ tạm."""
         now = time.time()
         expired_keys = [k for k, v in self._store.items() if now > v["expires_at"]]
         for k in expired_keys:
             del self._store[k]
+        expired_verified = [k for k, exp in self._verified_store.items() if now > exp]
+        for k in expired_verified:
+            del self._verified_store[k]
+        if len(self._store) >= self.max_entries:
+            drop_count = max(1, self.max_entries // 5)
+            oldest = sorted(self._store.items(), key=lambda item: item[1]["expires_at"])[:drop_count]
+            for k, _ in oldest:
+                self._store.pop(k, None)
 
     def request_otp(
         self,

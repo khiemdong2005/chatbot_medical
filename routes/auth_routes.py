@@ -36,6 +36,30 @@ def _validate_reset_password_strength(password: str):
     return None
 
 
+def _is_account_active(user) -> bool:
+    """Kiểm tra trạng thái tài khoản có đang hoạt động (active) hay đã bị tạm khóa (suspended)."""
+    return (getattr(user, "account_status", "active") or "active").strip().lower() == "active"
+
+
+_PROFILE_EMAIL_RE = re.compile(r"^[^@\s\r\n]+@[^@\s\r\n]+\.[^@\s\r\n]+$")
+
+
+def _verify_avatar_image_bytes(raw_bytes: bytes, ext: str):
+    """Xác minh thực sự cấu trúc ảnh đại diện bằng Pillow (chống tệp giả mạo header RIFF/WEBP)."""
+    try:
+        import io
+        from PIL import Image
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            img.verify()
+            fmt = (img.format or "").upper()
+            allowed_formats = {"JPEG", "JPG"} if ext in ("jpg", "jpeg") else {ext.upper()}
+            if fmt and fmt not in allowed_formats:
+                return False, f"Nội dung ảnh ({fmt}) không khớp định dạng .{ext}."
+    except Exception:
+        return False, "Tệp ảnh đại diện không hợp lệ hoặc đã bị hỏng."
+    return True, None
+
+
 def register_auth_routes(app):
     # ==============================================================
     # HỆ THỐNG XÁC THỰC DANH TÍNH & PHÂN QUYỀN (RBAC)
@@ -66,6 +90,9 @@ def register_auth_routes(app):
         if not user:
             return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
 
+        if not _is_account_active(user):
+            return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
+
         # Kiểm tra phân quyền truy cập
         if role and user.role != role:
             return jsonify({
@@ -84,11 +111,13 @@ def register_auth_routes(app):
         session.permanent = True
         _start_authenticated_session(user)
         session["user_role"] = user.role
+        user_dict = user.to_dict()
 
         return jsonify({
             "success": True,
             "message": f"Chào mừng {user.full_name} đã quay trở lại!",
-            "user": user.to_dict()
+            "needs_onboarding": bool(user_dict.get("needs_onboarding")),
+            "user": user_dict
         })
 
 
@@ -167,7 +196,8 @@ def register_auth_routes(app):
             phone_number=phone_number,
             dob=dob,
             gender=gender,
-            license_code=None
+            license_code=None,
+            clinical_profile=json.dumps({"onboarding_completed": False}, ensure_ascii=False),
         )
         new_user.set_password(password)
         db.session.add(new_user)
@@ -195,7 +225,7 @@ def register_auth_routes(app):
             return jsonify({"authenticated": False, "user": None})
 
         user = db.session.get(User, user_id)
-        if not user:
+        if not user or not _is_account_active(user):
             session.clear()
             return jsonify({"authenticated": False, "user": None})
 
@@ -216,15 +246,50 @@ def register_auth_routes(app):
         if not user:
             session.clear()
             return jsonify({"success": False, "error": "Không tìm thấy thông tin tài khoản."}), 404
+        if not _is_account_active(user):
+            session.clear()
+            return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
 
         data = request.get_json(silent=True) or {}
-        full_name = data.get("name", "").strip() or data.get("full_name", "").strip()
-        gender = data.get("gender", "").strip()
-        dob = data.get("dob", "").strip()
-        phone_number = data.get("phone_number", "").strip()
-        address = data.get("address", "").strip()
-        bhyt = data.get("bhyt", "").strip()
-        email = data.get("email", "").strip()
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Dữ liệu hồ sơ không hợp lệ."}), 400
+
+        def _profile_str(key: str, max_len: int = 255):
+            raw = data.get(key)
+            if raw is None:
+                return "", None
+            if not isinstance(raw, str):
+                return None, f"Trường '{key}' phải có định dạng văn bản hợp lệ."
+            val = raw.strip()
+            if len(val) > max_len:
+                return None, f"Trường '{key}' vượt quá độ dài tối đa ({max_len} ký tự)."
+            return val, None
+
+        name_a, err = _profile_str("name", 120)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        name_b, err = _profile_str("full_name", 120)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        full_name = name_a or name_b
+        gender, err = _profile_str("gender", 30)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        dob, err = _profile_str("dob", 50)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        phone_number, err = _profile_str("phone_number", 30)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        address, err = _profile_str("address", 255)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        bhyt, err = _profile_str("bhyt", 50)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
+        email, err = _profile_str("email", 120)
+        if err:
+            return jsonify({"success": False, "error": err}), 400
 
         if full_name:
             user.full_name = full_name
@@ -250,7 +315,7 @@ def register_auth_routes(app):
             user.address = address
         if bhyt:
             user.bhyt = bhyt
-        if email and "@" in email and not email.endswith("@phone.medimind"):
+        if email and _PROFILE_EMAIL_RE.match(email) and not email.lower().endswith("@phone.medimind"):
             dup_email = User.query.filter((User.id != user.id) & (db.func.lower(User.email) == email.lower())).first()
             if dup_email:
                 return jsonify({"success": False, "error": "Địa chỉ Email này đã được sử dụng bởi một tài khoản khác."}), 409
@@ -265,9 +330,13 @@ def register_auth_routes(app):
         )
         for field in profile_fields:
             if field in data:
-                extra_profile[field] = data[field].strip()
+                fval, ferr = _profile_str(field, 500)
+                if ferr:
+                    return jsonify({"success": False, "error": ferr}), 400
+                extra_profile[field] = fval
         if not extra_profile.get("nationality"):
             extra_profile["nationality"] = "VN"
+        extra_profile["onboarding_completed"] = True
         user.clinical_profile = json.dumps(extra_profile, ensure_ascii=False)
 
         try:
@@ -294,6 +363,9 @@ def register_auth_routes(app):
         if not user:
             session.clear()
             return jsonify({"success": False, "error": "Không tìm thấy thông tin tài khoản."}), 404
+        if not _is_account_active(user):
+            session.clear()
+            return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
 
         file = request.files.get("file") or request.files.get("avatar")
         if not file or not file.filename:
@@ -313,6 +385,9 @@ def register_auth_routes(app):
             is_safe, safety_err = inspect_upload_safety(file_bytes, "webp")
             if not is_safe:
                 return jsonify({"success": False, "error": safety_err or "Ảnh tải lên không đạt kiểm tra an toàn."}), 400
+            img_ok, img_err = _verify_avatar_image_bytes(file_bytes, "webp")
+            if not img_ok:
+                return jsonify({"success": False, "error": img_err}), 400
             storage_filename = f"{uuid.uuid4().hex}.webp"
             base_folder_path = Path(upload_folder).resolve()
             base_folder_path.mkdir(parents=True, exist_ok=True)
@@ -322,6 +397,13 @@ def register_auth_routes(app):
             with open(dest_path, "wb") as f:
                 f.write(file_bytes)
         else:
+            raw_bytes = file.read()
+            if len(raw_bytes) == 0 or len(raw_bytes) > 10 * 1024 * 1024:
+                return jsonify({"success": False, "error": "Dung lượng ảnh đại diện không hợp lệ (tối đa 10MB)."}), 400
+            img_ok, img_err = _verify_avatar_image_bytes(raw_bytes, ext)
+            if not img_ok:
+                return jsonify({"success": False, "error": img_err}), 400
+            file.seek(0)
             success, meta, err_msg = process_secure_upload(file, upload_folder)
             if not success:
                 return jsonify({"success": False, "error": err_msg or "Không thể lưu ảnh đại diện."}), 400
@@ -354,25 +436,47 @@ def register_auth_routes(app):
         if not user:
             session.clear()
             return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+        if not _is_account_active(user):
+            session.clear()
+            return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
 
         data = request.get_json(silent=True) or {}
-        current_password = (data.get("current_password") or "").strip()
-        new_password = (data.get("new_password") or "").strip()
+        current_password = (data.get("current_password") or "").strip() if isinstance(data.get("current_password"), str) else ""
+        new_password = (data.get("new_password") or "").strip() if isinstance(data.get("new_password"), str) else ""
 
         if not current_password or not new_password:
             return jsonify({"success": False, "error": "Vui lòng nhập đầy đủ mật khẩu hiện tại và mật khẩu mới."}), 400
 
-        if len(new_password) < 6:
-            return jsonify({"success": False, "error": "Mật khẩu mới phải có tối thiểu 6 ký tự."}), 400
+        from core.auth.rate_limit_service import rate_limit_service
+        client_ip = get_request_client_ip()
+        chgpwd_key = f"chgpwd:{client_ip}:{user.id}"
+        if not rate_limit_service.backend.check_and_increment(chgpwd_key, max_requests=5, window_seconds=900):
+            return jsonify({
+                "success": False,
+                "error": "Bạn đã thử đổi mật khẩu sai quá nhiều lần. Vui lòng thử lại sau 15 phút."
+            }), 429
+
+        pwd_err = _validate_reset_password_strength(new_password)
+        if pwd_err:
+            return jsonify({"success": False, "error": pwd_err}), 400
 
         if not user.check_password(current_password):
             return jsonify({"success": False, "error": "Mật khẩu hiện tại không chính xác."}), 401
 
+        if user.check_password(new_password):
+            return jsonify({"success": False, "error": "Mật khẩu mới không được trùng với mật khẩu hiện tại."}), 400
+
+        rate_limit_service.backend.reset(chgpwd_key)
         user.set_password(new_password)
         try:
             commit_or_rollback()
         except Exception:
             return jsonify({"success": False, "error": "Không thể cập nhật mật khẩu vào cơ sở dữ liệu."}), 500
+
+        # Xoay vòng phiên sau khi đổi mật khẩu
+        session.permanent = True
+        _start_authenticated_session(user)
+        session["user_role"] = user.role
         return jsonify({"success": True, "message": "Đã thay đổi mật khẩu thành công!"})
 
     @app.route("/api/auth/preferences", methods=["GET"])
@@ -386,6 +490,9 @@ def register_auth_routes(app):
         if not user:
             session.clear()
             return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+        if not _is_account_active(user):
+            session.clear()
+            return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
 
         return jsonify({"success": True, "preferences": user.get_preferences()})
 
@@ -400,6 +507,9 @@ def register_auth_routes(app):
         if not user:
             session.clear()
             return jsonify({"success": False, "error": "Không tìm thấy tài khoản."}), 404
+        if not _is_account_active(user):
+            session.clear()
+            return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
 
         data = request.get_json(silent=True) or {}
         if not isinstance(data, dict):
@@ -447,6 +557,14 @@ def register_auth_routes(app):
         Đã loại bỏ cổng Twilio và chặn gửi OTP tới các số điện thoại quốc tế.
         """
         data = request.get_json(silent=True) or {}
+        from core.auth.rate_limit_service import rate_limit_service
+        client_ip = get_request_client_ip()
+        if not rate_limit_service.check_otp_rate_limit(f"send_ip:{client_ip}", max_attempts=15, window_seconds=900):
+            return jsonify({
+                "success": False,
+                "error": "Bạn đã gửi quá nhiều yêu cầu mã OTP từ địa chỉ IP này. Vui lòng thử lại sau 15 phút."
+            }), 429
+
         identifier = (data.get("identifier") or data.get("email") or data.get("phone") or "").strip()
         channel = (data.get("channel") or "").strip().lower()
         purpose = (data.get("purpose") or "register").strip()
@@ -531,6 +649,14 @@ def register_auth_routes(app):
           - purpose='verify': Xác minh chung
         """
         data = request.get_json(silent=True) or {}
+        from core.auth.rate_limit_service import rate_limit_service
+        client_ip = get_request_client_ip()
+        if not rate_limit_service.check_otp_rate_limit(f"verify_ip:{client_ip}", max_attempts=15, window_seconds=900):
+            return jsonify({
+                "success": False,
+                "error": "Bạn đã thử xác minh OTP quá nhiều lần từ địa chỉ IP này. Vui lòng thử lại sau 15 phút."
+            }), 429
+
         identifier = (data.get("identifier") or "").strip()
         channel = (data.get("channel") or "").strip().lower()
         code = (data.get("code") or "").strip()
@@ -633,7 +759,11 @@ def register_auth_routes(app):
             if not user:
                 return jsonify({"success": False, "error": "Tài khoản không tồn tại trên hệ thống."}), 404
 
-            session["user_id"] = user.id
+            if not _is_account_active(user):
+                return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
+
+            session.permanent = True
+            _start_authenticated_session(user)
             session["user_role"] = user.role
 
             return jsonify({
@@ -791,7 +921,7 @@ def register_auth_routes(app):
 
         intent = _verify_google_oauth_state(state_token)
         expected_state = session.pop("google_oauth_state", None)
-        if not intent or not code or (expected_state and not hmac.compare_digest(expected_state, state_token)):
+        if not intent or not code or not expected_state or not hmac.compare_digest(expected_state, state_token):
             logger.warning("Google OAuth callback thất bại: state không hợp lệ hoặc thiếu code.")
             return redirect("/?google_auth=error&error_reason=invalid_state")
 
@@ -841,8 +971,9 @@ def register_auth_routes(app):
         email = (user_info.get("email") or "").strip().lower()
         full_name = (user_info.get("name") or "").strip()
         avatar_url = (user_info.get("picture") or "").strip()
+        google_sub = (user_info.get("sub") or "").strip() or None
 
-        if user_info.get("email_verified") is False:
+        if user_info.get("email_verified") is not True:
             return redirect("/?google_auth=error&error_reason=email_unverified")
 
         if not email or "@" not in email:
@@ -855,6 +986,12 @@ def register_auth_routes(app):
 
         # TRƯỜNG HỢP 1: TỪ LẦN THỨ 2 TRỞ ĐI (Tài khoản Google đã có trong CSDL -> Vào luôn ngay lập tức)
         if user:
+            if not _is_account_active(user):
+                return redirect("/?google_auth=error&error_reason=account_suspended")
+            if user.google_sub and google_sub and user.google_sub != google_sub:
+                return redirect("/?google_auth=error&error_reason=account_mismatch")
+            if google_sub and not user.google_sub:
+                user.google_sub = google_sub
             if avatar_url:
                 user.avatar_url = avatar_url
             if full_name and (not user.full_name or user.full_name == "Bệnh nhân mới"):
@@ -877,6 +1014,7 @@ def register_auth_routes(app):
             "email": email,
             "full_name": full_name,
             "avatar_url": avatar_url or "",
+            "google_sub": google_sub or "",
         }
         return redirect("/?google_auth=pending_register")
 
@@ -922,6 +1060,9 @@ def register_auth_routes(app):
         email = pending["email"].strip().lower()
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
+            if not _is_account_active(existing_user):
+                session.pop("pending_google_register", None)
+                return jsonify({"success": False, "error": "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."}), 403
             session.pop("pending_google_register", None)
             session.permanent = True
             _start_authenticated_session(existing_user)
@@ -942,7 +1083,9 @@ def register_auth_routes(app):
             gender=gender,
             dob=dob or None,
             phone_number=clean_phone or None,
-            avatar_url=pending.get("avatar_url") or None
+            avatar_url=pending.get("avatar_url") or None,
+            google_sub=(pending.get("google_sub") or "").strip() or None,
+            clinical_profile=json.dumps({"onboarding_completed": True}, ensure_ascii=False),
         )
         user.set_password(secrets.token_urlsafe(24))
         db.session.add(user)
@@ -1013,6 +1156,15 @@ def register_auth_routes(app):
         email = (token_info.get("email") or "").strip().lower()
         full_name = (token_info.get("name") or "").strip()
         avatar_url = (token_info.get("picture") or "").strip()
+        google_sub = (token_info.get("sub") or "").strip() or None
+        email_verified = token_info.get("email_verified")
+
+        if email_verified is False or ("email_verified" in token_info and email_verified is not True):
+            return flask_api_error(
+                ErrorCode.FORBIDDEN,
+                "Tài khoản Google chưa xác minh địa chỉ email.",
+                status_code=403
+            )
 
         if not email or "@" not in email:
             return flask_api_error(
@@ -1027,6 +1179,20 @@ def register_auth_routes(app):
         # Tìm hoặc tạo người dùng
         user = User.query.filter_by(email=email).first()
         if user:
+            if not _is_account_active(user):
+                return flask_api_error(
+                    ErrorCode.FORBIDDEN,
+                    "Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ.",
+                    status_code=403
+                )
+            if user.google_sub and google_sub and user.google_sub != google_sub:
+                return flask_api_error(
+                    ErrorCode.FORBIDDEN,
+                    "Định danh tài khoản Google không khớp với tài khoản đã liên kết.",
+                    status_code=403
+                )
+            if google_sub and not user.google_sub:
+                user.google_sub = google_sub
             # Đồng bộ lại Avatar và Họ tên từ Google nếu chưa có
             if avatar_url and not user.avatar_url:
                 user.avatar_url = avatar_url
@@ -1038,7 +1204,8 @@ def register_auth_routes(app):
                 email=email,
                 full_name=full_name,
                 role="patient",
-                avatar_url=avatar_url or None
+                avatar_url=avatar_url or None,
+                google_sub=google_sub,
             )
             user.set_password(secrets.token_urlsafe(24))
             db.session.add(user)

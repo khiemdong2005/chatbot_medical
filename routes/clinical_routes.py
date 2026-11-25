@@ -29,9 +29,14 @@ def register_clinical_routes(app):
         user_id = session.get("user_id")
         if not user_id:
             return jsonify({"status": "error", "message": "Vui lòng đăng nhập để xem danh sách phiên tư vấn.", "consultations": []}), 401
-        from core.chat.consultation_service import get_user_consultations
+        from core.chat.consultation_service import get_user_consultations, get_user_chatbot_sessions
         consultations = get_user_consultations(user_id)
-        return jsonify({"status": "success", "consultations": consultations}), 200
+        chatbot_sessions = get_user_chatbot_sessions(user_id)
+        return jsonify({
+            "status": "success",
+            "consultations": consultations,
+            "chatbot_sessions": chatbot_sessions,
+        }), 200
 
     @app.route("/api/consultations/<int:cid>", methods=["DELETE"])
     def delete_consultation(cid):

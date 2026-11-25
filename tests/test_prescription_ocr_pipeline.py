@@ -79,7 +79,7 @@ def test_schedule_activates_both_morning_and_evening():
 
 def test_lab_report_ocr_auto_classification_and_metrics(tmp_path, monkeypatch):
     """Phiếu xét nghiệm không cần Gemini vẫn tự phân loại lab_test và trích xuất đầy đủ chỉ số."""
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
     monkeypatch.setattr(pipe, "check_image_quality", lambda *a, **kw: {"passed": True})
     monkeypatch.setattr(pipe, "preprocess_lightweight", lambda p, **kw: {"processed_path": p})
     monkeypatch.setattr(
@@ -113,7 +113,7 @@ def test_lab_report_ocr_auto_classification_and_metrics(tmp_path, monkeypatch):
 @pytest.mark.skipif(os.name != "nt", reason="Windows Native WinRT OCR end-to-end check")
 def test_windows_native_ocr_extracts_real_prescription_image_without_gemini(tmp_path, monkeypatch):
     """Kiểm thử thực tế trên Windows: ảnh đơn thuốc nền trắng được WinRT OCR đọc ra thuốc mà không cần EasyOCR hay Gemini."""
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
     img = Image.new("RGB", (1000, 650), "white")
     draw = ImageDraw.Draw(img)
     font_path = "C:/Windows/Fonts/arial.ttf"
@@ -139,7 +139,7 @@ def test_windows_native_ocr_extracts_real_prescription_image_without_gemini(tmp_
 
 def test_diabetes_cholesterol_prescription_not_misclassified_as_lab_test(tmp_path, monkeypatch):
     """Đơn thuốc có chữ 'cholesterol'/'glucose' trong chẩn đoán vẫn phải phân loại là prescription và giữ giới tính."""
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
     monkeypatch.setattr(pipe, "check_image_quality", lambda *a, **kw: {"passed": True})
     monkeypatch.setattr(pipe, "preprocess_lightweight", lambda p, **kw: {"processed_path": p})
     raw = (
@@ -190,7 +190,7 @@ def test_upright_prescription_table_not_cropped_or_tilted_by_preprocessing(tmp_p
 
 def test_scanned_image_pdf_extracts_embedded_image_ocr(tmp_path, monkeypatch):
     """PDF scan chỉ chứa ảnh nhúng (không có lớp text) vẫn phải trích xuất ảnh nhúng qua pypdf để chạy OCR."""
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: None)
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: None)
     monkeypatch.setattr(pipe, "check_image_quality", lambda *a, **kw: {"passed": True})
     monkeypatch.setattr(pipe, "preprocess_lightweight", lambda p, **kw: {"processed_path": p})
     monkeypatch.setattr(
@@ -223,7 +223,7 @@ def test_confirm_doc_type_override_blank_rows_and_topical_external_slot(client, 
     monkeypatch.setattr(pipe, "check_image_quality", lambda *a, **kw: {"passed": True})
     monkeypatch.setattr(pipe, "preprocess_lightweight", lambda *a, **kw: {})
     monkeypatch.setattr(pipe, "extract_ocr_parallel", lambda *a, **kw: {"lines": [], "raw_text": ""})
-    monkeypatch.setattr(pipe, "extract_with_gemini_schema", lambda *a, **kw: {"doc_type": "lab_test", "metrics": []})
+    monkeypatch.setattr(pipe, "extract_with_groq_schema", lambda *a, **kw: {"doc_type": "lab_test", "metrics": []})
     monkeypatch.setattr(pipe, "generate_clinical_interpretation", lambda validated, **kw: {"interpretation_md": "OK", "disclaimer": "OK"})
 
     png_buf = io.BytesIO()

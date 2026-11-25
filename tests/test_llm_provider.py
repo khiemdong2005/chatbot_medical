@@ -81,7 +81,6 @@ class TestLLMProviderLifecycle:
         """Profile nutrition đọc đúng GEMINI_NUTRITION_API_KEY khi có cấu hình."""
         monkeypatch.setenv("AI_PROVIDER", "")
         monkeypatch.setenv("GROQ_API_KEY", "")
-        monkeypatch.setenv("OPENROUTER_API_KEY", "")
         monkeypatch.setenv("GEMINI_NUTRITION_API_KEY", "nutri_key_123456789")
         monkeypatch.setenv("GEMINI_API_KEY", "general_key_123456789")
 
@@ -273,3 +272,123 @@ class TestLLMProviderConcurrency:
                     f.result()
 
             assert len(errors) == 0
+
+
+# ==============================================================================
+# 5. KIỂM THỬ MULTI-KEY GROQ FAILOVER & KHÔI PHỤC HTTP 400 (BẢO TOÀN OCR)
+# ==============================================================================
+
+class TestGroqMultiKeyAnd400Recovery:
+    """Kiểm tra tách key theo tác vụ, xoay vòng 429 và xử lý lỗi 400 không làm lệch OCR."""
+
+    def test_groq_workload_key_routing_and_cross_failover_pool(self, monkeypatch):
+        """Chat ưu tiên Key 1 (backup Key 2); OCR/Nutrition ưu tiên Key 2 (backup Key 1)."""
+        monkeypatch.setenv("AI_PROVIDER", "groq")
+        monkeypatch.setenv("GROQ_API_KEY", "gsk_primary_chat_key_111111")
+        monkeypatch.setenv("GROQ_API_KEY_2", "gsk_backup_heavy_key_222222")
+        monkeypatch.setenv("GROQ_OCR_API_KEY", "gsk_backup_heavy_key_222222")
+        monkeypatch.setenv("GROQ_NUTRITION_API_KEY", "gsk_backup_heavy_key_222222")
+
+        provider = LLMProvider()
+        assert provider._collect_groq_key_pool(profile="chat_generation") == [
+            "gsk_primary_chat_key_111111",
+            "gsk_backup_heavy_key_222222",
+        ]
+        assert provider._collect_groq_key_pool(profile="prescription_ocr") == [
+            "gsk_backup_heavy_key_222222",
+            "gsk_primary_chat_key_111111",
+        ]
+        assert provider._collect_groq_key_pool(profile="nutrition_ai") == [
+            "gsk_backup_heavy_key_222222",
+            "gsk_primary_chat_key_111111",
+        ]
+
+    def test_groq_429_fails_over_to_backup_key_preserving_same_model(self):
+        """Khi Key 1 gặp 429, xoay sang Key 2 trên CÙNG model trước khi đổi model."""
+        from core.ai.llm_provider import _GroqHTTPError, _GroqModels, _GROQ_RATE_LIMIT_COOLDOWNS
+        _GROQ_RATE_LIMIT_COOLDOWNS.clear()
+
+        models = _GroqModels(
+            api_key="gsk_key_one_1234567890",
+            fallback_api_keys=["gsk_key_two_1234567890"],
+        )
+        attempts = []
+
+        def fake_post(payload, *, api_key=None):
+            used_key = api_key or models._api_key
+            attempts.append((used_key, payload["model"]))
+            if used_key == "gsk_key_one_1234567890":
+                raise _GroqHTTPError(429, "Groq HTTP 429")
+            return {"choices": [{"message": {"content": '{"medications": [{"name": "Paracetamol"}]}'}}]}
+
+        with patch.object(models, "_post_completion", side_effect=fake_post):
+            resp = models.generate_content(
+                model="qwen/qwen3.8-27b",
+                contents=[
+                    {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,AAAA"}},
+                    "Đọc đơn thuốc",
+                ],
+                config={"response_mime_type": "application/json"},
+            )
+
+        assert attempts == [
+            ("gsk_key_one_1234567890", "qwen/qwen3.8-27b"),
+            ("gsk_key_two_1234567890", "qwen/qwen3.8-27b"),
+        ]
+        assert resp.model == "qwen/qwen3.8-27b"
+        assert "Paracetamol" in resp.text
+
+    def test_groq_multimodal_never_downgrades_to_text_only_fallback_on_429(self):
+        """Payload OCR có ảnh tuyệt đối không gửi sang gpt-oss text-only (tránh 400 và giữ chuẩn OCR)."""
+        from core.ai.llm_provider import _GroqHTTPError, _GroqModels, _GROQ_RATE_LIMIT_COOLDOWNS
+        _GROQ_RATE_LIMIT_COOLDOWNS.clear()
+
+        models = _GroqModels(
+            api_key="gsk_key_one_1234567890",
+            fallback_api_keys=["gsk_key_two_1234567890"],
+        )
+        seen_models = []
+
+        def fake_post(payload, *, api_key=None):
+            seen_models.append(payload["model"])
+            raise _GroqHTTPError(429, "Groq HTTP 429")
+
+        with patch.object(models, "_post_completion", side_effect=fake_post):
+            with pytest.raises(_GroqHTTPError) as exc_info:
+                models.generate_content(
+                    model="qwen/qwen3.8-27b",
+                    contents=[
+                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,AAAA"}},
+                        "Đọc đơn thuốc",
+                    ],
+                )
+
+        assert exc_info.value.status_code == 429
+        assert seen_models == ["qwen/qwen3.8-27b", "qwen/qwen3.8-27b"]
+
+    def test_groq_400_compat_strips_response_format_and_max_tokens(self):
+        """Khi gặp HTTP 400 do response_format/max_tokens, tự gỡ lần lượt để khôi phục ngay."""
+        from core.ai.llm_provider import _GroqHTTPError, _GroqModels, _GROQ_RATE_LIMIT_COOLDOWNS
+        _GROQ_RATE_LIMIT_COOLDOWNS.clear()
+
+        models = _GroqModels(api_key="gsk_key_one_1234567890")
+        seen_payloads = []
+
+        def fake_post(payload, *, api_key=None):
+            seen_payloads.append(dict(payload))
+            if "response_format" in payload or "max_tokens" in payload:
+                raise _GroqHTTPError(400, "Groq HTTP 400 (json_validate_failed)", error_code="json_validate_failed")
+            return {"choices": [{"message": {"content": '{"ok": true}'}}]}
+
+        with patch.object(models, "_post_completion", side_effect=fake_post):
+            resp = models.generate_content(
+                model="qwen/qwen3.8-27b",
+                contents="Tra cứu sức khỏe",
+                config={"response_mime_type": "application/json", "max_output_tokens": 2600, "temperature": 0.2},
+            )
+
+        assert len(seen_payloads) == 3
+        assert "response_format" in seen_payloads[0] and "max_tokens" in seen_payloads[0]
+        assert "response_format" not in seen_payloads[1] and "max_tokens" in seen_payloads[1]
+        assert "response_format" not in seen_payloads[2] and "max_tokens" not in seen_payloads[2]
+        assert resp.text == '{"ok": true}'

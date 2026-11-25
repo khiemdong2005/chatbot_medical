@@ -86,24 +86,40 @@ assert.deepStrictEqual(events, ['medimind:langchange']);
 
 def test_saving_language_setting_uses_available_switcher():
     source = APP_JS.read_text(encoding="utf-8")
-    start = source.index("function handleSaveAllSettings() {")
+    start = source.index("async function handleSaveAllSettings() {")
     end = source.index("\n// ==========================================", start)
     snippet = source[start:end]
     script = f"""
 const assert = require('assert');
 let currentLang = 'vi';
+let currentUser = null;
 let selectedLanguage = null;
-const values = {{ 'set-language': 'en', 'set-timezone': 'UTC+7', 'set-date-format': 'DD/MM/YYYY', 'set-theme-select': 'light' }};
+const values = {{ 'set-language': 'en', 'set-timezone': 'UTC+7', 'set-date-format': 'DD/MM/YYYY', 'set-theme-select': 'dark' }};
 global.document = {{
-  getElementById: id => values[id] ? {{ value: values[id] }} : null,
+  getElementById: id => values[id] ? {{ value: values[id], checked: false }} : null,
   body: {{ classList: {{ contains: () => true }} }}
 }};
 global.localStorage = {{ setItem: () => {{}} }};
 function setLanguage(lang) {{ selectedLanguage = lang; currentLang = lang; }}
+function applyThemeMode() {{}}
 function toggleGlassThemeMode() {{}}
 function showMedicalToast() {{}}
+function broadcastTabEvent() {{}}
+function applyUserPreferencesToUI(prefs) {{
+  if (prefs.lang && prefs.lang !== currentLang) setLanguage(prefs.lang);
+  return prefs;
+}}
 {snippet}
-handleSaveAllSettings();
-assert.strictEqual(selectedLanguage, 'en');
+Promise.resolve(handleSaveAllSettings()).then(() => {{
+  assert.strictEqual(selectedLanguage, 'en');
+}}).catch(err => {{ console.error(err); process.exit(1); }});
 """
     run_node(script)
+
+
+def test_previsit_and_ocr_i18n_sync_hooks():
+    app_src = APP_JS.read_text(encoding="utf-8")
+    previsit_src = (APP_JS.parent / "previsit-intake.js").read_text(encoding="utf-8")
+    assert "medimind:langchange" in previsit_src
+    assert '"PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC": "CLASSIFICATION: ORIGINAL PRESCRIPTION"' in app_src
+    assert '"Lịch hẹn khám của tôi": "My Medical Appointments"' in app_src

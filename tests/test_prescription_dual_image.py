@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from core.gemini_schema_service import extract_with_gemini_schema
+from core.groq_schema_service import extract_with_groq_schema
 from core.llm_provider import llm_provider
 
 
@@ -20,7 +20,7 @@ def test_prescription_sends_full_image_and_crop_in_one_call(tmp_path):
     with (patch.object(llm_provider, "resolve_api_key", return_value="test-key"),
           patch.object(llm_provider, "is_configured", return_value=True),
           patch.object(llm_provider, "generate_json", return_value={"medications": []}) as generate):
-        extract_with_gemini_schema(str(image), ocr_result={"rows": rows, "lines": []})
+        extract_with_groq_schema(str(image), ocr_result={"rows": rows, "lines": []})
 
     contents = generate.call_args.kwargs["contents"]
     assert len(contents) == 3  # full image, crop, prompt: one generate call
@@ -35,6 +35,6 @@ def test_prescription_without_reliable_crop_sends_only_full_image(tmp_path):
     with (patch.object(llm_provider, "resolve_api_key", return_value="test-key"),
           patch.object(llm_provider, "is_configured", return_value=True),
           patch.object(llm_provider, "generate_json", return_value={"medications": []}) as generate):
-        extract_with_gemini_schema(str(image), ocr_result={"rows": [], "lines": []})
+        extract_with_groq_schema(str(image), ocr_result={"rows": [], "lines": []})
 
     assert len(generate.call_args.kwargs["contents"]) == 2

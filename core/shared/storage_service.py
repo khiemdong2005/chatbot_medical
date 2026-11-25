@@ -28,6 +28,7 @@ FILE_SIGNATURES = {
     "png": [b"\x89PNG\r\n\x1a\n"],
     "jpg": [b"\xff\xd8\xff"],
     "jpeg": [b"\xff\xd8\xff"],
+    "webp": [b"RIFF"],
     "pdf": [b"%PDF"],
     "docx": [b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"],
     "doc": [b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"]
@@ -55,8 +56,23 @@ def validate_file_content(file_bytes: bytes, declared_ext: str) -> bool:
     if ext not in FILE_SIGNATURES:
         return False
 
+    if ext == "webp":
+        return len(file_bytes) >= 12 and file_bytes.startswith(b"RIFF") and file_bytes[8:12] == b"WEBP"
+
     signatures = FILE_SIGNATURES[ext]
     return any(file_bytes.startswith(sig) for sig in signatures)
+
+
+def _detect_supported_image_extension(file_bytes: bytes) -> Optional[str]:
+    """Identify a supported raster format from its signature, not its filename."""
+    if file_bytes.startswith(FILE_SIGNATURES["png"][0]):
+        return "png"
+    if file_bytes.startswith(FILE_SIGNATURES["jpg"][0]):
+        return "jpg"
+    if (len(file_bytes) >= 12 and file_bytes.startswith(b"RIFF")
+            and file_bytes[8:12] == b"WEBP"):
+        return "webp"
+    return None
 
 
 def inspect_upload_safety(file_bytes: bytes, ext: str) -> Tuple[bool, Optional[str]]:
@@ -115,7 +131,9 @@ def inspect_upload_safety(file_bytes: bytes, ext: str) -> Tuple[bool, Optional[s
     return True, None
 
 
-def process_secure_upload(file_obj, upload_folder: str) -> Tuple[bool, Dict[str, Any], Optional[str]]:
+def process_secure_upload(
+    file_obj, upload_folder: str, *, detect_image_format: bool = False
+) -> Tuple[bool, Dict[str, Any], Optional[str]]:
     """
     Xử lý tệp tải lên với tiêu chuẩn bảo mật y tế:
       1. Kiểm tra tên tệp & loại bỏ ký tự nguy hiểm
@@ -140,7 +158,7 @@ def process_secure_upload(file_obj, upload_folder: str) -> Tuple[bool, Dict[str,
         return False, {}, "Tệp không có phần mở rộng hợp lệ."
 
     ext = safe_client_name.rsplit(".", 1)[-1].lower()
-    if ext not in ALLOWED_EXTENSIONS:
+    if ext not in ALLOWED_EXTENSIONS and not (detect_image_format and ext == "webp"):
         return False, {}, f"Định dạng '.{ext}' không được hỗ trợ. Vui lòng chọn JPG, PNG, PDF hoặc DOCX."
 
     # Đọc nội dung để kiểm tra kích thước và chữ ký nhị phân
@@ -150,6 +168,12 @@ def process_secure_upload(file_obj, upload_folder: str) -> Tuple[bool, Dict[str,
 
     if len(file_bytes) > MAX_FILE_SIZE_BYTES:
         return False, {}, f"Dung lượng tệp ({len(file_bytes) / (1024*1024):.1f} MB) vượt quá giới hạn cho phép (10 MB)."
+
+    actual_image_ext = _detect_supported_image_extension(file_bytes) if detect_image_format else None
+    if detect_image_format and ext in {"jpg", "jpeg", "png", "webp"} and actual_image_ext:
+        # Some devices export WebP/JPEG bytes with a .png name. Keep accepting
+        # only recognized image signatures, then store with the real extension.
+        ext = actual_image_ext
 
     if not validate_file_content(file_bytes, ext):
         return False, {}, f"Nội dung tệp không khớp với định dạng .{ext} được khai báo."
@@ -178,7 +202,7 @@ def process_secure_upload(file_obj, upload_folder: str) -> Tuple[bool, Dict[str,
         "absolute_path": str(dest_path),
         "file_size": len(file_bytes),
         "file_type": ext.upper(),
-        "mime_type": f"image/{ext}" if ext in ["jpg", "jpeg", "png"] else f"application/{ext}"
+        "mime_type": f"image/{'jpeg' if ext == 'jpg' else ext}" if ext in ["jpg", "jpeg", "png", "webp"] else f"application/{ext}"
     }
 
     return True, metadata, None

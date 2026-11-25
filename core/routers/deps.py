@@ -30,7 +30,7 @@ def extract_request_identity(request: Request) -> Tuple[Optional[int], Optional[
 
     flask_app = get_flask_app()
 
-    # 1. Đọc từ Flask session cookie nếu có
+    # 1. Đọc từ Flask session cookie nếu có (đồng bộ max_age với PERMANENT_SESSION_LIFETIME)
     if flask_app is not None:
         cookie_name = getattr(flask_app, "session_cookie_name", "session")
         raw_cookie = request.cookies.get(cookie_name)
@@ -38,7 +38,9 @@ def extract_request_identity(request: Request) -> Tuple[Optional[int], Optional[
             try:
                 serializer = flask_app.session_interface.get_signing_serializer(flask_app)
                 if serializer:
-                    data = serializer.loads(raw_cookie)
+                    lifetime = getattr(flask_app, "permanent_session_lifetime", None)
+                    max_age = int(lifetime.total_seconds()) if lifetime is not None else 7200
+                    data = serializer.loads(raw_cookie, max_age=max_age)
                     if isinstance(data, dict):
                         user_id = data.get("user_id")
                         guest_token = data.get("guest_token")
@@ -63,8 +65,8 @@ def extract_request_identity(request: Request) -> Tuple[Optional[int], Optional[
 
 def require_authenticated_user(request: Request) -> int:
     """
-    FastAPI dependency: Bắt buộc phiên người dùng đã xác thực.
-    Nếu không có phiên hoặc phiên hết hạn -> ném canonical 401.
+    FastAPI dependency: Bắt buộc phiên người dùng đã xác thực, còn tồn tại và đang hoạt động.
+    Nếu không có phiên, phiên hết hạn hoặc tài khoản bị khóa -> ném canonical 401/403.
     """
     user_id, _, _ = extract_request_identity(request)
     if not user_id:
@@ -72,6 +74,27 @@ def require_authenticated_user(request: Request) -> int:
             status_code=401,
             detail="Vui lòng đăng nhập để thực hiện chức năng này."
         )
+    try:
+        from core.shared.db_utils import app_db_context
+        from core.shared.models import User
+        from core.shared.settings import get_settings
+        with app_db_context() as sess:
+            user = sess.get(User, user_id)
+            if user is not None:
+                if (getattr(user, "account_status", "active") or "active").strip().lower() != "active":
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ."
+                    )
+            elif get_settings().server.is_production:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại."
+                )
+    except HTTPException:
+        raise
+    except Exception:
+        pass
     return user_id
 
 

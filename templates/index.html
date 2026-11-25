@@ -10,6 +10,14 @@
 
   <title>MediMind Clinical AI — Trợ lý Y tế &amp; Sàng lọc Lâm sàng</title>
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}?v=1">
+  <script>
+    document.documentElement.setAttribute('data-app-starting', '');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.removeAttribute('data-app-starting');
+    }, { once: true });
+  </script>
+
   <!-- Tailwind CSS CDN -->
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,15 +33,16 @@
 
   </script>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.2">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=14">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=8">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=10">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=8">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=5">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=4">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=13">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.8">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=17">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=10">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=11">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=12">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=7">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=7">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=23">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/previsit-intake.css') }}?v=6">
 
   <!-- Leaflet CSS & JS for Interactive Hospital Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -174,10 +183,12 @@
     }
   </style>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/previsit-intake.css') }}?v=5">
 </head>
 
 <body class="antialiased min-h-screen flex flex-col justify-between overflow-x-hidden select-none relative dark">
+  <div class="app-startup-status" role="status">
+    <span><i class="mm-spinner" aria-hidden="true"></i><span data-i18n="app_loading">Đang mở MediMind…</span></span>
+  </div>
 
   <!-- Ambient Glassy Twilight Lighting Blobs (Glassy Dashboard V5 Style) -->
 
@@ -364,7 +375,7 @@
 
     <!-- Right Controls (Glass Pills) -->
 
-    <div class="flex items-center space-x-1 sm:space-x-2 shrink-0 whitespace-nowrap">
+    <div class="flex items-center gap-1 sm:gap-2 shrink-0 whitespace-nowrap">
 
       <!-- Language Picker Dropdown -->
 
@@ -436,75 +447,60 @@
 
 
 
-      <!-- Chopper Notification Button with Interactive Dropdown -->
+      <button type="button" id="header-appointments-btn" onclick="navigateTo('my-appointments-tab')"
+        class="order-1 shrink-0 h-9 sm:h-10 px-2 sm:px-3 rounded-full glass-pill hover:bg-white/15 text-slate-200 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs font-semibold"
+        title="Lịch hẹn của tôi" aria-label="Lịch hẹn của tôi" data-i18n-title="facility_btn_my_appts"
+        data-i18n-aria="facility_btn_my_appts">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span data-i18n="facility_btn_my_appts">Lịch hẹn của tôi</span>
+      </button>
 
+      <!-- Standard Notification Button with Interactive Dropdown (Normal Bell) -->
       <div class="relative header-notification-wrap">
-
         <button type="button" id="notif-btn" onclick="toggleNotificationDropdown(event)"
-          class="relative rounded-full hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center p-0.5"
-          title="Thông báo lâm sàng" aria-label="Thông báo lâm sàng">
-
-          <img id="header-chopper" src="{{ url_for('static', filename='images/header-bell-reference.png') }}?v=1"
-            alt="Thông báo" class="w-10 h-10 object-contain pointer-events-none drop-shadow-[0_4px_10px_rgba(2,132,199,0.35)] hover:scale-110 transition-transform">
-
+          class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full glass-pill hover:bg-white/15 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center justify-center"
+          title="Thông báo" aria-label="Thông báo" aria-controls="notif-dropdown-menu" aria-expanded="false">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-200" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
           <span id="notif-badge"
-            class="hidden absolute top-0 right-0 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">0</span>
-
+            class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center shadow-xs border border-[#082952]">0</span>
         </button>
 
-
-
         <!-- Notification Dropdown Menu -->
-
-        <div id="notif-dropdown-menu"
-          class="hidden absolute right-0 top-full mt-2 w-80 sm:w-96 bg-[#0e1626]/95 border border-white/10 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2 backdrop-blur-2xl">
-
-          <div class="flex items-center justify-between pb-2 border-b border-white/10 px-1">
-
-            <div class="flex items-center space-x-2">
-
-              <span class="font-bold text-sm text-white" id="notif-title" data-i18n="notif_title">Thông báo</span>
-
+        <div id="notif-dropdown-menu" class="hidden" role="region" aria-labelledby="notif-title">
+          <div class="notif-panel-heading">
+            <div class="notif-panel-title">
+              <h2 id="notif-title" data-i18n="notif_title">Thông báo</h2>
               <span id="notif-unread-count"
                 class="hidden px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[10px] font-bold">0</span>
-
             </div>
-
             <button type="button" onclick="markAllNotificationsAsRead()"
-              class="hidden text-[11px] text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline"
+              class="hidden notif-mark-read"
               id="notif-mark-read-btn" data-i18n="notif_mark_read">
-
               Đánh dấu đã đọc tất cả
-
             </button>
-
           </div>
-
-
 
           <!-- Notifications List (Empty by default for new accounts) -->
-
-          <div id="notif-items-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-
+          <div id="notif-items-list">
             <div id="notif-empty-state"
               class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
-
               <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor"
                 stroke-width="1.5" viewBox="0 0 24 24">
-
                 <path stroke-linecap="round" stroke-linejoin="round"
                   d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-
               </svg>
-
               <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">Không có thông báo mới</p>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
 
 
@@ -630,43 +626,27 @@
     <div id="home-tab"
       class="tab-content active w-full flex-1 flex-col py-2 sm:py-4 space-y-8 animate-in fade-in duration-200">
 
-      <!-- HERO BANNER CARD (Exact Match to User UI Mockup) -->
-      <div
-        class="home-hero-banner relative overflow-hidden rounded-[28px] sm:rounded-[32px] p-6 sm:p-8 lg:p-10 border border-sky-400/25 transition-all shadow-2xl min-h-[340px] sm:min-h-[360px] lg:min-h-[380px] flex items-center">
-        <!-- Background Ambient Glow & Subtle Shapes -->
-        <div
-          class="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-sky-500/15 blur-3xl pointer-events-none">
-        </div>
-        <div
-          class="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none">
-        </div>
-        <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-sky-400/10 blur-[120px] pointer-events-none">
-        </div>
-
-        <!-- Balanced Layout (Exact Match to Ảnh 1): Left Text (~42%), Right Mascot + Radar Composition (~58%) -->
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-4 relative z-10 w-full">
-
-          <!-- 1. LEFT COLUMN: Greeting, Big Headline, Description, Actions & 3 Trust Badges -->
-          <div class="home-hero-copy w-full lg:w-[42%] xl:w-[40%] space-y-4 sm:space-y-5 shrink-0">
+      <div class="home-hero-banner">
+        <div class="home-hero-layout">
+          <div class="home-hero-copy space-y-4 sm:space-y-5">
 
             <!-- Greeting Pill with pulsating amber dot -->
             <div id="home-greeting-badge"
               class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-xs font-extrabold uppercase tracking-widest text-slate-200 shadow-sm">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] animate-pulse"></span>
-              <span id="home-greeting-text">CHÀO BUỔI CHIỀU, KHIÊM NGUYỄN</span>
+              <span id="home-greeting-text">CHÀO BUỔI SÁNG</span>
             </div>
 
             <!-- Big Headline -->
             <h1 data-i18n="home_hero_headline"
-              class="text-3xl sm:text-4xl lg:text-[40px] xl:text-[44px] font-black tracking-normal text-white leading-[1.22]">
+              class="home-hero-title font-black text-white">
               Chăm sóc sức khỏe<br>
               thông minh hơn mỗi ngày.
             </h1>
 
             <!-- Subtitle -->
             <p data-i18n="home_hero_desc"
-              class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg font-normal">
+              class="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl font-normal text-pretty">
               Một nơi tin cậy để bạn hiểu cơ thể, quản lý sức khỏe và chủ động hơn trong mỗi quyết định.
             </p>
 
@@ -690,8 +670,8 @@
               <!-- Secondary: Thử thách sống khỏe -->
               <button onclick="navigateTo('doctor-tab')"
                 class="px-6 sm:px-7 py-3 sm:py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-bold text-xs sm:text-sm shadow-xs flex items-center gap-2.5 transition-all transform hover:-translate-y-0.5 cursor-pointer">
-                <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
                   <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
                 </svg>
@@ -699,10 +679,10 @@
               </button>
             </div>
 
-            <!-- 3 Trust Badges (Exact match to Ảnh 1) -->
+            <!-- Trust badges -->
             <div
-              class="flex flex-wrap items-center gap-x-6 gap-y-2.5 pt-3 text-xs sm:text-sm font-semibold text-slate-300">
-              <span class="flex items-center gap-2 whitespace-nowrap">
+              class="home-hero-trust flex flex-wrap items-center gap-x-5 lg:gap-x-6 gap-y-3.5 pt-2 text-xs sm:text-sm font-semibold text-slate-300 leading-normal">
+              <span class="flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -710,14 +690,14 @@
                 </svg>
                 <span data-i18n="home_badge_security">Thông tin được bảo mật</span>
               </span>
-              <span class="flex items-center gap-2 whitespace-nowrap">
+              <span class="flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span data-i18n="home_badge_data">Hỗ trợ dựa trên dữ liệu</span>
               </span>
-              <span class="flex items-center gap-2 whitespace-nowrap">
+              <span class="flex items-center gap-2 shrink-0">
                 <svg class="w-4 h-4 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -729,110 +709,32 @@
 
           </div>
 
-          <!-- 2. RIGHT COMPOSITION: Mascot + Concentric Orbital Radar (Unified Cluster matching Ảnh 1) -->
-          <div class="home-hero-visual w-full lg:w-[58%] xl:w-[60%] flex items-center justify-center lg:justify-end relative min-h-[300px] sm:min-h-[330px] shrink-0">
-            <div class="home-hero-stage relative flex items-center justify-end w-full max-w-[560px] xl:max-w-[580px]">
+          <div class="home-hero-stage" aria-hidden="true">
+            <img src="{{ url_for('static', filename='images/home-hero-tablet.png') }}"
+              alt="" width="1024" height="682" class="home-hero-art home-hero-tablet">
+            <img src="{{ url_for('static', filename='images/home-hero-radar.png') }}"
+              alt="" width="1024" height="1024" class="home-hero-art home-hero-radar">
 
-              <!-- Mascot (Z-10, standing on the left side of the cluster) -->
-              <div class="home-hero-mascot-wrap relative z-10 shrink-0 flex items-center justify-center">
-                <!-- Radial cyan floor glow behind mascot portal -->
-                <div class="absolute -bottom-5 w-56 h-16 bg-sky-400/35 blur-2xl rounded-full pointer-events-none"></div>
-                <img src="/static/images/home-hero-reference.png"
-                  alt="MediMind Cyber Doctor Mascot"
-                  class="home-hero-mascot h-[270px] sm:h-[300px] lg:h-[320px] xl:h-[340px] w-auto object-contain select-none pointer-events-none drop-shadow-[0_15px_35px_rgba(2,132,199,0.45)] hover:scale-105 transition-transform duration-300">
-              </div>
-
-              <!-- Radar & 92% Card (Z-0, overlapping gracefully behind mascot's tablet & right side) -->
-              <div class="home-hero-orbit relative z-0 -ml-10 sm:-ml-14 lg:-ml-16 shrink-0 flex flex-col items-end">
-                <!-- Concentric Orbital Radar SVG -->
-                <svg class="w-[280px] sm:w-[310px] lg:w-[330px] xl:w-[350px] h-[250px] sm:h-[280px] lg:h-[300px] xl:h-[310px]" viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <radialGradient id="radarCenterGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.6"/>
-                      <stop offset="50%" stop-color="#0284c7" stop-opacity="0.25"/>
-                      <stop offset="100%" stop-color="#0369a1" stop-opacity="0"/>
-                    </radialGradient>
-                    <radialGradient id="radarOrbGrad" cx="35%" cy="30%" r="70%">
-                      <stop offset="0%" stop-color="#7dd3fc"/>
-                      <stop offset="35%" stop-color="#38bdf8"/>
-                      <stop offset="70%" stop-color="#2563eb"/>
-                      <stop offset="100%" stop-color="#1d4ed8"/>
-                    </radialGradient>
-                    <filter id="radarOrbGlow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#38bdf8" flood-opacity="0.9"/>
-                      <feDropShadow dx="0" dy="0" stdDeviation="24" flood-color="#0284c7" flood-opacity="0.6"/>
-                    </filter>
-                  </defs>
-
-                  <!-- Ambient Radial Glow -->
-                  <circle cx="180" cy="155" r="110" fill="url(#radarCenterGlow)"/>
-
-                  <!-- Concentric Radar Rings -->
-                  <circle cx="180" cy="155" r="162" stroke="rgba(56, 189, 248, 0.16)" stroke-width="1.2"/>
-                  <circle cx="180" cy="155" r="136" stroke="rgba(56, 189, 248, 0.28)" stroke-width="1.5"/>
-                  <circle cx="180" cy="155" r="96" stroke="rgba(56, 189, 248, 0.36)" stroke-width="1.5"/>
-                  <circle cx="180" cy="155" r="56" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1.5"/>
-
-                  <!-- Central Glowing Health Orb -->
-                  <g filter="url(#radarOrbGlow)" class="transition-transform duration-300 hover:scale-105 cursor-pointer">
-                    <circle cx="180" cy="155" r="34" fill="url(#radarOrbGrad)" stroke="rgba(255, 255, 255, 0.7)" stroke-width="2"/>
-                    <!-- White Heart with Medical Cross inside -->
-                    <path d="M180 167.5l-1.15-1.05c-5.5-5-9-7.8-9-11.2 0-2.8 2.2-4.9 5-4.9 1.5 0 3 .8 3.8 1.9.8-1.1 2.3-1.9 3.8-1.9 2.8 0 5 2.1 5 4.9 0 3.4-3.5 6.2-9 11.2l-1.15 1.05z" fill="#ffffff"/>
-                    <path d="M180 153.5v5 M177.5 156h5" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round"/>
-                  </g>
-
-                  <!-- Orbiting Node 1: Document (Left on ring r=56) -->
-                  <g transform="translate(124, 155)" class="hover:scale-110 transition-transform">
-                    <circle cx="0" cy="0" r="13" fill="#082952" stroke="#38bdf8" stroke-width="1.5"/>
-                    <path d="M-4 -4.5h8v9h-8z M-2 -2h4 M-2 0.5h4 M-2 3h2" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-                  </g>
-
-                  <!-- Orbiting Node 2: Stethoscope (Top-Right on ring r=96) -->
-                  <g transform="translate(248, 87)" class="hover:scale-110 transition-transform">
-                    <circle cx="0" cy="0" r="13" fill="#082952" stroke="#38bdf8" stroke-width="1.5"/>
-                    <path d="M-4 -3.5v3a4 4 0 0 0 8 0v-3 M0 3v2a2 2 0 0 0 2 2h1 M3 6.5a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4z" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" fill="none"/>
-                  </g>
-
-                  <!-- Orbiting Node 3: Pill Capsule (Middle-Right on ring r=136) -->
-                  <g transform="translate(316, 140)" class="hover:scale-110 transition-transform">
-                    <circle cx="0" cy="0" r="13" fill="#082952" stroke="#38bdf8" stroke-width="1.5"/>
-                    <rect x="-5.5" y="-3" width="11" height="6" rx="3" transform="rotate(-35)" stroke="#38bdf8" stroke-width="1.2" fill="none"/>
-                    <line x1="0" y1="-3" x2="0" y2="3" transform="rotate(-35)" stroke="#38bdf8" stroke-width="1.2"/>
-                  </g>
-
-                  <!-- Orbiting Node 4: Heartbeat Pulse (Bottom-Right on ring r=96) -->
-                  <g transform="translate(245, 223)" class="hover:scale-110 transition-transform">
-                    <circle cx="0" cy="0" r="13" fill="#082952" stroke="#38bdf8" stroke-width="1.5"/>
-                    <path d="M-5.5 0h2.4l1.4 -3.8l2.8 7.5l1.6 -3.7h2.8" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                  </g>
+            <div class="home-hero-metric flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full bg-[#082852]/95 border border-sky-400/40 shadow-lg">
+              <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-sky-500/25 border border-sky-400/60 flex items-center justify-center text-sky-400 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-
-                <!-- Floating Health Metric Pill Card (Khỏe mạnh 92%) -->
-                <div class="home-hero-metric relative -mt-8 sm:-mt-10 z-20 flex items-center gap-3 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#082852]/95 border border-sky-400/50 backdrop-blur-2xl shadow-[0_16px_36px_rgba(2,12,32,0.75)] hover:border-sky-400/80 transition-all">
-                  <div class="w-8 h-8 rounded-full bg-sky-500/25 border border-sky-400/60 flex items-center justify-center text-sky-400 shrink-0">
-                    <svg class="w-4 h-4 text-sky-400 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </div>
-                  <div class="flex flex-col leading-tight">
-                    <span class="text-xs font-bold text-white tracking-wide" data-i18n="home_metric_status">Khỏe mạnh</span>
-                    <span class="text-[10px] text-sky-200/80 font-medium" data-i18n="home_metric_sub">Chỉ số hôm nay</span>
-                  </div>
-                  <div class="ml-2 pl-3 border-l border-white/20">
-                    <span class="text-xl sm:text-2xl font-black text-sky-400 tracking-tight">92%</span>
-                  </div>
-                </div>
               </div>
-
+              <div class="flex flex-col leading-tight">
+                <span class="text-xs font-bold text-white tracking-wide" data-i18n="home_metric_status">Khỏe mạnh</span>
+                <span class="text-[10px] text-sky-200/80 font-medium" data-i18n="home_metric_sub">Chỉ số hôm nay</span>
+              </div>
+              <div class="pl-2 sm:pl-3 border-l border-white/20">
+                <span class="text-xl sm:text-2xl font-black text-sky-400 tracking-tight">92%</span>
+              </div>
             </div>
           </div>
-
         </div>
-
       </div>
 
-            <!-- SECTION 2: KHÁM PHÁ (Discovery Section & 3 Feature Cards Grid) -->
-      <div class="space-y-6 pt-4 sm:pt-6">
+      <!-- Discovery section -->
+      <div class="home-discovery space-y-6 pt-4 sm:pt-6">
 
         <!-- Section Header (Left title, Right description & link) -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-5">
@@ -841,15 +743,14 @@
               class="text-[11px] font-extrabold tracking-[0.18em] uppercase text-amber-600 dark:text-amber-400 block">KHÁM
               PHÁ</span>
             <h2 data-i18n="home_disc_title"
-              class="text-2xl sm:text-3xl font-black tracking-normal leading-[1.42] sm:leading-[1.38] text-slate-900 dark:text-white">
-              Mọi thứ bạn cần<br class="hidden sm:inline"> để sống khỏe hơn.
+              class="text-2xl sm:text-3xl font-black tracking-normal leading-[1.35] text-slate-900 dark:text-white" style="text-wrap: balance;">
+              Mọi thứ bạn cần để sống khỏe hơn.
             </h2>
           </div>
-          <div class="text-left md:text-right max-w-md">
+          <div class="text-left md:text-right max-w-lg">
             <p data-i18n="home_disc_desc"
-              class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal">
-              Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi
-              ngày.
+              class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-1.5 font-normal" style="text-wrap: pretty;">
+              Những công cụ đơn giản, được thiết kế để biến việc chăm sóc sức khỏe thành một thói quen nhẹ nhàng mỗi ngày.
             </p>
             <button onclick="navigateTo('doctor-tab')"
               class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 transition-colors cursor-pointer">
@@ -870,9 +771,11 @@
           <div onclick="navigateTo('chat-tab')"
             class="home-discovery-card rounded-2xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden">
             <!-- Background watermark -->
-            <div class="absolute -right-3 -bottom-3 text-sky-400/5 group-hover:text-sky-400/10 transition-colors pointer-events-none select-none">
+            <div
+              class="absolute -right-3 -bottom-3 text-sky-400/5 group-hover:text-sky-400/10 transition-colors pointer-events-none select-none">
               <svg class="w-28 h-28" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <path
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
             <div class="relative z-10">
@@ -893,11 +796,12 @@
             </div>
           </div>
 
-          <!-- Card 2: Dinh dưỡng & Pha chế (Emerald Theme) -->
+          <!-- Card 2: Bàn pha chế dinh dưỡng (Emerald Theme) -->
           <div onclick="navigateTo('doctor-tab')"
             class="home-discovery-card rounded-2xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden">
             <!-- Background watermark -->
-            <div class="absolute -right-3 -bottom-3 text-emerald-400/5 group-hover:text-emerald-400/10 transition-colors pointer-events-none select-none">
+            <div
+              class="absolute -right-3 -bottom-3 text-emerald-400/5 group-hover:text-emerald-400/10 transition-colors pointer-events-none select-none">
               <svg class="w-28 h-28" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
                 <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
@@ -913,20 +817,22 @@
                 </svg>
               </div>
               <span data-i18n="home_c2_tag"
-                class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 block mb-1.5">DINH DƯỠNG THEO THỂ TRẠNG</span>
+                class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 block mb-1.5">DINH DƯỠNG THEO
+                THỂ TRẠNG</span>
               <h3 data-i18n="home_c2_title"
                 class="text-white font-black text-xl mb-2 group-hover:text-emerald-300 transition-colors">
-                Dinh dưỡng &amp; Pha chế</h3>
+                Bàn pha chế dinh dưỡng</h3>
               <p data-i18n="home_c2_desc" class="text-slate-300 text-xs sm:text-sm leading-relaxed">
                 Khám phá nguyên liệu nên dùng, món cần tránh và công thức phù hợp với thể trạng.</p>
             </div>
           </div>
 
           <!-- Card 3: Lịch hẹn sắp tới (Amber Theme) -->
-          <div onclick="navigateTo('booking-tab')"
+          <div onclick="navigateTo('my-appointments-tab')"
             class="home-discovery-card rounded-2xl p-6 sm:p-7 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden">
             <!-- Background watermark -->
-            <div class="absolute -right-3 -bottom-3 text-amber-400/5 group-hover:text-amber-400/10 transition-colors pointer-events-none select-none">
+            <div
+              class="absolute -right-3 -bottom-3 text-amber-400/5 group-hover:text-amber-400/10 transition-colors pointer-events-none select-none">
               <svg class="w-28 h-28" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -940,7 +846,8 @@
                 </svg>
               </div>
               <span data-i18n="home_c3_tag"
-                class="text-[11px] font-extrabold uppercase tracking-wider text-amber-400 block mb-1.5">ĐỒNG HÀNH CÙNG BẠN</span>
+                class="text-[11px] font-extrabold uppercase tracking-wider text-amber-400 block mb-1.5">ĐỒNG HÀNH CÙNG
+                BẠN</span>
               <h3 data-i18n="home_c3_title"
                 class="text-white font-black text-xl mb-2 group-hover:text-amber-300 transition-colors">
                 Lịch hẹn sắp tới</h3>
@@ -952,9 +859,52 @@
         </div>
 
       </div>
-
     </div>
     <div id="chat-tab" class="tab-content chat-empty flex-1 grid grid-cols-1 gap-0">
+
+      <div class="chat-scene-topline">
+        <div class="chat-scene-header">
+          <svg class="chat-brand-pulse" viewBox="0 0 48 40" fill="none" stroke="currentColor"
+            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 22h9l3-4 4 8 5-23 5 35 5-21 3 5h10" />
+          </svg>
+          <h3 data-i18n="assistant_header_title">Trợ lý sức khỏe MediMind</h3>
+        </div>
+
+        <div class="chat-scene-actions">
+          <button type="button" id="chat-mode-general-btn" aria-pressed="true"
+            onclick="document.getElementById('user-input').focus()" class="chat-header-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 3h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H9l-5 4v-4a2 2 0 0 1-2-2V6a3 3 0 0 1 3-3Zm15 5a3 3 0 0 1 2 3v8l-3-2M7 10h.01m4 0h.01m4 0h.01" />
+            </svg>
+            <span data-i18n="chat_mode_general">Hỏi đáp y tế</span>
+          </button>
+          <button type="button" id="chat-mode-intake-btn" aria-haspopup="dialog" aria-controls="previsit-intake"
+            onclick="PrevisitIntake.open()" class="chat-header-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="8" y="2" width="8" height="4" rx="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m0 7h8m-8 5h8" />
+            </svg>
+            <span data-i18n="intake_btn_summary">Tóm tắt trước khám</span>
+          </button>
+          <button type="button" id="chat-pdf-button" class="chat-header-button chat-pdf-button" onclick="exportChatPdf()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-7-7Zm0 0v7h7M8 13h8m-8 4h8" />
+            </svg>
+            <span data-i18n="chat_export_pdf">Xuất PDF hội thoại</span>
+          </button>
+          <button type="button" class="chat-header-button" onclick="navigateTo('home-tab')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 12H4m7 7-7-7 7-7" />
+            </svg>
+            <span data-i18n="nav_home">Trang chủ</span>
+          </button>
+        </div>
+      </div>
 
       <!-- ============================================================== -->
       <!-- LEFT COLUMN (4/12): LỊCH SỬ TƯ VẤN                             -->
@@ -981,7 +931,7 @@
                 lọc và phân tích triệu chứng</p>
             </div>
             <button type="button" id="chat-new-button" onclick="resetChat()"
-              class="w-full text-xs font-bold py-2.5 px-4 rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center space-x-2 transition-all shadow-md shadow-sky-600/30 cursor-pointer"
+              class="chat-reset-control w-full text-xs font-bold py-2.5 px-4 rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center space-x-2 transition-all shadow-md shadow-sky-600/30 cursor-pointer"
               title="Cuộc trò chuyện mới">
               <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5"
                 viewBox="0 0 24 24">
@@ -1040,44 +990,7 @@
       <section
         class="chat-conversation-shell bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col">
 
-        <!-- Header: Avatar + MediMind Title + Subtitle -->
-        <div class="chat-scene-topline">
-        <div class="chat-scene-header flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/10 shrink-0">
-          <div class="flex items-center space-x-3.5">
-            <!-- Avatar Badge with Sky-Blue Theme -->
-            <div
-              class="w-11 h-11 rounded-2xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/30 shrink-0 border border-sky-400/30">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 data-i18n="assistant_header_title"
-                class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Trợ lý y tế MediMind</h3>
-              <p data-i18n="assistant_header_subtitle"
-                class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 font-normal">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                <span>Đang trực tuyến • Tham khảo MedlinePlus và Dược thư</span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="chat-scene-actions flex flex-wrap items-center gap-2">
-          <button type="button" id="chat-mode-intake-btn" onclick="PrevisitIntake.open()"
-            aria-haspopup="dialog" aria-controls="previsit-intake"
-            class="chat-scene-export px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200"
-            data-i18n="chat_mode_intake">Hỏi bệnh trước khám</button>
-          <button type="button" onclick="exportChatPdf()"
-            class="chat-scene-export chat-pdf-button px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 dark:text-slate-200">Xuất
-            PDF hội thoại</button>
-        </div>
-        </div>
-
         <div id="chat-empty-state" class="chat-empty-state" aria-live="polite">
-          <img class="chat-hero-mascot" src="{{ url_for('static', filename='images/chat/chat-mascot-flag.webp') }}"
-            alt="" width="1180" height="562" loading="lazy" decoding="async">
           <span class="chat-empty-kicker">MEDIMIND CLINICAL AI</span>
           <h2 data-i18n="chat_welcome_title">Hôm nay mình có thể giúp gì cho bạn?</h2>
           <p data-i18n="chat_welcome_subtitle">Mô tả triệu chứng hoặc đặt câu hỏi để bắt đầu cuộc trò chuyện.</p>
@@ -1136,46 +1049,12 @@
 
 
 
-          <!-- Image Preview Container -->
-          <div id="chat-image-preview-container"
-            class="hidden mb-2 p-2 bg-slate-50 dark:bg-slate-800 border border-sky-400/50 rounded-2xl flex items-center justify-between transition-all">
-            <div class="flex items-center space-x-2.5 overflow-hidden">
-
-              <img id="chat-image-preview-thumb" src="" alt="Ảnh tổn thương"
-                class="w-10 h-10 rounded-xl object-cover border border-sky-300 shrink-0">
-
-              <div class="truncate">
-                <div class="text-[11px] font-bold text-slate-900 dark:text-white truncate" id="chat-image-preview-name">
-                  anh_ton_thuong.jpg</div>
-                <div class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">Ảnh lâm sàng sẵn sàng đối chiếu
-                </div>
-              </div>
-
-            </div>
-            <button type="button" onclick="clearChatImagePreview()"
-              class="p-1.5 text-slate-400 hover:text-rose-500 rounded-full hover:bg-white/10 transition-colors shrink-0">✕</button>
-          </div>
-
-          <!-- Capsule Input Bar matching screenshot -->
+          <!-- Capsule Input Bar -->
           <div
-            class="chat-scene-input flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-full p-2.5 pl-3.5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
-            <input type="file" id="chat-image-input" aria-label="Tải ảnh lên đoạn chat" accept="image/*" class="hidden"
-              onchange="handleChatImageSelected(event)">
-
-            <button type="button" onclick="document.getElementById('chat-image-input').click()"
-              title="Đính kèm ảnh lâm sàng"
-              class="p-2 text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 rounded-full transition-colors shrink-0 cursor-pointer">
-              <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-
+            class="chat-scene-input flex items-center space-x-2 bg-white dark:bg-slate-800/90 border border-slate-300 dark:border-white/10 rounded-full p-2.5 pl-5 focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all shadow-xs">
             <input id="user-input" aria-label="Nội dung câu hỏi y tế" type="text"
               data-i18n-placeholder="chat_input_placeholder"
-              placeholder="Mô tả triệu chứng (ví dụ: đau tức ngực, sốt) hoặc gửi ảnh đơn thuốc..."
+              placeholder="Mô tả triệu chứng (ví dụ: đau tức ngực, sốt, ho kéo dài)..."
               class="flex-1 bg-transparent text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 border-0 focus:outline-none px-2 font-normal"
               onkeydown="if(event.key==='Enter') sendChatMessage()">
 
@@ -1190,9 +1069,8 @@
 
           </div>
 
-          <!-- Footer Disclaimer matching screenshot -->
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 text-center font-normal">
-            Thông tin chỉ mang tính tham khảo, không thay thế chẩn đoán của bác sĩ.
+          <p class="chat-answer-notice" data-i18n="chat_answer_notice">
+            Trợ lý MediMind có thể trả lời sai. Vui lòng kiểm chứng thông tin trước khi áp dụng.
           </p>
         </div>
 
@@ -1550,6 +1428,93 @@
 
     </div>
 
+    <!-- ============================================================== -->
+    <!-- TAB 2.5: LỊCH HẸN CỦA TÔI (MY APPOINTMENTS)                     -->
+    <!-- ============================================================== -->
+    <div id="my-appointments-tab" class="tab-content w-full flex-1 flex-col py-3 space-y-5">
+      <!-- Appointments Top Banner -->
+      <div class="glass-panel p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-600 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/25">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h2 data-i18n="my_appts_title"
+              class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Lịch hẹn khám của
+              tôi</h2>
+            <p data-i18n="my_appts_subtitle" class="text-xs text-slate-500 dark:text-slate-400">Theo dõi, quản lý và
+              kiểm tra trạng thái các phiếu đặt hẹn khám bệnh</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-2 self-end sm:self-auto">
+          <button type="button" onclick="navigateTo('booking-tab')"
+            class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap glass-pill border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-sky-400 hover:border-sky-400 transition-all flex items-center gap-1.5 cursor-pointer"
+            title="Quay lại danh sách cơ sở y tế">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span data-i18n="my_appts_btn_back_facilities">Quay lại Cơ sở y tế</span>
+          </button>
+          <button type="button" onclick="loadUserAppointments()"
+            class="px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap glass-pill border border-slate-200 dark:border-white/10 hover:border-amber-400 text-slate-700 dark:text-slate-300 hover:text-amber-500 transition-all flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span data-i18n="my_appts_btn_refresh">Làm mới</span>
+          </button>
+          <button type="button" onclick="navigateTo('booking-tab')"
+            class="px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white shadow-md shadow-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span data-i18n="my_appts_btn_new">Đặt lịch mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Appointments List Container -->
+      <div class="glass-panel p-5 sm:p-6 flex-1 flex flex-col min-h-[450px]">
+        <!-- Loading State -->
+        <div id="my-appts-loading"
+          class="hidden flex-1 flex flex-col items-center justify-center py-12 text-slate-400 space-y-3">
+          <svg class="w-8 h-8 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <span data-i18n="my_appts_loading_text" class="text-xs font-medium">Đang tải danh sách lịch hẹn...</span>
+        </div>
+
+        <!-- Empty State -->
+        <div id="my-appts-empty"
+          class="hidden flex-1 flex flex-col items-center justify-center py-16 text-center space-y-3">
+          <div
+            class="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl">
+            📅
+          </div>
+          <h3 data-i18n="my_appts_empty_title"
+            class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">Bạn chưa có lịch hẹn khám nào</h3>
+          <p data-i18n="my_appts_empty_desc" class="text-xs text-slate-500 dark:text-slate-400 max-w-sm">Chọn cơ sở y tế
+            phù hợp tại mục Cơ sở y tế để đặt lịch khám nhanh chóng theo các chuyên khoa.</p>
+          <button type="button" onclick="navigateTo('booking-tab')"
+            class="mt-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-white shadow-md shadow-amber-500/25 transition-all cursor-pointer">
+            <span data-i18n="my_appts_btn_explore">Khám phá cơ sở y tế ngay</span>
+          </button>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="my-appts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- TAB 3: ĐỌC ĐƠN THUỐC LÂM SÀNG -->
 
     <!-- ============================================================== -->
@@ -1646,12 +1611,12 @@
 
           <p data-i18n="ocr_box_desc"
             class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 max-w-md leading-relaxed font-normal">Chụp rõ chữ,
-            đủ sáng, không cắt mất mép đơn thuốc (Hỗ trợ định dạng JPG, PNG, PDF, tối đa 10MB)</p>
+            đủ sáng, không cắt mất mép đơn thuốc (Hỗ trợ định dạng JPG, PNG, WebP, PDF, tối đa 10MB)</p>
 
 
 
           <input type="file" id="prescription-file-input" aria-label="Chọn tài liệu đơn thuốc lâm sàng"
-            accept=".jpg, .jpeg, .png, .pdf" class="hidden" onchange="handlePrescriptionFileSelected(event)">
+            accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" class="hidden" onchange="handlePrescriptionFileSelected(event)">
 
 
 
@@ -1692,43 +1657,6 @@
             class="mt-4 pt-3 border-t border-slate-200 dark:border-white/10 w-full text-center text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
 
             <p data-i18n="ocr_privacy_note">🔒 Đơn thuốc được bảo mật y tế và chỉ lưu vào hồ sơ cá nhân sau khi bạn đối chiếu xác nhận kết quả.</p>
-
-          </div>
-
-        </div>
-
-
-
-        <!-- Compact Sample Demo Links Bar -->
-
-        <div
-          class="glass-card p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 shadow-xs">
-
-          <div class="flex items-center space-x-2 text-slate-600 dark:text-slate-300 font-medium">
-
-            <svg class="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" fill="none" stroke="currentColor"
-              stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-            </svg>
-
-            <span data-i18n="ocr_preset_hint">Chưa có sẵn ảnh đơn thuốc? Bạn có thể thử nhanh:</span>
-
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-
-            <button type="button" onclick="loadPrescriptionPreset('binh_dan')" data-i18n="ocr_preset_gastro"
-              class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50/50 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs">Đơn
-              thuốc mẫu (Tiêu hóa)</button>
-
-            <button type="button" onclick="loadPrescriptionPreset('throat')" data-i18n="ocr_preset_resp"
-              class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50/50 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs">Đơn
-              thuốc mẫu (Hô hấp)</button>
-
-            <button type="button" onclick="loadPrescriptionPreset('cardio')" data-i18n="ocr_preset_cardio"
-              class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50/50 dark:hover:bg-slate-700 text-xs font-semibold transition-all cursor-pointer shadow-2xs">Đơn
-              thuốc mẫu (Tim mạch)</button>
 
           </div>
 
@@ -1828,10 +1756,15 @@
               <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
               Ảnh Đơn Thuốc Gốc (Phóng To)
             </span>
-            <button onclick="closePrescriptionLightbox()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-base cursor-pointer">✕</button>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="adjustPrescriptionImageZoom(0.8)" aria-label="Thu nhỏ ảnh" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm cursor-pointer">−</button>
+              <button type="button" onclick="adjustPrescriptionImageZoom(1.25)" aria-label="Phóng to ảnh" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm cursor-pointer">+</button>
+              <button type="button" onclick="resetPrescriptionImageZoom()" class="rounded-lg bg-white/10 hover:bg-white/20 px-2 h-7 text-white text-[10px] font-bold cursor-pointer">100%</button>
+              <button type="button" onclick="closePrescriptionLightbox()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-base cursor-pointer">✕</button>
+            </div>
           </div>
           <div class="p-3 overflow-auto flex-1 flex items-center justify-center bg-black/40">
-            <img id="prescription-lightbox-img" src="" alt="Đơn thuốc gốc" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg">
+            <img id="prescription-lightbox-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="Đơn thuốc gốc" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-lg">
           </div>
         </div>
       </div>
@@ -1842,39 +1775,19 @@
 
     <div id="doctor-tab" class="tab-content nutrition-flow w-full flex-1">
       <section id="nf-search" aria-labelledby="nf-search-title">
-        <img class="nf-hero-mascot" src="{{ url_for('static', filename='images/nutrition/hero-mascot.webp') }}"
-          width="768" height="576" alt="" loading="lazy" decoding="async">
-        <p class="nf-overline">
-          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 19C2 9 10 6 21 3c0 12-6 17-14 15M3 22l12-12" />
-          </svg>
-          MEDIMIND · GỢI Ý DINH DƯỠNG
-        </p>
-        <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì cho phù hợp?<svg class="nf-title-leaf"
-            viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 19C2 9 10 6 21 3c0 12-6 17-14 15M3 22l12-12" />
-          </svg></h1>
-        <p class="nf-subtitle">Nhập bệnh lý, triệu chứng hoặc mong muốn ăn uống. MediMind sẽ đưa ra công thức tham khảo theo mô tả và hồ sơ của bạn.</p>
+        <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì?</h1>
+        <p class="nf-subtitle">Mô tả món bạn muốn ăn, tình trạng sức khỏe hoặc nguyên liệu cần tránh.</p>
         <form id="nf-search-form" class="nf-search-box">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
             <path d="m16 16 4.4 4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           </svg>
           <label class="sr-only" for="nf-query">Tình trạng sức khỏe và nhu cầu ăn uống</label>
-          <input id="nf-query" type="search" autocomplete="off" placeholder="Ví dụ: gút, ít đường, không cay, bữa tối nhẹ…"
-            maxlength="500" required>
-          <button type="submit" aria-label="Tìm gợi ý">→</button>
+          <input id="nf-query" type="search" autocomplete="off"
+            placeholder="Ví dụ: bữa tối ít dầu mỡ" maxlength="500" required>
+          <button type="submit">Tìm món</button>
         </form>
-        <div class="nf-examples" aria-label="Gợi ý tìm kiếm">
-          <span>Thử tìm:</span>
-          <button type="button" data-nf-example="Gút, ít dầu mỡ">Gút · ít dầu mỡ</button>
-          <button type="button" data-nf-example="Ít đường, không cay">Ít đường · không cay</button>
-          <button type="button" data-nf-example="Trào ngược dạ dày, không cay">Trào ngược · không cay</button>
-          <button type="button" data-nf-example="Gan nhiễm mỡ">Gan nhiễm mỡ</button>
-        </div>
-        <p class="nf-search-hint">MediMind lọc công thức tham khảo; AI có thể hỗ trợ xếp hạng. Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
+        <p class="nf-search-hint">Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
       </section>
       <section id="nf-type" class="nf-stage" hidden>
         <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
@@ -1925,20 +1838,22 @@
       </div>
       <p id="nf-results-subtitle" class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
       <div id="nf-context" class="nf-context" hidden></div>
+      <!-- Khối ưu tiên lâm sàng: Bù nước & Điện giải (NIDDK / NHS cho tiêu chảy, sốt, mất nước) -->
+      <div id="nf-hydration-alert" class="nf-hydration-alert" hidden></div>
       <p id="nf-notice" class="nf-notice" hidden></p>
       <div id="nf-clarification" class="nf-clarification" hidden>
         <p id="nf-question"></p><button type="button" class="nf-back" id="nf-edit-query">Bổ sung mô tả →</button>
       </div>
 
-      <!-- Bộ chuyển đổi chế độ xem: Bữa ăn đủ món vs Món đơn lẻ -->
+      <!-- Bộ chuyển đổi chế độ xem: Mâm cơm gia đình (4 món) vs Món ăn độc lập -->
       <div id="nf-mode-switcher" class="nf-mode-switcher" hidden>
         <button type="button" class="nf-mode-btn active" data-nf-view="full_meal">
           <span class="nf-mode-icon">🍱</span>
-          <span>Mâm cơm 1 bữa</span>
+          <span>Mâm cơm gia đình (4 món)</span>
         </button>
         <button type="button" class="nf-mode-btn" data-nf-view="single_dishes">
           <span class="nf-mode-icon">🍲</span>
-          <span>Món đơn lẻ</span>
+          <span>Món ăn độc lập (Phở, bún, cháo, mì...)</span>
         </button>
       </div>
 
@@ -2839,8 +2754,7 @@
       <div class="flex items-center space-x-4 text-[11px] text-slate-500">
 
         <button type="button" onclick="openDisclaimerModal()" data-i18n="footer_disclaimer_link"
-          class="hover:text-[#0284C7] underline font-semibold transition-colors">Tuyên bố Miễn trừ Trách nhiệm Y
-          tế</button>
+          class="hover:text-[#0284C7] underline font-semibold transition-colors">Lưu ý y tế</button>
 
         <span>•</span>
 
@@ -2850,8 +2764,6 @@
       </div>
 
     </div>
-
-    <!-- Detailed Educational PoC Disclaimer Notice -->
 
     <div class="border-t border-slate-200/80 pt-3 mt-4 text-[11px] text-slate-500 leading-relaxed">
 
@@ -2867,16 +2779,14 @@
 
         </div>
 
-        <span data-i18n="footer_disclaimer_title" class="text-xs font-bold text-slate-800">Tuyên bố Miễn trừ Trách nhiệm
-          Y tế (Medical Disclaimer)</span>
+        <span data-i18n="footer_disclaimer_title" class="text-xs font-bold text-slate-800">Lưu ý y tế</span>
 
       </div>
 
-      <p data-i18n="footer_disclaimer_text" class="text-[11px] text-slate-500 leading-relaxed">Nền tảng MediMind AI được
-        phát triển với mục đích học thuật, nghiên cứu giáo dục công nghệ AI và chứng minh ý tưởng tương lai (Proof of
-        Concept). Các phân tích, chỉ số hay phác đồ gợi ý không cấu thành chỉ định lâm sàng hay tư vấn y khoa chính
-        thức. Người bệnh luôn cần tham vấn trực tiếp bác sĩ chuyên khoa hoặc cơ sở y tế có thẩm quyền trước khi đưa ra
-        quyết định sức khỏe. Trong tình huống nguy cấp, cần được đánh giá khẩn cấp tại cơ sở y tế.</p>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        <strong data-i18n="footer_disclaimer_lead" class="text-slate-800">Thông tin chỉ dùng để tham khảo.</strong>
+        <span data-i18n="footer_disclaimer_text">MediMind AI phục vụ học tập và nghiên cứu. Hãy hỏi bác sĩ trước khi quyết định điều trị. Khi có dấu hiệu cấp cứu, hãy tìm trợ giúp y tế ngay.</span>
+      </p>
 
     </div>
 
@@ -3249,14 +3159,8 @@
       <!-- Bottom Legal Policy Bar -->
       <div
         class="w-full max-w-[380px] mx-auto pt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs font-medium text-slate-400 shrink-0">
-        <div class="flex flex-wrap items-center gap-4">
-          <button type="button" onclick="openDisclaimerModal()"
-            class="hover:text-white transition-colors cursor-pointer">Chính sách cookie</button>
-          <button type="button" onclick="openDisclaimerModal()"
-            class="hover:text-white transition-colors cursor-pointer">Điều khoản</button>
-          <button type="button" onclick="openDisclaimerModal()"
-            class="hover:text-white transition-colors cursor-pointer">Bảo mật</button>
-        </div>
+        <button type="button" onclick="openDisclaimerModal()" data-i18n="auth_legal_policy"
+          class="hover:text-white transition-colors cursor-pointer">Điều khoản &amp; Bảo mật</button>
         <span class="text-slate-500">© MediMind AI</span>
       </div>
 
@@ -3863,10 +3767,10 @@
         class="flex-1 overflow-y-auto p-4 space-y-3.5 bg-white dark:bg-slate-900 custom-scrollbar text-xs">
         <div
           class="floating-welcome-card p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-800/80 border border-sky-100 dark:border-white/10 space-y-2.5 shadow-sm text-xs">
-          <h5 class="text-sm font-bold text-[#0284C7] dark:text-sky-400 leading-snug">
+          <h5 data-i18n="floating_welcome_title" class="text-sm font-bold text-[#0284C7] dark:text-sky-400 leading-snug">
             Chào bạn, tôi là Trợ lý y tế MediMind!
           </h5>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p data-i18n="floating_welcome_body" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
             Tôi luôn sẵn sàng hỗ trợ bạn ngay tại góc màn hình này. Hãy hỏi tôi về cách dùng thuốc, giải thích chỉ số
             xét nghiệm hoặc gợi ý chuyên khoa khám nhé.
           </p>
@@ -3877,7 +3781,7 @@
               <circle cx="12" cy="12" r="10" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-4m0-4h.01" />
             </svg>
-            <span>Thông tin chỉ mang tính tham khảo, không thay thế chẩn đoán của bác sĩ.</span>
+            <span data-i18n="floating_welcome_disclaimer">Thông tin chỉ mang tính tham khảo, không thay thế chẩn đoán của bác sĩ.</span>
           </div>
         </div>
       </div>
@@ -3924,25 +3828,29 @@
       </div>
     </div>
 
-    <!-- 2. Floating Launcher Bubble (Exact Match to User High-Res Image 1) -->
+    <!-- 2. Floating Launcher Bubble (Matching Image 1 Pill + Heart Button) -->
     <div id="floating-chat-bubble" role="button" tabindex="0" aria-expanded="false" aria-controls="floating-chat-window"
-      aria-label="Mở cửa sổ trò chuyện tư vấn y tế" class="relative group cursor-pointer select-none"
-      onclick="toggleFloatingChatWindow()">
+      aria-label="Mở cửa sổ trò chuyện tư vấn y tế" class="flex items-center gap-2.5 cursor-pointer select-none group">
 
-      <img src="/static/images/floating-launcher-reference.png?v=1"
-        alt="Trợ lý y tế MediMind"
-        class="w-[280px] sm:w-[320px] h-auto object-contain pointer-events-none drop-shadow-[0_12px_30px_rgba(2,132,199,0.5)] group-hover:scale-105 transition-transform duration-200">
+      <!-- Text Pill with Online Indicator & Close 'x' -->
+      <div onclick="toggleFloatingChatWindow()"
+        class="floating-launcher-label flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0a192f]/90 border border-sky-400/40 backdrop-blur-xl shadow-lg hover:border-sky-400/70 transition-all text-white text-xs font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
+        <span class="tracking-wide">Trợ lý y tế MediMind</span>
+        <button type="button" onclick="event.stopPropagation(); closeFloatingChatCompletely()"
+          class="ml-1 w-4 h-4 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors text-xs font-bold leading-none cursor-pointer"
+          title="Đóng trợ lý" aria-label="Đóng trợ lý">✕</button>
+      </div>
 
-      <svg class="floating-launcher-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.8 9c0 4-4.6 7.6-8.8 11-4.2-3.4-8.8-7-8.8-11a4.8 4.8 0 0 1 8.8-2.6A4.8 4.8 0 0 1 20.8 9Z" />
-        <path d="M8 12h2l1.5-2 1.7 4 1.3-2H16" />
-      </svg>
-
-      <!-- Invisible Click Target for Close Button 'x' -->
-      <button type="button" onclick="event.stopPropagation(); closeFloatingChatCompletely()"
-        class="floating-launcher-close absolute left-[65%] top-[64%] w-8 h-8 rounded-full hover:bg-white/15 transition-colors flex items-center justify-center cursor-pointer"
-        title="Tắt hoàn toàn" aria-label="Đóng trợ lý">
+      <!-- Glowing Circular Heart Button -->
+      <button type="button" onclick="toggleFloatingChatWindow()"
+        class="floating-launcher-heart w-11 h-11 rounded-full bg-gradient-to-tr from-sky-600 via-sky-500 to-cyan-400 text-white flex items-center justify-center shadow-[0_0_20px_rgba(56,189,248,0.5)] border border-white/30 group-hover:scale-105 transition-transform cursor-pointer"
+        title="Trò chuyện nhanh với trợ lý" aria-label="Mở trợ lý ảo">
+        <svg class="w-5 h-5 text-white drop-shadow" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
       </button>
 
     </div>
@@ -3952,7 +3860,384 @@
 
 
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.21"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.36"></script>
+  <script>
+    /* Pure UI binding for #my-appointments-tab (commit 0d082b8b UI without modifying app.js) */
+    (function () {
+      if (typeof TAB_HASH_MAP === 'object' && TAB_HASH_MAP) {
+        TAB_HASH_MAP['my-appointments-tab'] = 'appointments';
+      }
+      if (typeof HASH_TAB_MAP === 'object' && HASH_TAB_MAP) {
+        HASH_TAB_MAP['appointments'] = 'my-appointments-tab';
+      }
+      if (typeof translations === 'object' && translations) {
+        if (translations.vi) {
+          Object.assign(translations.vi, {
+            facility_btn_my_appts: 'Lịch hẹn của tôi',
+            my_appts_title: 'Lịch hẹn khám của tôi',
+            my_appts_subtitle: 'Theo dõi, quản lý và kiểm tra trạng thái các phiếu đặt hẹn khám bệnh',
+            my_appts_btn_back_facilities: 'Quay lại Cơ sở y tế',
+            my_appts_btn_refresh: 'Làm mới',
+            my_appts_btn_new: 'Đặt lịch mới',
+            my_appts_loading_text: 'Đang tải danh sách lịch hẹn...',
+            my_appts_empty_title: 'Bạn chưa có lịch hẹn khám nào',
+            my_appts_empty_desc: 'Chọn cơ sở y tế phù hợp tại mục Cơ sở y tế để đặt lịch khám nhanh chóng theo các chuyên khoa.',
+            my_appts_btn_explore: 'Khám phá cơ sở y tế ngay'
+          });
+        }
+        if (translations.en) {
+          Object.assign(translations.en, {
+            facility_btn_my_appts: 'My appointments',
+            my_appts_title: 'My Appointments',
+            my_appts_subtitle: 'Track, manage, and check the status of your booked appointments',
+            my_appts_btn_back_facilities: 'Back to Facilities',
+            my_appts_btn_refresh: 'Refresh',
+            my_appts_btn_new: 'Book New',
+            my_appts_loading_text: 'Loading appointments...',
+            my_appts_empty_title: 'You have no appointments yet',
+            my_appts_empty_desc: 'Choose a healthcare facility in Medical Facilities to book an appointment by specialty.',
+            my_appts_btn_explore: 'Explore medical facilities'
+          });
+        }
+      }
+
+      let cachedMyAppointments = [];
+
+      const _apTr = (vi, en) => (typeof currentLang !== 'undefined' && currentLang === 'en') ? en : vi;
+
+      function renderUserAppointmentsGrid(appts) {
+        const emptyEl = document.getElementById('my-appts-empty');
+        const gridEl = document.getElementById('my-appts-grid');
+        if (!gridEl) return;
+
+        const list = Array.isArray(appts) ? appts : [];
+        if (list.length === 0) {
+          if (emptyEl) emptyEl.classList.remove('hidden');
+          gridEl.innerHTML = '';
+          return;
+        }
+        if (emptyEl) emptyEl.classList.add('hidden');
+
+        const safe = typeof escapeHtml === 'function'
+          ? escapeHtml
+          : (s) => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const statusMap = {
+          pending: { label: _apTr('Chờ khám', 'Pending'), cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+          confirmed: { label: _apTr('Đã xác nhận', 'Confirmed'), cls: 'bg-sky-500/20 text-sky-300 border-sky-500/30' },
+          completed: { label: _apTr('Đã hoàn tất', 'Completed'), cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+          cancelled: { label: _apTr('Đã hủy', 'Cancelled'), cls: 'bg-rose-500/20 text-rose-300 border-rose-500/30' }
+        };
+
+        gridEl.innerHTML = list.map(appt => {
+          const st = statusMap[appt.status] || statusMap.confirmed;
+          const hasPrevisit = !!appt.pre_visit_summary;
+          const dateLabel = typeof formatUserDate === 'function' && appt.appointment_date
+            ? formatUserDate(appt.appointment_date)
+            : (appt.appointment_date || '');
+          const apptCode = `#LH-${Number(appt.id)}`;
+          const inlinePrevisitHtml = hasPrevisit ? buildPrevisitSummaryHtmlForDetail(appt.pre_visit_summary, safe) : '';
+          return `
+            <div onclick="openAppointmentDetailModal(${Number(appt.id)})"
+              class="glass-card p-4 sm:p-5 rounded-2xl border border-white/15 hover:border-sky-400/50 bg-slate-900/85 shadow-lg space-y-3 transition-all cursor-pointer group flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-start gap-2.5 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${st.cls}">${st.label}</span>
+                        <span class="text-[10px] font-mono font-bold text-sky-300">${apptCode}</span>
+                      </div>
+                      <h4 class="text-sm font-bold text-white mt-1 leading-snug group-hover:text-sky-300 transition-colors">${safe(appt.facility_name || _apTr('Cơ sở Y tế', 'Healthcare Facility'))}</h4>
+                      ${appt.facility_address ? `<p class="text-[11px] text-slate-400 mt-0.5 line-clamp-2">${safe(appt.facility_address)}</p>` : ''}
+                    </div>
+                  </div>
+                  <button type="button" onclick="event.stopPropagation(); deleteUserAppointment(${Number(appt.id)})" class="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0" title="${_apTr('Hủy phiếu hẹn này', 'Cancel this appointment')}" aria-label="${_apTr('Hủy phiếu hẹn này', 'Cancel this appointment')}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Phiếu thông tin đầy đủ đã điền -->
+                <div class="p-3 rounded-xl bg-white/5 border border-white/10 text-xs space-y-1.5 text-slate-300">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-slate-400 shrink-0">${_apTr('Chuyên khoa:', 'Specialty:')}</span>
+                    <strong class="text-sky-300 font-semibold text-right">${safe(appt.specialty || _apTr('Đa khoa', 'General Practice'))}</strong>
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-slate-400 shrink-0">${_apTr('Ngày & giờ khám:', 'Date & Time:')}</span>
+                    <strong class="text-amber-300 font-semibold text-right">${safe(appt.appointment_time || '08:30')} · ${safe(dateLabel)}</strong>
+                  </div>
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-slate-400 shrink-0">${_apTr('Bệnh nhân:', 'Patient:')}</span>
+                    <span class="text-slate-100 font-medium text-right">${safe(appt.patient_name || '')}</span>
+                  </div>
+                  ${appt.patient_phone ? `
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-slate-400 shrink-0">${_apTr('Số điện thoại:', 'Phone:')}</span>
+                      <span class="text-slate-200 font-mono text-right">${safe(appt.patient_phone)}</span>
+                    </div>
+                  ` : ''}
+                  ${appt.note ? `
+                    <div class="pt-1.5 mt-1 border-t border-white/10">
+                      <span class="text-slate-400 block mb-0.5">${_apTr('Lý do khám / Ghi chú:', 'Reason / Notes:')}</span>
+                      <p class="text-slate-100 leading-relaxed">${safe(appt.note)}</p>
+                    </div>
+                  ` : ''}
+                </div>
+
+                ${inlinePrevisitHtml ? `
+                  <div class="space-y-1.5">
+                    <div class="text-[11px] font-bold text-emerald-400 flex items-center gap-1">${_apTr('📋 Tóm tắt trước khám đính kèm', '📋 Attached Pre-Visit Summary')}</div>
+                    ${inlinePrevisitHtml}
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="pt-2 flex items-center justify-between gap-2 border-t border-white/10">
+                ${hasPrevisit
+                  ? `<button type="button" onclick="event.stopPropagation(); viewAppointmentIntakeSummary(${Number(appt.id)})" class="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold hover:underline cursor-pointer">${_apTr('Mở phiếu tóm tắt đầy đủ', 'Open full summary')}</button>`
+                  : `<span class="text-[11px] text-slate-400">${safe(appt.created_at || _apTr('Phiếu đặt hẹn MediMind', 'MediMind Appointment Ticket'))}</span>`
+                }
+                <button type="button" onclick="event.stopPropagation(); openAppointmentDetailModal(${Number(appt.id)})" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer shrink-0">${_apTr('Xem chi tiết phiếu →', 'View ticket details →')}</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      async function loadUserAppointments() {
+        const loadingEl = document.getElementById('my-appts-loading');
+        const emptyEl = document.getElementById('my-appts-empty');
+        const gridEl = document.getElementById('my-appts-grid');
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
+        if (gridEl) gridEl.innerHTML = '';
+
+        let appts = [];
+        try {
+          const res = await fetch('/api/appointments', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            appts = data.appointments || [];
+          }
+        } catch (err) {
+          console.warn('Lỗi nạp lịch hẹn:', err);
+        }
+        cachedMyAppointments = appts;
+        if (loadingEl) loadingEl.classList.add('hidden');
+        renderUserAppointmentsGrid(appts);
+      }
+
+      async function deleteUserAppointment(apptId) {
+        const user = typeof currentUser !== 'undefined' ? currentUser : null;
+        if (user && !user.isDemo && typeof apptId === 'number') {
+          try {
+            const res = await fetch(`/api/appointments/${apptId}`, { method: 'DELETE' });
+            if (res.ok) {
+              if (typeof showMedicalToast === 'function') showMedicalToast('Đã hủy lịch hẹn thành công.', 'success');
+              loadUserAppointments();
+              return;
+            }
+          } catch (err) {
+            console.warn('Lỗi kết nối hủy lịch hẹn:', err);
+          }
+        }
+        cachedMyAppointments = cachedMyAppointments.filter(a => a.id != apptId);
+        renderUserAppointmentsGrid(cachedMyAppointments);
+      }
+
+      function viewAppointmentIntakeSummary(apptId) {
+        const appt = cachedMyAppointments.find(a => a.id == apptId);
+        const modal = document.getElementById('previsit-summary-modal');
+        if (appt && appt.pre_visit_summary && modal && typeof renderPreVisitSummaryInModal === 'function') {
+          if (typeof recordModalTriggerFocus === 'function') recordModalTriggerFocus();
+          renderPreVisitSummaryInModal(appt.pre_visit_summary, 'appt_' + apptId, false);
+          modal.classList.remove('hidden');
+          document.getElementById('previsit-summary-close')?.focus();
+        } else if (typeof showMedicalToast === 'function') {
+          showMedicalToast('Không tìm thấy bản tóm tắt tiền khám.', 'info');
+        }
+      }
+
+      function buildPrevisitSummaryHtmlForDetail(summary, safe) {
+        if (!summary || typeof summary !== 'object') return '';
+        const emptyVals = new Set([
+          '--', 'Chưa rõ', 'Chưa ghi nhận cụ thể', 'Chưa ghi nhận lý do khám',
+          'Chưa rõ các chỉ số tự đo', 'Chưa rõ tiền sử dị ứng', 'Chưa rõ thuốc đang dùng',
+          'Không có tệp hình ảnh đính kèm'
+        ]);
+        const known = v => (typeof v === 'string' && v.trim() && !emptyVals.has(v.trim())) ? v.trim() : '';
+        const list = arr => Array.isArray(arr) ? arr.map(known).filter(Boolean).join(', ') : '';
+        const partA = summary.part_a_patient_facts || {};
+        const partB = summary.part_b_system_assessment || {};
+        const hist = partA.patient_reported_history || {};
+        const pain = partA.pain || {};
+        const hVal = (field, fb) => {
+          const item = hist[field] || {};
+          const txt = known(item.text) || known(fb);
+          if (item.status === 'skipped') return _apTr('Đã bỏ qua', 'Skipped');
+          if (item.status === 'unknown') return _apTr('Chưa rõ theo lời người bệnh', 'Patient unsure');
+          if (item.status === 'denied' && field !== 'medications') return txt ? `${_apTr('Không có', 'None')} · ${txt}` : _apTr('Người bệnh cho biết không có', 'Patient reported none');
+          return txt;
+        };
+        const rows = [
+          [_apTr('Lý do khám', 'Reason for visit'), known(partA.chief_complaint)],
+          [_apTr('Thời điểm bắt đầu', 'Onset'), known(partA.duration)],
+          [_apTr('Vị trí / Mức độ đau', 'Pain / Severity'), [known(pain.location), known(pain.quality), known(pain.severity)].filter(Boolean).join(' · ')],
+          [_apTr('Triệu chứng ghi nhận', 'Recorded symptoms'), list(partA.symptoms_present)],
+          [_apTr('Dị ứng', 'Allergies'), hVal('allergies', partA.allergies)],
+          [_apTr('Thuốc đang/đã dùng', 'Medications'), hVal('medications', partA.current_medications)],
+          [_apTr('Tiền sử bệnh nền', 'Medical history'), hVal('conditions')],
+          [_apTr('Chỉ số tự đo', 'Self-reported vitals'), known(partA.vitals)],
+          ...(partB.triage_badge === 'assessed' || partB.triage_badge === 'emergency' ? [
+            [_apTr('Phân luồng', 'Triage status'), known(partB.triage_status)],
+            [_apTr('Chuyên khoa gợi ý', 'Suggested specialty'), known(partB.recommended_specialist)],
+            [_apTr('Hướng chăm sóc', 'Care guidance'), known(partB.care_approach)]
+          ] : [])
+        ].filter(([, v]) => v);
+
+        if (rows.length === 0) {
+          return `<p class="text-xs text-emerald-300">${_apTr('✓ Đã đính kèm bản tóm tắt trước khám.', '✓ Pre-visit summary attached.')}</p>`;
+        }
+        return `
+          <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 overflow-hidden">
+            <table class="w-full text-xs">
+              <tbody>
+                ${rows.map(([k, v]) => `
+                  <tr class="border-b border-emerald-500/15 last:border-b-0">
+                    <td class="px-3 py-2 text-emerald-300 font-semibold w-40 align-top">${safe(k)}</td>
+                    <td class="px-3 py-2 text-slate-100 align-top">${safe(v)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      let activeDetailAppointmentId = null;
+
+      function openAppointmentDetailModal(apptId) {
+        const appt = cachedMyAppointments.find(a => a.id == apptId);
+        const modal = document.getElementById('appointment-detail-modal');
+        if (!appt || !modal) return;
+        activeDetailAppointmentId = Number(appt.id);
+
+        const safe = typeof escapeHtml === 'function'
+          ? escapeHtml
+          : (s) => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const statusMap = {
+          pending: { label: _apTr('Chờ khám', 'Pending'), cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+          confirmed: { label: _apTr('Đã xác nhận', 'Confirmed'), cls: 'bg-sky-500/20 text-sky-300 border-sky-500/30' },
+          completed: { label: _apTr('Đã hoàn tất', 'Completed'), cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+          cancelled: { label: _apTr('Đã hủy', 'Cancelled'), cls: 'bg-rose-500/20 text-rose-300 border-rose-500/30' }
+        };
+        const st = statusMap[appt.status] || statusMap.confirmed;
+        const dateLabel = typeof formatUserDate === 'function' && appt.appointment_date
+          ? formatUserDate(appt.appointment_date)
+          : (appt.appointment_date || _apTr('Chưa rõ', 'Unknown'));
+
+        const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+        const statusEl = document.getElementById('appt-detail-status');
+        if (statusEl) {
+          statusEl.className = `px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${st.cls}`;
+          statusEl.textContent = st.label;
+        }
+        setText('appt-detail-code', `#LH-${Number(appt.id)}`);
+        setText('appt-detail-title', appt.facility_name || _apTr('Cơ sở Y tế', 'Healthcare Facility'));
+        setText('appt-detail-address', appt.facility_address || _apTr('Chưa cập nhật địa chỉ', 'Address not available'));
+        setText('appt-detail-specialty', appt.specialty || _apTr('Đa khoa', 'General Practice'));
+        setText('appt-detail-date', dateLabel);
+        setText('appt-detail-time', appt.appointment_time || '08:30');
+        setText('appt-detail-patient', appt.patient_name || _apTr('Chưa cập nhật', 'Not provided'));
+        setText('appt-detail-phone', appt.patient_phone || _apTr('Chưa cập nhật', 'Not provided'));
+        setText('appt-detail-note', appt.note || _apTr('Không có ghi chú thêm', 'No additional notes'));
+        setText('appt-detail-created', appt.created_at || '');
+
+        const previsitWrap = document.getElementById('appt-detail-previsit-section');
+        const previsitBody = document.getElementById('appt-detail-previsit-body');
+        if (previsitWrap && previsitBody) {
+          if (appt.pre_visit_summary) {
+            previsitBody.innerHTML = buildPrevisitSummaryHtmlForDetail(appt.pre_visit_summary, safe);
+            previsitWrap.classList.remove('hidden');
+          } else {
+            previsitBody.innerHTML = '';
+            previsitWrap.classList.add('hidden');
+          }
+        }
+
+        if (typeof recordModalTriggerFocus === 'function') recordModalTriggerFocus();
+        modal.classList.remove('hidden');
+      }
+
+      function closeAppointmentDetailModal() {
+        const modal = document.getElementById('appointment-detail-modal');
+        if (modal) modal.classList.add('hidden');
+        activeDetailAppointmentId = null;
+        if (typeof restoreModalTriggerFocus === 'function') restoreModalTriggerFocus();
+      }
+
+      function openFullPrevisitFromAppointmentDetail() {
+        if (!activeDetailAppointmentId) return;
+        const id = activeDetailAppointmentId;
+        closeAppointmentDetailModal();
+        viewAppointmentIntakeSummary(id);
+      }
+
+      async function cancelAppointmentFromDetail() {
+        if (!activeDetailAppointmentId) return;
+        const idToDelete = activeDetailAppointmentId;
+        closeAppointmentDetailModal();
+        await deleteUserAppointment(idToDelete);
+      }
+
+      window.loadUserAppointments = loadUserAppointments;
+      window.deleteUserAppointment = deleteUserAppointment;
+      window.viewAppointmentIntakeSummary = viewAppointmentIntakeSummary;
+      window.openAppointmentDetailModal = openAppointmentDetailModal;
+      window.closeAppointmentDetailModal = closeAppointmentDetailModal;
+      window.openFullPrevisitFromAppointmentDetail = openFullPrevisitFromAppointmentDetail;
+      window.cancelAppointmentFromDetail = cancelAppointmentFromDetail;
+
+      const syncAppointmentsTabState = () => {
+        const tabEl = document.getElementById('my-appointments-tab');
+        const btnEl = document.getElementById('header-appointments-btn');
+        const isActive = !!(tabEl && tabEl.classList.contains('active'));
+        if (btnEl) btnEl.classList.toggle('glass-pill-cyan-active', isActive);
+        if (isActive) loadUserAppointments();
+      };
+
+      const origNavigateTo = window.navigateTo;
+      if (typeof origNavigateTo === 'function') {
+        window.navigateTo = function (tabName, subView, pushHistory) {
+          const res = origNavigateTo.apply(this, arguments);
+          syncAppointmentsTabState();
+          return res;
+        };
+      }
+      window.addEventListener('popstate', () => setTimeout(syncAppointmentsTabState, 0));
+      window.addEventListener('hashchange', () => setTimeout(syncAppointmentsTabState, 0));
+      window.addEventListener('medimind:langchange', () => {
+        if (Array.isArray(cachedMyAppointments) && cachedMyAppointments.length > 0) {
+          renderUserAppointmentsGrid(cachedMyAppointments);
+        }
+        if (activeDetailAppointmentId) {
+          openAppointmentDetailModal(activeDetailAppointmentId);
+        }
+      });
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.location.hash === '#appointments' && typeof window.navigateTo === 'function') {
+          window.navigateTo('my-appointments-tab', null, 'replace');
+        }
+      });
+    })();
+  </script>
   <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.4"></script>
 
   <!-- ============================================================== -->
@@ -4048,6 +4333,15 @@
           </div>
         </div>
 
+        <!-- Confirmation Email (Auto-filled from registered Gmail / Email) -->
+        <div>
+          <label for="book-modal-email" data-i18n="book_modal_lbl_email"
+            class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Email nhận xác nhận lịch hẹn</label>
+          <input type="email" id="book-modal-email" aria-label="Email nhận xác nhận lịch hẹn"
+            data-i18n-placeholder="book_modal_ph_email" placeholder="Tự động gửi về Gmail / Email đã đăng ký"
+            class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-sky-500">
+        </div>
+
             <div id="book-modal-summary-section"
               class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 dark:border-white/10 dark:bg-white/[0.03]">
               <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
@@ -4056,19 +4350,22 @@
                   <p id="book-previsit-description" class="mt-0.5 text-xs text-slate-600 dark:text-slate-400"
                     data-i18n="book_previsit_optional">Bạn có thể trả lời vài câu để chuẩn bị bản tóm tắt.</p>
                 </div>
-                <button type="button" id="book-intake-button" onclick="PrevisitIntake.open('booking')"
+                <button type="button" id="book-intake-button" onclick="openBookingPrevisitIntake()"
                   aria-haspopup="dialog" aria-controls="previsit-intake"
                   class="min-h-9 rounded-lg border border-sky-600/40 px-2.5 py-1.5 text-xs font-bold text-sky-700 hover:bg-sky-500/10 dark:text-sky-300"
                   data-i18n="chat_mode_intake">Hỏi bệnh trước khám</button>
               </div>
 
-              <div id="book-summary-attachment" hidden>
+              <div id="book-summary-attachment" hidden class="space-y-2">
                 <label for="book-modal-attach-summary"
                   class="flex cursor-pointer items-start gap-2.5 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 text-xs font-medium text-slate-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-slate-100">
                   <input type="checkbox" id="book-modal-attach-summary" disabled
                     class="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-400 accent-sky-600">
                   <span data-i18n="book_attach_summary_label">Đính kèm bản tóm tắt đã xác nhận vào lịch hẹn</span>
                 </label>
+                <div id="book-summary-preview" hidden
+                  class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-[11px] text-slate-800 dark:text-slate-100 space-y-1">
+                </div>
               </div>
 
               <div>
@@ -4090,6 +4387,82 @@
             nhận đặt lịch</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- APPOINTMENT DETAIL MODAL (XEM CHI TIẾT PHIẾU HẸN KHÁM)         -->
+  <!-- ============================================================== -->
+  <div id="appointment-detail-modal" role="dialog" aria-modal="true" aria-labelledby="appt-detail-title"
+    class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+    onclick="if(event.target === this) closeAppointmentDetailModal()">
+    <div
+      class="glass-panel-elevated bg-white dark:bg-[#0a1124]/95 border border-slate-200 dark:border-white/15 rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5 text-slate-900 dark:text-white backdrop-blur-2xl">
+      <button type="button" onclick="closeAppointmentDetailModal()"
+        class="absolute right-5 top-5 w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+        title="Đóng" aria-label="Đóng">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="space-y-1.5 pr-8">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span id="appt-detail-status" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-500/20 text-amber-300 border-amber-500/30">Chờ khám</span>
+          <span id="appt-detail-code" class="text-xs font-mono font-bold text-sky-400">#LH-0</span>
+          <span id="appt-detail-created" class="text-[11px] text-slate-400"></span>
+        </div>
+        <h3 id="appt-detail-title" class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Chi tiết phiếu hẹn khám</h3>
+        <p id="appt-detail-address" class="text-xs text-slate-500 dark:text-slate-400"></p>
+      </div>
+
+      <div class="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/[0.04] p-4 space-y-2.5 text-xs">
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-slate-500 dark:text-slate-400">Chuyên khoa khám</span>
+          <strong id="appt-detail-specialty" class="text-sky-600 dark:text-sky-300 font-bold text-right"></strong>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-slate-500 dark:text-slate-400">Ngày khám</span>
+          <strong id="appt-detail-date" class="text-slate-900 dark:text-white font-bold text-right"></strong>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-slate-500 dark:text-slate-400">Khung giờ</span>
+          <strong id="appt-detail-time" class="text-amber-600 dark:text-amber-300 font-bold text-right"></strong>
+        </div>
+        <div class="border-t border-slate-200 dark:border-white/10 pt-2.5 flex items-center justify-between gap-3">
+          <span class="text-slate-500 dark:text-slate-400">Họ tên bệnh nhân</span>
+          <strong id="appt-detail-patient" class="text-slate-900 dark:text-white font-semibold text-right"></strong>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-slate-500 dark:text-slate-400">Số điện thoại liên hệ</span>
+          <strong id="appt-detail-phone" class="text-slate-900 dark:text-white font-semibold text-right"></strong>
+        </div>
+        <div class="border-t border-slate-200 dark:border-white/10 pt-2.5 space-y-1">
+          <span class="text-slate-500 dark:text-slate-400 block">Ghi chú kèm theo</span>
+          <p id="appt-detail-note" class="text-slate-800 dark:text-slate-200 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div id="appt-detail-previsit-section" class="hidden space-y-2">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400">📋 Bảng tóm tắt trước khám đính kèm</h4>
+          <button type="button" onclick="openFullPrevisitFromAppointmentDetail()"
+            class="text-[11px] font-bold text-sky-400 hover:text-sky-300 hover:underline cursor-pointer">Mở bản đầy đủ →</button>
+        </div>
+        <div id="appt-detail-previsit-body"></div>
+      </div>
+
+      <div class="pt-2 flex items-center justify-between gap-2 border-t border-slate-200 dark:border-white/10">
+        <button type="button" onclick="cancelAppointmentFromDetail()"
+          class="px-4 py-2 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-all cursor-pointer">
+          Hủy phiếu hẹn
+        </button>
+        <button type="button" onclick="closeAppointmentDetailModal()"
+          class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition-all cursor-pointer">
+          Đóng
+        </button>
+      </div>
     </div>
   </div>
 
@@ -5604,7 +5977,7 @@
   <div id="medical-toast-container" role="status" aria-live="polite"
     class="fixed top-5 right-5 sm:right-8 z-[9999] flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
   {% include 'partials/previsit_intake.html' %}
-  <script src="{{ url_for('static', filename='js/previsit-intake.js') }}?v=5"></script>
+  <script src="{{ url_for('static', filename='js/previsit-intake.js') }}?v=6"></script>
 </body>
 
 </html>

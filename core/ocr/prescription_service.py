@@ -4,6 +4,7 @@ import json
 import re
 import time
 import hashlib
+import base64
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -21,26 +22,24 @@ if hasattr(sys.stderr, 'reconfigure'):
     except Exception:
         pass
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv()
 
-GEMINI_API_KEY = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
-
 from core.ocr.ocr_extractor import extract_prescription_text
-from core.ocr.gemini_schema_service import _sanitize_redacted_admin_field
-from core.ai.prompts import (
-    PRESCRIPTION_OCR_FEW_SHOT_RULES,
-    PRESCRIPTION_OCR_HANDWRITTEN_RULE,
-    PRESCRIPTION_OCR_REDACTED_RULE,
-    PRESCRIPTION_OCR_SYSTEM_PROMPT,
-)
 
 
-def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filename: str = "", file_path: str = "") -> Optional[Dict[str, Any]]:
+def _groq_image_content(image_bytes: bytes, mime_type: str) -> Dict[str, Any]:
+    return {
+        "type": "image_url",
+        "image_url": {"url": f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode('ascii')}"},
+    }
+
+
+def normalize_and_analyze_with_groq(ocr_data: Dict[str, Any], original_filename: str = "", file_path: str = "") -> Optional[Dict[str, Any]]:
     """
     TẦNG 2 TRONG KIẾN TRÚC HYBRID:
-    Bộ não suy luận lâm sàng & chuẩn hóa thực thể y tế (Clinical NLP & NER) bằng Gemini:
+    Bộ não suy luận lâm sàng & chuẩn hóa thực thể y tế (Clinical NLP & NER) bằng Groq:
       - Nhận ảnh gốc + văn bản OCR thô trích xuất từ OpenCV + EasyOCR
       - Đối chiếu đa phương thức (Multimodal Cross-validation) tránh sai sót nhận diện tên thuốc
       - Khắc phục các lỗi chính tả quang học (OCR Typos) về tên thuốc, hoạt chất, nồng độ
@@ -49,14 +48,12 @@ def normalize_and_analyze_with_gemini(ocr_data: Dict[str, Any], original_filenam
       - Phân tích tương tác thuốc đối kháng, tác dụng phụ và cảnh báo an toàn
     """
     raw_text = ocr_data.get("raw_text", "").strip()
-    from core.ai.circuit_breaker import gemini_circuit_breaker
-    if not gemini_circuit_breaker.can_execute():
+    from core.ai.circuit_breaker import groq_circuit_breaker
+    if not groq_circuit_breaker.can_execute():
         return None
 
     try:
         from core.ai.llm_provider import llm_provider
-        from google.genai import types
-
         prompt = f"""
 Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI hàng đầu tại Việt Nam.
 Dưới đây là tài liệu y tế (kèm ảnh chụp và văn bản quét được từ mô hình OCR cục bộ OpenCV + EasyOCR):
@@ -69,14 +66,11 @@ HƯỚNG DẪN ĐẶC BIỆT DÀNH CHO ĐƠN THUỐC LÂM SÀNG TẠI VIỆT NAM
 1. Đọc kỹ ảnh chụp để ĐỐI CHIẾU VỚI VĂN BẢN OCR, ĐẢM BẢO BÓC TÁCH ĐỦ VÀ CHÍNH XÁC 100% CÁC MỤC THUỐC (KHÔNG BỎ SÓT THUỐC NÀO):
    - Đơn thuốc tại Việt Nam thường kết hợp thuốc tân dược và thuốc Đông y / Y học cổ truyền.
    - Tuyệt đối không nhầm lẫn tên hoạt chất và không tự bịa tên thuốc.
-   - {PRESCRIPTION_OCR_HANDWRITTEN_RULE}
-   - {PRESCRIPTION_OCR_FEW_SHOT_RULES}
 2. THÔNG TIN BỆNH NHÂN & CHẨN ĐOÁN:
    - Họ tên bệnh nhân (kèm tuổi, giới tính nếu có).
    - Địa chỉ.
    - Chẩn đoán xác định.
    - Đợt dùng / Thời gian điều trị.
-   - {PRESCRIPTION_OCR_REDACTED_RULE}
 3. PHÂN BỔ THỜI GIAN BIỂU UỐNG THUỐC:
    - Sáng (06:30 - 08:00), Trưa (11:30 - 12:30), Tối (18:00 - 19:30), Trước ngủ (21:00 - 22:00).
    - Ghi rõ note: "Trước ăn (30 phút)", "Sau khi ăn", hoặc "Dùng ngoài da".
@@ -90,10 +84,7 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
   "facility": "Tên cơ sở y tế",
   "department": "Khoa phòng",
   "doctor": "Bác sĩ kê đơn",
-  "patient_name": "",
-  "dob": "",
-  "age": "",
-  "gender": "",
+  "patient_name": "Họ và tên bệnh nhân (tuổi, giới tính)",
   "address": "Địa chỉ",
   "diagnosis": "Chẩn đoán y khoa chi tiết",
   "date": "Ngày khám",
@@ -117,36 +108,22 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
                 img_bytes = f.read()
             ext = os.path.splitext(file_path)[1].lower()
             mime_type = "image/png" if ext == ".png" else "application/pdf" if ext == ".pdf" else "image/jpeg"
-            contents_payload.append(types.Part.from_bytes(data=img_bytes, mime_type=mime_type))
+            contents_payload.append(_groq_image_content(img_bytes, mime_type))
 
         contents_payload.append(prompt)
 
-        if llm_provider.is_groq_active():
-            candidate_models = [llm_provider.get_default_model("prescription_ocr")]
-            ocr_api_key = None
-        elif llm_provider.is_openrouter_active():
-            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
-            ocr_api_key = None
-        else:
-            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-            ocr_api_key = GEMINI_API_KEY
+        candidate_models = [llm_provider.get_default_model("prescription_ocr")]
         data = llm_provider.generate_json(
             contents=contents_payload,
             candidate_models=candidate_models,
-            system_instruction=PRESCRIPTION_OCR_SYSTEM_PROMPT,
-            api_key=ocr_api_key,
+            api_key=None,
             temperature=0.1,
             operation="prescription_ocr"
         )
         if isinstance(data, dict):
-            for admin_key in ("patient_name", "dob", "age"):
-                if admin_key in data:
-                    data[admin_key] = _sanitize_redacted_admin_field(data.get(admin_key))
-            if "gender" in data:
-                data["gender"] = _sanitize_redacted_admin_field(data.get("gender"), is_gender=True)
             data.setdefault("status", "success")
             data.setdefault("type", "prescription")
-            data["scanned_by"] = "Kiến trúc Hybrid AI: Tiền xử lý OpenCV ➔ EasyOCR Tiếng Việt Cục bộ ➔ Gemini Multimodal Clinical NLP"
+            data["scanned_by"] = "Kiến trúc Hybrid AI: Tiền xử lý OpenCV ➔ EasyOCR Tiếng Việt Cục bộ ➔ Groq Multimodal Clinical NLP"
             data["pipeline_mode"] = "Hybrid Pipeline (Local Edge Computer Vision + Cloud Multimodal Verification)"
             data["uploaded_filename"] = original_filename or "Tai_lieu_y_te.jpg"
             data["ocr_stats"] = {
@@ -167,19 +144,17 @@ BẮT BUỘC TRẢ VỀ DUY NHẤT MỘT ĐỐI TƯỢNG JSON HỢP LỆ (TUYỆ
     return None
 
 
-def scan_prescription_with_gemini_vision(file_path: str, original_filename: str = "") -> Optional[Dict[str, Any]]:
+def scan_prescription_with_groq_vision(file_path: str, original_filename: str = "") -> Optional[Dict[str, Any]]:
     """
     DỰ PHÒNG CẤP 2 (Fallback Vision Multimodal):
-    Dùng trực tiếp Gemini Vision khi ảnh scan quá mờ, chữ viết tay khó hoặc file PDF nhiều trang.
+    Dùng trực tiếp Groq Vision khi ảnh scan quá mờ, chữ viết tay khó hoặc file PDF nhiều trang.
     """
-    from core.ai.circuit_breaker import gemini_circuit_breaker
-    if not gemini_circuit_breaker.can_execute():
+    from core.ai.circuit_breaker import groq_circuit_breaker
+    if not groq_circuit_breaker.can_execute():
         return None
 
     try:
         from core.ai.llm_provider import llm_provider
-        from google.genai import types
-
         with open(file_path, 'rb') as f:
             file_bytes = f.read()
 
@@ -190,43 +165,26 @@ def scan_prescription_with_gemini_vision(file_path: str, original_filename: str 
         elif ext == ".pdf":
             mime_type = "application/pdf"
 
-        prompt = f"""
+        prompt = """
         Bạn là Bác sĩ Trưởng khoa Lâm sàng kiêm Chuyên gia Dược học AI.
         Hãy quan sát đơn thuốc y tế này (bao gồm chữ in và chữ viết tay):
-        {PRESCRIPTION_OCR_HANDWRITTEN_RULE}
-        {PRESCRIPTION_OCR_FEW_SHOT_RULES}
-        {PRESCRIPTION_OCR_REDACTED_RULE}
         Trích xuất facility, department, doctor, patient_name, dob, age, gender, diagnosis, date, duration, timeline 4 cữ (morning, noon, evening, bedtime), medications (name, strength, dose, frequency, days, usage, purpose) và warnings.
-        Trả về DUY NHẤT một JSON hợp lệ dạng {{"status": "success", "type": "prescription", ...}}.
+        Trả về DUY NHẤT một JSON hợp lệ dạng {"status": "success", "type": "prescription", ...}.
         """
 
-        if llm_provider.is_groq_active():
-            candidate_models = [llm_provider.get_default_model("prescription_ocr")]
-            ocr_api_key = None
-        elif llm_provider.is_openrouter_active():
-            candidate_models = [llm_provider.get_default_model("prescription_ocr"), "inclusionai/ling-3.2-flash:free"]
-            ocr_api_key = None
-        else:
-            candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]
-            ocr_api_key = GEMINI_API_KEY
+        candidate_models = [llm_provider.get_default_model("prescription_ocr")]
         contents = [
-            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
+            _groq_image_content(file_bytes, mime_type),
             prompt
         ]
         data = llm_provider.generate_json(
             contents=contents,
             candidate_models=candidate_models,
-            system_instruction=PRESCRIPTION_OCR_SYSTEM_PROMPT,
-            api_key=ocr_api_key,
+            api_key=None,
             operation="prescription_ocr"
         )
         if isinstance(data, dict):
-            for admin_key in ("patient_name", "dob", "age"):
-                if admin_key in data:
-                    data[admin_key] = _sanitize_redacted_admin_field(data.get(admin_key))
-            if "gender" in data:
-                data["gender"] = _sanitize_redacted_admin_field(data.get("gender"), is_gender=True)
-            data["scanned_by"] = "Google Gemini Vision Multimodal Fallback"
+            data["scanned_by"] = "Groq Vision Multimodal Fallback"
             data["pipeline_mode"] = "End-to-End Vision Fallback"
             data["uploaded_filename"] = original_filename or os.path.basename(file_path)
             return data
@@ -269,17 +227,17 @@ def analyze_uploaded_document(file_path: str, original_filename: str = "") -> Di
     avg_conf = ocr_result.get("avg_confidence", 0.0)
     print(f"✅ [BƯỚC 1/2] Phát hiện {total_lines} dòng văn bản (Độ tin cậy TB: {avg_conf:.2f})")
 
-    # BƯỚC 2: CHUẨN HÓA VĂN BẢN BẰNG GEMINI NLP NẾU CÓ DỮ LIỆU OCR
+    # BƯỚC 2: CHUẨN HÓA VĂN BẢN BẰNG GROQ NLP NẾU CÓ DỮ LIỆU OCR
     if ocr_result.get("success") and total_lines >= 3:
-        print("🧠 [BƯỚC 2/2] Chuyển dữ liệu OCR sang Gemini Clinical NLP...")
-        hybrid_res = normalize_and_analyze_with_gemini(ocr_result, filename_clean, file_path)
+        print("🧠 [BƯỚC 2/2] Chuyển dữ liệu OCR sang Groq Clinical NLP...")
+        hybrid_res = normalize_and_analyze_with_groq(ocr_result, filename_clean, file_path)
         if hybrid_res:
             print("🎉 [HYBRID PIPELINE SUCCESS] Chuẩn hóa dược học thành công!")
             return hybrid_res
 
-    # BƯỚC 3: DỰ PHÒNG GEMINI VISION NẾU ẢNH MỜ HOẶC PDF
+    # BƯỚC 3: DỰ PHÒNG GROQ VISION NẾU ẢNH MỜ HOẶC PDF
     print("⚠️ [FALLBACK 1] Thử nghiệm Vision Multimodal dự phòng...")
-    vision_res = scan_prescription_with_gemini_vision(file_path, filename_clean)
+    vision_res = scan_prescription_with_groq_vision(file_path, filename_clean)
     if vision_res:
         return vision_res
 

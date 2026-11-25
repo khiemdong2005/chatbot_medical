@@ -948,7 +948,6 @@ body #booking-tab #hospitalsView main>div.flex-1,
 /* 6.5 Bộ chuyển đổi chế độ xem (Mode Switcher) */
 #doctor-tab [hidden],
 #doctor-tab .nf-mode-switcher[hidden],
-#doctor-tab .nf-meal-filters[hidden],
 #doctor-tab .nf-full-meal-wrap[hidden],
 #doctor-tab .nf-cards[hidden] {
   display: none !important;
@@ -1321,21 +1320,6 @@ body #booking-tab #hospitalsView main>div.flex-1,
   background: transparent !important;
 }
 
-#doctor-tab .nf-examples button {
-  background: var(--ocean-sheer-card) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #94a3b8 !important;
-  border-radius: 9999px !important;
-  padding: 5px 14px !important;
-  transition: all 0.2s ease !important;
-}
-
-#doctor-tab .nf-examples button:hover {
-  background: var(--ocean-sheer-card) !important;
-  border-color: rgba(56, 189, 248, 0.4) !important;
-  color: #38bdf8 !important;
-}
-
 /* 7. TOÀN BỘ CÁC THẺ CARD / PANEL CHUNG (.glass-panel, .glass-panel-elevated) */
 .glass-panel,
 .glass-panel-elevated,
@@ -1464,6 +1448,7 @@ body.light-glass .text-slate-500 {
   font-weight: 500 !important;
   box-shadow: none !important;
   transition: all 0.2s ease !important;
+  color-scheme: dark !important;
 }
 
 #login-modal.auth-4exam-shell .auth-4e-input::placeholder,
@@ -1480,18 +1465,43 @@ body.light-glass .text-slate-500 {
   outline: none !important;
 }
 
-#login-modal.auth-4exam-shell .auth-4e-input:-webkit-autofill,
-#login-modal.auth-4exam-shell .auth-4e-input:-webkit-autofill:hover,
-#login-modal.auth-4exam-shell .auth-4e-input:-webkit-autofill:focus,
+/* ==========================================================================
+   AUTOFILL OVERRIDE (Fix White-on-White Contrast in WebKit/Chrome/Edge)
+   ========================================================================== */
 #login-modal .auth-4e-input:-webkit-autofill,
 #login-modal .auth-4e-input:-webkit-autofill:hover,
-#login-modal .auth-4e-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #0a1e38 inset !important;
-  box-shadow: 0 0 0 1000px #0a1e38 inset !important;
+#login-modal .auth-4e-input:-webkit-autofill:focus,
+#login-modal .auth-4e-input:-webkit-autofill:active,
+.auth-4e-input:-webkit-autofill,
+.auth-4e-input:-webkit-autofill:hover,
+.auth-4e-input:-webkit-autofill:focus,
+.auth-4e-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+input:autofill,
+input:autofill:hover,
+input:autofill:focus,
+input:autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+textarea:autofill,
+textarea:autofill:hover,
+textarea:autofill:focus,
+textarea:autofill:active,
+select:-webkit-autofill,
+select:autofill {
+  -webkit-box-shadow: 0 0 0 1000px #091a32 inset !important;
+  box-shadow: 0 0 0 1000px #091a32 inset !important;
   -webkit-text-fill-color: #ffffff !important;
   color: #ffffff !important;
-  caret-color: #ffffff !important;
-  transition: background-color 9999s ease-in-out 0s !important;
+  caret-color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+  color-scheme: dark !important;
 }
 
 #login-modal.auth-4exam-shell .auth-4e-google-btn,
@@ -1584,3 +1594,165 @@ body.light-glass .text-slate-500 {
   box-shadow: 0 0 14px rgba(56, 189, 248, 0.4) !important;
   background-color: rgba(6, 26, 52, 0.8) !important;
 }
+
+/* MediMind Smart Bell Notifications */
+#notif-dropdown-menu {
+  --notif-text: #f2f6ff;
+  --notif-muted: #b5c6dc;
+  --notif-link: #80d8ff;
+  --notif-border: #34516f;
+  --notif-surface: #102238;
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(31rem, calc(100vw - 24px));
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid var(--notif-border);
+  border-radius: 20px;
+  background: #0d1e32;
+  color: var(--notif-text);
+  box-shadow: 0 18px 40px #06132680;
+}
+
+body.light-glass #notif-dropdown-menu {
+  --notif-text: #132c43;
+  --notif-muted: #4a6177;
+  --notif-link: #075985;
+  --notif-border: #c1d7e7;
+  --notif-surface: #f1f8fd;
+}
+
+.notif-panel-heading,
+.notif-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notif-panel-heading {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--notif-border);
+}
+
+#notif-title {
+  font-size: 19px;
+  font-weight: 750;
+}
+
+#notif-filter-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--notif-border);
+}
+
+#notif-filter-tabs button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 4px;
+  border-radius: 10px;
+  color: var(--notif-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#notif-filter-tabs button[aria-pressed="true"] { background: #0576c0; color: #fff; }
+#notif-filter-tabs button:not([aria-pressed="true"]):hover { background: var(--notif-surface); }
+#notif-filter-tabs svg { flex: none; width: 16px; }
+#notif-items-list { display: grid; gap: 9px; max-height: min(58dvh, 540px); overflow-y: auto; }
+.notif-empty { padding: 24px 4px; font-size: 13px; text-align: center; color: var(--notif-muted); }
+
+.notif-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  background: var(--notif-surface);
+  border: 1px solid var(--notif-border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.notif-card.is-read { border-color: color-mix(in srgb, var(--notif-border) 65%, transparent); }
+
+.notif-card-symbol {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #0e82b625;
+  color: #37bff6;
+}
+
+.notif-medication .notif-card-symbol { background: #12876c25; color: #58d8a7; }
+.notif-card-symbol svg { width: 21px; }
+.notif-card-labels { display: flex; flex-wrap: wrap; gap: 4px; }
+.notif-card h3 { font-size: 14px; font-weight: 750; overflow-wrap: anywhere; margin: 3px 0; }
+.notif-card p { font-size: 12px; color: var(--notif-muted); overflow-wrap: anywhere; }
+.notif-card-controls { display: grid; justify-items: center; align-content: start; gap: 3px; }
+.notif-dot { width: 8px; height: 8px; margin-top: 4px; border-radius: 50%; background: #38bdf8; }
+.notif-medication .notif-dot { background: #34d399; }
+.notif-mark-read, .notif-details {
+  color: var(--notif-link);
+  font-size: 12px;
+  font-weight: 650;
+  padding: 5px 0;
+  cursor: pointer;
+}
+.notif-mark-read:hover, .notif-details:hover { text-decoration: underline; }
+.notif-dismiss {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--notif-muted);
+  cursor: pointer;
+}
+.notif-dismiss:hover { background: #f43f5e22; color: var(--notif-text); }
+.notif-dismiss svg { width: 17px; }
+#notif-dropdown-menu button:focus-visible { outline: 2px solid var(--notif-link); outline-offset: 1px; }
+
+@media (max-width: 400px) {
+  #notif-filter-tabs svg { display: none; }
+}
+
+.notif-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.notif-card-badge.badge-appointment {
+  background: rgba(14, 165, 233, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
+.notif-card-badge.badge-medication {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.notif-card-badge.badge-urgent {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+

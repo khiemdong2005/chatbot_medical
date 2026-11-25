@@ -32,17 +32,32 @@ class BaseRateLimitBackend(ABC):
 
 
 class MemoryRateLimitBackend(BaseRateLimitBackend):
-    """Tầng lưu trữ Rate Limit trên bộ nhớ RAM tiến trình (Thread-safe)."""
+    """Tầng lưu trữ Rate Limit trên bộ nhớ RAM tiến trình (Thread-safe, có giới hạn dung lượng chống phình RAM)."""
 
-    def __init__(self):
+    def __init__(self, max_keys: int = 10000):
         self._lock = threading.RLock()
         self._store: Dict[str, Dict[str, Any]] = {}
+        self._max_keys = max(100, int(max_keys))
+
+    def _evict_if_needed(self, now: float) -> None:
+        if len(self._store) < self._max_keys:
+            return
+        expired = [k for k, v in self._store.items() if now > v["expires_at"]]
+        for k in expired:
+            del self._store[k]
+        if len(self._store) >= self._max_keys:
+            # Loại bỏ 20% khóa cũ nhất (sắp hết hạn sớm nhất) để bảo vệ bộ nhớ
+            drop_count = max(1, self._max_keys // 5)
+            oldest = sorted(self._store.items(), key=lambda item: item[1]["expires_at"])[:drop_count]
+            for k, _ in oldest:
+                self._store.pop(k, None)
 
     def check_and_increment(self, key: str, max_requests: int, window_seconds: int) -> bool:
         with self._lock:
             now = time.time()
             record = self._store.get(key)
             if not record or now > record["expires_at"]:
+                self._evict_if_needed(now)
                 self._store[key] = {"count": 1, "expires_at": now + window_seconds}
                 return True
 

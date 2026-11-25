@@ -68,6 +68,7 @@ def find_login_user(identifier):
 def start_authenticated_session(user):
     guest_token = session.get("guest_token") if not session.get("user_id") else None
     session.clear()
+    session.permanent = True
     session["user_id"] = user.id
     if guest_token:
         session["guest_token"] = guest_token

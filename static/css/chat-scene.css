@@ -132,23 +132,7 @@ body.chat-scene-active.light-glass #chat-tab button[onclick^="insertQuickPrompt"
 }
 body.chat-scene-active.light-glass #chat-tab #user-input { color: #f4f9fd !important; }
 body.chat-scene-active.light-glass #chat-tab #user-input::placeholder { color: #aebfd0 !important; }
-body.chat-scene-active.light-glass #chat-tab .chat-scene-input button[title="Đính kèm ảnh lâm sàng"],
-body.chat-scene-active.light-glass #chat-tab .chat-scene-input button[title="Đính kèm ảnh lâm sàng"] svg {
-  color: #bfd2e2 !important;
-}
-body.chat-scene-active.light-glass #chat-tab .chat-scene-input button[title="Đính kèm ảnh lâm sàng"]:hover {
-  background-color: rgba(37, 77, 103, .98) !important;
-}
-body.chat-scene-active.light-glass #chat-tab .chat-scene-input button[title="Đính kèm ảnh lâm sàng"]:hover svg {
-  color: #fff !important;
-}
 body.chat-scene-active.light-glass #chat-tab .chat-scene-dock > p { color: #b6cad9 !important; }
-body.chat-scene-active #chat-tab #chat-image-preview-container {
-  background: rgba(18, 47, 72, .9);
-  border-color: rgba(124, 202, 222, .5);
-}
-body.chat-scene-active.light-glass #chat-tab #chat-image-preview-name { color: #f3f8fd !important; }
-body.chat-scene-active.light-glass #chat-tab #chat-image-preview-container .text-sky-600 { color: #90d9f0 !important; }
 
 body.chat-scene-active > header nav.glass-dock,
 body.chat-scene-active > aside.glass-dock {

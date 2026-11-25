@@ -6,10 +6,14 @@
   padding-top: 62px;
 }
 
-#doctor-tab #nf-results > .nf-back { margin: 0 10px 24px 0 !important; }
+#doctor-tab #nf-results > .nf-back {
+  display: inline-flex !important;
+  margin: 0 0 16px 0 !important;
+}
 #doctor-tab #nf-results > .nf-overline {
-  vertical-align: middle;
-  margin-bottom: 24px !important;
+  display: block !important;
+  width: fit-content !important;
+  margin: 0 0 14px 0 !important;
   color: #d7f4ff !important;
   background: rgba(86, 176, 239, .23) !important;
   border-color: rgba(146, 219, 255, .25) !important;
@@ -30,6 +34,9 @@
   font-size: .9em;
   font-weight: 400;
   filter: drop-shadow(0 5px 6px rgba(0, 25, 60, .25));
+}
+#doctor-tab #nf-results[data-type="drink"] #nf-results-title::before {
+  content: '🍵';
 }
 
 #doctor-tab #nf-results .nf-condition-banner {
@@ -160,8 +167,7 @@
 }
 #doctor-tab #nf-results .nf-meal-energy {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 24px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   align-items: stretch !important;
   margin: 0 0 18px !important;
   padding: 21px 26px !important;
@@ -175,15 +181,6 @@
 #doctor-tab #nf-results .nf-meal-energy-total > div { display: grid; gap: 2px; }
 #doctor-tab #nf-results .nf-meal-energy span { color: #143b67 !important; font-size: 13px !important; }
 #doctor-tab #nf-results .nf-meal-energy strong { color: #0755a0 !important; font-size: clamp(30px,4vw,44px) !important; line-height: 1.1; text-shadow: none !important; }
-#doctor-tab #nf-results .nf-meal-energy-note {
-  display: flex;
-  align-items: center;
-  gap: 17px;
-  padding-left: 32px;
-  border-left: 1px solid #398dcc;
-}
-#doctor-tab #nf-results .nf-meal-energy-note > span { font-size: 32px !important; }
-#doctor-tab #nf-results .nf-meal-energy-note small { flex-basis: auto !important; color: #173966 !important; font-size: 12px !important; line-height: 1.55; }
 #doctor-tab #nf-results .nf-meal-hero-rationale {
   margin: 0 !important;
   padding: 17px 22px !important;
@@ -264,8 +261,7 @@
   #doctor-tab #nf-results .nf-mode-btn { flex: 1; justify-content: center; padding: 11px 7px !important; font-size: 12px !important; }
   #doctor-tab #nf-results .nf-meal-hero { padding: 20px !important; border-radius: 23px !important; }
   #doctor-tab #nf-results .nf-meal-hero-badge { align-items: flex-start !important; }
-  #doctor-tab #nf-results .nf-meal-energy { grid-template-columns: 1fr !important; padding: 18px !important; }
-  #doctor-tab #nf-results .nf-meal-energy-note { padding: 15px 0 0; border-left: 0; border-top: 1px solid #398dcc; }
+  #doctor-tab #nf-results .nf-meal-energy { padding: 18px !important; }
   #doctor-tab #nf-results .nf-meal-dish-card { grid-template-columns: 1fr !important; }
   #doctor-tab #nf-results .nf-meal-dish-art { height: 220px !important; min-height: 0; }
   #doctor-tab #nf-results .nf-meal-dish-art img { min-height: 0; height: 100% !important; }

@@ -12,9 +12,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     HF_HOME=/home/appuser/.cache/huggingface
 
-# Cài đặt các gói hệ thống nhẹ cần thiết (curl cho healthcheck)
+# Cài đặt các gói hệ thống nhẹ cần thiết (curl cho healthcheck, libglib/libgomp cho OpenCV)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    libglib2.0-0 \
+    libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Tạo người dùng non-root (appuser) để tuân thủ tiêu chuẩn an toàn container
@@ -55,6 +57,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Khởi chạy FastAPI Gateway bằng Uvicorn
-CMD ["uvicorn", "core.main_fastapi:app", "--host", "0.0.0.0", "--port", "8000"]
+# Khởi chạy FastAPI Gateway bằng Uvicorn (nhận X-Forwarded-Proto/For từ CloudFront/ALB)
+CMD ["uvicorn", "core.main_fastapi:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
 

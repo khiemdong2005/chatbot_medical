@@ -90,14 +90,14 @@ app = FastAPI(
     openapi_url=openapi_url
 )
 
-# Cấu hình CORS
+# Cấu hình CORS theo nguyên tắc tối thiểu đặc quyền (Least Privilege)
 cors_origins = list(settings.security.cors_allowed_origins)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Guest-Token", "X-CSRF-Token", "X-Requested-With", "Accept"],
 )
 
 
@@ -110,8 +110,12 @@ async def security_headers_middleware(request: Request, call_next):
         dict(request.headers),
         trust_proxy=settings.security.trust_proxy_headers
     )
+    from core.auth.security_headers import is_sensitive_api_path
     for k, v in get_security_headers(is_https=is_https).items():
         response.headers[k] = v
+    if is_sensitive_api_path(request.url.path):
+        response.headers["Cache-Control"] = "no-store, private"
+        response.headers["Pragma"] = "no-cache"
     return response
 
 
@@ -174,8 +178,13 @@ import jinja2
 def compat_url_for(context: dict, name: str, **path_params):
     if name == "static" and "filename" in path_params and "path" not in path_params:
         path_params["path"] = path_params.pop("filename")
+    external = bool(path_params.pop("_external", False))
     request = context["request"]
-    return request.url_for(name, **path_params)
+    url = request.url_for(name, **path_params)
+    if external:
+        return str(url)
+    # Trả đường dẫn tương đối (/static/...) để tránh lỗi HTTPS Mixed Content sau CloudFront/ALB
+    return url.path + (f"?{url.query}" if url.query else "")
 
 templates.env.globals["url_for"] = compat_url_for
 
@@ -473,6 +482,10 @@ for prefix in FLASK_COMPAT_PREFIXES:
                                    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]))
     app.router.routes.append(Route(f"/api/{prefix}/{{rest:path}}", flask_gateway,
                                    methods=["GET", "POST", "PUT", "DELETE", "PATCH"]))
+
+# Phục vụ lịch sử OCR cũ (/api/ocr/*) và file ảnh đơn thuốc / avatar tải lên (/uploads/*) qua Flask gateway
+app.router.routes.append(Route("/api/ocr/{rest:path}", flask_gateway, methods=["GET", "POST", "PUT", "DELETE", "PATCH"]))
+app.router.routes.append(Route("/uploads/{rest:path}", flask_gateway, methods=["GET", "HEAD"]))
 
 
 if __name__ == "__main__":

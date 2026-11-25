@@ -1,4 +1,4 @@
-"""LLM ranks supplied recipes via Groq (or OpenRouter); it cannot create or alter ingredients."""
+"""LLM ranks supplied recipes via Groq; it cannot create or alter ingredients."""
 import json
 import logging
 import os
@@ -171,26 +171,14 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
 def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidance: List[Dict],
                    personalization: Dict | None = None) -> Dict:
     from core.ai.llm_provider import llm_provider
-    ai_provider_env = os.getenv("AI_PROVIDER", "").strip().lower()
-    nutrition_provider_env = os.getenv("NUTRITION_AI_PROVIDER", "").strip().lower()
-    if nutrition_provider_env:
-        use_groq = nutrition_provider_env == "groq"
-    elif ai_provider_env == "openrouter":
-        use_groq = False
-    else:
-        use_groq = llm_provider.is_groq_active() or bool((os.getenv("GROQ_API_KEY") or "").strip())
-
-    if use_groq:
-        key = (os.getenv("GROQ_API_KEY") or "").strip()
-        model = (os.getenv("GROQ_NUTRITION_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.3-70b-versatile").strip()
-    else:
-        key = (os.getenv("OPENROUTER_NUTRITION_API_KEY") or os.getenv("OPENROUTER_API_KEY") or "").strip()
-        model = (os.getenv("OPENROUTER_NUTRITION_MODEL") or os.getenv("OPENROUTER_MODEL") or "openrouter/free").strip()
+    groq_pool = llm_provider._collect_groq_key_pool(profile="nutrition")
+    key = groq_pool[0] if groq_pool else (os.getenv("GROQ_API_KEY") or "").strip()
+    model = (os.getenv("GROQ_NUTRITION_MODEL") or os.getenv("GROQ_MODEL") or "qwen/qwen3.8-27b").strip()
     if not key or key.startswith("YOUR_") or len(key) <= 10:
         raise NutritionAIError("not_configured")
     if not model or not re.fullmatch(r"[A-Za-z0-9_.:/-]+", model):
         raise NutritionAIError("configuration")
-    llm_candidates = recipes[:18] if use_groq else recipes
+    llm_candidates = recipes[:18]
     candidate_ids = [r["id"] for r in llm_candidates]
     schema = {
         "type": "object", "additionalProperties": False,
@@ -277,7 +265,7 @@ QUY TẮC:
     from core.ai.llm_provider import LLMProviderError
 
     try:
-        timeout_raw = os.getenv("GROQ_NUTRITION_TIMEOUT_SECONDS") or os.getenv("OPENROUTER_NUTRITION_TIMEOUT_SECONDS") or "60"
+        timeout_raw = os.getenv("GROQ_NUTRITION_TIMEOUT_SECONDS") or "60"
         gen_timeout = float(timeout_raw)
         if not 10 <= gen_timeout <= 180:
             raise ValueError("timeout out of range")
@@ -315,9 +303,8 @@ QUY TẮC:
             operation="nutrition_ai",
             profile="nutrition",
             api_key=key,
-            provider="groq" if use_groq else "openrouter",
-            json_mode=True if use_groq else False,
-            reasoning_enabled=False,
+            provider="groq",
+            json_mode=True,
         )
         result = validate_selection(raw_result, recipes, len(guidance))
         if recipe_type == "drink":

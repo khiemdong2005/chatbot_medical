@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 from core.chat_service import process_clinical_chat, retrieval_query
 from core.gemini_service import (GeminiMedicalService, sanitize_history,
                                 sanitize_health_context, reference_sources)
-from core.llm_provider import _OpenRouterHTTPError
+from core.llm_provider import _GroqHTTPError
 
 
 def provider(response=None):
@@ -332,7 +332,7 @@ class ChatQualityTests(unittest.TestCase):
 
     def test_raw_provider_exception_never_reaches_logs(self):
         service = provider()
-        service.client.models.generate_content.side_effect = _OpenRouterHTTPError(
+        service.client.models.generate_content.side_effect = _GroqHTTPError(
             401, "secret-key-and-synthetic-health-detail"
         )
         with self.assertLogs("GeminiService", level="WARNING") as captured:
@@ -355,9 +355,9 @@ class ChatQualityTests(unittest.TestCase):
         with patch.dict(os.environ, env_patch, clear=False):
             lp = LLMProvider()
             self.assertTrue(lp.is_groq_active())
-            self.assertFalse(lp.is_openrouter_active())
+            self.assertFalse(hasattr(lp, "is_openrouter_active"))
             self.assertEqual(lp.resolve_api_key(profile="chat"), "gsk_test_groq_key_123456")
-            self.assertEqual(lp.get_default_model("chat"), "llama-3.3-70b-versatile")
+            self.assertEqual(lp.get_default_model("chat"), "qwen/qwen3.8-27b")
             client = lp.get_client("gsk_test_groq_key_123456", profile="chat")
             self.assertEqual(client.models._endpoint(), "https://api.groq.com/openai/v1/chat/completions")
 
@@ -379,7 +379,7 @@ class ChatQualityTests(unittest.TestCase):
             self.assertNotIn("reasoning", payload)
 
     def test_groq_404_falls_back_to_active_model(self):
-        from core.llm_provider import LLMProvider, _OpenRouterHTTPError
+        from core.llm_provider import LLMProvider, _GroqHTTPError
 
         client = LLMProvider().get_client("gsk_test_groq_key_123456", provider="groq", profile="chat")
         tried_models = []
@@ -387,7 +387,7 @@ class ChatQualityTests(unittest.TestCase):
         def fake_post(payload):
             tried_models.append(payload["model"])
             if payload["model"] == "llama-3.3-70b-versatile":
-                raise _OpenRouterHTTPError(404, "Groq HTTP 404")
+                raise _GroqHTTPError(404, "Groq HTTP 404")
             return {"choices": [{"message": {"content": '{"response_kind":"clarify"}'}}]}
 
         with patch.object(client.models, "_post_completion", side_effect=fake_post):
@@ -395,6 +395,73 @@ class ChatQualityTests(unittest.TestCase):
 
         self.assertEqual(tried_models, ["llama-3.3-70b-versatile", "qwen/qwen3.8-27b"])
         self.assertEqual(res.text, '{"response_kind":"clarify"}')
+
+    @patch("core.chat_service.medical_rag_service.retrieve_context", return_value=[])
+    def test_facility_query_injects_verified_local_directory_reference(self, _retrieval):
+        captured = {}
+
+        def fake_generate(user_message, history, rag_docs=None, **kwargs):
+            captured["rag_docs"] = rag_docs or []
+            captured["mode"] = kwargs.get("consultation_mode")
+            first_line = captured["rag_docs"][0]["content"].splitlines()[1]
+            return {
+                "answer": f"Bạn có thể tham khảo {first_line} [1]",
+                "grounding_status": "verified",
+                "verified_source_ids": ["S1"],
+            }
+
+        service = SimpleNamespace(generate_clinical_response=MagicMock(side_effect=fake_generate))
+        result = process_clinical_chat(
+            "Hôm nay tôi muốn đi khám tổng quát ở tp hcm thì bệnh viện nào oke",
+            gemini_service=service,
+        )
+        self.assertEqual(captured["mode"], "informational")
+        self.assertTrue(captured["rag_docs"])
+        self.assertEqual(captured["rag_docs"][0]["source"], "MediMind Facilities Directory")
+        self.assertEqual(result["grounding_status"], "verified")
+        self.assertEqual(result["sources"][0]["url"], "https://medimind.vn/facilities")
+
+    def test_safe_general_reference_fallback_labels_transparently_and_blocks_unsafe_prescriptions(self):
+        safe_proposal = {
+            "response_kind": "insufficient",
+            "grounded_points": [],
+            "general_guidance": "Khám sức khỏe tổng quát định kỳ thường gồm khám nội tổng quát, xét nghiệm máu, nước tiểu và chẩn đoán hình ảnh cơ bản tùy độ tuổi.",
+            "follow_up_question": "",
+            "is_emergency": False,
+        }
+        service = provider(safe_proposal)
+        res = service.generate_clinical_response("Khám tổng quát gồm những hạng mục gì?", [], rag_docs=[], lang="vi")
+        self.assertEqual(res["grounding_status"], "general_reference")
+        self.assertEqual(res["sources"], [])
+        self.assertIn("Thông tin tham khảo tổng quát", res["answer"])
+        self.assertIn("xét nghiệm máu", res["answer"])
+
+        # Unsafe antibiotic prescription inside general_guidance must be rejected
+        unsafe_proposal = {
+            "response_kind": "insufficient",
+            "grounded_points": [],
+            "general_guidance": "Bạn hãy mua và uống kháng sinh Amoxicillin 500mg ngày 3 viên trong 7 ngày để hết bệnh.",
+            "follow_up_question": "",
+            "is_emergency": False,
+        }
+        unsafe_service = provider(unsafe_proposal)
+        unsafe_res = unsafe_service.generate_clinical_response("Đau họng uống gì?", [], rag_docs=[], lang="vi")
+        self.assertEqual(unsafe_res["grounding_status"], "insufficient")
+        self.assertNotIn("Amoxicillin", unsafe_res["answer"])
+
+    def test_general_chat_questions_answer_directly_via_api(self):
+        proposal = {
+            "response_kind": "general_chat",
+            "grounded_points": [],
+            "general_guidance": "Hiện tại là 20:30, ngày 25/11/2026.",
+            "follow_up_question": "",
+            "is_emergency": False,
+        }
+        service = provider(proposal)
+        res = service.generate_clinical_response("Bây giờ là mấy giờ", [], rag_docs=[], lang="vi")
+        self.assertEqual(res["grounding_status"], "general_chat")
+        self.assertEqual(res["answer"], "Hiện tại là 20:30, ngày 25/11/2026.")
+        self.assertEqual(res["sources"], [])
 
 
 if __name__ == "__main__":

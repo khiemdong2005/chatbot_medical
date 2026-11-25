@@ -137,11 +137,14 @@ def is_informational_query(text: str) -> bool:
         return False
 
     return bool(re.search(
-        r"\b(?:la (?:benh |cai )?gi|the nao la|nhu the nao|nguyen nhan|tai sao lai|vi sao lai|"
+        r"\b(?:la (?:benh |cai |thuoc )?gi|the nao la|nhu the nao|nguyen nhan|tai sao lai|vi sao lai|"
         r"co nguy hiem khong|co lay khong|lay qua duong nao|cach phong (?:ngua|tranh)|"
-        r"cach dieu tri|dau hieu cua|trieu chung cua|tim hieu ve|cho (?:toi|em|minh) hoi ve|"
-        r"dinh nghia|phan biet giua|uong (?:thuoc )?gi khi|"
-        r"what (?:is|are)|how to (?:treat|prevent)|causes of|symptoms of)\b"
+        r"cach dieu tri|dau hieu cua|trieu chung cua|(?:co )?trieu chung gi|(?:co )?dau hieu gi|(?:co )?bieu hien gi|"
+        r"trieu chung (?:la|gom) gi|tim hieu ve|cho (?:toi|em|minh) hoi ve|"
+        r"dinh nghia|phan biet giua|uong (?:thuoc )?gi khi|cong dung cua|tac dung (?:cua|phu cua)|"
+        r"benh vien nao|phong kham nao|co so y te nao|kham (?:tong quat|suc khoe|benh)?\s*o dau|di kham o dau|"
+        r"what (?:is|are)|how to (?:treat|prevent)|causes of|symptoms of|"
+        r"which (?:hospital|clinic)|where (?:can i|to) (?:get|go for) (?:a )?(?:checkup|exam|screening))\b"
         r"|\b(?:thuoc|lieu dung|uong|xet nghiem|chi so|ket qua)\b[^.!?\n]{0,100}\b"
         r"(?:luc nao|khi nao|truoc hay sau|truoc an|sau an|bao nhieu|nghia gi|co tac dung gi|co.*duoc khong)\b"
         r"|\b(?:when|how|can|should)\b[^.!?\n]{0,80}\b(?:take|medication|medicine|test results?)\b",

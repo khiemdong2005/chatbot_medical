@@ -157,14 +157,17 @@ class User(db.Model):
             "joined_date": self.created_at.strftime("%d/%m/%Y") if self.created_at else "",
             "preferences": self.get_preferences(),
         }
+        needs_onboarding = False
         if self.clinical_profile:
             try:
                 import json
                 extra = json.loads(self.clinical_profile)
                 if isinstance(extra, dict):
                     user_dict.update(extra)
+                    needs_onboarding = extra.get("onboarding_completed") is False
             except Exception:
                 pass
+        user_dict["needs_onboarding"] = needs_onboarding
         return user_dict
 
 

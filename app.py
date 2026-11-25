@@ -126,8 +126,12 @@ def create_app(test_config=None):
             dict(request.headers),
             trust_proxy=settings.security.trust_proxy_headers,
         )
+        from core.auth.security_headers import is_sensitive_api_path
         for k, v in get_security_headers(is_https=is_https).items():
             response.headers[k] = v
+        if is_sensitive_api_path(request.path):
+            response.headers["Cache-Control"] = "no-store, private"
+            response.headers["Pragma"] = "no-cache"
 
         if hasattr(request, "_start_time"):
             duration = time.time() - request._start_time

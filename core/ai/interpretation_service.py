@@ -53,7 +53,7 @@ Trả về kết quả dưới dạng Markdown có cấu trúc (gồm các tiêu
         }
 
     try:
-        if llm_provider.is_groq_active() or llm_provider.is_openrouter_active():
+        if llm_provider.is_groq_active():
             candidate_models = [llm_provider.get_default_model("interpretation")]
         else:
             candidate_models = ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest"]

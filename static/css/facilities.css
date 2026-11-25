@@ -1,6 +1,5 @@
 /* The facility directory uses the same sky accent as MediMind navigation. */
-#hospitalsView,
-#hospital-details-drawer {
+#hospitalsView {
   --facility-canvas: transparent;
   --facility-surface: rgba(6, 22, 40, 0.32);
   --facility-muted-surface: rgba(4, 14, 28, 0.22);
@@ -20,8 +19,7 @@
   min-height: 0;
 }
 
-body.light-glass #hospitalsView,
-body.light-glass #hospital-details-drawer {
+body.light-glass #hospitalsView {
   --facility-canvas: transparent;
   --facility-surface: rgba(6, 22, 40, 0.32);
   --facility-muted-surface: rgba(4, 14, 28, 0.22);
@@ -58,6 +56,12 @@ body #booking-tab #hospitalsView > aside > div {
 
 body #booking-tab #hospitalsView > main {
   background: transparent !important;
+}
+
+@media (max-width: 640px) {
+  body #booking-tab #hospitalsView > main {
+    padding-inline: .5rem !important;
+  }
 }
 
 body #booking-tab #hospitalsView > main > .flex-1 {
@@ -386,11 +390,28 @@ body #booking-tab #hospitalsView #activeHospitalBadge {
   color: var(--facility-accent-ink) !important;
 }
 
-/* Detail drawer shares the directory tokens in both application themes. */
+/* Opaque surfaces keep the directory and map behind the open drawer. */
 body #hospital-details-drawer {
+  --facility-canvas: #0a2034;
+  --facility-surface: #102b45;
+  --facility-muted-surface: #0d253c;
+  --facility-border: #2a4a66;
+  --facility-text: #f1f5f9;
+  --facility-muted: #b5c9dc;
+  --facility-accent: #0369a1;
+  --facility-accent-hover: #075985;
+  --facility-accent-soft: #163a54;
+  --facility-accent-ink: #7dd3fc;
+  --facility-status: #6ee7b7;
+  --facility-status-soft: #123a36;
+  --facility-hospital-soft: #482638;
+  --facility-hospital-border: #774053;
+  --facility-hospital-ink: #fda4af;
+  min-width: 0;
+  min-height: 0;
   height: 100dvh;
   max-height: 100dvh;
-  background: var(--facility-surface);
+  background: var(--facility-canvas);
   border-color: var(--facility-border);
   color: var(--facility-text);
 }
@@ -418,7 +439,7 @@ body:not(.light-glass) #hospital-details-drawer .facility-drawer-cover-image {
 }
 
 body #hospital-details-drawer .facility-drawer-shade {
-  background: linear-gradient(0deg, var(--facility-surface), transparent 58%);
+  background: linear-gradient(0deg, var(--facility-canvas), transparent 58%);
 }
 
 body #hospital-details-drawer .facility-drawer-close,
@@ -464,7 +485,7 @@ body #hospital-details-drawer .facility-drawer-address,
 body #hospital-details-drawer .facility-drawer-license,
 body #hospital-details-drawer .facility-drawer-contact {
   color: var(--facility-text);
-  background: var(--facility-canvas);
+  background: var(--facility-surface);
   border-color: var(--facility-border);
   line-height: 1.6;
 }
@@ -484,7 +505,7 @@ body #hospital-details-drawer[data-facility-type="Bệnh viện"] .facility-draw
 body #hospital-details-drawer .facility-drawer-license-field {
   min-width: 0;
   color: var(--facility-text);
-  background: var(--facility-surface);
+  background: var(--facility-muted-surface);
   border-color: var(--facility-border);
   overflow-wrap: anywhere;
 }
@@ -554,7 +575,7 @@ body #hospital-details-drawer .facility-drawer-close:hover {
 }
 
 body #hospital-details-drawer :is(button, a):focus-visible {
-  outline: 2px solid var(--facility-accent);
+  outline: 2px solid var(--facility-accent-ink);
   outline-offset: 3px;
 }
 

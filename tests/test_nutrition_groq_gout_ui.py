@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from core.circuit_breaker import reset_all_circuit_breakers
-from core.llm_provider import LLMProvider, _OpenRouterHTTPError, _OpenRouterModels
+from core.llm_provider import LLMProvider, _GroqHTTPError, _GroqModels
 from core.nutrition_ai import NutritionAIError, select_recipes, validate_selection
 from core.nutrition_options import (
     GOUT_DRINKS,
@@ -72,13 +72,13 @@ class NutritionGroqGoutUITests(unittest.TestCase):
     def test_groq_model_falls_back_on_404_and_413_and_strips_think_tags(self):
         for code in (404, 413):
             with self.subTest(code=code):
-                model = _OpenRouterModels("gsk_test_only_1234567890", provider="groq")
+                model = _GroqModels("gsk_test_only_1234567890")
                 calls = []
 
                 def fake_post(req_payload):
                     calls.append(req_payload["model"])
                     if len(calls) == 1:
-                        raise _OpenRouterHTTPError(code, f"Groq HTTP {code}")
+                        raise _GroqHTTPError(code, f"Groq HTTP {code}")
                     return {"choices": [{"message": {"content": '{"ok": true}'}}]}
 
                 with patch.object(model, "_post_completion", side_effect=fake_post):

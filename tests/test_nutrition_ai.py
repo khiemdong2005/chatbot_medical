@@ -59,11 +59,11 @@ class NutritionAITests(unittest.TestCase):
         with self.assertRaises(NutritionAIError):
             validate_selection(payload, FOOD, 0)
 
-    @patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-only-key",
-                          "OPENROUTER_NUTRITION_MODEL": "test/nutrition-model:free"})
+    @patch.dict(os.environ, {"AI_PROVIDER": "groq", "GROQ_API_KEY": "gsk_test_only_key_123456",
+                          "GROQ_NUTRITION_MODEL": "llama-3.3-70b-versatile"})
     @patch("google.genai.Client")
     @patch("core.llm_provider.llm_provider.generate_json")
-    def test_openrouter_output_is_validated_without_google_client(self, generate_json, google_client):
+    def test_groq_output_is_validated_without_google_client(self, generate_json, google_client):
         generate_json.return_value = answer()
         result = select_recipes("ho", "food", FOOD, [], personalization={
             "allergen_codes": ["shrimp"], "bmi_category": "Thừa cân",
@@ -72,11 +72,10 @@ class NutritionAITests(unittest.TestCase):
         })
         self.assertEqual(result["recipes"][0]["id"], "oat_porridge")
         call = generate_json.call_args.kwargs
-        self.assertEqual(call["provider"], "openrouter")
+        self.assertEqual(call["provider"], "groq")
         self.assertEqual(call["profile"], "nutrition")
-        self.assertEqual(call["model"], "test/nutrition-model:free")
-        self.assertFalse(call["json_mode"])
-        self.assertFalse(call["reasoning_enabled"])
+        self.assertEqual(call["model"], "llama-3.3-70b-versatile")
+        self.assertTrue(call["json_mode"])
         payload = json.loads(call["contents"])
         self.assertEqual(payload["personalization"]["allergen_codes"], ["shrimp"])
         self.assertEqual(payload["personalization"]["diet_preferences"], ["no_added_sugar"])
@@ -85,8 +84,8 @@ class NutritionAITests(unittest.TestCase):
         self.assertNotIn("dob", payload["personalization"])
         google_client.assert_not_called()
 
-    @patch.dict(os.environ, {"AI_PROVIDER": "openrouter", "OPENROUTER_API_KEY": "sk-or-test-only-key",
-                          "OPENROUTER_NUTRITION_MODEL": "test/nutrition-model:free"})
+    @patch.dict(os.environ, {"AI_PROVIDER": "groq", "GROQ_API_KEY": "gsk_test_only_key_123456",
+                          "GROQ_NUTRITION_MODEL": "llama-3.3-70b-versatile"})
     @patch("core.llm_provider.llm_provider.generate_json", side_effect=RuntimeError("private-key-and-request-content"))
     def test_provider_error_text_is_never_propagated(self, _generate_json):
         with self.assertRaises(NutritionAIError) as captured:

@@ -51,7 +51,7 @@
 | 40 | UX, Cài Đặt & Tiện Ích | Trung tâm Thông báo trên Header (Chuông thông báo & đánh dấu đã đọc) | **UI Only** | Nút chuông `#notif-btn`, dropdown `#notif-dropdown-menu`, `markAllNotificationsAsRead()` chỉ đổi CSS DOM | **Chưa có API** `/api/notifications` | **Chưa có bảng** `Notification` | Thiếu backend sinh/lưu thông báo (nhắc lịch khám, nhắc uống thuốc), `renderNotifications()` chưa được gọi và chưa render danh sách item khi có dữ liệu | `templates/index.html`, `static/js/app.js` |
 | 41 | UX, Cài Đặt & Tiện Ích | Thử thách sống khỏe / Theo dõi thói quen hàng ngày (`habits.html`) | **UI Only** | File HTML tĩnh 5 dòng liệt kê 4 thử thách gọi `completeWellnessChallenge(this)` (hàm JS không tồn tại) | **Chưa có route** render template và chưa có API lưu tiến độ | **Chưa có bảng** lưu thói quen/tiến độ | Thiếu route hiển thị, thiếu JS xử lý `completeWellnessChallenge`, thiếu API & DB lưu tiến độ ngày hoàn thành | `templates/habits.html` |
 | 42 | UX, Cài Đặt & Tiện Ích | Chuyển đổi giao diện Sáng / Tối & Hình nền không gian | **UI Only** | Có các hàm `applyThemeMode()`, `toggleGlassThemeMode()`, `cycleMedicalWallpaper()` và hằng `CLINICAL_CYAN_GLOW.light` | Không cần | `localStorage` `medimind_theme` (luôn bị ghi đè `'dark'`) | Đã bị khóa cứng sang Dark Mode, không có nút chuyển đổi trên UI, nhánh Light Mode không hoạt động | `static/js/app.js` |
-| 43 | Hạ Tầng & API Gateway | Cổng lai FastAPI ASGI + Flask WSGI & Tài liệu API tương tác (`/docs`, `/redoc`, `/openapi.json`) | **Completed** | Trang Swagger UI nội bộ `templates/api_docs.html` + `static/vendor/swagger-ui/` | `core/main_fastapi.py` mount `core/routers/*` và `WSGIMiddleware(flask_app_instance)`, `routes/system_routes.py` | Dùng chung SQLAlchemy DB | Không (lưu ý Flask `/docs` chưa tự tắt khi `is_production=True` như FastAPI) | `core/main_fastapi.py`, `core/routers/*`, `routes/system_routes.py`, `templates/api_docs.html`, `app.py` |
+| 43 | Hạ Tầng & API Gateway | Cổng lai FastAPI ASGI + Flask WSGI & Tài liệu API tương tác (`/docs`, `/redoc`, `/openapi.json`) | **Completed** | Trang Swagger UI nội bộ `templates/api_docs.html` + `static/vendor/swagger-ui/` | `core/main_fastapi.py` mount `core/routers/*` và `WSGIMiddleware(flask_app_instance)`, `routes/system_routes.py` **(đã đồng bộ tự tắt `/docs` & `/openapi.json` trả `404` khi `ENV=production`)** | Dùng chung SQLAlchemy DB | Không | `core/main_fastapi.py`, `core/routers/*`, `routes/system_routes.py`, `templates/api_docs.html`, `app.py` |
 | 44 | Hạ Tầng & API Gateway | Kiểm tra sức khỏe & trạng thái sẵn sàng dịch vụ (`/health`, `/ready`) | **Completed** | Không cần (endpoint JSON cho load balancer / container healthcheck) | `GET /health`, `GET /ready` trên cả Flask & FastAPI kiểm tra ChromaDB RAG & Gemini Circuit Breaker | ChromaDB `medical_vectordb` | Không | `routes/system_routes.py`, `core/main_fastapi.py`, `core/chat/rag_service.py`, `core/ai/circuit_breaker.py` |
 | 45 | Hạ Tầng & API Gateway | Bộ nhớ đệm Redis tự động dự phòng In-Memory Cache | **Completed** | Không cần | `core/shared/cache_service.py` ưu tiên Redis và tự động fallback In-Memory khi mất kết nối | Redis / RAM | Không | `core/shared/cache_service.py` |
 | 46 | Hạ Tầng & Tích Hợp Cloud | Lưu trữ tệp y tế đám mây trên AWS S3 (`boto3`) | **Not Implemented** | Không có | Chỉ khai báo `boto3==1.35.0` trong `requirements.txt` và đề cập trong `README.md`, 0 dòng code tích hợp | Hiện lưu cục bộ trong `uploads/` | Chưa triển khai S3 adapter trong `core/shared/storage_service.py` | `requirements.txt`, `README.md`, `core/shared/storage_service.py` |
@@ -104,3 +104,35 @@
 15. **STT #47 — Xác thực JWT (`Not Implemented`):** Triển khai JWT nếu mở rộng sang ứng dụng Mobile/SPA tách biệt (hoặc giữ nguyên Flask Session Cookie và gỡ `pyjwt`).
 16. **STT #36 — Frontend React/TypeScript (`Not Implemented`):** Thiết lập build pipeline Vite/React nếu có kế hoạch migrate frontend, hoặc loại bỏ `src/components/` để đồng nhất stack Jinja2 + Vanilla JS.
 17. **STT #42 — Giao diện Sáng / Tối (`UI Only`):** Bổ sung nút chuyển đổi và khôi phục nhánh Light Mode nếu cần, hoặc chốt thiết kế Dark Mode duy nhất.
+
+---
+
+## 4. Nhật Ký Cứng Hóa Bảo Mật OWASP Top 10 (Đợt 25/11/2026)
+
+> **Tham chiếu chi tiết:** Xem toàn bộ bảng bằng chứng kiểm thử trước/sau tại [`PENTEST_REPORT.md`](file:///c:/Github-NitaxIso/Medical%20ChatBOT/PENTEST_REPORT.md).  
+> **Phạm vi loại trừ tuyệt đối:** Không can thiệp vào Chatbot + RAG, Đọc đơn thuốc + OCR và Dinh dưỡng.
+
+- **Đã khắc phục & xác minh (`FIXED` — 10 hạng mục):**
+  - `VULN-01` (Đồng bộ `max_age` phiên Flask trên FastAPI `core/routers/deps.py`),
+  - `VULN-02` (Chặn tài khoản `suspended` thống nhất trên mọi điểm vào Auth & FastAPI),
+  - `VULN-04` (Bắt buộc session-bound `google_oauth_state` ở `/api/auth/google/callback`),
+  - `VULN-05` (Kiểm tra `email_verified` và gắn/đối chiếu `User.google_sub` ở Google Sign-In),
+  - `VULN-06` (Xoay vòng phiên & đặt `session.permanent = True` sau `session.clear()` cho `login_2fa` và toàn bộ luồng đăng nhập),
+  - `VULN-07` (Siết `POST /api/auth/change-password`: mật khẩu mạnh, cấm trùng mật khẩu cũ, rate limit `5/15 phút`, xoay vòng phiên),
+  - `VULN-11` (Tắt Flask `/openapi.json` & `/docs` ở Production + gắn `Cache-Control: no-store, private` trên các API PII),
+  - `VULN-12` (Xác minh giải mã ảnh Pillow thực sự tại `POST /api/auth/avatar` không đụng bộ validator OCR dùng chung),
+  - `RISK-05` (Hỗ trợ `ALLOWED_HOSTS` cho CSRF Trusted Origins + thu hẹp CORS `allow_methods`/`allow_headers` tối thiểu),
+  - `RISK-06` (Kiểm tra kiểu chuỗi & giới hạn độ dài tối đa đầu vào Đặt lịch khám và Hồ sơ cá nhân).
+- **Đã cứng hóa từng phần để bảo toàn flow/contract hiện tại (`PARTIALLY FIXED` — 5 hạng mục):**
+  - `VULN-08` (Rate limit `10/10 phút` đặt lịch, regex email chặt chẽ, chặn CRLF SMTP header injection; giữ nguyên tính năng nhập Gmail nhận xác nhận trên form),
+  - `VULN-09` (Siết regex/độ dài email ở `/api/auth/profile`; bảo lưu luồng sửa `#p-email` hiện có, đề xuất bước xác thực lại khi nâng cấp UI),
+  - `VULN-10` (Bổ sung per-IP rate limit cho `/api/auth/otp/send` & `/verify`; giữ nguyên contract `404`/`409` của luồng Quên mật khẩu `1B`),
+  - `RISK-02` (Bọc `escapeHtml()` & `rel="noopener noreferrer"` các hàm render legacy trong `static/js/app.js`; bảo lưu CSP `'unsafe-inline'` để không gãy `onclick` hiện có),
+  - `RISK-04` (Giới hạn dung lượng tự dọn khóa hết hạn trong `MemoryRateLimitBackend` & `OtpManager`; đồng bộ đa worker qua Redis là cấu hình hạ tầng).
+- **Chưa chỉnh sửa theo nguyên tắc bảo toàn phạm vi/ổn định & cấu hình ngoài (`DEFERRED / EXTERNAL INFRA` — 4 hạng mục):**
+  - `VULN-03` (`GET /uploads/<filename>` dùng chung trong `routes/ocr_routes.py` thuộc phạm vi OCR loại trừ — đề xuất tách riêng `/api/auth/avatars/`),
+  - `RISK-01` (Fallback `SECRET_KEY` ở dev bị khóa contract bởi `tests/test_settings.py:119`; Production đã fail-closed `RuntimeError`),
+  - `RISK-03` (`localStorage['medimind_user']` giữ nguyên tránh lỗi hydrate đồng bộ giao diện khi F5),
+  - `RISK-07` (`GOOGLE_MAPS_API_KEY` cần cấu hình HTTP Referrer & API Restrictions trực tiếp trên Google Cloud Console).
+- **Kết quả kiểm thử xác minh sau khắc phục:** **`215 passed, 0 failed`** trên 23 bộ kiểm thử (`tests/test_pentest_remediation.py` `11/11 passed` + 22 bộ hồi quy trong phạm vi) và `node --check static/js/app.js` **PASS**.
+

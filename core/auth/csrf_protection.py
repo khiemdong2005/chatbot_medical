@@ -3,16 +3,29 @@ core/csrf_protection.py
 Chính sách bảo vệ CSRF và Kiểm tra Nguồn gốc (Origin / Referer Policy) dùng chung cho MediMind.
 Áp dụng đồng bộ cho cả Flask WSGI routes và FastAPI native routes (Phase 8.2 Hardening).
 """
+import os
 import urllib.parse
 from typing import Optional, Set, Tuple, Any, Mapping
 from core.shared.settings import get_settings
+
+
+def _is_allowed_request_host(host_clean: str, is_production: bool) -> bool:
+    """Trong Production có cấu hình ALLOWED_HOSTS, chỉ tin cậy Host nằm trong danh sách cho phép."""
+    raw_allowed = (os.getenv("ALLOWED_HOSTS") or "").strip()
+    if not raw_allowed:
+        return True
+    allowed = {h.strip().lower() for h in raw_allowed.split(",") if h.strip()}
+    if not allowed or "*" in allowed:
+        return True
+    hostname = host_clean.split(":", 1)[0]
+    return host_clean in allowed or hostname in allowed
 
 
 def get_trusted_origins(request_host: Optional[str] = None) -> Set[str]:
     """
     Tổng hợp danh sách các Origin được tin cậy:
     1. settings.security.cors_allowed_origins
-    2. Same-origin host từ request.host (nếu có)
+    2. Same-origin host từ request.host (nếu hợp lệ theo ALLOWED_HOSTS)
     3. Local dev origins nếu không phải production
     """
     settings = get_settings()
@@ -24,14 +37,15 @@ def get_trusted_origins(request_host: Optional[str] = None) -> Set[str]:
         if clean:
             trusted.add(clean)
 
-    # 2. Same-origin host từ Header Host của request
+    # 2. Same-origin host từ Header Host của request (có kiểm tra ALLOWED_HOSTS nếu cấu hình)
     if request_host:
         host_clean = request_host.strip().lower()
-        trusted.add(f"http://{host_clean}")
-        trusted.add(f"https://{host_clean}")
-        if ":" not in host_clean:
-            trusted.add(f"http://{host_clean}:5000")
-            trusted.add(f"http://{host_clean}:8000")
+        if _is_allowed_request_host(host_clean, settings.server.is_production):
+            trusted.add(f"http://{host_clean}")
+            trusted.add(f"https://{host_clean}")
+            if ":" not in host_clean:
+                trusted.add(f"http://{host_clean}:5000")
+                trusted.add(f"http://{host_clean}:8000")
 
     # 3. Mặc định phát triển cục bộ nếu không ở chế độ Production
     if not settings.server.is_production:
