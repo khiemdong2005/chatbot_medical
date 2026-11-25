@@ -1120,20 +1120,28 @@
             }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa có thức uống phù hợp với điều kiện lọc hiện tại.</div>';
 
             if (cardsEl) {
+              const iconUtensils = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
+              const iconCup = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M6 8h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8Z"/><path d="M5 8h14"/><path d="M12 8V4l3-1"/></svg>';
+              const iconSoupBowl = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M9 5v2"/><path d="M12 4v3"/><path d="M15 5v2"/><path d="M8 20h8"/></svg>';
+              const iconRiceBowl = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M4 12h16a8 8 0 0 1-16 0Z"/><path d="M6 12a6 6 0 0 1 12 0"/><path d="M9 20h6"/></svg>';
+              const iconGrid = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>';
+
+              const tabActiveCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-sky-500 text-white border border-sky-400/60 shadow-[0_6px_18px_rgba(14,165,233,0.35)] cursor-pointer transition';
+              const tabIdleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-[#122644]/90 text-slate-100 border border-white/15 hover:bg-slate-800/90 cursor-pointer transition';
+              const subActiveCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-teal-600/35 text-teal-100 border border-teal-400/65 shadow-sm cursor-pointer transition';
+              const subIdleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-[#122644]/90 text-slate-100 border border-white/15 hover:bg-slate-800/90 cursor-pointer transition';
+              const shuffleCls = 'px-5 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 bg-amber-600/25 text-amber-100 border border-amber-400/60 hover:bg-amber-500/35 cursor-pointer transition';
+
               cardsEl.innerHTML = `
                 <div class="col-span-full space-y-4">
-                  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-                    <div class="flex gap-2">
-                      <button type="button" id="nf-tab-food" class="px-4 py-2 rounded-xl text-sm font-semibold bg-sky-500 text-white shadow">🍲 Thức ăn</button>
-                      <button type="button" id="nf-tab-drink" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700">🥤 Nước uống (${drinks.length})</button>
+                  <div class="flex flex-wrap items-center gap-3 border-b border-white/10 pb-3.5">
+                    <button type="button" id="nf-tab-food" class="${tabActiveCls}">${iconUtensils}<span>Thức ăn</span></button>
+                    <button type="button" id="nf-tab-drink" class="${tabIdleCls}">${iconCup}<span>Nước uống (${drinks.length})</span></button>
+                    <div id="nf-food-subtabs" class="flex flex-wrap items-center gap-3">
+                      <button type="button" id="nf-sub-single" class="${subActiveCls}">${iconSoupBowl}<span>Món lẻ theo bữa</span></button>
+                      <button type="button" id="nf-sub-combo" class="${subIdleCls}">${iconRiceBowl}<span>Combo mâm cơm (${combos.length})</span></button>
                     </div>
-                    <div class="flex flex-wrap gap-2 items-center">
-                      <div id="nf-food-subtabs" class="flex gap-2">
-                        <button type="button" id="nf-sub-single" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/25 text-emerald-200 border border-emerald-400/40">🍜 Món lẻ theo bữa</button>
-                        <button type="button" id="nf-sub-combo" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/80 text-slate-300 border border-white/10">🍱 Combo mâm cơm (${combos.length})</button>
-                      </div>
-                      <button type="button" id="nf-shuffle-menu-btn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-200 border border-amber-400/40 hover:bg-amber-500/30 transition cursor-pointer">🔄 Đổi thực đơn khác</button>
-                    </div>
+                    <button type="button" id="nf-shuffle-menu-btn" class="${shuffleCls}">${iconGrid}<span>Đổi thực đơn khác</span></button>
                   </div>
                   <div id="nf-panel-food-single" class="grid grid-cols-1 md:grid-cols-2 gap-4">${singleMealsHtml}</div>
                   <div id="nf-panel-food-combo" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">${combosHtml}</div>
@@ -1157,30 +1165,32 @@
               }
 
               tabFood.addEventListener('click', () => {
-                tabFood.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-sky-500 text-white shadow';
-                tabDrink.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700';
+                tabFood.className = tabActiveCls;
+                tabDrink.className = tabIdleCls;
+                subSingle.className = subActiveCls;
+                subCombo.className = subIdleCls;
                 subTabs.classList.remove('hidden');
                 pDrink.classList.add('hidden');
                 pSingle.classList.remove('hidden');
                 pCombo.classList.add('hidden');
               });
               tabDrink.addEventListener('click', () => {
-                tabDrink.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-sky-500 text-white shadow';
-                tabFood.className = 'px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800/80 text-slate-300 hover:bg-slate-700';
+                tabDrink.className = tabActiveCls;
+                tabFood.className = tabIdleCls;
                 subTabs.classList.add('hidden');
                 pSingle.classList.add('hidden');
                 pCombo.classList.add('hidden');
                 pDrink.classList.remove('hidden');
               });
               subSingle.addEventListener('click', () => {
-                subSingle.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/25 text-emerald-200 border border-emerald-400/40';
-                subCombo.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/80 text-slate-300 border border-white/10';
+                subSingle.className = subActiveCls;
+                subCombo.className = subIdleCls;
                 pSingle.classList.remove('hidden');
                 pCombo.classList.add('hidden');
               });
               subCombo.addEventListener('click', () => {
-                subCombo.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/25 text-emerald-200 border border-emerald-400/40';
-                subSingle.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/80 text-slate-300 border border-white/10';
+                subCombo.className = subActiveCls;
+                subSingle.className = subIdleCls;
                 pCombo.classList.remove('hidden');
                 pSingle.classList.add('hidden');
               });
