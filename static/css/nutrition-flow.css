@@ -1458,6 +1458,48 @@ body:not(.light-glass) #doctor-tab .nf-portion-clarity-badge {
   color: #86efac;
 }
 
+#doctor-tab .nf-results-survey-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 8px;
+}
+
+#doctor-tab .nf-review-survey-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(20, 184, 166, 0.14));
+  color: #0369a1;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#doctor-tab .nf-review-survey-btn:hover {
+  transform: translateY(-1px);
+  border-color: #0284c7;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.18);
+}
+
+body:not(.light-glass) #doctor-tab .nf-review-survey-btn {
+  background: rgba(11, 35, 68, 0.85);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #7dd3fc;
+  backdrop-filter: blur(12px);
+}
+
+body:not(.light-glass) #doctor-tab .nf-review-survey-btn:hover {
+  background: rgba(14, 48, 92, 0.95);
+  border-color: #38bdf8;
+  color: #e0f2fe;
+}
+
 /* ==========================================================================
    Recipe Detail Ocean-Glass Redesign (Step 3 / 3)
    ========================================================================== */

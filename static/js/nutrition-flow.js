@@ -887,35 +887,41 @@
       // Luồng khảo sát mới: bấm nút bắt đầu -> mở khảo sát -> lưu & áp dụng -> AI lọc món ra bữa ăn
       const surveyModal = el('nf-survey-modal');
       const startSurveyBtn = el('nf-start-survey-btn');
+      const reviewSurveyBtn = el('nf-review-survey-btn');
       const closeSurveyModal = () => {
         if (!surveyModal) return;
         surveyModal.classList.add('hidden');
         surveyModal.classList.remove('flex');
         if (el('nf-search')) el('nf-search').classList.remove('invisible');
       };
-      if (startSurveyBtn && surveyModal) {
-        startSurveyBtn.addEventListener('click', async () => {
-          if (el('nf-search')) el('nf-search').classList.add('invisible');
-          surveyModal.classList.remove('hidden');
-          surveyModal.classList.add('flex');
-          // Tự động điền sẵn dị ứng từ Profile ban đầu của user nếu có
-          const avoidInput = el('nf-sv-avoid');
-          if (avoidInput && !avoidInput.value.trim()) {
-            const cachedAllergies = window.currentUser?.allergies || window.currentUserData?.allergies;
-            if (cachedAllergies) {
-              avoidInput.value = Array.isArray(cachedAllergies) ? cachedAllergies.join(', ') : String(cachedAllergies);
-            } else {
-              try {
-                const res = await fetch('/api/auth/me');
-                if (res.ok) {
-                  const me = await res.json();
-                  const al = me?.user?.allergies || me?.allergies;
-                  if (al) avoidInput.value = Array.isArray(al) ? al.join(', ') : String(al);
-                }
-              } catch (_) {}
-            }
+      const openSurveyModal = async () => {
+        if (!surveyModal) return;
+        if (el('nf-search')) el('nf-search').classList.add('invisible');
+        surveyModal.classList.remove('hidden');
+        surveyModal.classList.add('flex');
+        // Tự động điền sẵn dị ứng từ Profile ban đầu của user nếu có
+        const avoidInput = el('nf-sv-avoid');
+        if (avoidInput && !avoidInput.value.trim()) {
+          const cachedAllergies = window.currentUser?.allergies || window.currentUserData?.allergies;
+          if (cachedAllergies) {
+            avoidInput.value = Array.isArray(cachedAllergies) ? cachedAllergies.join(', ') : String(cachedAllergies);
+          } else {
+            try {
+              const res = await fetch('/api/auth/me');
+              if (res.ok) {
+                const me = await res.json();
+                const al = me?.user?.allergies || me?.allergies;
+                if (al) avoidInput.value = Array.isArray(al) ? al.join(', ') : String(al);
+              }
+            } catch (_) {}
           }
-        });
+        }
+      };
+      if (startSurveyBtn && surveyModal) {
+        startSurveyBtn.addEventListener('click', openSurveyModal);
+      }
+      if (reviewSurveyBtn && surveyModal) {
+        reviewSurveyBtn.addEventListener('click', openSurveyModal);
       }
       if (el('nf-survey-close-btn')) el('nf-survey-close-btn').addEventListener('click', closeSurveyModal);
       if (el('nf-survey-cancel-btn')) el('nf-survey-cancel-btn').addEventListener('click', closeSurveyModal);
