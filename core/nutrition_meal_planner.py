@@ -22,7 +22,8 @@ BAD_RECIPE_KEYWORDS = (
     "kem ", "trà sữa", "bột ", "bánh flan", "rau câu", "sữa chua", "sốt chấm",
     "chuối chiên", "bánh chuối", "bánh bí đỏ", "bánh khoai", "bánh tiêu", "bánh rán",
     "bánh quẩy", "xôi chiên", "bánh kẹp", "snack", "khoai chiên", "khoai tây chiên",
-    "lắc mayo", "bánh giò",
+    "lắc mayo", "bánh giò", "caramel", "bánh canh ngọt", "bánh mì gấu", "papparoti",
+    "bông lan", "hương quế", "bơ mật ong", "xôi xoài", "xôi mít",
 )
 
 SINGLE_DISH_KEYWORDS = (
@@ -480,6 +481,7 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     ai_meal_ids = (ai_choice or {}).get("meal_ids") or []
+    single_ids = {r["id"] for r in single_pool}
     used_ids = set()
     meals_out = []
     total_actual = 0
@@ -489,7 +491,7 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
         chosen = None
         if idx < len(ai_meal_ids):
             cand = pool_by_id.get(ai_meal_ids[idx])
-            if cand and cand["id"] not in used_ids:
+            if cand and cand["id"] in single_ids and cand["id"] not in used_ids:
                 if slot != "breakfast" or _is_breakfast_friendly(cand):
                     chosen = cand
 
