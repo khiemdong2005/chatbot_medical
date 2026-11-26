@@ -48,6 +48,83 @@ def _encode_image_for_vision(file_path: str, max_dim: int = 1600) -> tuple:
         return base64.b64encode(f.read()).decode("ascii"), mime_type
 
 
+def _parse_course(quantity: str):
+    """'x 10 ngày = 20 Viên' -> (10, 20.0, 'Viên'); '63 Viên' -> (None, 63.0, 'Viên')."""
+    text = str(quantity or "")
+    days = None
+    m_days = re.search(r"(\d+)\s*ngày", text, re.IGNORECASE)
+    if m_days:
+        days = int(m_days.group(1))
+    m_total = re.search(r"(?:=|^|\s)(\d+(?:[.,]\d+)?)\s*([A-Za-zÀ-ỹ]+)\s*$", text.strip())
+    if not m_total:
+        return days, None, ""
+    unit = m_total.group(2)
+    if unit.lower() in ("ngày", "ngay"):
+        return days, None, ""
+    return days, float(m_total.group(1).replace(",", ".")), unit
+
+
+_SLOT_RE = re.compile(r"(sáng|sang|trưa|trua|chiều|chieu|tối|toi)\s*[:\-]?\s*(\d+(?:[.,/]\d+)?)", re.IGNORECASE)
+
+
+def _to_number(token: str) -> Optional[float]:
+    token = str(token or "").replace(",", ".")
+    try:
+        if "/" in token:
+            num, den = token.split("/", 1)
+            return float(num) / float(den)
+        return float(token)
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+def _daily_amount(schedule: str, dose: str) -> Optional[float]:
+    """Số đơn vị dùng mỗi ngày đọc được từ cữ/lịch uống (None nếu không xác định được)."""
+    slots = _SLOT_RE.findall(schedule or "")
+    if slots:
+        values = [_to_number(v) for _, v in slots]
+        return sum(v for v in values if v) if all(v is not None for v in values) else None
+    m_times = re.search(r"(\d+)\s*lần", schedule or "", re.IGNORECASE)
+    m_each = re.search(r"mỗi\s*lần\s*(\d+(?:[.,/]\d+)?)", f"{schedule} {dose}", re.IGNORECASE)
+    if m_times:
+        each = _to_number(m_each.group(1)) if m_each else _to_number((re.match(r"\s*(\d+(?:[.,/]\d+)?)", dose or "") or [None, None])[1])
+        if each:
+            return int(m_times.group(1)) * each
+    return None
+
+
+def _check_schedule_against_quantity(med: Dict[str, Any]) -> None:
+    """Đánh dấu cần xem lại khi lịch uống đọc được không khớp số lượng cấp (không tự sửa/đoán)."""
+    days, total, unit = _parse_course(med.get("quantity"))
+    schedule = str(med.get("schedule") or "")
+    dose = str(med.get("dose") or "")
+    # Model sometimes copies the slot string ("Sáng: 1") into dose: keep only the per-intake amount
+    if _SLOT_RE.search(dose):
+        first = _SLOT_RE.search(dose).group(2)
+        med["dose"] = f"{first} {unit}".strip()
+        dose = med["dose"]
+    if days:
+        med["course_days"] = days
+    if not days or not total:
+        return
+    daily = _daily_amount(schedule, dose)
+    if not daily:
+        return
+    expected = daily * days
+    if abs(expected - total) > 0.01:
+        med["schedule_mismatch"] = True
+        med["needs_review"] = True
+        uncertain = list(med.get("uncertain_fields") or [])
+        if "schedule_as_printed" not in uncertain:
+            uncertain.append("schedule_as_printed")
+        med["uncertain_fields"] = uncertain
+        fmt = lambda v: (str(int(v)) if float(v).is_integer() else str(round(v, 2)))  # noqa: E731
+        med["schedule_check"] = (
+            f"Lịch đọc được {fmt(daily)} {unit}/ngày × {days} ngày = {fmt(expected)} {unit}, "
+            f"nhưng đơn cấp {fmt(total)} {unit}. Hãy đối chiếu lại cữ uống trên ảnh gốc."
+        )
+
+
 def extract_with_groq_schema(
     image_path: str,
     doc_type: str = "prescription",
@@ -157,6 +234,11 @@ Quy tắc:
 - Đọc cả dòng hướng dẫn ngay dưới tên từng thuốc; không bỏ qua dòng bắt đầu bằng "Ngày uống", "Uống", "Sáng/Trưa/Chiều/Tối", "Bôi", "Xoa", "Rửa", "Lau", "Chấm", "Tắm".
 - Ghi nguyên văn liều mỗi lần (ví dụ "1 viên", "1/2 viên", "1/3 chai", "2 gói", "3 viên") vào dose_as_printed; nếu không ghi liều mỗi lần (ví dụ thuốc bôi hoặc phiếu phát thuốc không có cách dùng) thì để trống "".
 - Ghi nguyên văn tần suất và thời điểm dùng (ví dụ "Sáng 1 viên, Chiều 1 viên", "Ngày uống 3 lần", "Bôi sáng và trưa") vào schedule_as_printed.
+- Nếu đơn ghi cữ dạng "Sáng: 1 Trưa: 0 Chiều: 1 Tối: 0" hoặc có các cột Sáng/Trưa/Chiều/Tối, phải ghi ĐỦ MỌI cữ có số lớn hơn 0 (ví dụ "Sáng: 1, Chiều: 1"), không dừng ở cữ đầu tiên.
+- Tự kiểm tra từng hàng: tổng số lượng cấp phải bằng (tổng liều 1 ngày) × (số ngày). Ví dụ "x 10 ngày = 20 Viên" nghĩa là 2 viên/ngày, nên phải có 2 cữ 1 viên hoặc 1 cữ 2 viên. Nếu chưa khớp, hãy đọc lại hàng đó trên ảnh; nếu vẫn không chắc thì giữ đúng chữ nhìn thấy và thêm "schedule_as_printed" vào uncertain_fields.
+- dose_as_printed chỉ ghi liều MỖI LẦN (ví dụ "1 Viên"), không chép cả chuỗi cữ "Sáng: 1" vào dose_as_printed.
+- Ghi số ngày dùng nếu có (ví dụ "x 10 ngày" -> "10 ngày") vào days_as_printed.
+- Ghi riêng số lượng mỗi cữ vào morning (Sáng), noon (Trưa), afternoon (Chiều), evening (Tối); để "" nếu cữ đó trống hoặc ghi 0. Nhìn kỹ cả 4 cữ trên cùng dòng, vì các cữ sau thường nằm xa bên phải.
 - Ghi cách dùng ("trước ăn", "sau ăn", "bôi mỏng", "dùng ngoài da", v.v.) vào usage_as_printed; ghi đường dùng ("Đường uống", "Dùng ngoài da", "Tiêm", v.v.) vào route_as_printed nếu rõ.
 - Ghi đúng tổng số lượng cấp ở cột Số lượng/ĐVT (ví dụ "30 Viên", "20 Viên", "1 Tuýp", "3 Lọ", "60 Cái", "1 Hộp") vào quantity_as_printed; KHÔNG nhầm số lượng tổng với liều mỗi lần.
 - Tách tên biệt dược / tên chính và hoạt chất trong ngoặc nếu có; không thay tên biệt dược bằng hoạt chất.
@@ -182,8 +264,13 @@ Dạng JSON:
       "ingredients_as_printed": "",
       "strength_as_printed": "",
       "quantity_as_printed": "",
+      "days_as_printed": "",
       "dose_as_printed": "",
       "schedule_as_printed": "",
+      "morning": "",
+      "noon": "",
+      "afternoon": "",
+      "evening": "",
       "usage_as_printed": "",
       "route_as_printed": "",
       "uncertain_fields": []
@@ -238,7 +325,19 @@ Dạng JSON:
                     continue
 
                 quantity = str(item.get("quantity_as_printed") or item.get("quantity") or item.get("days") or "").strip()
+                days_printed = str(item.get("days_as_printed") or "").strip()
+                if days_printed and "ngày" not in quantity.lower() and re.search(r"\d", days_printed):
+                    days_txt = days_printed if "ngày" in days_printed.lower() else f"{days_printed} ngày"
+                    quantity = f"x {days_txt} = {quantity}" if quantity else days_txt
                 schedule = str(item.get("schedule_as_printed") or item.get("schedule") or item.get("frequency") or "").strip()
+                slot_labels = (("morning", "Sáng"), ("noon", "Trưa"), ("afternoon", "Chiều"), ("evening", "Tối"))
+                slot_parts = []
+                for key, label in slot_labels:
+                    raw_slot = str(item.get(key) or "").strip()
+                    if re.fullmatch(r"\d+(?:[.,/]\d+)?(?:\s*[A-Za-zÀ-ỹ]+)?", raw_slot) and _to_number(re.match(r"[\d.,/]+", raw_slot).group(0)):
+                        slot_parts.append(f"{label}: {raw_slot}")
+                if slot_parts and len(slot_parts) > len(_SLOT_RE.findall(schedule)):
+                    schedule = ", ".join(slot_parts)
                 usage = str(item.get("usage_as_printed") or item.get("usage") or item.get("instructions") or "").strip()
                 route = str(item.get("route_as_printed") or item.get("route") or "").strip()
                 uncertain = item.get("uncertain_fields") or []
@@ -297,6 +396,7 @@ Dạng JSON:
                     "needs_review": needs_review,
                     "uncertain_fields": uncertain
                 })
+                _check_schedule_against_quantity(normalized_meds[-1])
             res["medications"] = normalized_meds
 
         return res

@@ -24,8 +24,8 @@ def test_prescription_sends_full_image_and_crop_in_one_call(tmp_path):
 
     contents = generate.call_args.kwargs["contents"]
     assert len(contents) == 3  # full image, crop, prompt: one generate call
-    assert contents[0].inline_data.mime_type == "image/jpeg"
-    assert contents[1].inline_data.mime_type == "image/jpeg"
+    assert contents[0]["image_url"]["url"].startswith("data:image/jpeg")
+    assert contents[1]["image_url"]["url"].startswith("data:image/jpeg")
     assert not list(tmp_path.glob("*_med_crop.jpg"))
 
 

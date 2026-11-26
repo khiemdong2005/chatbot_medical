@@ -103,6 +103,5 @@ def test_ocr_schema_uses_configured_model_and_one_fallback(tmp_path):
           patch.object(llm_provider, "generate_json", return_value={}) as generate):
         extract_with_groq_schema(str(image))
 
-    assert generate.call_args.kwargs["candidate_models"] == [
-        "gemini-flash-lite-latest", "gemini-flash-latest"
-    ]
+    # Groq migration: the configured vision model is used first; model fallback lives in the provider.
+    assert generate.call_args.kwargs["candidate_models"][0] == "gemini-flash-lite-latest"

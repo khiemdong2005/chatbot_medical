@@ -686,7 +686,8 @@ class LLMProvider:
         if "expansion" in op:
             return RetryPolicy(max_attempts=2, base_delay=0.2, max_delay=1.0, jitter=True)
         if "ocr" in op or "prescription" in op:
-            return RetryPolicy(max_attempts=2, base_delay=0.5, max_delay=2.0, jitter=True)
+            # Người dùng chủ động bấm quét đơn: chờ thêm vài giây khi Groq báo 429 tốt hơn trả form trống.
+            return RetryPolicy(max_attempts=3, base_delay=2.0, max_delay=12.0, jitter=True)
         # Chat, Nutrition và mặc định
         max_att = int(os.getenv("AI_RETRY_MAX_ATTEMPTS", str(settings.retry.max_attempts)))
         base_d = float(os.getenv("AI_RETRY_BASE_DELAY_SECONDS", str(settings.retry.base_delay_seconds)))

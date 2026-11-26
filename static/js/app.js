@@ -7106,7 +7106,7 @@ function renderPrescriptionVerification(data, options = {}) {
                 const isMatched = cardStatus === 'matched';
                 const isNotInDb = cardStatus === 'not_in_db';
                 const isUncertain = cardStatus === 'uncertain';
-                const cardBorderClass = isUncertain
+                const cardBorderClass = (isUncertain || m.schedule_check)
                   ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20'
                   : 'border-slate-200 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.03]';
                 const regimenText = (dose || freq)
@@ -7128,6 +7128,7 @@ function renderPrescriptionVerification(data, options = {}) {
                           </div>
                           ${m.active_ingredient ? `<div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Hoạt chất: ${escapeHtml(m.active_ingredient)}</div>` : ''}
                           ${m.suggested_name ? `<div class="text-[10px] text-sky-700 dark:text-sky-300">Có phải ${escapeHtml(m.suggested_name)}?</div>` : ''}
+                          ${m.schedule_check ? `<div class="prescription-schedule-check text-[10px] font-semibold text-amber-700 dark:text-amber-300 mt-0.5">⚠ ${escapeHtml(_medRemText(m.schedule_check, 'The dose times read from the image do not match the dispensed quantity. Please check them against the original prescription.'))}</div>` : ''}
                         </div>
                       </div>
 
@@ -7424,6 +7425,8 @@ function saveVerifyMedEdit(idx, event) {
   if (newHd) target.usage = newHd;
   target.needs_review = false;
   target.user_edited = true;
+  target.schedule_mismatch = false;
+  delete target.schedule_check;
 
   if (currentPrescriptionData.data?.medications?.[idx] && currentPrescriptionData.data.medications[idx] !== target) {
     Object.assign(currentPrescriptionData.data.medications[idx], target);
@@ -8037,6 +8040,7 @@ function renderPrescriptionResult(data, options = {}) {
                         <div class="flex flex-wrap items-center gap-2">
                           <h5 class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(String(m.name || m.standard_name || 'Thuốc chưa xác định'))} <span class="font-normal text-slate-500 dark:text-slate-400 text-xs">${strength}</span></h5>
                           ${m.suggested_name ? `<div class="text-[10px] text-sky-700 dark:text-sky-300">Có phải ${escapeHtml(m.suggested_name)}?</div>` : ''}
+                          ${m.schedule_check ? `<div class="prescription-schedule-check text-[10px] font-semibold text-amber-700 dark:text-amber-300 mt-0.5">⚠ ${escapeHtml(_medRemText(m.schedule_check, 'The dose times read from the image do not match the dispensed quantity. Please check them against the original prescription.'))}</div>` : ''}
                           <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md ${isUnmatched ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-400/30' : 'bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-400/30'}">
                             ${isUnmatched ? 'Không nhận diện được, vui lòng kiểm tra' : isExactMatch ? 'Khớp OCR 100%' : 'Cần kiểm tra liều'}
                           </span>

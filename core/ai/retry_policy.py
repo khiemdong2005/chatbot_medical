@@ -107,6 +107,15 @@ def extract_retry_after(exc: Exception) -> Optional[float]:
     if exc is None:
         return None
 
+    # Provider-specific hint (e.g. Groq HTTP 429 Retry-After parsed by the client)
+    direct = getattr(exc, "retry_after", None)
+    if isinstance(direct, (int, float)) and direct > 0:
+        return float(direct)
+    original = getattr(exc, "original_exception", None)
+    direct = getattr(original, "retry_after", None) if original is not None else None
+    if isinstance(direct, (int, float)) and direct > 0:
+        return float(direct)
+
     # Kiểm tra response headers
     response = getattr(exc, "response", None)
     if response and hasattr(response, "headers") and response.headers:

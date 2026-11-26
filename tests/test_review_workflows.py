@@ -52,7 +52,7 @@ def test_review_then_validate(client, test_users, kind, rows_key, original, edit
     with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
           patch.object(pipe, "preprocess_lightweight", return_value={}),
           patch.object(pipe, "extract_ocr_parallel", return_value={"lines": [], "raw_text": ""}),
-          patch.object(pipe, "extract_with_gemini_schema", return_value={"doc_type": kind, rows_key: [original]}),
+          patch.object(pipe, "extract_with_groq_schema", return_value={"doc_type": kind, rows_key: [original]}),
           patch.object(pipe, "generate_clinical_interpretation", return_value={}) as interpret,
           patch.object(pipe, "validate_prescription_rules", wraps=pipe.validate_prescription_rules) as drug_check,
           patch.object(pipe, "validate_lab_rules", wraps=pipe.validate_lab_rules) as lab_check):
@@ -62,7 +62,7 @@ def test_review_then_validate(client, test_users, kind, rows_key, original, edit
         draft = scan.get_json()
         assert draft["status"] == "review"
         assert draft["review_schema_version"] == 3
-        assert draft["extraction_source"] == "ocr_gemini"
+        assert draft["extraction_source"] == "ocr_groq"
         assert not interpret.called and not drug_check.called and not lab_check.called
         assert draft["data"][rows_key][0][next(k for k in edit if edit[k] != original[k])] != ""
         doc_id = draft["document_id"]
@@ -93,7 +93,31 @@ def test_scan_reports_ocr_fallback_when_gemini_unavailable(tmp_path):
     with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
           patch.object(pipe, "preprocess_lightweight", return_value={}),
           patch.object(pipe, "extract_ocr_parallel", return_value={"lines": [], "rows": [], "raw_text": ""}),
-          patch.object(pipe, "extract_with_gemini_schema", return_value=None)):
+          patch.object(pipe, "extract_with_groq_schema", return_value=None)):
+        draft = pipe.process_medical_document_pipeline(str(image), doc_type_hint="prescription")
+
+    # No AI result and no local OCR text (e.g. Docker image without EasyOCR): report a clear,
+    # retryable "AI busy" failure instead of an empty review form that looks like a bad photo.
+    assert draft["status"] == "failed"
+    assert draft["error_code"] == "AI_UNAVAILABLE"
+    assert draft["retryable"] is True
+
+
+def test_scan_keeps_ocr_only_review_when_local_ocr_has_text(tmp_path):
+    import core.pipeline_orchestrator as pipe
+
+    image = tmp_path / "prescription.jpg"
+    image.write_bytes(b"test-image")
+    rows = [
+        {"text": value, "items": [{"text": value, "confidence": 0.95}]}
+        for value in ("ĐƠN THUỐC", "1. YESOM 40 40mg", "Ngày uống 2 lần, mỗi lần 1 viên", "Cộng khoản: 1")
+    ]
+    ocr = {"rows": rows, "lines": [item for row in rows for item in row["items"]],
+           "raw_text": "\n".join(row["text"] for row in rows)}
+    with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
+          patch.object(pipe, "preprocess_lightweight", return_value={}),
+          patch.object(pipe, "extract_ocr_parallel", return_value=ocr),
+          patch.object(pipe, "extract_with_groq_schema", return_value=None)):
         draft = pipe.process_medical_document_pipeline(str(image), doc_type_hint="prescription")
 
     assert draft["status"] == "review"
@@ -116,7 +140,7 @@ def test_scan_returns_header_alternative_when_model_disagrees_with_ocr(tmp_path)
     with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
           patch.object(pipe, "preprocess_lightweight", return_value={}),
           patch.object(pipe, "extract_ocr_parallel", return_value=ocr),
-          patch.object(pipe, "extract_with_gemini_schema", return_value={
+          patch.object(pipe, "extract_with_groq_schema", return_value={
               "doc_type": "prescription", "patient_name": "LÊ VĂN KHÁC",
               "medications": [{"name": "YESOM 40"}],
           })):
@@ -136,7 +160,7 @@ def test_prescription_confirmation_rejects_non_medication_rows(client, test_user
     with (patch.object(pipe, "check_image_quality", return_value={"passed": True}),
           patch.object(pipe, "preprocess_lightweight", return_value={}),
           patch.object(pipe, "extract_ocr_parallel", return_value={"lines": [], "raw_text": ""}),
-          patch.object(pipe, "extract_with_gemini_schema", return_value={
+          patch.object(pipe, "extract_with_groq_schema", return_value={
               "doc_type": "prescription", "medications": [{"name": "Thuốc mẫu"}]
           })):
         scan = client.post("/api/prescription/scan", data={

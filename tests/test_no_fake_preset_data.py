@@ -13,7 +13,7 @@ def test_ocr_llm_failure_does_not_return_preset(tmp_path):
 
     # Mock OCR và Gemini trả về không thành công
     with patch("core.prescription_service.extract_prescription_text") as mock_ocr, \
-         patch("core.prescription_service.scan_prescription_with_gemini_vision") as mock_vision:
+         patch("core.prescription_service.scan_prescription_with_groq_vision") as mock_vision:
         
         mock_ocr.return_value = {"success": False, "total_lines": 0, "avg_confidence": 0.0}
         mock_vision.return_value = None

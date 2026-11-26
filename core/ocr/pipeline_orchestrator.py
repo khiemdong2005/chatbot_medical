@@ -529,6 +529,21 @@ def process_medical_document_pipeline(
     if not model_data:
         # Nếu Groq API bận hoặc không khả dụng -> Fallback xây schema từ OCR
         model_data = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
+        fallback_rows = model_data.get("metrics" if doc_type == "lab_test" else "medications") or []
+        if not fallback_rows and not ocr_result.get("lines"):
+            # Không có AI và không có OCR cục bộ (vd: Docker không cài EasyOCR): báo rõ hệ thống đang bận
+            # thay vì trả form trống khiến người dùng tưởng ảnh xấu.
+            logger.warning("[SCAN:%s] AI extraction unavailable and no local OCR text -> AI_UNAVAILABLE", scan_id)
+            return {
+                "status": "failed",
+                "needs_review": True,
+                "error_code": "AI_UNAVAILABLE",
+                "retryable": True,
+                "message": "Hệ thống đọc đơn thuốc đang bận hoặc tạm thời không kết nối được. "
+                           "Vui lòng thử lại sau khoảng 30–60 giây.",
+                "uploaded_filename": filename_clean,
+                "doc_type": doc_type,
+            }
     else:
         # Nếu Groq chạy được nhưng có trường bị khuyết, bổ sung từ OCR
         ocr_fallback = extract_schema_from_ocr(ocr_result, doc_type=doc_type)
@@ -597,7 +612,10 @@ def process_medical_document_pipeline(
                 or (matched and drug_match.get("match_confidence", 0) < 95)
                 or not has_regimen
                 or not bool(row.get("quantity") or row.get("days"))
+                or bool(row.get("schedule_mismatch"))
             )
+            if row.get("schedule_check"):
+                review_row["schedule_check"] = str(row.get("schedule_check"))
             review_row["field_confidence"] = row.get("field_confidence")
             review_row["ocr_matched_text"] = str(row.get("ocr_matched_text") or "")
             review_row["raw_ocr_name"] = str(row.get("raw_ocr_name") or "")
