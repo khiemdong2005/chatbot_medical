@@ -10,8 +10,13 @@ from sqlalchemy.engine import Engine
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
-    """Tự động kích hoạt chế độ WAL Mode và timeout 5000ms để triệt tiêu lỗi 'database is locked'."""
-    if "sqlite" in str(type(dbapi_connection)).lower() or hasattr(dbapi_connection, "cursor"):
+    """Tự động kích hoạt chế độ WAL Mode và timeout 5000ms chỉ trên SQLite (tránh bắn PRAGMA vào PostgreSQL)."""
+    conn_type = type(dbapi_connection)
+    is_sqlite = (
+        "sqlite" in getattr(conn_type, "__module__", "").lower()
+        or "sqlite" in getattr(conn_type, "__name__", "").lower()
+    )
+    if is_sqlite:
         try:
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA journal_mode=WAL;")

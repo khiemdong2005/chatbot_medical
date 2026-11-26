@@ -86,6 +86,16 @@ MIGRATIONS = [
 ]
 
 
+def _adapt_sql_for_dialect(sql: str, dialect_name: str) -> str:
+    """Chuyển đổi DDL đặc thù SQLite sang cú pháp tương thích PostgreSQL khi chạy trên RDS."""
+    if dialect_name != "postgresql":
+        return sql
+    adapted = sql.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+    adapted = adapted.replace("BOOLEAN DEFAULT 0", "BOOLEAN DEFAULT FALSE")
+    adapted = adapted.replace("BOOLEAN DEFAULT 1", "BOOLEAN DEFAULT TRUE")
+    return adapted
+
+
 def run_migrations(engine):
     """
     Hệ thống Migration có phiên bản chính thức (Versioned Migrations):
@@ -93,6 +103,7 @@ def run_migrations(engine):
       - Kiểm tra từng phiên bản, thực thi tuần tự trong transaction.
       - Báo lỗi rõ ràng và dừng lại nếu migration thất bại; không nuốt exception.
     """
+    dialect_name = getattr(getattr(engine, "dialect", None), "name", "sqlite")
     with engine.begin() as conn:
         inspector = inspect(conn)
 
@@ -165,7 +176,7 @@ def run_migrations(engine):
                     cols = {c["name"] for c in inspect(conn).get_columns("clinical_consultations")}
                     if "conversation_id" not in cols:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN conversation_id VARCHAR(100)"))
-                        conn.execute(text("CREATE UNIQUE INDEX uq_consultation_session ON clinical_consultations(user_id, conversation_id)"))
+                        conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_consultation_session ON clinical_consultations(user_id, conversation_id)"))
                     if "turns_json" not in cols:
                         conn.execute(text("ALTER TABLE clinical_consultations ADD COLUMN turns_json TEXT"))
                 elif version == "2026_11_08_confirmed_summary":
@@ -260,8 +271,9 @@ def run_migrations(engine):
                         if "preferences" not in existing_cols:
                             conn.execute(text("ALTER TABLE users ADD COLUMN preferences TEXT;"))
                 elif sql:
-                    # Chạy câu lệnh SQL tạo bảng / index
-                    for stmt in sql.strip().split(";"):
+                    # Chạy câu lệnh SQL tạo bảng / index (tự động thích ứng SQLite & PostgreSQL)
+                    adapted_sql = _adapt_sql_for_dialect(sql, dialect_name)
+                    for stmt in adapted_sql.strip().split(";"):
                         stmt_clean = stmt.strip()
                         if stmt_clean:
                             conn.execute(text(stmt_clean))

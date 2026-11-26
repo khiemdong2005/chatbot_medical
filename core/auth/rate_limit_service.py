@@ -3,11 +3,17 @@ core/rate_limit_service.py
 Dịch vụ kiểm soát tần suất yêu cầu (Rate Limiting) dùng chung cho MediMind.
 Hỗ trợ kiến trúc Backend trừu tượng: InMemory (Thread-safe) và sẵn sàng cho Redis trong tương lai (Phase 8.2 Hardening).
 """
+import os
 import time
 import threading
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
+
+try:
+    import redis as _redis_mod
+except ImportError:
+    _redis_mod = None
 
 logger = logging.getLogger("RateLimitService")
 
@@ -76,11 +82,92 @@ class MemoryRateLimitBackend(BaseRateLimitBackend):
             self._store.clear()
 
 
+class RedisRateLimitBackend(BaseRateLimitBackend):
+    """Tầng lưu trữ Rate Limit dùng chung trên Redis cho đa nút (Multi-EC2), có fallback In-Memory."""
+
+    _KEY_PREFIX = "medimind:ratelimit:"
+
+    def __init__(
+        self,
+        redis_client: Optional[Any] = None,
+        redis_url: Optional[str] = None,
+        fallback: Optional[MemoryRateLimitBackend] = None,
+    ):
+        self._fallback = fallback or MemoryRateLimitBackend()
+        self._client = redis_client
+        if self._client is None and redis_url and _redis_mod is not None:
+            try:
+                client = _redis_mod.from_url(
+                    redis_url,
+                    decode_responses=True,
+                    socket_timeout=2,
+                    socket_connect_timeout=2,
+                )
+                client.ping()
+                self._client = client
+                logger.info("[RateLimitService] Đã kết nối Redis dùng chung cho Rate Limit đa nút.")
+            except Exception as exc:
+                self._client = None
+                logger.warning(
+                    "[RateLimitService] Không thể kết nối Redis (%s). Fallback sang In-Memory Rate Limit.",
+                    type(exc).__name__,
+                )
+
+    def _rkey(self, key: str) -> str:
+        return f"{self._KEY_PREFIX}{key}"
+
+    def check_and_increment(self, key: str, max_requests: int, window_seconds: int) -> bool:
+        if self._client is not None:
+            try:
+                rkey = self._rkey(key)
+                count = int(self._client.incr(rkey))
+                if count == 1:
+                    self._client.expire(rkey, max(1, int(window_seconds)))
+                else:
+                    ttl_fn = getattr(self._client, "ttl", None)
+                    if callable(ttl_fn) and ttl_fn(rkey) == -1:
+                        self._client.expire(rkey, max(1, int(window_seconds)))
+                return count <= max_requests
+            except Exception as exc:
+                logger.warning("[RateLimitService] Redis error (%s), fallback In-Memory.", type(exc).__name__)
+        return self._fallback.check_and_increment(key, max_requests, window_seconds)
+
+    def reset(self, key: str) -> None:
+        if self._client is not None:
+            try:
+                self._client.delete(self._rkey(key))
+            except Exception as exc:
+                logger.warning("[RateLimitService] Redis reset error (%s).", type(exc).__name__)
+        self._fallback.reset(key)
+
+    def clear(self) -> None:
+        if self._client is not None:
+            try:
+                scan_iter = getattr(self._client, "scan_iter", None)
+                if callable(scan_iter):
+                    keys = list(scan_iter(match=f"{self._KEY_PREFIX}*"))
+                    if keys:
+                        self._client.delete(*keys)
+            except Exception as exc:
+                logger.warning("[RateLimitService] Redis clear error (%s).", type(exc).__name__)
+        self._fallback.clear()
+
+
+def _create_default_rate_limit_backend() -> BaseRateLimitBackend:
+    """Tự động kích hoạt Redis backend khi REDIS_URL được cấu hình; mặc định giữ In-Memory."""
+    redis_url = (os.getenv("REDIS_URL") or "").strip()
+    if redis_url and _redis_mod is not None:
+        backend = RedisRateLimitBackend(redis_url=redis_url)
+        if backend._client is not None:
+            return backend
+    return MemoryRateLimitBackend()
+
+
 class RateLimitService:
     """Dịch vụ Rate Limiting toàn diện cho xác thực, OTP và trò chuyện."""
 
     def __init__(self, backend: Optional[BaseRateLimitBackend] = None):
-        self.backend = backend or MemoryRateLimitBackend()
+        self.backend = backend or _create_default_rate_limit_backend()
 
     def check_login_rate_limit(
         self,
