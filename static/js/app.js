@@ -5269,6 +5269,7 @@ function updateProfileCompletion() {
 }
 
 function updateAuthUI() {
+  if (typeof scheduleNotificationsRefresh === 'function') scheduleNotificationsRefresh();
   const unlogged = document.getElementById('auth-unlogged');
   const logged = document.getElementById('auth-logged');
   const nameEl = document.getElementById('user-display-name');
@@ -8569,19 +8570,52 @@ function _slotDisplayName(slotId) {
   return _medRemText(pair[0], pair[1]);
 }
 
-function _pushInAppReminderNotification(title, body, timeStr) {
-  if (typeof appState !== 'undefined' && Array.isArray(appState.notifications)) {
-    appState.notifications.unshift({
-      id: `rem_${Date.now()}`,
-      title,
-      message: body,
-      time: timeStr || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+function _pushInAppReminderNotification(title, body, timeStr, meta = null) {
+  const slot = meta?.slot;
+  const canPersist = slot && !meta?.isTest && _notifCanSync();
+  if (canPersist) {
+    const now = new Date();
+    const dayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const payload = {
       type: 'medication_reminder',
-      read: false,
-    });
-    if (appState.notifications.length > 20) appState.notifications = appState.notifications.slice(0, 20);
-    renderNotifications(appState.notifications);
+      dedupe_key: `med:${dayKey}:${slot.id}:${slot.time}`,
+      data: {
+        slot: slot.id,
+        time: slot.time,
+        meds: (slot.meds || []).slice(0, 20).map(m => ({ name: String(m.name || ''), dose: String(m.dose || '') })),
+      },
+    };
+    fetch('/api/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return refreshNotifications();
+      })
+      .catch(() => _pushLocalNotification(title, body, timeStr));
+    return;
   }
+  _pushLocalNotification(title, body, timeStr);
+}
+
+function _pushLocalNotification(title, body, timeStr) {
+  if (!Array.isArray(notifState.notifications)) return;
+  notifState.notifications.unshift({
+    id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    local: true,
+    type: 'medication_reminder',
+    link: 'medication',
+    title,
+    message: body,
+    time: timeStr || '',
+    created_at: new Date().toISOString(),
+    is_read: false,
+  });
+  if (notifState.notifications.length > 50) notifState.notifications = notifState.notifications.slice(0, 50);
+  renderNotifications(notifState.notifications);
 }
 
 function _fireMedicationReminderAlert(slot, isTest = false, overrideSound = null) {
@@ -8599,7 +8633,7 @@ function _fireMedicationReminderAlert(slot, isTest = false, overrideSound = null
   const soundType = overrideSound || saved?.soundType || 'gentle';
   playReminderSound(soundType);
   showMedicalToast(`${title}: ${body}`, 'info', 8000);
-  _pushInAppReminderNotification(title, body, slot.time);
+  _pushInAppReminderNotification(title, body, slot.time, { slot, isTest });
 
   if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
     try {
@@ -8952,12 +8986,106 @@ function cycleMedicalWallpaper() {
   showMedicalToast(currentLang === 'en' ? "Theme locked: Clinical Cyan Glow" : "Không gian cố định: Ánh sáng Lâm sàng Cyan", "info");
 }
 
-// Notification Dropdown Logic (Requirement 3)
+// ==========================================
+// In-app Notification Bell (server-backed per account, synced across EC2 nodes & devices)
+// ==========================================
+const NOTIF_POLL_MS = 60000;
+const notifState = { notifications: [] };
+let _notifPollId = null;
+let _notifFetchInFlight = null;
+let _notifRefreshTimer = null;
+let _notifBellInitialized = false;
+
+function _notifIsEn() {
+  return typeof currentLang !== 'undefined' && currentLang === 'en';
+}
+
+function _notifCanSync() {
+  return Boolean(typeof currentUser !== 'undefined' && currentUser && !currentUser.isDemo);
+}
+
+function _notifFormatDate(value) {
+  const raw = String(value || '').trim();
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : raw;
+}
+
+function _notifRelativeTime(isoValue) {
+  const ts = Date.parse(isoValue || '');
+  if (!Number.isFinite(ts)) return '';
+  const diffMin = Math.max(0, Math.round((Date.now() - ts) / 60000));
+  const en = _notifIsEn();
+  if (diffMin < 1) return en ? 'Just now' : 'Vừa xong';
+  if (diffMin < 60) return en ? `${diffMin} min ago` : `${diffMin} phút trước`;
+  const diffHour = Math.round(diffMin / 60);
+  if (diffHour < 24) return en ? `${diffHour}h ago` : `${diffHour} giờ trước`;
+  const d = new Date(ts);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+}
+
+const _NOTIF_ICONS = {
+  appointment: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 3v3M16 3v3M3 10h18"/><path d="m9 15 2 2 4-4"/></svg>',
+  cancelled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 3v3M16 3v3M3 10h18"/><path d="m10 14 4 4m0-4-4 4"/></svg>',
+  medication: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>',
+};
+
+function _notifCopy(n) {
+  const en = _notifIsEn();
+  const data = (n && typeof n.data === 'object' && n.data) || {};
+  if (n.type === 'appointment_created' || n.type === 'appointment_cancelled') {
+    const cancelled = n.type === 'appointment_cancelled';
+    const facility = data.facility_name || '';
+    const when = [data.appointment_time, _notifFormatDate(data.appointment_date)].filter(Boolean);
+    const whenText = when.length === 2
+      ? (en ? `${when[0]} on ${when[1]}` : `${when[0]} ngày ${when[1]}`)
+      : when.join(' ');
+    return {
+      title: cancelled
+        ? (en ? `Appointment cancelled: ${facility}` : `Đã hủy lịch hẹn: ${facility}`)
+        : (en ? `Appointment booked: ${facility}` : `Đặt lịch thành công: ${facility}`),
+      message: cancelled
+        ? (en ? `Your visit at ${whenText} has been cancelled.` : `Lịch khám lúc ${whenText} đã được hủy.`)
+        : (en ? `Visit at ${whenText}` : `Lịch khám lúc ${whenText}`) + (data.specialty ? ` · ${data.specialty}` : ''),
+      badge: en ? 'Appointment' : 'Lịch hẹn',
+      badgeClass: cancelled ? 'badge-urgent' : 'badge-appointment',
+      cardClass: 'notif-appointment',
+      icon: cancelled ? _NOTIF_ICONS.cancelled : _NOTIF_ICONS.appointment,
+    };
+  }
+  if (n.type === 'medication_reminder' && !n.local && data.slot) {
+    const slotLabel = typeof _slotDisplayName === 'function' ? _slotDisplayName(data.slot) : data.slot;
+    const meds = Array.isArray(data.meds) ? data.meds : [];
+    const medText = meds.length
+      ? meds.map(m => `${m.name}${m.dose ? ` (${m.dose})` : ''}`).join(', ')
+      : (en ? 'Check your prescription schedule' : 'Kiểm tra đơn thuốc của bạn');
+    return {
+      title: en ? `Time for Medication — ${slotLabel} (${data.time})` : `Đến giờ uống thuốc — ${slotLabel} (${data.time})`,
+      message: en ? `Medications due: ${medText}` : `Thuốc cần dùng: ${medText}`,
+      badge: en ? 'Medication' : 'Uống thuốc',
+      badgeClass: 'badge-medication',
+      cardClass: 'notif-medication',
+      icon: _NOTIF_ICONS.medication,
+    };
+  }
+  return {
+    title: n.title || '',
+    message: n.message || '',
+    badge: n.type === 'medication_reminder' ? (en ? 'Medication' : 'Uống thuốc') : (en ? 'Notice' : 'Thông báo'),
+    badgeClass: n.type === 'medication_reminder' ? 'badge-medication' : 'badge-appointment',
+    cardClass: n.type === 'medication_reminder' ? 'notif-medication' : 'notif-appointment',
+    icon: n.type === 'medication_reminder' ? _NOTIF_ICONS.medication : _NOTIF_ICONS.appointment,
+  };
+}
+
 function toggleNotificationDropdown(e) {
   if (e) e.stopPropagation();
   const menu = document.getElementById('notif-dropdown-menu');
   if (!menu) return;
   menu.classList.toggle('hidden');
+  const btn = document.getElementById('notif-btn');
+  const opened = !menu.classList.contains('hidden');
+  if (btn) btn.setAttribute('aria-expanded', opened ? 'true' : 'false');
+  if (opened) refreshNotifications();
   closeUserDropdown();
   closeLanguageDropdown();
 }
@@ -8966,6 +9094,7 @@ function closeNotificationDropdown() {
   const menu = document.getElementById('notif-dropdown-menu');
   if (menu && !menu.classList.contains('hidden')) {
     menu.classList.add('hidden');
+    document.getElementById('notif-btn')?.setAttribute('aria-expanded', 'false');
   }
 }
 
@@ -8976,44 +9105,170 @@ function renderNotifications(notifs) {
   const listEl = document.getElementById('notif-items-list');
   if (!listEl) return;
 
-  const items = notifs || [];
+  const en = _notifIsEn();
+  const items = Array.isArray(notifs) ? notifs : [];
+  const unread = items.filter(n => !n.is_read).length;
+
+  const setHidden = (el, hidden) => {
+    if (!el || !el.classList) return;
+    if (hidden) el.classList.add('hidden');
+    else el.classList.remove('hidden');
+  };
+  if (badge) {
+    badge.innerText = unread > 9 ? '9+' : String(unread);
+    setHidden(badge, unread === 0);
+  }
+  if (countEl) {
+    countEl.innerText = `${unread} ${en ? 'new' : 'mới'}`;
+    setHidden(countEl, unread === 0);
+  }
+  if (markReadBtn) {
+    markReadBtn.textContent = en ? 'Mark all as read' : 'Đánh dấu đã đọc tất cả';
+    setHidden(markReadBtn, unread === 0);
+  }
+
   if (items.length === 0) {
-    if (badge) badge.classList.add('hidden');
-    if (countEl) countEl.classList.add('hidden');
-    if (markReadBtn) markReadBtn.classList.add('hidden');
     listEl.innerHTML = `
       <div id="notif-empty-state" class="py-8 text-center flex flex-col items-center justify-center space-y-2 text-slate-400">
         <svg class="w-10 h-10 opacity-30 text-slate-400 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
-        <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">${currentLang === 'en' ? 'No new notifications' : 'Không có thông báo mới'}</p>
+        <p class="text-xs font-medium text-slate-400" data-i18n="notif_empty">${en ? 'No new notifications' : 'Không có thông báo mới'}</p>
       </div>`;
-  } else {
-    if (badge) {
-      badge.innerText = items.length;
-      badge.classList.remove('hidden');
-    }
-    if (countEl) {
-      countEl.innerText = `${items.length} ${currentLang === 'en' ? 'new' : 'mới'}`;
-      countEl.classList.remove('hidden');
-    }
-    if (markReadBtn) markReadBtn.classList.remove('hidden');
+    return;
   }
+
+  listEl.innerHTML = items.map(n => {
+    const copy = _notifCopy(n);
+    const read = Boolean(n.is_read);
+    const when = _notifRelativeTime(n.created_at) || escapeHtml(n.time || '');
+    return `
+      <div class="notif-card notif-item ${copy.cardClass} ${read ? 'is-read opacity-70' : ''} cursor-pointer" role="button" tabindex="0"
+        data-notif-id="${escapeHtml(String(n.id))}" data-notif-link="${escapeHtml(n.link || '')}"
+        aria-label="${escapeHtml(copy.title)}">
+        <span class="notif-card-symbol">${copy.icon}</span>
+        <div class="min-w-0">
+          <div class="notif-card-labels">
+            <span class="notif-card-badge ${copy.badgeClass}">${escapeHtml(copy.badge)}</span>
+            <span class="text-[10px] text-slate-400">${escapeHtml(when)}</span>
+          </div>
+          <h3>${escapeHtml(copy.title)}</h3>
+          <p>${escapeHtml(copy.message)}</p>
+        </div>
+        <div class="notif-card-controls">${read ? '' : '<span class="notif-dot" aria-hidden="true"></span>'}</div>
+      </div>`;
+  }).join('');
+}
+
+function _notifSortAndStore(serverItems) {
+  const local = (notifState.notifications || []).filter(n => n.local);
+  notifState.notifications = [...(serverItems || []), ...local]
+    .sort((a, b) => (Date.parse(b.created_at || '') || 0) - (Date.parse(a.created_at || '') || 0))
+    .slice(0, 50);
+}
+
+function refreshNotifications() {
+  if (!Array.isArray(notifState.notifications)) notifState.notifications = [];
+  if (!_notifCanSync()) {
+    notifState.notifications = notifState.notifications.filter(n => n.local);
+    renderNotifications(notifState.notifications);
+    return Promise.resolve();
+  }
+  if (_notifFetchInFlight) return _notifFetchInFlight;
+  _notifFetchInFlight = fetch('/api/notifications?limit=30', { cache: 'no-store', credentials: 'same-origin' })
+    .then(res => (res.ok ? res.json() : null))
+    .then(data => {
+      if (data && Array.isArray(data.notifications)) _notifSortAndStore(data.notifications);
+      renderNotifications(notifState.notifications);
+    })
+    .catch(() => renderNotifications(notifState.notifications))
+    .finally(() => { _notifFetchInFlight = null; });
+  return _notifFetchInFlight;
+}
+
+function scheduleNotificationsRefresh(delay = 600) {
+  clearTimeout(_notifRefreshTimer);
+  _notifRefreshTimer = setTimeout(() => refreshNotifications(), delay);
+}
+
+function _markNotificationsRead(ids, markAll = false) {
+  const idSet = new Set((ids || []).map(String));
+  (notifState.notifications || []).forEach(n => {
+    if (markAll || idSet.has(String(n.id))) n.is_read = true;
+  });
+  renderNotifications(notifState.notifications);
+  if (!_notifCanSync()) return;
+  const serverIds = markAll ? [] : (ids || []).map(Number).filter(id => Number.isInteger(id) && id > 0);
+  if (!markAll && !serverIds.length) return;
+  fetch('/api/notifications/read', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify(markAll ? { all: true } : { ids: serverIds }),
+  }).then(() => scheduleNotificationsRefresh(200)).catch(() => {});
 }
 
 function markAllNotificationsAsRead() {
-  const badge = document.getElementById('notif-badge');
-  const countEl = document.getElementById('notif-unread-count');
-  if (badge) badge.classList.add('hidden');
-  if (countEl) {
-    countEl.innerText = (currentLang === 'vi' ? 'Đã đọc hết' : 'All read');
-    countEl.classList.remove('bg-orange-500/20', 'text-orange-400');
-    countEl.classList.add('bg-slate-500/20', 'text-slate-400');
+  _markNotificationsRead([], true);
+}
+
+function _openNotificationTarget(link) {
+  closeNotificationDropdown();
+  if (link === 'appointments') {
+    if (typeof switchTab === 'function') switchTab('my-appointments-tab');
+    if (typeof loadUserAppointments === 'function') setTimeout(() => loadUserAppointments(), 50);
+    return;
   }
-  const items = document.querySelectorAll('.notif-item');
-  items.forEach(it => {
-    it.classList.add('opacity-60');
-  });
+  if (link === 'medication') {
+    if (typeof switchTab === 'function') switchTab('ocr-tab');
+    setTimeout(() => {
+      if (typeof currentPrescriptionData !== 'undefined' && currentPrescriptionData && typeof switchPrescriptionDossierTab === 'function') {
+        switchPrescriptionDossierTab('schedule', false);
+      } else if (typeof setMedicationReminder === 'function') {
+        setMedicationReminder();
+      }
+    }, 150);
+  }
+}
+
+function initNotificationBell() {
+  if (_notifBellInitialized || typeof document === 'undefined') return;
+  _notifBellInitialized = true;
+  const canListen = target => Boolean(target && typeof target.addEventListener === 'function');
+  const listEl = document.getElementById ? document.getElementById('notif-items-list') : null;
+  const activate = card => {
+    if (!card) return;
+    _markNotificationsRead([card.dataset.notifId]);
+    _openNotificationTarget(card.dataset.notifLink);
+  };
+  if (canListen(listEl)) {
+    listEl.addEventListener('click', ev => activate(ev.target.closest('[data-notif-id]')));
+    listEl.addEventListener('keydown', ev => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      const card = ev.target.closest('[data-notif-id]');
+      if (card) { ev.preventDefault(); activate(card); }
+    });
+  }
+  if (canListen(document)) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') scheduleNotificationsRefresh(100);
+    });
+  }
+  if (typeof window !== 'undefined' && canListen(window)) {
+    window.addEventListener('focus', () => scheduleNotificationsRefresh(100));
+    window.addEventListener('medimind:langchange', () => renderNotifications(notifState.notifications));
+  }
+  if (!_notifPollId && typeof fetch === 'function') {
+    _notifPollId = setInterval(() => {
+      if (document.visibilityState === 'visible') refreshNotifications();
+    }, NOTIF_POLL_MS);
+  }
+  if (typeof fetch === 'function') refreshNotifications();
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNotificationBell);
+  else initNotificationBell();
 }
 
 
@@ -10736,6 +10991,7 @@ async function handleFacilityBookingSubmit(e) {
     if (typeof loadUserAppointments === 'function') {
       loadUserAppointments();
     }
+    if (typeof scheduleNotificationsRefresh === 'function') scheduleNotificationsRefresh(300);
     let successMsg = isEn ? 'Appointment booked successfully!' : 'Đã lưu lịch hẹn khám thành công!';
     if (data.email_sent && data.email_recipient) {
       successMsg = isEn

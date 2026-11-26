@@ -24,6 +24,7 @@ SENSITIVE_NO_STORE_PREFIXES = (
     "/api/appointments",
     "/api/consultations",
     "/api/clinical-summary",
+    "/api/notifications",
 )
 
 

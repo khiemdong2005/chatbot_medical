@@ -7,6 +7,7 @@ from routes.facilities_routes import register_facilities_routes
 from routes.nutrition_routes import register_nutrition_routes
 from routes.ocr_routes import register_ocr_routes
 from routes.system_routes import register_system_routes
+from routes.notification_routes import register_notification_routes
 
 
 def register_all_routes(app, gemini_service):
@@ -18,3 +19,4 @@ def register_all_routes(app, gemini_service):
     register_nutrition_routes(app)
     register_facilities_routes(app)
     register_system_routes(app)
+    register_notification_routes(app)

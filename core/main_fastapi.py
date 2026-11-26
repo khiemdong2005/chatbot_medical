@@ -445,12 +445,14 @@ from core.routers.config import router as config_router
 from core.routers.appointments import router as appointments_router
 from core.routers.consultations import router as consultations_router
 from core.routers.clinical_summary import router as clinical_summary_router
+from core.routers.notifications import router as notifications_router
 
 app.include_router(facilities_router)
 app.include_router(config_router)
 app.include_router(appointments_router)
 app.include_router(consultations_router)
 app.include_router(clinical_summary_router)
+app.include_router(notifications_router)
 
 
 # ==============================================================================

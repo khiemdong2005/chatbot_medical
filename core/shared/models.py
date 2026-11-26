@@ -436,6 +436,48 @@ class MedicalAppointment(db.Model):
         }
 
 
+class UserNotification(db.Model):
+    """Thông báo trong ứng dụng theo tài khoản (đặt lịch, hủy lịch, nhắc uống thuốc).
+
+    Lưu trong CSDL dùng chung nên mọi instance (nhiều EC2) và mọi thiết bị thấy cùng dữ liệu.
+    ``dedupe_key`` + ``user_id`` là duy nhất để nhiều tab/máy không tạo trùng cùng một thông báo.
+    """
+    __tablename__ = "user_notifications"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "dedupe_key", name="uq_user_notification_dedupe"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    type = db.Column(db.String(40), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text, nullable=True)
+    link = db.Column(db.String(100), nullable=True)
+    data_json = db.Column(db.Text, nullable=True)
+    dedupe_key = db.Column(db.String(160), nullable=True)
+    is_read = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False, index=True)
+
+    user = db.relationship("User", backref=db.backref("notifications", lazy=True, cascade="all, delete-orphan"))
+
+    def to_dict(self) -> dict:
+        import json
+        try:
+            data = json.loads(self.data_json) if self.data_json else {}
+        except (TypeError, ValueError):
+            data = {}
+        return {
+            "id": self.id,
+            "type": self.type,
+            "title": self.title,
+            "message": self.message or "",
+            "link": self.link or "",
+            "data": data if isinstance(data, dict) else {},
+            "is_read": bool(self.is_read),
+            "created_at": (self.created_at.isoformat() + "Z") if self.created_at else "",
+        }
+
+
 def init_db(app):
     """Khởi tạo cơ sở dữ liệu và tự động nâng cấp cấu trúc bảng nếu cần."""
     db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")

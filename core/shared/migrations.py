@@ -83,6 +83,7 @@ MIGRATIONS = [
     ("2026_11_22_appointment_pre_visit_summary", "Store confirmed pre-visit summaries on appointments", None),
     ("2026_11_23_prescription_history_table", "Tạo bảng prescription_history và đồng bộ các đơn thuốc đã xác nhận trước đó", None),
     ("2026_11_25_user_preferences_json", "Bổ sung cột preferences (JSON) lưu cài đặt cá nhân hóa người dùng", None),
+    ("2026_11_26_user_notifications", "Tạo bảng user_notifications lưu thông báo trong ứng dụng theo tài khoản", None),
 ]
 
 
@@ -264,6 +265,10 @@ def run_migrations(engine):
                                     "json_drugs": str(r[8] or "{}"),
                                 },
                             )
+                elif version == "2026_11_26_user_notifications":
+                    # Dùng metadata SQLAlchemy để sinh DDL đúng cho cả SQLite và PostgreSQL
+                    from core.shared.models import UserNotification
+                    UserNotification.__table__.create(bind=conn, checkfirst=True)
                 elif version == "2026_11_25_user_preferences_json":
                     current_schema = inspect(conn)
                     if current_schema.has_table("users"):

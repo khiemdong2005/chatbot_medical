@@ -184,6 +184,8 @@ def create_user_appointment(user_id: int, payload: Dict[str, Any]) -> Tuple[bool
             )
 
         appt_dict = new_appt.to_dict()
+        from core.shared.notification_service import notify_appointment_created
+        notify_appointment_created(user_id, appt_dict)
         recipient_email = _resolve_appointment_email(sess, user_id, payload)
         email_sent = _dispatch_confirmation_email(recipient_email, appt_dict)
 
@@ -218,6 +220,7 @@ def delete_user_appointment(user_id: int, appt_id: int) -> Tuple[bool, Dict[str,
                 404
             )
 
+        cancelled_snapshot = appt.to_dict()
         sess.delete(appt)
         try:
             commit_or_rollback(sess)
@@ -231,6 +234,9 @@ def delete_user_appointment(user_id: int, appt_id: int) -> Tuple[bool, Dict[str,
                 },
                 500
             )
+
+        from core.shared.notification_service import notify_appointment_cancelled
+        notify_appointment_cancelled(user_id, cancelled_snapshot)
 
         return (
             True,
