@@ -1162,14 +1162,34 @@ class IntakeSessionManager:
         # disclose or let an arbitrary signed-in account claim that row.
         return False
 
+    @staticmethod
+    def _freshness(session_data: Dict[str, Any]):
+        return (
+            int(session_data.get("version") or 1),
+            int(session_data.get("turn_count") or 0),
+            len(session_data.get("messages") or []),
+        )
+
+    def _refresh_from_db(self, conversation_id: str) -> Optional[Dict[str, Any]]:
+        """Return the freshest copy of a session.
+
+        With several app instances (e.g. 2 EC2 behind an ALB) another node may have
+        written a newer version to the shared DB, so the per-process RAM copy can be
+        stale. Prefer the DB copy whenever it is ahead; keep the RAM copy when it holds
+        updates that are newer than the DB (or when the DB is unavailable).
+        """
+        cached = self._sessions.get(conversation_id)
+        loaded = self._load_from_db(conversation_id)
+        if loaded is None:
+            return cached
+        if cached is None or self._freshness(loaded) > self._freshness(cached):
+            self._sessions[conversation_id] = loaded
+            return loaded
+        return cached
+
     def _existing_session(self, conversation_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
-            session_data = self._sessions.get(conversation_id)
-            if session_data is None:
-                session_data = self._load_from_db(conversation_id)
-                if session_data is not None:
-                    self._sessions[conversation_id] = session_data
-            return session_data
+            return self._refresh_from_db(conversation_id)
 
     def delete_session(self, conversation_id: str, user_id: Optional[int] = None,
                        guest_token: Optional[str] = None, *, commit: bool = True) -> bool:
@@ -1251,40 +1271,36 @@ class IntakeSessionManager:
         guest_token: Optional[str] = None,
         enforce_access: bool = True
     ) -> Dict[str, Any]:
-        """Tạo mới hoặc lấy lại phiên tư vấn hiện có (Kiểm tra RAM trước, rồi DB, kèm đối soát quyền truy cập)."""
+        """Tạo mới hoặc lấy lại phiên tư vấn hiện có (Ưu tiên bản mới nhất giữa RAM và DB dùng chung, kèm đối soát quyền truy cập)."""
         with self._lock:
             cid = conversation_id or f"conv_{uuid.uuid4().hex[:10]}"
-            if cid not in self._sessions:
-                loaded = self._load_from_db(cid)
-                if loaded:
-                    self._sessions[cid] = loaded
-                else:
-                    self._sessions[cid] = {
-                        "conversation_id": cid,
-                        "user_id": user_id,
-                        "guest_token": guest_token,
-                        "status": "collecting",  # collecting | partially_collected | ready_for_review | confirmed
-                        "turn_count": 0,
-                        "facts": {
-                            "chief_complaint": "",
-                            "present_symptoms": [],
-                            "denied_symptoms": [],
-                            "duration": None,
-                            "vitals": {},
-                            "allergies": [],
-                            "medications": [],
-                            "activity_impact": None,
-                            "contextual_answers": [],
-                            "answered_topics": {}
-                        },
-                        "messages": [],
-                        "attachments": [],
-                        "is_emergency": False,
-                        "is_confirmed": False,
-                        "version": 1,
-                        "created_at": datetime.datetime.now().strftime("%H:%M %d/%m/%Y")
-                    }
-                    self._save_to_db(self._sessions[cid])
+            if self._refresh_from_db(cid) is None:
+                self._sessions[cid] = {
+                    "conversation_id": cid,
+                    "user_id": user_id,
+                    "guest_token": guest_token,
+                    "status": "collecting",  # collecting | partially_collected | ready_for_review | confirmed
+                    "turn_count": 0,
+                    "facts": {
+                        "chief_complaint": "",
+                        "present_symptoms": [],
+                        "denied_symptoms": [],
+                        "duration": None,
+                        "vitals": {},
+                        "allergies": [],
+                        "medications": [],
+                        "activity_impact": None,
+                        "contextual_answers": [],
+                        "answered_topics": {}
+                    },
+                    "messages": [],
+                    "attachments": [],
+                    "is_emergency": False,
+                    "is_confirmed": False,
+                    "version": 1,
+                    "created_at": datetime.datetime.now().strftime("%H:%M %d/%m/%Y")
+                }
+                self._save_to_db(self._sessions[cid])
 
             session = self._sessions[cid]
             if enforce_access and conversation_id:

@@ -176,6 +176,37 @@ def test_otp_manager_gracefully_falls_back_when_redis_down():
     assert mgr.is_verified("fallback@medimind.vn", channel="email", consume=True) is True
 
 
+def test_intake_session_uses_newer_db_copy_written_by_another_node(test_app):
+    """Two EC2 nodes behind an ALB: node B must not reject a turn because its RAM copy is stale."""
+    from core.chat.intake_service import IntakeSessionManager as ClinicalIntakeManager
+
+    with test_app.app_context():
+        node_a = ClinicalIntakeManager()
+        node_b = ClinicalIntakeManager()
+        cid = "conv_multinode_01"
+        session_a = node_a.get_or_create_session(cid, guest_token="gst_multi")
+        node_b.get_or_create_session(cid, guest_token="gst_multi")  # node B caches version 1
+
+        newer = dict(session_a, version=3, turn_count=2)
+        node_a._save_to_db(newer, raise_on_error=True)  # node A advances the shared DB
+
+        seen_by_b = node_b.get_or_create_session(cid, guest_token="gst_multi")
+        assert seen_by_b["version"] == 3
+        assert seen_by_b["turn_count"] == 2
+
+
+def test_intake_session_keeps_newer_unsaved_ram_copy(test_app):
+    """A single node must not lose in-RAM updates that are ahead of the DB copy."""
+    from core.chat.intake_service import IntakeSessionManager as ClinicalIntakeManager
+
+    with test_app.app_context():
+        node = ClinicalIntakeManager()
+        cid = "conv_ram_ahead_01"
+        session = node.get_or_create_session(cid, guest_token="gst_ram")
+        session["turn_count"] = 4  # updated in RAM, not yet persisted
+        assert node.get_or_create_session(cid, guest_token="gst_ram")["turn_count"] == 4
+
+
 def test_rate_limit_shared_across_two_nodes_and_fallback():
     """RedisRateLimitBackend enforces shared counters across EC2 nodes and degrades safely."""
     shared_redis = _FakeRedis()
