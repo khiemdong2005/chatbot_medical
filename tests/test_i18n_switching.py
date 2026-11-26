@@ -123,3 +123,47 @@ def test_previsit_and_ocr_i18n_sync_hooks():
     assert "medimind:langchange" in previsit_src
     assert '"PHÂN LOẠI: ĐƠN THUỐC BẢN GỐC": "CLASSIFICATION: ORIGINAL PRESCRIPTION"' in app_src
     assert '"Lịch hẹn khám của tôi": "My Medical Appointments"' in app_src
+
+
+def test_nutrition_catalog_and_survey_static_copy_has_english():
+    """Every Vietnamese label on the recipe catalog and meal survey must have an EN mapping."""
+    import re
+    from html.parser import HTMLParser
+
+    app_src = APP_JS.read_text(encoding="utf-8")
+    index = (APP_JS.parents[2] / "templates" / "index.html").read_text(encoding="utf-8")
+    start = app_src.index("const STATIC_VI_EN_TEXT = {")
+    block = app_src[start:app_src.index("\n};", start)]
+    static_map = set(re.findall(r'^\s*"((?:[^"\\]|\\.)*)"\s*:', block, re.M))
+    vi = re.compile(r"[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ]", re.I)
+
+    def section(begin, end):
+        s = index.index(begin)
+        return index[s:index.index(end, s)]
+
+    html = section('<div id="doctor-tab"', '<div id="nf-recipe-drawer"') + section('<form id="nf-survey-form"', "</form>")
+    missing = []
+
+    class Walker(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            for name, value in attrs:
+                if name in ("placeholder", "aria-label", "label") and value and vi.search(value):
+                    if " ".join(value.split()) not in static_map:
+                        missing.append(value)
+
+        def handle_data(self, data):
+            text = " ".join(data.split())
+            if text and vi.search(text) and text not in static_map and "Món Ngon Mỗi Ngày" not in text:
+                missing.append(text)
+
+    Walker(convert_charrefs=True).feed(html)
+    assert not missing, f"Missing EN translations: {missing}"
+
+
+def test_nutrition_scripts_rerender_on_language_change():
+    catalog_src = (APP_JS.parent / "nutrition-catalog.js").read_text(encoding="utf-8")
+    flow_src = (APP_JS.parent / "nutrition-flow.js").read_text(encoding="utf-8")
+    assert "medimind:langchange" in catalog_src
+    assert "_t('Xem công thức &amp; Dinh dưỡng', 'View recipe &amp; nutrition')" in catalog_src
+    assert "_renderMealPlanView(savedPlan.mealPlanData" in flow_src
+    assert "_t('Chỉ số năng lượng:', 'Energy metrics:')" in flow_src

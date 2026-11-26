@@ -2265,7 +2265,116 @@ const STATIC_VI_EN_TEXT = {
   "Hướng dẫn đơn thuốc": "Prescription Guidance",
   "Danh mục thuốc trong toa": "Prescribed Medications",
   "Lịch uống & Cữ thuốc trong ngày": "Daily Dosing Schedule",
-  "← Quét đơn thuốc khác": "← Scan Another Prescription"
+  "← Quét đơn thuốc khác": "← Scan Another Prescription",
+
+  // Prescription lightbox controls
+  "Thu nhỏ ảnh": "Zoom out",
+  "Phóng to ảnh": "Zoom in",
+
+  // Nutrition landing
+  "Bạn muốn bắt đầu xây dựng bữa ăn?": "Ready to build your meal plan?",
+  "Hoàn thành khảo sát nhanh về thể trạng, bệnh nền và thực phẩm cần tránh để AI lọc món phù hợp.": "Complete a quick survey on your body metrics, conditions and foods to avoid so the AI can filter suitable dishes.",
+  "Bắt đầu khảo sát bữa ăn": "Start meal survey",
+  "Khám phá 2.500+ công thức": "Explore 2,500+ recipes",
+  "← Làm lại khảo sát": "← Redo survey",
+  "Xem lại khảo sát": "Review survey",
+  "Thử lại": "Try again",
+
+  // Recipe catalog
+  "← Quay lại Dinh dưỡng & Pha chế": "← Back to Nutrition & Drinks",
+  "DANH MỤC CÔNG THỨC": "RECIPE CATALOG",
+  "Khám phá món ngon, chọn theo nhu cầu": "Explore dishes that fit your needs",
+  "Tra cứu công thức và nguyên liệu từ Món Ngon Mỗi Ngày. Kcal là tổng ước tính của cả món theo dữ liệu nguồn.": "Browse recipes and ingredients from Món Ngon Mỗi Ngày. Kcal is the estimated total for the whole dish according to the source data.",
+  "Đang tải…": "Loading…",
+  "Tìm món hoặc nguyên liệu…": "Search dishes or ingredients…",
+  "Không dấu": "Accent-free",
+  "Xóa bộ lọc": "Clear filters",
+  "Mục tiêu & chế độ ăn": "Goals & diet",
+  "Ăn kiêng / Giảm mỡ": "Diet / Fat loss",
+  "Cân bằng dinh dưỡng": "Balanced nutrition",
+  "Ăn chay": "Vegetarian",
+  "Tăng năng lượng": "Energy boost",
+  "Tốt cho xương & cơ": "Good for bones & muscles",
+  "Phục hồi sức khỏe": "Recovery",
+  "Bữa ăn": "Meal",
+  "Mọi bữa ăn": "All meals",
+  "Bữa sáng": "Breakfast",
+  "Bữa trưa": "Lunch",
+  "Bữa tối": "Dinner",
+  "Ăn vặt": "Snack",
+  "Cách nấu": "Cooking method",
+  "Mọi cách nấu": "All methods",
+  "Ưu tiên ít dầu mỡ": "Low-oil first",
+  "Món áp chảo / dùng dầu": "Pan-fried / oil-based",
+  "Hấp/Tiềm": "Steamed/Braised",
+  "Canh/Súp": "Soup",
+  "Gỏi/Trộn": "Salad/Mixed",
+  "Nướng": "Grilled",
+  "Chiên": "Fried",
+  "Món xào": "Stir-fried",
+  "Kho": "Caramelized stew",
+  "Tổng năng lượng": "Total energy",
+  "Mọi mức kcal": "Any kcal",
+  "Dưới 1.000 kcal": "Under 1,000 kcal",
+  "1.000–2.500 kcal": "1,000–2,500 kcal",
+  "2.501–4.000 kcal": "2,501–4,000 kcal",
+  "Trên 4.000 kcal": "Over 4,000 kcal",
+  "Sắp xếp": "Sort by",
+  "Liên quan nhất": "Most relevant",
+  "Calo tăng dần": "Calories: low to high",
+  "Calo giảm dần": "Calories: high to low",
+  "Loại trừ dị ứng & thành phần cần tránh": "Exclude allergens & ingredients to avoid",
+  "Tôm": "Shrimp",
+  "Hải sản": "Seafood",
+  "Trứng": "Eggs",
+  "Thịt bò": "Beef",
+  "Đậu phộng": "Peanuts",
+  "Phô mai / Sữa": "Cheese / Dairy",
+  "Nấm": "Mushrooms",
+  "Món có thành phần khớp từ khóa trong nguyên liệu hoặc tag sẽ được ẩn. Hãy luôn kiểm tra nhãn sản phẩm và nguy cơ nhiễm chéo.": "Dishes whose ingredients or tags match these keywords are hidden. Always check product labels and cross-contamination risks.",
+  "Không tìm thấy món phù hợp. Hãy thử đổi từ khóa hoặc bộ lọc.": "No matching dishes found. Try different keywords or filters.",
+  "Trang công thức": "Recipe pages",
+  "Thông tin kcal và tag được cung cấp trong dữ liệu công thức, chưa phải phân tích dinh dưỡng lâm sàng. Dị ứng được lọc tự động theo tên nguyên liệu nên hãy xác nhận trước khi sử dụng.": "Kcal and tags come from the recipe data and are not a clinical nutrition analysis. Allergens are filtered automatically by ingredient name, so please verify before use.",
+  "Đóng chi tiết công thức": "Close recipe details",
+
+  // Meal personalization survey
+  "Khảo sát Cá nhân hóa Bữa ăn": "Personalized Meal Survey",
+  "Chuẩn lâm sàng": "Clinical standard",
+  "Đánh giá thể trạng, bệnh nền và khẩu vị để gợi ý chế độ ăn phù hợp.": "Assess body metrics, conditions and taste to suggest a suitable diet.",
+  "1. Thể trạng & Năng lượng cơ sở": "1. Body metrics & baseline energy",
+  "Tuổi": "Age",
+  "Mức độ vận động": "Activity level",
+  "Tĩnh tại (Ít vận động)": "Sedentary (little exercise)",
+  "Vận động nhẹ (1-2 ngày/tuần)": "Light activity (1-2 days/week)",
+  "Vận động vừa (3-5 ngày/tuần)": "Moderate activity (3-5 days/week)",
+  "Vận động nặng (6-7 ngày/tuần)": "High activity (6-7 days/week)",
+  "Vận động rất nặng (VĐV / Lao động nặng)": "Very high activity (athlete / heavy labor)",
+  "Mục tiêu dinh dưỡng": "Nutrition goal",
+  "Duy trì sức khỏe & kiểm soát bệnh": "Maintain health & manage conditions",
+  "Giảm cân lành mạnh": "Healthy weight loss",
+  "Tăng cơ / Phục hồi thể lực": "Muscle gain / Fitness recovery",
+  "2. Tình trạng bệnh lý & bệnh nền đi kèm": "2. Medical conditions & comorbidities",
+  "Không có": "None",
+  "Không có bệnh lý nền": "No underlying conditions",
+  "Gout / Acid uric cao": "Gout / High uric acid",
+  "Gout hoặc Acid uric cao": "Gout or high uric acid",
+  "Tăng huyết áp": "Hypertension",
+  "Đái tháo đường": "Diabetes",
+  "Gan nhiễm mỡ": "Fatty liver",
+  "Dạ dày / Trào ngược": "Gastric / Reflux",
+  "Dạ dày hoặc Trào ngược": "Gastric or reflux",
+  "Rối loạn mỡ máu": "Dyslipidemia",
+  "Bệnh lý khác": "Other condition",
+  "Hoặc nhập thêm tên bệnh lý khác (nếu có)...": "Or enter another condition (if any)...",
+  "3. Dị ứng & thành phần cần tránh": "3. Allergies & ingredients to avoid",
+  "Dị ứng và thành phần cần tránh": "Allergies and ingredients to avoid",
+  "Ví dụ: Hải sản, thịt heo, đậu phộng, đồ cay nóng...": "E.g. seafood, pork, peanuts, spicy food...",
+  "4. Nhịp sinh hoạt": "4. Daily routine",
+  "Số bữa ăn chính trong ngày": "Main meals per day",
+  "3 bữa (Sáng – Trưa – Tối)": "3 meals (Breakfast – Lunch – Dinner)",
+  "4 bữa (thêm bữa phụ)": "4 meals (with a snack)",
+  "2 bữa chính": "2 main meals",
+  "Lưu & Áp dụng ngay": "Save & Apply"
 };
 
 const staticTextSources = new WeakMap();
@@ -2305,10 +2414,10 @@ function translateStaticDom() {
     }
   }
 
-  document.querySelectorAll('[placeholder], [title], [aria-label], [alt]').forEach(el => {
+  document.querySelectorAll('[placeholder], [title], [aria-label], [alt], optgroup[label]').forEach(el => {
     if (el.closest(dynamicContent)) return;
     const sources = staticAttributeSources.get(el) || {};
-    for (const attr of ['placeholder', 'title', 'aria-label', 'alt']) {
+    for (const attr of ['placeholder', 'title', 'aria-label', 'alt', 'label']) {
       if (!el.hasAttribute(attr) || el.hasAttribute('data-i18n-' + (attr === 'aria-label' ? 'aria' : attr))) continue;
       const current = el.getAttribute(attr);
       const original = sources[attr];

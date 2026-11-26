@@ -6,7 +6,23 @@
   const pageSize = 18;
   const healthTags = ['Ăn kiêng', 'Giảm khối mỡ thừa của cơ thể', 'Cân bằng dinh dưỡng', 'Ăn chay', 'Tăng năng lượng', 'Tốt cho xương', 'Tốt cho da', 'Hỗ trợ miễn dịch', 'Hỗ trợ xây dựng khối cơ xương', 'Giúp làm việc trí não hiệu quả', 'Hồi phục sau cảm'];
   const placeholder = '/static/images/nutrition/category-food.svg';
-  const kcalText = value => Number(value).toLocaleString('vi-VN');
+  const isEn = () => typeof currentLang !== 'undefined' && currentLang === 'en';
+  const _t = (vi, en) => (isEn() ? en : vi);
+  const kcalText = value => Number(value).toLocaleString(isEn() ? 'en-US' : 'vi-VN');
+  const DIFFICULTY_EN = { 'dễ': 'Easy', 'trung bình': 'Medium', 'khó': 'Hard', 'rất khó': 'Very hard', 'chưa rõ': 'Unknown' };
+  const trDifficulty = value => {
+    const raw = String(value || '').trim();
+    if (!raw) return _t('Chưa rõ', 'Unknown');
+    return isEn() ? (DIFFICULTY_EN[raw.toLocaleLowerCase('vi')] || raw) : raw;
+  };
+  const trTime = value => {
+    const raw = String(value || '').trim();
+    if (!isEn()) return raw;
+    return raw.replace(/\bPhút\b/gi, 'min').replace(/\bGiờ\b/gi, 'h').replace(/\bGiây\b/gi, 's');
+  };
+  const servingText = people => (people ? _t(`${people} người`, `${people} ${people > 1 ? 'servings' : 'serving'}`) : _t('Theo công thức', 'Per recipe'));
+  let lastPage = { current: 1, pages: 0 };
+  let lastCounts = null;
   const imageFor = recipe => recipe.image_ok && recipe.hinh_anh && !/no-image\.jpg(?:$|\?)/i.test(recipe.hinh_anh) ? recipe.hinh_anh : placeholder;
   const servingCount = recipe => {
     const match = String(recipe.khau_phan || '').match(/\b(\d+)\s*người\b/i);
@@ -41,25 +57,37 @@
     return params;
   }
 
+  function renderCount() {
+    const count = $('nf-catalog-count');
+    if (!count) return;
+    if (!lastCounts) { count.textContent = lastCounts === false ? _t('Chưa tải được danh mục', 'Catalog unavailable') : _t('Đang tải…', 'Loading…'); return; }
+    count.textContent = _t(
+      `${kcalText(lastCounts.total)} món phù hợp · ${kcalText(lastCounts.catalogTotal)} công thức`,
+      `${kcalText(lastCounts.total)} matching dishes · ${kcalText(lastCounts.catalogTotal)} recipes`
+    );
+  }
+
   async function loadRecipes() {
     if (state.request) state.request.abort();
     const controller = new AbortController();
     state.request = controller;
-    $('nf-catalog-grid').innerHTML = '<div class="nf-catalog-loading">Đang tìm công thức phù hợp…</div>';
+    $('nf-catalog-grid').innerHTML = `<div class="nf-catalog-loading">${_t('Đang tìm công thức phù hợp…', 'Finding matching recipes…')}</div>`;
     $('nf-catalog-empty').hidden = true;
     try {
       const response = await fetch(`/api/nutrition/recipe-catalog?${filters()}`, { signal: controller.signal, headers: { Accept: 'application/json' } });
       if (!response.ok) throw new Error('catalog');
       const data = await response.json();
       if (state.request !== controller) return;
-      $('nf-catalog-count').textContent = `${Number(data.total || 0).toLocaleString('vi-VN')} món phù hợp · ${Number(data.catalog_total || 0).toLocaleString('vi-VN')} công thức`;
+      lastCounts = { total: Number(data.total || 0), catalogTotal: Number(data.catalog_total || 0) };
+      renderCount();
       $('nf-catalog-grid').innerHTML = (data.items || []).map(cardMarkup).join('');
       $('nf-catalog-empty').hidden = Boolean((data.items || []).length);
       renderPages(data.page || 1, data.pages || 0);
     } catch (error) {
       if (error.name === 'AbortError') return;
-      $('nf-catalog-count').textContent = 'Chưa tải được danh mục';
-      $('nf-catalog-grid').innerHTML = '<div class="nf-catalog-loading">Không thể tải công thức. Vui lòng thử lại.</div>';
+      lastCounts = false;
+      renderCount();
+      $('nf-catalog-grid').innerHTML = `<div class="nf-catalog-loading">${_t('Không thể tải công thức. Vui lòng thử lại.', 'Unable to load recipes. Please try again.')}</div>`;
       $('nf-catalog-pages').innerHTML = '';
     } finally {
       if (state.request === controller) state.request = null;
@@ -69,39 +97,40 @@
   function cardMarkup(recipe) {
     const people = servingCount(recipe);
     const tags = tagsForCard(recipe.tags);
-    const time = String(recipe.thoi_gian_thuc_hien || '').trim() === '0 Phút' ? 'Linh hoạt' : (recipe.thoi_gian_thuc_hien || 'Chưa rõ thời gian');
-    const serving = people ? `${people} người` : 'Theo công thức';
+    const time = String(recipe.thoi_gian_thuc_hien || '').trim() === '0 Phút' ? _t('Linh hoạt', 'Flexible') : (trTime(recipe.thoi_gian_thuc_hien) || _t('Chưa rõ thời gian', 'Time not specified'));
+    const serving = servingText(people);
     return `<article class="nf-recipe-card">
-      <div class="nf-recipe-photo"><img src="${safe(imageFor(recipe))}" alt="${safe(recipe.ten_mon)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${placeholder}'"><span class="nf-recipe-kcal">~${kcalText(recipe.kcal || 0)} kcal<small>Tổng cả món</small></span></div>
-      <div class="nf-recipe-card-body"><h2>${safe(recipe.ten_mon)}</h2><div class="nf-recipe-meta"><span>◷ ${safe(time)}</span><span>✳ ${safe(recipe.do_kho || 'Chưa rõ')}</span><span>♧ ${safe(serving)}</span></div>
-      ${people ? `<p class="nf-per-person">~${kcalText(Math.round(Number(recipe.kcal || 0) / people))} kcal/người · ước tính theo khẩu phần</p>` : ''}
+      <div class="nf-recipe-photo"><img src="${safe(imageFor(recipe))}" alt="${safe(recipe.ten_mon)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${placeholder}'"><span class="nf-recipe-kcal">~${kcalText(recipe.kcal || 0)} kcal<small>${_t('Tổng cả món', 'Whole dish')}</small></span></div>
+      <div class="nf-recipe-card-body"><h2>${safe(recipe.ten_mon)}</h2><div class="nf-recipe-meta"><span>◷ ${safe(time)}</span><span>✳ ${safe(trDifficulty(recipe.do_kho))}</span><span>♧ ${safe(serving)}</span></div>
+      ${people ? `<p class="nf-per-person">~${kcalText(Math.round(Number(recipe.kcal || 0) / people))} ${_t('kcal/người · ước tính theo khẩu phần', 'kcal/serving · portion estimate')}</p>` : ''}
       <div class="nf-recipe-tags">${tags.map(tag => `<span class="${healthTags.includes(tag) ? 'health' : ''}">${safe(tag)}</span>`).join('')}</div>
-      <button class="nf-recipe-open" type="button" data-recipe-id="${safe(recipe.id)}">Xem công thức &amp; Dinh dưỡng <span aria-hidden="true">→</span></button></div>
+      <button class="nf-recipe-open" type="button" data-recipe-id="${safe(recipe.id)}">${_t('Xem công thức &amp; Dinh dưỡng', 'View recipe &amp; nutrition')} <span aria-hidden="true">→</span></button></div>
       <script type="application/json" class="nf-recipe-data">${JSON.stringify(recipe).replace(/</g, '\\u003c')}</script>
     </article>`;
   }
 
   function renderPages(current, pages) {
+    lastPage = { current, pages };
     const nav = $('nf-catalog-pages');
     if (!pages || pages < 2) { nav.innerHTML = ''; return; }
     const start = Math.max(1, Math.min(current - 2, pages - 4));
     const end = Math.min(pages, start + 4);
-    nav.innerHTML = `<button type="button" data-page="${current - 1}" ${current === 1 ? 'disabled' : ''}>← Trước</button>${Array.from({ length: end - start + 1 }, (_, i) => start + i).map(page => `<button type="button" data-page="${page}" class="${page === current ? 'active' : ''}" aria-current="${page === current ? 'page' : 'false'}">${page}</button>`).join('')}<button type="button" data-page="${current + 1}" ${current === pages ? 'disabled' : ''}>Tiếp →</button>`;
+    nav.innerHTML = `<button type="button" data-page="${current - 1}" ${current === 1 ? 'disabled' : ''}>${_t('← Trước', '← Prev')}</button>${Array.from({ length: end - start + 1 }, (_, i) => start + i).map(page => `<button type="button" data-page="${page}" class="${page === current ? 'active' : ''}" aria-current="${page === current ? 'page' : 'false'}">${page}</button>`).join('')}<button type="button" data-page="${current + 1}" ${current === pages ? 'disabled' : ''}>${_t('Tiếp →', 'Next →')}</button>`;
   }
 
   function detailMarkup(recipe) {
     const people = servingCount(recipe);
-    const time = String(recipe.thoi_gian_thuc_hien || '').trim() === '0 Phút' ? 'Linh hoạt' : (recipe.thoi_gian_thuc_hien || 'Chưa rõ');
+    const time = String(recipe.thoi_gian_thuc_hien || '').trim() === '0 Phút' ? _t('Linh hoạt', 'Flexible') : (trTime(recipe.thoi_gian_thuc_hien) || _t('Chưa rõ', 'Unknown'));
     const tags = (recipe.tags || []).map(tag => `<span class="${healthTags.includes(tag) ? 'health' : ''}">${safe(tag)}</span>`).join('');
     const ingredients = (recipe.nguyen_lieu || []).map((item, index) => foodHeading(item)
       ? `<h4 class="nf-ingredient-heading">${safe(String(item).replace(/^\*/, ''))}</h4>`
       : `<label class="nf-ingredient-check"><input type="checkbox" data-ingredient="${index}"><span>${safe(item)}</span></label>`).join('');
     const steps = (label, items) => items?.length ? `<section class="nf-detail-section"><h3>${label}</h3><ol class="nf-recipe-steps">${items.map(step => `<li>${safe(step)}</li>`).join('')}</ol></section>` : '';
-    return `<div class="nf-drawer-hero"><img src="${safe(imageFor(recipe))}" alt="${safe(recipe.ten_mon)}" onerror="this.onerror=null;this.src='${placeholder}'"><div><span class="nf-overline">CÔNG THỨC MÓN VIỆT</span><h2 id="nf-drawer-title">${safe(recipe.ten_mon)}</h2><div class="nf-recipe-tags">${tags}</div></div></div>
-      <div class="nf-drawer-stats"><div><strong>~${kcalText(recipe.kcal || 0)}</strong><span>Tổng calo cả món</span></div>${people ? `<div><strong>~${kcalText(Math.round(Number(recipe.kcal || 0) / people))}</strong><span>kcal/người (ước tính)</span></div>` : ''}<div><strong>${safe(time)}</strong><span>Thời gian</span></div><div><strong>${safe(recipe.do_kho || 'Chưa rõ')}</strong><span>Độ khó</span></div><div><strong>${safe(people ? `${people} người` : 'Theo công thức')}</strong><span>Khẩu phần</span></div>${recipe.protein != null ? `<div><strong>${safe(recipe.protein)}g</strong><span>Đạm (Protein)</span></div>` : ''}${recipe.carbs != null ? `<div><strong>${safe(recipe.carbs)}g</strong><span>Tinh bột (Carbs)</span></div>` : ''}${recipe.fat != null ? `<div><strong>${safe(recipe.fat)}g</strong><span>Chất béo (Fat)</span></div>` : ''}</div>
-      <section class="nf-detail-section"><div class="nf-section-title"><h3>Nguyên liệu &amp; gia vị</h3><span>Chạm để đánh dấu khi chuẩn bị</span></div><div class="nf-recipe-ingredients">${ingredients || '<p>Chưa có danh sách nguyên liệu.</p>'}</div></section>
-      ${steps('Sơ chế', recipe.so_che)}${steps('Thực hiện', recipe.thuc_hien)}
-      <div class="nf-drawer-footer">${recipe.source_ok && recipe.url ? `<a class="nf-recipe-source-link" href="${safe(recipe.url)}" target="_blank" rel="noopener noreferrer">Mở công thức gốc ↗</a>` : ''}<span>Kcal và tag là số liệu tham khảo từ nguồn công thức, chưa được thẩm định lâm sàng.</span></div>`;
+    return `<div class="nf-drawer-hero"><img src="${safe(imageFor(recipe))}" alt="${safe(recipe.ten_mon)}" onerror="this.onerror=null;this.src='${placeholder}'"><div><span class="nf-overline">${_t('CÔNG THỨC MÓN VIỆT', 'VIETNAMESE RECIPE')}</span><h2 id="nf-drawer-title">${safe(recipe.ten_mon)}</h2><div class="nf-recipe-tags">${tags}</div></div></div>
+      <div class="nf-drawer-stats"><div><strong>~${kcalText(recipe.kcal || 0)}</strong><span>${_t('Tổng calo cả món', 'Total dish calories')}</span></div>${people ? `<div><strong>~${kcalText(Math.round(Number(recipe.kcal || 0) / people))}</strong><span>${_t('kcal/người (ước tính)', 'kcal/serving (est.)')}</span></div>` : ''}<div><strong>${safe(time)}</strong><span>${_t('Thời gian', 'Time')}</span></div><div><strong>${safe(trDifficulty(recipe.do_kho))}</strong><span>${_t('Độ khó', 'Difficulty')}</span></div><div><strong>${safe(servingText(people))}</strong><span>${_t('Khẩu phần', 'Servings')}</span></div>${recipe.protein != null ? `<div><strong>${safe(recipe.protein)}g</strong><span>${_t('Đạm (Protein)', 'Protein')}</span></div>` : ''}${recipe.carbs != null ? `<div><strong>${safe(recipe.carbs)}g</strong><span>${_t('Tinh bột (Carbs)', 'Carbs')}</span></div>` : ''}${recipe.fat != null ? `<div><strong>${safe(recipe.fat)}g</strong><span>${_t('Chất béo (Fat)', 'Fat')}</span></div>` : ''}</div>
+      <section class="nf-detail-section"><div class="nf-section-title"><h3>${_t('Nguyên liệu &amp; gia vị', 'Ingredients &amp; seasonings')}</h3><span>${_t('Chạm để đánh dấu khi chuẩn bị', 'Tap to check off while preparing')}</span></div><div class="nf-recipe-ingredients">${ingredients || `<p>${_t('Chưa có danh sách nguyên liệu.', 'No ingredient list available.')}</p>`}</div></section>
+      ${steps(_t('Sơ chế', 'Preparation'), recipe.so_che)}${steps(_t('Thực hiện', 'Cooking steps'), recipe.thuc_hien)}
+      <div class="nf-drawer-footer">${recipe.source_ok && recipe.url ? `<a class="nf-recipe-source-link" href="${safe(recipe.url)}" target="_blank" rel="noopener noreferrer">${_t('Mở công thức gốc ↗', 'Open original recipe ↗')}</a>` : ''}<span>${_t('Kcal và tag là số liệu tham khảo từ nguồn công thức, chưa được thẩm định lâm sàng.', 'Kcal and tags are reference values from the recipe source and have not been clinically validated.')}</span></div>`;
   }
 
   function normalizeMealRecipe(recipe) {
@@ -126,7 +155,7 @@
     } catch (_) { /* No external source link for recipes without a valid HTTPS URL. */ }
     return {
       id: recipe?.id,
-      ten_mon: recipe?.ten_mon || recipe?.display_title || recipe?.title || recipe?.name || 'Công thức món ăn',
+      ten_mon: recipe?.ten_mon || recipe?.display_title || recipe?.title || recipe?.name || _t('Công thức món ăn', 'Recipe'),
       hinh_anh: image,
       image_ok: Boolean(image),
       tags: recipe?.tags || recipe?.categories || [],
@@ -152,6 +181,7 @@
     if (drawer.parentElement !== document.body) document.body.appendChild(drawer);
     const normalized = normalizeMealRecipe(recipe);
     content.innerHTML = detailMarkup(normalized);
+    state.activeRecipe = normalized;
     drawer.hidden = false;
     document.body.classList.add('nf-drawer-open');
     drawer.querySelector('.nf-drawer-panel')?.focus();
@@ -223,6 +253,15 @@
         $('nf-recipe-drawer').hidden = true;
         document.body.classList.remove('nf-drawer-open');
       }
+    });
+    // Re-render dynamic catalog copy when the user switches VI/EN
+    window.addEventListener('medimind:langchange', () => {
+      renderCount();
+      const catalog = $('nf-catalog');
+      if (catalog && !catalog.hidden && $('nf-catalog-grid')?.children.length) loadRecipes();
+      else renderPages(lastPage.current, lastPage.pages);
+      const drawer = $('nf-recipe-drawer');
+      if (drawer && !drawer.hidden && state.activeRecipe) $('nf-drawer-content').innerHTML = detailMarkup(state.activeRecipe);
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();

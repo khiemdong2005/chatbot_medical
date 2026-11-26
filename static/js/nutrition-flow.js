@@ -1050,8 +1050,8 @@
           ctxEl.innerHTML = `
             <div class="rounded-2xl border border-white/15 bg-slate-900/60 p-4 text-sm text-slate-100">
               <div class="flex flex-wrap items-center justify-between gap-2">
-                <div><strong>Chỉ số năng lượng:</strong> BMR <strong>${plan.bmr} kcal</strong> · TDEE <strong>${plan.tdee} kcal</strong></div>
-                <div class="text-emerald-300 font-semibold">Mục tiêu: ${plan.target_calories} kcal/ngày (Thực tế: ${plan.total_calories} kcal)</div>
+                <div><strong>${_t('Chỉ số năng lượng:', 'Energy metrics:')}</strong> BMR <strong>${plan.bmr} kcal</strong> · TDEE <strong>${plan.tdee} kcal</strong></div>
+                <div class="text-emerald-300 font-semibold">${_t(`Mục tiêu: ${plan.target_calories} kcal/ngày (Thực tế: ${plan.total_calories} kcal)`, `Target: ${plan.target_calories} kcal/day (Actual: ${plan.total_calories} kcal)`)}</div>
               </div>
               ${aiNoteHtml}
               ${warnHtml}
@@ -1079,8 +1079,8 @@
               <button type="button" data-nf-recipe="${idx}" class="w-full text-left rounded-xl border border-white/15 bg-slate-900/70 hover:bg-slate-800/90 p-3 transition flex items-center gap-3.5">
                 ${imgTag(item.recipe, item.name)}
                 <div class="flex-1 min-w-0">
-                  <div class="font-semibold text-white text-base truncate">${safe(item.name || 'Món ăn')}</div>
-                  <div class="text-xs text-slate-300 mt-1">Khẩu phần: ${safe(item.portion || '1 phần')} · Bấm để xem công thức</div>
+                  <div class="font-semibold text-white text-base truncate">${safe(item.name || _t('Món ăn', 'Dish'))}</div>
+                  <div class="text-xs text-slate-300 mt-1">${_t('Khẩu phần', 'Portion')}: ${safe(item.portion || _t('1 phần', '1 serving'))} · ${_t('Bấm để xem công thức', 'Tap to view recipe')}</div>
                 </div>
                 <div class="shrink-0 rounded-lg bg-emerald-500/20 border border-emerald-400/30 px-3 py-1.5 text-xs font-bold text-emerald-300">${item.calories} kcal</div>
               </button>`;
@@ -1089,9 +1089,9 @@
             <div class="rounded-2xl border border-white/15 bg-slate-900/40 p-4 space-y-3">
               <div class="flex items-center justify-between">
                 <h3 class="text-base font-bold text-sky-300">${safe(meal.meal_name || '')}</h3>
-                <span class="text-xs text-slate-300">Mục tiêu: ${meal.target_calories} kcal · Thực tế: <strong>${meal.calories} kcal</strong></span>
+                <span class="text-xs text-slate-300">${_t('Mục tiêu', 'Target')}: ${meal.target_calories} kcal · ${_t('Thực tế', 'Actual')}: <strong>${meal.calories} kcal</strong></span>
               </div>
-              ${itemsHtml || '<div class="text-xs text-slate-400">Chưa có món phù hợp trong tập đã lọc.</div>'}
+              ${itemsHtml || `<div class="text-xs text-slate-400">${_t('Chưa có món phù hợp trong tập đã lọc.', 'No matching dishes in the filtered set.')}</div>`}
             </div>`;
         }).join('');
 
@@ -1107,8 +1107,8 @@
               <button type="button" ${attr} class="w-full text-left rounded-xl border border-white/10 bg-slate-900/60 hover:bg-slate-800/90 p-2.5 transition flex items-center gap-3">
                 ${imgTag(d, d.title || d.name)}
                 <div class="flex-1 min-w-0">
-                  <div class="font-medium text-white text-sm truncate">${safe(d.title || d.name || 'Món ăn')}</div>
-                  <div class="text-xs text-slate-400">${safe(d.dish_role_label || d.meal_label || 'Món trong mâm')}${d.servings_note ? ' · ' + safe(d.servings_note) : ''}</div>
+                  <div class="font-medium text-white text-sm truncate">${safe(d.title || d.name || _t('Món ăn', 'Dish'))}</div>
+                  <div class="text-xs text-slate-400">${safe(d.dish_role_label || d.meal_label || _t('Món trong mâm', 'Set dish'))}${d.servings_note ? ' · ' + safe(d.servings_note) : ''}</div>
                 </div>
                 <div class="text-xs font-semibold text-emerald-300 shrink-0">${d.calories || 0} kcal</div>
               </button>`;
@@ -1116,13 +1116,13 @@
           return `
             <div class="rounded-2xl border border-white/15 bg-slate-900/40 p-4 space-y-3">
               <div class="flex items-center justify-between gap-2">
-                <h3 class="text-base font-bold text-amber-300">${safe(combo.title || `Mâm cơm gợi ý #${cIdx + 1}`)}</h3>
+                <h3 class="text-base font-bold text-amber-300">${safe(combo.title || _t(`Mâm cơm gợi ý #${cIdx + 1}`, `Suggested meal set #${cIdx + 1}`))}</h3>
                 <span class="text-xs font-semibold text-emerald-300 shrink-0">${combo.total_calories || ''} kcal</span>
               </div>
               ${combo.note ? `<div class="text-xs text-slate-400">${safe(combo.note)}</div>` : ''}
               <div class="grid grid-cols-1 gap-2">${dishesHtml}</div>
             </div>`;
-        }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa ghép được mâm cơm combo phù hợp cho điều kiện này, bạn xem tab Món lẻ bên cạnh nhé.</div>';
+        }).join('') : `<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">${_t('Chưa ghép được mâm cơm combo phù hợp cho điều kiện này, bạn xem tab Món lẻ bên cạnh nhé.', 'No suitable meal set could be built for these conditions. Please check the Single dishes tab.')}</div>`;
 
         // 3. HTML Nước uống
         const drinks = data.drinks || [];
@@ -1133,12 +1133,12 @@
             <button type="button" data-nf-recipe="${idx}" class="w-full text-left rounded-xl border border-white/15 bg-slate-900/70 hover:bg-slate-800/90 p-3 transition flex items-center gap-3.5">
               ${imgTag(dr, dr.title || dr.name)}
               <div class="flex-1 min-w-0">
-                <div class="font-semibold text-white text-base truncate">${safe(dr.title || dr.name || 'Thức uống')}</div>
-                <div class="text-xs text-slate-300 mt-1">${safe(dr.cooking_time || 'Pha chế nhanh')} · ${safe(dr.servings || '1 ly')} · Bấm để xem cách làm</div>
+                <div class="font-semibold text-white text-base truncate">${safe(dr.title || dr.name || _t('Thức uống', 'Drink'))}</div>
+                <div class="text-xs text-slate-300 mt-1">${safe(dr.cooking_time || _t('Pha chế nhanh', 'Quick to make'))} · ${safe(dr.servings || _t('1 ly', '1 glass'))} · ${_t('Bấm để xem cách làm', 'Tap to view how to make')}</div>
               </div>
               <div class="shrink-0 rounded-lg bg-sky-500/20 border border-sky-400/30 px-3 py-1.5 text-xs font-bold text-sky-300">${dCal} kcal</div>
             </button>`;
-        }).join('') : '<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">Chưa có thức uống phù hợp với điều kiện lọc hiện tại.</div>';
+        }).join('') : `<div class="rounded-2xl border border-white/10 bg-slate-900/40 p-6 text-center text-sm text-slate-300">${_t('Chưa có thức uống phù hợp với điều kiện lọc hiện tại.', 'No drinks match the current filters.')}</div>`;
 
         if (cardsEl) {
           const iconUtensils = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>';
@@ -1159,13 +1159,13 @@
           cardsEl.innerHTML = `
             <div class="col-span-full space-y-4">
               <div class="flex flex-wrap items-center gap-3 border-b border-white/10 pb-3.5">
-                <button type="button" id="nf-tab-food" class="${!isDrink ? tabActiveCls : tabIdleCls}">${iconUtensils}<span>Thức ăn</span></button>
-                <button type="button" id="nf-tab-drink" class="${isDrink ? tabActiveCls : tabIdleCls}">${iconCup}<span>Nước uống (${drinks.length})</span></button>
+                <button type="button" id="nf-tab-food" class="${!isDrink ? tabActiveCls : tabIdleCls}">${iconUtensils}<span>${_t('Thức ăn', 'Food')}</span></button>
+                <button type="button" id="nf-tab-drink" class="${isDrink ? tabActiveCls : tabIdleCls}">${iconCup}<span>${_t('Nước uống', 'Drinks')} (${drinks.length})</span></button>
                 <div id="nf-food-subtabs" class="${isDrink ? 'hidden ' : ''}flex flex-wrap items-center gap-3">
-                  <button type="button" id="nf-sub-single" class="${!isCombo ? subActiveCls : subIdleCls}">${iconSoupBowl}<span>Món lẻ theo bữa</span></button>
-                  <button type="button" id="nf-sub-combo" class="${isCombo ? subActiveCls : subIdleCls}">${iconRiceBowl}<span>Combo mâm cơm (${combos.length})</span></button>
+                  <button type="button" id="nf-sub-single" class="${!isCombo ? subActiveCls : subIdleCls}">${iconSoupBowl}<span>${_t('Món lẻ theo bữa', 'Single dishes by meal')}</span></button>
+                  <button type="button" id="nf-sub-combo" class="${isCombo ? subActiveCls : subIdleCls}">${iconRiceBowl}<span>${_t('Combo mâm cơm', 'Meal sets')} (${combos.length})</span></button>
                 </div>
-                <button type="button" id="nf-shuffle-menu-btn" class="${shuffleCls}">${iconGrid}<span>Đổi thực đơn khác</span></button>
+                <button type="button" id="nf-shuffle-menu-btn" class="${shuffleCls}">${iconGrid}<span>${_t('Đổi thực đơn khác', 'Shuffle menu')}</span></button>
               </div>
               <div id="nf-panel-food-single" class="${(isDrink || isCombo) ? 'hidden ' : ''}grid grid-cols-1 md:grid-cols-2 gap-4">${singleMealsHtml}</div>
               <div id="nf-panel-food-combo" class="${(isDrink || !isCombo) ? 'hidden ' : ''}grid grid-cols-1 md:grid-cols-2 gap-4">${combosHtml}</div>
@@ -1190,7 +1190,7 @@
                 excludeIds: Array.from(new Set((state.recipes || []).map(r => r?.id).filter(Boolean))),
               };
               shuffleBtn.disabled = true;
-              shuffleBtn.innerHTML = `${iconGrid}<span>Đang đổi thực đơn...</span>`;
+              shuffleBtn.innerHTML = `${iconGrid}<span>${_t('Đang đổi thực đơn...', 'Shuffling menu...')}</span>`;
               el('nf-survey-form').dispatchEvent(new Event('submit', { cancelable: true }));
             });
           }
@@ -1294,7 +1294,7 @@
           if (loadMoreEl) loadMoreEl.hidden = true;
           if (ctxEl) {
             ctxEl.hidden = false;
-            ctxEl.innerHTML = `<div class="p-4 text-sm text-sky-200">${shuffleMeta ? 'Đang tạo bộ thực đơn mới khác lượt trước...' : 'Đang tính BMR/TDEE và lọc thực đơn từ ViFoodRec...'}</div>`;
+            ctxEl.innerHTML = `<div class="p-4 text-sm text-sky-200">${shuffleMeta ? _t('Đang tạo bộ thực đơn mới khác lượt trước...', 'Building a new menu different from the last one...') : _t('Đang tính BMR/TDEE và lọc thực đơn từ ViFoodRec...', 'Calculating BMR/TDEE and filtering menus from ViFoodRec...')}</div>`;
           }
           if (cardsEl && !shuffleMeta) cardsEl.innerHTML = '';
           document.querySelectorAll('.nf-query-label').forEach(n => { n.textContent = state.query; });
@@ -1309,7 +1309,7 @@
             if (data?.status === 'clarification_needed') {
               if (ctxEl) {
                 ctxEl.hidden = false;
-                ctxEl.innerHTML = `<div class="rounded-2xl border border-amber-400/40 bg-amber-500/15 p-4 text-sm text-amber-200">${safe(data.message || 'Cần tư vấn chuyên biệt từ bác sĩ.')}</div>`;
+                ctxEl.innerHTML = `<div class="rounded-2xl border border-amber-400/40 bg-amber-500/15 p-4 text-sm text-amber-200">${safe(data.message || _t('Cần tư vấn chuyên biệt từ bác sĩ.', 'Specialized advice from a physician is needed.'))}</div>`;
               }
               return;
             }
@@ -1317,7 +1317,7 @@
             if (!resp.ok || !plan) {
               if (ctxEl) {
                 ctxEl.hidden = false;
-                ctxEl.innerHTML = '<div class="p-4 text-sm text-rose-300">Không thể tạo thực đơn lúc này. Vui lòng thử lại.</div>';
+                ctxEl.innerHTML = `<div class="p-4 text-sm text-rose-300">${_t('Không thể tạo thực đơn lúc này. Vui lòng thử lại.', 'Unable to create a menu right now. Please try again.')}</div>`;
               }
               return;
             }
@@ -1336,7 +1336,7 @@
             });
             _renderMealPlanView(data, keepMainTab, keepSubTab);
           } catch (err) {
-            if (ctxEl) ctxEl.innerHTML = '<div class="p-4 text-sm text-rose-300">Lỗi kết nối máy chủ khi tạo thực đơn.</div>';
+            if (ctxEl) ctxEl.innerHTML = `<div class="p-4 text-sm text-rose-300">${_t('Lỗi kết nối máy chủ khi tạo thực đơn.', 'Server connection error while creating the menu.')}</div>`;
           }
         });
       }
@@ -1424,6 +1424,15 @@
         if (!el('nf-search')) return;
         if (state.lastData) applyResultsCopy();
         if (state.stage === 'detail' && state.activeRecipe) renderDetail(state.activeRecipe);
+        // Re-render the BMR/TDEE meal plan in the newly selected language
+        const savedPlan = _readNutritionSession();
+        if (savedPlan.mealPlanData?.daily_plan && el('nf-results') && !el('nf-results').hidden) {
+          const pDrink = el('nf-panel-drink');
+          const pCombo = el('nf-panel-food-combo');
+          const mainTab = pDrink && !pDrink.classList.contains('hidden') ? 'drink' : 'food';
+          const foodSubTab = pCombo && !pCombo.classList.contains('hidden') ? 'combo' : 'single';
+          _renderMealPlanView(savedPlan.mealPlanData, mainTab, foodSubTab);
+        }
       });
 
       document.addEventListener('click', (ev) => {
