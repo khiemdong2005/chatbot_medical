@@ -481,8 +481,16 @@ def extract_ocr_parallel(image_path: str, doc_type: str = "auto") -> Dict[str, A
         else:
             results = reader.readtext(image_path)
             rough_text = " ".join(str(item[1]) for item in results)
+            import unicodedata
+            rough_folded = "".join(
+                ch for ch in unicodedata.normalize("NFKD", rough_text)
+                if not unicodedata.combining(ch)
+            ).replace("đ", "d").replace("Đ", "D").lower()
             is_prescription = (
-                doc_type == "auto" and bool(re.search(r"(?:đơn|don)[\s|]{0,8}(?:thuốc|thuoc)|ch[aẩ]n\s*[đd]o[aá]n|ph[oò]ng\s*kh[aá]m", rough_text, re.IGNORECASE))
+                doc_type == "auto" and bool(re.search(
+                    r"\b(?:don|toa)[\s|]{0,8}thuoc\b|\bchan\s*[dc]oan\b|\bphong\s*kham\b|\bc[\(\{o0]?ng\s*khoan\b",
+                    rough_folded,
+                ))
             )
             if is_prescription:
                 results, filter_stats = _run_tiled_prescription_ocr(reader, image_path, min_conf=0.30)

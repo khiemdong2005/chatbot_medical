@@ -44,27 +44,41 @@ def detect_medication_bounds(
     if rows:
         try:
             diagnosis_rows = [r for r in rows if re.search(
-                r"\bchan\s*doan\b", _ascii_fold(r.get("text", "")))]
+                r"\b(?:chan\s*[dc]oan|cin\s*donn)\b", _ascii_fold(r.get("text", "")))]
             total_rows = [r for r in rows if re.search(
-                r"\bcong\s*khoan\s*[:|.]?\s*\d+\b", _ascii_fold(r.get("text", "")))]
+                r"\bc[\(\{o0]?ng\s*khoan\s*[:|.;]?\s*\d+\b", _ascii_fold(r.get("text", "")))]
             if diagnosis_rows and total_rows:
                 y_min = int(diagnosis_rows[-1].get("y_min", 0))
                 y_max = int(total_rows[0].get("y_max", 0))
 
-            # If text anchors are missing, use only numbered rows as the crop
-            # bounds; do not widen the OCR region to the entire page.
+            # If text anchors are missing, use numbered rows as the crop
+            # bounds; when the first detected ordinal is >= 2 (because OCR
+            # missed "1."), walk up to include unnumbered earlier drug rows
+            # without crossing back into the administrative header.
             if y_min is None or y_max is None or y_max <= y_min + 30:
                 numbered = [r for r in rows if re.match(
-                    r"^\s*\d+\s*[.)]\s*\S+", str(r.get("text", ""))
+                    r"^\s*[1-9]\d?\s*[.)]\s*\S+", str(r.get("text", ""))
                 ) or ((r.get("items") or []) and re.fullmatch(
-                    r"\d+\s*[.)]?", str((r.get("items") or [{}])[0].get("text", "")).strip()
+                    r"[1-9]\d?\s*[.)]?", str((r.get("items") or [{}])[0].get("text", "")).strip()
                 ) and len(r.get("items", [])) > 1)]
                 if numbered:
                     first_idx = rows.index(numbered[0])
+                    m_first_ord = re.match(r"^\s*([1-9]\d?)", str(numbered[0].get("text", "")))
+                    first_ord = int(m_first_ord.group(1)) if m_first_ord else 1
+                    if first_ord >= 2:
+                        header_stop_re = re.compile(
+                            r"\b(?:ho\s*ten|doi\s*tuong|don\s*thuoc|dia\s*chi|ma\s*bhyt|"
+                            r"ngay\s*kham|chan\s*[dc]oan|cin\s*donn|benh\s*vien|phong\s*kham)\b"
+                        )
+                        for back in range(first_idx - 1, -1, -1):
+                            b_fold = _ascii_fold(rows[back].get("text", ""))
+                            if header_stop_re.search(b_fold):
+                                break
+                            first_idx = back
                     last_idx = rows.index(numbered[-1])
                     footer_idx = next((i for i in range(last_idx + 1, len(rows))
                                        if re.search(
-                                           r"\b(?:cong\s*khoan|loi\s*dan|tai\s*kham|bac\s*si)\b",
+                                           r"\b(?:c[\(\{o0]?ng\s*khoan|loi\s*dan|tai\s*kham|bac\s*s[iy]\b)\b",
                                            _ascii_fold(rows[i].get("text", "")),
                                        )), len(rows))
                     block_rows = rows[first_idx:footer_idx]
