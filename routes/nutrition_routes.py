@@ -43,6 +43,22 @@ def register_nutrition_routes(app):
         return jsonify({"success": True, "data": get_nutrition_options(
             condition, recipe_type, exclude_ids, profile=profile, dob=dob)}), 200
 
+    @app.route("/api/nutrition/meal-plan", methods=["POST"])
+    def nutrition_meal_plan():
+        """Lập thực đơn theo thể trạng (BMR/TDEE), bệnh nền & dị ứng (Món lẻ + Combo + Nước uống)."""
+        payload = request.get_json(silent=True) or {}
+        if not isinstance(payload, dict):
+            return jsonify({"success": False, "error": "Dữ liệu khảo sát không hợp lệ."}), 400
+        from core.nutrition.nutrition_meal_planner import build_production_meal_plan
+        result = build_production_meal_plan(payload)
+        return jsonify(result), 200
+
+    @app.route("/api/nutrition/recipe-catalog", methods=["GET"])
+    def nutrition_recipe_catalog():
+        """Tìm kiếm, lọc và phân trang danh mục 2.500+ công thức Món Ngon Mỗi Ngày."""
+        from core.nutrition.monngonmoingay_catalog import search_recipes
+        return jsonify(search_recipes(request.args)), 200
+
     @app.route("/api/nutrition/analyze", methods=["POST"])
     def analyze_nutrition():
         """

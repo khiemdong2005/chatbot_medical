@@ -34,11 +34,11 @@
   </script>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=26.0.8">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=17">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-flow.css') }}?v=22">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/facilities.css') }}?v=10">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-scene.css') }}?v=11">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-theme.css') }}?v=12">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nutrition-results.css') }}?v=3">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/ocean-muted.css') }}?v=7">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/home-reference.css') }}?v=7">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-reference.css') }}?v=23">
@@ -1775,21 +1775,29 @@
 
     <div id="doctor-tab" class="tab-content nutrition-flow w-full flex-1">
       <section id="nf-search" aria-labelledby="nf-search-title">
-        <h1 id="nf-search-title">Hôm nay bạn muốn ăn gì?</h1>
-        <p class="nf-subtitle">Mô tả món bạn muốn ăn, tình trạng sức khỏe hoặc nguyên liệu cần tránh.</p>
-        <form id="nf-search-form" class="nf-search-box">
+        <h1 id="nf-search-title">Bạn muốn bắt đầu xây dựng bữa ăn?</h1>
+        <p class="nf-subtitle">Hoàn thành khảo sát nhanh về thể trạng, bệnh nền và thực phẩm cần tránh để AI lọc món phù hợp.</p>
+        <div class="mt-5 flex justify-center">
+          <button id="nf-start-survey-btn" type="button"
+            class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-400 hover:to-teal-400 text-white font-semibold text-base shadow-lg shadow-sky-500/25 transition-all cursor-pointer">
+            Bắt đầu khảo sát bữa ăn
+          </button>
+        </div>
+        <button id="nf-open-catalog" type="button" class="nf-catalog-open">Khám phá 2.500+ công thức <span aria-hidden="true">→</span></button>
+        <form id="nf-search-form" class="nf-search-box hidden" style="display: none;">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
             <circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8" />
             <path d="m16 16 4.4 4.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
           </svg>
           <label class="sr-only" for="nf-query">Tình trạng sức khỏe và nhu cầu ăn uống</label>
           <input id="nf-query" type="search" autocomplete="off"
-            placeholder="Ví dụ: bữa tối ít dầu mỡ" maxlength="500" required>
+            placeholder="Ví dụ: bữa tối ít dầu mỡ" maxlength="500">
           <button type="submit">Tìm món</button>
         </form>
         <p class="nf-search-hint">Hãy kiểm tra nguyên liệu và khẩu phần trước khi dùng.</p>
       </section>
-      <section id="nf-type" class="nf-stage" hidden>
+
+      <section id="nf-type" class="nf-stage" hidden style="display: none;">
         <button class="nf-back" type="button" data-nf-back="search">← Sửa tìm kiếm</button>
         <p class="nf-overline">BƯỚC 1 / 3</p>
         <h1>Bạn muốn xem loại nào?</h1>
@@ -1819,86 +1827,114 @@
         </div>
       </section>
 
-    <section id="nf-results" class="nf-stage nf-wide" hidden>
-      <div class="nf-results-topbar">
-        <button class="nf-back" type="button" data-nf-back="type">← Đổi loại gợi ý</button>
-        <p class="nf-overline">GỢI Ý CỦA BẠN</p>
-      </div>
-      <div class="nf-results-header-row">
-        <h1 id="nf-results-title" class="nf-results-heading">
-          <span id="nf-results-icon" class="nf-results-icon nf-type-food" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7"/><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <span id="nf-results-title-text">Gợi ý món ăn</span>
-        </h1>
-        <div class="nf-condition-banner"><span><svg viewBox="0 0 20 20" fill="currentColor" width="12" height="12"
-              aria-hidden="true">
-              <path fill-rule="evenodd"
-                d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                clip-rule="evenodd" />
-            </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
-      </div>
-      <p id="nf-results-subtitle" class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
-      <div id="nf-context" class="nf-context" hidden></div>
-      <!-- Khối ưu tiên lâm sàng: Bù nước & Điện giải (NIDDK / NHS cho tiêu chảy, sốt, mất nước) -->
-      <div id="nf-hydration-alert" class="nf-hydration-alert" hidden></div>
-      <p id="nf-notice" class="nf-notice" hidden></p>
-      <div id="nf-clarification" class="nf-clarification" hidden>
-        <p id="nf-question"></p><button type="button" class="nf-back" id="nf-edit-query">Bổ sung mô tả →</button>
+
+
+      <section id="nf-catalog" class="nf-stage nf-catalog" hidden aria-labelledby="nf-catalog-title">
+        <button id="nf-catalog-back" class="nf-back" type="button">← Quay lại Dinh dưỡng &amp; Pha chế</button>
+        <p class="nf-overline">DANH MỤC CÔNG THỨC</p>
+        <div class="nf-catalog-heading"><div><h1 id="nf-catalog-title">Khám phá món ngon, chọn theo nhu cầu</h1><p>Tra cứu công thức và nguyên liệu từ Món Ngon Mỗi Ngày. Kcal là tổng ước tính của cả món theo dữ liệu nguồn.</p></div><span class="nf-catalog-count" id="nf-catalog-count" aria-live="polite">Đang tải…</span></div>
+        <div class="nf-catalog-toolbar">
+          <label class="nf-catalog-search"><span aria-hidden="true">⌕</span><input id="nf-catalog-query" type="search" placeholder="Tìm món hoặc nguyên liệu…" autocomplete="off"><kbd>Không dấu</kbd></label>
+          <button type="button" id="nf-catalog-reset" class="nf-catalog-reset">Xóa bộ lọc</button>
+        </div>
+        <div class="nf-catalog-filter-block"><span class="nf-catalog-label">Mục tiêu &amp; chế độ ăn</span><div class="nf-catalog-chips" id="nf-catalog-objectives">
+          <button type="button" class="active" data-objective="all">Tất cả</button><button type="button" data-objective="Ăn kiêng / Giảm mỡ">Ăn kiêng / Giảm mỡ</button><button type="button" data-objective="Cân bằng dinh dưỡng">Cân bằng dinh dưỡng</button><button type="button" data-objective="Ăn chay">Ăn chay</button><button type="button" data-objective="Tăng năng lượng">Tăng năng lượng</button><button type="button" data-objective="Tốt cho xương &amp; cơ">Tốt cho xương &amp; cơ</button><button type="button" data-objective="Phục hồi sức khỏe">Phục hồi sức khỏe</button>
+        </div></div>
+        <div class="nf-catalog-selects">
+          <label>Bữa ăn<select id="nf-catalog-meal"><option value="all">Mọi bữa ăn</option><option>Bữa sáng</option><option>Bữa trưa</option><option>Bữa tối</option><option>Ăn vặt</option></select></label>
+          <label>Cách nấu<select id="nf-catalog-method"><option value="all">Mọi cách nấu</option><optgroup label="Ưu tiên ít dầu mỡ"><option>Hấp/Tiềm</option><option>Canh/Súp</option><option>Gỏi/Trộn</option><option>Nướng</option></optgroup><optgroup label="Món áp chảo / dùng dầu"><option>Chiên</option><option>Món xào</option></optgroup><option>Kho</option></select></label>
+          <label>Tổng năng lượng<select id="nf-catalog-kcal"><option value="all">Mọi mức kcal</option><option value="under1000">Dưới 1.000 kcal</option><option value="1000to2500">1.000–2.500 kcal</option><option value="2500to4000">2.501–4.000 kcal</option><option value="over4000">Trên 4.000 kcal</option></select></label>
+          <label>Sắp xếp<select id="nf-catalog-sort"><option value="relevance">Liên quan nhất</option><option value="kcal_asc">Calo tăng dần</option><option value="kcal_desc">Calo giảm dần</option></select></label>
+        </div>
+        <details class="nf-catalog-allergies"><summary>Loại trừ dị ứng &amp; thành phần cần tránh</summary><div id="nf-catalog-excludes" class="nf-catalog-excludes">
+          <label><input type="checkbox" value="Tôm"> Tôm</label><label><input type="checkbox" value="Hải sản"> Hải sản</label><label><input type="checkbox" value="Trứng"> Trứng</label><label><input type="checkbox" value="Thịt bò"> Thịt bò</label><label><input type="checkbox" value="Đậu phộng"> Đậu phộng</label><label><input type="checkbox" value="Phô mai / Sữa"> Phô mai / Sữa</label><label><input type="checkbox" value="Nấm"> Nấm</label>
+        </div><p>Món có thành phần khớp từ khóa trong nguyên liệu hoặc tag sẽ được ẩn. Hãy luôn kiểm tra nhãn sản phẩm và nguy cơ nhiễm chéo.</p></details>
+        <div id="nf-catalog-grid" class="nf-catalog-grid" aria-live="polite"></div>
+        <div id="nf-catalog-empty" class="nf-catalog-empty" hidden>Không tìm thấy món phù hợp. Hãy thử đổi từ khóa hoặc bộ lọc.</div>
+        <nav id="nf-catalog-pages" class="nf-catalog-pages" aria-label="Trang công thức"></nav>
+        <p class="nf-catalog-disclaimer">Thông tin kcal và tag được cung cấp trong dữ liệu công thức, chưa phải phân tích dinh dưỡng lâm sàng. Dị ứng được lọc tự động theo tên nguyên liệu nên hãy xác nhận trước khi sử dụng.</p>
+      </section>
+      <div id="nf-recipe-drawer" class="nf-recipe-drawer" hidden>
+        <button class="nf-drawer-backdrop" type="button" data-drawer-close aria-label="Đóng chi tiết công thức"></button>
+        <section class="nf-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="nf-drawer-title" tabindex="-1">
+          <button class="nf-drawer-close" type="button" data-drawer-close aria-label="Đóng">×</button>
+          <div id="nf-drawer-content"></div>
+        </section>
       </div>
 
-      <!-- Bộ chuyển đổi chế độ xem: Mâm cơm gia đình (4 món) vs Món ăn độc lập -->
-      <div id="nf-mode-switcher" class="nf-mode-switcher" hidden>
-        <button type="button" class="nf-mode-btn active" data-nf-view="full_meal">
-          <span class="nf-mode-icon">🍱</span>
-          <span>Mâm cơm gia đình (4 món)</span>
-        </button>
-        <button type="button" class="nf-mode-btn" data-nf-view="single_dishes">
-          <span class="nf-mode-icon">🍲</span>
-          <span>Món ăn độc lập (Phở, bún, cháo, mì...)</span>
-        </button>
-      </div>
 
-      <!-- Bộ lọc theo bữa ăn (cho chế độ món đơn lẻ) -->
-      <div id="nf-meal-filters" class="nf-meal-filters" hidden>
-        <span class="nf-filter-title">Lọc bữa:</span>
-        <button type="button" class="nf-meal-pill active" data-nf-meal="all">Tất cả các món</button>
-        <button type="button" class="nf-meal-pill" data-nf-meal="breakfast">☀️ Bữa sáng</button>
-        <button type="button" class="nf-meal-pill" data-nf-meal="lunch">🍱 Bữa trưa</button>
-        <button type="button" class="nf-meal-pill" data-nf-meal="dinner">🌙 Bữa tối</button>
-        <button type="button" class="nf-meal-pill" data-nf-meal="snack">🍵 Bữa phụ / Trước ngủ</button>
-      </div>
+      <section id="nf-results" class="nf-stage nf-wide" hidden>
+        <div class="nf-results-topbar">
+          <button class="nf-back" type="button" data-nf-back="search">← Làm lại khảo sát</button>
+          <p class="nf-overline">GỢI Ý CỦA BẠN</p>
+        </div>
+        <div class="nf-results-header-row">
+          <h1 id="nf-results-title" class="nf-results-heading">
+            <span id="nf-results-icon" class="nf-results-icon nf-type-food" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Z" fill="#d8ebe7"/><path d="M6 20h28c-1 9-6 14-14 14S7 29 6 20Zm5 15h18M13 14c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9m8 9c-3-4 3-5 0-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span id="nf-results-title-text">Gợi ý món ăn</span>
+          </h1>
+        </div>
+        <p id="nf-results-subtitle" class="nf-subtitle">Mở món để xem nguyên liệu, cách làm và năng lượng tham khảo.</p>
+        <div class="nf-results-survey-bar">
+          <button type="button" id="nf-review-survey-btn" class="nf-review-survey-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+              <rect x="9" y="3" width="6" height="4" rx="1" />
+              <path d="M9 12h6" />
+              <path d="M9 16h4" />
+            </svg>
+            <span>Xem lại khảo sát</span>
+          </button>
+          <span class="nf-survey-summary-chip nf-query-label" hidden></span>
+        </div>
+        <div id="nf-context" class="nf-context" hidden></div>
+        <!-- Khối ưu tiên lâm sàng: Bù nước & Điện giải (NIDDK / NHS cho tiêu chảy, sốt, mất nước) -->
+        <div id="nf-hydration-alert" class="nf-hydration-alert" hidden></div>
+        <p id="nf-notice" class="nf-notice" hidden></p>
+        <div id="nf-clarification" class="nf-clarification" hidden>
+          <p id="nf-question"></p><button type="button" class="nf-back" id="nf-edit-query">Bổ sung mô tả →</button>
+        </div>
 
-      <!-- Khối hiển thị 1 Bữa ăn đủ món (Mâm cơm cân bằng) -->
-      <div id="nf-full-meal-wrap" class="nf-full-meal-wrap" hidden></div>
+        <!-- Bộ chuyển đổi chế độ xem: Mâm cơm gia đình (4 món) vs Món ăn độc lập -->
+        <div id="nf-mode-switcher" class="nf-mode-switcher" hidden>
+          <button type="button" class="nf-mode-btn active" data-nf-view="full_meal">
+            <span class="nf-mode-icon">🍱</span>
+            <span>Mâm cơm gia đình (4 món)</span>
+          </button>
+          <button type="button" class="nf-mode-btn" data-nf-view="single_dishes">
+            <span class="nf-mode-icon">🍲</span>
+            <span>Món ăn độc lập (Phở, bún, cháo, mì...)</span>
+          </button>
+        </div>
 
-      <div id="nf-status" class="nf-status" role="status" aria-live="polite"></div>
-      <div id="nf-cards" class="nf-cards"></div>
-      <button id="nf-load-more" type="button" class="nf-load-more" hidden>Xem thêm gợi ý từ kho →</button>
-      <details id="nf-avoidance" class="nf-limit-panel nf-limit-disclosure" hidden>
-        <summary>Nên hạn chế / cần tránh</summary>
-        <div id="nf-avoidance-content"></div>
+        <!-- Khối hiển thị 1 Bữa ăn đủ món (Mâm cơm cân bằng) -->
+        <div id="nf-full-meal-wrap" class="nf-full-meal-wrap" hidden></div>
+
+        <div id="nf-status" class="nf-status" role="status" aria-live="polite"></div>
+        <button id="nf-retry" type="button" class="nf-back" hidden>Thử lại</button>
+        <div id="nf-cards" class="nf-cards"></div>
+        <button id="nf-load-more" type="button" class="nf-load-more" hidden>Xem thêm gợi ý từ kho →</button>
+        <details id="nf-avoidance" class="nf-limit-panel nf-limit-disclosure" hidden>
+          <summary>Nên hạn chế / cần tránh</summary>
+          <div id="nf-avoidance-content"></div>
+        </details>
+      </section>
+      <section id="nf-detail" class="nf-stage nf-wide" hidden>
+        <div class="nf-detail-topbar">
+          <button class="nf-back nf-detail-back-pill" type="button" data-nf-back="results">← Xem món khác</button>
+        </div>
+        <div id="nf-detail-content"></div>
+      </section>
+      <details id="nf-evidence" class="nf-evidence" hidden>
+        <summary>Nguồn &amp; lưu ý dữ liệu</summary>
+        <div class="nf-evidence-content">
+          <p id="nf-selection-copy"></p>
+          <p id="nf-catalog-stats" class="nf-catalog-stats" hidden></p>
+          <p id="nf-sources" class="nf-source-links" hidden></p>
+          <div id="nf-recipe-source" hidden></div>
+          <p class="nf-disclaimer">Thông tin dinh dưỡng chỉ để tham khảo, không thay thế tư vấn y tế chuyên khoa.</p>
+        </div>
       </details>
-    </section>
-    <section id="nf-detail" class="nf-stage nf-wide" hidden>
-      <button class="nf-back" type="button" data-nf-back="results">← Xem món khác</button>
-      <p class="nf-overline">BƯỚC 3 / 3 · CHI TIẾT</p>
-      <div class="nf-condition-banner nf-condition-compact"><span><svg viewBox="0 0 20 20" fill="currentColor"
-            width="12" height="12" aria-hidden="true">
-            <path fill-rule="evenodd"
-              d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-              clip-rule="evenodd" />
-          </svg> Yêu cầu đã nhập</span><strong class="nf-query-label"></strong></div>
-      <div id="nf-detail-content"></div>
-    </section>
-    <details id="nf-evidence" class="nf-evidence" hidden>
-      <summary>Nguồn &amp; lưu ý dữ liệu</summary>
-      <div class="nf-evidence-content">
-        <p id="nf-selection-copy"></p>
-        <p id="nf-catalog-stats" class="nf-catalog-stats" hidden></p>
-        <p id="nf-sources" class="nf-source-links" hidden></p>
-        <div id="nf-recipe-source" hidden></div>
-        <p class="nf-disclaimer">Thông tin dinh dưỡng chỉ để tham khảo, không thay thế tư vấn y tế chuyên khoa.</p>
-      </div>
-    </details>
     </div>
 
 
@@ -3857,6 +3893,149 @@
 
   </div>
 
+      <div id="nf-survey-modal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-3xl rounded-3xl border border-sky-200/15 bg-[#091428]/92 backdrop-blur-2xl text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.65)] p-5 sm:p-6 my-auto">
+          <div class="flex items-center justify-between gap-4 pb-4 mb-4 border-b border-white/10">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-full bg-sky-500/15 border border-sky-400/35 flex items-center justify-center shadow-[0_0_20px_rgba(56,189,248,0.2)] shrink-0">
+                <svg class="w-6 h-6 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 4v3m4-2-2 3m4-1-3 2" />
+                  <path d="M4 12h16a8 8 0 0 1-16 0Z" />
+                  <path d="M9 20h6" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white flex flex-wrap items-center gap-2.5">
+                  <span>Khảo sát Cá nhân hóa Bữa ăn</span>
+                  <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/35">Chuẩn lâm sàng</span>
+                </h2>
+                <p class="text-xs text-slate-300/80 mt-0.5">Đánh giá thể trạng, bệnh nền và khẩu vị để gợi ý chế độ ăn phù hợp.</p>
+              </div>
+            </div>
+            <button id="nf-survey-close-btn" type="button" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition text-lg leading-none cursor-pointer">&times;</button>
+          </div>
+
+          <form id="nf-survey-form" class="space-y-3.5">
+            <!-- 1. Thể trạng & Năng lượng cơ sở -->
+            <div class="rounded-2xl border border-white/10 bg-[#0d1b33]/75 p-4 space-y-3">
+              <div class="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="3" />
+                  <path d="M8 9a4 4 0 0 1 8 0" />
+                  <path d="M12 9v-2" />
+                  <path d="M8 15h8" />
+                </svg>
+                <span>1. Thể trạng &amp; Năng lượng cơ sở</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-height">Chiều cao (cm)</label>
+                  <input id="nf-sv-height" type="number" min="80" max="250" value="165" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-weight">Cân nặng (kg)</label>
+                  <input id="nf-sv-weight" type="number" min="20" max="250" value="60" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-age">Tuổi</label>
+                  <input id="nf-sv-age" type="number" min="5" max="120" value="25" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-gender">Giới tính</label>
+                  <select id="nf-sv-gender" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-activity">Mức độ vận động</label>
+                  <select id="nf-sv-activity" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                    <option value="Tĩnh tại (Ít vận động)">Tĩnh tại (Ít vận động)</option>
+                    <option value="Vận động nhẹ (1-2 ngày/tuần)">Vận động nhẹ (1-2 ngày/tuần)</option>
+                    <option value="Vận động vừa (3-5 ngày/tuần)" selected>Vận động vừa (3-5 ngày/tuần)</option>
+                    <option value="Vận động nặng (6-7 ngày/tuần)">Vận động nặng (6-7 ngày/tuần)</option>
+                    <option value="Vận động rất nặng">Vận động rất nặng (VĐV / Lao động nặng)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-goal">Mục tiêu dinh dưỡng</label>
+                  <select id="nf-sv-goal" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                    <option value="Duy trì sức khỏe &amp; kiểm soát bệnh" selected>Duy trì sức khỏe &amp; kiểm soát bệnh</option>
+                    <option value="Giảm cân lành mạnh">Giảm cân lành mạnh</option>
+                    <option value="Tăng cơ / Phục hồi thể lực">Tăng cơ / Phục hồi thể lực</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Tình trạng bệnh lý & bệnh nền đi kèm -->
+            <div class="rounded-2xl border border-white/10 bg-[#0d1b33]/75 p-4 space-y-2.5">
+              <div class="flex items-center gap-2 text-xs font-semibold text-sky-400">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19.5 12.572 12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572" />
+                  <path d="M8 12h2l1.5-2.5L13 14l1.5-2H16" />
+                </svg>
+                <span>2. Tình trạng bệnh lý &amp; bệnh nền đi kèm</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs text-slate-200">
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Không có" aria-label="Không có bệnh lý nền" checked class="rounded accent-sky-400"> Không có</label>
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Gout / Acid uric cao" aria-label="Gout hoặc Acid uric cao" class="rounded accent-sky-400"> Gout / Acid uric cao</label>
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Tăng huyết áp" aria-label="Tăng huyết áp" class="rounded accent-sky-400"> Tăng huyết áp</label>
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Đái tháo đường" aria-label="Đái tháo đường" class="rounded accent-sky-400"> Đái tháo đường</label>
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Gan nhiễm mỡ" aria-label="Gan nhiễm mỡ" class="rounded accent-sky-400"> Gan nhiễm mỡ</label>
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Dạ dày / Trào ngược" aria-label="Dạ dày hoặc Trào ngược" class="rounded accent-sky-400"> Dạ dày / Trào ngược</label>
+                <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="checkbox" name="nf-sv-cond" value="Rối loạn mỡ máu" aria-label="Rối loạn mỡ máu" class="rounded accent-sky-400"> Rối loạn mỡ máu</label>
+              </div>
+              <input id="nf-sv-cond-custom" type="text" aria-label="Bệnh lý khác" placeholder="Hoặc nhập thêm tên bệnh lý khác (nếu có)..." class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white placeholder-slate-400/80 focus:outline-none focus:border-sky-400/60 transition">
+            </div>
+
+            <!-- 3. Dị ứng & thành phần cần tránh -->
+            <div class="rounded-2xl border border-white/10 bg-[#0d1b33]/75 p-4 space-y-2">
+              <div class="flex items-center gap-2 text-xs font-semibold text-amber-400">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8v5" />
+                  <path d="M12 16h.01" />
+                </svg>
+                <span>3. Dị ứng &amp; thành phần cần tránh</span>
+              </div>
+              <input id="nf-sv-avoid" type="text" aria-label="Dị ứng và thành phần cần tránh" placeholder="Ví dụ: Hải sản, thịt heo, đậu phộng, đồ cay nóng..." class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white placeholder-slate-400/80 focus:outline-none focus:border-amber-400/60 transition">
+            </div>
+
+            <!-- 4. Nhịp sinh hoạt -->
+            <div class="rounded-2xl border border-white/10 bg-[#0d1b33]/75 p-4 space-y-2">
+              <div class="flex items-center gap-2 text-xs font-semibold text-violet-400">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+                <span>4. Nhịp sinh hoạt</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-meals">Số bữa ăn chính trong ngày</label>
+                <select id="nf-sv-meals" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white focus:outline-none focus:border-indigo-400/60 transition">
+                  <option value="3 bữa (Sáng - Trưa - Tối)" selected>3 bữa (Sáng – Trưa – Tối)</option>
+                  <option value="4 bữa (thêm bữa phụ)">4 bữa (thêm bữa phụ)</option>
+                  <option value="2 bữa chính">2 bữa chính</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex justify-end items-center gap-3 pt-2">
+              <button id="nf-survey-cancel-btn" type="button" class="px-5 py-2.5 rounded-full border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10 text-sm font-medium transition cursor-pointer">Đóng</button>
+              <button type="submit" class="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-sm shadow-[0_6px_24px_rgba(16,185,129,0.35)] transition flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span>Lưu &amp; Áp dụng ngay</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+
+
 
 
 
@@ -4238,7 +4417,8 @@
       });
     })();
   </script>
-  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.1.4"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.2.2"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-catalog.js') }}?v=7"></script>
 
   <!-- ============================================================== -->
   <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->

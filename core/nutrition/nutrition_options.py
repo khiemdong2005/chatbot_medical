@@ -593,6 +593,89 @@ GOUT_FOODS = [
     },
 ]
 
+_CURATED_NUTRITION_MACROS = {
+    "oat_porridge": {"calories": 240, "protein": 6.8, "fat": 3.1, "carbs": 48.0},
+    "pumpkin_soup": {"calories": 105, "protein": 3.1, "fat": 0.3, "carbs": 24.0},
+    "rice_carrot": {"calories": 200, "protein": 4.1, "fat": 0.5, "carbs": 44.0},
+    "soft_egg": {"calories": 72, "protein": 6.3, "fat": 4.8, "carbs": 0.4},
+    "sweet_potato": {"calories": 130, "protein": 2.4, "fat": 0.2, "carbs": 30.0},
+    "chicken_congee": {"calories": 225, "protein": 19.0, "fat": 1.8, "carbs": 32.0},
+    "tofu_pumpkin": {"calories": 90, "protein": 6.2, "fat": 3.2, "carbs": 9.0},
+    "warm_water": {"calories": 0, "protein": 0.0, "fat": 0.0, "carbs": 0.0},
+    "warm_milk": {"calories": 120, "protein": 6.4, "fat": 6.6, "carbs": 9.6},
+    "oat_drink": {"calories": 95, "protein": 3.4, "fat": 1.7, "carbs": 17.0},
+    "cucumber_water": {"calories": 15, "protein": 0.3, "fat": 0.1, "carbs": 1.5},
+    "warm_soy": {"calories": 85, "protein": 7.0, "fat": 4.0, "carbs": 4.5},
+    "pear_water": {"calories": 60, "protein": 0.4, "fat": 0.1, "carbs": 15.0},
+    "barley_water": {"calories": 65, "protein": 2.0, "fat": 0.4, "carbs": 14.0},
+    "fl_steamed_fish": {"calories": 110, "protein": 20.5, "fat": 2.5, "carbs": 1.5},
+    "fl_chicken_vegetables": {"calories": 175, "protein": 25.5, "fat": 2.2, "carbs": 12.0},
+    "fl_tofu_tomato": {"calories": 95, "protein": 7.0, "fat": 3.8, "carbs": 6.5},
+    "fl_winter_melon_soup": {"calories": 45, "protein": 2.8, "fat": 0.4, "carbs": 8.0},
+    "fl_steamed_greens": {"calories": 25, "protein": 2.3, "fat": 0.3, "carbs": 3.5},
+    "fl_oat_vegetable_porridge": {"calories": 200, "protein": 7.5, "fat": 3.3, "carbs": 35.0},
+    "fl_brown_rice_chicken": {"calories": 320, "protein": 23.0, "fat": 3.5, "carbs": 48.0},
+    "gout_egg_tomato": {"calories": 210, "protein": 13.5, "fat": 14.5, "carbs": 5.5},
+    "gout_steamed_egg_veggies": {"calories": 195, "protein": 13.0, "fat": 10.0, "carbs": 5.5},
+    "gout_braised_eggplant": {"calories": 155, "protein": 4.2, "fat": 2.5, "carbs": 28.0},
+    "gout_winter_melon_soup": {"calories": 75, "protein": 1.6, "fat": 0.5, "carbs": 16.0},
+    "gout_cabbage_tomato_soup": {"calories": 85, "protein": 2.4, "fat": 0.5, "carbs": 17.0},
+    "gout_boiled_greens": {"calories": 65, "protein": 4.3, "fat": 0.6, "carbs": 10.0},
+    "gout_oat_pumpkin_congee": {"calories": 245, "protein": 7.2, "fat": 3.3, "carbs": 46.0},
+    "gout_rice_egg_veggies": {"calories": 360, "protein": 13.5, "fat": 7.5, "carbs": 59.0},
+    "gout_celery_juice": {"calories": 55, "protein": 0.8, "fat": 0.3, "carbs": 13.0},
+    "gout_cucumber_lemon": {"calories": 45, "protein": 0.9, "fat": 0.2, "carbs": 9.5},
+    "gout_cherry_juice": {"calories": 85, "protein": 1.3, "fat": 0.3, "carbs": 19.0},
+    "gout_light_green_tea": {"calories": 15, "protein": 0.3, "fat": 0.0, "carbs": 3.0},
+    "gout_orange_carrot": {"calories": 95, "protein": 1.6, "fat": 0.3, "carbs": 21.0},
+}
+_CURATED_EXACT_IMAGES = {
+    "oat_porridge": "/static/images/recipes/canonical_staple_yen_mach_nau.jpg",
+    "pumpkin_soup": "/static/images/recipes/vifoodrec_3756.jpg",
+    "rice_carrot": "/static/images/recipes/vifoodrec_388.jpg",
+    "soft_egg": "/static/images/recipes/vifoodrec_1241.jpg",
+    "sweet_potato": "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg",
+    "chicken_congee": "/static/images/recipes/vifoodrec_2046.jpg",
+    "tofu_pumpkin": "/static/images/recipes/vifoodrec_112.jpg",
+    "warm_water": "/static/images/recipes/vifoodrec_3136.jpg",
+    "warm_milk": "/static/images/recipes/vifoodrec_1716.jpg",
+    "oat_drink": "/static/images/recipes/vifoodrec_2004.jpg",
+    "cucumber_water": "/static/images/recipes/vifoodrec_3943.jpg",
+    "warm_soy": "/static/images/recipes/vifoodrec_3417.jpg",
+    "pear_water": "/static/images/recipes/vifoodrec_712.jpg",
+    "barley_water": "/static/images/recipes/vifoodrec_2332.jpg",
+    "fl_steamed_fish": "/static/images/recipes/vifoodrec_762.jpg",
+    "fl_chicken_vegetables": "/static/images/recipes/curated_uc_ga_luoc_rau_cu.jpg",
+    "fl_tofu_tomato": "/static/images/recipes/vifoodrec_1984.jpg",
+    "fl_winter_melon_soup": "/static/images/recipes/vifoodrec_304.jpg",
+    "fl_steamed_greens": "/static/images/recipes/vifoodrec_1125.jpg",
+    "fl_oat_vegetable_porridge": "/static/images/recipes/canonical_staple_yen_mach_nau.jpg",
+    "fl_brown_rice_chicken": "/static/images/recipes/vifoodrec_1925.png",
+    "gout_egg_tomato": "/static/images/recipes/vifoodrec_3072.jpg",
+    "gout_steamed_egg_veggies": "/static/images/recipes/vifoodrec_1241.jpg",
+    "gout_braised_eggplant": "/static/images/recipes/vifoodrec_2090.jpg",
+    "gout_winter_melon_soup": "/static/images/recipes/vifoodrec_304.jpg",
+    "gout_cabbage_tomato_soup": "/static/images/recipes/vifoodrec_2697.jpg",
+    "gout_boiled_greens": "/static/images/recipes/vifoodrec_1354.jpg",
+    "gout_oat_pumpkin_congee": "/static/images/recipes/canonical_staple_yen_mach_nau.jpg",
+    "gout_rice_egg_veggies": "/static/images/recipes/canonical_staple_com_gao_lut.jpg",
+    "gout_celery_juice": "/static/images/recipes/vifoodrec_2798.jpg",
+    "gout_cucumber_lemon": "/static/images/recipes/vifoodrec_3943.jpg",
+    "gout_cherry_juice": "/static/images/recipes/vifoodrec_3042.jpg",
+    "gout_light_green_tea": "/static/images/recipes/vifoodrec_2332.jpg",
+    "gout_orange_carrot": "/static/images/recipes/vifoodrec_712.jpg",
+}
+for _group in (FOOD, DRINK, FATTY_LIVER_FOOD, GOUT_FOODS, GOUT_DRINKS):
+    for _rec in _group:
+        _macros = _CURATED_NUTRITION_MACROS.get(_rec.get("id"))
+        if _macros:
+            for _mk, _mv in _macros.items():
+                if _rec.get(_mk) is None:
+                    _rec[_mk] = _mv
+        _exact_img = _CURATED_EXACT_IMAGES.get(_rec.get("id"))
+        if _exact_img and not _rec.get("image_link"):
+            _rec["image_link"] = _exact_img
+
 
 def _get_general_options(condition: str, recipe_type: str) -> Dict[str, Any]:
     """Danh mục chung theo loại món; tình trạng chỉ bổ sung ghi chú, không lọc món."""

@@ -109,13 +109,18 @@ CONTEXTS = {
     },
     "stomach": {
         "label": "Đau dạ dày / viêm loét dạ dày",
-        "aliases": ("dau da day", "viem da day", "loet da day", "dau bao tu", "viem loet da day", "gastritis", "benh dau da day", "benh da day"),
+        "aliases": ("da day", "dau da day", "viem da day", "loet da day", "dau bao tu", "viem loet da day", "gastritis", "benh dau da day", "benh da day"),
         "guidance": [_guidance("stomach", "Khi đau dạ dày, nên chọn thức ăn mềm, dễ tiêu; tránh món cay nóng (ớt, tiêu), chua gắt (chanh, giấm), đồ chiên rán nhiều dầu mỡ và rượu bia, cà phê để tránh kích thích niêm mạc dạ dày.")],
     },
     "fatty_liver": {
         "label": "Gan nhiễm mỡ",
         "aliases": ("gan nhiem mo", "benh gan nhiem mo", "fatty liver", "nafld", "masld"),
         "guidance": [_guidance("fatty_liver", "Hướng dẫn NIDDK về gan nhiễm mỡ không do rượu gợi ý ăn nhiều rau, trái cây và ngũ cốc nguyên hạt; hạn chế đường thêm và chất béo bão hòa, thay bằng chất béo chưa bão hòa; giảm rượu bia. Khẩu phần cần điều chỉnh theo hướng dẫn cá nhân.")],
+    },
+    "dyslipidemia": {
+        "label": "Rối loạn mỡ máu",
+        "aliases": ("roi loan mo mau", "mo mau cao", "mo mau", "cholesterol cao", "triglyceride cao", "dyslipidemia", "hyperlipidemia"),
+        "guidance": [_guidance("fatty_liver", "Với rối loạn mỡ máu, ưu tiên rau xanh, ngũ cốc nguyên hạt và món hấp/luộc; hạn chế tối đa đồ chiên rán nhiều dầu mỡ, chất béo bão hòa, nội tạng, đường thêm và rượu bia.")],
     },
 }
 ALIASES = {alias: key for key, context in CONTEXTS.items() for alias in context["aliases"]}
@@ -168,6 +173,10 @@ AVOIDANCE = {
         _avoid("Rượu, bia và đồ uống có cồn", "NIDDK khuyên giảm rượu vì rượu có thể làm tổn thương gan thêm.", "fatty_liver"),
         _avoid("Đồ ăn, thức uống nhiều đường thêm", "NIDDK khuyên hạn chế đường đơn, nhất là đồ uống ngọt; xem thành phần và khẩu phần thực tế.", "fatty_liver"),
         _avoid("Món nhiều chất béo bão hòa", "Ưu tiên thay chất béo bão hòa bằng chất béo chưa bão hòa theo hướng dẫn NIDDK; chưa có định lượng chất béo cho từng công thức.", "fatty_liver"),
+    ],
+    "dyslipidemia": [
+        _avoid("Đồ chiên rán nhiều dầu mỡ & chất béo bão hòa", "Làm tăng LDL-cholesterol và triglyceride máu; ưu tiên hấp, luộc, nấu canh thanh đạm.", "fatty_liver", "avoid"),
+        _avoid("Nội tạng động vật, mỡ động vật & đồ uống có cồn/đường", "Dễ làm nặng rối loạn lipid máu; cần hạn chế tối đa.", "fatty_liver", "avoid"),
     ],
 }
 
@@ -448,6 +457,8 @@ def _condition_exclusion(meta, contexts):
             return "Có vị cay, chua gắt, chiên xào nhiều mỡ hoặc chất kích thích dễ kích ứng dạ dày."
         if ctx == "fatty_liver" and any(meta.get(key) for key in ("alcohol", "sugar_high", "fried", "saturated_fat_source")):
             return "Có cồn, đường thêm, cách chiên/xào hoặc nguyên liệu thường giàu chất béo bão hòa; chưa ưu tiên trong gợi ý tham khảo cho gan nhiễm mỡ."
+        if ctx == "dyslipidemia" and any(meta.get(key) for key in ("alcohol", "sugar_high", "fried", "saturated_fat_source")):
+            return "Có cồn, đường thêm, chiên rán hoặc nguồn chất béo bão hòa; không ưu tiên cho người rối loạn mỡ máu."
     return None
 
 
@@ -520,7 +531,7 @@ def prepare_nutrition_candidates(condition: str, recipes: List[Dict[str, Any]], 
             reason = "Công thức có thành phần/cách chuẩn bị chưa phù hợp để tự động gợi ý trong ứng dụng này."
         elif allergies and meta and meta.get("allergen_uncertain"):
             reason = "Công thức nhập có nguyên liệu hoặc sản phẩm chưa xác minh đủ thành phần dị ứng."
-        elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach", "fatty_liver") for ctx in contexts)):
+        elif not verified and (allergies or preferences or any(ctx in ("mouth", "sleep", "reflux", "fever", "gout", "diabetes", "hypertension", "stomach", "fatty_liver", "dyslipidemia") for ctx in contexts)):
             reason = "Chưa có metadata nguyên liệu/đặc tính được rà soát cho công thức này."
         elif verified:
             # Preserve the requested order: condition rules, then profile/query

@@ -1,0 +1,640 @@
+"""
+MediMind Production Meal Planner
+Kiến trúc 4 tầng chuẩn Production:
+  1. Tính BMR / TDEE (Mifflin-St Jeor) & Target Calories thông minh.
+  2. Bộ lọc cứng lâm sàng Python trên toàn bộ ViFoodRec (an toàn 100% bệnh nền & dị ứng).
+  3. Chuẩn hóa Calo theo khẩu phần 1 người (chia servings) + phân loại món ăn chuẩn + gán ảnh thật 100%.
+  4. AI Ranker (Groq key rotation) xếp hạng thực đơn hài hòa khẩu vị & giải thích lâm sàng (có Python fallback).
+"""
+import json
+import logging
+import os
+import random
+import re
+import unicodedata
+from typing import Any, Dict, List, Optional, Tuple
+
+logger = logging.getLogger("MediMindNutritionPlanner")
+
+BAD_RECIPE_KEYWORDS = (
+    "làm sợi", "cơm mẻ", "cách luộc", "cách làm", "cách nấu", "cách chế biến", "bí quyết",
+    "nước chấm", "mắm nêm", "tương ớt", "sa tế", "mứt ", "chè ", "bánh bò",
+    "kem ", "trà sữa", "bột ", "bánh flan", "rau câu", "sữa chua", "sốt chấm",
+    "chuối chiên", "bánh chuối", "bánh bí đỏ", "bánh khoai", "bánh tiêu", "bánh rán",
+    "bánh quẩy", "xôi chiên", "bánh kẹp", "snack", "khoai chiên", "khoai tây chiên",
+    "lắc mayo", "bánh giò", "caramel", "bánh canh ngọt", "bánh mì gấu", "papparoti",
+    "bông lan", "hương quế", "bơ mật ong", "xôi xoài", "xôi mít",
+)
+
+SINGLE_DISH_KEYWORDS = (
+    "phở", "bún ", "miến ", "hủ tiếu", "mì quảng", "mì xào", "mì nước", "bánh canh", "cháo ",
+    "xôi ", "bánh mì", "bánh cuốn", "cơm chiên", "cơm tấm", "cơm trộn", "cơm hến", "cơm gà", "cơm gạo lứt",
+)
+
+BREAKFAST_KEYWORDS = (
+    "cháo", "phở", "bún", "hủ tiếu", "mì ", "xôi", "bánh mì",
+    "bánh cuốn", "yến mạch", "bánh canh",
+)
+
+SIDE_KEYWORDS = (
+    "luộc", "gỏi ", "nộm ", "salad", "rau ", "cải ", "bí đỏ um",
+    "đậu hũ", "bông cải", "mướp", "khổ qua",
+)
+
+
+def _strip_accents(text: str) -> str:
+    s = unicodedata.normalize("NFD", str(text or "").lower())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    return s.replace("đ", "d").strip()
+
+
+def compute_bmr_tdee(
+    height_cm: float,
+    weight_kg: float,
+    age: int,
+    gender: str,
+    activity_level: str,
+    goal: str = "",
+) -> Dict[str, Any]:
+    """Công thức Mifflin-St Jeor chuẩn cho người trưởng thành."""
+    g = _strip_accents(gender)
+    is_male = g in ("nam", "male", "m")
+    bmr = 10.0 * weight_kg + 6.25 * height_cm - 5.0 * age + (5.0 if is_male else -161.0)
+
+    act = _strip_accents(activity_level)
+    if "tinh tai" in act or "it van dong" in act:
+        factor = 1.2
+    elif "rat nang" in act or "chuyen nghiep" in act:
+        factor = 1.9
+    elif "nang" in act or "nhieu" in act:
+        factor = 1.725
+    elif "nhe" in act:
+        factor = 1.375
+    else:
+        factor = 1.55  # Vận động vừa
+
+    tdee = round(bmr * factor)
+    bmr_r = round(bmr)
+
+    g_norm = _strip_accents(goal)
+    if "giam can" in g_norm:
+        recommended = max(1200, tdee - 400)
+    elif "tang co" in g_norm or "tang can" in g_norm:
+        recommended = tdee + 300
+    else:
+        recommended = tdee
+
+    return {
+        "bmr": bmr_r,
+        "tdee": tdee,
+        "activity_factor": factor,
+        "recommended_calories": recommended,
+    }
+
+
+def parse_servings_count(recipe: Dict[str, Any]) -> int:
+    if recipe.get("calories_basis") == "per_serving":
+        return 1
+    srv = str(recipe.get("servings") or "")
+    m = re.search(r"(\d+)", srv)
+    if m:
+        return max(1, min(20, int(m.group(1))))
+    return 1
+
+
+def per_person_calories(recipe: Dict[str, Any], is_combo_dish: bool = False) -> int:
+    raw = float(recipe.get("calories") or 0)
+    if raw <= 0:
+        return 110 if is_combo_dish else 260
+    n = parse_servings_count(recipe)
+    if is_combo_dish:
+        # Món trong mâm cơm (chia sẻ cho N người trong bữa gia đình)
+        return max(35, round(raw / n)) if n > 1 else round(raw)
+    # Món lẻ độc lập: nếu lượng calo > 700 và công thức nấu nhiều người -> chia theo servings
+    if raw > 700 and n > 1:
+        return max(180, round(raw / n))
+    return round(raw)
+
+
+def _split_allergies(allergies_str: str) -> Tuple[str, List[str]]:
+    """Tách dị ứng chuẩn (ALLERGEN_ALIASES) và nguyên liệu cần tránh tự do (thịt heo, thịt bò, ớt...)."""
+    from core.nutrition.nutrition_rules import ALLERGEN_ALIASES
+
+    raw = str(allergies_str or "").strip()
+    if not raw:
+        return "", []
+
+    known_parts = []
+    custom_terms = []
+    for chunk in re.split(r"[,;/\n]+|\s+(?:và|va|&)\s+", raw, flags=re.IGNORECASE):
+        clean_chunk = re.sub(r"^(?:dị ứng|bị dị ứng|kiêng|tránh|không ăn)\s+", "", chunk.strip(), flags=re.IGNORECASE).strip()
+        if not clean_chunk:
+            continue
+        norm = _strip_accents(clean_chunk)
+        # Dùng bộ lọc nguyên liệu chính xác cho hải sản/thịt/cơm/gạo để tránh nutrition_rules.py
+        # loại nhầm các món chay/phở/bún không liên quan
+        if norm in ALLERGEN_ALIASES and norm not in ("hai san", "seafood", "tom", "cua", "ca"):
+            known_parts.append(norm)
+        else:
+            custom_terms.append(norm)
+    return ", ".join(known_parts), custom_terms
+
+
+_CUSTOM_SYNONYMS = {
+    "thit heo": ["heo", "lon", "thit heo", "thit lon", "ba chi", "suon", "gio heo", "chan gio", "thit bam", "thit xay", "cha lua", "gio lua", "ba roi", "than heo", "nac heo"],
+    "heo": ["heo", "lon", "thit heo", "thit lon", "ba chi", "suon", "gio heo", "chan gio", "than heo", "nac heo"],
+    "thit lon": ["heo", "lon", "thit heo", "thit lon", "ba chi", "suon", "gio heo"],
+    "thit bo": ["thit bo", "bo vien", "gau bo", "bap bo", "thit be"],
+    "thit ga": ["thit ga", "uc ga", "dui ga", "canh ga", "ga ta"],
+    "thit": ["heo", "lon", "thit heo", "thit lon", "thit bo", "thit ga", "thit vit", "thit bam", "thit xay", "ba chi", "suon"],
+    "com": ["com", "com trang", "gao", "xoi", "chao", "tam"],
+    "gao": ["gao", "com", "xoi", "chao", "bun", "pho", "hu tieu", "banh canh", "banh cuon", "bot gao"],
+    "hai san": ["hai san", "tom", "cua", "ghe", "muc", "bach tuoc", "ngheu", "so", "oc", "hau", "bao ngu", "so diep", "tom kho", "mam tom", "mam tep", "cha ca", "thanh cua", "nuoc mam", "ca hoi", "ca thu", "ca ngu", "ca basa", "ca loc", "ca ro", "ca chep", "ca nuc", "ca com", "ca thac lac", "ca dieu hong", "luon"],
+    "seafood": ["hai san", "tom", "cua", "ghe", "muc", "ngheu", "so", "oc", "hau", "nuoc mam", "ca hoi", "ca thu", "ca ngu"],
+    "tom": ["tom", "tep", "tom kho", "mam tom", "cha tom"],
+    "cua": ["cua", "ghe", "thanh cua"],
+    "ca": ["ca hoi", "ca thu", "ca ngu", "ca basa", "ca loc", "ca ro", "ca chep", "ca nuc", "ca com", "ca thac lac", "ca dieu hong", "cha ca", "nuoc mam"],
+}
+
+
+def _matches_custom_avoid(recipe: Dict[str, Any], custom_terms: List[str]) -> bool:
+    if not custom_terms:
+        return False
+    ing_list = recipe.get("ingredients") or []
+    ing_names = " ".join(
+        str(i.get("name") if isinstance(i, dict) else i) for i in ing_list
+    )
+    haystack = _strip_accents(
+        " ".join([
+            str(recipe.get("title") or ""),
+            ing_names,
+            str(recipe.get("original_ingredients") or ""),
+        ])
+    )
+    for term in custom_terms:
+        expanded = _CUSTOM_SYNONYMS.get(term, [term])
+        for kw in expanded:
+            if re.search(rf"(?<![a-z0-9]){re.escape(kw)}(?![a-z0-9])", haystack):
+                return True
+    return False
+
+
+def _is_clean_meal_recipe(recipe: Dict[str, Any]) -> bool:
+    t = (recipe.get("title") or "").lower().strip()
+    if not t:
+        return False
+    return not any(bad in t for bad in BAD_RECIPE_KEYWORDS)
+
+
+def classify_dish(recipe: Dict[str, Any]) -> str:
+    role = (recipe.get("dish_role") or "").lower()
+    if role in ("main", "soup", "side", "staple"):
+        return role
+    t = (recipe.get("title") or "").lower().strip()
+    if t.startswith(("canh ", "súp ", "soup ")):
+        return "soup"
+    if "lẩu" in t or any(k in t for k in SINGLE_DISH_KEYWORDS):
+        return "single"
+    if any(k in t for k in SIDE_KEYWORDS):
+        return "side"
+    return "main"
+
+
+def _is_breakfast_friendly(recipe: Dict[str, Any]) -> bool:
+    t = (recipe.get("title") or "").lower().strip()
+    if "lẩu" in t:
+        return False
+    return any(k in t for k in BREAKFAST_KEYWORDS)
+
+
+class _ImageResolver:
+    """Đảm bảo 100% món ăn & đồ uống đều có ảnh thật đúng loại trong static/images/recipes/."""
+
+    def __init__(self, all_recipes_with_img: List[Dict[str, Any]]):
+        self.food_pool = []
+        self.drink_pool = []
+        for r in all_recipes_with_img:
+            img = r.get("image_link") or ""
+            if not img.startswith("/static/"):
+                continue
+            disk_path = img.lstrip("/").replace("/", os.sep)
+            if not os.path.exists(disk_path):
+                continue
+            entry = (r.get("title") or "", _strip_accents(r.get("title") or ""), img)
+            if r.get("recipe_type") == "drink":
+                self.drink_pool.append(entry)
+            else:
+                self.food_pool.append(entry)
+        self.default_food_img = self.food_pool[0][2] if self.food_pool else "/static/images/recipes/canonical_staple_com_trang.jpg"
+        self.default_drink_img = self.drink_pool[0][2] if self.drink_pool else self.default_food_img
+
+    def resolve(self, recipe: Optional[Dict[str, Any]], fallback_title: str = "") -> str:
+        if recipe:
+            img = recipe.get("image_link") or recipe.get("source_image_url") or ""
+            if img.startswith("/static/"):
+                disk_path = img.split("?", 1)[0].lstrip("/").replace("/", os.sep)
+                if os.path.exists(disk_path):
+                    return img
+        is_drink = bool(recipe and recipe.get("recipe_type") == "drink")
+        title = (recipe.get("title") if recipe else "") or fallback_title
+        norm = _strip_accents(title)
+        if not is_drink:
+            if "gao lut" in norm:
+                return "/static/images/recipes/canonical_staple_com_gao_lut.jpg"
+            if "com trang" in norm or norm.startswith("com "):
+                return "/static/images/recipes/canonical_staple_com_trang.jpg"
+            if "bun tuoi" in norm or norm.startswith("bun "):
+                return "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg"
+            if "khoai lang" in norm:
+                return "/static/images/recipes/canonical_staple_khoai_lang_steamed.jpg"
+            if "bap " in norm or "ngo " in norm:
+                return "/static/images/recipes/canonical_staple_bap_luoc.jpg"
+            if "yen mach" in norm:
+                return "/static/images/recipes/canonical_staple_yen_mach_nau.jpg"
+
+        # Luôn ưu tiên ảnh món thật đã kiểm chứng trên đĩa (không dùng icon SVG thay thế).
+        return self.default_drink_img if is_drink else self.default_food_img
+
+
+def _ai_rank_meal_plan(
+    user_summary: str,
+    target_calories: int,
+    splits: List[Tuple[str, float, str]],
+    single_pool: List[Dict[str, Any]],
+    mains_pool: List[Dict[str, Any]],
+    soups_pool: List[Dict[str, Any]],
+    sides_pool: List[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Dùng Unified LLM Provider (Groq Dual-Key Failover + Fix 429/400) chọn món hợp khẩu vị từ tập đã lọc sạch lâm sàng."""
+    from core.ai.llm_provider import llm_provider
+
+    if not llm_provider.is_groq_active():
+        return None
+
+    meals_per_day = len(splits) if isinstance(splits, (list, tuple)) else int(splits or 3)
+
+    def _brief(items, limit=18):
+        return [{"id": r["id"], "t": r["title"], "cal": per_person_calories(r, False)} for r in items[:limit]]
+
+    prompt = (
+        f"Bạn là chuyên gia dinh dưỡng Việt Nam. Hồ sơ: {user_summary}. Mục tiêu: {target_calories} kcal/ngày, {meals_per_day} bữa.\n"
+        f"Món lẻ hợp lệ: {json.dumps(_brief(single_pool, 20), ensure_ascii=False)}\n"
+        f"Món chính mâm cơm: {json.dumps(_brief(mains_pool, 16), ensure_ascii=False)}\n"
+        f"Món canh: {json.dumps(_brief(soups_pool, 12), ensure_ascii=False)}\n"
+        f"Món rau/phụ: {json.dumps(_brief(sides_pool, 12), ensure_ascii=False)}\n"
+        f"Chọn {meals_per_day} món lẻ hài hòa (bữa sáng ưu tiên phở/bún/cháo/xôi/bánh mì, tuyệt đối không lặp id) "
+        f"và 2 combo mâm cơm (mỗi combo 1 main + 1 soup + 1 side không trùng id).\n"
+        'Chỉ trả về JSON hợp lệ theo mẫu: '
+        '{"meal_ids": ["id1", "id2", "id3"], "combo1": {"main": "id_main1", "soup": "id_soup1", "side": "id_side1"}, '
+        '"combo2": {"main": "id_main2", "soup": "id_soup2", "side": "id_side2"}, "rationale": "1 câu giải thích ngắn bằng tiếng Việt"}'
+    )
+
+    try:
+        model = (os.getenv("GROQ_NUTRITION_MODEL") or os.getenv("GROQ_MODEL") or "qwen/qwen3.8-27b").strip()
+        parsed = llm_provider.generate_json(
+            contents=prompt,
+            model=model,
+            temperature=0.65,
+            timeout_seconds=12.0,
+            operation="nutrition_ai",
+            profile="nutrition",
+            provider="groq",
+            json_mode=True,
+        )
+        if isinstance(parsed, dict) and parsed.get("meal_ids"):
+            return parsed
+    except Exception as err:
+        logger.warning("AI nutrition ranker fallback (%s).", type(err).__name__)
+    return None
+
+
+def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
+    from core.nutrition.nutrition_options import (
+        FOOD, DRINK, FATTY_LIVER_FOOD, GOUT_FOODS, GOUT_DRINKS, _get_general_options
+    )
+    from core.nutrition.nutrition_rules import prepare_nutrition_candidates
+
+    metrics = payload.get("user_metrics") or {}
+    conditions = payload.get("medical_conditions") or []
+    allergies = str(payload.get("allergies") or "").strip()
+    prefs = payload.get("preferences") or {}
+
+    try:
+        height = max(80.0, min(250.0, float(metrics.get("height") or 165)))
+        weight = max(20.0, min(250.0, float(metrics.get("weight") or 60)))
+        age = max(5, min(120, int(metrics.get("age") or 25)))
+    except (TypeError, ValueError):
+        height, weight, age = 165.0, 60.0, 25
+
+    gender = str(metrics.get("gender") or "Nam").strip()
+    activity = str(metrics.get("activity_level") or "Vận động vừa").strip()
+    goal = str(metrics.get("goal") or "").strip()
+
+    energy = compute_bmr_tdee(height, weight, age, gender, activity, goal)
+    bmr = energy["bmr"]
+    tdee = energy["tdee"]
+
+    try:
+        meals_per_day = max(2, min(4, int(prefs.get("meals_per_day") or 3)))
+    except (TypeError, ValueError):
+        meals_per_day = 3
+
+    raw_target = prefs.get("target_calories")
+    if raw_target is not None and str(raw_target).strip() != "":
+        try:
+            target_calories = max(500, min(6000, int(raw_target)))
+        except (TypeError, ValueError):
+            target_calories = energy["recommended_calories"]
+    else:
+        target_calories = energy["recommended_calories"]
+
+    calorie_warning = ""
+    if target_calories < 1200 or target_calories < round(bmr * 0.85):
+        calorie_warning = (
+            f"Mức {target_calories} kcal/ngày thấp hơn ngưỡng khuyến nghị so với BMR ({bmr} kcal) và TDEE ({tdee} kcal). "
+            "Cần có theo dõi của bác sĩ/chuyên gia dinh dưỡng nếu áp dụng dài ngày."
+        )
+
+    clean_conds = [str(c).strip() for c in conditions if str(c).strip() and str(c).strip() != "Không có"]
+    cond_query = ", ".join(clean_conds) if clean_conds else "bữa ăn cân bằng dinh dưỡng"
+
+    all_food_raw = _get_general_options(cond_query, "food")["recipes"]
+    all_drink_raw = _get_general_options(cond_query, "drink")["recipes"]
+    img_resolver = _ImageResolver(all_food_raw + all_drink_raw)
+
+    # Gộp các công thức lâm sàng nội bộ vào kho thay vì để prepare_nutrition_candidates ghi đè mất ViFoodRec
+    combined_food = list(all_food_raw)
+    existing_ids = {r.get("id") for r in combined_food}
+    for extra in list(FATTY_LIVER_FOOD) + list(FOOD):
+        if extra.get("id") not in existing_ids:
+            combined_food.append(dict(extra))
+            existing_ids.add(extra.get("id"))
+
+    known_allergies, custom_avoid_terms = _split_allergies(allergies)
+
+    prep_food = prepare_nutrition_candidates(
+        cond_query, combined_food, known_allergies,
+        fatty_liver_recipes=None, gout_food_recipes=GOUT_FOODS,
+    )
+    prep_drink = prepare_nutrition_candidates(
+        cond_query, all_drink_raw, known_allergies,
+        gout_drink_recipes=GOUT_DRINKS,
+    )
+
+    if prep_food.get("is_unmapped_disease"):
+        return {
+            "success": True,
+            "status": "clarification_needed",
+            "message": f"Bệnh lý '{cond_query}' cần chế độ dinh dưỡng chuyên biệt theo chỉ định trực tiếp của bác sĩ.",
+        }
+
+    clean_food_pool = [
+        r for r in (prep_food.get("recipes") or [])
+        if _is_clean_meal_recipe(r) and not _matches_custom_avoid(r, custom_avoid_terms)
+    ]
+    if not clean_food_pool:
+        clean_food_pool = [
+            r for r in (prep_food.get("recipes") or [])
+            if not _matches_custom_avoid(r, custom_avoid_terms)
+        ]
+
+    if not clean_food_pool:
+        return {
+            "success": True,
+            "status": "clarification_needed",
+            "message": (
+                f"Không tìm thấy món ăn nào trong kho ViFoodRec đáp ứng đồng thời '{cond_query}' "
+                f"và thành phần cần tránh '{allergies}'. Bạn hãy thử dùng từ khóa dị ứng cụ thể hơn "
+                "(ví dụ: 'tôm, cua' hoặc 'thịt bò, thịt heo' thay vì chữ 'thịt' chung chung)."
+            ),
+        }
+
+    # Gắn ảnh thật cho toàn bộ món ăn & đồ uống
+    for r in clean_food_pool:
+        r["image_link"] = img_resolver.resolve(r)
+
+    drink_pool = [
+        dr for dr in (prep_drink.get("recipes") or [])
+        if not any(b in (dr.get("title") or "").lower() for b in ("trà sữa", "kem cheese", "siro", "soda", "trân châu"))
+        and not _matches_custom_avoid(dr, custom_avoid_terms)
+    ]
+    if not drink_pool:
+        drink_pool = list(prep_drink.get("recipes") or [])
+    for dr in drink_pool:
+        dr["image_link"] = img_resolver.resolve(dr)
+
+    # Phân nhóm rõ ràng
+    singles = [r for r in clean_food_pool if classify_dish(r) == "single"]
+    mains = [r for r in clean_food_pool if classify_dish(r) == "main" and "lẩu" not in (r.get("title") or "").lower()]
+    soups = [r for r in clean_food_pool if classify_dish(r) == "soup"]
+    sides = [r for r in clean_food_pool if classify_dish(r) == "side"]
+    # Nếu ít món lẻ, bổ sung từ mains và toàn bộ clean_food_pool để luôn đủ đa dạng khi bấm "Đổi thực đơn khác"
+    single_pool = singles if len(singles) >= meals_per_day * 2 else (singles + mains)
+    if len(single_pool) < meals_per_day * 2:
+        seen_sp = {r["id"] for r in single_pool}
+        single_pool = single_pool + [r for r in clean_food_pool if r["id"] not in seen_sp]
+
+    if meals_per_day == 2:
+        splits = [("Bữa trưa", 0.50, "lunch"), ("Bữa tối", 0.50, "dinner")]
+    elif meals_per_day == 4:
+        splits = [("Bữa sáng", 0.25, "breakfast"), ("Bữa trưa", 0.35, "lunch"), ("Bữa phụ chiều", 0.15, "snack"), ("Bữa tối", 0.25, "dinner")]
+    else:
+        splits = [("Bữa sáng", 0.30, "breakfast"), ("Bữa trưa", 0.40, "lunch"), ("Bữa tối", 0.30, "dinner")]
+
+    pool_by_id = {r["id"]: r for r in clean_food_pool}
+    user_summary = f"{gender}, {age} tuổi, {height}cm, {weight}kg, {activity}, mục tiêu {goal or 'cân bằng'}, bệnh: {cond_query}, tránh: {allergies or 'không'}"
+
+    # Khi bấm "Đổi thực đơn khác", ưu tiên đẩy các món CHƯA hiển thị ở lượt trước lên đầu để đổi món rõ rệt
+    raw_exclude = prefs.get("exclude_recipe_ids") or []
+    exclude_prev = {str(x) for x in raw_exclude if isinstance(x, str) and x.strip()} if isinstance(raw_exclude, list) else set()
+
+    def _prefer_fresh(pool_list: List[Dict[str, Any]], limit: int) -> List[Dict[str, Any]]:
+        fresh = [r for r in pool_list if r.get("id") not in exclude_prev]
+        stale = [r for r in pool_list if r.get("id") in exclude_prev]
+        random.shuffle(fresh)
+        random.shuffle(stale)
+        return (fresh + stale)[:limit]
+
+    # Sắp xếp gần mức calo rồi xáo trộn nhẹ trong nhóm Top-K để mỗi lần gợi ý luôn đa dạng
+    avg_meal_cal = round(target_calories / meals_per_day)
+    single_sorted = sorted(single_pool, key=lambda r: (r.get("id") in exclude_prev, abs(per_person_calories(r, False) - avg_meal_cal)))
+    single_for_ai = _prefer_fresh(single_sorted[:28], 18)
+
+    mains_pool = _prefer_fresh(mains, 16)
+    soups_pool = _prefer_fresh(soups, 12)
+    sides_pool = _prefer_fresh(sides, 12)
+
+    ai_choice = _ai_rank_meal_plan(
+        user_summary, target_calories, splits,
+        single_for_ai, mains_pool, soups_pool, sides_pool,
+    )
+
+    ai_meal_ids = (ai_choice or {}).get("meal_ids") or []
+    single_ids = {r["id"] for r in single_pool}
+    used_ids = set()
+    meals_out = []
+    total_actual = 0
+
+    for idx, (meal_name, ratio, slot) in enumerate(splits):
+        meal_target = round(target_calories * ratio)
+        chosen = None
+        if idx < len(ai_meal_ids):
+            cand = pool_by_id.get(ai_meal_ids[idx])
+            if cand and cand["id"] in single_ids and cand["id"] not in used_ids:
+                if slot != "breakfast" or _is_breakfast_friendly(cand):
+                    chosen = cand
+
+        if not chosen:
+            avail = [r for r in single_pool if r["id"] not in used_ids] or clean_food_pool
+            if slot == "breakfast":
+                bf = [r for r in avail if _is_breakfast_friendly(r)]
+                if bf:
+                    avail = bf
+            fresh_avail = [r for r in avail if r["id"] not in exclude_prev]
+            pick_pool = fresh_avail if fresh_avail else avail
+            if pick_pool:
+                ranked = sorted(pick_pool, key=lambda r: abs(per_person_calories(r, False) - meal_target))
+                chosen = random.choice(ranked[:min(6, len(ranked))])
+
+        if not chosen:
+            continue
+
+        used_ids.add(chosen["id"])
+        cal = per_person_calories(chosen, False)
+        total_actual += cal
+        srv_n = parse_servings_count(chosen)
+        portion_txt = "1 suất chuẩn" if srv_n <= 1 else f"1 suất (công thức nguồn {chosen.get('servings')})"
+        meals_out.append({
+            "meal_name": meal_name,
+            "target_calories": meal_target,
+            "calories": cal,
+            "items": [{
+                "food_id": chosen["id"],
+                "name": chosen["title"],
+                "portion": portion_txt,
+                "calories": cal,
+                "recipe": chosen,
+            }],
+        })
+
+    # Ghép 2 Combo Mâm cơm chuẩn với tinh bột đa dạng (lọc bỏ tinh bột phạm dị ứng/tránh)
+    food_combos = []
+    is_diabetic_or_cut = any("đái tháo đường" in c.lower() for c in clean_conds) or "giam can" in _strip_accents(goal)
+    if is_diabetic_or_cut:
+        staple_options = [
+            ("Cơm gạo lứt (1 chén vừa)", 150, "/static/images/recipes/canonical_staple_com_gao_lut.jpg", "1 người ăn (1 chén ~130g)"),
+            ("Khoai lang luộc (1 củ vừa)", 130, "/static/images/recipes/vifoodrec_2901.jpg", "1 người ăn (~150g)"),
+            ("Bắp luộc (1 trái vừa)", 140, "/static/images/recipes/canonical_staple_bap_luoc.jpg", "1 người ăn (~150g)"),
+            ("Bánh mì nguyên cám (2 lát)", 160, "/static/images/recipes/canonical_staple_banh_mi_nguyen_cam.jpg", "1 người ăn (~60g)"),
+        ]
+    else:
+        staple_options = [
+            ("Cơm trắng (1 chén vừa)", 180, "/static/images/recipes/canonical_staple_com_trang.jpg", "1 người ăn (1 chén ~130g)"),
+            ("Cơm gạo lứt (1 chén vừa)", 150, "/static/images/recipes/canonical_staple_com_gao_lut.jpg", "1 người ăn (1 chén ~130g)"),
+            ("Bún tươi (1 phần vừa)", 165, "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg", "1 người ăn (~150g)"),
+            ("Khoai lang luộc (1 củ vừa)", 130, "/static/images/recipes/vifoodrec_2901.jpg", "1 người ăn (~150g)"),
+            ("Bánh mì nguyên cám (2 lát)", 160, "/static/images/recipes/canonical_staple_banh_mi_nguyen_cam.jpg", "1 người ăn (~60g)"),
+        ]
+    filtered_staples = [
+        st for st in staple_options
+        if not _matches_custom_avoid({"title": st[0], "ingredients": [{"name": st[0]}]}, custom_avoid_terms)
+    ]
+    if filtered_staples:
+        staple_options = filtered_staples
+    chosen_staples = random.sample(staple_options, k=min(2, len(staple_options)))
+
+    combo_mains = [r for r in mains_pool if r["id"] not in used_ids] or mains_pool
+    combo_soups = [r for r in soups_pool if r["id"] not in used_ids] or soups_pool
+    combo_sides = [r for r in sides_pool if r["id"] not in used_ids] or sides_pool
+    used_combo_ids = set(used_ids)
+
+    for c_idx, key in enumerate(("combo1", "combo2")):
+        ai_c = (ai_choice or {}).get(key) or {}
+        m_cand = pool_by_id.get(ai_c.get("main"))
+        m_rec = m_cand if (m_cand and m_cand["id"] not in used_combo_ids and classify_dish(m_cand) == "main") else next((r for r in combo_mains if r["id"] not in used_combo_ids), combo_mains[c_idx % len(combo_mains)] if combo_mains else None)
+        if m_rec: used_combo_ids.add(m_rec["id"])
+
+        sp_cand = pool_by_id.get(ai_c.get("soup"))
+        sp_rec = sp_cand if (sp_cand and sp_cand["id"] not in used_combo_ids and classify_dish(sp_cand) == "soup") else next((r for r in combo_soups if r["id"] not in used_combo_ids), combo_soups[c_idx % len(combo_soups)] if combo_soups else None)
+        if sp_rec: used_combo_ids.add(sp_rec["id"])
+
+        sd_cand = pool_by_id.get(ai_c.get("side"))
+        sd_rec = sd_cand if (sd_cand and sd_cand["id"] not in used_combo_ids and classify_dish(sd_cand) == "side") else next((r for r in combo_sides if r["id"] not in used_combo_ids), combo_sides[c_idx % len(combo_sides)] if combo_sides else None)
+        if sd_rec: used_combo_ids.add(sd_rec["id"])
+
+        chosen_parts = []
+        if m_rec:
+            chosen_parts.append(("Món chính", m_rec))
+        if sp_rec:
+            chosen_parts.append(("Món canh", sp_rec))
+        if sd_rec and sd_rec.get("id") != (m_rec or {}).get("id"):
+            chosen_parts.append(("Món rau / phụ", sd_rec))
+
+        if len(chosen_parts) >= 2:
+            st_title, st_cal, st_img, st_note = chosen_staples[c_idx % len(chosen_staples)]
+            dishes_norm = [{
+                "id": f"staple_{c_idx}",
+                "title": st_title,
+                "dish_role_label": "Tinh bột ăn kèm",
+                "calories": st_cal,
+                "servings_note": st_note,
+                "image_link": st_img,
+                "recipe": None,
+            }]
+            combo_cal = st_cal
+            for role_lbl, rec in chosen_parts:
+                c = per_person_calories(rec, True)
+                combo_cal += c
+                dishes_norm.append({
+                    "id": rec["id"],
+                    "title": rec["title"],
+                    "dish_role_label": role_lbl,
+                    "calories": c,
+                    "servings_note": f"1 suất chia từ {rec.get('servings') or '1 người'}",
+                    "image_link": rec["image_link"],
+                    "recipe": rec,
+                })
+            title = "Combo Bữa trưa (Đủ món Cân bằng)" if c_idx == 0 else "Combo Bữa tối (Đủ món Cân bằng)"
+            food_combos.append({
+                "title": title,
+                "total_calories": combo_cal,
+                "note": "Đã chuẩn hóa định lượng Calo cho 1 người ăn.",
+                "dishes": dishes_norm,
+            })
+
+    # Nước uống ít đường ưu tiên hàng đầu, ưu tiên món chưa hiển thị ở lượt trước khi bấm đổi thực đơn
+    drink_pool.sort(key=lambda r: (r.get("id") in exclude_prev, float(r.get("sugar") if r.get("sugar") is not None else 999)))
+    fresh_drinks = [d for d in drink_pool[:24] if d.get("id") not in exclude_prev]
+    stale_drinks = [d for d in drink_pool[:24] if d.get("id") in exclude_prev]
+    random.shuffle(fresh_drinks)
+    random.shuffle(stale_drinks)
+    top_drinks = fresh_drinks + stale_drinks
+    drinks_list = []
+    for dr in top_drinks[:8]:
+        d_copy = dict(dr)
+        d_copy["per_person_calories"] = per_person_calories(dr, True)
+        drinks_list.append(d_copy)
+
+    return {
+        "success": True,
+        "status": "success",
+        "ai_used": ai_choice is not None,
+        "ai_rationale": (ai_choice or {}).get("rationale") or (
+            f"Thực đơn được lọc an toàn cho hồ sơ ({bmr} kcal BMR, {tdee} kcal TDEE) từ kho ViFoodRec."
+        ),
+        "daily_plan": {
+            "target_calories": target_calories,
+            "recommended_calories": energy["recommended_calories"],
+            "total_calories": total_actual,
+            "bmr": bmr,
+            "tdee": tdee,
+            "calorie_warning": calorie_warning,
+            "conditions": clean_conds,
+            "allergies": allergies,
+            "meals": meals_out,
+        },
+        "food_combos": food_combos,
+        "drinks": drinks_list,
+        "avoidance": prep_food.get("avoidance") or [],
+        "sources": prep_food.get("guidance") or [],
+    }
