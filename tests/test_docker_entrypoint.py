@@ -51,3 +51,9 @@ def test_ensure_vector_db_ready_skips_when_populated(monkeypatch, tmp_path: Path
 def test_critical_docker_assets_all_exist():
     for label, path in docker_entrypoint.CRITICAL_ASSETS:
         assert path.exists(), f"Missing critical Docker asset ({label}): {path}"
+
+
+def test_dockerignore_excludes_local_runtime_state():
+    content = (docker_entrypoint.ROOT / ".dockerignore").read_text(encoding="utf-8")
+    for pattern in (".env", "instance/", "medical_vectordb/", "uploads/", "logs/"):
+        assert pattern in content, f".dockerignore missing required exclusion: {pattern}"

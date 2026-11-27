@@ -32,6 +32,12 @@ ENV/
 *~
 .DS_Store
 
+# Local runtime databases, ChromaDB index, uploads, and logs (mounted via EBS/volumes)
+instance/
+medical_vectordb/
+uploads/
+logs/
+
 # Scratch and Developer Notes
 scratch/
 tmp/
