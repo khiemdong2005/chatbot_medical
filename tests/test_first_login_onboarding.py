@@ -198,6 +198,86 @@ def test_frontend_first_login_onboarding_sync_contract():
     assert "let isFirstLoginOnboarding = false;" in app_js
     assert "if (data.needs_onboarding || currentUser.needs_onboarding)" in app_js
     assert "if (data.needs_onboarding || currentUser?.needs_onboarding)" in app_js
+    assert "if (googleOnboarding || currentUser.needs_onboarding)" in app_js
     assert "openGoogleOnboardingModal(currentUser, false, { firstLogin: true })" in app_js
     assert "complete_onboarding: true" in app_js
     assert "(isPendingGoogleRegistration || isFirstLoginOnboarding) ? 'Xác nhận & Vào ứng dụng' : 'Lưu thông tin'" in app_js
+    assert "sessionStorage.removeItem('medimind_profile_draft')" in app_js
+
+
+def test_google_oauth_existing_unonboarded_user_triggers_onboarding_flag(monkeypatch):
+    import json
+    from urllib.parse import parse_qs, urlparse
+
+    class _FakeResp:
+        def __init__(self, payload):
+            self._raw = json.dumps(payload).encode("utf-8")
+
+        def read(self):
+            return self._raw
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-client-id.apps.googleusercontent.com")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "GOCSPX-test-secret-value")
+    monkeypatch.setenv("GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/api/auth/google/callback")
+
+    flask_app, tmpdir = _make_client()
+    try:
+        client = flask_app.test_client()
+        reg_res = client.post(
+            "/api/auth/register",
+            json={
+                "identifier": "hybrid.google@example.com",
+                "full_name": "Le Hybrid",
+                "password": "Password123",
+            },
+        )
+        assert reg_res.status_code == 201
+
+        def fake_urlopen(req, timeout=10):
+            url = req.full_url if hasattr(req, "full_url") else str(req)
+            if "oauth2.googleapis.com/token" in url:
+                return _FakeResp({"access_token": "mock-token"})
+            return _FakeResp(
+                {
+                    "email": "hybrid.google@example.com",
+                    "email_verified": True,
+                    "name": "Le Hybrid",
+                    "picture": "https://lh3.googleusercontent.com/a/hybrid",
+                }
+            )
+
+        monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+
+        # First Google sign-in for registered user who hasn't finished onboarding -> onboarding=1
+        st1 = parse_qs(urlparse(client.get("/api/auth/google/login?format=json").get_json()["auth_url"]).query)["state"][0]
+        cb1 = client.get(f"/api/auth/google/callback?code=c1&state={st1}")
+        assert cb1.status_code == 302
+        assert "google_auth=success" in cb1.headers["Location"]
+        assert "onboarding=1" in cb1.headers["Location"]
+        assert client.get("/api/auth/me").get_json()["user"]["needs_onboarding"] is True
+
+        # Complete onboarding -> subsequent Google sign-in does NOT set onboarding=1
+        prof_res = client.post(
+            "/api/auth/profile",
+            headers={"Origin": "http://localhost"},
+            json={"name": "Le Hybrid", "dob": "10/10/1999", "phone_number": "0909123456", "complete_onboarding": True},
+        )
+        assert prof_res.status_code == 200
+        assert prof_res.get_json()["user"]["needs_onboarding"] is False
+
+        st2 = parse_qs(urlparse(client.get("/api/auth/google/login?format=json").get_json()["auth_url"]).query)["state"][0]
+        cb2 = client.get(f"/api/auth/google/callback?code=c2&state={st2}")
+        assert cb2.status_code == 302
+        assert "google_auth=success" in cb2.headers["Location"]
+        assert "onboarding=1" not in cb2.headers["Location"]
+    finally:
+        with flask_app.app_context():
+            db.session.remove()
+            db.drop_all()
+        tmpdir.cleanup()

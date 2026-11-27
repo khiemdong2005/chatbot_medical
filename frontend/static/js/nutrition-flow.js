@@ -250,7 +250,13 @@
   const _NF_SESSION_KEY = 'medimind_nutrition_session_v1';
 
   function _currentUserScope() {
-    const u = window.currentUser || window.currentUserData || null;
+    let u = window.currentUser || window.currentUserData || null;
+    if (!u) {
+      try {
+        const raw = localStorage.getItem('medimind_user');
+        if (raw) u = JSON.parse(raw);
+      } catch (_) {}
+    }
     if (u && (u.id != null || u.email)) return String(u.id ?? u.email);
     return 'guest';
   }
@@ -967,28 +973,147 @@
         surveyModal.classList.remove('flex');
         if (el('nf-search')) el('nf-search').classList.remove('invisible');
       };
+      const _computeAgeFromDob = (dobStr) => {
+        if (!dobStr || typeof dobStr !== 'string') return null;
+        const trimmed = dobStr.trim();
+        let day, month, year;
+        let m = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (m) {
+          day = Number(m[1]);
+          month = Number(m[2]);
+          year = Number(m[3]);
+        } else {
+          m = trimmed.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+          if (m) {
+            year = Number(m[1]);
+            month = Number(m[2]);
+            day = Number(m[3]);
+          }
+        }
+        if (!year || !month || !day) return null;
+        const today = new Date();
+        let age = today.getFullYear() - year;
+        const monthDiff = (today.getMonth() + 1) - month;
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < day)) age -= 1;
+        return (age >= 5 && age <= 120) ? age : null;
+      };
+
+      const _getCachedProfileUser = () => {
+        const direct = window.currentUser || window.currentUserData || null;
+        if (direct && typeof direct === 'object') return direct;
+        try {
+          const raw = localStorage.getItem('medimind_user');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') return parsed;
+          }
+        } catch (_) {}
+        return null;
+      };
+
+      const _surveyProfileFieldIds = ['nf-sv-height', 'nf-sv-weight', 'nf-sv-age', 'nf-sv-gender', 'nf-sv-avoid'];
+      _surveyProfileFieldIds.forEach(fid => {
+        const field = el(fid);
+        if (!field || field._nfEditTracked) return;
+        field._nfEditTracked = true;
+        const markEdited = (ev) => {
+          if (ev && ev.isTrusted) field.dataset.userEdited = '1';
+        };
+        field.addEventListener('input', markEdited);
+        field.addEventListener('change', markEdited);
+      });
+
+      const _applyProfileToSurveyFields = (profile, opts = {}) => {
+        if (!profile || typeof profile !== 'object') return;
+        const force = Boolean(opts.force);
+
+        const heightInput = el('nf-sv-height');
+        if (heightInput && (force || !heightInput.dataset.userEdited)) {
+          const rawH = profile.height ?? profile.height_cm;
+          const numH = rawH !== undefined && rawH !== null && String(rawH).trim() !== '' ? Number(rawH) : NaN;
+          if (Number.isFinite(numH) && numH >= 80 && numH <= 250) {
+            heightInput.value = String(numH);
+          }
+        }
+
+        const weightInput = el('nf-sv-weight');
+        if (weightInput && (force || !weightInput.dataset.userEdited)) {
+          const rawW = profile.weight ?? profile.weight_kg;
+          const numW = rawW !== undefined && rawW !== null && String(rawW).trim() !== '' ? Number(rawW) : NaN;
+          if (Number.isFinite(numW) && numW >= 20 && numW <= 250) {
+            weightInput.value = String(numW);
+          }
+        }
+
+        const ageInput = el('nf-sv-age');
+        if (ageInput && (force || !ageInput.dataset.userEdited)) {
+          const computedAge = _computeAgeFromDob(profile.dob) ?? (Number.isFinite(Number(profile.age)) ? Number(profile.age) : null);
+          if (computedAge !== null && computedAge >= 5 && computedAge <= 120) {
+            ageInput.value = String(computedAge);
+          }
+        }
+
+        const genderSelect = el('nf-sv-gender');
+        if (genderSelect && (force || !genderSelect.dataset.userEdited)) {
+          const rawG = String(profile.gender || '').trim().toLowerCase();
+          if (rawG === 'nữ' || rawG === 'nu' || rawG === 'female') {
+            genderSelect.value = 'Nữ';
+          } else if (rawG === 'nam' || rawG === 'male') {
+            genderSelect.value = 'Nam';
+          }
+        }
+
+        const avoidInput = el('nf-sv-avoid');
+        if (avoidInput && (force || (!avoidInput.dataset.userEdited && !avoidInput.value.trim()))) {
+          const rawAl = profile.allergies;
+          if (rawAl !== undefined && rawAl !== null) {
+            const alStr = Array.isArray(rawAl) ? rawAl.join(', ') : String(rawAl).trim();
+            if (alStr || force) avoidInput.value = alStr;
+          }
+        }
+      };
+
+      window.addEventListener('medimind:profile-updated', (ev) => {
+        _surveyProfileFieldIds.forEach(fid => {
+          const field = el(fid);
+          if (field) delete field.dataset.userEdited;
+        });
+        _applyProfileToSurveyFields(ev?.detail || _getCachedProfileUser(), { force: true });
+      });
+
+      window.addEventListener('medimind:auth-logout', () => {
+        try { sessionStorage.removeItem(_NF_SESSION_KEY); } catch (_) {}
+        state.query = '';
+        state.recipes = [];
+        state.lastData = null;
+        state.activeRecipe = null;
+        if (el('nf-survey-form')) el('nf-survey-form').reset();
+        _surveyProfileFieldIds.forEach(fid => {
+          const field = el(fid);
+          if (field) delete field.dataset.userEdited;
+        });
+        closeSurveyModal();
+        show('search');
+      });
+
       const openSurveyModal = async () => {
         if (!surveyModal) return;
         if (el('nf-search')) el('nf-search').classList.add('invisible');
         surveyModal.classList.remove('hidden');
         surveyModal.classList.add('flex');
-        // Tự động điền sẵn dị ứng từ Profile ban đầu của user nếu có
-        const avoidInput = el('nf-sv-avoid');
-        if (avoidInput && !avoidInput.value.trim()) {
-          const cachedAllergies = window.currentUser?.allergies || window.currentUserData?.allergies;
-          if (cachedAllergies) {
-            avoidInput.value = Array.isArray(cachedAllergies) ? cachedAllergies.join(', ') : String(cachedAllergies);
-          } else {
-            try {
-              const res = await fetch('/api/auth/me');
-              if (res.ok) {
-                const me = await res.json();
-                const al = me?.user?.allergies || me?.allergies;
-                if (al) avoidInput.value = Array.isArray(al) ? al.join(', ') : String(al);
-              }
-            } catch (_) {}
-          }
+        // Đồng bộ sẵn thể trạng (chiều cao, cân nặng, tuổi, giới tính) & dị ứng từ Profile của user
+        const cachedUser = _getCachedProfileUser();
+        if (cachedUser) {
+          _applyProfileToSurveyFields(cachedUser);
         }
+        try {
+          const res = await fetch('/api/auth/me');
+          if (res.ok) {
+            const me = await res.json();
+            const serverUser = me?.user || (me?.authenticated ? me : null);
+            if (serverUser) _applyProfileToSurveyFields(serverUser);
+          }
+        } catch (_) {}
       };
       if (startSurveyBtn && surveyModal) {
         startSurveyBtn.addEventListener('click', openSurveyModal);

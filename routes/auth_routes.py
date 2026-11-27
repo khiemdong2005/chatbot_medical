@@ -1006,10 +1006,13 @@ def register_auth_routes(app):
             _start_authenticated_session(user)
             session["user_role"] = user.role
 
+            user_dict = user.to_dict()
             query_out = {
                 "google_auth": "success",
                 "existing": "1",
             }
+            if user_dict.get("needs_onboarding"):
+                query_out["onboarding"] = "1"
             return redirect(f"/?{urllib.parse.urlencode(query_out)}")
 
         # TRƯỜNG HỢP 2: LẦN ĐẦU TIÊN SỬ DỤNG GOOGLE (Chưa có trong CSDL -> Chuyển vào bước xác nhận thông tin)
@@ -1209,6 +1212,7 @@ def register_auth_routes(app):
                 role="patient",
                 avatar_url=avatar_url or None,
                 google_sub=google_sub,
+                clinical_profile=json.dumps({"onboarding_completed": False}, ensure_ascii=False),
             )
             user.set_password(secrets.token_urlsafe(24))
             db.session.add(user)
@@ -1218,11 +1222,13 @@ def register_auth_routes(app):
         session.permanent = True
         _start_authenticated_session(user)
         session["user_role"] = user.role
+        user_dict = user.to_dict()
 
         return jsonify({
             "success": True,
             "message": f"Đăng nhập thành công với tài khoản Google ({user.email})!",
-            "user": user.to_dict()
+            "needs_onboarding": bool(user_dict.get("needs_onboarding")),
+            "user": user_dict
         })
 
 

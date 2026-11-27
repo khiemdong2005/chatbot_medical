@@ -108,3 +108,50 @@ def test_unmapped_disease_or_comorbidity_blocks_automatic_suggestions(query):
     assert result["provider_status"] == "clinical_safeguard_refusal"
     assert result["recipes"] == []
     assert result["needs_clarification"] is True
+
+
+def test_nutrition_survey_syncs_height_weight_age_gender_and_allergies_from_profile(client, test_users):
+    from pathlib import Path
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = test_users["user_a_id"]
+
+    save_res = client.post(
+        "/api/auth/profile",
+        headers={"Origin": "http://localhost"},
+        json={
+            "name": "Nguyen Van Dinh Duong",
+            "dob": "15/08/1998",
+            "gender": "Nữ",
+            "height": "162",
+            "weight": "54.5",
+            "allergies": "hải sản, đậu phộng",
+        },
+    )
+    assert save_res.status_code == 200
+    me_user = client.get("/api/auth/me").get_json()["user"]
+    assert me_user["height"] == "162"
+    assert me_user["weight"] == "54.5"
+    assert me_user["dob"] == "15/08/1998"
+    assert me_user["gender"] == "Nữ"
+    assert me_user["allergies"] == "hải sản, đậu phộng"
+
+    root = Path(__file__).resolve().parent.parent
+    nf_js = (root / "frontend" / "static" / "js" / "nutrition-flow.js").read_text(encoding="utf-8")
+    app_js = (root / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    html = (root / "frontend" / "templates" / "index.html").read_text(encoding="utf-8")
+
+    assert "_applyProfileToSurveyFields" in nf_js
+    assert "_computeAgeFromDob" in nf_js
+    assert "medimind:profile-updated" in nf_js
+    assert "medimind:auth-logout" in nf_js
+    assert "medimind:profile-updated" in app_js
+    assert "medimind:auth-logout" in app_js
+    assert "window.currentUser = currentUser" in app_js
+    assert "_getScopedMedReminderStorageKey" in app_js
+    assert "document.getElementById('p-height')?.value.trim()" in app_js
+    assert "document.getElementById('p-weight')?.value.trim()" in app_js
+    assert "currentUser.blood_type || 'Chưa rõ'" in app_js
+    assert 'id="nf-sv-weight" type="number" step="any"' in html
+    assert "nutrition-flow.js') }}?v=26.2.8" in html
+    assert "nutrition-catalog.js') }}?v=11" in html

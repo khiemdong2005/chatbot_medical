@@ -4156,8 +4156,12 @@ async function handleSaveProfile(e) {
     currentUser = mergeServerUserWithLocal(currentUser, data.user);
     currentUser.needs_onboarding = false;
     localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+    try { sessionStorage.removeItem('medimind_profile_draft'); } catch (_) {}
     try {
+      if (typeof syncCurrentPatientProfile === 'function') syncCurrentPatientProfile();
+      if (typeof updateHomeGreeting === 'function') updateHomeGreeting();
       updateAuthUI();
+      window.dispatchEvent(new CustomEvent('medimind:profile-updated', { detail: currentUser }));
       broadcastTabEvent(wasNewReg ? 'AUTH_LOGIN' : 'PROFILE_UPDATE', { user: currentUser });
     } catch (uiErr) {
       console.warn('Lỗi cập nhật DOM UI sau lưu thông tin:', uiErr);
@@ -4725,7 +4729,10 @@ function handleCrossTabMessage(data) {
     if (typeof resetChat === 'function') resetChat();
     sessionStorage.removeItem('medimind_active_tab');
     sessionStorage.removeItem('medimind_profile_draft');
+    sessionStorage.removeItem('medimind_nutrition_session_v1');
+    if (typeof stopReminderSound === 'function') stopReminderSound();
     updateAuthUI();
+    window.dispatchEvent(new CustomEvent('medimind:auth-logout'));
     navigateTo('home-tab', null, 'replace');
   }
 }
@@ -5207,6 +5214,7 @@ async function handleLoginSubmit(e) {
     if (data.success && data.user) {
       currentUser = data.user;
       localStorage.setItem('medimind_user', JSON.stringify(currentUser));
+      try { sessionStorage.removeItem('medimind_profile_draft'); } catch (_) {}
       if (currentUser.preferences) {
         applyUserPreferencesToUI(currentUser.preferences);
       }
@@ -5253,6 +5261,12 @@ async function handleLogout() {
   });
   document.getElementById('profile-form-img1')?.reset();
   localStorage.removeItem('medimind_user');
+  try {
+    sessionStorage.removeItem('medimind_active_tab');
+    sessionStorage.removeItem('medimind_profile_draft');
+    sessionStorage.removeItem('medimind_nutrition_session_v1');
+  } catch (_) {}
+  if (typeof stopReminderSound === 'function') stopReminderSound();
 
   // Làm sạch hoàn toàn giao diện chat của người dùng cũ để tránh rò rỉ dữ liệu trên máy dùng chung
   if (typeof resetChat === 'function') {
@@ -5263,6 +5277,7 @@ async function handleLogout() {
     renderChatHistoryList();
   }
   updateAuthUI();
+  window.dispatchEvent(new CustomEvent('medimind:auth-logout'));
   broadcastTabEvent('AUTH_LOGOUT', null);
   navigateTo('home-tab', null, 'replace');
 }
@@ -5306,6 +5321,8 @@ function updateProfileCompletion() {
 }
 
 function updateAuthUI() {
+  try { window.currentUser = currentUser; } catch (_) {}
+  if (typeof _refreshReminderButtonLabel === 'function') _refreshReminderButtonLabel();
   if (typeof scheduleNotificationsRefresh === 'function') scheduleNotificationsRefresh();
   const unlogged = document.getElementById('auth-unlogged');
   const logged = document.getElementById('auth-logged');
@@ -5422,7 +5439,7 @@ function updateAuthUI() {
     fieldRealValues['p-email'] = emailVal;
     if (pEmail) pEmail.value = fieldMaskState['p-email'] ? maskFieldValue(emailVal, 'p-email') : emailVal;
 
-    if (pBlood) pBlood.value = currentUser.blood_type || 'O+';
+    if (pBlood) pBlood.value = currentUser.blood_type || 'Chưa rõ';
     if (pAllergies) pAllergies.value = currentUser.allergies || '';
     if (pHeight) pHeight.value = currentUser.height || '';
     if (pWeight) pWeight.value = currentUser.weight || '';
@@ -5840,13 +5857,14 @@ document.addEventListener('DOMContentLoaded', () => {
       restoreProfileDraftFromSession();
 
       if (googleAuthStatus === 'success') {
+        try { sessionStorage.removeItem('medimind_profile_draft'); } catch (_) {}
         broadcastTabEvent('AUTH_LOGIN', { user: currentUser });
         closeLoginModal();
-        if (googleExisting && googleIntent === 'register') {
+        if (googleOnboarding || currentUser.needs_onboarding) {
+          showMedicalToast(`Xác thực Google thành công! Hãy xác nhận thông tin cơ bản để đồng bộ hồ sơ y tế.`, 'success', 5500);
+          setTimeout(() => openGoogleOnboardingModal(currentUser, false, { firstLogin: true }), 300);
+        } else if (googleExisting && googleIntent === 'register') {
           showMedicalToast(`Tài khoản Google (${currentUser.email}) đã có hồ sơ MediMind. Bạn đã được đưa về trang chủ!`, 'info', 5000);
-        } else if (googleOnboarding) {
-          showMedicalToast(`Xác thực Google thành công! Hãy hoàn tất thông tin cơ bản để lưu hồ sơ y tế.`, 'success', 5500);
-          setTimeout(() => openGoogleOnboardingModal(currentUser), 350);
         } else {
           showMedicalToast(`Đăng nhập Google thành công! Chào mừng ${currentUser.name || currentUser.email}.`, 'success', 4000);
         }
@@ -8597,9 +8615,33 @@ function _defaultReminderSlotsFromData(data) {
   return slots;
 }
 
+function _getMedReminderAccountSuffix() {
+  if (currentUser && !currentUser.isDemo) {
+    if (currentUser.id !== undefined && currentUser.id !== null && String(currentUser.id).trim() !== '') {
+      return `u_${String(currentUser.id).trim()}`;
+    }
+    if (currentUser.email) {
+      return `e_${String(currentUser.email).trim().toLowerCase()}`;
+    }
+  }
+  return 'guest';
+}
+
+function _getScopedMedReminderStorageKey() {
+  return `${MED_REMINDER_STORAGE_KEY}_${_getMedReminderAccountSuffix()}`;
+}
+
+function _getScopedMedReminderFiredKey() {
+  return `${MED_REMINDER_FIRED_KEY}_${_getMedReminderAccountSuffix()}`;
+}
+
 function loadSavedMedicationReminders() {
   try {
-    const raw = localStorage.getItem(MED_REMINDER_STORAGE_KEY);
+    const scopedKey = _getScopedMedReminderStorageKey();
+    let raw = localStorage.getItem(scopedKey);
+    if (!raw && _getMedReminderAccountSuffix() === 'guest') {
+      raw = localStorage.getItem(MED_REMINDER_STORAGE_KEY);
+    }
     return raw ? JSON.parse(raw) : null;
   } catch (_) {
     return null;
@@ -8608,7 +8650,7 @@ function loadSavedMedicationReminders() {
 
 function saveMedicationRemindersConfig(cfg) {
   try {
-    localStorage.setItem(MED_REMINDER_STORAGE_KEY, JSON.stringify(cfg));
+    localStorage.setItem(_getScopedMedReminderStorageKey(), JSON.stringify(cfg));
   } catch (_) {}
 }
 
@@ -8727,9 +8769,10 @@ function _checkMedicationRemindersTick() {
   const currentHHMM = `${hh}:${mm}`;
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
+  const firedKey = _getScopedMedReminderFiredKey();
   let firedMap = {};
   try {
-    firedMap = JSON.parse(localStorage.getItem(MED_REMINDER_FIRED_KEY) || '{}') || {};
+    firedMap = JSON.parse(localStorage.getItem(firedKey) || '{}') || {};
   } catch (_) {
     firedMap = {};
   }
@@ -8748,7 +8791,7 @@ function _checkMedicationRemindersTick() {
   }
   if (updated) {
     try {
-      localStorage.setItem(MED_REMINDER_FIRED_KEY, JSON.stringify(firedMap));
+      localStorage.setItem(firedKey, JSON.stringify(firedMap));
     } catch (_) {}
   }
 }
@@ -11357,6 +11400,16 @@ function syncCurrentPatientProfile() {
     cp.gender = currentUser.gender || cp.gender;
     if (currentUser.dob) {
       cp.dob = currentUser.dob.includes('-') ? currentUser.dob.split('-').reverse().join('/') : currentUser.dob;
+      const dobParts = String(cp.dob).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (dobParts) {
+        const today = new Date();
+        let computedAge = today.getFullYear() - Number(dobParts[3]);
+        const mDiff = (today.getMonth() + 1) - Number(dobParts[2]);
+        if (mDiff < 0 || (mDiff === 0 && today.getDate() < Number(dobParts[1]))) computedAge -= 1;
+        if (computedAge >= 0 && computedAge <= 120) cp.age = computedAge;
+      }
+    } else {
+      cp.age = '';
     }
     cp.blood = currentUser.blood_type || cp.blood;
     cp.phone = currentUser.phone_number || currentUser.phone || cp.phone;
@@ -11382,7 +11435,7 @@ function syncCurrentPatientProfile() {
     const allergiesContainer = document.getElementById('ehr-allergies-container');
 
     if (heroName) heroName.innerText = cp.name;
-    if (heroDemo) heroDemo.innerText = `${cp.gender} · ${cp.age} tuổi`;
+    if (heroDemo) heroDemo.innerText = cp.age !== '' && cp.age !== undefined ? `${cp.gender} · ${cp.age} tuổi` : cp.gender;
     if (avatarLarge) avatarLarge.innerText = cp.badge;
     if (dobVal) dobVal.innerText = cp.dob;
     if (bloodVal) bloodVal.innerText = cp.blood;
@@ -11879,6 +11932,8 @@ function calculateProfileCompletion() {
     emailVal,
     document.getElementById('p-blood')?.value,
     document.getElementById('p-allergies')?.value.trim(),
+    document.getElementById('p-height')?.value.trim(),
+    document.getElementById('p-weight')?.value.trim(),
     document.getElementById('p-address')?.value.trim()
   ];
   const filled = fields.filter(v => v && v !== '' && v !== 'Chưa rõ').length;
@@ -11922,7 +11977,7 @@ async function handleSaveImage1Profile(e) {
   const gender = document.getElementById('p-gender')?.value || 'Nam';
   const phone = getFieldValue('p-phone', currentUser?.phone_number || '');
   const email = getFieldValue('p-email', currentUser?.email || '');
-  const blood = document.getElementById('p-blood')?.value || 'O+';
+  const blood = document.getElementById('p-blood')?.value || 'Chưa rõ';
   const allergies = document.getElementById('p-allergies')?.value.trim() || '';
   const height = document.getElementById('p-height')?.value.trim() || '';
   const weight = document.getElementById('p-weight')?.value.trim() || '';
@@ -11934,17 +11989,17 @@ async function handleSaveImage1Profile(e) {
     return;
   }
 
-  // Kiểm tra rào chắn số điện thoại nếu có
+  // Kiểm tra rào chắn số điện thoại đồng nhất với Backend & Popup Onboarding (9-11 chữ số)
   if (phone) {
-    const cleanPhone = phone.replace(/[\s.-]/g, '');
-    if (!/^(0|\+?84)[0-9]{9,10}$/.test(cleanPhone)) {
+    const cleanDigits = phone.replace(/\D/g, '');
+    if (cleanDigits.length < 9 || cleanDigits.length > 11) {
       const phoneInput = document.getElementById('p-phone');
       if (phoneInput) {
         phoneInput.focus();
         phoneInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-400');
         setTimeout(() => phoneInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-400'), 2500);
       }
-      showMedicalToast('Số điện thoại không hợp lệ (cần đúng 10 chữ số).', 'error');
+      showMedicalToast('Số điện thoại không hợp lệ (cần từ 9 đến 11 chữ số).', 'error');
       return;
     }
   }
@@ -11998,6 +12053,7 @@ async function handleSaveImage1Profile(e) {
       if (typeof syncCurrentPatientProfile === 'function') syncCurrentPatientProfile();
       if (typeof updateHomeGreeting === 'function') updateHomeGreeting();
       updateAuthUI();
+      window.dispatchEvent(new CustomEvent('medimind:profile-updated', { detail: currentUser }));
 
       sessionStorage.removeItem('medimind_profile_draft');
       const msg = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'Profile saved successfully!' : 'Đã lưu thông tin hồ sơ lên hệ thống thành công!';

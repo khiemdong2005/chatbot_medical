@@ -3935,7 +3935,7 @@
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-weight">Cân nặng (kg)</label>
-                  <input id="nf-sv-weight" type="number" min="20" max="250" value="60" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
+                  <input id="nf-sv-weight" type="number" step="any" min="20" max="250" value="60" class="w-full rounded-xl border border-white/12 bg-[#070f1e]/85 px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sky-400/60 transition">
                 </div>
                 <div>
                   <label class="block text-[11px] text-slate-300/90 mb-1" for="nf-sv-age">Tuổi</label>
@@ -4040,7 +4040,7 @@
 
 
 
-  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.42"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v=26.2.44"></script>
   <script>
     /* Pure UI binding for #my-appointments-tab (commit 0d082b8b UI without modifying app.js) */
     (function () {
@@ -4419,8 +4419,8 @@
       });
     })();
   </script>
-  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.2.6"></script>
-  <script src="{{ url_for('static', filename='js/nutrition-catalog.js') }}?v=10"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-flow.js') }}?v=26.2.8"></script>
+  <script src="{{ url_for('static', filename='js/nutrition-catalog.js') }}?v=11"></script>
 
   <!-- ============================================================== -->
   <!-- FACILITY APPOINTMENT BOOKING MODAL                             -->

@@ -192,7 +192,13 @@
   function init() {
     if (!$('nf-catalog')) return;
     $('nf-open-catalog')?.addEventListener('click', () => {
-      const profileAllergies = $('p-allergies')?.value || window.currentUser?.allergies || '';
+      let cachedUserAllergies = '';
+      try {
+        const rawUser = localStorage.getItem('medimind_user');
+        if (rawUser) cachedUserAllergies = JSON.parse(rawUser)?.allergies || '';
+      } catch (_) {}
+      const profileAllergies = $('p-allergies')?.value || window.currentUser?.allergies || cachedUserAllergies || '';
+      $('nf-catalog-excludes')?.querySelectorAll('input').forEach(input => { input.checked = false; });
       if (profileAllergies) {
         const normalizedProfile = String(profileAllergies).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('vi').replace(/đ/g, 'd');
         const matches = { 'Tôm': ['tom'], 'Hải sản': ['hai san', 'tom', 'cua', 'ghe', 'ca', 'muc', 'bach tuoc', 'so', 'ngheu', 'hen', 'oc', 'hau'], 'Trứng': ['trung'], 'Thịt bò': ['thit bo', 'bo'], 'Đậu phộng': ['dau phong', 'lac'], 'Phô mai / Sữa': ['pho mai', 'sua', 'bo sua', 'kem tuoi'], 'Nấm': ['nam'] };
