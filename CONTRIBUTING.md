@@ -16,7 +16,7 @@ kết quả kiểm tra và yêu cầu cấu hình dữ liệu nếu có. Merge s
 Làm theo [README](README.md), sau đó cài công cụ kiểm thử:
 
 ```bash
-python -m pip install -r requirements-dev.txt
+python -m pip install -r requirements/dev.txt
 python scripts/check_repository_hygiene.py
 python -m pytest tests -q
 ```

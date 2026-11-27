@@ -275,7 +275,7 @@ class PrescriptionOcrPromptTests(unittest.TestCase):
             self.assertEqual(meds[2]["days"], "1 Tuýp")
 
     def test_frontend_prescription_render_avoids_duplicate_lan_and_binds_gender(self):
-        app_js = (Path(__file__).resolve().parent.parent / "static" / "js" / "app.js").read_text(encoding="utf-8")
+        app_js = (Path(__file__).resolve().parent.parent / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
         self.assertNotIn("${escapeHtml(dose)} / lần", app_js)
         self.assertNotIn("${dose} / lần", app_js)
         self.assertIn("function normalizePrescriptionGender", app_js)
@@ -384,7 +384,7 @@ class PrescriptionOcrPromptTests(unittest.TestCase):
         if not node:
             self.skipTest("Node.js not available")
 
-        app_js_path = Path(__file__).resolve().parent.parent / "static" / "js" / "app.js"
+        app_js_path = Path(__file__).resolve().parent.parent / "frontend" / "static" / "js" / "app.js"
         js_src = app_js_path.read_text(encoding="utf-8")
 
         # Extract the exact frontend helpers under test cleanly

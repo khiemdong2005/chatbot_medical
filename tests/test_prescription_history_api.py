@@ -220,7 +220,7 @@ class PrescriptionHistoryApiTests(unittest.TestCase):
         if not node:
             self.skipTest("Node.js not available")
 
-        app_js = (Path(__file__).resolve().parent.parent / "static" / "js" / "app.js").read_text(encoding="utf-8")
+        app_js = (Path(__file__).resolve().parent.parent / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
         hist_start = app_js.index("let cachedPrescriptionHistory = [];")
         hist_end = app_js.index("// Helper to determine the smart active slot")
         verify_start = app_js.index("function sanitizePrescriptionAdminField")

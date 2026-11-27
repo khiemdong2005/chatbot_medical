@@ -2,8 +2,8 @@
 MediMind Production Meal Planner
 Kiến trúc 4 tầng chuẩn Production:
   1. Tính BMR / TDEE (Mifflin-St Jeor) & Target Calories thông minh.
-  2. Bộ lọc cứng lâm sàng Python trên toàn bộ ViFoodRec (an toàn 100% bệnh nền & dị ứng).
-  3. Chuẩn hóa Calo theo khẩu phần 1 người (chia servings) + phân loại món ăn chuẩn + gán ảnh thật 100%.
+  2. Bộ lọc cứng lâm sàng Python trên toàn bộ kho Món Ngon Mỗi Ngày (an toàn 100% bệnh nền & dị ứng).
+  3. Chuẩn hóa Calo theo khẩu phần 1 người (chia servings) + phân loại món ăn chuẩn + giữ ảnh thật 100%.
   4. AI Ranker (Groq key rotation) xếp hạng thực đơn hài hòa khẩu vị & giải thích lâm sàng (có Python fallback).
 """
 import json
@@ -208,52 +208,52 @@ def _is_breakfast_friendly(recipe: Dict[str, Any]) -> bool:
 
 
 class _ImageResolver:
-    """Đảm bảo 100% món ăn & đồ uống đều có ảnh thật đúng loại trong static/images/recipes/."""
+    """Đảm bảo món ăn ưu tiên ảnh thật từ Món Ngon Mỗi Ngày hoặc ảnh tinh bột cục bộ."""
+
+    @staticmethod
+    def _is_trusted_https_photo(img: str) -> bool:
+        return (
+            img.startswith("https://monngonmoingay.com/")
+            and "no-image.jpg" not in img.lower()
+        )
 
     def __init__(self, all_recipes_with_img: List[Dict[str, Any]]):
         self.food_pool = []
-        self.drink_pool = []
         for r in all_recipes_with_img:
-            img = r.get("image_link") or ""
-            if not img.startswith("/static/"):
-                continue
-            disk_path = img.lstrip("/").replace("/", os.sep)
-            if not os.path.exists(disk_path):
-                continue
-            entry = (r.get("title") or "", _strip_accents(r.get("title") or ""), img)
-            if r.get("recipe_type") == "drink":
-                self.drink_pool.append(entry)
-            else:
-                self.food_pool.append(entry)
+            img = str(r.get("image_link") or r.get("hinh_anh") or "").strip()
+            if self._is_trusted_https_photo(img):
+                self.food_pool.append((r.get("title") or "", _strip_accents(r.get("title") or ""), img))
+            elif img.startswith("/static/"):
+                disk_path = img.split("?", 1)[0].lstrip("/").replace("/", os.sep)
+                if os.path.exists(disk_path):
+                    self.food_pool.append((r.get("title") or "", _strip_accents(r.get("title") or ""), img))
         self.default_food_img = self.food_pool[0][2] if self.food_pool else "/static/images/recipes/canonical_staple_com_trang.jpg"
-        self.default_drink_img = self.drink_pool[0][2] if self.drink_pool else self.default_food_img
 
     def resolve(self, recipe: Optional[Dict[str, Any]], fallback_title: str = "") -> str:
         if recipe:
-            img = recipe.get("image_link") or recipe.get("source_image_url") or ""
+            img = str(recipe.get("image_link") or recipe.get("hinh_anh") or recipe.get("source_image_url") or "").strip()
+            if self._is_trusted_https_photo(img):
+                return img
             if img.startswith("/static/"):
                 disk_path = img.split("?", 1)[0].lstrip("/").replace("/", os.sep)
                 if os.path.exists(disk_path):
                     return img
-        is_drink = bool(recipe and recipe.get("recipe_type") == "drink")
         title = (recipe.get("title") if recipe else "") or fallback_title
         norm = _strip_accents(title)
-        if not is_drink:
-            if "gao lut" in norm:
-                return "/static/images/recipes/canonical_staple_com_gao_lut.jpg"
-            if "com trang" in norm or norm.startswith("com "):
-                return "/static/images/recipes/canonical_staple_com_trang.jpg"
-            if "bun tuoi" in norm or norm.startswith("bun "):
-                return "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg"
-            if "khoai lang" in norm:
-                return "/static/images/recipes/canonical_staple_khoai_lang_steamed.jpg"
-            if "bap " in norm or "ngo " in norm:
-                return "/static/images/recipes/canonical_staple_bap_luoc.jpg"
-            if "yen mach" in norm:
-                return "/static/images/recipes/canonical_staple_yen_mach_nau.jpg"
+        if "gao lut" in norm:
+            return "/static/images/recipes/canonical_staple_com_gao_lut.jpg"
+        if "com trang" in norm or norm.startswith("com "):
+            return "/static/images/recipes/canonical_staple_com_trang.jpg"
+        if "bun tuoi" in norm or norm.startswith("bun "):
+            return "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg"
+        if "khoai lang" in norm:
+            return "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg"
+        if "bap " in norm or "ngo " in norm:
+            return "/static/images/recipes/canonical_staple_bap_luoc.jpg"
+        if "yen mach" in norm:
+            return "/static/images/recipes/canonical_staple_yen_mach_nau.jpg"
 
-        # Luôn ưu tiên ảnh món thật đã kiểm chứng trên đĩa (không dùng icon SVG thay thế).
-        return self.default_drink_img if is_drink else self.default_food_img
+        return self.default_food_img
 
 
 def _ai_rank_meal_plan(
@@ -309,9 +309,7 @@ def _ai_rank_meal_plan(
 
 
 def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
-    from core.nutrition.nutrition_options import (
-        FOOD, DRINK, FATTY_LIVER_FOOD, GOUT_FOODS, GOUT_DRINKS, _get_general_options
-    )
+    from core.nutrition.nutrition_options import _get_general_options
     from core.nutrition.nutrition_rules import prepare_nutrition_candidates
 
     metrics = payload.get("user_metrics") or {}
@@ -359,26 +357,12 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
     cond_query = ", ".join(clean_conds) if clean_conds else "bữa ăn cân bằng dinh dưỡng"
 
     all_food_raw = _get_general_options(cond_query, "food")["recipes"]
-    all_drink_raw = _get_general_options(cond_query, "drink")["recipes"]
-    img_resolver = _ImageResolver(all_food_raw + all_drink_raw)
-
-    # Gộp các công thức lâm sàng nội bộ vào kho thay vì để prepare_nutrition_candidates ghi đè mất ViFoodRec
-    combined_food = list(all_food_raw)
-    existing_ids = {r.get("id") for r in combined_food}
-    for extra in list(FATTY_LIVER_FOOD) + list(FOOD):
-        if extra.get("id") not in existing_ids:
-            combined_food.append(dict(extra))
-            existing_ids.add(extra.get("id"))
+    img_resolver = _ImageResolver(all_food_raw)
 
     known_allergies, custom_avoid_terms = _split_allergies(allergies)
 
     prep_food = prepare_nutrition_candidates(
-        cond_query, combined_food, known_allergies,
-        fatty_liver_recipes=None, gout_food_recipes=GOUT_FOODS,
-    )
-    prep_drink = prepare_nutrition_candidates(
-        cond_query, all_drink_raw, known_allergies,
-        gout_drink_recipes=GOUT_DRINKS,
+        cond_query, all_food_raw, known_allergies,
     )
 
     if prep_food.get("is_unmapped_disease"):
@@ -403,25 +387,15 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
             "success": True,
             "status": "clarification_needed",
             "message": (
-                f"Không tìm thấy món ăn nào trong kho ViFoodRec đáp ứng đồng thời '{cond_query}' "
+                f"Không tìm thấy món ăn nào trong kho Món Ngon Mỗi Ngày đáp ứng đồng thời '{cond_query}' "
                 f"và thành phần cần tránh '{allergies}'. Bạn hãy thử dùng từ khóa dị ứng cụ thể hơn "
                 "(ví dụ: 'tôm, cua' hoặc 'thịt bò, thịt heo' thay vì chữ 'thịt' chung chung)."
             ),
         }
 
-    # Gắn ảnh thật cho toàn bộ món ăn & đồ uống
+    # Gắn ảnh thật cho toàn bộ món ăn
     for r in clean_food_pool:
         r["image_link"] = img_resolver.resolve(r)
-
-    drink_pool = [
-        dr for dr in (prep_drink.get("recipes") or [])
-        if not any(b in (dr.get("title") or "").lower() for b in ("trà sữa", "kem cheese", "siro", "soda", "trân châu"))
-        and not _matches_custom_avoid(dr, custom_avoid_terms)
-    ]
-    if not drink_pool:
-        drink_pool = list(prep_drink.get("recipes") or [])
-    for dr in drink_pool:
-        dr["image_link"] = img_resolver.resolve(dr)
 
     # Phân nhóm rõ ràng
     singles = [r for r in clean_food_pool if classify_dish(r) == "single"]
@@ -523,7 +497,7 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
     if is_diabetic_or_cut:
         staple_options = [
             ("Cơm gạo lứt (1 chén vừa)", 150, "/static/images/recipes/canonical_staple_com_gao_lut.jpg", "1 người ăn (1 chén ~130g)"),
-            ("Khoai lang luộc (1 củ vừa)", 130, "/static/images/recipes/vifoodrec_2901.jpg", "1 người ăn (~150g)"),
+            ("Khoai lang luộc (1 củ vừa)", 130, "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg", "1 người ăn (~150g)"),
             ("Bắp luộc (1 trái vừa)", 140, "/static/images/recipes/canonical_staple_bap_luoc.jpg", "1 người ăn (~150g)"),
             ("Bánh mì nguyên cám (2 lát)", 160, "/static/images/recipes/canonical_staple_banh_mi_nguyen_cam.jpg", "1 người ăn (~60g)"),
         ]
@@ -532,7 +506,7 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
             ("Cơm trắng (1 chén vừa)", 180, "/static/images/recipes/canonical_staple_com_trang.jpg", "1 người ăn (1 chén ~130g)"),
             ("Cơm gạo lứt (1 chén vừa)", 150, "/static/images/recipes/canonical_staple_com_gao_lut.jpg", "1 người ăn (1 chén ~130g)"),
             ("Bún tươi (1 phần vừa)", 165, "/static/images/recipes/canonical_staple_bun_tuoi_plain.jpg", "1 người ăn (~150g)"),
-            ("Khoai lang luộc (1 củ vừa)", 130, "/static/images/recipes/vifoodrec_2901.jpg", "1 người ăn (~150g)"),
+            ("Khoai lang luộc (1 củ vừa)", 130, "/static/images/recipes/canonical_staple_khoai_lang_luoc.jpg", "1 người ăn (~150g)"),
             ("Bánh mì nguyên cám (2 lát)", 160, "/static/images/recipes/canonical_staple_banh_mi_nguyen_cam.jpg", "1 người ăn (~60g)"),
         ]
     filtered_staples = [
@@ -602,25 +576,12 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
                 "dishes": dishes_norm,
             })
 
-    # Nước uống ít đường ưu tiên hàng đầu, ưu tiên món chưa hiển thị ở lượt trước khi bấm đổi thực đơn
-    drink_pool.sort(key=lambda r: (r.get("id") in exclude_prev, float(r.get("sugar") if r.get("sugar") is not None else 999)))
-    fresh_drinks = [d for d in drink_pool[:24] if d.get("id") not in exclude_prev]
-    stale_drinks = [d for d in drink_pool[:24] if d.get("id") in exclude_prev]
-    random.shuffle(fresh_drinks)
-    random.shuffle(stale_drinks)
-    top_drinks = fresh_drinks + stale_drinks
-    drinks_list = []
-    for dr in top_drinks[:8]:
-        d_copy = dict(dr)
-        d_copy["per_person_calories"] = per_person_calories(dr, True)
-        drinks_list.append(d_copy)
-
     return {
         "success": True,
         "status": "success",
         "ai_used": ai_choice is not None,
         "ai_rationale": (ai_choice or {}).get("rationale") or (
-            f"Thực đơn được lọc an toàn cho hồ sơ ({bmr} kcal BMR, {tdee} kcal TDEE) từ kho ViFoodRec."
+            f"Thực đơn được lọc an toàn cho hồ sơ ({bmr} kcal BMR, {tdee} kcal TDEE) từ kho Món Ngon Mỗi Ngày."
         ),
         "daily_plan": {
             "target_calories": target_calories,
@@ -634,7 +595,6 @@ def build_production_meal_plan(payload: Dict[str, Any]) -> Dict[str, Any]:
             "meals": meals_out,
         },
         "food_combos": food_combos,
-        "drinks": drinks_list,
         "avoidance": prep_food.get("avoidance") or [],
         "sources": prep_food.get("guidance") or [],
     }

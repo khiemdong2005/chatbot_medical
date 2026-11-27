@@ -113,10 +113,91 @@ def test_first_time_registration_triggers_onboarding_dialog_on_first_login_only(
         tmpdir.cleanup()
 
 
+def test_otp_registration_triggers_onboarding_dialog_on_first_login_and_2fa():
+    from unittest.mock import patch
+
+    flask_app, tmpdir = _make_client()
+    try:
+        client = flask_app.test_client()
+
+        # 1. Register via /api/auth/otp/verify (live web OTP registration flow)
+        with patch("core.auth.otp_service.otp_manager.verify_otp", return_value=(True, "")):
+            reg_res = client.post(
+                "/api/auth/otp/verify",
+                json={
+                    "identifier": "otp_new_user@example.com",
+                    "channel": "email",
+                    "code": "123456",
+                    "purpose": "register",
+                    "user_data": {
+                        "full_name": "Tran Thi OTP",
+                        "password": "Password123",
+                        "gender": "Nữ",
+                        "dob": "20/05/1999",
+                    },
+                },
+            )
+        assert reg_res.status_code == 201
+        reg_data = reg_res.get_json()
+        assert reg_data["success"] is True
+        assert reg_data["requires_login"] is True
+        assert reg_data["user"]["needs_onboarding"] is True
+
+        # 2. First password login -> needs_onboarding=True
+        login1_res = client.post(
+            "/api/auth/login",
+            json={"identifier": "otp_new_user@example.com", "password": "Password123"},
+        )
+        assert login1_res.status_code == 200
+        login1_data = login1_res.get_json()
+        assert login1_data["needs_onboarding"] is True
+        assert login1_data["user"]["needs_onboarding"] is True
+
+        # 3. First 2FA OTP login before completing onboarding -> needs_onboarding=True
+        client.post("/api/auth/logout", headers={"Origin": "http://localhost"})
+        with patch("core.auth.otp_service.otp_manager.verify_otp", return_value=(True, "")):
+            otp_login_res = client.post(
+                "/api/auth/otp/verify",
+                json={
+                    "identifier": "otp_new_user@example.com",
+                    "channel": "email",
+                    "code": "654321",
+                    "purpose": "login_2fa",
+                },
+            )
+        assert otp_login_res.status_code == 200
+        otp_login_data = otp_login_res.get_json()
+        assert otp_login_data["needs_onboarding"] is True
+        assert otp_login_data["user"]["needs_onboarding"] is True
+
+        # 4. Complete onboarding -> subsequent logins skip popup
+        prof_res = client.post(
+            "/api/auth/profile",
+            headers={"Origin": "http://localhost"},
+            json={"name": "Tran Thi OTP", "complete_onboarding": True},
+        )
+        assert prof_res.status_code == 200
+        assert prof_res.get_json()["user"]["needs_onboarding"] is False
+
+        client.post("/api/auth/logout", headers={"Origin": "http://localhost"})
+        login2_res = client.post(
+            "/api/auth/login",
+            json={"identifier": "otp_new_user@example.com", "password": "Password123"},
+        )
+        assert login2_res.status_code == 200
+        assert login2_res.get_json()["needs_onboarding"] is False
+    finally:
+        with flask_app.app_context():
+            db.session.remove()
+            db.drop_all()
+        tmpdir.cleanup()
+
+
 def test_frontend_first_login_onboarding_sync_contract():
-    app_js = (PROJECT_ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    app_js = (PROJECT_ROOT / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
     assert "let isFirstLoginOnboarding = false;" in app_js
     assert "if (data.needs_onboarding || currentUser.needs_onboarding)" in app_js
+    assert "if (data.needs_onboarding || currentUser?.needs_onboarding)" in app_js
     assert "openGoogleOnboardingModal(currentUser, false, { firstLogin: true })" in app_js
     assert "complete_onboarding: true" in app_js
     assert "(isPendingGoogleRegistration || isFirstLoginOnboarding) ? 'Xác nhận & Vào ứng dụng' : 'Lưu thông tin'" in app_js

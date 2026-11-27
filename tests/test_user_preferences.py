@@ -146,7 +146,7 @@ def test_migration_adds_preferences_column_to_legacy_users_table():
 
 
 def test_frontend_preferences_read_sync_and_push_permission_contract():
-    js_text = (ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    js_text = (ROOT / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
     assert "localStorage.getItem('medimind_settings')" in js_text
     assert "fetch('/api/auth/preferences'" in js_text
     assert "Notification.requestPermission()" in js_text

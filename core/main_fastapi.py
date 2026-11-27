@@ -63,8 +63,8 @@ logger = logging.getLogger("FastAPI")
 
 # Đường dẫn thư mục
 BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_DIR = BASE_DIR / "static"
-TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "frontend" / "static"
+TEMPLATES_DIR = BASE_DIR / "frontend" / "templates"
 
 settings = get_settings()
 is_production = settings.server.is_production

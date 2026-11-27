@@ -84,7 +84,12 @@ def create_app(test_config=None):
     Khi kiểm thử, nạp test_config (SQLite in-memory) TRƯỚC KHI kết nối CSDL,
     bảo vệ 100% dữ liệu thật khỏi nguy cơ bị ghi đè hoặc drop_all.
     """
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder=str(settings.paths.templates_dir),
+        static_folder=str(settings.paths.static_dir),
+        static_url_path="/static",
+    )
 
     is_testing = bool(test_config and test_config.get("TESTING"))
     app.secret_key = settings.get_effective_secret_key(testing=is_testing)

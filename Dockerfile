@@ -26,7 +26,8 @@ RUN groupadd -g 1000 appuser && \
 WORKDIR /app
 
 # 1. Tận dụng Docker layer caching cho dependencies
-COPY requirements.txt requirements-reranker.txt ./
+COPY requirements.txt ./
+COPY requirements/reranker.txt ./requirements/reranker.txt
 
 # Cài đặt dependencies chính
 RUN pip install --no-cache-dir --upgrade pip && \
@@ -36,13 +37,13 @@ RUN pip install --no-cache-dir --upgrade pip && \
 ARG INSTALL_RERANKER=false
 RUN if [ "$INSTALL_RERANKER" = "true" ] ; then \
         echo "Installing optional BGE Reranker dependencies (sentence-transformers)..." && \
-        pip install --no-cache-dir -r requirements-reranker.txt ; \
+        pip install --no-cache-dir -r requirements/reranker.txt ; \
     else \
         echo "Skipping optional BGE Reranker installation (INSTALL_RERANKER=false)..." ; \
     fi
 
-# 3. Tạo sẵn các thư mục lưu trữ dữ liệu bền vững và cấp quyền cho appuser
-RUN mkdir -p /app/medical_vectordb /app/instance /app/uploads /home/appuser/.cache/huggingface && \
+# 3. Tạo sẵn các thư mục lưu trữ dữ liệu bền vững & cache ONNX/HF cho appuser
+RUN mkdir -p /app/medical_vectordb /app/instance /app/uploads /home/appuser/.cache/huggingface /home/appuser/.cache/chroma && \
     chown -R appuser:appuser /app /home/appuser/.cache
 
 # 4. Sao chép toàn bộ mã nguồn ứng dụng (Đã loại trừ qua .dockerignore)
@@ -53,10 +54,11 @@ USER appuser
 
 EXPOSE 8000
 
-# Kiểm tra sức khỏe tiến trình định kỳ bằng /health endpoint
-HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+# Kiểm tra sức khỏe tiến trình định kỳ bằng /health endpoint (start-period=60s cho lần auto-ingest RAG đầu tiên)
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Khởi chạy FastAPI Gateway bằng Uvicorn (nhận X-Forwarded-Proto/For từ CloudFront/ALB)
+# Tự động nạp ChromaDB RAG nếu deploy mới chưa có medical_vectordb/chroma.sqlite3, sau đó khởi chạy Uvicorn
+ENTRYPOINT ["python", "scripts/docker_entrypoint.py"]
 CMD ["uvicorn", "core.main_fastapi:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
 

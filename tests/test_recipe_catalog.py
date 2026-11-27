@@ -23,8 +23,7 @@ class RecipeCatalogTests(unittest.TestCase):
     def test_load_preserves_source_and_textual_quantities_and_copies(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "recipes.json"
-            bad = imported(2)
-            bad["source_url"] = "https://untrusted.example/recipe"
+            bad = {**imported(2), "steps": []}
             path.write_text(json.dumps([imported(), imported(), bad]), encoding="utf-8")
             with patch.object(catalog, "DATA_PATH", path):
                 catalog._read_catalog.cache_clear()
@@ -79,47 +78,48 @@ class RecipeCatalogTests(unittest.TestCase):
         recipe["ingredients"].append({"name": "1 cup milk", "amount": "", "unit": ""})
         self.assertEqual(prepare_nutrition_candidates("sốt; dị ứng sữa", [recipe])["recipes"], [])
 
-    def test_bundled_dataset_is_large_attributed_and_matches_manifest(self):
+    def test_bundled_dataset_is_monngonmoingay_food_only(self):
         rows = catalog.imported_recipes()
-        self.assertGreaterEqual(len(rows), 100)
-        self.assertGreaterEqual(len(catalog.imported_recipes("drink")), 20)
-        self.assertTrue(all(r["id"].startswith("vifoodrec_") and r.get("cuisine") == "VN"
-                            and r.get("language") == "vi" and r.get("source_url")
-                            and (r.get("source_attribution") or r.get("attribution")) for r in rows))
+        self.assertGreaterEqual(len(rows), 2400)
+        self.assertEqual(catalog.imported_recipes("drink"), [])
+        self.assertTrue(all(r["id"].startswith("mnnm-") and r.get("cuisine") == "VN"
+                            and r.get("language") == "vi" and r.get("source_provider") == "Món Ngon Mỗi Ngày"
+                            for r in rows))
         self.assertEqual(catalog.catalog_stats()["total"], len(rows))
         self.assertEqual(catalog.catalog_stats()["cuisine"], "VN")
-        manifest = json.loads(catalog.DATA_PATH.with_name("manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["total"], len(rows))
-        actual_bytes = catalog.DATA_PATH.read_bytes()
-        actual_shas = {
-            hashlib.sha256(actual_bytes).hexdigest(),
-            hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n")).hexdigest(),
-            hashlib.sha256(actual_bytes.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")).hexdigest(),
-        }
-        self.assertIn(manifest["sha256"]["recipes.json"], actual_shas)
+        self.assertEqual(catalog.catalog_stats()["source"], "Món Ngon Mỗi Ngày")
 
-    def test_vietnamese_catalog_checks_cuisine_and_exact_source_repository(self):
-        row = {**imported(), "id": "vifoodrec_1", "title": "Cháo gà", "language": "vi", "cuisine": "VN",
-               "license": "not_declared", "source_url": "https://github.com/" + catalog.VIFOODREC_REPOSITORY}
+    def test_monngonmoingay_normalization_filters_incomplete_entries(self):
+        valid = {
+            "ten_mon": "Cháo gà",
+            "khau_phan": "4 người",
+            "thoi_gian_thuc_hien": "30 Phút",
+            "do_kho": "Dễ",
+            "hinh_anh": "https://monngonmoingay.com/wp-content/uploads/chao-ga.jpg",
+            "nguyen_lieu": ["Gạo tẻ 100g", "Thịt gà 200g"],
+            "so_che": ["Vo gạo sạch"],
+            "thuc_hien": ["Nấu chín nhừ"],
+            "tags": ["Bữa sáng"],
+            "kcal": 450,
+        }
+        incomplete = {"ten_mon": "Món thiếu bước", "nguyen_lieu": ["Gạo"], "so_che": [], "thuc_hien": []}
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "recipes.json"
-            bad_source = {**row, "id": "vifoodrec_2", "source_url": row["source_url"] + "-impostor"}
-            foreign = {**row, "id": "vifoodrec_3", "cuisine": "other"}
-            path.write_text(json.dumps([row, bad_source, foreign]), encoding="utf-8")
+            path.write_text(json.dumps([valid, incomplete]), encoding="utf-8")
             with patch.object(catalog, "DATA_PATH", path):
+                catalog._read_catalog.cache_clear()
                 rows = catalog.imported_recipes()
-                self.assertEqual([r["id"] for r in rows], [row["id"]])
-                self.assertEqual(rows[0]["source_provider"], "ViFoodRec")
-                self.assertEqual(rows[0]["license"], "not_declared")
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["id"], "mnnm-0")
+                self.assertEqual(rows[0]["source_provider"], "Món Ngon Mỗi Ngày")
+                self.assertEqual(rows[0]["calories"], 450)
         catalog._read_catalog.cache_clear()
 
-    def test_active_vietnamese_catalog_never_mixes_old_international_recipes(self):
+    def test_active_vietnamese_catalog_uses_only_monngonmoingay(self):
         from core.nutrition_options import _get_general_options
-        for kind in ("food", "drink"):
-            with self.subTest(kind=kind):
-                recipes = _get_general_options("sốt", kind)["recipes"]
-                self.assertTrue(recipes)
-                self.assertTrue(all(r["id"].startswith("vifoodrec_") and r["cuisine"] == "VN" for r in recipes))
+        recipes = _get_general_options("sốt", "food")["recipes"]
+        self.assertTrue(recipes)
+        self.assertTrue(all(r["id"].startswith("mnnm-") and r["cuisine"] == "VN" for r in recipes))
 
     def test_retrieval_does_not_treat_fever_as_a_sauce_name(self):
         recipes = [{**imported(1), "title": "Đậu hũ sốt", "ingredients": [{"name": "Đậu hũ"}], "categories": []},

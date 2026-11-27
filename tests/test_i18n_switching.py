@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 
-APP_JS = Path(__file__).resolve().parents[1] / "static" / "js" / "app.js"
+APP_JS = Path(__file__).resolve().parents[1] / "frontend" / "static" / "js" / "app.js"
 
 
 def run_node(script: str) -> None:

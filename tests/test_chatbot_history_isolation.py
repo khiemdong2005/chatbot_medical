@@ -134,7 +134,7 @@ def test_previsit_survey_excluded_from_chatbot_sessions_and_tagged(isolated_app)
 
 
 def test_frontend_js_filters_previsit_stubs_and_exports_selected_chat_pdf():
-    app_js = (ROOT / "static/js/app.js").read_text(encoding="utf-8")
+    app_js = (ROOT / "frontend/static/js/app.js").read_text(encoding="utf-8")
     assert "function isPrevisitSurveySession" in app_js
     assert "PREVISIT_PLACEHOLDER_PREFIX" in app_js
 
@@ -167,3 +167,15 @@ def test_frontend_js_filters_previsit_stubs_and_exports_selected_chat_pdf():
     proc = subprocess.run(["node", "-e", script], capture_output=True, text=True, check=False)
     assert proc.returncode == 0, proc.stderr
     assert "JS_FILTER_OK" in proc.stdout
+
+
+def test_floating_home_chatbot_has_new_conversation_button():
+    html = (ROOT / "frontend/templates/index.html").read_text(encoding="utf-8")
+    app_js = (ROOT / "frontend/static/js/app.js").read_text(encoding="utf-8")
+    assert 'id="floating-new-chat-btn"' in html
+    assert 'onclick="startNewFloatingChat()"' in html
+    assert 'title="Cuộc trò chuyện mới"' in html
+    assert "function startNewFloatingChat()" in app_js
+    fn_start = app_js.index("function startNewFloatingChat()")
+    fn_block = app_js[fn_start:fn_start + 500]
+    assert "resetChat();" in fn_block

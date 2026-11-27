@@ -29,7 +29,7 @@ import app as flask_module
 
 def test_triage_panel_emergency_vs_high_risk_logic():
     """Xác nhận logic triage panel trong static/js/app.js không suy diễn emergency chỉ từ risk_score >= 70."""
-    app_js_path = Path("static/js/app.js")
+    app_js_path = Path("frontend/static/js/app.js")
     assert app_js_path.exists(), "File static/js/app.js phải tồn tại"
     content = app_js_path.read_text(encoding="utf-8")
 
@@ -51,7 +51,7 @@ def test_triage_panel_emergency_vs_high_risk_logic():
 
 def test_session_badge_emergency_vs_high_risk_badge():
     """Xác nhận lưu session trong app.js chỉ gắn badge rose khi isEmergency=True, amber khi High Risk."""
-    app_js_path = Path("static/js/app.js")
+    app_js_path = Path("frontend/static/js/app.js")
     content = app_js_path.read_text(encoding="utf-8")
 
     match = re.search(r"function saveOrUpdateCurrentSession\b[\s\S]*?\{([\s\S]*?)\n\}", content)
@@ -70,7 +70,7 @@ def test_session_badge_emergency_vs_high_risk_badge():
 
 def test_no_fabricated_prescription_data_in_app_js():
     """Xác nhận static/js/app.js không còn chứa các giá trị fallback lâm sàng bịa đặt."""
-    app_js_path = Path("static/js/app.js")
+    app_js_path = Path("frontend/static/js/app.js")
     content = app_js_path.read_text(encoding="utf-8")
 
     # 1. Không còn hardcoded 98.5% confidence
@@ -98,7 +98,7 @@ def test_no_fabricated_prescription_data_in_app_js():
 
 def test_system_dashboard_zero_percent_handling():
     """Xác nhận template system_dashboard.html dùng nullish check cho success_rate_pct thay vì falsy || 100."""
-    tpl_path = Path("templates/system_dashboard.html")
+    tpl_path = Path("frontend/templates/system_dashboard.html")
     assert tpl_path.exists(), "Template templates/system_dashboard.html phải tồn tại"
     content = tpl_path.read_text(encoding="utf-8")
 

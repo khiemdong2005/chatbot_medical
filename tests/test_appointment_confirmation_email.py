@@ -247,8 +247,8 @@ def test_email_includes_previsit_summary_table_when_attached(monkeypatch):
 
 
 def test_frontend_booking_email_input_and_toast_contract():
-    html = (PROJECT_ROOT / "templates" / "index.html").read_text(encoding="utf-8")
-    app_js = (PROJECT_ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    html = (PROJECT_ROOT / "frontend" / "templates" / "index.html").read_text(encoding="utf-8")
+    app_js = (PROJECT_ROOT / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
     assert 'id="book-modal-email"' in html
     assert 'id="book-summary-preview"' in html
     assert 'id="appointment-detail-modal"' in html

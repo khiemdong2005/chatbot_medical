@@ -731,7 +731,8 @@ def register_auth_routes(app):
                 account_status="active",
                 phone_number=phone_number,
                 dob=dob,
-                gender=gender
+                gender=gender,
+                clinical_profile=json.dumps({"onboarding_completed": False}, ensure_ascii=False),
             )
             new_user.set_password(password)
             db.session.add(new_user)
@@ -766,10 +767,12 @@ def register_auth_routes(app):
             _start_authenticated_session(user)
             session["user_role"] = user.role
 
+            user_dict = user.to_dict()
             return jsonify({
                 "success": True,
                 "message": f"Xác thực 2 lớp thành công! Chào mừng {user.full_name}.",
-                "user": user.to_dict()
+                "user": user_dict,
+                "needs_onboarding": bool(user_dict.get("needs_onboarding")),
             })
 
         # Nếu là kịch bản Quên mật khẩu / Đặt lại mật khẩu (Reset Password with OTP)

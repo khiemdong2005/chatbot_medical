@@ -4,13 +4,17 @@ import unittest
 from unittest.mock import patch
 
 from core.nutrition_ai import NutritionAIError, select_recipes, validate_selection
-from core.nutrition_options import FOOD, DRINK, get_nutrition_options
+from core.nutrition_options import get_nutrition_options
 from core.nutrition_rules import prepare_nutrition_candidates
+from core.recipe_catalog import imported_recipes
+
+FOOD = imported_recipes("food")[:8]
 
 
-def answer(recipe_id="oat_porridge", source_ids=None):
+def answer(recipe_id=None, source_ids=None):
+    target_id = recipe_id or FOOD[0]["id"]
     return {"needs_clarification": False, "clarification_question": "", "recommendations": [
-        {"recipe_id": recipe_id, "reason": "Món có kết cấu mềm từ yến mạch và chuối.",
+        {"recipe_id": target_id, "reason": "Món có kết cấu mềm từ nguyên liệu tự nhiên an toàn.",
          "caution": "Chỉ là lựa chọn tham khảo.", "source_ids": source_ids or []}]}
 
 
@@ -54,7 +58,7 @@ class NutritionAITests(unittest.TestCase):
     def test_non_clarification_response_may_omit_question(self):
         payload = answer()
         del payload["clarification_question"]
-        self.assertEqual(validate_selection(payload, FOOD, 0)["recipes"][0]["id"], "oat_porridge")
+        self.assertEqual(validate_selection(payload, FOOD, 0)["recipes"][0]["id"], FOOD[0]["id"])
         payload.update(needs_clarification=True, recommendations=[])
         with self.assertRaises(NutritionAIError):
             validate_selection(payload, FOOD, 0)
@@ -70,7 +74,7 @@ class NutritionAITests(unittest.TestCase):
             "diet_preferences": ["no_added_sugar"],
             "height": 170, "weight": 82, "dob": "01/01/1990",
         })
-        self.assertEqual(result["recipes"][0]["id"], "oat_porridge")
+        self.assertEqual(result["recipes"][0]["id"], FOOD[0]["id"])
         call = generate_json.call_args.kwargs
         self.assertEqual(call["provider"], "groq")
         self.assertEqual(call["profile"], "nutrition")
@@ -99,7 +103,9 @@ class NutritionAITests(unittest.TestCase):
         self.assertFalse(result["ai_used"])
         self.assertEqual(result["provider_status"], "fallback_quota")
         self.assertEqual(result["recommendation_scope"], "filtered_catalog")
-        self.assertNotIn("soft_egg", [r["id"] for r in result["recipes"]])
+        from core.recipe_features import analyze_imported_recipe
+        for r in result["recipes"]:
+            self.assertNotIn("egg", analyze_imported_recipe(r)["allergens"])
 
     @patch("core.nutrition_ai.select_recipes")
     def test_no_candidate_does_not_call_provider(self, provider):
@@ -109,36 +115,32 @@ class NutritionAITests(unittest.TestCase):
         provider.assert_not_called()
 
     @patch("core.nutrition_ai.select_recipes")
-    def test_fever_clarification_keeps_guided_options_for_both_types(self, provider):
+    def test_fever_clarification_keeps_guided_options_for_food(self, provider):
         provider.return_value = self.clarification()
-        for kind, catalog in (("food", FOOD), ("drink", DRINK)):
-            with self.subTest(kind=kind):
-                result = get_nutrition_options("sốt", kind)
-                self.assertFalse(result["gemini_used"])
-                self.assertFalse(result["ai_used"])
-                self.assertTrue(result["needs_clarification"])
-                self.assertEqual(result["provider_status"], "ai_clarification_with_options")
-                self.assertEqual(result["recommendation_scope"], "guided_catalog")
-                self.assertGreater(len(result["recipes"]), 0)
-                self.assertLessEqual(len(result["recipes"]), 5)
-                self.assertTrue(result["sources"])
-                from core.recipe_catalog import imported_recipes
-                known = {recipe["id"]: recipe for recipe in catalog + imported_recipes(kind)}
-                for recipe in result["recipes"]:
-                    self.assertIn(recipe["id"], known)
-                    self.assertEqual(recipe["ingredients"], known[recipe["id"]]["ingredients"])
-                    self.assertEqual(recipe["steps"], known[recipe["id"]]["steps"])
+        result = get_nutrition_options("sốt", "food")
+        self.assertFalse(result["gemini_used"])
+        self.assertFalse(result["ai_used"])
+        self.assertTrue(result["needs_clarification"])
+        self.assertEqual(result["provider_status"], "ai_clarification_with_options")
+        self.assertEqual(result["recommendation_scope"], "guided_catalog")
+        self.assertGreater(len(result["recipes"]), 0)
+        self.assertLessEqual(len(result["recipes"]), 5)
+        self.assertTrue(result["sources"])
+        known = {recipe["id"]: recipe for recipe in imported_recipes("food")}
+        for recipe in result["recipes"]:
+            self.assertIn(recipe["id"], known)
+            self.assertEqual(recipe["ingredients"], known[recipe["id"]]["ingredients"])
+            self.assertEqual(recipe["steps"], known[recipe["id"]]["steps"])
 
     @patch("core.nutrition_ai.select_recipes")
     def test_clarification_fallback_does_not_override_allergy_filter(self, provider):
         provider.return_value = self.clarification()
-        for query, kind, excluded in (("sốt; dị ứng trứng", "food", "soft_egg"),
-                                      ("sốt; dị ứng sữa", "drink", "warm_milk")):
-            with self.subTest(query=query):
-                result = get_nutrition_options(query, kind)
-                self.assertEqual(result["provider_status"], "ai_clarification_with_options")
-                self.assertGreater(len(result["recipes"]), 0)
-                self.assertNotIn(excluded, {recipe["id"] for recipe in result["recipes"]})
+        result = get_nutrition_options("sốt; dị ứng trứng", "food")
+        self.assertEqual(result["provider_status"], "ai_clarification_with_options")
+        self.assertGreater(len(result["recipes"]), 0)
+        from core.recipe_features import analyze_imported_recipe
+        for recipe in result["recipes"]:
+            self.assertNotIn("egg", analyze_imported_recipe(recipe)["allergens"])
         provider.reset_mock()
         result = get_nutrition_options("sốt; dị ứng thành phần chưa biết", "food")
         self.assertEqual(result["recipes"], [])

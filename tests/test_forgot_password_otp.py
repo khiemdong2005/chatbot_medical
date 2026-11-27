@@ -273,8 +273,8 @@ def test_dev_simulator_blocked_in_production_for_email_and_sms(monkeypatch, caps
 
 def test_frontend_forgot_password_policy_and_login_redirect_contract():
     """Đảm bảo HTML & JS đồng bộ chính sách 2B (>= 8 ký tự, hoa/thường/số) và 3A (quay lại form đăng nhập)."""
-    html_text = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
-    js_text = (ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    html_text = (ROOT / "frontend" / "templates" / "index.html").read_text(encoding="utf-8")
+    js_text = (ROOT / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
 
     assert 'id="forgot-new-password" required minlength="8"' in html_text
     assert "function t(viText, enText)" in js_text

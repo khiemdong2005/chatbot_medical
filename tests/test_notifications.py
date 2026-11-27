@@ -139,7 +139,7 @@ def test_bell_renders_server_notifications_in_both_languages():
     import subprocess
     from pathlib import Path
 
-    src = (Path(__file__).resolve().parents[1] / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    src = (Path(__file__).resolve().parents[1] / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
     start = src.index("const NOTIF_POLL_MS")
     end = src.index("if (typeof document !== 'undefined') {\n  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNotificationBell);")
     snippet = src[start:end]

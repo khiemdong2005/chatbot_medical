@@ -23,8 +23,8 @@ from pathlib import Path
 import pytest
 
 
-APP_JS_PATH = Path("static/js/app.js")
-NUTRITION_FLOW_PATH = Path("static/js/nutrition-flow.js")
+APP_JS_PATH = Path("frontend/static/js/app.js")
+NUTRITION_FLOW_PATH = Path("frontend/static/js/nutrition-flow.js")
 
 
 @pytest.fixture(scope="module")

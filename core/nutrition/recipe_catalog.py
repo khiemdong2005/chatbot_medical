@@ -1,4 +1,4 @@
-"""Local, attributed recipe catalog and bounded candidate retrieval."""
+"""Local Mon Ngon Moi Ngay recipe catalog and bounded candidate retrieval."""
 from copy import deepcopy
 from functools import lru_cache
 import json
@@ -6,12 +6,10 @@ import math
 from pathlib import Path
 import re
 import unicodedata
-from urllib.parse import unquote, urlsplit
+from urllib.parse import urlsplit
 
 DATA_ROOT = Path(__file__).resolve().parents[2] / "data/recipes"
-DATA_PATH = DATA_ROOT / "vifoodrec/recipes.json"
-WIKIBOOKS_DATA_PATH = DATA_ROOT / "wikibooks/recipes.json"
-VIFOODREC_REPOSITORY = "QuocAn55/A-New-Dataset-and-Empirical-Evaluation-for-Vietnamese-Food-Recommendation-System"
+DATA_PATH = DATA_ROOT / "monngonmoingay_recipes_with_kcal.json"
 
 
 def normalize(text):
@@ -24,64 +22,70 @@ def title_key(recipe):
     return " ".join(unicodedata.normalize("NFC", str(recipe.get("title", ""))).casefold().split())
 
 
-def _source_valid(entry):
-    """Validate provenance, not medical suitability or cuisine authenticity."""
+def _trusted_image_url(value):
     try:
-        url = urlsplit(str(entry.get("source_url", "")))
-        if url.scheme != "https" or url.username or url.password or url.port not in (None, 443):
-            return False
-        if str(entry.get("id", "")).startswith("wikibooks_"):
-            return (url.hostname == "en.wikibooks.org"
-                    and entry.get("license") in ("CC-BY-SA-4.0", "CC BY-SA 4.0"))
-        if str(entry.get("id", "")).startswith("vifoodrec_"):
-            repo = "/".join(unquote(url.path).strip("/").split("/")[:2])
-            return (url.hostname == "github.com" and repo.lower() == VIFOODREC_REPOSITORY.lower()
-                    and entry.get("license") == "not_declared"
-                    and entry.get("language") == "vi" and entry.get("cuisine") == "VN")
+        raw = str(value or "").strip()
+        if not raw or "no-image.jpg" in raw.lower():
+            return ""
+        url = urlsplit(raw)
+        if (url.scheme == "https" and url.hostname
+                and (url.hostname == "monngonmoingay.com" or url.hostname.endswith(".monngonmoingay.com"))
+                and not url.username and not url.password):
+            return raw
     except (ValueError, TypeError):
         pass
-    return False
+    return ""
 
 
-def _parse_servings_count(servings_value) -> int:
-    """Parse number of servings from strings like '4 người', clamped to 1..12."""
-    match = re.search(r"(\d+)", str(servings_value or ""))
-    if not match:
-        return 1
-    return max(1, min(12, int(match.group(1))))
-
-
-def normalize_drink_calories(recipe) -> None:
-    """Calibrate drink calories to a realistic per-glass (250ml) estimate (40-180 kcal)."""
-    if not isinstance(recipe, dict) or recipe.get("recipe_type") != "drink":
-        return
-    raw_cal = recipe.get("calories")
-    servings_count = _parse_servings_count(recipe.get("servings"))
-    raw_per_serving = (
-        float(raw_cal) / servings_count
-        if isinstance(raw_cal, (int, float)) and not isinstance(raw_cal, bool) and math.isfinite(raw_cal) and raw_cal > 0
-        else 150.0
-    )
-    ing_text = normalize(" ".join(str(i.get("name", "")) for i in recipe.get("ingredients", []) if isinstance(i, dict)))
-    text = normalize(recipe.get("title", "")) + " " + ing_text
-
-    if re.search(r"\b(?:sua\s+dac|nuoc\s+cot\s+dua|kem\s+(?:tuoi|vanilla|cheese)|whipping|pho\s+mai|cheese|tran\s+chau|sau\s+rieng|base\s+rich|tra\s+sua|bo\s+sap)\b", text):
-        lo, hi = 130, 180
-    elif re.search(r"\b(?:sua\s+(?:tuoi|chua|dau|hat|gao|bap|ngo)|yakult|dau\s+(?:xanh|nanh|den|do|phong)|hat\s+(?:sen|chia)|gao\s+lut|yen\s+mach|sinh\s+to|xoai|mit|sa\s+po\s+che|chuoi)\b", text):
-        lo, hi = 95, 155
-    elif re.search(r"\b(?:duong|mat\s+ong|siro|mut|tao|cam|quyt|thanh\s+long|dua\s+(?:hau|gang|luoi)|nho|dao|dau|oi|thom|khom|le|coc|chanh\s+day|xi\s+muoi|hong\s+tao|long\s+nhan)\b", text):
-        lo, hi = 60, 115
-    else:
-        lo, hi = 40, 70
-
-    if lo <= raw_per_serving <= hi:
-        calibrated = round(raw_per_serving)
-    else:
-        ratio = max(0.0, min(1.0, (raw_per_serving - 50.0) / 250.0))
-        calibrated = round(lo + ratio * (hi - lo))
-    recipe["calories"] = int(max(lo, min(hi, calibrated)))
-    recipe["calories_basis"] = "per_serving"
-    recipe["serving_unit"] = "1 ly"
+def _normalize_monngon_entry(entry, index):
+    title = str(entry.get("ten_mon") or "").strip()
+    if not title:
+        return None
+    raw_ings = [str(x).strip() for x in (entry.get("nguyen_lieu") or []) if isinstance(x, (str, int, float)) and str(x).strip()]
+    so_che = [str(x).strip() for x in (entry.get("so_che") or []) if isinstance(x, (str, int, float)) and str(x).strip()]
+    thuc_hien = [str(x).strip() for x in (entry.get("thuc_hien") or []) if isinstance(x, (str, int, float)) and str(x).strip()]
+    steps = [f"Sơ chế: {s}" for s in so_che] + thuc_hien
+    if not raw_ings or not steps:
+        return None
+    tags = [str(t).strip() for t in (entry.get("tags") or []) if isinstance(t, (str, int, float)) and str(t).strip()]
+    kcal_raw = entry.get("kcal")
+    kcal = kcal_raw if isinstance(kcal_raw, (int, float)) and not isinstance(kcal_raw, bool) and kcal_raw >= 0 else None
+    khau_phan = str(entry.get("khau_phan") or "").strip()
+    thoi_gian = str(entry.get("thoi_gian_thuc_hien") or "").strip()
+    do_kho = str(entry.get("do_kho") or "").strip()
+    image_url = _trusted_image_url(entry.get("hinh_anh"))
+    return {
+        "id": f"mnnm-{index}",
+        "title": title,
+        "ten_mon": title,
+        "recipe_type": "food",
+        "language": "vi",
+        "cuisine": "VN",
+        "imported": True,
+        "source_provider": "Món Ngon Mỗi Ngày",
+        "subtitle": "Món Việt chọn lọc · Món Ngon Mỗi Ngày",
+        "cooking_time": thoi_gian or "Xem cách làm",
+        "thoi_gian_thuc_hien": thoi_gian,
+        "difficulty": do_kho,
+        "do_kho": do_kho,
+        "servings": khau_phan or "4 người",
+        "khau_phan": khau_phan,
+        "calories": kcal,
+        "kcal": kcal,
+        "image_link": image_url,
+        "hinh_anh": image_url,
+        "image_ok": bool(image_url),
+        "categories": tags,
+        "tags": tags,
+        "ingredients": [{"name": item, "amount": "", "unit": ""} for item in raw_ings],
+        "nguyen_lieu": raw_ings,
+        "preparation_steps": so_che,
+        "so_che": so_che,
+        "thuc_hien": thuc_hien,
+        "steps": steps,
+        "benefit": "Công thức nấu ăn tham khảo từ Món Ngon Mỗi Ngày; chưa được xác minh công dụng hoặc mức độ phù hợp với bệnh cho từng món.",
+        "avoid": ["Đối chiếu nguyên liệu, dị ứng và hướng dẫn ăn uống cá nhân trước khi dùng."],
+    }
 
 
 @lru_cache(maxsize=4)
@@ -92,12 +96,20 @@ def _read_catalog(path, version):
     if isinstance(raw, dict):
         raw = raw.get("recipes", [])
     result, ids = [], set()
-    for entry in raw:
+    for index, entry in enumerate(raw if isinstance(raw, list) else []):
         if not isinstance(entry, dict):
             continue
-        if (not _source_valid(entry)
-                or entry.get("id") in ids
-                or entry.get("recipe_type") not in ("food", "drink")
+        if isinstance(entry.get("ten_mon"), str):
+            recipe = _normalize_monngon_entry(entry, index)
+            if not recipe or recipe["id"] in ids:
+                continue
+            ids.add(recipe["id"])
+            result.append(recipe)
+            continue
+        # Fallback for synthetic unit-test records with canonical keys
+        if (entry.get("id") in ids
+                or not entry.get("id")
+                or entry.get("recipe_type") != "food"
                 or not isinstance(entry.get("title"), str) or not entry["title"].strip()
                 or not entry.get("ingredients") or not entry.get("steps")
                 or not isinstance(entry.get("ingredients"), list)
@@ -106,28 +118,23 @@ def _read_catalog(path, version):
                 or any(not isinstance(s, str) or not s.strip() for s in entry["steps"])):
             continue
         recipe = deepcopy(entry)
-        vietnamese = recipe["id"].startswith("vifoodrec_")
-        recipe.setdefault("subtitle", "Món Việt chọn lọc · công thức tiếng Việt" if vietnamese
-                          else "Công thức Wikibooks · bản gốc tiếng Anh")
+        recipe.setdefault("language", "vi")
+        recipe.setdefault("cuisine", "VN")
+        recipe.setdefault("subtitle", "Món Việt chọn lọc · Món Ngon Mỗi Ngày")
         if not recipe.get("cooking_time"):
             recipe["cooking_time"] = "Xem cách làm"
         recipe.setdefault("benefit", "Công thức nấu ăn tham khảo; chưa được xác minh công dụng hoặc mức độ phù hợp với bệnh cho từng món.")
         recipe.setdefault("avoid", ["Đối chiếu nguyên liệu, dị ứng và hướng dẫn ăn uống cá nhân trước khi dùng."])
         recipe["imported"] = True
-        recipe["source_provider"] = "ViFoodRec" if vietnamese else "Wikibooks Cookbook"
-        if recipe["recipe_type"] == "drink":
-            normalize_drink_calories(recipe)
+        recipe.setdefault("source_provider", "Món Ngon Mỗi Ngày")
         ids.add(recipe["id"])
         result.append(recipe)
     return result
 
 
 def _records(source=None):
-    # International records remain archived for reproducibility. They are not
-    # silently used as the fallback for a Vietnamese catalog or empty filter.
-    path = WIKIBOOKS_DATA_PATH if source == "wikibooks" else DATA_PATH
-    version = path.stat().st_mtime_ns if path.exists() else None
-    return _read_catalog(str(path), version)
+    version = DATA_PATH.stat().st_mtime_ns if DATA_PATH.exists() else None
+    return _read_catalog(str(DATA_PATH), version)
 
 
 def imported_recipes(recipe_type=None, source=None):
@@ -137,14 +144,16 @@ def imported_recipes(recipe_type=None, source=None):
 
 def catalog_stats():
     records = _records()
-    demo = 0 if records else 7
     providers = sorted({r["source_provider"] for r in records})
     vietnamese = bool(records) and all(r.get("cuisine") == "VN" for r in records)
-    return {"imported_count": len(records), "food_count": demo + sum(r["recipe_type"] == "food" for r in records),
-            "drink_count": demo + sum(r["recipe_type"] == "drink" for r in records),
-            "total": 2 * demo + len(records), "source": ", ".join(providers) if providers else "Danh mục mẫu",
-            "cuisine": "VN" if vietnamese else "unspecified",
-            "license": "not_declared" if vietnamese else "CC BY-SA 4.0" if providers == ["Wikibooks Cookbook"] else "project_samples"}
+    return {
+        "imported_count": len(records),
+        "food_count": sum(r["recipe_type"] == "food" for r in records),
+        "total": len(records),
+        "source": ", ".join(providers) if providers else "Món Ngon Mỗi Ngày",
+        "cuisine": "VN" if vietnamese else "unspecified",
+        "license": "not_declared",
+    }
 
 
 EXPANSIONS = {
@@ -175,8 +184,6 @@ def is_standalone_one_dish(recipe):
     chứ không phải món thành phần trong mâm cơm (canh suông, rau luộc, món mặn ăn cơm) hay món chè ngọt/tráng miệng."""
     if not recipe:
         return False
-    if recipe.get("recipe_type") == "drink":
-        return True
     title = str(recipe.get("title", "")).strip()
     if title.lower().startswith("canh ") or title.lower().startswith("canh:"):
         return False
@@ -189,9 +196,7 @@ def is_standalone_one_dish(recipe):
 
 
 def classify_dish_role(recipe):
-    """Phân loại vai trò món trong mâm cơm: main, soup, side, staple, drink."""
-    if recipe.get("recipe_type") == "drink":
-        return "drink"
+    """Phân loại vai trò món trong mâm cơm: main, soup, side, staple."""
     title = normalize(recipe.get("title", ""))
     cats = normalize(" ".join(recipe.get("categories", [])))
     if any(k in title for k in ["chao ", "sup ", "cháo", "súp", "oatmeal", "porridge", "congee", "mien ", "bun ", "pho ", "banh canh", "hu tieu", "com ", "mi ", "nui", "banh cuon", "banh uot", "banh mi", "xoi ", "khoai", "bap luoc", "ngo luoc", "san luoc"]):
@@ -200,8 +205,8 @@ def classify_dish_role(recipe):
         return "soup"
     if any(k in title for k in ["xao", "luoc", "goi", "nom", "salad", "xào", "luộc", "gỏi", "nộm", "rau"]) or any(k in cats for k in ["xao", "goi", "salad", "rau"]):
         return "side"
-    if any(k in title for k in ["che ", "tra ", "sua ", "chè", "trà", "sữa"]):
-        return "drink"
+    if any(k in title for k in ["che ", "chè"]):
+        return "dessert"
     veg_keywords = ["cai", "cải", "bi ", "bí ", "bau ", "bầu ", "muop", "mướp", "bong cai", "bông cải", "nam", "nấm", "ca tim", "cà tím", "dau bap", "đậu bắp", "su hao", "su hào", "su su", "cu cai", "củ cải", "ngo sen", "ngó sen", "dau hu", "đậu hũ", "dau phu", "đậu phụ"]
     meat_keywords = ["thit", "thịt", "heo", "lon", "lợn", "bo ", "bò ", "ga ", "gà ", "vit", "vịt", "ca ", "cá ", "tom", "tôm", "cua", "muc", "mực", "oc ", "ốc ", "suon", "sườn", "gio ", "giò ", "luon", "lươn", "ech", "ếch"]
     if any(k in title for k in veg_keywords) and not any(k in title for k in meat_keywords):
@@ -215,12 +220,12 @@ def classify_meal_times(recipe, role=None):
         role = classify_dish_role(recipe)
     title = normalize(recipe.get("title", ""))
     meals = []
-    if role in ("staple", "drink") or any(k in title for k in ["chao", "sup", "cháo", "súp", "banh", "trung", "sua", "yen mach", "bun", "pho"]):
+    if role == "staple" or any(k in title for k in ["chao", "sup", "cháo", "súp", "banh", "trung", "sua", "yen mach", "bun", "pho"]):
         meals.append("breakfast")
     if role in ("main", "soup", "side", "staple"):
         meals.append("lunch")
         meals.append("dinner")
-    if role in ("drink", "staple") or any(k in title for k in ["che", "chè", "sen", "sua", "sữa", "tra", "trà", "chao", "cháo"]):
+    if role == "staple" or any(k in title for k in ["che", "chè", "sen", "sua", "sữa", "tra", "trà", "chao", "cháo"]):
         meals.append("snack")
     return list(dict.fromkeys(meals)) or ["lunch", "dinner"]
 
@@ -250,11 +255,6 @@ def retrieve_candidates(condition, recipes, limit=32, sort_by_sugar=False):
             if recipe.get("recipe_type") == "food":
                 if re.search(r"\b(?:banh\s+(?:ran|xep|chung|tet|tro|it|bo|chuoi)|ngo\s+chien|dua\s+mon|nuoc\s+mam)\b", title):
                     value -= 25
-            elif recipe.get("recipe_type") == "drink":
-                if re.search(r"\b(?:tra\s+sua|kem\s+cheese|pho\s+mai|ca\s+phe|tran\s+chau|sau\s+rieng|sua\s+dac)\b", title + " " + ingredients):
-                    value -= 25
-                if re.search(r"\b(?:can\s+tay|dua\s+leo|anh\s+dao|cherry|tra\s+xanh|bi\s+dao|tao|cam|buoi)\b", title):
-                    value += 18
         return value
     def priority_key(recipe):
         if sort_by_sugar:

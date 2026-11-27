@@ -141,8 +141,8 @@ class PathSettings(BaseModel):
     data_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "instance")
     upload_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "uploads")
     chroma_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "medical_vectordb")
-    static_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "static")
-    templates_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "templates")
+    static_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "frontend" / "static")
+    templates_dir: Path = Field(default_factory=lambda: PROJECT_ROOT / "frontend" / "templates")
     database_path: Path = Field(default_factory=lambda: PROJECT_ROOT / "instance" / "medimind.db")
     database_url: str = Field(default="")
 

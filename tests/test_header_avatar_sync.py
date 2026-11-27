@@ -173,7 +173,7 @@ class HeaderAvatarSyncTests(unittest.TestCase):
         self.assertEqual(txt_res.status_code, 400)
 
     def test_frontend_js_contains_header_avatar_sync_and_upload_call(self):
-        app_js = (Path(__file__).resolve().parent.parent / "static" / "js" / "app.js").read_text(encoding="utf-8")
+        app_js = (Path(__file__).resolve().parent.parent / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
         for symbol in (
             "function syncHeaderAvatar",
             "function getUserRealAvatarUrl",

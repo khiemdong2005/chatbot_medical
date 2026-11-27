@@ -59,22 +59,23 @@ class TestGatewayParityRouting:
         assert res.status_code != 404
 
     def test_nutrition_options_resolves(self, api_client):
-        """POST /api/nutrition/options trả về 400 (validation) hoặc 200 khi body hợp lệ, KHÔNG PHẢI 404."""
-        res = api_client.post("/api/nutrition/options", json={})
-        assert res.status_code in (400, 422), f"Expected validation error, got {res.status_code}"
+        """POST /api/nutrition/options trả về 401 khi chưa đăng nhập (KHÔNG PHẢI 404)."""
+        res = api_client.post("/api/nutrition/options", json={"condition": "Mệt mỏi", "recipe_type": "food"})
+        assert res.status_code == 401, f"Expected 401 auth required, got {res.status_code}"
         assert res.status_code != 404
-
-        # Thử với body hợp lệ theo schema yêu cầu (condition + recipe_type)
-        valid_res = api_client.post("/api/nutrition/options", json={"condition": "Mệt mỏi", "recipe_type": "food"})
-        assert valid_res.status_code == 200
-        data = valid_res.json()
-        assert data.get("success") is True
 
     def test_nutrition_analyze_resolves(self, api_client):
-        """POST /api/nutrition/analyze trả về 400 hoặc 200, KHÔNG PHẢI 404."""
-        res = api_client.post("/api/nutrition/analyze", json={})
-        assert res.status_code in (400, 422)
+        """POST /api/nutrition/analyze trả về 401 khi chưa đăng nhập (KHÔNG PHẢI 404)."""
+        res = api_client.post("/api/nutrition/analyze", json={"condition": "Mệt mỏi"})
+        assert res.status_code == 401, f"Expected 401 auth required, got {res.status_code}"
         assert res.status_code != 404
+
+    def test_nutrition_meal_plan_and_catalog_auth_required(self, api_client):
+        """POST /api/nutrition/meal-plan và GET /api/nutrition/recipe-catalog trả về 401 khi chưa đăng nhập."""
+        res_plan = api_client.post("/api/nutrition/meal-plan", json={})
+        assert res_plan.status_code == 401
+        res_cat = api_client.get("/api/nutrition/recipe-catalog")
+        assert res_cat.status_code == 401
 
     def test_scan_files_auth_required_resolves(self, api_client):
         """GET /api/scan-files trả về 401 khi chưa đăng nhập, KHÔNG PHẢI 404."""

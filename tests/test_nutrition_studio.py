@@ -6,6 +6,7 @@ from core.nutrition_service import get_nutrition_recommendation, find_preset_con
 def client():
     app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:"})
     with app.test_client() as client:
+        client.environ_base["HTTP_ORIGIN"] = "http://localhost:5000"
         yield client
 
 def test_preset_dau_bung_kinh_matches():
@@ -23,7 +24,16 @@ def test_preset_nhiet_mieng_matches():
     assert "foods_to_eat" in res
     assert "recipe" in res
 
+def test_api_nutrition_analyze_requires_login(client):
+    res = client.post("/api/nutrition/analyze", json={"condition": "Đau bụng kinh"})
+    assert res.status_code == 401
+    data = res.get_json()
+    assert data["success"] is False
+    assert data["auth_required"] is True
+
 def test_api_nutrition_analyze_valid_preset(client):
+    with client.session_transaction() as sess:
+        sess["user_id"] = 1
     res = client.post("/api/nutrition/analyze", json={"condition": "Đau bụng kinh"})
     assert res.status_code == 200
     data = res.get_json()
@@ -32,6 +42,8 @@ def test_api_nutrition_analyze_valid_preset(client):
     assert data["data"]["recipe"]["title"] == "Canh khoai lang hạt dẻ hầm"
 
 def test_api_nutrition_analyze_empty_input(client):
+    with client.session_transaction() as sess:
+        sess["user_id"] = 1
     res = client.post("/api/nutrition/analyze", json={"condition": "   "})
     assert res.status_code == 400
     data = res.get_json()
@@ -39,6 +51,8 @@ def test_api_nutrition_analyze_empty_input(client):
     assert "Vui lòng nhập" in data["error"]
 
 def test_api_nutrition_analyze_custom_fallback(client):
+    with client.session_transaction() as sess:
+        sess["user_id"] = 1
     res = client.post("/api/nutrition/analyze", json={"condition": "mỏi cơ vai gáy cấp"})
     assert res.status_code == 200
     data = res.get_json()

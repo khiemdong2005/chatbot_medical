@@ -372,41 +372,6 @@ def generate_ai_nutrition(condition_query: str, recipe_type: str = "food") -> Di
 def generate_dynamic_fallback(query: str, recipe_type: str = "food") -> Dict[str, Any]:
     """Tạo phác đồ dinh dưỡng dự phòng an toàn khi không có mạng/AI."""
     clean_q = query.strip()
-    if recipe_type == "drink":
-        return {
-            "id": "fallback_drink_" + re.sub(r"[^a-z0-9]", "_", remove_accents(clean_q))[:20],
-            "condition_name": clean_q.title(),
-            "short_desc": "Thức uống dịu nhẹ",
-            "accent_color": "sky",
-            "foods_to_eat": [
-                {"name": "Trà hoa cúc", "icon": "🌼", "desc": "Thức uống nhẹ, thơm dịu", "glow": "amber"},
-                {"name": "Nước ấm", "icon": "💧", "desc": "Bổ sung nước cho cơ thể", "glow": "cyan"},
-                {"name": "Lá bạc hà", "icon": "🌿", "desc": "Tạo hương vị thanh mát", "glow": "emerald"}
-            ],
-            "foods_to_avoid": [
-                {"name": "Nước tăng lực", "icon": "🥤", "desc": "Có thể chứa caffeine và nhiều đường", "glow": "red"},
-                {"name": "Đồ uống có cồn", "icon": "🍷", "desc": "Không phù hợp khi cần nghỉ ngơi", "glow": "red"}
-            ],
-            "recipe": {
-                "title": "Trà hoa cúc bạc hà",
-                "subtitle": "Thức uống ấm, hương vị dịu nhẹ",
-                "badge": "THỨC UỐNG · 3 BƯỚC",
-                "cooking_time": "~8 phút",
-                "tip": "Để trà nguội bớt trước khi uống",
-                "servings_default": 1,
-                "ingredients": [
-                    {"name": "Hoa cúc khô", "amount": 3, "unit": "bông", "icon": "🌼"},
-                    {"name": "Lá bạc hà", "amount": 4, "unit": "lá", "icon": "🌿"},
-                    {"name": "Mật ong", "amount": 1, "unit": "thìa cà phê", "icon": "🍯"},
-                    {"name": "Nước nóng", "amount": 250, "unit": "ml", "icon": "💧"}
-                ],
-                "steps": [
-                    "Tráng hoa cúc và lá bạc hà bằng nước sạch.",
-                    "Hãm hoa cúc trong 250ml nước nóng khoảng 5 phút.",
-                    "Thêm bạc hà và mật ong, khuấy nhẹ rồi thưởng thức."
-                ]
-            }
-        }
 
     return {
         "id": "fallback_" + re.sub(r"[^a-z0-9]", "_", remove_accents(clean_q))[:20],
@@ -448,20 +413,8 @@ def generate_dynamic_fallback(query: str, recipe_type: str = "food") -> Dict[str
 
 def get_nutrition_recommendation(condition_query: str, recipe_type: str = "food") -> Dict[str, Any]:
     """Hàm điều phối: Ưu tiên dữ liệu mẫu nhanh -> AI linh hoạt."""
-    def recipe_matches_type(result: Dict[str, Any]) -> bool:
-        title = str(result.get("recipe", {}).get("title", "")).lower()
-        drink_words = ("trà", "nước", "sữa", "sinh tố", "nước ép", "đồ uống")
-        is_drink = any(word in title for word in drink_words)
-        return is_drink == (recipe_type == "drink")
-
     preset = find_preset_condition(condition_query)
     if preset:
-        if recipe_matches_type(preset):
-            return preset
-        fallback = generate_dynamic_fallback(condition_query, recipe_type)
-        fallback["condition_name"] = preset.get("condition_name", condition_query.title())
-        fallback["foods_to_eat"] = preset.get("foods_to_eat", fallback["foods_to_eat"])
-        fallback["foods_to_avoid"] = preset.get("foods_to_avoid", fallback["foods_to_avoid"])
-        return fallback
+        return preset
     return generate_dynamic_fallback(condition_query, recipe_type)
 

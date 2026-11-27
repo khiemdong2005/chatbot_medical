@@ -72,17 +72,6 @@ class VietnameseRecipeFeaturesTests(unittest.TestCase):
                 self.assertTrue(analyze_imported_recipe(recipe([ingredient]))["allergen_uncertain"])
         self.assertIn("milk", analyze_imported_recipe(recipe(["Bơ lạt 10 g"]))["allergens"])
 
-    def test_actual_vifoodrec_butter_and_broccoli_regressions(self):
-        path = Path(__file__).resolve().parent.parent / "data/recipes/vifoodrec/recipes.json"
-        if not path.exists():
-            self.skipTest("ViFoodRec import is not installed")
-        rows = {r["id"]: r for r in json.loads(path.read_text(encoding="utf-8-sig"))}
-        butter = analyze_imported_recipe(rows["vifoodrec_2667"])
-        self.assertTrue(butter["allergen_uncertain"] or "milk" in butter["allergens"])
-        broccoli = analyze_imported_recipe(rows["vifoodrec_2169"])
-        self.assertFalse(broccoli["liquid"])
-        self.assertFalse(broccoli["soft"])
-
     def test_frying_is_detected_and_does_not_become_soft_food(self):
         for method in ("Chiên cá đến khi chín vàng.", "Xào rau trên lửa lớn.", "Rán trứng đến chín."):
             with self.subTest(method=method):

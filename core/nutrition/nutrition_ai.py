@@ -91,7 +91,7 @@ def validate_selection(value: Any, recipes: List[Dict], source_count: int) -> Di
         recipe = dict(catalog[recipe_id])
 
         dish_role = choice.get("dish_role")
-        if dish_role not in ("main", "soup", "side", "staple", "drink"):
+        if dish_role not in ("main", "soup", "side", "staple"):
             dish_role = classify_dish_role(recipe)
 
         meal_time = choice.get("meal_time")
@@ -191,7 +191,7 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
                     "recipe_id": {"type": "string", "enum": candidate_ids},
                     "display_title": {"type": "string"},
                     "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
-                    "dish_role": {"type": "string", "enum": ["main", "soup", "side", "staple", "drink"]},
+                    "dish_role": {"type": "string", "enum": ["main", "soup", "side", "staple"]},
                     "key_nutrients": {"type": "string"},
                     "reason": {"type": "string"}, "caution": {"type": "string"},
                     "source_ids": {"type": "array", "items": {"type": "integer"}}
@@ -199,19 +199,18 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
             }}
         }, "required": ["needs_clarification", "clarification_question", "recommendations"]
     }
-    if recipe_type == "food":
-        schema["properties"]["full_meal_set"] = {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "title": {"type": "string"},
-                "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
-                "rationale": {"type": "string"},
-                "main_recipe_id": {"type": "string", "enum": candidate_ids},
-                "soup_recipe_id": {"type": "string", "enum": candidate_ids},
-                "side_recipe_id": {"type": "string", "enum": candidate_ids},
-                "staple_text": {"type": "string"}
-            }, "required": ["title", "meal_time", "rationale", "main_recipe_id", "soup_recipe_id"]
-        }
+    schema["properties"]["full_meal_set"] = {
+        "type": "object", "additionalProperties": False,
+        "properties": {
+            "title": {"type": "string"},
+            "meal_time": {"type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"]},
+            "rationale": {"type": "string"},
+            "main_recipe_id": {"type": "string", "enum": candidate_ids},
+            "soup_recipe_id": {"type": "string", "enum": candidate_ids},
+            "side_recipe_id": {"type": "string", "enum": candidate_ids},
+            "staple_text": {"type": "string"}
+        }, "required": ["title", "meal_time", "rationale", "main_recipe_id", "soup_recipe_id"]
+    }
 
     fms_format = """  "full_meal_set": {
     "title": "string",
@@ -221,9 +220,9 @@ def select_recipes(condition: str, recipe_type: str, recipes: List[Dict], guidan
     "soup_recipe_id": "string",
     "side_recipe_id": "string",
     "staple_text": "string"
-  }""" if recipe_type == "food" else '  "full_meal_set": null'
+  }"""
 
-    fms_rule = "7. Với thức ăn, nếu tạo full_meal_set, chọn một món chính, một món canh và có thể thêm một món rau/phụ từ candidates; ID khác nhau, không lặp với recommendations. Món rau/phụ TUYỆT ĐỐI KHÔNG TRÙNG NGUYÊN LIỆU ĐẠM HOẶC THÀNH PHẦN CHÍNH với món chính hoặc món canh trong thực đơn." if recipe_type == "food" else "7. Với thức uống, không tạo full_meal_set (đặt full_meal_set = null)."
+    fms_rule = "7. Nếu tạo full_meal_set, chọn một món chính, một món canh và có thể thêm một món rau/phụ từ candidates; ID khác nhau, không lặp với recommendations. Món rau/phụ TUYỆT ĐỐI KHÔNG TRÙNG NGUYÊN LIỆU ĐẠM HOẶC THÀNH PHẦN CHÍNH với món chính hoặc món canh trong thực đơn."
 
     instruction = f"""Bạn chọn công thức tham khảo từ danh mục MediMind theo mô tả của người dùng.
 Chỉ chọn recipe_id có trong candidates. Không thêm, đổi nguyên liệu, cách nấu, số kcal hay chỉ số dinh dưỡng.
@@ -237,7 +236,7 @@ CẤU TRÚC PHẢN HỒI JSON BẮT BUỘC:
       "recipe_id": "string",
       "display_title": "string",
       "meal_time": "string (breakfast|lunch|dinner|snack)",
-      "dish_role": "string (main|soup|side|staple|drink)",
+      "dish_role": "string (main|soup|side|staple)",
       "key_nutrients": "string",
       "reason": "string (10-500 chars)",
       "caution": "string (<= 400 chars)",
@@ -253,12 +252,12 @@ QUY TẮC:
 3. BMI chỉ là ngữ cảnh tham khảo ở người lớn. Không suy diễn nhu cầu năng lượng, mục tiêu giảm cân hay giới hạn 2.000 kcal/ngày từ BMI. Kcal nguồn chưa được kiểm chứng lâm sàng.
 4. Giải thích bằng nguyên liệu, kết cấu và cách chế biến thật sự có trong công thức. Không bịa vi chất, cơ chế chữa bệnh, tác dụng điều trị hoặc độ an toàn dị ứng tuyệt đối.
 5. source_ids chỉ chứa các chỉ số nguyên 0-based hợp lệ (< số lượng phần tử trong guidance; dùng [] nếu guidance rỗng).
-6. Với thức ăn, recommendations chọn các món ăn trọn vị có is_one_dish=true, đa dạng bữa (sáng, trưa, tối), tối đa 5-6 món. Tuyệt đối không chọn chè ngọt, đồ ngọt tráng miệng làm bữa ăn chính cho người bệnh. Đồ uống chọn từ ứng viên thức uống.
+6. Với thức ăn, recommendations chọn các món ăn trọn vị có is_one_dish=true, đa dạng bữa (sáng, trưa, tối), tối đa 5-6 món. Tuyệt đối không chọn chè ngọt, đồ ngọt tráng miệng làm bữa ăn chính cho người bệnh.
 {fms_rule}
 8. Bỏ trống staple_text để hệ thống nhắc người dùng chọn tinh bột phù hợp dị ứng.
 9. Nếu không thể chọn món phù hợp, trả needs_clarification=true, recommendations=[] và một câu hỏi ngắn.
 10. Nội dung trả về bằng tiếng Việt; mỗi reason dài khoảng 30-350 ký tự.
-11. NEGATIVE PROMPT CHO GÚT / ACID URIC: Khi user_input liên quan đến Gút hoặc Acid Uric, TUYỆT ĐỐI CẤM chọn bất kỳ món/thức uống nào chứa [Thịt gà/gia cầm, Thịt bò/heo/thịt đỏ, Nội tạng, Hải sản/cá, Các loại đậu/đậu phụ]. CHỈ chọn món rau xanh, củ quả, bí đao, trứng hoặc thức uống giàu vitamin C, lợi tiểu, ít purin.
+11. NEGATIVE PROMPT CHO GÚT / ACID URIC: Khi user_input liên quan đến Gút hoặc Acid Uric, TUYỆT ĐỐI CẤM chọn bất kỳ món nào chứa [Thịt gà/gia cầm, Thịt bò/heo/thịt đỏ, Nội tạng, Hải sản/cá, Các loại đậu/đậu phụ]. CHỈ chọn món rau xanh, củ quả, bí đao, trứng ít purin.
 12. LÝ DO Y KHOA BẮT BUỘC (CLINICAL REASONING): Mọi field `reason` trong `recommendations` và `rationale` trong `full_meal_set` PHẢI nêu rõ nguyên liệu thực tế của món gắn với cơ chế/lợi ích y khoa cho tình trạng `user_input` (ví dụ Gút: "Sử dụng rau xanh và bí đao ít purin, hỗ trợ lợi tiểu và kiểm soát acid uric an toàn cho người bệnh Gút."). TUYỆT ĐỐI KHÔNG viết câu chung chung vô nghĩa như "Món có kết cấu mềm", "Đã qua bộ lọc nguyên liệu", hay "Công thức tham khảo".
 """
     from core.ai.retry_policy import ErrorClassification
@@ -307,8 +306,6 @@ QUY TẮC:
             json_mode=True,
         )
         result = validate_selection(raw_result, recipes, len(guidance))
-        if recipe_type == "drink":
-            result["full_meal_set"] = None
         if re.search(r"\b(?:gút|gut|gout|acid\s+uric)\b", condition, re.IGNORECASE):
             from core.nutrition.nutrition_rules import has_gout_forbidden_ingredients
             safe_recipes = [r for r in result.get("recipes", []) if not has_gout_forbidden_ingredients(r)]

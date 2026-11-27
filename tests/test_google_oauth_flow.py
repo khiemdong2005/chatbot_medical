@@ -220,8 +220,8 @@ def test_google_oauth_existing_user_logs_in_directly(oauth_client, monkeypatch):
 
 def test_simulated_google_modal_removed_from_frontend():
     """Đảm bảo modal chọn tài khoản Google giả (#google-account-modal) đã bị gỡ hoàn toàn khỏi HTML và JS."""
-    html_text = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
-    js_text = (ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    html_text = (ROOT / "frontend" / "templates" / "index.html").read_text(encoding="utf-8")
+    js_text = (ROOT / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
 
     for forbidden in (
         "google-account-modal",
@@ -237,7 +237,7 @@ def test_simulated_google_modal_removed_from_frontend():
 
 def test_google_signin_button_resets_on_bfcache_back_and_mode_switch():
     """Ngăn lỗi nút Google kẹt spinner hoặc ghi đè chữ vào thẻ span animate-spin khi bấm Back từ Google rồi đổi tab Đăng ký."""
-    js_text = (ROOT / "static" / "js" / "app.js").read_text(encoding="utf-8")
+    js_text = (ROOT / "frontend" / "static" / "js" / "app.js").read_text(encoding="utf-8")
 
     assert "function resetGoogleSignInButton()" in js_text
     assert "window.addEventListener('pageshow'" in js_text

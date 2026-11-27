@@ -51,6 +51,6 @@ Mặc định ứng dụng dùng `sqlite:///medimind.db`, được Flask đặt 
 
 ## Kiểm thử và phạm vi thay đổi
 
-`tests/` kiểm tra các hợp đồng dữ liệu, quyền truy cập, xử lý tài liệu, dinh dưỡng, RAG và bố cục giao diện. Phụ thuộc kiểm thử được liệt kê trong `requirements-dev.txt`; công cụ nhập dữ liệu dùng thêm `requirements-tools.txt`.
+`tests/` kiểm tra các hợp đồng dữ liệu, quyền truy cập, xử lý tài liệu, dinh dưỡng, RAG và bố cục giao diện. Phụ thuộc kiểm thử được liệt kê trong `requirements/dev.txt`; công cụ nhập dữ liệu dùng thêm `requirements/tools.txt`.
 
 Xem [CONTRIBUTING.md](../CONTRIBUTING.md) trước khi gửi Pull Request và [data/README.md](../data/README.md) trước khi thay đổi dữ liệu hoặc chạy ingestion. Không đưa cơ sở dữ liệu runtime, tài liệu người dùng hoặc khóa truy cập vào commit.

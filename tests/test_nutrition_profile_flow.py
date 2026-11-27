@@ -32,9 +32,23 @@ def test_profile_food_allergy_excludes_every_displayed_dish(client, test_app, te
         assert "chưa tính" in meal["calorie_note"]
 
 
-def test_browser_cannot_inject_profile_into_guest_request(client):
-    response = client.post("/api/nutrition/options", json={
+def test_browser_cannot_inject_profile_into_guest_request(client, test_users):
+    guest_response = client.post("/api/nutrition/options", json={
+        "condition": "ho", "recipe_type": "food",
+        "profile": {"allergies": "sữa", "height": "170", "weight": "82"},
+    })
+    assert guest_response.status_code == 401
+    assert guest_response.get_json()["auth_required"] is True
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = test_users["user_a_id"]
+    drink_response = client.post("/api/nutrition/options", json={
         "condition": "ho", "recipe_type": "drink",
+    })
+    assert drink_response.status_code == 400
+
+    response = client.post("/api/nutrition/options", json={
+        "condition": "ho", "recipe_type": "food",
         "profile": {"allergies": "sữa", "height": "170", "weight": "82"},
     })
     assert response.status_code == 200
@@ -66,10 +80,13 @@ def test_low_sugar_preference_does_not_invent_nutrient_threshold():
     assert result["query_preferences"] == ["Ít/không thêm đường"]
     assert result["recipes"]
     assert all(not recipe.get("nutrition_verified") for recipe in result["recipes"])
-    known = [recipe["sugar"] for recipe in result["recipes"] if isinstance(recipe.get("sugar"), (int, float))]
-    assert known == sorted(known)
-    shortlist = retrieve_candidates("ít đường", result["recipes"], sort_by_sugar=True)
-    assert min(recipe["sugar"] for recipe in shortlist) == min(known)
+    sample = [
+        {**result["recipes"][0], "id": "s1", "sugar": 8.0},
+        {**result["recipes"][1], "id": "s2", "sugar": 1.5},
+        {**result["recipes"][2], "id": "s3", "sugar": 4.0},
+    ]
+    shortlist = retrieve_candidates("ít đường", sample, sort_by_sugar=True)
+    assert min(recipe["sugar"] for recipe in shortlist) == 1.5
 
 
 def test_allergen_scan_includes_common_sauces():
@@ -78,8 +95,8 @@ def test_allergen_scan_includes_common_sauces():
 
 
 def test_ambiguous_unaccented_food_allergy_is_not_guessed():
-    assert prepare_nutrition_candidates("ho; dị ứng cá", imported_recipes("drink"))["allergies"] == ["fish"]
-    assert prepare_nutrition_candidates("ho; dị ứng cà", imported_recipes("drink"))["recipes"] == []
+    assert prepare_nutrition_candidates("ho; dị ứng cá", imported_recipes("food")[:20])["allergies"] == ["fish"]
+    assert prepare_nutrition_candidates("ho; dị ứng cà", imported_recipes("food")[:20])["recipes"] == []
 
 
 @pytest.mark.parametrize("query", [

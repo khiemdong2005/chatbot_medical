@@ -15,7 +15,7 @@ Install the optional dependencies in your environment, then explicitly download
 the model before serving requests. Example from the project root in PowerShell:
 
 ```powershell
-python -m pip install -r requirements-reranker.txt
+python -m pip install -r requirements/reranker.txt
 python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='BAAI/bge-reranker-v2-m3', revision='953dc6f', local_dir='models/bge-reranker-v2-m3', allow_patterns=['config.json','model.safetensors','sentencepiece.bpe.model','special_tokens_map.json','tokenizer.json','tokenizer_config.json'])"
 $env:RAG_RERANK_ENABLED='true'
 python app.py

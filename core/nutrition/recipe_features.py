@@ -150,7 +150,7 @@ def analyze_imported_recipe(recipe):
     entries = recipe.get("ingredients", [])
     texts = [normalize_ingredient(item.get("name", "")) for item in entries if isinstance(item, dict)] if isinstance(entries, list) else []
     raw_texts = [str(item.get("name", "")).lower() for item in entries if isinstance(item, dict)] if isinstance(entries, list) else []
-    vietnamese = recipe.get("language") == "vi" or str(recipe.get("id", "")).startswith("vifoodrec_")
+    vietnamese = recipe.get("language") == "vi" or str(recipe.get("id", "")).startswith("mnnm-")
     shape_valid = bool(texts) and len(texts) == len(entries) and all(texts)
     ingredients = " ; ".join(texts)
     raw_title = str(recipe.get("title", "")).lower()

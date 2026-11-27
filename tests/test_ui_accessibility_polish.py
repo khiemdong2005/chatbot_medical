@@ -21,8 +21,8 @@ import pytest
 from bs4 import BeautifulSoup
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INDEX_HTML_PATH = os.path.join(PROJECT_ROOT, "templates", "index.html")
-APP_JS_PATH = os.path.join(PROJECT_ROOT, "static", "js", "app.js")
+INDEX_HTML_PATH = os.path.join(PROJECT_ROOT, "frontend", "templates", "index.html")
+APP_JS_PATH = os.path.join(PROJECT_ROOT, "frontend", "static", "js", "app.js")
 
 
 @pytest.fixture(scope="module")
@@ -44,7 +44,7 @@ def run_node_eval(js_code: str):
     """Executes javascript in node with standard browser DOM mocks."""
     harness = """
 const fs = require('fs');
-const appJs = fs.readFileSync('static/js/app.js', 'utf8');
+const appJs = fs.readFileSync('frontend/static/js/app.js', 'utf8');
 
 global.window = {
   addEventListener: () => {},

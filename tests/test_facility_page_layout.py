@@ -17,7 +17,7 @@ class TabParents(HTMLParser):
                 self.stack=self.stack[:i];break
 
 def test_primary_tabs_share_main_container():
-    parser=TabParents(); parser.feed(Path('templates/index.html').read_text(encoding='utf8'))
+    parser=TabParents(); parser.feed(Path('frontend/templates/index.html').read_text(encoding='utf8'))
     assert set(parser.parents)=={'home-tab','booking-tab','ocr-tab','doctor-tab'}
     assert len(set(parser.parents.values()))==1
     assert parser.parents['ocr-tab'][0]=='main'
