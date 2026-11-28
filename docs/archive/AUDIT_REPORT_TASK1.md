@@ -1,6 +1,6 @@
 # BÁO CÁO TOÀN DIỆN KIỂM TOÁN MÃ NGUỒN & THIẾT LẬP BASELINE KỸ THUẬT
 ## PROJECT: MEDIMIND CLINICAL AI — SYMPTOM TRIAGE & PRESCRIPTION READER PLATFORM
-**Repository:** [https://github.com/khiemdong2005/chatbot_medical](https://github.com/khiemdong2005/chatbot_medical)  
+**Repository:** [https://github.com/MediMind-Clinical-AI/chatbot_medical](https://github.com/MediMind-Clinical-AI/chatbot_medical)  
 **Tác giả kiểm toán:** Principal Software Architect, Senior AI Engineer, Backend Lead & QA Lead  
 **Thời điểm kiểm định:** 12/11/2026  
 **Nguyên tắc thực thi:** **AUDIT ONLY** — Không can thiệp mã nguồn, không refactor, không cài đặt/nâng cấp thư viện, không xóa/đổi tên file, không thay đổi schema CSDL.
