@@ -3,7 +3,7 @@
 > **Trợ lý AI Y tế Đa phương thức (Multimodal Clinical Assistant)** kết hợp **Clinical Triage & Double Guardrails**, **Grounded Hybrid RAG (364 tài liệu chuẩn)**, **Vision OCR Đối soát Đơn thuốc**, **Dinh dưỡng Lâm sàng (2.500 món Việt)** và **Đặt lịch tại 2.144 Cơ sở Y tế** — triển khai Live HTTPS trên kiến trúc **AWS VPC 3 tầng Multi-AZ (`ap-southeast-1`)**.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-CloudFront%20HTTPS-10b981?logo=amazonaws)](https://d2typ9pphzk4as.cloudfront.net)
-[![YouTube Demo](https://img.shields.io/badge/Video%20Demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=kbFEEDeEY2I)
+[![YouTube Demo](https://img.shields.io/badge/Video%20Demo-YouTube-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=vF3kyvuShqo)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1.0-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -25,7 +25,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 - 🌐 **Ứng dụng Live (HTTPS):** https://d2typ9pphzk4as.cloudfront.net
-- 🎬 **Video Demo End-to-End (YouTube):** https://www.youtube.com/watch?v=kbFEEDeEY2I
+- 🎬 **Video Demo End-to-End (YouTube):** https://www.youtube.com/watch?v=vF3kyvuShqo
 - 📚 **Hồ sơ Kiến trúc & Workshop AWS:** https://github.com/NitaxIso/aws-worklog-fcaj
 
 ---
